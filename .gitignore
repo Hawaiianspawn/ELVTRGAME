@@ -1,0 +1,20 @@
+# UE generated / local
+ELVTR/Binaries/
+ELVTR/Intermediate/
+ELVTR/DerivedDataCache/
+ELVTR/Saved/
+ELVTR/Platforms/
+ELVTR/.vs/
+ELVTR/*.sln
+ELVTR/Makefile
+ELVTR/CMakeLists.txt
+
+# IDE
+.vs/
+.vscode/
+.idea/
+*.code-workspace
+
+# OS
+Thumbs.db
+Desktop.ini

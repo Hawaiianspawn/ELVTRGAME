@@ -1,0 +1,31 @@
+{
+	"FileVersion": 3,
+	"EngineAssociation": "5.8",
+	"Category": "",
+	"Description": "ELVTR - top-down co-op roguelike with massive retinues. Spike 1: Mass Entity / Niagara swarm benchmark.",
+	"Modules": [
+		{
+			"Name": "ELVTR",
+			"Type": "Runtime",
+			"LoadingPhase": "Default",
+			"AdditionalDependencies": [
+				"Engine",
+				"MassEntity"
+			]
+		}
+	],
+	"Plugins": [
+		{
+			"Name": "MassGameplay",
+			"Enabled": true
+		},
+		{
+			"Name": "Niagara",
+			"Enabled": true
+		},
+		{
+			"Name": "MassInsights",
+			"Enabled": true
+		}
+	]
+}
