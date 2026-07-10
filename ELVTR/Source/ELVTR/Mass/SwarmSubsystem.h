@@ -2,7 +2,7 @@
 
 #include "CoreMinimal.h"
 #include "Subsystems/WorldSubsystem.h"
-#include "MassEntityTypes.h"
+#include "Mass/EntityHandle.h"
 #include "SwarmSubsystem.generated.h"
 
 /**

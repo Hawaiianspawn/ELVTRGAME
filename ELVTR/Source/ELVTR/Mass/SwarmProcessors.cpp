@@ -80,8 +80,9 @@ void USwarmGridBuildProcessor::Execute(FMassEntityManager& EntityManager, FMassE
 		return;
 	}
 
-	Swarm->ResetGrid(EntityManager.GetNumEntities());
-	Swarm->ResetRenderBuffers(EntityManager.GetNumEntities());
+	const int32 ExpectedCount = Swarm->GetTrackedEntities().Num();
+	Swarm->ResetGrid(ExpectedCount);
+	Swarm->ResetRenderBuffers(ExpectedCount);
 
 	EntityQuery.ForEachEntityChunk(Context, [Swarm](FMassExecutionContext& ChunkContext)
 	{
