@@ -5,7 +5,6 @@
 #include "Engine/Engine.h"
 #include "GameFramework/PlayerController.h"
 #include "Mass/SwarmSubsystem.h"
-#include "Materials/MaterialInterface.h"
 #include "UObject/ConstructorHelpers.h"
 
 ASpikeHeroPawn::ASpikeHeroPawn()
@@ -27,16 +26,8 @@ ASpikeHeroPawn::ASpikeHeroPawn()
 	Camera->SetupAttachment(RootComponent);
 	Camera->SetRelativeLocation(FVector(0.f, 0.f, CameraHeight));
 	Camera->SetRelativeRotation(FRotator(-90.f, 0.f, 0.f));
-	Camera->SetProjectionMode(ECameraProjectionMode::Perspective);
-
-	static ConstructorHelpers::FObjectFinder<UMaterialInterface> DemichromeMat(
-		TEXT("/Game/PostProcess/M_PP_Demichrome.M_PP_Demichrome"));
-	if (DemichromeMat.Succeeded())
-	{
-		Camera->PostProcessSettings.WeightedBlendables.Array.Add(
-			FWeightedBlendable(1.f, DemichromeMat.Object));
-		Camera->PostProcessBlendWeight = 1.f;
-	}
+	Camera->SetProjectionMode(ECameraProjectionMode::Orthographic);
+	Camera->SetOrthoWidth(2.f * CameraHeight); // matches prior perspective framing at 90-deg FOV
 }
 
 void ASpikeHeroPawn::Tick(float DeltaSeconds)
