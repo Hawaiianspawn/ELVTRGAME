@@ -46,6 +46,10 @@
 		{
 			"Name": "LiveCodingToolset",
 			"Enabled": true
+		},
+		{
+			"Name": "AllToolsets",
+			"Enabled": true
 		}
 	]
 }

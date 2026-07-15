@@ -18,3 +18,7 @@ ELVTR/CMakeLists.txt
 # OS
 Thumbs.db
 Desktop.ini
+
+# Local-only state
+.claude/settings.local.json
+.obsidian/workspace.json

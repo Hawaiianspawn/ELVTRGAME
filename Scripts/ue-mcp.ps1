@@ -97,8 +97,18 @@ function Build-Editor {
     $engine = Get-EngineDir
     $bat = Join-Path $engine "Engine\Build\BatchFiles\Build.bat"
     Write-Host "Building ELVTREditor (Development Win64)..."
-    & $bat ELVTREditor Win64 Development -project="$($script:UProject)" -WaitMutex
-    return ($LASTEXITCODE -eq 0)
+    $before = if (Test-Path $script:DllPath) { (Get-Item $script:DllPath).LastWriteTimeUtc } else { [DateTime]::MinValue }
+    $out = & $bat ELVTREditor Win64 Development -project="$($script:UProject)" -WaitMutex 2>&1 | ForEach-Object { "$_" }
+    $out | ForEach-Object { Write-Host $_ }
+    if ($LASTEXITCODE -ne 0) { return $false }
+    if ($out -match 'Unable to build while Live Coding is active') { return $false }
+    # Guard against a "success" that wrote nothing (stale module would silently load).
+    $after = if (Test-Path $script:DllPath) { (Get-Item $script:DllPath).LastWriteTimeUtc } else { [DateTime]::MinValue }
+    if (($after -eq $before) -and ($out -notmatch 'Target is up to date')) {
+        Write-Host "Build reported success but $($script:DllPath) was not rewritten - treating as failure." -ForegroundColor Yellow
+        return $false
+    }
+    return $true
 }
 
 function Start-Editor {

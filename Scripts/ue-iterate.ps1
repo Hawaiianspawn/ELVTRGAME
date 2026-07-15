@@ -88,7 +88,7 @@ if ($decision.Mode -eq "LiveCoding") {
         & "$PSScriptRoot\ue-relaunch.ps1"; exit $LASTEXITCODE
     }
     Write-Host "Triggering Live Coding compile..."
-    $out = Invoke-McpTool -ToolName "CompileLiveCoding" -Toolset "ToolsetRegistry.LiveCodingToolset" -TimeoutSec 240
+    $out = Invoke-McpTool -ToolName "CompileLiveCoding" -Toolset "LiveCodingToolset.LiveCodingToolset" -TimeoutSec 240
     Write-Host $out
     if ($out -match 'Result:\s*(Success|NoChanges)') { Write-Host "Live Coding applied." -ForegroundColor Green; exit 0 }
     if ($out -match 'not enabled|not loaded') {

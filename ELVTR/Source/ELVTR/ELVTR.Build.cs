@@ -19,7 +19,9 @@ public class ELVTR : ModuleRules
 			"MassEntity",
 			"MassCommon",
 			"MassMovement",
-			"Niagara"
+			"Niagara",
+			"RenderCore",
+			"RHI"
 		});
 	}
 }
