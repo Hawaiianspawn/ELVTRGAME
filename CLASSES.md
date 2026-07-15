@@ -1,6 +1,6 @@
 # Class Design — v1 Roster
 
-**Version:** 0.2 (4-class roster) · Companion to `GDD.md` §5 · Last updated: 2026-07-09
+**Version:** 0.4 (4-class roster, role-only identities) · Companion to `GDD.md` §5 · Last updated: 2026-07-11
 
 **Tone decision:** *We are the good guys.* Heroes descend into the dungeon to liberate
 it, not to plunder it. This drives the unifying retinue theme:
@@ -45,6 +45,15 @@ With four classes the support role splits cleanly:
 - Healer: **Lampbearer** *(chosen 2026-07-09)* · Lightwarden · Candlekeeper ·
   Luminary · Dawnkeeper · Shepherd of Souls
 
+### Hero identities (role-only — revised 2026-07-11)
+
+Each class is played as a fixed individual with a visible face, but **no proper
+name** — the role *is* the identity (reversing an earlier same-day "named hero"
+decision). The retinue and cast around each hero turn over too often in this game
+for a proper name to hold; the class handle already carries the weight. Full
+fiction lives in `docs/narrative/`, sprite/portrait specs in `docs/art/`; the
+identity blocks below are the citable summary.
+
 ---
 
 ## 1. VANGUARD — *the many*
@@ -52,6 +61,25 @@ With four classes the support role splits cleanly:
 **Fantasy:** You are the shield at the front and the banner they follow. Every cell
 door you break open, every conscript you free, your line grows longer. By the late
 run you are marching a liberated army through the dark.
+
+### The hero
+
+*Fiction: `docs/narrative/hallam.md` · sprite/portrait: `docs/art/hallam.md` · palette: `docs/art/hero-palettes.md`*
+
+- **Who:** 38, a quarryman's son from the Gatecamp; nine years in a Legion pen, where
+  the ledger listed him as a row and a mark. He answers with names — he keeps the
+  count, and the count of people still in the pens is not zero.
+- **The face:** big, heavy-boned, deliberate; broken nose set crooked, beard greying
+  early at the jaw; a chain-gall scar ring at the throat, visible in every frame
+  including the portrait. Legion-pattern helm with the visor unbolted and gone —
+  *"a banner needs a face under it."*
+- **His light — the Roll:** a Legion muster-flag turned inside out, scoured of the
+  crown, restitched with the name of every person he brought out alive; the names of
+  those he didn't are folded under the hem. Art: **Roll-Gold `#f0b84a`**, cloth and
+  thread only — planted, the banner is the one flapping gold rectangle on screen.
+- **Reads as:** *a Legion shield with an open face and a rolled-up flag, standing
+  where the line is thickest.* Widest hero; 1px off-axis banner pole (never reads as
+  an officer crest); warm face inside a Legion silhouette — the Bree trick at hero scale.
 
 ### Hero kit (working)
 - **Weapon:** sword & tower shield; short-reach, high-stagger melee.
@@ -107,6 +135,27 @@ broken wards, and wake the guardians who defended this place before it fell. You
 wards, and battlefield shape. Healing belongs to the Lampbearer (§4). The Relickeeper
 is the class that decides *where* fights happen; the Lampbearer decides how long the
 party survives them.
+
+### The hero
+
+*Fiction: `docs/narrative/edda.md` · sprite/portrait: `docs/art/edda.md` · palette: `docs/art/hero-palettes.md`*
+
+- **Who:** 64, the last apprentice of the Vault-Tenders — the hereditary guild that
+  kept the kingdom's wards fed and its guardians on shift, and died at its posts in
+  the fall. Not a wizard: a maintainer. To her the Undervault is a neglected building,
+  she has the keys, and broken means fixable — all of it is *catching up on the backlog.*
+- **The face:** small, straight-backed, mason's forearms; white hair cropped practical
+  under a tender's cap; round work-spectacles, one lens ground from ward-glass and
+  faintly warm in the right light, which she denies. Dry, appraising, unhurried — a
+  professional estimating a job everyone else calls impossible.
+- **Her light — the waking-ink:** the Vault-Tenders' own pigment, ember-ash bound in
+  wax; she carries her mother's last jar and renders more from every shrine she
+  restores. Her marks are banked fires; the Crown's sigils are cold geometry. Art:
+  **Waking Ember `#e87d3a`**, glyph and seam pixels only — never at rest on the
+  Relickeeper herself; the ink stays in the jar until a mark needs making.
+- **Reads as:** *a small stonemason with a chisel-staff, foreman to walking
+  fortress-blocks, leaving lit letters on the world.* Smallest hero, squarest stance,
+  sentinel cadence; the Graver rides her back on a strap, because it is a mason's tool.
 
 ### Hero kit (working)
 - **Tool:** the Graver — a chisel-staff; mid-range strikes inscribe runes on enemies
@@ -167,6 +216,35 @@ party survives them.
 handful of scouts you've trained — and that is enough, because you never fight fair.
 Marks, traps, and lines of sight are your weapons; the pack executes.
 
+### The hero
+
+*Fiction: `docs/narrative/merle.md` · sprite/portrait: `docs/art/merle.md` · palette: `docs/art/hero-palettes.md`*
+
+- **Who:** young — no one, including them, is entirely sure how young; call it
+  sixteen, seventeen. An orphan of the Fall, what they call **the great end
+  war**. Not raised at the Gatecamp — kept alive feral in the collapse-lands
+  above the Undervault, alongside a stray hawk and two feral war-dogs, until a
+  patrol found the group holding off a hush-maw with thrown stone and nerve
+  alone and recommended "recruitment, not rescue." Their hunt-law is scripture:
+  *nothing you mark is ever left wounded in the dark.*
+- **The face:** war-scarred in a way that reads before it explains — a burn or
+  blast-scar runs scalp to jaw on one side, old enough to have gone smooth,
+  young enough that the brow and cheekbone underneath sit slightly wrong. It
+  takes the read of the face with it: the features a glance uses to sort a
+  person by gender simply aren't there to sort. They don't correct anyone's
+  guess, and don't confirm one either. *"Pick whichever helps you remember to
+  duck when I say duck."* They/them.
+- **Their light — waylight:** pale lamp-lichen that grows only where honest
+  light has burned long, cut with tallow into marking-paste. Not inherited —
+  taught to the whole feral group by one of the other strays, a scrap of
+  pre-Fall trail-lore in her head. They've paid it forward on every quarry
+  since. Art: **Waylight `#d9f0b8`**, contour and pip only, never on any
+  friendly sprite — the Pathfinder carries no bright at rest; their light is
+  spent entirely on others.
+- **Reads as:** *the small quick shape ahead of the army, and the pale outline
+  on the thing that is about to die.* The one friendly sprite that never
+  marches in step; their bow arc is the only curve in the hero row.
+
 ### Hero kit (working)
 - **Weapon:** longbow (or repeating crossbow — art test); charged shots pierce.
 - **Signature — Mark Quarry:** tag an enemy: the entire pack focus-fires it, and it's
@@ -177,11 +255,15 @@ Marks, traps, and lines of sight are your weapons; the pack executes.
   attacked by spectral echoes of the pack; each kill during the Hunt refreshes it once.
 
 ### Retinue: the Pack
-- **Low count, elite, named.** Hawk (scout/reveal), hounds (chase & pin), trained
-  scouts (ranged, reposition constantly), rare exotic bonds (see growth).
+- **Low count, elite, named — found family, not inherited stock.** **Relay**, an
+  orphaned Legion signal-hawk (scout/reveal); **Latch** and **Ash**, feral
+  mongrel descendants of Legion war-dogs (chase & pin); human scouts — fellow
+  war-orphans the Pathfinder found or who found them, the roles deliberately
+  blurred; rare exotic bonds (see growth).
 - Every unit is individually visible, individually named, and *individually mourned* —
-  the emotional inversion of the Vanguard's crowd. Pack members that fall can be
-  found again... changed (decision event).
+  the emotional inversion of the Vanguard's crowd. A name is the one thing the
+  Pathfinder still gives away for free. Pack members that fall can be found
+  again... changed (decision event).
 - Cap is small (≈6–12 late run) but each member takes upgrades like a mini-hero.
 
 ### Growth: Bond & Train
@@ -228,6 +310,31 @@ recovery. Where the Relickeeper decides where fights happen, the Lampbearer deci
 how long the party can keep fighting them. Support = light is also *information*:
 this class owns vision and reveals.
 
+### The hero
+
+*Fiction: `docs/narrative/noll.md` · sprite/portrait: `docs/art/noll.md` · palette: `docs/art/hero-palettes.md`*
+
+- **Who:** mid-twenties. Does not carry her own lamp — carries her mentor's, the
+  Vesper Halls tender who trained her and died with it in reach. She was not the
+  chosen successor; no Lampbearer chooses her replacement. She was simply the one
+  standing there when a snuffer caught the mentor first, and the mentor's last
+  reflex was shoving the lamp into her hands.
+- **The face:** features gone quietly severe from Vesper Halls damp and years of
+  bad light; the pallor of someone who reads by lamp more than sun. Wears the
+  mentor's old tender's wrap without having earned the rank it once implied.
+  Steady, burn-flecked hands; a stillness that reads as calm until you notice
+  she's always listening — to the lamp at her hip.
+- **Her light — the Borrowed Lamp:** never relit, because she was never the one
+  who lit it. It holds her mentor's flame the same way it holds every flame she
+  catches below: the mentor's soul is captured inside, aware, present, able to
+  be heard — an ongoing voice, not a silent relic. Art: **Watch-Lamp `#ffe9c2`**,
+  flame + halo + wisp points only, shared by every honest lamp in the game (the
+  one-flame rule); the lamp renders lit and upright in every state, including
+  hero-down.
+- **Reads as:** *one warm light walking like a woman, with a sky of small lights
+  around her and a room that believes her.* The only bare head in the hero row;
+  her presence shifts the room's palette one value brighter.
+
 ### Hero kit (working)
 - **Tool:** the Lantern-Staff — a cone of revealing light: modest holy damage,
   **reveals hidden glyphs, secrets, traps, and weak points**, and dims/staggers
@@ -245,8 +352,9 @@ this class owns vision and reveals.
   the better this feels.
 
 ### Retinue: the Guided
-- Lost souls, candle-wisps, and stray survivors too broken to fight — a drifting
-  constellation of small lights around the hero.
+- **Captured soul-flames** — the newly dead of the Undervault, caught before the
+  dark claims them (WORLD.md §3c) — a drifting constellation of small lights
+  around the hero.
 - **High count, fragile, non-martial.** The Guided don't hold lines or deal real
   damage: they *sustain*. Wisps carry heal-pulses to wounded allies (visually: a
   light darts from the flock to the injured), soul-lights extend the hero's vision
@@ -285,9 +393,12 @@ this class owns vision and reveals.
 - Decision hooks: *Guide the gathered souls home at a shrine — releasing them (lose
   the units, gain a permanent world flag: this floor's souls rest, its haunts are
   gone) — or keep them burning for the run?* This is the game's meta-loop tension
-  (§3/§6a) embodied in one class: **power now vs. a healed world.** · *A dying
-  survivor can be saved as a Guided light or escorted (slow, dangerous) to a rescue
-  site to fight for the Vanguard instead — whose army grows?*
+  (§3/§6a) embodied in one class: **power now vs. a healed world.** The
+  discipline holds for every stranger's soul without exception — and she has
+  never once applied it to the one soul riding in her own lamp, who has asked.
+  · *A dying survivor can be saved as a Guided light or escorted (slow,
+  dangerous) to a rescue site to fight for the Vanguard instead — whose army
+  grows?*
 - World flags: relit beacon halls; floors whose souls were laid to rest.
 
 ### 2-bit readability
@@ -326,3 +437,7 @@ this class owns vision and reveals.
 | C5 | Do Awakened persist as world-flag site defenders after a run? | Yes, at flagged sites | Tie to §6a flag budget |
 | C6 | Guided wisps: pure Niagara particles vs. lightweight Mass entities? | Niagara-first, promote to Mass only for units with gameplay effects | Tech spike |
 | C7 | Does darkness reduce baseline vision for all classes, or only hide secrets? | Hides secrets/enemies at range; never blinds | Playtest |
+| C8 | Pathfinder growth verb: keep "Bond & Train" or rename to foreground found-family (e.g. "Take In & Train")? | Kept "Bond & Train" — still fits | Flagged by narrative pass, open |
+| C9 | Waylight provenance: taught by a fellow orphan, or invented by the Pathfinder alone? | Taught by a fellow orphan | Flagged by narrative pass, open |
+| C10 | Does the Lampbearer's mentor get promoted to a full WORLD.md §5 named NPC (own flag/E8 hook)? | No — stays unnamed, off the 15-flag budget | Flagged by narrative pass, open |
+| C11 | Does the mentor's soul ever get released (capstone E6 variant)? | Left unresolved by design, on purpose | Flagged by narrative pass, open — revisit if a capstone content pass is scoped |

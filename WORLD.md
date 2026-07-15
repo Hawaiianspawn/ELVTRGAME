@@ -125,10 +125,21 @@ they *administrate*. It's worse.
   to rest (world flag: their unit stops mustering on this floor).
 
 ### 3c. The Quiet — *the dark itself* (tests: the light, and nerve)
-**What:** where the Crown's silence pools: snuffers (lamp-eating wraiths), hush-maws
-(ambushers that hunt by sound), and the Unlit — lost souls that were never guided
-home, now hostile. Few, elite, terrifying.
+**What:** where the Crown's silence pools: snuffers, hush-maws (ambushers that hunt
+by sound), and the Unlit — lost souls that were never guided home, now hostile.
+Few, elite, terrifying.
 
+- **The mechanism — soul-flames:** in the Undervault, the dead rise as a small
+  floating flame — a soul, briefly its own, adrift. Left unclaimed too long, a
+  flame either turns hostile on its own or is eaten by something that hunts them.
+  A Lampbearer's lamp exists for exactly this: find and capture a flame before
+  either happens. This is the mechanism behind three things that previously had
+  none: **the Guided** (`CLASSES.md` §4) *are* captured flames, safely kept;
+  **the Unlit** are flames nobody reached in time, turned; **snuffers** are not
+  generic "lamp-eating wraiths" — they are the things that eat unclaimed flames,
+  full stop, and a snuffer stalking a brazier and a snuffer stalking a fresh
+  death are the same hunger. (This does not extend to players' own downed/revive
+  state — that stays a separate, mundane mechanic. **[Parked — maybe later]**)
 - **Horde behavior (Mass Entity spec):** inverse of the Blightbloom — low count,
   full-Actor elites; stalk light sources, extinguish braziers (undoing Lampbearer
   work mid-run), phase between dark rooms, retreat from Sanctuary light.
