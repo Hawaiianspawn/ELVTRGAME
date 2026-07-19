@@ -94,6 +94,13 @@ Design rules:
   class — keeps the UI universal. Per-class reflavors are specced in `CLASSES.md`.
 - Stances are also the networking-friendly choice: replicating one intent enum per
   retinue is cheap; the swarm interprets it locally (see §10).
+- **Leash rule (DECIDED 2026-07-19):** the retinue's home is the hero. Every unit
+  has a leash radius; a unit past it — including one on **Hold** — breaks stance
+  and returns to Follow. You can anchor a chokepoint, but you must stay in the
+  fight with your troops (hero relevance enforced by rule, not tuning). Class
+  reflavors may *explicitly* override the leash as a designed exception (e.g.,
+  the Pathfinder's *Loose the Pack* above); leashed is the default. Tunables and
+  break/warning behavior: `docs/RTS-VERTICAL-SLICE.md` §2.
 
 ### Design tensions to watch
 - **Hero relevance:** the hero must stay the star even when the army does the killing.
@@ -278,7 +285,8 @@ multiplayer.**
    60fps, Niagara/ISM rendered.
 2. **Spike 2 — The Thousand, Networked:** same scene with 2 clients connected.
 3. **Spike 3 — Procedural floor:** graph-based floor generation with arena constraints.
-4. **Vertical slice:** 1 class, 1 biome, 3 floors, 1 boss, 2 decision events, co-op.
+4. **RTS vertical slice:** 1 class, 1 biome, 3 floors, 1 boss, 2 decision events,
+   co-op. Full definition, gates, and bill of materials: `docs/RTS-VERTICAL-SLICE.md`.
 
 ---
 
