@@ -26,7 +26,7 @@ public:
 	float MoveSpeed = 600.f;
 
 	UPROPERTY(EditAnywhere, Category = "Spike")
-	float CameraHeight = 3500.f;
+	float CameraHeight = 1200.f;
 
 private:
 	UPROPERTY(VisibleAnywhere, Category = "Spike")
