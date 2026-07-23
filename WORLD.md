@@ -1,5 +1,21 @@
 # World & Enemy Design
 
+> # ⛔ SUPERSEDED IN FULL — 2026-07-22
+>
+> **Nothing in this document is canon.** Owner directive: total narrative reset,
+> blank page. The Undervault, the Hollow Crown, the Still Legion, the Quiet, the
+> Unwitnessed, all 5 named NPCs, all 15 world flags, and all 8 decision-event
+> templates are **discarded**.
+>
+> **Current canon: `docs/narrative/FLAME-FOUNDATION.md`.**
+>
+> Kept unedited as history per project convention (same pattern as
+> `docs/art/aesthetic-direction.md`). Do not cite anything below this line in new
+> work. Note that the *structural* budgets this doc established (≈15 flags, 8 event
+> templates, 3 biomes, ~5 NPCs) are referenced by `GDD.md` §6a/§9/§11 and are now
+> **orphaned** — those GDD sections need a reconciliation pass once the new world
+> has content to put in those slots.
+
 **Version:** 0.2 · Companion to `GDD.md` §6a/§9 and `CLASSES.md` · Last updated: 2026-07-09
 
 ---

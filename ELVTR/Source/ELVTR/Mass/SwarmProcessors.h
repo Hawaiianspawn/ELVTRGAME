@@ -5,7 +5,8 @@
 #include "SwarmProcessors.generated.h"
 
 // Execution chain (all PrePhysics):
-//   GridBuild -> BroodSteering / RetinueFollow -> Integrate -> Contact
+//   GridBuild -> BroodSteering / RetinueFollow -> Combat -> Integrate -> Death / Contact
+// Combat and Death live in SwarmCombatProcessors.h.
 
 UCLASS()
 class USwarmGridBuildProcessor : public UMassProcessor
