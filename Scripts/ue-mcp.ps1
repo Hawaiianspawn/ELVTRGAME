@@ -9,7 +9,29 @@ $script:RepoRoot    = Split-Path -Parent $PSScriptRoot
 $script:ProjectDir  = Join-Path $script:RepoRoot "ELVTR"
 $script:UProject    = Join-Path $script:ProjectDir "ELVTR.uproject"
 $script:DllPath     = Join-Path $script:ProjectDir "Binaries\Win64\UnrealEditor-ELVTR.dll"
-$script:McpUrl      = "http://127.0.0.1:8000/mcp"
+# The editor-only module (breadboard and future in-engine tooling). A build that touches
+# only this one legitimately leaves UnrealEditor-ELVTR.dll alone, so the "did the build
+# actually write anything" guard below has to watch both DLLs or it cries wolf.
+$script:EditorDllPath = Join-Path $script:ProjectDir "Binaries\Win64\UnrealEditor-ELVTREditor.dll"
+
+# The MCP plugin's port is editable in Editor Preferences, which writes to the
+# per-project *saved* config and overrides the checked-in default. Read the
+# saved value first or Wait-Mcp polls a dead port and reports a false timeout.
+function Get-McpPort {
+    $configs = @(
+        (Join-Path $script:ProjectDir "Saved\Config\WindowsEditor\EditorPerProjectUserSettings.ini"),
+        (Join-Path $script:ProjectDir "Config\DefaultEditorPerProjectUserSettings.ini")
+    )
+    foreach ($cfg in $configs) {
+        if (-not (Test-Path $cfg)) { continue }
+        $match = Select-String -Path $cfg -Pattern '^\s*ServerPortNumber\s*=\s*(\d+)' | Select-Object -Last 1
+        if ($match) { return [int]$match.Matches[0].Groups[1].Value }
+    }
+    return 8000
+}
+
+$script:McpPort     = Get-McpPort
+$script:McpUrl      = "http://127.0.0.1:$($script:McpPort)/mcp"
 
 # Run git and return stdout lines, swallowing native stderr (e.g. CRLF warnings)
 # so it never trips ErrorActionPreference=Stop.
@@ -27,7 +49,13 @@ function Invoke-GitLines {
 function Get-EngineDir {
     # Prefer the engine the running editor was launched from; else default to UE_5.8.
     $ue = Get-Process UnrealEditor -ErrorAction SilentlyContinue | Select-Object -First 1
-    if ($ue -and $ue.Path) { return (Split-Path -Parent (Split-Path -Parent (Split-Path -Parent $ue.Path))) }
+    # FOUR levels up, not three: the exe lives at <Engine>\Engine\Binaries\Win64\UnrealEditor.exe,
+    # so three only reaches <Engine>\Engine and every path built from it gains a doubled
+    # "Engine\Engine". The fallback below returns the right shape, which is why this only ever
+    # broke when an editor happened to be running — e.g. a crashed one still lingering.
+    if ($ue -and $ue.Path) {
+        return (Split-Path -Parent (Split-Path -Parent (Split-Path -Parent (Split-Path -Parent $ue.Path))))
+    }
     return "C:\Program Files\Epic Games\UE_5.8"
 }
 
@@ -97,15 +125,23 @@ function Build-Editor {
     $engine = Get-EngineDir
     $bat = Join-Path $engine "Engine\Build\BatchFiles\Build.bat"
     Write-Host "Building ELVTREditor (Development Win64)..."
-    $before = if (Test-Path $script:DllPath) { (Get-Item $script:DllPath).LastWriteTimeUtc } else { [DateTime]::MinValue }
+    $watched = @($script:DllPath, $script:EditorDllPath)
+    $before = @($watched | ForEach-Object { if (Test-Path $_) { (Get-Item $_).LastWriteTimeUtc } else { [DateTime]::MinValue } })
     $out = & $bat ELVTREditor Win64 Development -project="$($script:UProject)" -WaitMutex 2>&1 | ForEach-Object { "$_" }
     $out | ForEach-Object { Write-Host $_ }
     if ($LASTEXITCODE -ne 0) { return $false }
     if ($out -match 'Unable to build while Live Coding is active') { return $false }
     # Guard against a "success" that wrote nothing (stale module would silently load).
-    $after = if (Test-Path $script:DllPath) { (Get-Item $script:DllPath).LastWriteTimeUtc } else { [DateTime]::MinValue }
-    if (($after -eq $before) -and ($out -notmatch 'Target is up to date')) {
-        Write-Host "Build reported success but $($script:DllPath) was not rewritten - treating as failure." -ForegroundColor Yellow
+    # ANY watched module being rewritten counts: an editor-tooling-only change rebuilds
+    # UnrealEditor-ELVTREditor.dll and leaves the runtime module untouched, which is correct.
+    $after = @($watched | ForEach-Object { if (Test-Path $_) { (Get-Item $_).LastWriteTimeUtc } else { [DateTime]::MinValue } })
+    $rewrote = $false
+    for ($i = 0; $i -lt $watched.Count; $i++) { if ($after[$i] -ne $before[$i]) { $rewrote = $true } }
+    # -join first: $out is a string ARRAY, and -match/-notmatch on an array filters it rather
+    # than returning a bool, so the bare form was truthy for any build whose output had even
+    # one non-matching line — i.e. it reported every up-to-date build as a failure.
+    if ((-not $rewrote) -and (($out -join "`n") -notmatch 'Target is up to date')) {
+        Write-Host "Build reported success but neither $($script:DllPath) nor $($script:EditorDllPath) was rewritten - treating as failure." -ForegroundColor Yellow
         return $false
     }
     return $true

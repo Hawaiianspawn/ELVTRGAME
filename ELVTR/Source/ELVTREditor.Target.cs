@@ -9,5 +9,6 @@ public class ELVTREditorTarget : TargetRules
 		DefaultBuildSettings = BuildSettingsVersion.Latest;
 		IncludeOrderVersion = EngineIncludeOrderVersion.Latest;
 		ExtraModuleNames.Add("ELVTR");
+		ExtraModuleNames.Add("ELVTREditor");
 	}
 }

@@ -12,9 +12,18 @@
 				"Engine",
 				"MassEntity"
 			]
+		},
+		{
+			"Name": "ELVTREditor",
+			"Type": "Editor",
+			"LoadingPhase": "PostEngineInit"
 		}
 	],
 	"Plugins": [
+		{
+			"Name": "CommonUI",
+			"Enabled": true
+		},
 		{
 			"Name": "MassGameplay",
 			"Enabled": true
