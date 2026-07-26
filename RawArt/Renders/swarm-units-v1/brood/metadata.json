@@ -1,0 +1,79 @@
+{
+  "group_id": null,
+  "states": [
+    {
+      "character": {
+        "id": "bab9e634-0bc2-4dc9-be7b-9f7fe8ee738a",
+        "name": "ELVTR Brood (swarm enemy placeholder)",
+        "prompt": "hunched shadow creature, solid black amorphous body with ragged tendril edges, no armor no clothing no visible limbs detail, featureless except two small pale glowing eyes, crawling forward menacingly, pure black silhouette",
+        "size": {
+          "width": 68,
+          "height": 68
+        },
+        "template_id": "mannequin",
+        "directions": 4,
+        "view": "high top-down",
+        "created_at": "2026-07-25T23:23:08.879125+00:00"
+      },
+      "folder": "ELVTR_Brood_swarm_enemy_placeholder",
+      "frames": {
+        "rotations": {
+          "south": "ELVTR_Brood_swarm_enemy_placeholder/rotations/south.png",
+          "west": "ELVTR_Brood_swarm_enemy_placeholder/rotations/west.png",
+          "east": "ELVTR_Brood_swarm_enemy_placeholder/rotations/east.png",
+          "north": "ELVTR_Brood_swarm_enemy_placeholder/rotations/north.png"
+        },
+        "animations": {
+          "walk": {
+            "south": [
+              "ELVTR_Brood_swarm_enemy_placeholder/animations/walk/south/frame_000.png",
+              "ELVTR_Brood_swarm_enemy_placeholder/animations/walk/south/frame_001.png",
+              "ELVTR_Brood_swarm_enemy_placeholder/animations/walk/south/frame_002.png",
+              "ELVTR_Brood_swarm_enemy_placeholder/animations/walk/south/frame_003.png"
+            ]
+          },
+          "hit_v3": {
+            "south": [
+              "ELVTR_Brood_swarm_enemy_placeholder/animations/hit_v3/south/frame_000.png",
+              "ELVTR_Brood_swarm_enemy_placeholder/animations/hit_v3/south/frame_001.png",
+              "ELVTR_Brood_swarm_enemy_placeholder/animations/hit_v3/south/frame_002.png",
+              "ELVTR_Brood_swarm_enemy_placeholder/animations/hit_v3/south/frame_003.png",
+              "ELVTR_Brood_swarm_enemy_placeholder/animations/hit_v3/south/frame_004.png"
+            ]
+          },
+          "hit": {
+            "south": [
+              "ELVTR_Brood_swarm_enemy_placeholder/animations/hit/south/frame_000.png",
+              "ELVTR_Brood_swarm_enemy_placeholder/animations/hit/south/frame_001.png",
+              "ELVTR_Brood_swarm_enemy_placeholder/animations/hit/south/frame_002.png",
+              "ELVTR_Brood_swarm_enemy_placeholder/animations/hit/south/frame_003.png",
+              "ELVTR_Brood_swarm_enemy_placeholder/animations/hit/south/frame_004.png",
+              "ELVTR_Brood_swarm_enemy_placeholder/animations/hit/south/frame_005.png"
+            ]
+          },
+          "attack": {
+            "south": [
+              "ELVTR_Brood_swarm_enemy_placeholder/animations/attack/south/frame_000.png",
+              "ELVTR_Brood_swarm_enemy_placeholder/animations/attack/south/frame_001.png",
+              "ELVTR_Brood_swarm_enemy_placeholder/animations/attack/south/frame_002.png",
+              "ELVTR_Brood_swarm_enemy_placeholder/animations/attack/south/frame_003.png",
+              "ELVTR_Brood_swarm_enemy_placeholder/animations/attack/south/frame_004.png",
+              "ELVTR_Brood_swarm_enemy_placeholder/animations/attack/south/frame_005.png"
+            ]
+          },
+          "attack_v3": {
+            "south": [
+              "ELVTR_Brood_swarm_enemy_placeholder/animations/attack_v3/south/frame_000.png",
+              "ELVTR_Brood_swarm_enemy_placeholder/animations/attack_v3/south/frame_001.png",
+              "ELVTR_Brood_swarm_enemy_placeholder/animations/attack_v3/south/frame_002.png",
+              "ELVTR_Brood_swarm_enemy_placeholder/animations/attack_v3/south/frame_003.png",
+              "ELVTR_Brood_swarm_enemy_placeholder/animations/attack_v3/south/frame_004.png"
+            ]
+          }
+        }
+      }
+    }
+  ],
+  "export_version": "3.1",
+  "export_date": "2026-07-25T23:36:11.847756"
+}

@@ -1,0 +1,42 @@
+{
+  "generated": "2026-07-26T06:19:27+00:00",
+  "id": "swarm-units",
+  "revision": 1,
+  "composite": true,
+  "cells": 8,
+  "sources": {
+    "brood": {
+      "kind": "placeholder",
+      "note": "PLACEHOLDER until the enemy has canon (FLAME-FOUNDATION leaves 'does the dark have monsters' open and names no antagonist), but now owner-supplied art: PixelLab character 4a75b4ac-7732-499a-84f4-d3a06937a6c2 'Black ooze with teeth', one of a 10-state group. Raw in ../raw/ and never modified. IMPORTANT: these are LIGHT-SHIFTED derivations, not the raw frames. The raw body is 94% Demichrome Dark, which is INVISIBLE against the Dark floor in the sprite path -- M_Swarm is Unlit+Masked and samples the texture directly, so it has no equivalent of the debug renderer's Swarm.UnitLightFloor (gate G5). walk/attack are shifted once (Dark->Steel, 92-93% Steel: visible, and Steel-dominant stays disjoint from the retinue's Bone). hit is shifted TWICE (->91% Bone/9% Pale) because a flat-Dark body cannot express pose -- all 9 frames of its recoil animation are visually identical -- so its hit has to be a VALUE event, not a posture.",
+      "frames": {
+        "south.walk0": "RawArt/Renders/brood-ooze/derived/south.walk0.png",
+        "south.walk1": "RawArt/Renders/brood-ooze/derived/south.walk1.png",
+        "south.attack": "RawArt/Renders/brood-ooze/derived/south.attack.png",
+        "south.hit": "RawArt/Renders/brood-ooze/derived/south.hit.png"
+      },
+      "quantize": true
+    },
+    "retinue": {
+      "kind": "placeholder",
+      "note": "OWNER-SUPPLIED, replaces the managed 'unit-retinue' militia 2026-07-25 at the owner's direction: PixelLab character 1c935515-0ea3-459b-8c63-e7f8cf368272 'Hallam (Vanguard)', a uniform armoured knight with closed helm, kite shield and spear. This is a DELIBERATE REVERSAL of docs/art/retinue-militia.md, whose must_avoid list names closed helmet, kite shield, polearm and matched uniform armour explicitly -- the 'motley, never uniform' rule in npc-silhouette-brief.md (a) no longer describes your soldiers, and (a)'s disjointness from the Still Legion register (b) now rests on value dominance alone, not shape regularity. That spec needs an owner pass. Kept as an unmanaged path map (like brood) rather than a managed request because the character was authored in the web Character Creator, so no prompt/anchor of ours reproduces it. Straight quantize, NO light-shift: measured 38% Dark / 37% Steel / 21% Bone / 3% Pale, which is close to the ideal spread for the 4-value ramp and survives quantization with its interior intact -- the opposite of the brood's problem above. Walk from the walking-4-frames template (clean). Attack is the v2 re-roll; the v1 swing (group 5a55e8b1) dissolved the shield into a loop and detached the spear by frame 3 and is retained under animations/attack/ as a reject.",
+      "frames": {
+        "south.walk0": "RawArt/Renders/unit-knight/raw/animations/walk/south/frame_000.png",
+        "south.walk1": "RawArt/Renders/unit-knight/raw/animations/walk/south/frame_002.png",
+        "south.attack": "RawArt/Renders/unit-knight/raw/animations/attack_v2/south/frame_002.png",
+        "south.hit": "RawArt/Renders/unit-knight/raw/animations/hit/south/frame_002.png"
+      },
+      "quantize": true
+    }
+  },
+  "placeholder_cells": [
+    0,
+    1,
+    2,
+    3,
+    4,
+    5,
+    6,
+    7
+  ],
+  "verdict": "PLACEHOLDER"
+}

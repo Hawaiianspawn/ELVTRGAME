@@ -1,0 +1,357 @@
+{
+  "id": "soldier-05",
+  "revision": 1,
+  "created": "2026-07-26T02:27:40+00:00",
+  "stages": {
+    "anchor": {
+      "source": "authored",
+      "spec": "docs/art/soldier-roster-v1.md",
+      "generations": 0,
+      "updated": "2026-07-26T04:58:33+00:00",
+      "quantized": "2026-07-26T02:27:47+00:00"
+    },
+    "rotation": {
+      "character_id": "514601d3-89df-4981-a54d-87289769e600",
+      "generations": 1,
+      "updated": "2026-07-26T02:34:49+00:00",
+      "urls": [
+        "https://backblaze.pixellab.ai/file/pixellab-characters/af7def4e-5692-4b18-9246-874d5382befb/514601d3-89df-4981-a54d-87289769e600/rotations/south-west.png"
+      ],
+      "fetched": "2026-07-26T02:37:26+00:00",
+      "files": [
+        "east.png",
+        "north-east.png",
+        "north-west.png",
+        "north.png",
+        "south-east.png",
+        "south-west.png",
+        "south.png",
+        "west.png"
+      ],
+      "quantized": "2026-07-26T05:01:11+00:00"
+    }
+  },
+  "generations_spent": 1,
+  "request_snapshot": {
+    "prompt": {
+      "description": "A flame-tender who keeps the fire fed. A peaked metal hood with a pointed cap and a deep shadowed face cavity, only a small patch of face visible inside it, eyes as dark recesses. A heavy metal apron and thick gauntlets. Held level at chest height in both hands, a squat iron firepot with a hard rim on every side; inside it a small bright core of burning fuel, boxed in by the rim on all four sides and never spilling past it. A bundle of fuel staves slung low on one side breaks the outline. Squat and wide-footed.",
+      "must_include": [
+        "a peaked metal hood with a pointed cap and a deep shadowed face cavity",
+        "a squat iron firepot held level at chest height in both hands",
+        "a hard rim enclosing the firepot on all four sides",
+        "a small bright burning core inside the pot, fully boxed in by the rim, at chest height and never above the head",
+        "a bundle of fuel staves slung low on one side, breaking the body outline",
+        "eyes as dark recesses inside the hood"
+      ],
+      "must_avoid": [
+        "a lamp, lantern, torch or candle, and anything held up or held high",
+        "any glow, halo, rays, sparks or embers outside the pot",
+        "a free-floating light, wisp or flame detached from the body",
+        "bright pixels anywhere except inside the firepot",
+        "bright or glowing eyes",
+        "helmet, brim, visor, crest or plume",
+        "banner, flag, pennant or standard",
+        "shield, spear, sword or any weapon",
+        "cape or cloak",
+        "large solid black body mass, heavy internal outlining, deep recesses, cast shadow"
+      ],
+      "style_mode": "flat"
+    },
+    "pixellab": {
+      "mode": "standard",
+      "size": 48,
+      "view": "high top-down",
+      "n_directions": 8,
+      "outline": "selective outline",
+      "detail": "low detail",
+      "shading": "flat shading",
+      "proportions": {
+        "type": "preset",
+        "name": "chibi"
+      },
+      "text_guidance_scale": 12,
+      "body_type": "humanoid",
+      "template": null
+    }
+  },
+  "qc": {
+    "anchor": {
+      "south.png": {
+        "pixels": 2304,
+        "opaque_pixels": 678,
+        "alpha_partial_before": 0,
+        "off_palette_before": 0,
+        "on_palette_before_pct": 100.0,
+        "luma_span_before": 0.811,
+        "normalized": false,
+        "stipple_px_before": 0,
+        "dither_enforced": false,
+        "stipple_px_after": 0,
+        "histogram": {
+          "dark": 248,
+          "steel": 294,
+          "bone": 120,
+          "pale": 16
+        },
+        "values_used": 4,
+        "histogram_pct": {
+          "dark": 36.6,
+          "steel": 43.4,
+          "bone": 17.7,
+          "pale": 2.4
+        },
+        "dominant": "steel"
+      }
+    },
+    "rotation": {
+      "east.png": {
+        "pixels": 6400,
+        "opaque_pixels": 717,
+        "alpha_partial_before": 0,
+        "off_palette_before": 0,
+        "on_palette_before_pct": 100.0,
+        "luma_span_before": 0.501,
+        "normalized": false,
+        "stipple_px_before": 0,
+        "dither_enforced": false,
+        "stipple_px_after": 0,
+        "histogram": {
+          "dark": 197,
+          "steel": 459,
+          "bone": 55,
+          "pale": 6
+        },
+        "values_used": 4,
+        "histogram_pct": {
+          "dark": 27.5,
+          "steel": 64.0,
+          "bone": 7.7,
+          "pale": 0.8
+        },
+        "dominant": "steel",
+        "pale_uncaged": 6
+      },
+      "north-east.png": {
+        "pixels": 6400,
+        "opaque_pixels": 718,
+        "alpha_partial_before": 0,
+        "off_palette_before": 0,
+        "on_palette_before_pct": 100.0,
+        "luma_span_before": 0.501,
+        "normalized": false,
+        "stipple_px_before": 0,
+        "dither_enforced": false,
+        "stipple_px_after": 0,
+        "histogram": {
+          "dark": 185,
+          "steel": 471,
+          "bone": 62,
+          "pale": 0
+        },
+        "values_used": 3,
+        "histogram_pct": {
+          "dark": 25.8,
+          "steel": 65.6,
+          "bone": 8.6,
+          "pale": 0.0
+        },
+        "dominant": "steel",
+        "pale_uncaged": 0
+      },
+      "north-west.png": {
+        "pixels": 6400,
+        "opaque_pixels": 727,
+        "alpha_partial_before": 0,
+        "off_palette_before": 0,
+        "on_palette_before_pct": 100.0,
+        "luma_span_before": 0.501,
+        "normalized": false,
+        "stipple_px_before": 0,
+        "dither_enforced": false,
+        "stipple_px_after": 0,
+        "histogram": {
+          "dark": 185,
+          "steel": 492,
+          "bone": 50,
+          "pale": 0
+        },
+        "values_used": 3,
+        "histogram_pct": {
+          "dark": 25.4,
+          "steel": 67.7,
+          "bone": 6.9,
+          "pale": 0.0
+        },
+        "dominant": "steel",
+        "pale_uncaged": 0
+      },
+      "north.png": {
+        "pixels": 6400,
+        "opaque_pixels": 712,
+        "alpha_partial_before": 0,
+        "off_palette_before": 0,
+        "on_palette_before_pct": 100.0,
+        "luma_span_before": 0.501,
+        "normalized": false,
+        "stipple_px_before": 0,
+        "dither_enforced": false,
+        "stipple_px_after": 0,
+        "histogram": {
+          "dark": 185,
+          "steel": 476,
+          "bone": 51,
+          "pale": 0
+        },
+        "values_used": 3,
+        "histogram_pct": {
+          "dark": 26.0,
+          "steel": 66.9,
+          "bone": 7.2,
+          "pale": 0.0
+        },
+        "dominant": "steel",
+        "pale_uncaged": 0
+      },
+      "south-east.png": {
+        "pixels": 6400,
+        "opaque_pixels": 727,
+        "alpha_partial_before": 0,
+        "off_palette_before": 0,
+        "on_palette_before_pct": 100.0,
+        "luma_span_before": 0.501,
+        "normalized": false,
+        "stipple_px_before": 0,
+        "dither_enforced": false,
+        "stipple_px_after": 0,
+        "histogram": {
+          "dark": 227,
+          "steel": 381,
+          "bone": 107,
+          "pale": 12
+        },
+        "values_used": 4,
+        "histogram_pct": {
+          "dark": 31.2,
+          "steel": 52.4,
+          "bone": 14.7,
+          "pale": 1.7
+        },
+        "dominant": "steel",
+        "pale_uncaged": 0
+      },
+      "south-west.png": {
+        "pixels": 6400,
+        "opaque_pixels": 726,
+        "alpha_partial_before": 0,
+        "off_palette_before": 0,
+        "on_palette_before_pct": 100.0,
+        "luma_span_before": 0.501,
+        "normalized": false,
+        "stipple_px_before": 0,
+        "dither_enforced": false,
+        "stipple_px_after": 0,
+        "histogram": {
+          "dark": 236,
+          "steel": 363,
+          "bone": 115,
+          "pale": 12
+        },
+        "values_used": 4,
+        "histogram_pct": {
+          "dark": 32.5,
+          "steel": 50.0,
+          "bone": 15.8,
+          "pale": 1.7
+        },
+        "dominant": "steel",
+        "pale_uncaged": 0
+      },
+      "south.png": {
+        "pixels": 6400,
+        "opaque_pixels": 678,
+        "alpha_partial_before": 0,
+        "off_palette_before": 0,
+        "on_palette_before_pct": 100.0,
+        "luma_span_before": 0.811,
+        "normalized": false,
+        "stipple_px_before": 0,
+        "dither_enforced": false,
+        "stipple_px_after": 0,
+        "histogram": {
+          "dark": 248,
+          "steel": 294,
+          "bone": 120,
+          "pale": 16
+        },
+        "values_used": 4,
+        "histogram_pct": {
+          "dark": 36.6,
+          "steel": 43.4,
+          "bone": 17.7,
+          "pale": 2.4
+        },
+        "dominant": "steel",
+        "pale_uncaged": 0
+      },
+      "west.png": {
+        "pixels": 6400,
+        "opaque_pixels": 735,
+        "alpha_partial_before": 0,
+        "off_palette_before": 0,
+        "on_palette_before_pct": 100.0,
+        "luma_span_before": 0.501,
+        "normalized": false,
+        "stipple_px_before": 0,
+        "dither_enforced": false,
+        "stipple_px_after": 0,
+        "histogram": {
+          "dark": 199,
+          "steel": 456,
+          "bone": 74,
+          "pale": 6
+        },
+        "values_used": 4,
+        "histogram_pct": {
+          "dark": 27.1,
+          "steel": 62.0,
+          "bone": 10.1,
+          "pale": 0.8
+        },
+        "dominant": "steel",
+        "pale_uncaged": 6
+      }
+    }
+  },
+  "sheet": {
+    "path": "RawArt/Sheets/T_Soldier_05.png",
+    "size": [
+      192,
+      96
+    ],
+    "cell": 48,
+    "grid": [
+      4,
+      2
+    ],
+    "content_path": "/Game/Sprites/Units",
+    "texture": "T_Soldier_05",
+    "srgb": true,
+    "sprite_bbox": {
+      "_": [
+        38,
+        40
+      ]
+    },
+    "packed": "2026-07-26T02:53:28+00:00",
+    "frame_map": {
+      "0": "south.idle",
+      "1": "south-east.idle",
+      "2": "east.idle",
+      "3": "north-east.idle",
+      "4": "north.idle",
+      "5": "north-west.idle",
+      "6": "west.idle",
+      "7": "south-west.idle"
+    }
+  }
+}

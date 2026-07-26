@@ -1,0 +1,1223 @@
+{
+  "id": "hero-vanguard",
+  "revision": 3,
+  "created": "2026-07-26T00:08:08+00:00",
+  "request_snapshot": {
+    "prompt": {
+      "description": "A stocky armored standard-bearer in heavy plate. Oversized head in an open-faced helm with no visor and no crest, broad blunt face, squared pauldrons forming a flat horizontal shoulder line, short thick legs. One arm holds a large rectangular tower shield with a flat top edge and a single straight band across its middle; the other grips a straight vertical banner pole at the hip, topped by a small rectangular flag of plain undecorated cloth. A short sword stays sheathed at the hip. Boxy build, hard straight edges, everything squared off.",
+      "must_include": [
+        "flat horizontal shoulder line, unbroken by collar or cloth",
+        "rectangular tower shield with a flat top edge and four straight sides",
+        "dead-vertical thin banner pole running down to a hand at hip height",
+        "small rectangular flag with four straight edges, clear of the head",
+        "open face visible under the helm, no visor"
+      ],
+      "must_avoid": [
+        "cape or cloak",
+        "swallowtail, forked, torn or curving flag edges",
+        "any device, emblem or writing on the flag",
+        "helm crest, plume, wings or horns",
+        "lamp, torch, candle or visible flame",
+        "glow, halo, sparks or rays around any pixel",
+        "bright or glowing eyes",
+        "round, kite-shaped or bossed shield",
+        "raised, swinging or oversized weapon",
+        "tassels, fringe, ragged cloth or straps hanging off the silhouette",
+        "diagonal pole or spear-like angle"
+      ]
+    },
+    "pixellab": {
+      "mode": "standard",
+      "size": 48,
+      "view": "low top-down",
+      "n_directions": 8,
+      "outline": "selective outline",
+      "detail": "low detail",
+      "shading": "flat shading",
+      "proportions": {
+        "type": "preset",
+        "name": "chibi"
+      },
+      "text_guidance_scale": 12,
+      "body_type": "humanoid",
+      "template": null
+    }
+  },
+  "stages": {
+    "anchor": {
+      "source": "authored",
+      "spec": "docs/art/vanguard.md",
+      "generations": 0,
+      "updated": "2026-07-26T00:08:08+00:00",
+      "quantized": "2026-07-26T00:08:14+00:00"
+    },
+    "rotation": {
+      "character_id": "fe2e5427-f98b-464b-9df9-c22d03043fe4",
+      "generations": 1,
+      "mode": "v3 reference",
+      "source": "authored anchor r3 south.png",
+      "updated": "2026-07-26T00:10:18+00:00",
+      "urls": [
+        "https://backblaze.pixellab.ai/file/pixellab-characters/af7def4e-5692-4b18-9246-874d5382befb/fe2e5427-f98b-464b-9df9-c22d03043fe4/rotations/south.png?t=1785024745",
+        "https://backblaze.pixellab.ai/file/pixellab-characters/af7def4e-5692-4b18-9246-874d5382befb/fe2e5427-f98b-464b-9df9-c22d03043fe4/rotations/east.png?t=1785024745",
+        "https://backblaze.pixellab.ai/file/pixellab-characters/af7def4e-5692-4b18-9246-874d5382befb/fe2e5427-f98b-464b-9df9-c22d03043fe4/rotations/north.png?t=1785024745",
+        "https://backblaze.pixellab.ai/file/pixellab-characters/af7def4e-5692-4b18-9246-874d5382befb/fe2e5427-f98b-464b-9df9-c22d03043fe4/rotations/west.png?t=1785024745",
+        "https://backblaze.pixellab.ai/file/pixellab-characters/af7def4e-5692-4b18-9246-874d5382befb/fe2e5427-f98b-464b-9df9-c22d03043fe4/rotations/south-east.png?t=1785024745",
+        "https://backblaze.pixellab.ai/file/pixellab-characters/af7def4e-5692-4b18-9246-874d5382befb/fe2e5427-f98b-464b-9df9-c22d03043fe4/rotations/north-east.png?t=1785024745",
+        "https://backblaze.pixellab.ai/file/pixellab-characters/af7def4e-5692-4b18-9246-874d5382befb/fe2e5427-f98b-464b-9df9-c22d03043fe4/rotations/north-west.png?t=1785024745",
+        "https://backblaze.pixellab.ai/file/pixellab-characters/af7def4e-5692-4b18-9246-874d5382befb/fe2e5427-f98b-464b-9df9-c22d03043fe4/rotations/south-west.png?t=1785024745"
+      ],
+      "fetched": "2026-07-26T00:14:07+00:00",
+      "files": [
+        "east.png",
+        "north-east.png",
+        "north-west.png",
+        "north.png",
+        "south-east.png",
+        "south-west.png",
+        "south.png",
+        "west.png"
+      ],
+      "quantized": "2026-07-26T00:14:08+00:00"
+    },
+    "anim": {
+      "animation_group_id": "e780ce65-083e-436d-b2d0-5c0a85a22b05",
+      "generations": 8,
+      "template": "walking-4-frames",
+      "updated": "2026-07-26T00:15:29+00:00",
+      "urls": [
+        "https://backblaze.pixellab.ai/file/pixellab-characters/af7def4e-5692-4b18-9246-874d5382befb/fe2e5427-f98b-464b-9df9-c22d03043fe4/animations/8b4a906e-2c67-4798-a7ea-4be7cbc5263d/south-east/0.png",
+        "https://backblaze.pixellab.ai/file/pixellab-characters/af7def4e-5692-4b18-9246-874d5382befb/fe2e5427-f98b-464b-9df9-c22d03043fe4/animations/8b4a906e-2c67-4798-a7ea-4be7cbc5263d/south-east/1.png",
+        "https://backblaze.pixellab.ai/file/pixellab-characters/af7def4e-5692-4b18-9246-874d5382befb/fe2e5427-f98b-464b-9df9-c22d03043fe4/animations/8b4a906e-2c67-4798-a7ea-4be7cbc5263d/south-east/2.png",
+        "https://backblaze.pixellab.ai/file/pixellab-characters/af7def4e-5692-4b18-9246-874d5382befb/fe2e5427-f98b-464b-9df9-c22d03043fe4/animations/8b4a906e-2c67-4798-a7ea-4be7cbc5263d/south-east/3.png"
+      ],
+      "fetched": "2026-07-26T00:20:45+00:00",
+      "files": [
+        "0.png",
+        "1.png",
+        "2.png",
+        "3.png"
+      ],
+      "quantized": "2026-07-26T00:20:52+00:00"
+    },
+    "import": {
+      "content_path": "/Game/Sprites/Heroes/T_Hero_Vanguard",
+      "verified": "filter=TF_Nearest mips=TMGS_NoMipmaps comp=TC_EditorIcon srgb=true size=192x192",
+      "route": "mcp",
+      "updated": "2026-07-26T00:39:45+00:00"
+    }
+  },
+  "generations_spent": 9,
+  "qc": {
+    "anchor": {
+      "south.png": {
+        "pixels": 2304,
+        "opaque_pixels": 870,
+        "alpha_partial_before": 0,
+        "off_palette_before": 0,
+        "on_palette_before_pct": 100.0,
+        "luma_span_before": 0.811,
+        "normalized": false,
+        "stipple_px_before": 0,
+        "dither_enforced": false,
+        "stipple_px_after": 0,
+        "histogram": {
+          "dark": 259,
+          "steel": 453,
+          "bone": 88,
+          "pale": 70
+        },
+        "values_used": 4,
+        "histogram_pct": {
+          "dark": 29.8,
+          "steel": 52.1,
+          "bone": 10.1,
+          "pale": 8.0
+        },
+        "dominant": "steel"
+      }
+    },
+    "rotation": {
+      "east.png": {
+        "pixels": 7744,
+        "opaque_pixels": 560,
+        "alpha_partial_before": 0,
+        "off_palette_before": 0,
+        "on_palette_before_pct": 100.0,
+        "luma_span_before": 0.811,
+        "normalized": false,
+        "stipple_px_before": 0,
+        "dither_enforced": false,
+        "stipple_px_after": 0,
+        "histogram": {
+          "dark": 168,
+          "steel": 299,
+          "bone": 38,
+          "pale": 55
+        },
+        "values_used": 4,
+        "histogram_pct": {
+          "dark": 30.0,
+          "steel": 53.4,
+          "bone": 6.8,
+          "pale": 9.8
+        },
+        "dominant": "steel"
+      },
+      "north-east.png": {
+        "pixels": 7744,
+        "opaque_pixels": 763,
+        "alpha_partial_before": 0,
+        "off_palette_before": 0,
+        "on_palette_before_pct": 100.0,
+        "luma_span_before": 0.811,
+        "normalized": false,
+        "stipple_px_before": 0,
+        "dither_enforced": false,
+        "stipple_px_after": 0,
+        "histogram": {
+          "dark": 207,
+          "steel": 461,
+          "bone": 32,
+          "pale": 63
+        },
+        "values_used": 4,
+        "histogram_pct": {
+          "dark": 27.1,
+          "steel": 60.4,
+          "bone": 4.2,
+          "pale": 8.3
+        },
+        "dominant": "steel"
+      },
+      "north-west.png": {
+        "pixels": 7744,
+        "opaque_pixels": 741,
+        "alpha_partial_before": 0,
+        "off_palette_before": 6,
+        "on_palette_before_pct": 99.19,
+        "luma_span_before": 0.811,
+        "normalized": false,
+        "stipple_px_before": 0,
+        "dither_enforced": false,
+        "stipple_px_after": 0,
+        "histogram": {
+          "dark": 249,
+          "steel": 411,
+          "bone": 24,
+          "pale": 57
+        },
+        "values_used": 4,
+        "histogram_pct": {
+          "dark": 33.6,
+          "steel": 55.5,
+          "bone": 3.2,
+          "pale": 7.7
+        },
+        "dominant": "steel"
+      },
+      "north.png": {
+        "pixels": 7744,
+        "opaque_pixels": 879,
+        "alpha_partial_before": 0,
+        "off_palette_before": 0,
+        "on_palette_before_pct": 100.0,
+        "luma_span_before": 0.811,
+        "normalized": false,
+        "stipple_px_before": 0,
+        "dither_enforced": false,
+        "stipple_px_after": 0,
+        "histogram": {
+          "dark": 240,
+          "steel": 532,
+          "bone": 30,
+          "pale": 77
+        },
+        "values_used": 4,
+        "histogram_pct": {
+          "dark": 27.3,
+          "steel": 60.5,
+          "bone": 3.4,
+          "pale": 8.8
+        },
+        "dominant": "steel"
+      },
+      "south-east.png": {
+        "pixels": 7744,
+        "opaque_pixels": 725,
+        "alpha_partial_before": 0,
+        "off_palette_before": 0,
+        "on_palette_before_pct": 100.0,
+        "luma_span_before": 0.811,
+        "normalized": false,
+        "stipple_px_before": 0,
+        "dither_enforced": false,
+        "stipple_px_after": 0,
+        "histogram": {
+          "dark": 221,
+          "steel": 380,
+          "bone": 68,
+          "pale": 56
+        },
+        "values_used": 4,
+        "histogram_pct": {
+          "dark": 30.5,
+          "steel": 52.4,
+          "bone": 9.4,
+          "pale": 7.7
+        },
+        "dominant": "steel"
+      },
+      "south-west.png": {
+        "pixels": 7744,
+        "opaque_pixels": 709,
+        "alpha_partial_before": 0,
+        "off_palette_before": 0,
+        "on_palette_before_pct": 100.0,
+        "luma_span_before": 0.811,
+        "normalized": false,
+        "stipple_px_before": 0,
+        "dither_enforced": false,
+        "stipple_px_after": 0,
+        "histogram": {
+          "dark": 230,
+          "steel": 351,
+          "bone": 63,
+          "pale": 65
+        },
+        "values_used": 4,
+        "histogram_pct": {
+          "dark": 32.4,
+          "steel": 49.5,
+          "bone": 8.9,
+          "pale": 9.2
+        },
+        "dominant": "steel"
+      },
+      "south.png": {
+        "pixels": 7744,
+        "opaque_pixels": 870,
+        "alpha_partial_before": 0,
+        "off_palette_before": 0,
+        "on_palette_before_pct": 100.0,
+        "luma_span_before": 0.811,
+        "normalized": false,
+        "stipple_px_before": 0,
+        "dither_enforced": false,
+        "stipple_px_after": 0,
+        "histogram": {
+          "dark": 259,
+          "steel": 453,
+          "bone": 88,
+          "pale": 70
+        },
+        "values_used": 4,
+        "histogram_pct": {
+          "dark": 29.8,
+          "steel": 52.1,
+          "bone": 10.1,
+          "pale": 8.0
+        },
+        "dominant": "steel"
+      },
+      "west.png": {
+        "pixels": 7744,
+        "opaque_pixels": 495,
+        "alpha_partial_before": 0,
+        "off_palette_before": 1,
+        "on_palette_before_pct": 99.8,
+        "luma_span_before": 0.811,
+        "normalized": false,
+        "stipple_px_before": 0,
+        "dither_enforced": false,
+        "stipple_px_after": 0,
+        "histogram": {
+          "dark": 216,
+          "steel": 209,
+          "bone": 28,
+          "pale": 42
+        },
+        "values_used": 4,
+        "histogram_pct": {
+          "dark": 43.6,
+          "steel": 42.2,
+          "bone": 5.7,
+          "pale": 8.5
+        },
+        "dominant": "dark"
+      }
+    },
+    "anim": {
+      "walk/east/0.png": {
+        "pixels": 7744,
+        "opaque_pixels": 492,
+        "alpha_partial_before": 0,
+        "off_palette_before": 1,
+        "on_palette_before_pct": 99.8,
+        "luma_span_before": 0.811,
+        "normalized": false,
+        "stipple_px_before": 0,
+        "dither_enforced": false,
+        "stipple_px_after": 0,
+        "histogram": {
+          "dark": 188,
+          "steel": 189,
+          "bone": 49,
+          "pale": 66
+        },
+        "values_used": 4,
+        "histogram_pct": {
+          "dark": 38.2,
+          "steel": 38.4,
+          "bone": 10.0,
+          "pale": 13.4
+        },
+        "dominant": "steel"
+      },
+      "walk/east/1.png": {
+        "pixels": 7744,
+        "opaque_pixels": 487,
+        "alpha_partial_before": 0,
+        "off_palette_before": 2,
+        "on_palette_before_pct": 99.59,
+        "luma_span_before": 0.811,
+        "normalized": false,
+        "stipple_px_before": 0,
+        "dither_enforced": false,
+        "stipple_px_after": 0,
+        "histogram": {
+          "dark": 193,
+          "steel": 171,
+          "bone": 57,
+          "pale": 66
+        },
+        "values_used": 4,
+        "histogram_pct": {
+          "dark": 39.6,
+          "steel": 35.1,
+          "bone": 11.7,
+          "pale": 13.6
+        },
+        "dominant": "dark"
+      },
+      "walk/east/2.png": {
+        "pixels": 7744,
+        "opaque_pixels": 489,
+        "alpha_partial_before": 0,
+        "off_palette_before": 3,
+        "on_palette_before_pct": 99.39,
+        "luma_span_before": 0.811,
+        "normalized": false,
+        "stipple_px_before": 0,
+        "dither_enforced": false,
+        "stipple_px_after": 0,
+        "histogram": {
+          "dark": 187,
+          "steel": 183,
+          "bone": 52,
+          "pale": 67
+        },
+        "values_used": 4,
+        "histogram_pct": {
+          "dark": 38.2,
+          "steel": 37.4,
+          "bone": 10.6,
+          "pale": 13.7
+        },
+        "dominant": "dark"
+      },
+      "walk/east/3.png": {
+        "pixels": 7744,
+        "opaque_pixels": 502,
+        "alpha_partial_before": 0,
+        "off_palette_before": 5,
+        "on_palette_before_pct": 99.0,
+        "luma_span_before": 0.811,
+        "normalized": false,
+        "stipple_px_before": 0,
+        "dither_enforced": false,
+        "stipple_px_after": 0,
+        "histogram": {
+          "dark": 200,
+          "steel": 186,
+          "bone": 50,
+          "pale": 66
+        },
+        "values_used": 4,
+        "histogram_pct": {
+          "dark": 39.8,
+          "steel": 37.1,
+          "bone": 10.0,
+          "pale": 13.1
+        },
+        "dominant": "dark"
+      },
+      "walk/north/0.png": {
+        "pixels": 7744,
+        "opaque_pixels": 552,
+        "alpha_partial_before": 0,
+        "off_palette_before": 0,
+        "on_palette_before_pct": 100.0,
+        "luma_span_before": 0.811,
+        "normalized": false,
+        "stipple_px_before": 0,
+        "dither_enforced": false,
+        "stipple_px_after": 0,
+        "histogram": {
+          "dark": 200,
+          "steel": 269,
+          "bone": 0,
+          "pale": 83
+        },
+        "values_used": 3,
+        "histogram_pct": {
+          "dark": 36.2,
+          "steel": 48.7,
+          "bone": 0.0,
+          "pale": 15.0
+        },
+        "dominant": "steel"
+      },
+      "walk/north/1.png": {
+        "pixels": 7744,
+        "opaque_pixels": 375,
+        "alpha_partial_before": 0,
+        "off_palette_before": 0,
+        "on_palette_before_pct": 100.0,
+        "luma_span_before": 0.811,
+        "normalized": false,
+        "stipple_px_before": 0,
+        "dither_enforced": false,
+        "stipple_px_after": 0,
+        "histogram": {
+          "dark": 166,
+          "steel": 172,
+          "bone": 0,
+          "pale": 37
+        },
+        "values_used": 3,
+        "histogram_pct": {
+          "dark": 44.3,
+          "steel": 45.9,
+          "bone": 0.0,
+          "pale": 9.9
+        },
+        "dominant": "steel"
+      },
+      "walk/north/2.png": {
+        "pixels": 7744,
+        "opaque_pixels": 671,
+        "alpha_partial_before": 0,
+        "off_palette_before": 1,
+        "on_palette_before_pct": 99.85,
+        "luma_span_before": 0.811,
+        "normalized": false,
+        "stipple_px_before": 0,
+        "dither_enforced": false,
+        "stipple_px_after": 0,
+        "histogram": {
+          "dark": 227,
+          "steel": 324,
+          "bone": 26,
+          "pale": 94
+        },
+        "values_used": 4,
+        "histogram_pct": {
+          "dark": 33.8,
+          "steel": 48.3,
+          "bone": 3.9,
+          "pale": 14.0
+        },
+        "dominant": "steel"
+      },
+      "walk/north/3.png": {
+        "pixels": 7744,
+        "opaque_pixels": 404,
+        "alpha_partial_before": 0,
+        "off_palette_before": 0,
+        "on_palette_before_pct": 100.0,
+        "luma_span_before": 0.811,
+        "normalized": false,
+        "stipple_px_before": 0,
+        "dither_enforced": false,
+        "stipple_px_after": 0,
+        "histogram": {
+          "dark": 171,
+          "steel": 139,
+          "bone": 0,
+          "pale": 94
+        },
+        "values_used": 3,
+        "histogram_pct": {
+          "dark": 42.3,
+          "steel": 34.4,
+          "bone": 0.0,
+          "pale": 23.3
+        },
+        "dominant": "dark"
+      },
+      "walk/north-east/0.png": {
+        "pixels": 7744,
+        "opaque_pixels": 643,
+        "alpha_partial_before": 0,
+        "off_palette_before": 5,
+        "on_palette_before_pct": 99.22,
+        "luma_span_before": 0.811,
+        "normalized": false,
+        "stipple_px_before": 0,
+        "dither_enforced": false,
+        "stipple_px_after": 0,
+        "histogram": {
+          "dark": 231,
+          "steel": 290,
+          "bone": 48,
+          "pale": 74
+        },
+        "values_used": 4,
+        "histogram_pct": {
+          "dark": 35.9,
+          "steel": 45.1,
+          "bone": 7.5,
+          "pale": 11.5
+        },
+        "dominant": "steel"
+      },
+      "walk/north-east/1.png": {
+        "pixels": 7744,
+        "opaque_pixels": 644,
+        "alpha_partial_before": 0,
+        "off_palette_before": 3,
+        "on_palette_before_pct": 99.53,
+        "luma_span_before": 0.811,
+        "normalized": false,
+        "stipple_px_before": 0,
+        "dither_enforced": false,
+        "stipple_px_after": 0,
+        "histogram": {
+          "dark": 232,
+          "steel": 291,
+          "bone": 47,
+          "pale": 74
+        },
+        "values_used": 4,
+        "histogram_pct": {
+          "dark": 36.0,
+          "steel": 45.2,
+          "bone": 7.3,
+          "pale": 11.5
+        },
+        "dominant": "steel"
+      },
+      "walk/north-east/2.png": {
+        "pixels": 7744,
+        "opaque_pixels": 623,
+        "alpha_partial_before": 0,
+        "off_palette_before": 2,
+        "on_palette_before_pct": 99.68,
+        "luma_span_before": 0.811,
+        "normalized": false,
+        "stipple_px_before": 0,
+        "dither_enforced": false,
+        "stipple_px_after": 0,
+        "histogram": {
+          "dark": 220,
+          "steel": 285,
+          "bone": 45,
+          "pale": 73
+        },
+        "values_used": 4,
+        "histogram_pct": {
+          "dark": 35.3,
+          "steel": 45.7,
+          "bone": 7.2,
+          "pale": 11.7
+        },
+        "dominant": "steel"
+      },
+      "walk/north-east/3.png": {
+        "pixels": 7744,
+        "opaque_pixels": 650,
+        "alpha_partial_before": 0,
+        "off_palette_before": 3,
+        "on_palette_before_pct": 99.54,
+        "luma_span_before": 0.811,
+        "normalized": false,
+        "stipple_px_before": 0,
+        "dither_enforced": false,
+        "stipple_px_after": 0,
+        "histogram": {
+          "dark": 237,
+          "steel": 296,
+          "bone": 43,
+          "pale": 74
+        },
+        "values_used": 4,
+        "histogram_pct": {
+          "dark": 36.5,
+          "steel": 45.5,
+          "bone": 6.6,
+          "pale": 11.4
+        },
+        "dominant": "steel"
+      },
+      "walk/north-west/0.png": {
+        "pixels": 7744,
+        "opaque_pixels": 467,
+        "alpha_partial_before": 0,
+        "off_palette_before": 0,
+        "on_palette_before_pct": 100.0,
+        "luma_span_before": 0.811,
+        "normalized": false,
+        "stipple_px_before": 0,
+        "dither_enforced": false,
+        "stipple_px_after": 0,
+        "histogram": {
+          "dark": 225,
+          "steel": 159,
+          "bone": 24,
+          "pale": 59
+        },
+        "values_used": 4,
+        "histogram_pct": {
+          "dark": 48.2,
+          "steel": 34.0,
+          "bone": 5.1,
+          "pale": 12.6
+        },
+        "dominant": "dark"
+      },
+      "walk/north-west/1.png": {
+        "pixels": 7744,
+        "opaque_pixels": 486,
+        "alpha_partial_before": 0,
+        "off_palette_before": 0,
+        "on_palette_before_pct": 100.0,
+        "luma_span_before": 0.811,
+        "normalized": false,
+        "stipple_px_before": 0,
+        "dither_enforced": false,
+        "stipple_px_after": 0,
+        "histogram": {
+          "dark": 232,
+          "steel": 168,
+          "bone": 22,
+          "pale": 64
+        },
+        "values_used": 4,
+        "histogram_pct": {
+          "dark": 47.7,
+          "steel": 34.6,
+          "bone": 4.5,
+          "pale": 13.2
+        },
+        "dominant": "dark"
+      },
+      "walk/north-west/2.png": {
+        "pixels": 7744,
+        "opaque_pixels": 435,
+        "alpha_partial_before": 0,
+        "off_palette_before": 0,
+        "on_palette_before_pct": 100.0,
+        "luma_span_before": 0.811,
+        "normalized": false,
+        "stipple_px_before": 0,
+        "dither_enforced": false,
+        "stipple_px_after": 0,
+        "histogram": {
+          "dark": 217,
+          "steel": 159,
+          "bone": 2,
+          "pale": 57
+        },
+        "values_used": 4,
+        "histogram_pct": {
+          "dark": 49.9,
+          "steel": 36.6,
+          "bone": 0.5,
+          "pale": 13.1
+        },
+        "dominant": "dark"
+      },
+      "walk/north-west/3.png": {
+        "pixels": 7744,
+        "opaque_pixels": 475,
+        "alpha_partial_before": 0,
+        "off_palette_before": 0,
+        "on_palette_before_pct": 100.0,
+        "luma_span_before": 0.811,
+        "normalized": false,
+        "stipple_px_before": 0,
+        "dither_enforced": false,
+        "stipple_px_after": 0,
+        "histogram": {
+          "dark": 225,
+          "steel": 165,
+          "bone": 24,
+          "pale": 61
+        },
+        "values_used": 4,
+        "histogram_pct": {
+          "dark": 47.4,
+          "steel": 34.7,
+          "bone": 5.1,
+          "pale": 12.8
+        },
+        "dominant": "dark"
+      },
+      "walk/south/0.png": {
+        "pixels": 7744,
+        "opaque_pixels": 812,
+        "alpha_partial_before": 0,
+        "off_palette_before": 2,
+        "on_palette_before_pct": 99.75,
+        "luma_span_before": 0.811,
+        "normalized": false,
+        "stipple_px_before": 0,
+        "dither_enforced": false,
+        "stipple_px_after": 0,
+        "histogram": {
+          "dark": 247,
+          "steel": 411,
+          "bone": 91,
+          "pale": 63
+        },
+        "values_used": 4,
+        "histogram_pct": {
+          "dark": 30.4,
+          "steel": 50.6,
+          "bone": 11.2,
+          "pale": 7.8
+        },
+        "dominant": "steel"
+      },
+      "walk/south/1.png": {
+        "pixels": 7744,
+        "opaque_pixels": 849,
+        "alpha_partial_before": 0,
+        "off_palette_before": 1,
+        "on_palette_before_pct": 99.88,
+        "luma_span_before": 0.811,
+        "normalized": false,
+        "stipple_px_before": 0,
+        "dither_enforced": false,
+        "stipple_px_after": 0,
+        "histogram": {
+          "dark": 250,
+          "steel": 437,
+          "bone": 99,
+          "pale": 63
+        },
+        "values_used": 4,
+        "histogram_pct": {
+          "dark": 29.4,
+          "steel": 51.5,
+          "bone": 11.7,
+          "pale": 7.4
+        },
+        "dominant": "steel"
+      },
+      "walk/south/2.png": {
+        "pixels": 7744,
+        "opaque_pixels": 865,
+        "alpha_partial_before": 0,
+        "off_palette_before": 4,
+        "on_palette_before_pct": 99.54,
+        "luma_span_before": 0.811,
+        "normalized": false,
+        "stipple_px_before": 0,
+        "dither_enforced": false,
+        "stipple_px_after": 0,
+        "histogram": {
+          "dark": 265,
+          "steel": 437,
+          "bone": 93,
+          "pale": 70
+        },
+        "values_used": 4,
+        "histogram_pct": {
+          "dark": 30.6,
+          "steel": 50.5,
+          "bone": 10.8,
+          "pale": 8.1
+        },
+        "dominant": "steel"
+      },
+      "walk/south/3.png": {
+        "pixels": 7744,
+        "opaque_pixels": 828,
+        "alpha_partial_before": 0,
+        "off_palette_before": 0,
+        "on_palette_before_pct": 100.0,
+        "luma_span_before": 0.811,
+        "normalized": false,
+        "stipple_px_before": 0,
+        "dither_enforced": false,
+        "stipple_px_after": 0,
+        "histogram": {
+          "dark": 253,
+          "steel": 422,
+          "bone": 90,
+          "pale": 63
+        },
+        "values_used": 4,
+        "histogram_pct": {
+          "dark": 30.6,
+          "steel": 51.0,
+          "bone": 10.9,
+          "pale": 7.6
+        },
+        "dominant": "steel"
+      },
+      "walk/south-east/0.png": {
+        "pixels": 7744,
+        "opaque_pixels": 578,
+        "alpha_partial_before": 0,
+        "off_palette_before": 16,
+        "on_palette_before_pct": 97.23,
+        "luma_span_before": 0.811,
+        "normalized": false,
+        "stipple_px_before": 0,
+        "dither_enforced": false,
+        "stipple_px_after": 0,
+        "histogram": {
+          "dark": 208,
+          "steel": 257,
+          "bone": 58,
+          "pale": 55
+        },
+        "values_used": 4,
+        "histogram_pct": {
+          "dark": 36.0,
+          "steel": 44.5,
+          "bone": 10.0,
+          "pale": 9.5
+        },
+        "dominant": "steel"
+      },
+      "walk/south-east/1.png": {
+        "pixels": 7744,
+        "opaque_pixels": 580,
+        "alpha_partial_before": 0,
+        "off_palette_before": 18,
+        "on_palette_before_pct": 96.9,
+        "luma_span_before": 0.811,
+        "normalized": false,
+        "stipple_px_before": 0,
+        "dither_enforced": false,
+        "stipple_px_after": 0,
+        "histogram": {
+          "dark": 204,
+          "steel": 264,
+          "bone": 63,
+          "pale": 49
+        },
+        "values_used": 4,
+        "histogram_pct": {
+          "dark": 35.2,
+          "steel": 45.5,
+          "bone": 10.9,
+          "pale": 8.4
+        },
+        "dominant": "steel"
+      },
+      "walk/south-east/2.png": {
+        "pixels": 7744,
+        "opaque_pixels": 565,
+        "alpha_partial_before": 0,
+        "off_palette_before": 9,
+        "on_palette_before_pct": 98.41,
+        "luma_span_before": 0.811,
+        "normalized": false,
+        "stipple_px_before": 0,
+        "dither_enforced": false,
+        "stipple_px_after": 0,
+        "histogram": {
+          "dark": 202,
+          "steel": 245,
+          "bone": 62,
+          "pale": 56
+        },
+        "values_used": 4,
+        "histogram_pct": {
+          "dark": 35.8,
+          "steel": 43.4,
+          "bone": 11.0,
+          "pale": 9.9
+        },
+        "dominant": "steel"
+      },
+      "walk/south-east/3.png": {
+        "pixels": 7744,
+        "opaque_pixels": 573,
+        "alpha_partial_before": 0,
+        "off_palette_before": 7,
+        "on_palette_before_pct": 98.78,
+        "luma_span_before": 0.811,
+        "normalized": false,
+        "stipple_px_before": 0,
+        "dither_enforced": false,
+        "stipple_px_after": 0,
+        "histogram": {
+          "dark": 208,
+          "steel": 252,
+          "bone": 57,
+          "pale": 56
+        },
+        "values_used": 4,
+        "histogram_pct": {
+          "dark": 36.3,
+          "steel": 44.0,
+          "bone": 9.9,
+          "pale": 9.8
+        },
+        "dominant": "steel"
+      },
+      "walk/south-west/0.png": {
+        "pixels": 7744,
+        "opaque_pixels": 400,
+        "alpha_partial_before": 0,
+        "off_palette_before": 36,
+        "on_palette_before_pct": 91.0,
+        "luma_span_before": 0.811,
+        "normalized": false,
+        "stipple_px_before": 0,
+        "dither_enforced": false,
+        "stipple_px_after": 0,
+        "histogram": {
+          "dark": 165,
+          "steel": 123,
+          "bone": 38,
+          "pale": 74
+        },
+        "values_used": 4,
+        "histogram_pct": {
+          "dark": 41.2,
+          "steel": 30.8,
+          "bone": 9.5,
+          "pale": 18.5
+        },
+        "dominant": "dark"
+      },
+      "walk/south-west/1.png": {
+        "pixels": 7744,
+        "opaque_pixels": 430,
+        "alpha_partial_before": 0,
+        "off_palette_before": 27,
+        "on_palette_before_pct": 93.72,
+        "luma_span_before": 0.811,
+        "normalized": false,
+        "stipple_px_before": 0,
+        "dither_enforced": false,
+        "stipple_px_after": 0,
+        "histogram": {
+          "dark": 168,
+          "steel": 141,
+          "bone": 50,
+          "pale": 71
+        },
+        "values_used": 4,
+        "histogram_pct": {
+          "dark": 39.1,
+          "steel": 32.8,
+          "bone": 11.6,
+          "pale": 16.5
+        },
+        "dominant": "dark"
+      },
+      "walk/south-west/2.png": {
+        "pixels": 7744,
+        "opaque_pixels": 396,
+        "alpha_partial_before": 0,
+        "off_palette_before": 27,
+        "on_palette_before_pct": 93.18,
+        "luma_span_before": 0.811,
+        "normalized": false,
+        "stipple_px_before": 0,
+        "dither_enforced": false,
+        "stipple_px_after": 0,
+        "histogram": {
+          "dark": 155,
+          "steel": 135,
+          "bone": 40,
+          "pale": 66
+        },
+        "values_used": 4,
+        "histogram_pct": {
+          "dark": 39.1,
+          "steel": 34.1,
+          "bone": 10.1,
+          "pale": 16.7
+        },
+        "dominant": "dark"
+      },
+      "walk/south-west/3.png": {
+        "pixels": 7744,
+        "opaque_pixels": 435,
+        "alpha_partial_before": 0,
+        "off_palette_before": 31,
+        "on_palette_before_pct": 92.87,
+        "luma_span_before": 0.811,
+        "normalized": false,
+        "stipple_px_before": 0,
+        "dither_enforced": false,
+        "stipple_px_after": 0,
+        "histogram": {
+          "dark": 167,
+          "steel": 156,
+          "bone": 40,
+          "pale": 72
+        },
+        "values_used": 4,
+        "histogram_pct": {
+          "dark": 38.4,
+          "steel": 35.9,
+          "bone": 9.2,
+          "pale": 16.6
+        },
+        "dominant": "dark"
+      },
+      "walk/west/0.png": {
+        "pixels": 7744,
+        "opaque_pixels": 374,
+        "alpha_partial_before": 0,
+        "off_palette_before": 5,
+        "on_palette_before_pct": 98.66,
+        "luma_span_before": 0.811,
+        "normalized": false,
+        "stipple_px_before": 0,
+        "dither_enforced": false,
+        "stipple_px_after": 0,
+        "histogram": {
+          "dark": 187,
+          "steel": 119,
+          "bone": 28,
+          "pale": 40
+        },
+        "values_used": 4,
+        "histogram_pct": {
+          "dark": 50.0,
+          "steel": 31.8,
+          "bone": 7.5,
+          "pale": 10.7
+        },
+        "dominant": "dark"
+      },
+      "walk/west/1.png": {
+        "pixels": 7744,
+        "opaque_pixels": 391,
+        "alpha_partial_before": 0,
+        "off_palette_before": 3,
+        "on_palette_before_pct": 99.23,
+        "luma_span_before": 0.811,
+        "normalized": false,
+        "stipple_px_before": 0,
+        "dither_enforced": false,
+        "stipple_px_after": 0,
+        "histogram": {
+          "dark": 194,
+          "steel": 120,
+          "bone": 35,
+          "pale": 42
+        },
+        "values_used": 4,
+        "histogram_pct": {
+          "dark": 49.6,
+          "steel": 30.7,
+          "bone": 9.0,
+          "pale": 10.7
+        },
+        "dominant": "dark"
+      },
+      "walk/west/2.png": {
+        "pixels": 7744,
+        "opaque_pixels": 382,
+        "alpha_partial_before": 0,
+        "off_palette_before": 5,
+        "on_palette_before_pct": 98.69,
+        "luma_span_before": 0.811,
+        "normalized": false,
+        "stipple_px_before": 0,
+        "dither_enforced": false,
+        "stipple_px_after": 0,
+        "histogram": {
+          "dark": 194,
+          "steel": 125,
+          "bone": 28,
+          "pale": 35
+        },
+        "values_used": 4,
+        "histogram_pct": {
+          "dark": 50.8,
+          "steel": 32.7,
+          "bone": 7.3,
+          "pale": 9.2
+        },
+        "dominant": "dark"
+      },
+      "walk/west/3.png": {
+        "pixels": 7744,
+        "opaque_pixels": 425,
+        "alpha_partial_before": 0,
+        "off_palette_before": 6,
+        "on_palette_before_pct": 98.59,
+        "luma_span_before": 0.811,
+        "normalized": false,
+        "stipple_px_before": 0,
+        "dither_enforced": false,
+        "stipple_px_after": 0,
+        "histogram": {
+          "dark": 203,
+          "steel": 147,
+          "bone": 31,
+          "pale": 44
+        },
+        "values_used": 4,
+        "histogram_pct": {
+          "dark": 47.8,
+          "steel": 34.6,
+          "bone": 7.3,
+          "pale": 10.4
+        },
+        "dominant": "dark"
+      }
+    }
+  },
+  "sheet": {
+    "path": "RawArt/Sheets/T_Hero_Vanguard.png",
+    "size": [
+      192,
+      192
+    ],
+    "cell": 48,
+    "grid": [
+      4,
+      4
+    ],
+    "content_path": "/Game/Sprites/Heroes",
+    "texture": "T_Hero_Vanguard",
+    "srgb": true,
+    "sprite_bbox": [
+      44,
+      47
+    ],
+    "packed": "2026-07-26T00:21:00+00:00",
+    "frame_map": {
+      "0": "south.idle",
+      "1": "south.walk1",
+      "2": "south-west.idle",
+      "3": "south-west.walk1",
+      "4": "west.idle",
+      "5": "west.walk1",
+      "6": "north-west.idle",
+      "7": "north-west.walk1",
+      "8": "north.idle",
+      "9": "north.walk1",
+      "10": "north-east.idle",
+      "11": "north-east.walk1",
+      "12": "east.idle",
+      "13": "east.walk1",
+      "14": "south-east.idle",
+      "15": "south-east.walk1"
+    }
+  }
+}

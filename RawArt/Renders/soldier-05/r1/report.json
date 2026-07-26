@@ -1,0 +1,252 @@
+{
+  "generated": "2026-07-26T02:53:37+00:00",
+  "id": "soldier-05",
+  "revision": 1,
+  "palette": "demichrome-4",
+  "frames": 9,
+  "needed_palette_repair": 0,
+  "residual_1px_dither": 0,
+  "had_partial_alpha": 0,
+  "under_three_values": 0,
+  "verdict": "PASS",
+  "qc": {
+    "anchor": {
+      "south.png": {
+        "pixels": 2304,
+        "opaque_pixels": 678,
+        "alpha_partial_before": 0,
+        "off_palette_before": 0,
+        "on_palette_before_pct": 100.0,
+        "luma_span_before": 0.811,
+        "normalized": false,
+        "stipple_px_before": 0,
+        "dither_enforced": false,
+        "stipple_px_after": 0,
+        "histogram": {
+          "dark": 248,
+          "steel": 294,
+          "bone": 120,
+          "pale": 16
+        },
+        "values_used": 4,
+        "histogram_pct": {
+          "dark": 36.6,
+          "steel": 43.4,
+          "bone": 17.7,
+          "pale": 2.4
+        },
+        "dominant": "steel"
+      }
+    },
+    "rotation": {
+      "east.png": {
+        "pixels": 6400,
+        "opaque_pixels": 717,
+        "alpha_partial_before": 0,
+        "off_palette_before": 0,
+        "on_palette_before_pct": 100.0,
+        "luma_span_before": 0.501,
+        "normalized": false,
+        "stipple_px_before": 0,
+        "dither_enforced": false,
+        "stipple_px_after": 0,
+        "histogram": {
+          "dark": 197,
+          "steel": 459,
+          "bone": 55,
+          "pale": 6
+        },
+        "values_used": 4,
+        "histogram_pct": {
+          "dark": 27.5,
+          "steel": 64.0,
+          "bone": 7.7,
+          "pale": 0.8
+        },
+        "dominant": "steel"
+      },
+      "north-east.png": {
+        "pixels": 6400,
+        "opaque_pixels": 718,
+        "alpha_partial_before": 0,
+        "off_palette_before": 0,
+        "on_palette_before_pct": 100.0,
+        "luma_span_before": 0.501,
+        "normalized": false,
+        "stipple_px_before": 0,
+        "dither_enforced": false,
+        "stipple_px_after": 0,
+        "histogram": {
+          "dark": 185,
+          "steel": 471,
+          "bone": 62,
+          "pale": 0
+        },
+        "values_used": 3,
+        "histogram_pct": {
+          "dark": 25.8,
+          "steel": 65.6,
+          "bone": 8.6,
+          "pale": 0.0
+        },
+        "dominant": "steel"
+      },
+      "north-west.png": {
+        "pixels": 6400,
+        "opaque_pixels": 727,
+        "alpha_partial_before": 0,
+        "off_palette_before": 0,
+        "on_palette_before_pct": 100.0,
+        "luma_span_before": 0.501,
+        "normalized": false,
+        "stipple_px_before": 0,
+        "dither_enforced": false,
+        "stipple_px_after": 0,
+        "histogram": {
+          "dark": 185,
+          "steel": 492,
+          "bone": 50,
+          "pale": 0
+        },
+        "values_used": 3,
+        "histogram_pct": {
+          "dark": 25.4,
+          "steel": 67.7,
+          "bone": 6.9,
+          "pale": 0.0
+        },
+        "dominant": "steel"
+      },
+      "north.png": {
+        "pixels": 6400,
+        "opaque_pixels": 712,
+        "alpha_partial_before": 0,
+        "off_palette_before": 0,
+        "on_palette_before_pct": 100.0,
+        "luma_span_before": 0.501,
+        "normalized": false,
+        "stipple_px_before": 0,
+        "dither_enforced": false,
+        "stipple_px_after": 0,
+        "histogram": {
+          "dark": 185,
+          "steel": 476,
+          "bone": 51,
+          "pale": 0
+        },
+        "values_used": 3,
+        "histogram_pct": {
+          "dark": 26.0,
+          "steel": 66.9,
+          "bone": 7.2,
+          "pale": 0.0
+        },
+        "dominant": "steel"
+      },
+      "south-east.png": {
+        "pixels": 6400,
+        "opaque_pixels": 727,
+        "alpha_partial_before": 0,
+        "off_palette_before": 0,
+        "on_palette_before_pct": 100.0,
+        "luma_span_before": 0.501,
+        "normalized": false,
+        "stipple_px_before": 0,
+        "dither_enforced": false,
+        "stipple_px_after": 0,
+        "histogram": {
+          "dark": 227,
+          "steel": 381,
+          "bone": 107,
+          "pale": 12
+        },
+        "values_used": 4,
+        "histogram_pct": {
+          "dark": 31.2,
+          "steel": 52.4,
+          "bone": 14.7,
+          "pale": 1.7
+        },
+        "dominant": "steel"
+      },
+      "south-west.png": {
+        "pixels": 6400,
+        "opaque_pixels": 726,
+        "alpha_partial_before": 0,
+        "off_palette_before": 0,
+        "on_palette_before_pct": 100.0,
+        "luma_span_before": 0.501,
+        "normalized": false,
+        "stipple_px_before": 0,
+        "dither_enforced": false,
+        "stipple_px_after": 0,
+        "histogram": {
+          "dark": 236,
+          "steel": 363,
+          "bone": 115,
+          "pale": 12
+        },
+        "values_used": 4,
+        "histogram_pct": {
+          "dark": 32.5,
+          "steel": 50.0,
+          "bone": 15.8,
+          "pale": 1.7
+        },
+        "dominant": "steel"
+      },
+      "south.png": {
+        "pixels": 6400,
+        "opaque_pixels": 678,
+        "alpha_partial_before": 0,
+        "off_palette_before": 0,
+        "on_palette_before_pct": 100.0,
+        "luma_span_before": 0.811,
+        "normalized": false,
+        "stipple_px_before": 0,
+        "dither_enforced": false,
+        "stipple_px_after": 0,
+        "histogram": {
+          "dark": 248,
+          "steel": 294,
+          "bone": 120,
+          "pale": 16
+        },
+        "values_used": 4,
+        "histogram_pct": {
+          "dark": 36.6,
+          "steel": 43.4,
+          "bone": 17.7,
+          "pale": 2.4
+        },
+        "dominant": "steel"
+      },
+      "west.png": {
+        "pixels": 6400,
+        "opaque_pixels": 735,
+        "alpha_partial_before": 0,
+        "off_palette_before": 0,
+        "on_palette_before_pct": 100.0,
+        "luma_span_before": 0.501,
+        "normalized": false,
+        "stipple_px_before": 0,
+        "dither_enforced": false,
+        "stipple_px_after": 0,
+        "histogram": {
+          "dark": 199,
+          "steel": 456,
+          "bone": 74,
+          "pale": 6
+        },
+        "values_used": 4,
+        "histogram_pct": {
+          "dark": 27.1,
+          "steel": 62.0,
+          "bone": 10.1,
+          "pale": 0.8
+        },
+        "dominant": "steel"
+      }
+    }
+  }
+}

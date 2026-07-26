@@ -1,0 +1,290 @@
+{
+  "id": "protagonist-04",
+  "revision": 2,
+  "created": "2026-07-26T21:43:35+00:00",
+  "stages": {
+    "concept128": {
+      "character_id": "4044fc12-5f35-472d-abfe-84bc596a976b",
+      "generations": 1,
+      "updated": "2026-07-26T21:43:35+00:00",
+      "urls": [
+        "https://api.pixellab.ai/mcp/characters/4044fc12-5f35-472d-abfe-84bc596a976b/download"
+      ],
+      "fetched": "2026-07-26T21:48:40+00:00",
+      "files": [
+        "Protagonist_prototype_04_-_The_Brazier_r2_128_conc/rotations/east.png",
+        "Protagonist_prototype_04_-_The_Brazier_r2_128_conc/rotations/north-east.png",
+        "Protagonist_prototype_04_-_The_Brazier_r2_128_conc/rotations/north-west.png",
+        "Protagonist_prototype_04_-_The_Brazier_r2_128_conc/rotations/north.png",
+        "Protagonist_prototype_04_-_The_Brazier_r2_128_conc/rotations/south-east.png",
+        "Protagonist_prototype_04_-_The_Brazier_r2_128_conc/rotations/south-west.png",
+        "Protagonist_prototype_04_-_The_Brazier_r2_128_conc/rotations/south.png",
+        "Protagonist_prototype_04_-_The_Brazier_r2_128_conc/rotations/west.png"
+      ],
+      "quantized": "2026-07-26T21:48:41+00:00"
+    }
+  },
+  "generations_spent": 1,
+  "request_snapshot": {
+    "prompt": {
+      "description": "A narrow figure under a wide flat-brimmed iron hat, carrying a broad iron brazier basket mounted on a back frame so that it rides across the shoulders and sticks out well past them on both sides. The basket is a long horizontal cage of thick vertical iron ribs with fire visible only in the gaps between the ribs, and its top edge is flat. Heavy wide upper mass over a narrow waist, narrow legs and small feet, so the whole shape is top-heavy. Both hands hang empty at the sides. Short belted cloth tunic, no armour plate.",
+      "must_include": [
+        "wide flat brim hat with a straight brim",
+        "broad horizontal brazier cage riding across the shoulders, wider than the body",
+        "thick vertical iron ribs across the fire, fire only visible between them",
+        "wide top over a narrow waist and narrow legs",
+        "both hands empty at the sides"
+      ],
+      "must_avoid": [
+        "cape or cloak",
+        "fire escaping past the cage ribs or rising in a plume",
+        "glow, halo, sparks or rays around any pixel",
+        "bright or glowing eyes",
+        "held lantern, torch, pole or banner",
+        "helmet, hood or bare head",
+        "armour plate or pauldrons",
+        "round or domed basket"
+      ],
+      "style_mode": "flat"
+    },
+    "pixellab": {
+      "mode": "standard",
+      "size": 48,
+      "view": "low top-down",
+      "n_directions": 8,
+      "outline": "selective outline",
+      "detail": "low detail",
+      "shading": "flat shading",
+      "proportions": {
+        "type": "preset",
+        "name": "chibi"
+      },
+      "text_guidance_scale": 12,
+      "body_type": "humanoid",
+      "template": null
+    }
+  },
+  "qc": {
+    "concept128": {
+      "Protagonist_prototype_04_-_The_Brazier_r2_128_conc/rotations/east.png": {
+        "pixels": 32400,
+        "opaque_pixels": 2896,
+        "alpha_partial_before": 0,
+        "off_palette_before": 2896,
+        "on_palette_before_pct": 0.0,
+        "luma_span_before": 0.818,
+        "normalized": false,
+        "stipple_px_before": 0,
+        "dither_enforced": false,
+        "stipple_px_after": 0,
+        "histogram": {
+          "dark": 1798,
+          "steel": 417,
+          "bone": 431,
+          "pale": 250
+        },
+        "values_used": 4,
+        "histogram_pct": {
+          "dark": 62.1,
+          "steel": 14.4,
+          "bone": 14.9,
+          "pale": 8.6
+        },
+        "dominant": "dark",
+        "pale_uncaged": 0
+      },
+      "Protagonist_prototype_04_-_The_Brazier_r2_128_conc/rotations/north-east.png": {
+        "pixels": 32400,
+        "opaque_pixels": 3537,
+        "alpha_partial_before": 0,
+        "off_palette_before": 3537,
+        "on_palette_before_pct": 0.0,
+        "luma_span_before": 0.818,
+        "normalized": false,
+        "stipple_px_before": 0,
+        "dither_enforced": false,
+        "stipple_px_after": 0,
+        "histogram": {
+          "dark": 2475,
+          "steel": 408,
+          "bone": 411,
+          "pale": 243
+        },
+        "values_used": 4,
+        "histogram_pct": {
+          "dark": 70.0,
+          "steel": 11.5,
+          "bone": 11.6,
+          "pale": 6.9
+        },
+        "dominant": "dark",
+        "pale_uncaged": 0
+      },
+      "Protagonist_prototype_04_-_The_Brazier_r2_128_conc/rotations/north-west.png": {
+        "pixels": 32400,
+        "opaque_pixels": 3442,
+        "alpha_partial_before": 0,
+        "off_palette_before": 3442,
+        "on_palette_before_pct": 0.0,
+        "luma_span_before": 0.818,
+        "normalized": false,
+        "stipple_px_before": 1,
+        "dither_enforced": true,
+        "dither_passes": 1,
+        "stipple_px_after": 0,
+        "histogram": {
+          "dark": 2407,
+          "steel": 387,
+          "bone": 404,
+          "pale": 244
+        },
+        "values_used": 4,
+        "histogram_pct": {
+          "dark": 69.9,
+          "steel": 11.2,
+          "bone": 11.7,
+          "pale": 7.1
+        },
+        "dominant": "dark",
+        "pale_uncaged": 0
+      },
+      "Protagonist_prototype_04_-_The_Brazier_r2_128_conc/rotations/north.png": {
+        "pixels": 32400,
+        "opaque_pixels": 4055,
+        "alpha_partial_before": 0,
+        "off_palette_before": 4055,
+        "on_palette_before_pct": 0.0,
+        "luma_span_before": 0.818,
+        "normalized": false,
+        "stipple_px_before": 0,
+        "dither_enforced": false,
+        "stipple_px_after": 0,
+        "histogram": {
+          "dark": 2940,
+          "steel": 482,
+          "bone": 407,
+          "pale": 226
+        },
+        "values_used": 4,
+        "histogram_pct": {
+          "dark": 72.5,
+          "steel": 11.9,
+          "bone": 10.0,
+          "pale": 5.6
+        },
+        "dominant": "dark",
+        "pale_uncaged": 0
+      },
+      "Protagonist_prototype_04_-_The_Brazier_r2_128_conc/rotations/south-east.png": {
+        "pixels": 32400,
+        "opaque_pixels": 3377,
+        "alpha_partial_before": 0,
+        "off_palette_before": 3377,
+        "on_palette_before_pct": 0.0,
+        "luma_span_before": 0.818,
+        "normalized": false,
+        "stipple_px_before": 0,
+        "dither_enforced": false,
+        "stipple_px_after": 0,
+        "histogram": {
+          "dark": 2118,
+          "steel": 606,
+          "bone": 388,
+          "pale": 265
+        },
+        "values_used": 4,
+        "histogram_pct": {
+          "dark": 62.7,
+          "steel": 17.9,
+          "bone": 11.5,
+          "pale": 7.8
+        },
+        "dominant": "dark",
+        "pale_uncaged": 0
+      },
+      "Protagonist_prototype_04_-_The_Brazier_r2_128_conc/rotations/south-west.png": {
+        "pixels": 32400,
+        "opaque_pixels": 3493,
+        "alpha_partial_before": 0,
+        "off_palette_before": 3493,
+        "on_palette_before_pct": 0.0,
+        "luma_span_before": 0.818,
+        "normalized": false,
+        "stipple_px_before": 1,
+        "dither_enforced": true,
+        "dither_passes": 1,
+        "stipple_px_after": 0,
+        "histogram": {
+          "dark": 2212,
+          "steel": 598,
+          "bone": 442,
+          "pale": 241
+        },
+        "values_used": 4,
+        "histogram_pct": {
+          "dark": 63.3,
+          "steel": 17.1,
+          "bone": 12.7,
+          "pale": 6.9
+        },
+        "dominant": "dark",
+        "pale_uncaged": 0
+      },
+      "Protagonist_prototype_04_-_The_Brazier_r2_128_conc/rotations/south.png": {
+        "pixels": 32400,
+        "opaque_pixels": 3817,
+        "alpha_partial_before": 0,
+        "off_palette_before": 3817,
+        "on_palette_before_pct": 0.0,
+        "luma_span_before": 0.772,
+        "normalized": false,
+        "stipple_px_before": 3,
+        "dither_enforced": true,
+        "dither_passes": 1,
+        "stipple_px_after": 0,
+        "histogram": {
+          "dark": 2380,
+          "steel": 772,
+          "bone": 441,
+          "pale": 224
+        },
+        "values_used": 4,
+        "histogram_pct": {
+          "dark": 62.4,
+          "steel": 20.2,
+          "bone": 11.6,
+          "pale": 5.9
+        },
+        "dominant": "dark",
+        "pale_uncaged": 0
+      },
+      "Protagonist_prototype_04_-_The_Brazier_r2_128_conc/rotations/west.png": {
+        "pixels": 32400,
+        "opaque_pixels": 2731,
+        "alpha_partial_before": 0,
+        "off_palette_before": 2731,
+        "on_palette_before_pct": 0.0,
+        "luma_span_before": 0.818,
+        "normalized": false,
+        "stipple_px_before": 0,
+        "dither_enforced": false,
+        "stipple_px_after": 0,
+        "histogram": {
+          "dark": 1725,
+          "steel": 394,
+          "bone": 368,
+          "pale": 244
+        },
+        "values_used": 4,
+        "histogram_pct": {
+          "dark": 63.2,
+          "steel": 14.4,
+          "bone": 13.5,
+          "pale": 8.9
+        },
+        "dominant": "dark",
+        "pale_uncaged": 0
+      }
+    }
+  }
+}

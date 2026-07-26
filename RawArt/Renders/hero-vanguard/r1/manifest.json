@@ -1,0 +1,289 @@
+{
+  "id": "hero-vanguard",
+  "revision": 1,
+  "created": "2026-07-25T23:53:01+00:00",
+  "request_snapshot": {
+    "prompt": {
+      "description": "A stocky armored standard-bearer in heavy plate. Oversized head in an open-faced helm with no visor and no crest, broad blunt face, squared pauldrons forming a flat horizontal shoulder line, short thick legs. One arm holds a large rectangular tower shield with a flat top edge and a single straight band across its middle; the other grips a straight vertical banner pole at the hip, topped by a small rectangular flag of plain undecorated cloth. A short sword stays sheathed at the hip. Boxy build, hard straight edges, everything squared off.",
+      "must_include": [
+        "flat horizontal shoulder line, unbroken by collar or cloth",
+        "rectangular tower shield with a flat top edge and four straight sides",
+        "dead-vertical thin banner pole running down to a hand at hip height",
+        "small rectangular flag with four straight edges, clear of the head",
+        "open face visible under the helm, no visor"
+      ],
+      "must_avoid": [
+        "cape or cloak",
+        "swallowtail, forked, torn or curving flag edges",
+        "any device, emblem or writing on the flag",
+        "helm crest, plume, wings or horns",
+        "lamp, torch, candle or visible flame",
+        "glow, halo, sparks or rays around any pixel",
+        "bright or glowing eyes",
+        "round, kite-shaped or bossed shield",
+        "raised, swinging or oversized weapon",
+        "tassels, fringe, ragged cloth or straps hanging off the silhouette",
+        "diagonal pole or spear-like angle"
+      ]
+    },
+    "pixellab": {
+      "mode": "v3",
+      "size": 48,
+      "view": "low top-down",
+      "n_directions": 8,
+      "outline": "single color black outline",
+      "detail": "low detail",
+      "shading": "flat shading",
+      "proportions": {
+        "type": "preset",
+        "name": "chibi"
+      },
+      "body_type": "humanoid",
+      "template": null
+    }
+  },
+  "stages": {
+    "anchor": {
+      "character_id": "8e2d96a6-6b7e-467e-9a50-d843e92ed643",
+      "generations": 2,
+      "mode": "v3",
+      "updated": "2026-07-25T23:53:01+00:00",
+      "urls": [
+        "https://backblaze.pixellab.ai/file/pixellab-characters/af7def4e-5692-4b18-9246-874d5382befb/8e2d96a6-6b7e-467e-9a50-d843e92ed643/rotations/south.png?t=1785023820",
+        "https://backblaze.pixellab.ai/file/pixellab-characters/af7def4e-5692-4b18-9246-874d5382befb/8e2d96a6-6b7e-467e-9a50-d843e92ed643/rotations/east.png?t=1785023820",
+        "https://backblaze.pixellab.ai/file/pixellab-characters/af7def4e-5692-4b18-9246-874d5382befb/8e2d96a6-6b7e-467e-9a50-d843e92ed643/rotations/north.png?t=1785023820",
+        "https://backblaze.pixellab.ai/file/pixellab-characters/af7def4e-5692-4b18-9246-874d5382befb/8e2d96a6-6b7e-467e-9a50-d843e92ed643/rotations/west.png?t=1785023820",
+        "https://backblaze.pixellab.ai/file/pixellab-characters/af7def4e-5692-4b18-9246-874d5382befb/8e2d96a6-6b7e-467e-9a50-d843e92ed643/rotations/south-east.png?t=1785023820",
+        "https://backblaze.pixellab.ai/file/pixellab-characters/af7def4e-5692-4b18-9246-874d5382befb/8e2d96a6-6b7e-467e-9a50-d843e92ed643/rotations/north-east.png?t=1785023820",
+        "https://backblaze.pixellab.ai/file/pixellab-characters/af7def4e-5692-4b18-9246-874d5382befb/8e2d96a6-6b7e-467e-9a50-d843e92ed643/rotations/north-west.png?t=1785023820",
+        "https://backblaze.pixellab.ai/file/pixellab-characters/af7def4e-5692-4b18-9246-874d5382befb/8e2d96a6-6b7e-467e-9a50-d843e92ed643/rotations/south-west.png?t=1785023820"
+      ],
+      "fetched": "2026-07-25T23:58:20+00:00",
+      "files": [
+        "east.png",
+        "north-east.png",
+        "north-west.png",
+        "north.png",
+        "south-east.png",
+        "south-west.png",
+        "south.png",
+        "west.png"
+      ],
+      "quantized": "2026-07-25T23:58:25+00:00"
+    }
+  },
+  "generations_spent": 2,
+  "qc": {
+    "anchor": {
+      "east.png": {
+        "pixels": 7744,
+        "opaque_pixels": 620,
+        "alpha_partial_before": 0,
+        "off_palette_before": 620,
+        "on_palette_before_pct": 0.0,
+        "luma_span_before": 0.959,
+        "normalized": false,
+        "stipple_px_before": 0,
+        "dither_enforced": false,
+        "stipple_px_after": 0,
+        "histogram": {
+          "dark": 388,
+          "steel": 100,
+          "bone": 63,
+          "pale": 69
+        },
+        "values_used": 4,
+        "histogram_pct": {
+          "dark": 62.6,
+          "steel": 16.1,
+          "bone": 10.2,
+          "pale": 11.1
+        },
+        "dominant": "dark"
+      },
+      "north-east.png": {
+        "pixels": 7744,
+        "opaque_pixels": 799,
+        "alpha_partial_before": 0,
+        "off_palette_before": 799,
+        "on_palette_before_pct": 0.0,
+        "luma_span_before": 0.91,
+        "normalized": false,
+        "stipple_px_before": 0,
+        "dither_enforced": false,
+        "stipple_px_after": 0,
+        "histogram": {
+          "dark": 501,
+          "steel": 123,
+          "bone": 74,
+          "pale": 101
+        },
+        "values_used": 4,
+        "histogram_pct": {
+          "dark": 62.7,
+          "steel": 15.4,
+          "bone": 9.3,
+          "pale": 12.6
+        },
+        "dominant": "dark"
+      },
+      "north-west.png": {
+        "pixels": 7744,
+        "opaque_pixels": 878,
+        "alpha_partial_before": 0,
+        "off_palette_before": 878,
+        "on_palette_before_pct": 0.0,
+        "luma_span_before": 0.91,
+        "normalized": false,
+        "stipple_px_before": 0,
+        "dither_enforced": false,
+        "stipple_px_after": 0,
+        "histogram": {
+          "dark": 492,
+          "steel": 165,
+          "bone": 91,
+          "pale": 130
+        },
+        "values_used": 4,
+        "histogram_pct": {
+          "dark": 56.0,
+          "steel": 18.8,
+          "bone": 10.4,
+          "pale": 14.8
+        },
+        "dominant": "dark"
+      },
+      "north.png": {
+        "pixels": 7744,
+        "opaque_pixels": 937,
+        "alpha_partial_before": 0,
+        "off_palette_before": 937,
+        "on_palette_before_pct": 0.0,
+        "luma_span_before": 0.91,
+        "normalized": false,
+        "stipple_px_before": 0,
+        "dither_enforced": false,
+        "stipple_px_after": 0,
+        "histogram": {
+          "dark": 542,
+          "steel": 163,
+          "bone": 114,
+          "pale": 118
+        },
+        "values_used": 4,
+        "histogram_pct": {
+          "dark": 57.8,
+          "steel": 17.4,
+          "bone": 12.2,
+          "pale": 12.6
+        },
+        "dominant": "dark"
+      },
+      "south-east.png": {
+        "pixels": 7744,
+        "opaque_pixels": 918,
+        "alpha_partial_before": 0,
+        "off_palette_before": 918,
+        "on_palette_before_pct": 0.0,
+        "luma_span_before": 0.91,
+        "normalized": false,
+        "stipple_px_before": 1,
+        "dither_enforced": true,
+        "dither_passes": 1,
+        "stipple_px_after": 0,
+        "histogram": {
+          "dark": 569,
+          "steel": 146,
+          "bone": 98,
+          "pale": 105
+        },
+        "values_used": 4,
+        "histogram_pct": {
+          "dark": 62.0,
+          "steel": 15.9,
+          "bone": 10.7,
+          "pale": 11.4
+        },
+        "dominant": "dark"
+      },
+      "south-west.png": {
+        "pixels": 7744,
+        "opaque_pixels": 761,
+        "alpha_partial_before": 0,
+        "off_palette_before": 761,
+        "on_palette_before_pct": 0.0,
+        "luma_span_before": 0.906,
+        "normalized": false,
+        "stipple_px_before": 0,
+        "dither_enforced": false,
+        "stipple_px_after": 0,
+        "histogram": {
+          "dark": 428,
+          "steel": 136,
+          "bone": 92,
+          "pale": 105
+        },
+        "values_used": 4,
+        "histogram_pct": {
+          "dark": 56.2,
+          "steel": 17.9,
+          "bone": 12.1,
+          "pale": 13.8
+        },
+        "dominant": "dark"
+      },
+      "south.png": {
+        "pixels": 7744,
+        "opaque_pixels": 967,
+        "alpha_partial_before": 0,
+        "off_palette_before": 967,
+        "on_palette_before_pct": 0.0,
+        "luma_span_before": 0.891,
+        "normalized": false,
+        "stipple_px_before": 0,
+        "dither_enforced": false,
+        "stipple_px_after": 0,
+        "histogram": {
+          "dark": 596,
+          "steel": 143,
+          "bone": 123,
+          "pale": 105
+        },
+        "values_used": 4,
+        "histogram_pct": {
+          "dark": 61.6,
+          "steel": 14.8,
+          "bone": 12.7,
+          "pale": 10.9
+        },
+        "dominant": "dark"
+      },
+      "west.png": {
+        "pixels": 7744,
+        "opaque_pixels": 649,
+        "alpha_partial_before": 0,
+        "off_palette_before": 649,
+        "on_palette_before_pct": 0.0,
+        "luma_span_before": 0.891,
+        "normalized": false,
+        "stipple_px_before": 0,
+        "dither_enforced": false,
+        "stipple_px_after": 0,
+        "histogram": {
+          "dark": 326,
+          "steel": 119,
+          "bone": 94,
+          "pale": 110
+        },
+        "values_used": 4,
+        "histogram_pct": {
+          "dark": 50.2,
+          "steel": 18.3,
+          "bone": 14.5,
+          "pale": 16.9
+        },
+        "dominant": "dark"
+      }
+    }
+  }
+}

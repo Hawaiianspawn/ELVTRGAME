@@ -1,0 +1,366 @@
+{
+  "id": "soldier-01",
+  "revision": 2,
+  "created": "2026-07-26T04:58:32+00:00",
+  "stages": {
+    "anchor": {
+      "source": "authored",
+      "spec": "docs/art/soldier-roster-v1.md",
+      "generations": 0,
+      "updated": "2026-07-26T04:58:32+00:00",
+      "quantized": "2026-07-26T05:01:11+00:00"
+    },
+    "rotation": {
+      "character_id": "05252f3c-f933-48a9-839d-d63b858b3da6",
+      "generations": 1,
+      "updated": "2026-07-26T05:08:09+00:00",
+      "urls": [
+        "https://backblaze.pixellab.ai/file/pixellab-characters/af7def4e-5692-4b18-9246-874d5382befb/05252f3c-f933-48a9-839d-d63b858b3da6/rotations/south-west.png"
+      ],
+      "fetched": "2026-07-26T05:11:06+00:00",
+      "files": [
+        "east.png",
+        "north-east.png",
+        "north-west.png",
+        "north.png",
+        "south-east.png",
+        "south-west.png",
+        "south.png",
+        "west.png"
+      ],
+      "quantized": "2026-07-26T05:11:12+00:00"
+    }
+  },
+  "generations_spent": 1,
+  "request_snapshot": {
+    "prompt": {
+      "description": "A destitute volunteer with nothing that was ever issued to them. An oversized head wrapped in a torn cloth rag knotted off to one side, no helmet and no brim, an open face with two sunken eyes. A plain unbelted shirt, thin sloping shoulders, bare wrapped legs and rag-bound feet. Shouldered out to one side at a hard forty-five degree angle, one thick wooden haft, gripped at the chest and stopping short of the top of the head, with a small squared iron cap on its raised end. The haft is stiff timber - dead straight, the same thickness from end to end, like a broom handle. Nothing on this person is armour.",
+      "must_include": [
+        "torn cloth rag wrapping the head, knotted off to one side - no helmet, no skullcap, no brim",
+        "one thick wooden haft on a hard forty-five degree diagonal, dead straight and rigid, the same thickness along its whole length",
+        "the haft gripped at the chest and stopping below the top of the head - it never rises past the crown",
+        "a small squared iron cap on the raised end of the haft, no wider than the haft itself, the only worked metal on the figure",
+        "a plain unbelted shirt and bare wrapped legs, no armour of any kind",
+        "narrow sloping shoulders, uneven and soft",
+        "two dark sunken eye recesses in an open face"
+      ],
+      "must_avoid": [
+        "helmet, skullcap, brim, visor, crest or plume",
+        "any armour plate, pauldron, mail or greaves",
+        "spear, polearm or any weapon held vertically",
+        "a curved, bent, arced, drooping or flexible haft",
+        "a rope, chain, cord, whip, flail or anything that hangs or swings",
+        "a haft that tapers, narrows or thins toward either end",
+        "an axe head, blade, hammer head, spike cluster or ball on the end of the haft",
+        "any held object rising above the top of the head",
+        "shield of any shape",
+        "banner, flag, pennant or standard",
+        "horn, trumpet or any curved object above the head",
+        "lamp, torch, candle or visible flame",
+        "glow, halo, sparks or rays around any pixel",
+        "bright or glowing eyes",
+        "white or near-white highlights, specular glints",
+        "cape or cloak",
+        "large solid black body mass, heavy internal outlining, deep recesses, cast shadow"
+      ],
+      "style_mode": "flat"
+    },
+    "pixellab": {
+      "mode": "standard",
+      "size": 48,
+      "view": "high top-down",
+      "n_directions": 8,
+      "outline": "selective outline",
+      "detail": "low detail",
+      "shading": "flat shading",
+      "proportions": {
+        "type": "preset",
+        "name": "chibi"
+      },
+      "text_guidance_scale": 12,
+      "body_type": "humanoid",
+      "template": null
+    }
+  },
+  "qc": {
+    "anchor": {
+      "south.png": {
+        "pixels": 2304,
+        "opaque_pixels": 550,
+        "alpha_partial_before": 0,
+        "off_palette_before": 0,
+        "on_palette_before_pct": 100.0,
+        "luma_span_before": 0.501,
+        "normalized": false,
+        "stipple_px_before": 0,
+        "dither_enforced": false,
+        "stipple_px_after": 0,
+        "histogram": {
+          "dark": 160,
+          "steel": 12,
+          "bone": 378,
+          "pale": 0
+        },
+        "values_used": 3,
+        "histogram_pct": {
+          "dark": 29.1,
+          "steel": 2.2,
+          "bone": 68.7,
+          "pale": 0.0
+        },
+        "dominant": "bone",
+        "pale_uncaged": 0
+      }
+    },
+    "rotation": {
+      "east.png": {
+        "pixels": 7056,
+        "opaque_pixels": 498,
+        "alpha_partial_before": 0,
+        "off_palette_before": 22,
+        "on_palette_before_pct": 95.58,
+        "luma_span_before": 0.552,
+        "normalized": false,
+        "stipple_px_before": 0,
+        "dither_enforced": false,
+        "stipple_px_after": 0,
+        "histogram": {
+          "dark": 154,
+          "steel": 0,
+          "bone": 344,
+          "pale": 0
+        },
+        "values_used": 2,
+        "histogram_pct": {
+          "dark": 30.9,
+          "steel": 0.0,
+          "bone": 69.1,
+          "pale": 0.0
+        },
+        "dominant": "bone",
+        "pale_uncaged": 0
+      },
+      "north-east.png": {
+        "pixels": 7056,
+        "opaque_pixels": 574,
+        "alpha_partial_before": 0,
+        "off_palette_before": 19,
+        "on_palette_before_pct": 96.69,
+        "luma_span_before": 0.552,
+        "normalized": false,
+        "stipple_px_before": 0,
+        "dither_enforced": false,
+        "stipple_px_after": 0,
+        "histogram": {
+          "dark": 151,
+          "steel": 0,
+          "bone": 423,
+          "pale": 0
+        },
+        "values_used": 2,
+        "histogram_pct": {
+          "dark": 26.3,
+          "steel": 0.0,
+          "bone": 73.7,
+          "pale": 0.0
+        },
+        "dominant": "bone",
+        "pale_uncaged": 0
+      },
+      "north-west.png": {
+        "pixels": 7056,
+        "opaque_pixels": 578,
+        "alpha_partial_before": 0,
+        "off_palette_before": 19,
+        "on_palette_before_pct": 96.71,
+        "luma_span_before": 0.552,
+        "normalized": false,
+        "stipple_px_before": 0,
+        "dither_enforced": false,
+        "stipple_px_after": 0,
+        "histogram": {
+          "dark": 147,
+          "steel": 4,
+          "bone": 427,
+          "pale": 0
+        },
+        "values_used": 3,
+        "histogram_pct": {
+          "dark": 25.4,
+          "steel": 0.7,
+          "bone": 73.9,
+          "pale": 0.0
+        },
+        "dominant": "bone",
+        "pale_uncaged": 0
+      },
+      "north.png": {
+        "pixels": 7056,
+        "opaque_pixels": 556,
+        "alpha_partial_before": 0,
+        "off_palette_before": 14,
+        "on_palette_before_pct": 97.48,
+        "luma_span_before": 0.552,
+        "normalized": false,
+        "stipple_px_before": 0,
+        "dither_enforced": false,
+        "stipple_px_after": 0,
+        "histogram": {
+          "dark": 169,
+          "steel": 19,
+          "bone": 368,
+          "pale": 0
+        },
+        "values_used": 3,
+        "histogram_pct": {
+          "dark": 30.4,
+          "steel": 3.4,
+          "bone": 66.2,
+          "pale": 0.0
+        },
+        "dominant": "bone",
+        "pale_uncaged": 0
+      },
+      "south-east.png": {
+        "pixels": 7056,
+        "opaque_pixels": 494,
+        "alpha_partial_before": 0,
+        "off_palette_before": 19,
+        "on_palette_before_pct": 96.15,
+        "luma_span_before": 0.552,
+        "normalized": false,
+        "stipple_px_before": 0,
+        "dither_enforced": false,
+        "stipple_px_after": 0,
+        "histogram": {
+          "dark": 150,
+          "steel": 0,
+          "bone": 344,
+          "pale": 0
+        },
+        "values_used": 2,
+        "histogram_pct": {
+          "dark": 30.4,
+          "steel": 0.0,
+          "bone": 69.6,
+          "pale": 0.0
+        },
+        "dominant": "bone",
+        "pale_uncaged": 0
+      },
+      "south-west.png": {
+        "pixels": 7056,
+        "opaque_pixels": 547,
+        "alpha_partial_before": 0,
+        "off_palette_before": 20,
+        "on_palette_before_pct": 96.34,
+        "luma_span_before": 0.552,
+        "normalized": false,
+        "stipple_px_before": 0,
+        "dither_enforced": false,
+        "stipple_px_after": 0,
+        "histogram": {
+          "dark": 167,
+          "steel": 19,
+          "bone": 361,
+          "pale": 0
+        },
+        "values_used": 3,
+        "histogram_pct": {
+          "dark": 30.5,
+          "steel": 3.5,
+          "bone": 66.0,
+          "pale": 0.0
+        },
+        "dominant": "bone",
+        "pale_uncaged": 0
+      },
+      "south.png": {
+        "pixels": 7056,
+        "opaque_pixels": 550,
+        "alpha_partial_before": 0,
+        "off_palette_before": 15,
+        "on_palette_before_pct": 97.27,
+        "luma_span_before": 0.552,
+        "normalized": false,
+        "stipple_px_before": 0,
+        "dither_enforced": false,
+        "stipple_px_after": 0,
+        "histogram": {
+          "dark": 160,
+          "steel": 12,
+          "bone": 378,
+          "pale": 0
+        },
+        "values_used": 3,
+        "histogram_pct": {
+          "dark": 29.1,
+          "steel": 2.2,
+          "bone": 68.7,
+          "pale": 0.0
+        },
+        "dominant": "bone",
+        "pale_uncaged": 0
+      },
+      "west.png": {
+        "pixels": 7056,
+        "opaque_pixels": 478,
+        "alpha_partial_before": 0,
+        "off_palette_before": 20,
+        "on_palette_before_pct": 95.82,
+        "luma_span_before": 0.552,
+        "normalized": false,
+        "stipple_px_before": 0,
+        "dither_enforced": false,
+        "stipple_px_after": 0,
+        "histogram": {
+          "dark": 135,
+          "steel": 19,
+          "bone": 324,
+          "pale": 0
+        },
+        "values_used": 3,
+        "histogram_pct": {
+          "dark": 28.2,
+          "steel": 4.0,
+          "bone": 67.8,
+          "pale": 0.0
+        },
+        "dominant": "bone",
+        "pale_uncaged": 0
+      }
+    }
+  },
+  "sheet": {
+    "path": "RawArt/Sheets/T_Soldier_01.png",
+    "size": [
+      192,
+      96
+    ],
+    "cell": 48,
+    "grid": [
+      4,
+      2
+    ],
+    "content_path": "/Game/Sprites/Units",
+    "texture": "T_Soldier_01",
+    "srgb": true,
+    "sprite_bbox": {
+      "_": [
+        41,
+        38
+      ]
+    },
+    "packed": "2026-07-26T21:03:03+00:00",
+    "frame_map": {
+      "0": "south.idle",
+      "1": "south-east.idle",
+      "2": "east.idle",
+      "3": "north-east.idle",
+      "4": "north.idle",
+      "5": "north-west.idle",
+      "6": "west.idle",
+      "7": "south-west.idle"
+    }
+  }
+}

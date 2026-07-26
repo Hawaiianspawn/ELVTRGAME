@@ -1,0 +1,526 @@
+{
+  "id": "protagonist-03",
+  "revision": 1,
+  "created": "2026-07-26T21:32:23+00:00",
+  "stages": {
+    "anchor": {
+      "character_id": "eb2458b1-27a7-49f0-bf1e-85f46f6215c5",
+      "generations": 1,
+      "updated": "2026-07-26T21:32:23+00:00",
+      "urls": [
+        "https://api.pixellab.ai/mcp/characters/eb2458b1-27a7-49f0-bf1e-85f46f6215c5/download"
+      ],
+      "fetched": "2026-07-26T21:40:58+00:00",
+      "files": [
+        "Protagonist_prototype_03_-_The_Tender/rotations/east.png",
+        "Protagonist_prototype_03_-_The_Tender/rotations/north-east.png",
+        "Protagonist_prototype_03_-_The_Tender/rotations/north-west.png",
+        "Protagonist_prototype_03_-_The_Tender/rotations/north.png",
+        "Protagonist_prototype_03_-_The_Tender/rotations/south-east.png",
+        "Protagonist_prototype_03_-_The_Tender/rotations/south-west.png",
+        "Protagonist_prototype_03_-_The_Tender/rotations/south.png",
+        "Protagonist_prototype_03_-_The_Tender/rotations/west.png"
+      ],
+      "quantized": "2026-07-26T21:41:11+00:00"
+    },
+    "concept128": {
+      "character_id": "639daa87-a853-43dc-9254-c1b33b0126bb",
+      "generations": 1,
+      "updated": "2026-07-26T21:32:23+00:00",
+      "urls": [
+        "https://api.pixellab.ai/mcp/characters/639daa87-a853-43dc-9254-c1b33b0126bb/download"
+      ],
+      "fetched": "2026-07-26T21:40:59+00:00",
+      "files": [
+        "Protagonist_prototype_03_-_The_Tender_128_concept/rotations/east.png",
+        "Protagonist_prototype_03_-_The_Tender_128_concept/rotations/north-east.png",
+        "Protagonist_prototype_03_-_The_Tender_128_concept/rotations/north-west.png",
+        "Protagonist_prototype_03_-_The_Tender_128_concept/rotations/north.png",
+        "Protagonist_prototype_03_-_The_Tender_128_concept/rotations/south-east.png",
+        "Protagonist_prototype_03_-_The_Tender_128_concept/rotations/south-west.png",
+        "Protagonist_prototype_03_-_The_Tender_128_concept/rotations/south.png",
+        "Protagonist_prototype_03_-_The_Tender_128_concept/rotations/west.png"
+      ],
+      "quantized": "2026-07-26T21:41:11+00:00"
+    }
+  },
+  "generations_spent": 2,
+  "request_snapshot": {
+    "prompt": {
+      "description": "A hooded figure in a long ankle-length cloth robe, leaning slightly forward and cradling a wide shallow iron bowl of fire at waist height in both hands. The arms come forward and close around the bowl so that arms, bowl and body form one closed loop. Deep pointed hood with the face sunk back into a dark recess inside it. The robe falls straight to the feet and hides the legs entirely; narrow shoulders, no armour, no belt kit, bare hands. The bowl has a hard thick rim and the fire sits down inside it, below the rim line.",
+      "must_include": [
+        "both hands on a wide shallow bowl held at waist height",
+        "arms closing forward into a loop around the bowl",
+        "deep pointed hood with the face recessed and dark inside it",
+        "long robe reaching the feet, legs hidden",
+        "fire contained down inside the bowl rim"
+      ],
+      "must_avoid": [
+        "helmet, hat or bare head",
+        "armour plate, pauldrons or mail",
+        "any second held object, weapon or banner",
+        "bowl raised above the chest or held in one hand",
+        "glow, halo, sparks or rays around any pixel",
+        "bright or glowing eyes",
+        "flames rising above the head",
+        "wide planted stance"
+      ],
+      "style_mode": "flat"
+    },
+    "pixellab": {
+      "mode": "standard",
+      "size": 48,
+      "view": "low top-down",
+      "n_directions": 8,
+      "outline": "selective outline",
+      "detail": "low detail",
+      "shading": "flat shading",
+      "proportions": {
+        "type": "preset",
+        "name": "chibi"
+      },
+      "text_guidance_scale": 12,
+      "body_type": "humanoid",
+      "template": null
+    }
+  },
+  "qc": {
+    "anchor": {
+      "Protagonist_prototype_03_-_The_Tender/rotations/east.png": {
+        "pixels": 4624,
+        "opaque_pixels": 611,
+        "alpha_partial_before": 0,
+        "off_palette_before": 611,
+        "on_palette_before_pct": 0.0,
+        "luma_span_before": 0.743,
+        "normalized": false,
+        "stipple_px_before": 0,
+        "dither_enforced": false,
+        "stipple_px_after": 0,
+        "histogram": {
+          "dark": 510,
+          "steel": 20,
+          "bone": 80,
+          "pale": 1
+        },
+        "values_used": 4,
+        "histogram_pct": {
+          "dark": 83.5,
+          "steel": 3.3,
+          "bone": 13.1,
+          "pale": 0.2
+        },
+        "dominant": "dark",
+        "pale_uncaged": 0
+      },
+      "Protagonist_prototype_03_-_The_Tender/rotations/north-east.png": {
+        "pixels": 4624,
+        "opaque_pixels": 667,
+        "alpha_partial_before": 0,
+        "off_palette_before": 667,
+        "on_palette_before_pct": 0.0,
+        "luma_span_before": 0.728,
+        "normalized": false,
+        "stipple_px_before": 0,
+        "dither_enforced": false,
+        "stipple_px_after": 0,
+        "histogram": {
+          "dark": 581,
+          "steel": 18,
+          "bone": 68,
+          "pale": 0
+        },
+        "values_used": 3,
+        "histogram_pct": {
+          "dark": 87.1,
+          "steel": 2.7,
+          "bone": 10.2,
+          "pale": 0.0
+        },
+        "dominant": "dark",
+        "pale_uncaged": 0
+      },
+      "Protagonist_prototype_03_-_The_Tender/rotations/north-west.png": {
+        "pixels": 4624,
+        "opaque_pixels": 642,
+        "alpha_partial_before": 0,
+        "off_palette_before": 642,
+        "on_palette_before_pct": 0.0,
+        "luma_span_before": 0.691,
+        "normalized": false,
+        "stipple_px_before": 0,
+        "dither_enforced": false,
+        "stipple_px_after": 0,
+        "histogram": {
+          "dark": 557,
+          "steel": 25,
+          "bone": 60,
+          "pale": 0
+        },
+        "values_used": 3,
+        "histogram_pct": {
+          "dark": 86.8,
+          "steel": 3.9,
+          "bone": 9.3,
+          "pale": 0.0
+        },
+        "dominant": "dark",
+        "pale_uncaged": 0
+      },
+      "Protagonist_prototype_03_-_The_Tender/rotations/north.png": {
+        "pixels": 4624,
+        "opaque_pixels": 654,
+        "alpha_partial_before": 0,
+        "off_palette_before": 654,
+        "on_palette_before_pct": 0.0,
+        "luma_span_before": 0.2,
+        "normalized": true,
+        "stipple_px_before": 0,
+        "dither_enforced": false,
+        "stipple_px_after": 0,
+        "histogram": {
+          "dark": 82,
+          "steel": 72,
+          "bone": 379,
+          "pale": 121
+        },
+        "values_used": 4,
+        "histogram_pct": {
+          "dark": 12.5,
+          "steel": 11.0,
+          "bone": 58.0,
+          "pale": 18.5
+        },
+        "dominant": "bone",
+        "pale_uncaged": 3
+      },
+      "Protagonist_prototype_03_-_The_Tender/rotations/south-east.png": {
+        "pixels": 4624,
+        "opaque_pixels": 644,
+        "alpha_partial_before": 0,
+        "off_palette_before": 644,
+        "on_palette_before_pct": 0.0,
+        "luma_span_before": 0.743,
+        "normalized": false,
+        "stipple_px_before": 0,
+        "dither_enforced": false,
+        "stipple_px_after": 0,
+        "histogram": {
+          "dark": 526,
+          "steel": 29,
+          "bone": 87,
+          "pale": 2
+        },
+        "values_used": 4,
+        "histogram_pct": {
+          "dark": 81.7,
+          "steel": 4.5,
+          "bone": 13.5,
+          "pale": 0.3
+        },
+        "dominant": "dark",
+        "pale_uncaged": 1
+      },
+      "Protagonist_prototype_03_-_The_Tender/rotations/south-west.png": {
+        "pixels": 4624,
+        "opaque_pixels": 657,
+        "alpha_partial_before": 0,
+        "off_palette_before": 657,
+        "on_palette_before_pct": 0.0,
+        "luma_span_before": 0.743,
+        "normalized": false,
+        "stipple_px_before": 0,
+        "dither_enforced": false,
+        "stipple_px_after": 0,
+        "histogram": {
+          "dark": 531,
+          "steel": 34,
+          "bone": 89,
+          "pale": 3
+        },
+        "values_used": 4,
+        "histogram_pct": {
+          "dark": 80.8,
+          "steel": 5.2,
+          "bone": 13.5,
+          "pale": 0.5
+        },
+        "dominant": "dark",
+        "pale_uncaged": 0
+      },
+      "Protagonist_prototype_03_-_The_Tender/rotations/south.png": {
+        "pixels": 4624,
+        "opaque_pixels": 629,
+        "alpha_partial_before": 0,
+        "off_palette_before": 629,
+        "on_palette_before_pct": 0.0,
+        "luma_span_before": 0.743,
+        "normalized": false,
+        "stipple_px_before": 0,
+        "dither_enforced": false,
+        "stipple_px_after": 0,
+        "histogram": {
+          "dark": 489,
+          "steel": 38,
+          "bone": 98,
+          "pale": 4
+        },
+        "values_used": 4,
+        "histogram_pct": {
+          "dark": 77.7,
+          "steel": 6.0,
+          "bone": 15.6,
+          "pale": 0.6
+        },
+        "dominant": "dark",
+        "pale_uncaged": 0
+      },
+      "Protagonist_prototype_03_-_The_Tender/rotations/west.png": {
+        "pixels": 4624,
+        "opaque_pixels": 629,
+        "alpha_partial_before": 0,
+        "off_palette_before": 629,
+        "on_palette_before_pct": 0.0,
+        "luma_span_before": 0.743,
+        "normalized": false,
+        "stipple_px_before": 0,
+        "dither_enforced": false,
+        "stipple_px_after": 0,
+        "histogram": {
+          "dark": 529,
+          "steel": 41,
+          "bone": 59,
+          "pale": 0
+        },
+        "values_used": 3,
+        "histogram_pct": {
+          "dark": 84.1,
+          "steel": 6.5,
+          "bone": 9.4,
+          "pale": 0.0
+        },
+        "dominant": "dark",
+        "pale_uncaged": 0
+      }
+    },
+    "concept128": {
+      "Protagonist_prototype_03_-_The_Tender_128_concept/rotations/east.png": {
+        "pixels": 32400,
+        "opaque_pixels": 8038,
+        "alpha_partial_before": 0,
+        "off_palette_before": 8038,
+        "on_palette_before_pct": 0.0,
+        "luma_span_before": 0.649,
+        "normalized": false,
+        "stipple_px_before": 0,
+        "dither_enforced": false,
+        "stipple_px_after": 0,
+        "histogram": {
+          "dark": 7248,
+          "steel": 215,
+          "bone": 506,
+          "pale": 69
+        },
+        "values_used": 4,
+        "histogram_pct": {
+          "dark": 90.2,
+          "steel": 2.7,
+          "bone": 6.3,
+          "pale": 0.9
+        },
+        "dominant": "dark",
+        "pale_uncaged": 0
+      },
+      "Protagonist_prototype_03_-_The_Tender_128_concept/rotations/north-east.png": {
+        "pixels": 32400,
+        "opaque_pixels": 8031,
+        "alpha_partial_before": 0,
+        "off_palette_before": 8031,
+        "on_palette_before_pct": 0.0,
+        "luma_span_before": 0.649,
+        "normalized": false,
+        "stipple_px_before": 0,
+        "dither_enforced": false,
+        "stipple_px_after": 0,
+        "histogram": {
+          "dark": 7243,
+          "steel": 215,
+          "bone": 504,
+          "pale": 69
+        },
+        "values_used": 4,
+        "histogram_pct": {
+          "dark": 90.2,
+          "steel": 2.7,
+          "bone": 6.3,
+          "pale": 0.9
+        },
+        "dominant": "dark",
+        "pale_uncaged": 0
+      },
+      "Protagonist_prototype_03_-_The_Tender_128_concept/rotations/north-west.png": {
+        "pixels": 32400,
+        "opaque_pixels": 8032,
+        "alpha_partial_before": 0,
+        "off_palette_before": 8032,
+        "on_palette_before_pct": 0.0,
+        "luma_span_before": 0.649,
+        "normalized": false,
+        "stipple_px_before": 0,
+        "dither_enforced": false,
+        "stipple_px_after": 0,
+        "histogram": {
+          "dark": 7249,
+          "steel": 214,
+          "bone": 500,
+          "pale": 69
+        },
+        "values_used": 4,
+        "histogram_pct": {
+          "dark": 90.3,
+          "steel": 2.7,
+          "bone": 6.2,
+          "pale": 0.9
+        },
+        "dominant": "dark",
+        "pale_uncaged": 0
+      },
+      "Protagonist_prototype_03_-_The_Tender_128_concept/rotations/north.png": {
+        "pixels": 32400,
+        "opaque_pixels": 8004,
+        "alpha_partial_before": 0,
+        "off_palette_before": 8004,
+        "on_palette_before_pct": 0.0,
+        "luma_span_before": 0.649,
+        "normalized": false,
+        "stipple_px_before": 0,
+        "dither_enforced": false,
+        "stipple_px_after": 0,
+        "histogram": {
+          "dark": 7226,
+          "steel": 214,
+          "bone": 502,
+          "pale": 62
+        },
+        "values_used": 4,
+        "histogram_pct": {
+          "dark": 90.3,
+          "steel": 2.7,
+          "bone": 6.3,
+          "pale": 0.8
+        },
+        "dominant": "dark",
+        "pale_uncaged": 0
+      },
+      "Protagonist_prototype_03_-_The_Tender_128_concept/rotations/south-east.png": {
+        "pixels": 32400,
+        "opaque_pixels": 8038,
+        "alpha_partial_before": 0,
+        "off_palette_before": 8038,
+        "on_palette_before_pct": 0.0,
+        "luma_span_before": 0.649,
+        "normalized": false,
+        "stipple_px_before": 0,
+        "dither_enforced": false,
+        "stipple_px_after": 0,
+        "histogram": {
+          "dark": 7242,
+          "steel": 218,
+          "bone": 509,
+          "pale": 69
+        },
+        "values_used": 4,
+        "histogram_pct": {
+          "dark": 90.1,
+          "steel": 2.7,
+          "bone": 6.3,
+          "pale": 0.9
+        },
+        "dominant": "dark",
+        "pale_uncaged": 0
+      },
+      "Protagonist_prototype_03_-_The_Tender_128_concept/rotations/south-west.png": {
+        "pixels": 32400,
+        "opaque_pixels": 8032,
+        "alpha_partial_before": 0,
+        "off_palette_before": 8032,
+        "on_palette_before_pct": 0.0,
+        "luma_span_before": 0.649,
+        "normalized": false,
+        "stipple_px_before": 0,
+        "dither_enforced": false,
+        "stipple_px_after": 0,
+        "histogram": {
+          "dark": 7244,
+          "steel": 215,
+          "bone": 503,
+          "pale": 70
+        },
+        "values_used": 4,
+        "histogram_pct": {
+          "dark": 90.2,
+          "steel": 2.7,
+          "bone": 6.3,
+          "pale": 0.9
+        },
+        "dominant": "dark",
+        "pale_uncaged": 0
+      },
+      "Protagonist_prototype_03_-_The_Tender_128_concept/rotations/south.png": {
+        "pixels": 32400,
+        "opaque_pixels": 8066,
+        "alpha_partial_before": 0,
+        "off_palette_before": 8066,
+        "on_palette_before_pct": 0.0,
+        "luma_span_before": 0.649,
+        "normalized": false,
+        "stipple_px_before": 4,
+        "dither_enforced": true,
+        "dither_passes": 1,
+        "stipple_px_after": 0,
+        "histogram": {
+          "dark": 7217,
+          "steel": 269,
+          "bone": 509,
+          "pale": 71
+        },
+        "values_used": 4,
+        "histogram_pct": {
+          "dark": 89.5,
+          "steel": 3.3,
+          "bone": 6.3,
+          "pale": 0.9
+        },
+        "dominant": "dark",
+        "pale_uncaged": 0
+      },
+      "Protagonist_prototype_03_-_The_Tender_128_concept/rotations/west.png": {
+        "pixels": 32400,
+        "opaque_pixels": 8052,
+        "alpha_partial_before": 0,
+        "off_palette_before": 8052,
+        "on_palette_before_pct": 0.0,
+        "luma_span_before": 0.649,
+        "normalized": false,
+        "stipple_px_before": 0,
+        "dither_enforced": false,
+        "stipple_px_after": 0,
+        "histogram": {
+          "dark": 7270,
+          "steel": 213,
+          "bone": 493,
+          "pale": 76
+        },
+        "values_used": 4,
+        "histogram_pct": {
+          "dark": 90.3,
+          "steel": 2.6,
+          "bone": 6.1,
+          "pale": 0.9
+        },
+        "dominant": "dark",
+        "pale_uncaged": 0
+      }
+    }
+  }
+}

@@ -1,0 +1,176 @@
+{
+  "id": "style-soldier-02",
+  "revision": 1,
+  "created": "2026-07-26T01:21:22+00:00",
+  "stages": {
+    "anchor": {
+      "character_id": "6f9e18cf-e82d-419e-8369-39f8eccc34df",
+      "generations": 1,
+      "updated": "2026-07-26T01:21:22+00:00",
+      "urls": [
+        "https://backblaze.pixellab.ai/file/pixellab-characters/af7def4e-5692-4b18-9246-874d5382befb/6f9e18cf-e82d-419e-8369-39f8eccc34df/rotations/west.png"
+      ],
+      "fetched": "2026-07-26T01:22:24+00:00",
+      "files": [
+        "east.png",
+        "north.png",
+        "south.png",
+        "west.png"
+      ],
+      "quantized": "2026-07-26T01:25:33+00:00"
+    }
+  },
+  "generations_spent": 1,
+  "request_snapshot": {
+    "prompt": {
+      "description": "A ragged militia footman in mismatched scavenged gear, stocky and small-limbed with an oversized head. A battered metal skullcap sits low over one side of the head; the other side is bare scalp and an open face. One shoulder carries a bulky salvaged pauldron and armoured sleeve; the opposite arm is thin, bare and wrapped in bandages. The chest is half patched cloth jerkin, half a single scavenged breastplate. One leg is booted, the other bare and wrapped. Held low and angled away from the body, an improvised wooden club with an iron-bound head. Nothing matches.",
+      "must_include": [
+        "uneven shoulder line - one bulky pauldron sitting higher, one thin bandaged arm sitting lower",
+        "skullcap covering only one side of the head, bare scalp and open face on the other",
+        "torso split down the middle, patched cloth on one side and a single scavenged plate on the other",
+        "one booted leg and one bare wrapped leg",
+        "improvised club held at an off-vertical angle, its far end clear of the body outline",
+        "two dark eye recesses in an open face"
+      ],
+      "must_avoid": [
+        "matched or uniform armour",
+        "closed helmet, visor, faceplate, crest or plume",
+        "symmetrical shoulders or a flat level shoulder line",
+        "banner, flag, pennant or standard",
+        "rectangular, round or kite shield",
+        "spear, polearm or any weapon held vertically",
+        "lamp, torch, candle or visible flame",
+        "glow, halo, sparks or rays around any pixel",
+        "bright or glowing eyes",
+        "white or near-white highlights, specular glints",
+        "cape or cloak"
+      ],
+      "style_mode": "depth"
+    },
+    "pixellab": {
+      "mode": "standard",
+      "size": 48,
+      "view": "high top-down",
+      "n_directions": 4,
+      "outline": "selective outline",
+      "detail": "low detail",
+      "shading": "basic shading",
+      "proportions": {
+        "type": "preset",
+        "name": "chibi"
+      },
+      "text_guidance_scale": 12,
+      "body_type": "humanoid",
+      "template": null
+    }
+  },
+  "qc": {
+    "anchor": {
+      "east.png": {
+        "pixels": 4624,
+        "opaque_pixels": 434,
+        "alpha_partial_before": 0,
+        "off_palette_before": 434,
+        "on_palette_before_pct": 0.0,
+        "luma_span_before": 0.713,
+        "normalized": false,
+        "stipple_px_before": 0,
+        "dither_enforced": false,
+        "stipple_px_after": 0,
+        "histogram": {
+          "dark": 188,
+          "steel": 171,
+          "bone": 75,
+          "pale": 0
+        },
+        "values_used": 3,
+        "histogram_pct": {
+          "dark": 43.3,
+          "steel": 39.4,
+          "bone": 17.3,
+          "pale": 0.0
+        },
+        "dominant": "dark"
+      },
+      "north.png": {
+        "pixels": 4624,
+        "opaque_pixels": 705,
+        "alpha_partial_before": 0,
+        "off_palette_before": 705,
+        "on_palette_before_pct": 0.0,
+        "luma_span_before": 0.713,
+        "normalized": false,
+        "stipple_px_before": 0,
+        "dither_enforced": false,
+        "stipple_px_after": 0,
+        "histogram": {
+          "dark": 330,
+          "steel": 299,
+          "bone": 76,
+          "pale": 0
+        },
+        "values_used": 3,
+        "histogram_pct": {
+          "dark": 46.8,
+          "steel": 42.4,
+          "bone": 10.8,
+          "pale": 0.0
+        },
+        "dominant": "dark"
+      },
+      "south.png": {
+        "pixels": 4624,
+        "opaque_pixels": 602,
+        "alpha_partial_before": 0,
+        "off_palette_before": 602,
+        "on_palette_before_pct": 0.0,
+        "luma_span_before": 0.713,
+        "normalized": false,
+        "stipple_px_before": 0,
+        "dither_enforced": false,
+        "stipple_px_after": 0,
+        "histogram": {
+          "dark": 259,
+          "steel": 194,
+          "bone": 149,
+          "pale": 0
+        },
+        "values_used": 3,
+        "histogram_pct": {
+          "dark": 43.0,
+          "steel": 32.2,
+          "bone": 24.8,
+          "pale": 0.0
+        },
+        "dominant": "dark"
+      },
+      "west.png": {
+        "pixels": 4624,
+        "opaque_pixels": 449,
+        "alpha_partial_before": 0,
+        "off_palette_before": 449,
+        "on_palette_before_pct": 0.0,
+        "luma_span_before": 0.713,
+        "normalized": false,
+        "stipple_px_before": 3,
+        "dither_enforced": true,
+        "dither_passes": 1,
+        "stipple_px_after": 0,
+        "histogram": {
+          "dark": 187,
+          "steel": 182,
+          "bone": 80,
+          "pale": 0
+        },
+        "values_used": 3,
+        "histogram_pct": {
+          "dark": 41.6,
+          "steel": 40.5,
+          "bone": 17.8,
+          "pale": 0.0
+        },
+        "dominant": "dark"
+      }
+    }
+  }
+}

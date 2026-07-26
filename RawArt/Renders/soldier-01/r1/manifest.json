@@ -1,0 +1,320 @@
+{
+  "id": "soldier-01",
+  "revision": 1,
+  "created": "2026-07-26T02:27:39+00:00",
+  "stages": {
+    "anchor": {
+      "source": "authored",
+      "spec": "docs/art/soldier-roster-v1.md",
+      "generations": 0,
+      "updated": "2026-07-26T02:27:39+00:00",
+      "quantized": "2026-07-26T02:27:46+00:00"
+    },
+    "rotation": {
+      "character_id": "f660428f-efb9-4bdc-a076-1dd08ec029a3",
+      "generations": 1,
+      "updated": "2026-07-26T02:34:48+00:00",
+      "urls": [
+        "https://backblaze.pixellab.ai/file/pixellab-characters/af7def4e-5692-4b18-9246-874d5382befb/f660428f-efb9-4bdc-a076-1dd08ec029a3/rotations/south-west.png"
+      ],
+      "fetched": "2026-07-26T02:35:12+00:00",
+      "files": [
+        "east.png",
+        "north-east.png",
+        "north-west.png",
+        "north.png",
+        "south-east.png",
+        "south-west.png",
+        "south.png",
+        "west.png"
+      ],
+      "quantized": "2026-07-26T02:41:01+00:00"
+    }
+  },
+  "generations_spent": 1,
+  "request_snapshot": {
+    "prompt": {
+      "description": "A destitute volunteer with nothing that was ever issued to them. An oversized head wrapped in a torn cloth rag knotted off to one side, no helmet and no brim, an open face with two sunken eyes. A plain unbelted shirt, thin sloping shoulders, bare wrapped legs and rag-bound feet. Held across the body at a steep angle, a single over-long wooden haft far taller than the figure, tipped with one small iron tine at the top and a bare butt end below the hip. Nothing on this person is armour.",
+      "must_include": [
+        "torn cloth rag wrapping the head, knotted off to one side - no helmet, no skullcap, no brim",
+        "an over-long wooden haft on a steep diagonal, longer than the torso, its far end clear of the body outline at both ends",
+        "one small iron tine at the top of the haft, the only worked metal on the figure",
+        "a plain unbelted shirt and bare wrapped legs, no armour of any kind",
+        "narrow sloping shoulders, uneven and soft",
+        "two dark sunken eye recesses in an open face"
+      ],
+      "must_avoid": [
+        "helmet, skullcap, brim, visor, crest or plume",
+        "any armour plate, pauldron, mail or greaves",
+        "spear, polearm or any weapon held vertically",
+        "shield of any shape",
+        "banner, flag, pennant or standard",
+        "horn, trumpet or any curved object above the head",
+        "lamp, torch, candle or visible flame",
+        "glow, halo, sparks or rays around any pixel",
+        "bright or glowing eyes",
+        "white or near-white highlights, specular glints",
+        "cape or cloak",
+        "large solid black body mass, heavy internal outlining, deep recesses, cast shadow"
+      ],
+      "style_mode": "flat"
+    },
+    "pixellab": {
+      "mode": "standard",
+      "size": 48,
+      "view": "high top-down",
+      "n_directions": 8,
+      "outline": "selective outline",
+      "detail": "low detail",
+      "shading": "flat shading",
+      "proportions": {
+        "type": "preset",
+        "name": "chibi"
+      },
+      "text_guidance_scale": 12,
+      "body_type": "humanoid",
+      "template": null
+    }
+  },
+  "qc": {
+    "anchor": {
+      "south.png": {
+        "pixels": 2304,
+        "opaque_pixels": 574,
+        "alpha_partial_before": 0,
+        "off_palette_before": 0,
+        "on_palette_before_pct": 100.0,
+        "luma_span_before": 0.501,
+        "normalized": false,
+        "stipple_px_before": 0,
+        "dither_enforced": false,
+        "stipple_px_after": 0,
+        "histogram": {
+          "dark": 159,
+          "steel": 14,
+          "bone": 401,
+          "pale": 0
+        },
+        "values_used": 3,
+        "histogram_pct": {
+          "dark": 27.7,
+          "steel": 2.4,
+          "bone": 69.9,
+          "pale": 0.0
+        },
+        "dominant": "bone"
+      }
+    },
+    "rotation": {
+      "east.png": {
+        "pixels": 6400,
+        "opaque_pixels": 519,
+        "alpha_partial_before": 0,
+        "off_palette_before": 0,
+        "on_palette_before_pct": 100.0,
+        "luma_span_before": 0.501,
+        "normalized": false,
+        "stipple_px_before": 1,
+        "dither_enforced": true,
+        "dither_passes": 1,
+        "stipple_px_after": 0,
+        "histogram": {
+          "dark": 161,
+          "steel": 8,
+          "bone": 350,
+          "pale": 0
+        },
+        "values_used": 3,
+        "histogram_pct": {
+          "dark": 31.0,
+          "steel": 1.5,
+          "bone": 67.4,
+          "pale": 0.0
+        },
+        "dominant": "bone"
+      },
+      "north-east.png": {
+        "pixels": 6400,
+        "opaque_pixels": 646,
+        "alpha_partial_before": 0,
+        "off_palette_before": 0,
+        "on_palette_before_pct": 100.0,
+        "luma_span_before": 0.501,
+        "normalized": false,
+        "stipple_px_before": 0,
+        "dither_enforced": false,
+        "stipple_px_after": 0,
+        "histogram": {
+          "dark": 179,
+          "steel": 14,
+          "bone": 453,
+          "pale": 0
+        },
+        "values_used": 3,
+        "histogram_pct": {
+          "dark": 27.7,
+          "steel": 2.2,
+          "bone": 70.1,
+          "pale": 0.0
+        },
+        "dominant": "bone"
+      },
+      "north-west.png": {
+        "pixels": 6400,
+        "opaque_pixels": 597,
+        "alpha_partial_before": 0,
+        "off_palette_before": 0,
+        "on_palette_before_pct": 100.0,
+        "luma_span_before": 0.501,
+        "normalized": false,
+        "stipple_px_before": 0,
+        "dither_enforced": false,
+        "stipple_px_after": 0,
+        "histogram": {
+          "dark": 165,
+          "steel": 16,
+          "bone": 416,
+          "pale": 0
+        },
+        "values_used": 3,
+        "histogram_pct": {
+          "dark": 27.6,
+          "steel": 2.7,
+          "bone": 69.7,
+          "pale": 0.0
+        },
+        "dominant": "bone"
+      },
+      "north.png": {
+        "pixels": 6400,
+        "opaque_pixels": 661,
+        "alpha_partial_before": 0,
+        "off_palette_before": 0,
+        "on_palette_before_pct": 100.0,
+        "luma_span_before": 0.501,
+        "normalized": false,
+        "stipple_px_before": 0,
+        "dither_enforced": false,
+        "stipple_px_after": 0,
+        "histogram": {
+          "dark": 161,
+          "steel": 15,
+          "bone": 485,
+          "pale": 0
+        },
+        "values_used": 3,
+        "histogram_pct": {
+          "dark": 24.4,
+          "steel": 2.3,
+          "bone": 73.4,
+          "pale": 0.0
+        },
+        "dominant": "bone"
+      },
+      "south-east.png": {
+        "pixels": 6400,
+        "opaque_pixels": 598,
+        "alpha_partial_before": 0,
+        "off_palette_before": 0,
+        "on_palette_before_pct": 100.0,
+        "luma_span_before": 0.501,
+        "normalized": false,
+        "stipple_px_before": 0,
+        "dither_enforced": false,
+        "stipple_px_after": 0,
+        "histogram": {
+          "dark": 188,
+          "steel": 13,
+          "bone": 397,
+          "pale": 0
+        },
+        "values_used": 3,
+        "histogram_pct": {
+          "dark": 31.4,
+          "steel": 2.2,
+          "bone": 66.4,
+          "pale": 0.0
+        },
+        "dominant": "bone"
+      },
+      "south-west.png": {
+        "pixels": 6400,
+        "opaque_pixels": 646,
+        "alpha_partial_before": 0,
+        "off_palette_before": 0,
+        "on_palette_before_pct": 100.0,
+        "luma_span_before": 0.501,
+        "normalized": false,
+        "stipple_px_before": 0,
+        "dither_enforced": false,
+        "stipple_px_after": 0,
+        "histogram": {
+          "dark": 186,
+          "steel": 14,
+          "bone": 446,
+          "pale": 0
+        },
+        "values_used": 3,
+        "histogram_pct": {
+          "dark": 28.8,
+          "steel": 2.2,
+          "bone": 69.0,
+          "pale": 0.0
+        },
+        "dominant": "bone"
+      },
+      "south.png": {
+        "pixels": 6400,
+        "opaque_pixels": 574,
+        "alpha_partial_before": 0,
+        "off_palette_before": 0,
+        "on_palette_before_pct": 100.0,
+        "luma_span_before": 0.501,
+        "normalized": false,
+        "stipple_px_before": 0,
+        "dither_enforced": false,
+        "stipple_px_after": 0,
+        "histogram": {
+          "dark": 159,
+          "steel": 14,
+          "bone": 401,
+          "pale": 0
+        },
+        "values_used": 3,
+        "histogram_pct": {
+          "dark": 27.7,
+          "steel": 2.4,
+          "bone": 69.9,
+          "pale": 0.0
+        },
+        "dominant": "bone"
+      },
+      "west.png": {
+        "pixels": 6400,
+        "opaque_pixels": 596,
+        "alpha_partial_before": 0,
+        "off_palette_before": 0,
+        "on_palette_before_pct": 100.0,
+        "luma_span_before": 0.501,
+        "normalized": false,
+        "stipple_px_before": 0,
+        "dither_enforced": false,
+        "stipple_px_after": 0,
+        "histogram": {
+          "dark": 152,
+          "steel": 13,
+          "bone": 431,
+          "pale": 0
+        },
+        "values_used": 3,
+        "histogram_pct": {
+          "dark": 25.5,
+          "steel": 2.2,
+          "bone": 72.3,
+          "pale": 0.0
+        },
+        "dominant": "bone"
+      }
+    }
+  }
+}

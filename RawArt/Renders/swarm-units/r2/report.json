@@ -1,0 +1,76 @@
+{
+  "generated": "2026-07-26T21:04:47+00:00",
+  "id": "swarm-units",
+  "revision": 2,
+  "composite": true,
+  "cells": 32,
+  "sources": {
+    "brood": {
+      "kind": "placeholder",
+      "note": "PLACEHOLDER until the enemy has canon. Owner-supplied art: PixelLab character 4a75b4ac-7732-499a-84f4-d3a06937a6c2 'Black ooze with teeth'. LIGHT-SHIFTED derivations, not the raw frames -- the raw body is 94% Demichrome Dark, invisible against the Dark floor in the sprite path (M_Swarm is Unlit+Masked and samples the texture directly, so it has no equivalent of the debug renderer's Swarm.UnitLightFloor). Shifted once (Dark->Steel). r2: the brood has NO rotations, so it stays direction-agnostic -- all 8 direction columns reference this same south pair, and the decode in SwarmSheet still indexes it by direction so the brood upgrades to real facings later without a layout change. attack/hit frames dropped at r2 with the rest of the anim axis.",
+      "frames": {
+        "south.walk0": "RawArt/Renders/brood-ooze/derived/south.walk0.png",
+        "south.walk1": "RawArt/Renders/brood-ooze/derived/south.walk1.png"
+      },
+      "quantize": true
+    },
+    "retinue": {
+      "kind": "placeholder",
+      "note": "OWNER-SUPPLIED, replaces the managed 'unit-retinue' militia 2026-07-25 at the owner's direction: PixelLab character 1c935515-0ea3-459b-8c63-e7f8cf368272 'Hallam (Vanguard)', a uniform armoured knight with closed helm, kite shield and spear. Kept as an unmanaged path map because the character was authored in the web Character Creator, so no prompt/anchor of ours reproduces it. Straight quantize, NO light-shift: measured 38% Dark / 37% Steel / 21% Bone / 3% Pale, close to the ideal 4-value spread. r2 (2026-07-26): the eight rotations under raw/rotations/ were sitting UNUSED -- r1 packed south only. They are now the direction axis. south keeps its real walk pair (frame_000/002); the other seven duplicate their idle rotation into both walk columns, so a unit walking south bobs and one walking north is static. That is additive, not a regression (r1 had no facing at all), and it resolves with one 8-direction template walk (~8 generations) that drops straight into the walk1 row with NO layout, decode or Sub UV change.",
+      "frames": {
+        "south.walk0": "RawArt/Renders/unit-knight/raw/animations/walk/south/frame_000.png",
+        "south.walk1": "RawArt/Renders/unit-knight/raw/animations/walk/south/frame_002.png",
+        "south-east.walk0": "RawArt/Renders/unit-knight/raw/rotations/south-east.png",
+        "south-east.walk1": "RawArt/Renders/unit-knight/raw/rotations/south-east.png",
+        "east.walk0": "RawArt/Renders/unit-knight/raw/rotations/east.png",
+        "east.walk1": "RawArt/Renders/unit-knight/raw/rotations/east.png",
+        "north-east.walk0": "RawArt/Renders/unit-knight/raw/rotations/north-east.png",
+        "north-east.walk1": "RawArt/Renders/unit-knight/raw/rotations/north-east.png",
+        "north.walk0": "RawArt/Renders/unit-knight/raw/rotations/north.png",
+        "north.walk1": "RawArt/Renders/unit-knight/raw/rotations/north.png",
+        "north-west.walk0": "RawArt/Renders/unit-knight/raw/rotations/north-west.png",
+        "north-west.walk1": "RawArt/Renders/unit-knight/raw/rotations/north-west.png",
+        "west.walk0": "RawArt/Renders/unit-knight/raw/rotations/west.png",
+        "west.walk1": "RawArt/Renders/unit-knight/raw/rotations/west.png",
+        "south-west.walk0": "RawArt/Renders/unit-knight/raw/rotations/south-west.png",
+        "south-west.walk1": "RawArt/Renders/unit-knight/raw/rotations/south-west.png"
+      },
+      "quantize": true
+    }
+  },
+  "placeholder_cells": [
+    0,
+    1,
+    2,
+    3,
+    4,
+    5,
+    6,
+    7,
+    8,
+    9,
+    10,
+    11,
+    12,
+    13,
+    14,
+    15,
+    16,
+    17,
+    18,
+    19,
+    20,
+    21,
+    22,
+    23,
+    24,
+    25,
+    26,
+    27,
+    28,
+    29,
+    30,
+    31
+  ],
+  "verdict": "PLACEHOLDER"
+}

@@ -1,0 +1,529 @@
+{
+  "id": "protagonist-02",
+  "revision": 1,
+  "created": "2026-07-26T21:32:23+00:00",
+  "stages": {
+    "anchor": {
+      "character_id": "0650a1ef-f2f1-4170-a87d-1707e8f82003",
+      "generations": 1,
+      "updated": "2026-07-26T21:32:23+00:00",
+      "urls": [
+        "https://api.pixellab.ai/mcp/characters/0650a1ef-f2f1-4170-a87d-1707e8f82003/download"
+      ],
+      "fetched": "2026-07-26T21:40:54+00:00",
+      "files": [
+        "Protagonist_prototype_02_-_The_Ember_Core/rotations/east.png",
+        "Protagonist_prototype_02_-_The_Ember_Core/rotations/north-east.png",
+        "Protagonist_prototype_02_-_The_Ember_Core/rotations/north-west.png",
+        "Protagonist_prototype_02_-_The_Ember_Core/rotations/north.png",
+        "Protagonist_prototype_02_-_The_Ember_Core/rotations/south-east.png",
+        "Protagonist_prototype_02_-_The_Ember_Core/rotations/south-west.png",
+        "Protagonist_prototype_02_-_The_Ember_Core/rotations/south.png",
+        "Protagonist_prototype_02_-_The_Ember_Core/rotations/west.png"
+      ],
+      "quantized": "2026-07-26T21:41:10+00:00"
+    },
+    "concept128": {
+      "character_id": "1557cadb-2a44-4609-bf5f-575463942ed3",
+      "generations": 1,
+      "updated": "2026-07-26T21:32:23+00:00",
+      "urls": [
+        "https://api.pixellab.ai/mcp/characters/1557cadb-2a44-4609-bf5f-575463942ed3/download"
+      ],
+      "fetched": "2026-07-26T21:40:56+00:00",
+      "files": [
+        "Protagonist_prototype_02_-_The_Ember_Core_128_conc/rotations/east.png",
+        "Protagonist_prototype_02_-_The_Ember_Core_128_conc/rotations/north-east.png",
+        "Protagonist_prototype_02_-_The_Ember_Core_128_conc/rotations/north-west.png",
+        "Protagonist_prototype_02_-_The_Ember_Core_128_conc/rotations/north.png",
+        "Protagonist_prototype_02_-_The_Ember_Core_128_conc/rotations/south-east.png",
+        "Protagonist_prototype_02_-_The_Ember_Core_128_conc/rotations/south-west.png",
+        "Protagonist_prototype_02_-_The_Ember_Core_128_conc/rotations/south.png",
+        "Protagonist_prototype_02_-_The_Ember_Core_128_conc/rotations/west.png"
+      ],
+      "quantized": "2026-07-26T21:41:10+00:00"
+    }
+  },
+  "generations_spent": 2,
+  "request_snapshot": {
+    "prompt": {
+      "description": "A bare-headed figure in a heavy segmented breastplate, standing planted with the feet wide apart and both hands empty and open at the sides. No helmet, no hat, no hood: cropped hair, blunt face, heavy brow. Set into the centre of the breastplate is a small square iron window, barred across, with fire burning behind the bars; thick metal frames it hard on all four sides and no fire escapes it. Narrow shoulders over a wide braced stance, short thick legs, bare forearms. Nothing is carried and nothing hangs off the body.",
+      "must_include": [
+        "bare head, no helmet, no hat, no hood",
+        "both hands empty and open, nothing carried",
+        "small square barred fire window set into the centre of the breastplate",
+        "feet planted wide apart, wide base under narrow shoulders",
+        "clean unbroken body outline, nothing protruding"
+      ],
+      "must_avoid": [
+        "cape, cloak or hanging cloth",
+        "helmet, hat, hood or headband",
+        "any held weapon, staff, lantern or banner",
+        "glow, halo, sparks or rays around any pixel",
+        "bright or glowing eyes",
+        "fire escaping the chest frame or licking past the armour",
+        "backpack or shoulder-mounted object",
+        "wings, horns or crest"
+      ],
+      "style_mode": "flat"
+    },
+    "pixellab": {
+      "mode": "standard",
+      "size": 48,
+      "view": "low top-down",
+      "n_directions": 8,
+      "outline": "selective outline",
+      "detail": "low detail",
+      "shading": "flat shading",
+      "proportions": {
+        "type": "preset",
+        "name": "chibi"
+      },
+      "text_guidance_scale": 12,
+      "body_type": "humanoid",
+      "template": null
+    }
+  },
+  "qc": {
+    "anchor": {
+      "Protagonist_prototype_02_-_The_Ember_Core/rotations/east.png": {
+        "pixels": 4624,
+        "opaque_pixels": 522,
+        "alpha_partial_before": 0,
+        "off_palette_before": 522,
+        "on_palette_before_pct": 0.0,
+        "luma_span_before": 0.684,
+        "normalized": false,
+        "stipple_px_before": 0,
+        "dither_enforced": false,
+        "stipple_px_after": 0,
+        "histogram": {
+          "dark": 190,
+          "steel": 137,
+          "bone": 187,
+          "pale": 8
+        },
+        "values_used": 4,
+        "histogram_pct": {
+          "dark": 36.4,
+          "steel": 26.2,
+          "bone": 35.8,
+          "pale": 1.5
+        },
+        "dominant": "dark",
+        "pale_uncaged": 0
+      },
+      "Protagonist_prototype_02_-_The_Ember_Core/rotations/north-east.png": {
+        "pixels": 4624,
+        "opaque_pixels": 609,
+        "alpha_partial_before": 0,
+        "off_palette_before": 609,
+        "on_palette_before_pct": 0.0,
+        "luma_span_before": 0.712,
+        "normalized": false,
+        "stipple_px_before": 0,
+        "dither_enforced": false,
+        "stipple_px_after": 0,
+        "histogram": {
+          "dark": 289,
+          "steel": 183,
+          "bone": 132,
+          "pale": 5
+        },
+        "values_used": 4,
+        "histogram_pct": {
+          "dark": 47.5,
+          "steel": 30.0,
+          "bone": 21.7,
+          "pale": 0.8
+        },
+        "dominant": "dark",
+        "pale_uncaged": 0
+      },
+      "Protagonist_prototype_02_-_The_Ember_Core/rotations/north-west.png": {
+        "pixels": 4624,
+        "opaque_pixels": 618,
+        "alpha_partial_before": 0,
+        "off_palette_before": 618,
+        "on_palette_before_pct": 0.0,
+        "luma_span_before": 0.712,
+        "normalized": false,
+        "stipple_px_before": 1,
+        "dither_enforced": true,
+        "dither_passes": 1,
+        "stipple_px_after": 0,
+        "histogram": {
+          "dark": 280,
+          "steel": 218,
+          "bone": 117,
+          "pale": 3
+        },
+        "values_used": 4,
+        "histogram_pct": {
+          "dark": 45.3,
+          "steel": 35.3,
+          "bone": 18.9,
+          "pale": 0.5
+        },
+        "dominant": "dark",
+        "pale_uncaged": 0
+      },
+      "Protagonist_prototype_02_-_The_Ember_Core/rotations/north.png": {
+        "pixels": 4624,
+        "opaque_pixels": 665,
+        "alpha_partial_before": 0,
+        "off_palette_before": 665,
+        "on_palette_before_pct": 0.0,
+        "luma_span_before": 0.712,
+        "normalized": false,
+        "stipple_px_before": 0,
+        "dither_enforced": false,
+        "stipple_px_after": 0,
+        "histogram": {
+          "dark": 328,
+          "steel": 184,
+          "bone": 145,
+          "pale": 8
+        },
+        "values_used": 4,
+        "histogram_pct": {
+          "dark": 49.3,
+          "steel": 27.7,
+          "bone": 21.8,
+          "pale": 1.2
+        },
+        "dominant": "dark",
+        "pale_uncaged": 0
+      },
+      "Protagonist_prototype_02_-_The_Ember_Core/rotations/south-east.png": {
+        "pixels": 4624,
+        "opaque_pixels": 583,
+        "alpha_partial_before": 0,
+        "off_palette_before": 583,
+        "on_palette_before_pct": 0.0,
+        "luma_span_before": 0.712,
+        "normalized": false,
+        "stipple_px_before": 0,
+        "dither_enforced": false,
+        "stipple_px_after": 0,
+        "histogram": {
+          "dark": 209,
+          "steel": 148,
+          "bone": 218,
+          "pale": 8
+        },
+        "values_used": 4,
+        "histogram_pct": {
+          "dark": 35.8,
+          "steel": 25.4,
+          "bone": 37.4,
+          "pale": 1.4
+        },
+        "dominant": "bone",
+        "pale_uncaged": 0
+      },
+      "Protagonist_prototype_02_-_The_Ember_Core/rotations/south-west.png": {
+        "pixels": 4624,
+        "opaque_pixels": 631,
+        "alpha_partial_before": 0,
+        "off_palette_before": 631,
+        "on_palette_before_pct": 0.0,
+        "luma_span_before": 0.695,
+        "normalized": false,
+        "stipple_px_before": 0,
+        "dither_enforced": false,
+        "stipple_px_after": 0,
+        "histogram": {
+          "dark": 191,
+          "steel": 179,
+          "bone": 249,
+          "pale": 12
+        },
+        "values_used": 4,
+        "histogram_pct": {
+          "dark": 30.3,
+          "steel": 28.4,
+          "bone": 39.5,
+          "pale": 1.9
+        },
+        "dominant": "bone",
+        "pale_uncaged": 0
+      },
+      "Protagonist_prototype_02_-_The_Ember_Core/rotations/south.png": {
+        "pixels": 4624,
+        "opaque_pixels": 633,
+        "alpha_partial_before": 0,
+        "off_palette_before": 633,
+        "on_palette_before_pct": 0.0,
+        "luma_span_before": 0.684,
+        "normalized": false,
+        "stipple_px_before": 0,
+        "dither_enforced": false,
+        "stipple_px_after": 0,
+        "histogram": {
+          "dark": 197,
+          "steel": 179,
+          "bone": 247,
+          "pale": 10
+        },
+        "values_used": 4,
+        "histogram_pct": {
+          "dark": 31.1,
+          "steel": 28.3,
+          "bone": 39.0,
+          "pale": 1.6
+        },
+        "dominant": "bone",
+        "pale_uncaged": 0
+      },
+      "Protagonist_prototype_02_-_The_Ember_Core/rotations/west.png": {
+        "pixels": 4624,
+        "opaque_pixels": 538,
+        "alpha_partial_before": 0,
+        "off_palette_before": 538,
+        "on_palette_before_pct": 0.0,
+        "luma_span_before": 0.691,
+        "normalized": false,
+        "stipple_px_before": 0,
+        "dither_enforced": false,
+        "stipple_px_after": 0,
+        "histogram": {
+          "dark": 170,
+          "steel": 172,
+          "bone": 189,
+          "pale": 7
+        },
+        "values_used": 4,
+        "histogram_pct": {
+          "dark": 31.6,
+          "steel": 32.0,
+          "bone": 35.1,
+          "pale": 1.3
+        },
+        "dominant": "bone",
+        "pale_uncaged": 0
+      }
+    },
+    "concept128": {
+      "Protagonist_prototype_02_-_The_Ember_Core_128_conc/rotations/east.png": {
+        "pixels": 32400,
+        "opaque_pixels": 5035,
+        "alpha_partial_before": 0,
+        "off_palette_before": 5035,
+        "on_palette_before_pct": 0.0,
+        "luma_span_before": 0.65,
+        "normalized": false,
+        "stipple_px_before": 0,
+        "dither_enforced": false,
+        "stipple_px_after": 0,
+        "histogram": {
+          "dark": 2795,
+          "steel": 668,
+          "bone": 1525,
+          "pale": 47
+        },
+        "values_used": 4,
+        "histogram_pct": {
+          "dark": 55.5,
+          "steel": 13.3,
+          "bone": 30.3,
+          "pale": 0.9
+        },
+        "dominant": "dark",
+        "pale_uncaged": 0
+      },
+      "Protagonist_prototype_02_-_The_Ember_Core_128_conc/rotations/north-east.png": {
+        "pixels": 32400,
+        "opaque_pixels": 5686,
+        "alpha_partial_before": 0,
+        "off_palette_before": 5686,
+        "on_palette_before_pct": 0.0,
+        "luma_span_before": 0.65,
+        "normalized": false,
+        "stipple_px_before": 1,
+        "dither_enforced": true,
+        "dither_passes": 1,
+        "stipple_px_after": 0,
+        "histogram": {
+          "dark": 3323,
+          "steel": 766,
+          "bone": 1532,
+          "pale": 65
+        },
+        "values_used": 4,
+        "histogram_pct": {
+          "dark": 58.4,
+          "steel": 13.5,
+          "bone": 26.9,
+          "pale": 1.1
+        },
+        "dominant": "dark",
+        "pale_uncaged": 0
+      },
+      "Protagonist_prototype_02_-_The_Ember_Core_128_conc/rotations/north-west.png": {
+        "pixels": 32400,
+        "opaque_pixels": 5700,
+        "alpha_partial_before": 0,
+        "off_palette_before": 5700,
+        "on_palette_before_pct": 0.0,
+        "luma_span_before": 0.65,
+        "normalized": false,
+        "stipple_px_before": 0,
+        "dither_enforced": false,
+        "stipple_px_after": 0,
+        "histogram": {
+          "dark": 3333,
+          "steel": 749,
+          "bone": 1562,
+          "pale": 56
+        },
+        "values_used": 4,
+        "histogram_pct": {
+          "dark": 58.5,
+          "steel": 13.1,
+          "bone": 27.4,
+          "pale": 1.0
+        },
+        "dominant": "dark",
+        "pale_uncaged": 0
+      },
+      "Protagonist_prototype_02_-_The_Ember_Core_128_conc/rotations/north.png": {
+        "pixels": 32400,
+        "opaque_pixels": 6333,
+        "alpha_partial_before": 0,
+        "off_palette_before": 6333,
+        "on_palette_before_pct": 0.0,
+        "luma_span_before": 0.759,
+        "normalized": false,
+        "stipple_px_before": 0,
+        "dither_enforced": false,
+        "stipple_px_after": 0,
+        "histogram": {
+          "dark": 3980,
+          "steel": 777,
+          "bone": 1442,
+          "pale": 134
+        },
+        "values_used": 4,
+        "histogram_pct": {
+          "dark": 62.8,
+          "steel": 12.3,
+          "bone": 22.8,
+          "pale": 2.1
+        },
+        "dominant": "dark",
+        "pale_uncaged": 0
+      },
+      "Protagonist_prototype_02_-_The_Ember_Core_128_conc/rotations/south-east.png": {
+        "pixels": 32400,
+        "opaque_pixels": 4998,
+        "alpha_partial_before": 0,
+        "off_palette_before": 4998,
+        "on_palette_before_pct": 0.0,
+        "luma_span_before": 0.65,
+        "normalized": false,
+        "stipple_px_before": 1,
+        "dither_enforced": true,
+        "dither_passes": 1,
+        "stipple_px_after": 0,
+        "histogram": {
+          "dark": 2881,
+          "steel": 582,
+          "bone": 1469,
+          "pale": 66
+        },
+        "values_used": 4,
+        "histogram_pct": {
+          "dark": 57.6,
+          "steel": 11.6,
+          "bone": 29.4,
+          "pale": 1.3
+        },
+        "dominant": "dark",
+        "pale_uncaged": 0
+      },
+      "Protagonist_prototype_02_-_The_Ember_Core_128_conc/rotations/south-west.png": {
+        "pixels": 32400,
+        "opaque_pixels": 5153,
+        "alpha_partial_before": 0,
+        "off_palette_before": 5153,
+        "on_palette_before_pct": 0.0,
+        "luma_span_before": 0.65,
+        "normalized": false,
+        "stipple_px_before": 0,
+        "dither_enforced": false,
+        "stipple_px_after": 0,
+        "histogram": {
+          "dark": 2933,
+          "steel": 632,
+          "bone": 1528,
+          "pale": 60
+        },
+        "values_used": 4,
+        "histogram_pct": {
+          "dark": 56.9,
+          "steel": 12.3,
+          "bone": 29.7,
+          "pale": 1.2
+        },
+        "dominant": "dark",
+        "pale_uncaged": 0
+      },
+      "Protagonist_prototype_02_-_The_Ember_Core_128_conc/rotations/south.png": {
+        "pixels": 32400,
+        "opaque_pixels": 6139,
+        "alpha_partial_before": 0,
+        "off_palette_before": 6139,
+        "on_palette_before_pct": 0.0,
+        "luma_span_before": 0.759,
+        "normalized": false,
+        "stipple_px_before": 0,
+        "dither_enforced": false,
+        "stipple_px_after": 0,
+        "histogram": {
+          "dark": 3805,
+          "steel": 755,
+          "bone": 1455,
+          "pale": 124
+        },
+        "values_used": 4,
+        "histogram_pct": {
+          "dark": 62.0,
+          "steel": 12.3,
+          "bone": 23.7,
+          "pale": 2.0
+        },
+        "dominant": "dark",
+        "pale_uncaged": 0
+      },
+      "Protagonist_prototype_02_-_The_Ember_Core_128_conc/rotations/west.png": {
+        "pixels": 32400,
+        "opaque_pixels": 5207,
+        "alpha_partial_before": 0,
+        "off_palette_before": 5207,
+        "on_palette_before_pct": 0.0,
+        "luma_span_before": 0.65,
+        "normalized": false,
+        "stipple_px_before": 1,
+        "dither_enforced": true,
+        "dither_passes": 1,
+        "stipple_px_after": 0,
+        "histogram": {
+          "dark": 2950,
+          "steel": 728,
+          "bone": 1483,
+          "pale": 46
+        },
+        "values_used": 4,
+        "histogram_pct": {
+          "dark": 56.7,
+          "steel": 14.0,
+          "bone": 28.5,
+          "pale": 0.9
+        },
+        "dominant": "dark",
+        "pale_uncaged": 0
+      }
+    }
+  }
+}

@@ -1,0 +1,1101 @@
+{
+  "id": "unit-retinue",
+  "revision": 1,
+  "created": "2026-07-26T00:48:50+00:00",
+  "stages": {
+    "anchor": {
+      "source": "authored",
+      "spec": "docs/art/retinue-militia.md",
+      "generations": 0,
+      "updated": "2026-07-26T00:48:50+00:00",
+      "quantized": "2026-07-26T00:48:55+00:00"
+    },
+    "rotation": {
+      "character_id": "83426ac3-1b41-460c-92e6-190946c0a8f5",
+      "generations": 1,
+      "updated": "2026-07-26T00:52:58+00:00",
+      "urls": [
+        "https://backblaze.pixellab.ai/file/pixellab-characters/af7def4e-5692-4b18-9246-874d5382befb/83426ac3-1b41-460c-92e6-190946c0a8f5/rotations/south.png?t=1785027309",
+        "https://backblaze.pixellab.ai/file/pixellab-characters/af7def4e-5692-4b18-9246-874d5382befb/83426ac3-1b41-460c-92e6-190946c0a8f5/rotations/south-east.png?t=1785027309",
+        "https://backblaze.pixellab.ai/file/pixellab-characters/af7def4e-5692-4b18-9246-874d5382befb/83426ac3-1b41-460c-92e6-190946c0a8f5/rotations/east.png?t=1785027309",
+        "https://backblaze.pixellab.ai/file/pixellab-characters/af7def4e-5692-4b18-9246-874d5382befb/83426ac3-1b41-460c-92e6-190946c0a8f5/rotations/north-east.png?t=1785027309",
+        "https://backblaze.pixellab.ai/file/pixellab-characters/af7def4e-5692-4b18-9246-874d5382befb/83426ac3-1b41-460c-92e6-190946c0a8f5/rotations/north.png?t=1785027309",
+        "https://backblaze.pixellab.ai/file/pixellab-characters/af7def4e-5692-4b18-9246-874d5382befb/83426ac3-1b41-460c-92e6-190946c0a8f5/rotations/north-west.png?t=1785027309",
+        "https://backblaze.pixellab.ai/file/pixellab-characters/af7def4e-5692-4b18-9246-874d5382befb/83426ac3-1b41-460c-92e6-190946c0a8f5/rotations/west.png?t=1785027309",
+        "https://backblaze.pixellab.ai/file/pixellab-characters/af7def4e-5692-4b18-9246-874d5382befb/83426ac3-1b41-460c-92e6-190946c0a8f5/rotations/south-west.png?t=1785027309"
+      ],
+      "fetched": "2026-07-26T00:57:21+00:00",
+      "files": [
+        "east.png",
+        "north-east.png",
+        "north-west.png",
+        "north.png",
+        "south-east.png",
+        "south-west.png",
+        "south.png",
+        "west.png"
+      ],
+      "quantized": "2026-07-26T00:57:28+00:00"
+    },
+    "anim": {
+      "walk_group": "c09697d0-54ee-4698-86b1-5307856cf431",
+      "generations": 4,
+      "updated": "2026-07-26T01:02:02+00:00",
+      "attack_group": "1fc250fa-b3e7-4d42-b825-2ed746d7060f",
+      "hit_group": "7ee9bf32-034f-4581-8359-384d3d0c8475",
+      "urls": [
+        "https://api.pixellab.ai/mcp/characters/83426ac3-1b41-460c-92e6-190946c0a8f5/download"
+      ],
+      "fetched": "2026-07-26T01:03:07+00:00",
+      "files": [
+        "Retinue_militia_swarm_unit/animations/attack/south/frame_000.png",
+        "Retinue_militia_swarm_unit/animations/attack/south/frame_001.png",
+        "Retinue_militia_swarm_unit/animations/attack/south/frame_002.png",
+        "Retinue_militia_swarm_unit/animations/attack/south/frame_003.png",
+        "Retinue_militia_swarm_unit/animations/attack/south/frame_004.png",
+        "Retinue_militia_swarm_unit/animations/hit/south/frame_000.png",
+        "Retinue_militia_swarm_unit/animations/hit/south/frame_001.png",
+        "Retinue_militia_swarm_unit/animations/hit/south/frame_002.png",
+        "Retinue_militia_swarm_unit/animations/hit/south/frame_003.png",
+        "Retinue_militia_swarm_unit/animations/hit/south/frame_004.png",
+        "Retinue_militia_swarm_unit/animations/walk/south/frame_000.png",
+        "Retinue_militia_swarm_unit/animations/walk/south/frame_001.png",
+        "Retinue_militia_swarm_unit/animations/walk/south/frame_002.png",
+        "Retinue_militia_swarm_unit/animations/walk/south/frame_003.png",
+        "Retinue_militia_swarm_unit/animations/walkv3/south/frame_000.png",
+        "Retinue_militia_swarm_unit/animations/walkv3/south/frame_001.png",
+        "Retinue_militia_swarm_unit/animations/walkv3/south/frame_002.png",
+        "Retinue_militia_swarm_unit/animations/walkv3/south/frame_003.png",
+        "Retinue_militia_swarm_unit/animations/walkv3/south/frame_004.png",
+        "Retinue_militia_swarm_unit/rotations/east.png",
+        "Retinue_militia_swarm_unit/rotations/north-east.png",
+        "Retinue_militia_swarm_unit/rotations/north-west.png",
+        "Retinue_militia_swarm_unit/rotations/north.png",
+        "Retinue_militia_swarm_unit/rotations/south-east.png",
+        "Retinue_militia_swarm_unit/rotations/south-west.png",
+        "Retinue_militia_swarm_unit/rotations/south.png",
+        "Retinue_militia_swarm_unit/rotations/west.png"
+      ],
+      "quantized": "2026-07-26T01:03:08+00:00",
+      "walkv3_group": "26c23f71-0092-4711-856c-b3cb13119f13"
+    }
+  },
+  "generations_spent": 5,
+  "request_snapshot": {
+    "prompt": {
+      "description": "A ragged militia footman in mismatched scavenged gear, stocky and small-limbed with an oversized head. A battered metal skullcap sits low over one side of the head; the other side is bare scalp and an open face. One shoulder carries a bulky salvaged pauldron and armoured sleeve; the opposite arm is thin, bare and wrapped in bandages. The chest is half patched cloth jerkin, half a single scavenged breastplate. One leg is booted, the other bare and wrapped. Held low and angled away from the body, an improvised wooden club with an iron-bound head. Nothing matches.",
+      "must_include": [
+        "uneven shoulder line - one bulky pauldron sitting higher, one thin bandaged arm sitting lower",
+        "skullcap covering only one side of the head, bare scalp and open face on the other",
+        "torso split down the middle, patched cloth on one side and a single scavenged plate on the other",
+        "one booted leg and one bare wrapped leg",
+        "improvised club held at an off-vertical angle, its far end clear of the body outline",
+        "two dark eye recesses in an open face"
+      ],
+      "must_avoid": [
+        "matched or uniform armour",
+        "closed helmet, visor, faceplate, crest or plume",
+        "symmetrical shoulders or a flat level shoulder line",
+        "banner, flag, pennant or standard",
+        "rectangular, round or kite shield",
+        "spear, polearm or any weapon held vertically",
+        "lamp, torch, candle or visible flame",
+        "glow, halo, sparks or rays around any pixel",
+        "bright or glowing eyes",
+        "white or near-white highlights, specular glints",
+        "cape or cloak",
+        "large solid black body mass, heavy internal outlining, deep recesses, cast shadow"
+      ]
+    },
+    "pixellab": {
+      "mode": "standard",
+      "size": 48,
+      "view": "high top-down",
+      "n_directions": 8,
+      "outline": "selective outline",
+      "detail": "low detail",
+      "shading": "flat shading",
+      "proportions": {
+        "type": "preset",
+        "name": "chibi"
+      },
+      "text_guidance_scale": 12,
+      "body_type": "humanoid",
+      "template": null
+    }
+  },
+  "qc": {
+    "anchor": {
+      "south.png": {
+        "pixels": 2304,
+        "opaque_pixels": 761,
+        "alpha_partial_before": 0,
+        "off_palette_before": 0,
+        "on_palette_before_pct": 100.0,
+        "luma_span_before": 0.501,
+        "normalized": false,
+        "stipple_px_before": 0,
+        "dither_enforced": false,
+        "stipple_px_after": 0,
+        "histogram": {
+          "dark": 220,
+          "steel": 234,
+          "bone": 307,
+          "pale": 0
+        },
+        "values_used": 3,
+        "histogram_pct": {
+          "dark": 28.9,
+          "steel": 30.7,
+          "bone": 40.3,
+          "pale": 0.0
+        },
+        "dominant": "bone"
+      }
+    },
+    "rotation": {
+      "east.png": {
+        "pixels": 7056,
+        "opaque_pixels": 611,
+        "alpha_partial_before": 0,
+        "off_palette_before": 0,
+        "on_palette_before_pct": 100.0,
+        "luma_span_before": 0.501,
+        "normalized": false,
+        "stipple_px_before": 1,
+        "dither_enforced": true,
+        "dither_passes": 1,
+        "stipple_px_after": 0,
+        "histogram": {
+          "dark": 202,
+          "steel": 73,
+          "bone": 336,
+          "pale": 0
+        },
+        "values_used": 3,
+        "histogram_pct": {
+          "dark": 33.1,
+          "steel": 11.9,
+          "bone": 55.0,
+          "pale": 0.0
+        },
+        "dominant": "bone"
+      },
+      "north-east.png": {
+        "pixels": 7056,
+        "opaque_pixels": 700,
+        "alpha_partial_before": 0,
+        "off_palette_before": 0,
+        "on_palette_before_pct": 100.0,
+        "luma_span_before": 0.501,
+        "normalized": false,
+        "stipple_px_before": 0,
+        "dither_enforced": false,
+        "stipple_px_after": 0,
+        "histogram": {
+          "dark": 218,
+          "steel": 145,
+          "bone": 337,
+          "pale": 0
+        },
+        "values_used": 3,
+        "histogram_pct": {
+          "dark": 31.1,
+          "steel": 20.7,
+          "bone": 48.1,
+          "pale": 0.0
+        },
+        "dominant": "bone"
+      },
+      "north-west.png": {
+        "pixels": 7056,
+        "opaque_pixels": 698,
+        "alpha_partial_before": 0,
+        "off_palette_before": 0,
+        "on_palette_before_pct": 100.0,
+        "luma_span_before": 0.501,
+        "normalized": false,
+        "stipple_px_before": 0,
+        "dither_enforced": false,
+        "stipple_px_after": 0,
+        "histogram": {
+          "dark": 211,
+          "steel": 216,
+          "bone": 271,
+          "pale": 0
+        },
+        "values_used": 3,
+        "histogram_pct": {
+          "dark": 30.2,
+          "steel": 30.9,
+          "bone": 38.8,
+          "pale": 0.0
+        },
+        "dominant": "bone"
+      },
+      "north.png": {
+        "pixels": 7056,
+        "opaque_pixels": 763,
+        "alpha_partial_before": 0,
+        "off_palette_before": 0,
+        "on_palette_before_pct": 100.0,
+        "luma_span_before": 0.501,
+        "normalized": false,
+        "stipple_px_before": 0,
+        "dither_enforced": false,
+        "stipple_px_after": 0,
+        "histogram": {
+          "dark": 229,
+          "steel": 210,
+          "bone": 324,
+          "pale": 0
+        },
+        "values_used": 3,
+        "histogram_pct": {
+          "dark": 30.0,
+          "steel": 27.5,
+          "bone": 42.5,
+          "pale": 0.0
+        },
+        "dominant": "bone"
+      },
+      "south-east.png": {
+        "pixels": 7056,
+        "opaque_pixels": 682,
+        "alpha_partial_before": 0,
+        "off_palette_before": 0,
+        "on_palette_before_pct": 100.0,
+        "luma_span_before": 0.501,
+        "normalized": false,
+        "stipple_px_before": 0,
+        "dither_enforced": false,
+        "stipple_px_after": 0,
+        "histogram": {
+          "dark": 205,
+          "steel": 118,
+          "bone": 359,
+          "pale": 0
+        },
+        "values_used": 3,
+        "histogram_pct": {
+          "dark": 30.1,
+          "steel": 17.3,
+          "bone": 52.6,
+          "pale": 0.0
+        },
+        "dominant": "bone"
+      },
+      "south-west.png": {
+        "pixels": 7056,
+        "opaque_pixels": 709,
+        "alpha_partial_before": 0,
+        "off_palette_before": 0,
+        "on_palette_before_pct": 100.0,
+        "luma_span_before": 0.501,
+        "normalized": false,
+        "stipple_px_before": 0,
+        "dither_enforced": false,
+        "stipple_px_after": 0,
+        "histogram": {
+          "dark": 209,
+          "steel": 273,
+          "bone": 227,
+          "pale": 0
+        },
+        "values_used": 3,
+        "histogram_pct": {
+          "dark": 29.5,
+          "steel": 38.5,
+          "bone": 32.0,
+          "pale": 0.0
+        },
+        "dominant": "steel"
+      },
+      "south.png": {
+        "pixels": 7056,
+        "opaque_pixels": 761,
+        "alpha_partial_before": 0,
+        "off_palette_before": 0,
+        "on_palette_before_pct": 100.0,
+        "luma_span_before": 0.501,
+        "normalized": false,
+        "stipple_px_before": 0,
+        "dither_enforced": false,
+        "stipple_px_after": 0,
+        "histogram": {
+          "dark": 220,
+          "steel": 234,
+          "bone": 307,
+          "pale": 0
+        },
+        "values_used": 3,
+        "histogram_pct": {
+          "dark": 28.9,
+          "steel": 30.7,
+          "bone": 40.3,
+          "pale": 0.0
+        },
+        "dominant": "bone"
+      },
+      "west.png": {
+        "pixels": 7056,
+        "opaque_pixels": 614,
+        "alpha_partial_before": 0,
+        "off_palette_before": 0,
+        "on_palette_before_pct": 100.0,
+        "luma_span_before": 0.501,
+        "normalized": false,
+        "stipple_px_before": 0,
+        "dither_enforced": false,
+        "stipple_px_after": 0,
+        "histogram": {
+          "dark": 178,
+          "steel": 221,
+          "bone": 215,
+          "pale": 0
+        },
+        "values_used": 3,
+        "histogram_pct": {
+          "dark": 29.0,
+          "steel": 36.0,
+          "bone": 35.0,
+          "pale": 0.0
+        },
+        "dominant": "steel"
+      }
+    },
+    "anim": {
+      "Retinue_militia_swarm_unit/animations/attack/south/frame_000.png": {
+        "pixels": 7056,
+        "opaque_pixels": 761,
+        "alpha_partial_before": 0,
+        "off_palette_before": 0,
+        "on_palette_before_pct": 100.0,
+        "luma_span_before": 0.501,
+        "normalized": false,
+        "stipple_px_before": 0,
+        "dither_enforced": false,
+        "stipple_px_after": 0,
+        "histogram": {
+          "dark": 220,
+          "steel": 234,
+          "bone": 307,
+          "pale": 0
+        },
+        "values_used": 3,
+        "histogram_pct": {
+          "dark": 28.9,
+          "steel": 30.7,
+          "bone": 40.3,
+          "pale": 0.0
+        },
+        "dominant": "bone"
+      },
+      "Retinue_militia_swarm_unit/animations/attack/south/frame_001.png": {
+        "pixels": 7056,
+        "opaque_pixels": 637,
+        "alpha_partial_before": 0,
+        "off_palette_before": 10,
+        "on_palette_before_pct": 98.43,
+        "luma_span_before": 0.501,
+        "normalized": false,
+        "stipple_px_before": 0,
+        "dither_enforced": false,
+        "stipple_px_after": 0,
+        "histogram": {
+          "dark": 178,
+          "steel": 200,
+          "bone": 259,
+          "pale": 0
+        },
+        "values_used": 3,
+        "histogram_pct": {
+          "dark": 27.9,
+          "steel": 31.4,
+          "bone": 40.7,
+          "pale": 0.0
+        },
+        "dominant": "bone"
+      },
+      "Retinue_militia_swarm_unit/animations/attack/south/frame_002.png": {
+        "pixels": 7056,
+        "opaque_pixels": 627,
+        "alpha_partial_before": 0,
+        "off_palette_before": 0,
+        "on_palette_before_pct": 100.0,
+        "luma_span_before": 0.501,
+        "normalized": false,
+        "stipple_px_before": 0,
+        "dither_enforced": false,
+        "stipple_px_after": 0,
+        "histogram": {
+          "dark": 176,
+          "steel": 197,
+          "bone": 254,
+          "pale": 0
+        },
+        "values_used": 3,
+        "histogram_pct": {
+          "dark": 28.1,
+          "steel": 31.4,
+          "bone": 40.5,
+          "pale": 0.0
+        },
+        "dominant": "bone"
+      },
+      "Retinue_militia_swarm_unit/animations/attack/south/frame_003.png": {
+        "pixels": 7056,
+        "opaque_pixels": 833,
+        "alpha_partial_before": 0,
+        "off_palette_before": 7,
+        "on_palette_before_pct": 99.16,
+        "luma_span_before": 0.501,
+        "normalized": false,
+        "stipple_px_before": 0,
+        "dither_enforced": false,
+        "stipple_px_after": 0,
+        "histogram": {
+          "dark": 249,
+          "steel": 213,
+          "bone": 371,
+          "pale": 0
+        },
+        "values_used": 3,
+        "histogram_pct": {
+          "dark": 29.9,
+          "steel": 25.6,
+          "bone": 44.5,
+          "pale": 0.0
+        },
+        "dominant": "bone"
+      },
+      "Retinue_militia_swarm_unit/animations/attack/south/frame_004.png": {
+        "pixels": 7056,
+        "opaque_pixels": 712,
+        "alpha_partial_before": 0,
+        "off_palette_before": 0,
+        "on_palette_before_pct": 100.0,
+        "luma_span_before": 0.501,
+        "normalized": false,
+        "stipple_px_before": 0,
+        "dither_enforced": false,
+        "stipple_px_after": 0,
+        "histogram": {
+          "dark": 209,
+          "steel": 211,
+          "bone": 292,
+          "pale": 0
+        },
+        "values_used": 3,
+        "histogram_pct": {
+          "dark": 29.4,
+          "steel": 29.6,
+          "bone": 41.0,
+          "pale": 0.0
+        },
+        "dominant": "bone"
+      },
+      "Retinue_militia_swarm_unit/animations/hit/south/frame_000.png": {
+        "pixels": 7056,
+        "opaque_pixels": 761,
+        "alpha_partial_before": 0,
+        "off_palette_before": 0,
+        "on_palette_before_pct": 100.0,
+        "luma_span_before": 0.501,
+        "normalized": false,
+        "stipple_px_before": 0,
+        "dither_enforced": false,
+        "stipple_px_after": 0,
+        "histogram": {
+          "dark": 220,
+          "steel": 234,
+          "bone": 307,
+          "pale": 0
+        },
+        "values_used": 3,
+        "histogram_pct": {
+          "dark": 28.9,
+          "steel": 30.7,
+          "bone": 40.3,
+          "pale": 0.0
+        },
+        "dominant": "bone"
+      },
+      "Retinue_militia_swarm_unit/animations/hit/south/frame_001.png": {
+        "pixels": 7056,
+        "opaque_pixels": 737,
+        "alpha_partial_before": 0,
+        "off_palette_before": 5,
+        "on_palette_before_pct": 99.32,
+        "luma_span_before": 0.501,
+        "normalized": false,
+        "stipple_px_before": 0,
+        "dither_enforced": false,
+        "stipple_px_after": 0,
+        "histogram": {
+          "dark": 211,
+          "steel": 145,
+          "bone": 381,
+          "pale": 0
+        },
+        "values_used": 3,
+        "histogram_pct": {
+          "dark": 28.6,
+          "steel": 19.7,
+          "bone": 51.7,
+          "pale": 0.0
+        },
+        "dominant": "bone"
+      },
+      "Retinue_militia_swarm_unit/animations/hit/south/frame_002.png": {
+        "pixels": 7056,
+        "opaque_pixels": 701,
+        "alpha_partial_before": 0,
+        "off_palette_before": 2,
+        "on_palette_before_pct": 99.71,
+        "luma_span_before": 0.501,
+        "normalized": false,
+        "stipple_px_before": 0,
+        "dither_enforced": false,
+        "stipple_px_after": 0,
+        "histogram": {
+          "dark": 203,
+          "steel": 46,
+          "bone": 452,
+          "pale": 0
+        },
+        "values_used": 3,
+        "histogram_pct": {
+          "dark": 29.0,
+          "steel": 6.6,
+          "bone": 64.5,
+          "pale": 0.0
+        },
+        "dominant": "bone"
+      },
+      "Retinue_militia_swarm_unit/animations/hit/south/frame_003.png": {
+        "pixels": 7056,
+        "opaque_pixels": 765,
+        "alpha_partial_before": 0,
+        "off_palette_before": 2,
+        "on_palette_before_pct": 99.74,
+        "luma_span_before": 0.501,
+        "normalized": false,
+        "stipple_px_before": 0,
+        "dither_enforced": false,
+        "stipple_px_after": 0,
+        "histogram": {
+          "dark": 208,
+          "steel": 47,
+          "bone": 510,
+          "pale": 0
+        },
+        "values_used": 3,
+        "histogram_pct": {
+          "dark": 27.2,
+          "steel": 6.1,
+          "bone": 66.7,
+          "pale": 0.0
+        },
+        "dominant": "bone"
+      },
+      "Retinue_militia_swarm_unit/animations/hit/south/frame_004.png": {
+        "pixels": 7056,
+        "opaque_pixels": 768,
+        "alpha_partial_before": 0,
+        "off_palette_before": 2,
+        "on_palette_before_pct": 99.74,
+        "luma_span_before": 0.501,
+        "normalized": false,
+        "stipple_px_before": 0,
+        "dither_enforced": false,
+        "stipple_px_after": 0,
+        "histogram": {
+          "dark": 216,
+          "steel": 38,
+          "bone": 514,
+          "pale": 0
+        },
+        "values_used": 3,
+        "histogram_pct": {
+          "dark": 28.1,
+          "steel": 4.9,
+          "bone": 66.9,
+          "pale": 0.0
+        },
+        "dominant": "bone"
+      },
+      "Retinue_militia_swarm_unit/animations/walk/south/frame_000.png": {
+        "pixels": 7056,
+        "opaque_pixels": 816,
+        "alpha_partial_before": 0,
+        "off_palette_before": 3,
+        "on_palette_before_pct": 99.63,
+        "luma_span_before": 0.501,
+        "normalized": false,
+        "stipple_px_before": 0,
+        "dither_enforced": false,
+        "stipple_px_after": 0,
+        "histogram": {
+          "dark": 317,
+          "steel": 221,
+          "bone": 278,
+          "pale": 0
+        },
+        "values_used": 3,
+        "histogram_pct": {
+          "dark": 38.8,
+          "steel": 27.1,
+          "bone": 34.1,
+          "pale": 0.0
+        },
+        "dominant": "dark"
+      },
+      "Retinue_militia_swarm_unit/animations/walk/south/frame_001.png": {
+        "pixels": 7056,
+        "opaque_pixels": 829,
+        "alpha_partial_before": 0,
+        "off_palette_before": 1,
+        "on_palette_before_pct": 99.88,
+        "luma_span_before": 0.501,
+        "normalized": false,
+        "stipple_px_before": 0,
+        "dither_enforced": false,
+        "stipple_px_after": 0,
+        "histogram": {
+          "dark": 299,
+          "steel": 230,
+          "bone": 300,
+          "pale": 0
+        },
+        "values_used": 3,
+        "histogram_pct": {
+          "dark": 36.1,
+          "steel": 27.7,
+          "bone": 36.2,
+          "pale": 0.0
+        },
+        "dominant": "bone"
+      },
+      "Retinue_militia_swarm_unit/animations/walk/south/frame_002.png": {
+        "pixels": 7056,
+        "opaque_pixels": 824,
+        "alpha_partial_before": 0,
+        "off_palette_before": 2,
+        "on_palette_before_pct": 99.76,
+        "luma_span_before": 0.501,
+        "normalized": false,
+        "stipple_px_before": 0,
+        "dither_enforced": false,
+        "stipple_px_after": 0,
+        "histogram": {
+          "dark": 307,
+          "steel": 236,
+          "bone": 281,
+          "pale": 0
+        },
+        "values_used": 3,
+        "histogram_pct": {
+          "dark": 37.3,
+          "steel": 28.6,
+          "bone": 34.1,
+          "pale": 0.0
+        },
+        "dominant": "dark"
+      },
+      "Retinue_militia_swarm_unit/animations/walk/south/frame_003.png": {
+        "pixels": 7056,
+        "opaque_pixels": 935,
+        "alpha_partial_before": 0,
+        "off_palette_before": 3,
+        "on_palette_before_pct": 99.68,
+        "luma_span_before": 0.501,
+        "normalized": false,
+        "stipple_px_before": 0,
+        "dither_enforced": false,
+        "stipple_px_after": 0,
+        "histogram": {
+          "dark": 339,
+          "steel": 272,
+          "bone": 324,
+          "pale": 0
+        },
+        "values_used": 3,
+        "histogram_pct": {
+          "dark": 36.3,
+          "steel": 29.1,
+          "bone": 34.7,
+          "pale": 0.0
+        },
+        "dominant": "dark"
+      },
+      "Retinue_militia_swarm_unit/animations/walkv3/south/frame_000.png": {
+        "pixels": 7056,
+        "opaque_pixels": 761,
+        "alpha_partial_before": 0,
+        "off_palette_before": 0,
+        "on_palette_before_pct": 100.0,
+        "luma_span_before": 0.501,
+        "normalized": false,
+        "stipple_px_before": 0,
+        "dither_enforced": false,
+        "stipple_px_after": 0,
+        "histogram": {
+          "dark": 220,
+          "steel": 234,
+          "bone": 307,
+          "pale": 0
+        },
+        "values_used": 3,
+        "histogram_pct": {
+          "dark": 28.9,
+          "steel": 30.7,
+          "bone": 40.3,
+          "pale": 0.0
+        },
+        "dominant": "bone"
+      },
+      "Retinue_militia_swarm_unit/animations/walkv3/south/frame_001.png": {
+        "pixels": 7056,
+        "opaque_pixels": 747,
+        "alpha_partial_before": 0,
+        "off_palette_before": 8,
+        "on_palette_before_pct": 98.93,
+        "luma_span_before": 0.501,
+        "normalized": false,
+        "stipple_px_before": 0,
+        "dither_enforced": false,
+        "stipple_px_after": 0,
+        "histogram": {
+          "dark": 213,
+          "steel": 237,
+          "bone": 297,
+          "pale": 0
+        },
+        "values_used": 3,
+        "histogram_pct": {
+          "dark": 28.5,
+          "steel": 31.7,
+          "bone": 39.8,
+          "pale": 0.0
+        },
+        "dominant": "bone"
+      },
+      "Retinue_militia_swarm_unit/animations/walkv3/south/frame_002.png": {
+        "pixels": 7056,
+        "opaque_pixels": 756,
+        "alpha_partial_before": 0,
+        "off_palette_before": 8,
+        "on_palette_before_pct": 98.94,
+        "luma_span_before": 0.501,
+        "normalized": false,
+        "stipple_px_before": 0,
+        "dither_enforced": false,
+        "stipple_px_after": 0,
+        "histogram": {
+          "dark": 221,
+          "steel": 243,
+          "bone": 292,
+          "pale": 0
+        },
+        "values_used": 3,
+        "histogram_pct": {
+          "dark": 29.2,
+          "steel": 32.1,
+          "bone": 38.6,
+          "pale": 0.0
+        },
+        "dominant": "bone"
+      },
+      "Retinue_militia_swarm_unit/animations/walkv3/south/frame_003.png": {
+        "pixels": 7056,
+        "opaque_pixels": 755,
+        "alpha_partial_before": 0,
+        "off_palette_before": 0,
+        "on_palette_before_pct": 100.0,
+        "luma_span_before": 0.501,
+        "normalized": false,
+        "stipple_px_before": 0,
+        "dither_enforced": false,
+        "stipple_px_after": 0,
+        "histogram": {
+          "dark": 218,
+          "steel": 234,
+          "bone": 303,
+          "pale": 0
+        },
+        "values_used": 3,
+        "histogram_pct": {
+          "dark": 28.9,
+          "steel": 31.0,
+          "bone": 40.1,
+          "pale": 0.0
+        },
+        "dominant": "bone"
+      },
+      "Retinue_militia_swarm_unit/animations/walkv3/south/frame_004.png": {
+        "pixels": 7056,
+        "opaque_pixels": 771,
+        "alpha_partial_before": 0,
+        "off_palette_before": 0,
+        "on_palette_before_pct": 100.0,
+        "luma_span_before": 0.501,
+        "normalized": false,
+        "stipple_px_before": 0,
+        "dither_enforced": false,
+        "stipple_px_after": 0,
+        "histogram": {
+          "dark": 223,
+          "steel": 240,
+          "bone": 308,
+          "pale": 0
+        },
+        "values_used": 3,
+        "histogram_pct": {
+          "dark": 28.9,
+          "steel": 31.1,
+          "bone": 39.9,
+          "pale": 0.0
+        },
+        "dominant": "bone"
+      },
+      "Retinue_militia_swarm_unit/rotations/east.png": {
+        "pixels": 7056,
+        "opaque_pixels": 611,
+        "alpha_partial_before": 0,
+        "off_palette_before": 0,
+        "on_palette_before_pct": 100.0,
+        "luma_span_before": 0.501,
+        "normalized": false,
+        "stipple_px_before": 1,
+        "dither_enforced": true,
+        "dither_passes": 1,
+        "stipple_px_after": 0,
+        "histogram": {
+          "dark": 202,
+          "steel": 73,
+          "bone": 336,
+          "pale": 0
+        },
+        "values_used": 3,
+        "histogram_pct": {
+          "dark": 33.1,
+          "steel": 11.9,
+          "bone": 55.0,
+          "pale": 0.0
+        },
+        "dominant": "bone"
+      },
+      "Retinue_militia_swarm_unit/rotations/north-east.png": {
+        "pixels": 7056,
+        "opaque_pixels": 700,
+        "alpha_partial_before": 0,
+        "off_palette_before": 0,
+        "on_palette_before_pct": 100.0,
+        "luma_span_before": 0.501,
+        "normalized": false,
+        "stipple_px_before": 0,
+        "dither_enforced": false,
+        "stipple_px_after": 0,
+        "histogram": {
+          "dark": 218,
+          "steel": 145,
+          "bone": 337,
+          "pale": 0
+        },
+        "values_used": 3,
+        "histogram_pct": {
+          "dark": 31.1,
+          "steel": 20.7,
+          "bone": 48.1,
+          "pale": 0.0
+        },
+        "dominant": "bone"
+      },
+      "Retinue_militia_swarm_unit/rotations/north-west.png": {
+        "pixels": 7056,
+        "opaque_pixels": 698,
+        "alpha_partial_before": 0,
+        "off_palette_before": 0,
+        "on_palette_before_pct": 100.0,
+        "luma_span_before": 0.501,
+        "normalized": false,
+        "stipple_px_before": 0,
+        "dither_enforced": false,
+        "stipple_px_after": 0,
+        "histogram": {
+          "dark": 211,
+          "steel": 216,
+          "bone": 271,
+          "pale": 0
+        },
+        "values_used": 3,
+        "histogram_pct": {
+          "dark": 30.2,
+          "steel": 30.9,
+          "bone": 38.8,
+          "pale": 0.0
+        },
+        "dominant": "bone"
+      },
+      "Retinue_militia_swarm_unit/rotations/north.png": {
+        "pixels": 7056,
+        "opaque_pixels": 763,
+        "alpha_partial_before": 0,
+        "off_palette_before": 0,
+        "on_palette_before_pct": 100.0,
+        "luma_span_before": 0.501,
+        "normalized": false,
+        "stipple_px_before": 0,
+        "dither_enforced": false,
+        "stipple_px_after": 0,
+        "histogram": {
+          "dark": 229,
+          "steel": 210,
+          "bone": 324,
+          "pale": 0
+        },
+        "values_used": 3,
+        "histogram_pct": {
+          "dark": 30.0,
+          "steel": 27.5,
+          "bone": 42.5,
+          "pale": 0.0
+        },
+        "dominant": "bone"
+      },
+      "Retinue_militia_swarm_unit/rotations/south-east.png": {
+        "pixels": 7056,
+        "opaque_pixels": 682,
+        "alpha_partial_before": 0,
+        "off_palette_before": 0,
+        "on_palette_before_pct": 100.0,
+        "luma_span_before": 0.501,
+        "normalized": false,
+        "stipple_px_before": 0,
+        "dither_enforced": false,
+        "stipple_px_after": 0,
+        "histogram": {
+          "dark": 205,
+          "steel": 118,
+          "bone": 359,
+          "pale": 0
+        },
+        "values_used": 3,
+        "histogram_pct": {
+          "dark": 30.1,
+          "steel": 17.3,
+          "bone": 52.6,
+          "pale": 0.0
+        },
+        "dominant": "bone"
+      },
+      "Retinue_militia_swarm_unit/rotations/south-west.png": {
+        "pixels": 7056,
+        "opaque_pixels": 709,
+        "alpha_partial_before": 0,
+        "off_palette_before": 0,
+        "on_palette_before_pct": 100.0,
+        "luma_span_before": 0.501,
+        "normalized": false,
+        "stipple_px_before": 0,
+        "dither_enforced": false,
+        "stipple_px_after": 0,
+        "histogram": {
+          "dark": 209,
+          "steel": 273,
+          "bone": 227,
+          "pale": 0
+        },
+        "values_used": 3,
+        "histogram_pct": {
+          "dark": 29.5,
+          "steel": 38.5,
+          "bone": 32.0,
+          "pale": 0.0
+        },
+        "dominant": "steel"
+      },
+      "Retinue_militia_swarm_unit/rotations/south.png": {
+        "pixels": 7056,
+        "opaque_pixels": 761,
+        "alpha_partial_before": 0,
+        "off_palette_before": 0,
+        "on_palette_before_pct": 100.0,
+        "luma_span_before": 0.501,
+        "normalized": false,
+        "stipple_px_before": 0,
+        "dither_enforced": false,
+        "stipple_px_after": 0,
+        "histogram": {
+          "dark": 220,
+          "steel": 234,
+          "bone": 307,
+          "pale": 0
+        },
+        "values_used": 3,
+        "histogram_pct": {
+          "dark": 28.9,
+          "steel": 30.7,
+          "bone": 40.3,
+          "pale": 0.0
+        },
+        "dominant": "bone"
+      },
+      "Retinue_militia_swarm_unit/rotations/west.png": {
+        "pixels": 7056,
+        "opaque_pixels": 614,
+        "alpha_partial_before": 0,
+        "off_palette_before": 0,
+        "on_palette_before_pct": 100.0,
+        "luma_span_before": 0.501,
+        "normalized": false,
+        "stipple_px_before": 0,
+        "dither_enforced": false,
+        "stipple_px_after": 0,
+        "histogram": {
+          "dark": 178,
+          "steel": 221,
+          "bone": 215,
+          "pale": 0
+        },
+        "values_used": 3,
+        "histogram_pct": {
+          "dark": 29.0,
+          "steel": 36.0,
+          "bone": 35.0,
+          "pale": 0.0
+        },
+        "dominant": "steel"
+      }
+    }
+  },
+  "sheet": {
+    "path": "RawArt/Sheets/T_Unit_Retinue.png",
+    "size": [
+      192,
+      48
+    ],
+    "cell": 48,
+    "grid": [
+      4,
+      1
+    ],
+    "content_path": "/Game/Sprites/Units",
+    "texture": "T_Unit_Retinue",
+    "srgb": true,
+    "sprite_bbox": {
+      "_": [
+        47,
+        40
+      ]
+    },
+    "packed": "2026-07-26T01:06:54+00:00",
+    "frame_map": {
+      "0": "south.walkv32",
+      "1": "south.walkv34",
+      "2": "south.attack5",
+      "3": "south.hit4"
+    }
+  }
+}

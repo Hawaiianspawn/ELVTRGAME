@@ -1,0 +1,357 @@
+{
+  "group_id": "8b4b9811-dcf3-4e9d-baa6-2cb3f8901d0b",
+  "states": [
+    {
+      "character": {
+        "id": "a8770a41-6493-41be-b141-e21bc507783b",
+        "name": "A black ghost with sharp",
+        "prompt": "A black ghost with sharp teeth, the whole body is pitch black only the teeth stand out in white \n",
+        "size": {
+          "width": 88,
+          "height": 88
+        },
+        "template_id": "mannequin",
+        "directions": 8,
+        "view": "low top-down",
+        "created_at": "2026-07-26T01:08:36.065322+00:00"
+      },
+      "folder": "A_black_ghost_with_sharp",
+      "frames": {
+        "rotations": {
+          "south": "A_black_ghost_with_sharp/rotations/south.png",
+          "south-east": "A_black_ghost_with_sharp/rotations/south-east.png",
+          "east": "A_black_ghost_with_sharp/rotations/east.png",
+          "north-east": "A_black_ghost_with_sharp/rotations/north-east.png",
+          "north": "A_black_ghost_with_sharp/rotations/north.png",
+          "north-west": "A_black_ghost_with_sharp/rotations/north-west.png",
+          "west": "A_black_ghost_with_sharp/rotations/west.png",
+          "south-west": "A_black_ghost_with_sharp/rotations/south-west.png"
+        },
+        "animations": {}
+      }
+    },
+    {
+      "character": {
+        "id": "4a75b4ac-7732-499a-84f4-d3a06937a6c2",
+        "name": "Black ooze with teet",
+        "prompt": "A black ghost with sharp teeth, the whole body is pitch black only the teeth stand out in white \n",
+        "size": {
+          "width": 88,
+          "height": 88
+        },
+        "template_id": "mannequin",
+        "directions": 8,
+        "view": "low top-down",
+        "created_at": "2026-07-26T01:11:53.690225+00:00"
+      },
+      "folder": "Black_ooze_with_teet",
+      "frames": {
+        "rotations": {
+          "south": "Black_ooze_with_teet/rotations/south.png",
+          "south-east": "Black_ooze_with_teet/rotations/south-east.png",
+          "east": "Black_ooze_with_teet/rotations/east.png",
+          "north-east": "Black_ooze_with_teet/rotations/north-east.png",
+          "north": "Black_ooze_with_teet/rotations/north.png",
+          "north-west": "Black_ooze_with_teet/rotations/north-west.png",
+          "west": "Black_ooze_with_teet/rotations/west.png",
+          "south-west": "Black_ooze_with_teet/rotations/south-west.png"
+        },
+        "animations": {
+          "The_dark_hooded_creature_recoils_sharply_its_body": {
+            "south": [
+              "Black_ooze_with_teet/animations/The_dark_hooded_creature_recoils_sharply_its_body/south/frame_000.png",
+              "Black_ooze_with_teet/animations/The_dark_hooded_creature_recoils_sharply_its_body/south/frame_001.png",
+              "Black_ooze_with_teet/animations/The_dark_hooded_creature_recoils_sharply_its_body/south/frame_002.png",
+              "Black_ooze_with_teet/animations/The_dark_hooded_creature_recoils_sharply_its_body/south/frame_003.png",
+              "Black_ooze_with_teet/animations/The_dark_hooded_creature_recoils_sharply_its_body/south/frame_004.png",
+              "Black_ooze_with_teet/animations/The_dark_hooded_creature_recoils_sharply_its_body/south/frame_005.png",
+              "Black_ooze_with_teet/animations/The_dark_hooded_creature_recoils_sharply_its_body/south/frame_006.png",
+              "Black_ooze_with_teet/animations/The_dark_hooded_creature_recoils_sharply_its_body/south/frame_007.png",
+              "Black_ooze_with_teet/animations/The_dark_hooded_creature_recoils_sharply_its_body/south/frame_008.png"
+            ]
+          },
+          "attack": {
+            "south": [
+              "Black_ooze_with_teet/animations/attack/south/frame_000.png",
+              "Black_ooze_with_teet/animations/attack/south/frame_001.png",
+              "Black_ooze_with_teet/animations/attack/south/frame_002.png",
+              "Black_ooze_with_teet/animations/attack/south/frame_003.png",
+              "Black_ooze_with_teet/animations/attack/south/frame_004.png"
+            ]
+          },
+          "walk": {
+            "south": [
+              "Black_ooze_with_teet/animations/walk/south/frame_000.png",
+              "Black_ooze_with_teet/animations/walk/south/frame_001.png",
+              "Black_ooze_with_teet/animations/walk/south/frame_002.png",
+              "Black_ooze_with_teet/animations/walk/south/frame_003.png"
+            ]
+          }
+        }
+      }
+    },
+    {
+      "character": {
+        "id": "bc9075a7-5a65-4992-9259-d15ca11fe4ef",
+        "name": "Baby face",
+        "prompt": "A black ghost with sharp teeth, the whole body is pitch black only the teeth stand out in white \n",
+        "size": {
+          "width": 88,
+          "height": 88
+        },
+        "template_id": "mannequin",
+        "directions": 8,
+        "view": "low top-down",
+        "created_at": "2026-07-26T01:29:57.961567+00:00"
+      },
+      "folder": "Baby_face",
+      "frames": {
+        "rotations": {
+          "south": "Baby_face/rotations/south.png",
+          "south-east": "Baby_face/rotations/south-east.png",
+          "east": "Baby_face/rotations/east.png",
+          "north-east": "Baby_face/rotations/north-east.png",
+          "north": "Baby_face/rotations/north.png",
+          "north-west": "Baby_face/rotations/north-west.png",
+          "west": "Baby_face/rotations/west.png",
+          "south-west": "Baby_face/rotations/south-west.png"
+        },
+        "animations": {}
+      }
+    },
+    {
+      "character": {
+        "id": "695c0d4a-ba15-4ea8-a07e-7a2bf862f6b7",
+        "name": "Undead",
+        "prompt": "A black ghost with sharp teeth, the whole body is pitch black only the teeth stand out in white \n",
+        "size": {
+          "width": 88,
+          "height": 88
+        },
+        "template_id": "mannequin",
+        "directions": 8,
+        "view": "low top-down",
+        "created_at": "2026-07-26T01:30:20.992656+00:00"
+      },
+      "folder": "Undead",
+      "frames": {
+        "rotations": {
+          "south": "Undead/rotations/south.png",
+          "south-east": "Undead/rotations/south-east.png",
+          "east": "Undead/rotations/east.png",
+          "north-east": "Undead/rotations/north-east.png",
+          "north": "Undead/rotations/north.png",
+          "north-west": "Undead/rotations/north-west.png",
+          "west": "Undead/rotations/west.png",
+          "south-west": "Undead/rotations/south-west.png"
+        },
+        "animations": {}
+      }
+    },
+    {
+      "character": {
+        "id": "97304588-0583-40d2-8bd0-746edb603243",
+        "name": "wearing armor",
+        "prompt": "A black ghost with sharp teeth, the whole body is pitch black only the teeth stand out in white \n",
+        "size": {
+          "width": 88,
+          "height": 88
+        },
+        "template_id": "mannequin",
+        "directions": 8,
+        "view": "low top-down",
+        "created_at": "2026-07-26T01:31:34.493184+00:00"
+      },
+      "folder": "wearing_armor",
+      "frames": {
+        "rotations": {
+          "south": "wearing_armor/rotations/south.png",
+          "south-east": "wearing_armor/rotations/south-east.png",
+          "east": "wearing_armor/rotations/east.png",
+          "north-east": "wearing_armor/rotations/north-east.png",
+          "north": "wearing_armor/rotations/north.png",
+          "north-west": "wearing_armor/rotations/north-west.png",
+          "west": "wearing_armor/rotations/west.png",
+          "south-west": "wearing_armor/rotations/south-west.png"
+        },
+        "animations": {}
+      }
+    },
+    {
+      "character": {
+        "id": "4daf02e5-178c-454e-b0a6-7b48050ad7a1",
+        "name": "Made of tongues",
+        "prompt": "A black ghost with sharp teeth, the whole body is pitch black only the teeth stand out in white \n",
+        "size": {
+          "width": 88,
+          "height": 88
+        },
+        "template_id": "mannequin",
+        "directions": 8,
+        "view": "low top-down",
+        "created_at": "2026-07-26T01:31:58.229510+00:00"
+      },
+      "folder": "Made_of_tongues",
+      "frames": {
+        "rotations": {
+          "south": "Made_of_tongues/rotations/south.png",
+          "south-east": "Made_of_tongues/rotations/south-east.png",
+          "east": "Made_of_tongues/rotations/east.png",
+          "north-east": "Made_of_tongues/rotations/north-east.png",
+          "north": "Made_of_tongues/rotations/north.png",
+          "north-west": "Made_of_tongues/rotations/north-west.png",
+          "west": "Made_of_tongues/rotations/west.png",
+          "south-west": "Made_of_tongues/rotations/south-west.png"
+        },
+        "animations": {}
+      }
+    },
+    {
+      "character": {
+        "id": "98875280-46c4-4a5d-93dc-a53b85b97a62",
+        "name": "Baby face smiling li",
+        "prompt": "A black ghost with sharp teeth, the whole body is pitch black only the teeth stand out in white \n",
+        "size": {
+          "width": 88,
+          "height": 88
+        },
+        "template_id": "mannequin",
+        "directions": 8,
+        "view": "low top-down",
+        "created_at": "2026-07-26T01:33:47.719550+00:00"
+      },
+      "folder": "Baby_face_smiling_li",
+      "frames": {
+        "rotations": {
+          "south": "Baby_face_smiling_li/rotations/south.png",
+          "south-east": "Baby_face_smiling_li/rotations/south-east.png",
+          "east": "Baby_face_smiling_li/rotations/east.png",
+          "north-east": "Baby_face_smiling_li/rotations/north-east.png",
+          "north": "Baby_face_smiling_li/rotations/north.png",
+          "north-west": "Baby_face_smiling_li/rotations/north-west.png",
+          "west": "Baby_face_smiling_li/rotations/west.png",
+          "south-west": "Baby_face_smiling_li/rotations/south-west.png"
+        },
+        "animations": {}
+      }
+    },
+    {
+      "character": {
+        "id": "34ebf7db-9ffb-4fb8-9125-dee296cd9038",
+        "name": "pale blue skin big e",
+        "prompt": "A black ghost with sharp teeth, the whole body is pitch black only the teeth stand out in white \n",
+        "size": {
+          "width": 88,
+          "height": 88
+        },
+        "template_id": "mannequin",
+        "directions": 8,
+        "view": "low top-down",
+        "created_at": "2026-07-26T01:51:14.595563+00:00"
+      },
+      "folder": "pale_blue_skin_big_e",
+      "frames": {
+        "rotations": {
+          "south": "pale_blue_skin_big_e/rotations/south.png",
+          "south-east": "pale_blue_skin_big_e/rotations/south-east.png",
+          "east": "pale_blue_skin_big_e/rotations/east.png",
+          "north-east": "pale_blue_skin_big_e/rotations/north-east.png",
+          "north": "pale_blue_skin_big_e/rotations/north.png",
+          "north-west": "pale_blue_skin_big_e/rotations/north-west.png",
+          "west": "pale_blue_skin_big_e/rotations/west.png",
+          "south-west": "pale_blue_skin_big_e/rotations/south-west.png"
+        },
+        "animations": {}
+      }
+    },
+    {
+      "character": {
+        "id": "6f1f4b6b-f495-4cef-9109-7942f22e7ee0",
+        "name": "Hairy overgrown like",
+        "prompt": "A black ghost with sharp teeth, the whole body is pitch black only the teeth stand out in white \n",
+        "size": {
+          "width": 88,
+          "height": 88
+        },
+        "template_id": "mannequin",
+        "directions": 8,
+        "view": "low top-down",
+        "created_at": "2026-07-26T01:52:10.160740+00:00"
+      },
+      "folder": "Hairy_overgrown_like",
+      "frames": {
+        "rotations": {
+          "south": "Hairy_overgrown_like/rotations/south.png",
+          "south-east": "Hairy_overgrown_like/rotations/south-east.png",
+          "east": "Hairy_overgrown_like/rotations/east.png",
+          "north-east": "Hairy_overgrown_like/rotations/north-east.png",
+          "north": "Hairy_overgrown_like/rotations/north.png",
+          "north-west": "Hairy_overgrown_like/rotations/north-west.png",
+          "west": "Hairy_overgrown_like/rotations/west.png",
+          "south-west": "Hairy_overgrown_like/rotations/south-west.png"
+        },
+        "animations": {}
+      }
+    },
+    {
+      "character": {
+        "id": "eff5b532-e3b5-4e6e-84af-c653bb8671ec",
+        "name": "made of marble",
+        "prompt": "A black ghost with sharp teeth, the whole body is pitch black only the teeth stand out in white \n",
+        "size": {
+          "width": 88,
+          "height": 88
+        },
+        "template_id": "mannequin",
+        "directions": 8,
+        "view": "low top-down",
+        "created_at": "2026-07-26T01:52:33.648939+00:00"
+      },
+      "folder": "made_of_marble",
+      "frames": {
+        "rotations": {
+          "south": "made_of_marble/rotations/south.png",
+          "south-east": "made_of_marble/rotations/south-east.png",
+          "east": "made_of_marble/rotations/east.png",
+          "north-east": "made_of_marble/rotations/north-east.png",
+          "north": "made_of_marble/rotations/north.png",
+          "north-west": "made_of_marble/rotations/north-west.png",
+          "west": "made_of_marble/rotations/west.png",
+          "south-west": "made_of_marble/rotations/south-west.png"
+        },
+        "animations": {}
+      }
+    },
+    {
+      "character": {
+        "id": "95130e36-b237-45ea-a449-26d51c7a6f74",
+        "name": "Black ooze with teet (copy)",
+        "prompt": "A black ghost with sharp teeth, the whole body is pitch black only the teeth stand out in white \n",
+        "size": {
+          "width": 88,
+          "height": 88
+        },
+        "template_id": "mannequin",
+        "directions": 8,
+        "view": "low top-down",
+        "created_at": "2026-07-26T02:01:39.071608+00:00"
+      },
+      "folder": "Black_ooze_with_teet_copy",
+      "frames": {
+        "rotations": {
+          "south": "Black_ooze_with_teet_copy/rotations/south.png",
+          "south-east": "Black_ooze_with_teet_copy/rotations/south-east.png",
+          "east": "Black_ooze_with_teet_copy/rotations/east.png",
+          "north-east": "Black_ooze_with_teet_copy/rotations/north-east.png",
+          "north": "Black_ooze_with_teet_copy/rotations/north.png",
+          "north-west": "Black_ooze_with_teet_copy/rotations/north-west.png",
+          "west": "Black_ooze_with_teet_copy/rotations/west.png",
+          "south-west": "Black_ooze_with_teet_copy/rotations/south-west.png"
+        },
+        "animations": {}
+      }
+    }
+  ],
+  "export_version": "3.1",
+  "export_date": "2026-07-26T02:06:52.148391"
+}

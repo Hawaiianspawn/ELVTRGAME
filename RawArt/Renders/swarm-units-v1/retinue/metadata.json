@@ -1,0 +1,79 @@
+{
+  "group_id": null,
+  "states": [
+    {
+      "character": {
+        "id": "d767901c-34de-48e5-a541-72fd9a96df5e",
+        "name": "ELVTR Retinue Militia (swarm unit)",
+        "prompt": "ragged militia soldier, mismatched scavenged armor, bandaged arm, open helmet with missing visor, improvised wooden club, patched cloth, grayscale bone and steel gray tones, no bright colors, worn and individual not uniform",
+        "size": {
+          "width": 68,
+          "height": 68
+        },
+        "template_id": "mannequin",
+        "directions": 4,
+        "view": "high top-down",
+        "created_at": "2026-07-25T23:23:06.831807+00:00"
+      },
+      "folder": "ELVTR_Retinue_Militia_swarm_unit",
+      "frames": {
+        "rotations": {
+          "south": "ELVTR_Retinue_Militia_swarm_unit/rotations/south.png",
+          "west": "ELVTR_Retinue_Militia_swarm_unit/rotations/west.png",
+          "east": "ELVTR_Retinue_Militia_swarm_unit/rotations/east.png",
+          "north": "ELVTR_Retinue_Militia_swarm_unit/rotations/north.png"
+        },
+        "animations": {
+          "attack_v3": {
+            "south": [
+              "ELVTR_Retinue_Militia_swarm_unit/animations/attack_v3/south/frame_000.png",
+              "ELVTR_Retinue_Militia_swarm_unit/animations/attack_v3/south/frame_001.png",
+              "ELVTR_Retinue_Militia_swarm_unit/animations/attack_v3/south/frame_002.png",
+              "ELVTR_Retinue_Militia_swarm_unit/animations/attack_v3/south/frame_003.png",
+              "ELVTR_Retinue_Militia_swarm_unit/animations/attack_v3/south/frame_004.png"
+            ]
+          },
+          "walk": {
+            "south": [
+              "ELVTR_Retinue_Militia_swarm_unit/animations/walk/south/frame_000.png",
+              "ELVTR_Retinue_Militia_swarm_unit/animations/walk/south/frame_001.png",
+              "ELVTR_Retinue_Militia_swarm_unit/animations/walk/south/frame_002.png",
+              "ELVTR_Retinue_Militia_swarm_unit/animations/walk/south/frame_003.png"
+            ]
+          },
+          "attack": {
+            "south": [
+              "ELVTR_Retinue_Militia_swarm_unit/animations/attack/south/frame_000.png",
+              "ELVTR_Retinue_Militia_swarm_unit/animations/attack/south/frame_001.png",
+              "ELVTR_Retinue_Militia_swarm_unit/animations/attack/south/frame_002.png",
+              "ELVTR_Retinue_Militia_swarm_unit/animations/attack/south/frame_003.png",
+              "ELVTR_Retinue_Militia_swarm_unit/animations/attack/south/frame_004.png",
+              "ELVTR_Retinue_Militia_swarm_unit/animations/attack/south/frame_005.png"
+            ]
+          },
+          "hit": {
+            "south": [
+              "ELVTR_Retinue_Militia_swarm_unit/animations/hit/south/frame_000.png",
+              "ELVTR_Retinue_Militia_swarm_unit/animations/hit/south/frame_001.png",
+              "ELVTR_Retinue_Militia_swarm_unit/animations/hit/south/frame_002.png",
+              "ELVTR_Retinue_Militia_swarm_unit/animations/hit/south/frame_003.png",
+              "ELVTR_Retinue_Militia_swarm_unit/animations/hit/south/frame_004.png",
+              "ELVTR_Retinue_Militia_swarm_unit/animations/hit/south/frame_005.png"
+            ]
+          },
+          "hit_v3": {
+            "south": [
+              "ELVTR_Retinue_Militia_swarm_unit/animations/hit_v3/south/frame_000.png",
+              "ELVTR_Retinue_Militia_swarm_unit/animations/hit_v3/south/frame_001.png",
+              "ELVTR_Retinue_Militia_swarm_unit/animations/hit_v3/south/frame_002.png",
+              "ELVTR_Retinue_Militia_swarm_unit/animations/hit_v3/south/frame_003.png",
+              "ELVTR_Retinue_Militia_swarm_unit/animations/hit_v3/south/frame_004.png"
+            ]
+          }
+        }
+      }
+    }
+  ],
+  "export_version": "3.1",
+  "export_date": "2026-07-25T23:36:10.724373"
+}
