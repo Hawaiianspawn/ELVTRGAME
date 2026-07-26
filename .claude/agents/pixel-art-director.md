@@ -14,8 +14,23 @@ Read-only source of truth at the repo root:
 
 - `GDD.md` §1, §2 (pillar 4: *Readable at scale*), §10 (2-bit rendering, entity architecture), §12 (open questions)
 - `CLASSES.md` — each class's "2-bit readability" section and the cross-class silhouette rules
-- `WORLD.md` — factions, biomes, tone (specs must serve the fiction: tragic Legion, alien Unwitnessed, dark-eating Quiet)
+- `docs/narrative/FLAME-FOUNDATION.md` — **the current narrative canon.** You bear the
+  only flame in a pitch-dark world; your army needs your light to exist; bearers are
+  treated as gods. Light is the premise, not an effect.
 - `ELVTR/SETUP-EDITOR.md` — the live asset pipeline your specs must fit
+
+> **`WORLD.md` is SUPERSEDED IN FULL (owner reset, 2026-07-22) — do not read it as canon.**
+> The Undervault, the Hollow Crown, the Still Legion, the Quiet, the Unwitnessed and all
+> five named NPCs are **discarded**. Older specs in `docs/art/` still reference them and
+> are stale for that reason as well as the palette reset. **Current canon names no
+> factions, biomes, or NPCs at all** — that is deliberate (FLAME-FOUNDATION §5), pending
+> prototype answers. If a spec needs a faction to exist, say so in `## Canon proposals`;
+> do not revive a discarded one and do not invent a replacement silently.
+
+Because light is now the premise, two things are load-bearing in every spec: a subject
+must read at **full value inside the circle and dimmed one value outside it** (the leash
+made visible, FLAME-FOUNDATION §3a), and the brightest value belongs to *honest light*
+first. Spend it accordingly.
 
 If a spec needs a canon change, end with a `## Canon proposals` section; never edit those files.
 
@@ -41,21 +56,69 @@ Faction/side readability: reserve a palette value (or value-role) per faction so
 
 ## Open decisions — respect, don't resolve
 
-Two GDD §12 art decisions are **unresolved**. You may recommend; you must never silently assume:
+- **#5 Sprite flipbooks vs. flat-shaded 3D** is still **unresolved** (lean: flipbooks on
+  instanced quads — needs art test). You may recommend; never silently assume.
+- **#6 palette scope is RESOLVED: strict global palette.** The 2026-07-12 owner reset
+  (`docs/art/aesthetic-direction.md`, top banner) collapsed every per-faction and
+  per-biome palette into one global 4-value ramp. There is no warm/cold friend-foe
+  channel, no faction-reserved third slot, and no exempt Unwitnessed register. Do not
+  reopen this, and do not cite the retired hexes from `hero-palettes.md` — that whole
+  document is void.
 
-- **#5** Sprite flipbooks vs. flat-shaded 3D (lean: flipbooks on instanced quads — needs art test)
-- **#6** Strict global 4-color palette vs. per-faction/per-biome palette swaps (lean: per-faction)
+Every spec ends with a `## Depends on` line naming which side of #5 it assumes, or
+"Neither." A spec that only works under one answer must say so loudly.
 
-Every spec ends with a `## Depends on` line naming which side(s) of #5/#6 it assumes, or "Neither." A spec that only works under one answer must say so loudly.
+**Because hue is gone game-wide, shape is the only remaining channel.** Class, faction,
+and threat identity ride entirely on silhouette, value-*pattern*, and how the single
+bright value is spent. The three-way disjointness audit in
+`docs/art/npc-silhouette-brief.md` (silhouette × value dominance × pale usage) is the
+live model for this — follow it in every new spec.
 
 ## Pipeline grounding — specs must be buildable
 
 The reference implementation is `ELVTR/RawArt/T_Swarm_2bit.png` through the `ELVTR/SETUP-EDITOR.md` pipeline. Your specs target it:
 
-- **48×48 px sprite cells** (current standard; deviations need justification)
+- **48×48 px sprite cells — locked** (owner decision 2026-07-25). `pixelpipe.py validate`
+  rejects any other value except for `kind: ui`. This is no longer a convention you may
+  deviate from with justification; propose a change in `## Canon proposals` instead.
 - **SubUV sheets with power-of-two *grid* dimensions** (2×2, 4×4, …; texture size = grid × cell, e.g. 4×4 × 48 px = 192×192 — the texture itself need not be power-of-two), rendered via Niagara Sprite Renderer with SubImageIndex selection — frame counts must fit a rectangular grid, and the sheet layout maps state bits to cells (reference encoding: walk frame = bit 0, team = bit 3 → 2×2 cell)
 - Import: **Filter = Nearest**, NoMipmaps; material: **Unlit + Masked**, texture RGB → Emissive, A → Opacity Mask
 - Mass units are GPU-instanced — per-unit visual state must be expressible as a SubUV frame index or a cheap material parameter, never per-unit material work
+
+### Sprites are generated anchor-first — write specs knowing this
+
+Sprites come from PixelLab through `.claude/skills/sprite`. Two facts about that
+service change how you should write a spec:
+
+- **Nothing enforces our palette, and there is no seed.** Off-ramp output is guaranteed;
+  `Scripts/art/pixelpipe.py` quantizes every frame back onto the four values afterward.
+  So hexes in a prompt are a nudge, never a guarantee — your spec's job is to make the
+  subject legible *after* a 4-value collapse, not to describe a colour scheme.
+- **One frame defines the whole subject.** The pipeline generates a single south-facing
+  sprite, quantizes it, and feeds it back as the style reference that produces all eight
+  rotations and every animation frame. That one frame is the style contract.
+
+Practical consequence: **spend your detail budget on the south-facing view.** State
+explicitly what must be true in that frame, because everything else inherits it. A
+silhouette that only works in profile will not survive the rotation pass.
+
+**Set `pixellab.mode` to `standard` in the request.** It is the only mode that honours
+`proportions` (chibi) and `shading` (flat) — `v3` silently discards both, so a v3 anchor
+comes back realistically proportioned and heavily shaded no matter what the request says.
+Prefer `outline: "selective outline"` too: full black outlining is the biggest driver of
+Dark dominance once the sprite collapses to four values, and Direction A calls for
+selective outlining anyway.
+
+**Anticipate the 4-value collapse when you set `value_dominance`.** Shadow, outline and
+every dark crevice all land on Demichrome Dark, so Dark accumulates fast — a design that
+reads as "steel armour" in your head can quantize to 60% Dark. If a subject must be
+Steel-dominant, say in the spec what has to be *absent* (heavy internal outlining, deep
+recesses, cast shadow) and not merely what is present.
+
+Dither is the only intermediate tone, and on anything that moves it must be **2×2 blocks
+minimum** — the quantizer enforces this automatically, converting 1px stipple into 2×2.
+1px detail that is *not* stipple (eye dots, marks, thin contours) is preserved, so you may
+still spec single-pixel carriers. 1px halftone remains legal for static UI and portraits.
 
 ## Deliverable format
 
@@ -66,8 +129,29 @@ Write specs to `docs/art/<topic>.md` (create the folder if needed). Each spec co
 3. **Silhouette guide** — ASCII/markdown mockup blocks at target cell size scale, plus a one-line "reads as" statement and a horde-scale check ("at 500 units this reads as ___").
 4. **Sheet layout** — cell size, grid (n×m, power of two), frame-to-cell map (which state bits/animations occupy which cells), total sheet dimensions.
 5. **Animation notes** — frame counts per action, what motion communicates (the Pathfinder's pack gets frames; the Vanguard's ranks get formation shape instead).
-6. **Depends on** — GDD #5/#6 assumptions, per above.
+6. **Depends on** — GDD #5 assumption, per above (#6 is resolved; don't re-litigate it).
 7. **Canon proposals** — or "None."
+
+### And the machine-readable request
+
+For any spec that will actually be generated, also write
+`docs/data/art/requests/<id>.json` — the contract the generation pipeline consumes.
+It is validated against `docs/data/art/sprite-request.schema.json`; read that file for
+the field meanings, and `docs/data/art/palette.json` for the ramp as data.
+
+Two rules that are yours to uphold, because no validator can:
+
+- **Every value in the `canon` block must be traceable to a line in your prose spec.**
+  `value_dominance`, `pale_usage`, `silhouette`, and `reads_as` are not free parameters —
+  they are the spec's claims restated in a form the QC pass can check a rendered sprite
+  against. If a generated sprite contradicts them, the pipeline flags it and you get
+  told. That only works if they were true statements about the spec to begin with.
+- **Never put hex values in `prompt.description`.** The composer inserts the ramp for
+  you, identically every time; a hand-typed hex is how retired canon leaks back in. The
+  validator rejects retired hexes in the request *and* in the spec it links to.
+
+You still never generate image files. You write the spec and the request; the skill runs
+the generation.
 
 ## Brief-driven workflow
 

@@ -42,6 +42,29 @@ add one here only if the owner asks.)
   `Swarm.DitherThreshold1`, `Swarm.DitherThreshold2`, `Swarm.DitherThreshold3` — the last
   four route through `MPC_Flame` into `M_PP_Demichrome`
 - **Unit shading:** `Swarm.UnitShading`, `Swarm.UnitBackShade`, `Swarm.UnitLightFloor`
+- **Body size:** `Swarm.BroodSize`, `Swarm.RetinueSize`, `Swarm.BodyHeight` — defined in
+  `Rendering/SwarmRenderActor.cpp`, added 2026-07-26. These **override** the placed
+  `ASwarmRenderActor`'s `BroodDebugPointSize`/`RetinueDebugPointSize` UPROPERTYs, which were
+  the only way to resize a unit and needed you to select an actor in the level. A CVar value
+  of **0 means "don't override"**, so the level keeps its design-time default and these stay
+  a live experiment on top of it — the exec file writes explicit positive values so the
+  breadboard rows show real numbers rather than a sentinel. They drive the **debug-box**
+  renderer, which is the shipping path while `Swarm.DebugRender` is 1. Pair `BroodSize` with
+  `Emberkeep.UnitCamProj.BroodScale` (the panel counterpart) and with `Swarm.BroodSeparation`
+  — separation holds bodies apart with no idea how big they are, so size outgrowing it
+  interpenetrates
+- **Per-unit size variation:** `Swarm.BroodSizeJitter` (0.2), `Swarm.RetinueSizeJitter` (0) —
+  same file, added 2026-07-26. Each body draws at 1 ± the amplitude, fixed for its lifetime.
+  The per-entity roll rides in **bits 8-11 of the render buffer's anim int32**
+  (`SwarmRenderPack` in `Mass/SwarmFragments.h`), derived from `FSwarmJitterFragment::Phase`
+  rather than stored — chosen over a fragment field + a parallel `TArray<float>` because both
+  of those are class-layout changes and would force a closed-editor rebuild every time this
+  surface moved. Only the **amplitude** is a CVar, never baked into the buffer, so dragging
+  the dial retunes the whole horde on that frame with no respawn. Two standing hazards:
+  every consumer must keep masking a single bit or casting `(uint8)` before `CellForBits`,
+  or it reads a size as an anim state; and the **Niagara sprite path ignores the roll**
+  entirely (it needs a per-particle size array and a graph edit), so this is debug-boxes +
+  Unit Cam only — invisible today because `Swarm.DebugRender` is 1, a trap the day it isn't
 - **Combat (HP/DPS/melee):** `Swarm.BroodMaxHP`, `Swarm.BroodDPS`, `Swarm.RetinueMaxHP`,
   `Swarm.RetinueDPS`, `Swarm.MeleeRange`, `Swarm.MaxAttackersPerUnit`, `Swarm.HeroMaxHP`,
   `Swarm.HeroDPS`, `Swarm.HeroMeleeRange` — defined in `SwarmCombatProcessors.cpp`
@@ -57,10 +80,24 @@ add one here only if the owner asks.)
   `SwarmCombatProcessors.cpp`. These are game-*feel* dials rather than balance dials:
   `SwingInterval` is the only one that touches throughput, and only by changing how
   damage is parcelled (see `docs/GATE1-FUN-PROTOTYPE.md` §3b). Added 2026-07-25
-- **Enemy spawn distance:** `Swarm.BroodSpawnRadiusMin`, `Swarm.BroodSpawnRadiusMax` —
-  defined in `SwarmCommands.cpp`
+- **Horde movement:** `Swarm.BroodSpeed`, `Swarm.BroodAggroRange`, `Swarm.BroodSeparation`,
+  `Swarm.BroodSeparationWeight`, `Swarm.BroodSeparationCap`, `Swarm.BroodWalkHz` — defined in
+  `Mass/SwarmProcessors.cpp`. Constexpr in `namespace SwarmTuning` until 2026-07-26, which
+  meant the only tunable thing about the brood was how hard it hit. `BroodAggroRange` is the
+  load-bearing one: it decides whether the tide is *stopped* by your line (a front forms) or
+  *flows past* it for the flame, which is the difference between Hold meaning something and
+  not. It is capped in practice by the 3x3 grid reach (~600uu at `GridCellSize` 200), so
+  larger values read the same — raising it past that needs a wider neighbour query, not a
+  bigger number. The retinue equivalents stay compile-time on purpose: your line is what the
+  *stances* are meant to move
+- **Horde arrival:** `Swarm.BroodSpawnRadiusMin`, `Swarm.BroodSpawnRadiusMax`,
+  `Swarm.BroodSpawnArc`, `Swarm.BroodSpawnArcCenter`, `Swarm.BroodSpeedJitter` — defined in
+  `Mass/SwarmCommands.cpp`. The arc pair (added 2026-07-26) is what lets a wave arrive as a
+  FRONT rather than a full encirclement; 360 (the old hard-coded behaviour) is the
+  surrounded case and was the only one the spike could stage
 - **Unit Cam (projection close-up, §4d):** `Emberkeep.UnitCamProj.Focus`,
   `Emberkeep.UnitCamProj.FollowSpeed`, `Emberkeep.UnitCamProj.SoldierScale`,
+  `Emberkeep.UnitCamProj.BroodScale`, `Emberkeep.UnitCamProj.FootAnchor`,
   `Emberkeep.UnitCamProj.BroodTint`, `Emberkeep.UnitCamProj.NearFade`,
   `Emberkeep.UnitCamProj.NearPlane`, `Emberkeep.UnitCamProj.Fov`, `Emberkeep.UnitCamProj.Dist`,
   `Emberkeep.UnitCamProj.Height`, `Emberkeep.UnitCamProj.Pitch`, `Emberkeep.UnitCamProj.Yaw`,
@@ -76,7 +113,14 @@ add one here only if the owner asks.)
   — split across two files since 2026-07-25: the **direction** dials (`Focus`, `FollowSpeed`,
   `Yaw`, `AutoLook`, `LookLerp`, `CombatScan`, `CastFocusSpeed`, `CastZoom`) live in
   `UI/UnitCamDirector.cpp` beside the camera manager they steer; the **lens/panel/hero-proxy**
-  dials stay in `UI/UnitCamProjector.cpp` (owner added to the surface 2026-07-24)
+  dials stay in `UI/UnitCamProjector.cpp` (owner added to the surface 2026-07-24).
+  **`FootAnchor` is a correctness dial, not a taste one** (added 2026-07-26): the point a body
+  projects to is its GROUND contact — the sim is 2D, every transform sits on the floor plane —
+  so the old centre-anchored sprite was drawn half-buried, and every size multiplier
+  (`SoldierScale`, `HeroScale`, `BroodScale`, `Swarm.BroodSizeJitter`) grew a unit downward
+  through the floor exactly as much as upward. That is what "scaling sinks them through the
+  floor" means. 1 plants the feet; 0 reproduces the old look for an A/B, and re-framing
+  `Pitch`/`Height` after moving it is expected, since 1 lifts every body half its height
 - **Game camera (the shot):** `Emberkeep.Cam.HudBias`, `Emberkeep.Cam.HudBiasLerp`,
   `Emberkeep.Cam.Ortho`, `Emberkeep.Cam.OrthoWidth`, `Emberkeep.Cam.Fov`, `Emberkeep.Cam.Dist`,
   `Emberkeep.Cam.Pitch`, `Emberkeep.Cam.Yaw`, `Emberkeep.Cam.YawInput`,
@@ -103,9 +147,10 @@ point of this file being the single source of truth.
 
 ## What to do when invoked
 
-1. **Read current defaults from source.** The CVar definitions live in six files —
+1. **Read current defaults from source.** The CVar definitions live in seven files —
    lighting/dither/unit-shading in `Rendering/SwarmRenderActor.cpp`, combat in
-   `Mass/SwarmCombatProcessors.cpp`, enemy spawn distance in `Mass/SwarmCommands.cpp`,
+   `Mass/SwarmCombatProcessors.cpp`, horde movement in `Mass/SwarmProcessors.cpp`,
+   horde arrival (spawn ring/arc/jitter) in `Mass/SwarmCommands.cpp`,
    Unit Cam lens/panel in `UI/UnitCamProjector.cpp`, Unit Cam direction in
    `UI/UnitCamDirector.cpp`, the HUD rectangle in `UI/EmberkeepHud.cpp`.
    Grep each for the CVar names in the canonical set; take the default value and first
@@ -230,7 +275,8 @@ Two facts, both verified 2026-07-23:
 |---|---|---|
 | `SwarmConsoleVariablesAsset` | everything (all tuning CVars) | anything / the full surface |
 | `CVP_Lighting` | flame + dither + unit shading | the spotlight look |
-| `CVP_Combat` | HP/DPS/melee + spawn distance | fight balance |
+| `CVP_Combat` | HP/DPS/melee + hit reaction | fight balance |
+| `CVP_Horde` | brood stat block + movement + arrival | how the tide behaves |
 | `CVP_UnitCam` | the 13 `Emberkeep.UnitCamProj.*` dials | the Unit Cam / camera work |
 
 The subset presets mirror the canonical groups above. To add a **scenario** preset (a
