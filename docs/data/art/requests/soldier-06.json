@@ -1,0 +1,100 @@
+{
+  "$schema": "../sprite-request.schema.json",
+  "id": "soldier-06",
+  "revision": 2,
+  "subject": {
+    "title": "Shield-heavy (soldier roster v1, the door)",
+    "kind": "retinue",
+    "faction": "none",
+    "class_tie": "Vanguard",
+    "spec": "../../../art/soldier-roster-v1.md"
+  },
+  "canon": {
+    "palette": "demichrome-4",
+    "value_dominance": "mixed",
+    "pale_usage": "none",
+    "silhouette": "wide and blocky - a rectangular plank door-shield taller and wider than the body it hides, held flat and frontal, carrying one broad iron band across its middle and an iron edge plate along its top rim, with only the top of the head and the eyes clearing that rim and two splayed feet below it",
+    "reads_as": "a banded door with a pair of eyes over the top of it",
+    "moving": true,
+    "light_shift_variant": false
+  },
+  "prompt": {
+    "description": "A shield bearer holding a door. A huge square plank shield, wider and taller than the person behind it, held flat and square to the front: bare timber planks, one broad iron band across the middle, and a flat iron plate along the top rim. The head sits low behind the shield so only the crown, brow and two dark eyes clear the rim. Two boots splay below the bottom edge.",
+    "must_include": [
+      "a huge square plank shield wider and taller than the figure behind it",
+      "the shield held flat and square to the front, all four edges straight and axis-aligned",
+      "two vertical seams dividing the shield into three timber planks",
+      "exactly one broad horizontal iron band, crossing the full width at the middle and unbroken at the seams",
+      "a broad flat iron plate along the top rim, reading as the slab's thickness seen from above",
+      "the head sunk behind the shield so only the crown, brow and eyes clear the top rim",
+      "two boots splayed below the shield and no other body part visible"
+    ],
+    "must_avoid": [
+      "a round, kite, oval or curved shield",
+      "tilting or rotating the shield out of square",
+      "more than one iron band on the shield face",
+      "narrow, repeated or evenly spaced horizontal stripes",
+      "the shield breaking up into separate boards, slats or a crate",
+      "a lattice, grid, crossbar or diagonal bracing",
+      "a boss, spike, emblem or device on the shield face",
+      "visible shoulders, arms or torso",
+      "spear, sword or any weapon",
+      "lamp, torch, candle or visible flame",
+      "glow, halo, sparks or rays around any pixel",
+      "bright or glowing eyes",
+      "near-white highlights or specular glints",
+      "cape or cloak",
+      "large solid black masses, heavy internal outlining or cast shadow"
+    ],
+    "style_mode": "flat"
+  },
+  "pixellab": {
+    "mode": "standard",
+    "size": 48,
+    "view": "high top-down",
+    "n_directions": 8,
+    "outline": "selective outline",
+    "detail": "low detail",
+    "shading": "flat shading",
+    "proportions": {
+      "type": "preset",
+      "name": "chibi"
+    },
+    "text_guidance_scale": 12,
+    "body_type": "humanoid",
+    "template": null
+  },
+  "anchor": {
+    "strategy": "authored",
+    "source_direction": "south",
+    "shared_anchor_id": null,
+    "approved": true
+  },
+  "animations": [],
+  "portrait": {
+    "enabled": false
+  },
+  "output": {
+    "cell": 48,
+    "grid": [
+      4,
+      2
+    ],
+    "frame_map": {
+      "0": "south.idle",
+      "1": "south-east.idle",
+      "2": "east.idle",
+      "3": "north-east.idle",
+      "4": "north.idle",
+      "5": "north-west.idle",
+      "6": "west.idle",
+      "7": "south-west.idle"
+    },
+    "texture": "T_Soldier_06",
+    "content_path": "/Game/Sprites/Units",
+    "sheet_srgb": true
+  },
+  "budget": {
+    "max_generations": 4
+  }
+}

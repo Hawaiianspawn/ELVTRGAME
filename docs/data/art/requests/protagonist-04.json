@@ -1,0 +1,89 @@
+{
+  "$schema": "../sprite-request.schema.json",
+
+  "id": "protagonist-04",
+  "revision": 2,
+
+  "subject": {
+    "title": "Protagonist prototype 04 - The Brazier",
+    "kind": "hero",
+    "faction": "none",
+    "class_tie": "none",
+    "brief": null,
+    "spec": "../../../art/protagonist-prototypes.md"
+  },
+
+  "canon": {
+    "palette": "demichrome-4",
+    "value_dominance": "mixed",
+    "pale_usage": "halo",
+    "silhouette": "a T - a wide horizontal ribbed bar of fire riding across the shoulders over a narrow waist and narrow legs",
+    "reads_as": "a narrow figure under a wide iron crossbar of fire - top-heavy, the light riding on the shoulders",
+    "moving": true,
+    "light_shift_variant": false
+  },
+
+  "prompt": {
+    "description": "A narrow figure under a wide flat-brimmed iron hat, carrying a broad iron brazier basket mounted on a back frame so that it rides across the shoulders and sticks out well past them on both sides. The basket is a long horizontal cage of thick vertical iron ribs with fire visible only in the gaps between the ribs, and its top edge is flat. Heavy wide upper mass over a narrow waist, narrow legs and small feet, so the whole shape is top-heavy. Both hands hang empty at the sides. Short belted cloth tunic, no armour plate.",
+    "must_include": [
+      "wide flat brim hat with a straight brim",
+      "broad horizontal brazier cage riding across the shoulders, wider than the body",
+      "thick vertical iron ribs across the fire, fire only visible between them",
+      "wide top over a narrow waist and narrow legs",
+      "both hands empty at the sides"
+    ],
+    "must_avoid": [
+      "cape or cloak",
+      "fire escaping past the cage ribs or rising in a plume",
+      "glow, halo, sparks or rays around any pixel",
+      "bright or glowing eyes",
+      "held lantern, torch, pole or banner",
+      "helmet, hood or bare head",
+      "armour plate or pauldrons",
+      "round or domed basket"
+    ],
+    "style_mode": "flat"
+  },
+
+  "pixellab": {
+    "mode": "standard",
+    "size": 48,
+    "view": "low top-down",
+    "n_directions": 8,
+    "outline": "selective outline",
+    "detail": "low detail",
+    "shading": "flat shading",
+    "proportions": { "type": "preset", "name": "chibi" },
+    "text_guidance_scale": 12,
+    "body_type": "humanoid",
+    "template": null
+  },
+
+  "anchor": {
+    "strategy": "text-only",
+    "source_direction": "south",
+    "shared_anchor_id": null,
+    "approved": false
+  },
+
+  "animations": [],
+
+  "portrait": {
+    "enabled": false
+  },
+
+  "output": {
+    "cell": 48,
+    "grid": [1, 1],
+    "frame_map": {
+      "0": "south.idle"
+    },
+    "texture": "T_Proto_Protagonist_04",
+    "content_path": "/Game/Sprites/Prototypes",
+    "sheet_srgb": true
+  },
+
+  "budget": {
+    "max_generations": 4
+  }
+}

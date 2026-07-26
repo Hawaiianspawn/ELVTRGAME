@@ -50,6 +50,9 @@ detach the army from the player.
 
 1. **Fun prototype verdict** — stances (with leash) feel good at 50–200 units;
    hero feels like a commander, not a camera. See stance/hero/replay tests.
+   **Built 2026-07-22 — playable, awaiting verdict:** `docs/GATE1-FUN-PROTOTYPE.md`
+   (all 4 stances + leash, 3-wave run, win/lose; zero-input baseline loses wave 3
+   by 4–13 brood across 3 runs).
 2. **Spike 1 measured** — fill `docs/SPIKE1-RESULTS.md`, including a
    **Steam-Deck-budget row** (game thread ≤ ~10 ms or power-limited profile).
    Output: the entity ceiling that sizes every encounter below.

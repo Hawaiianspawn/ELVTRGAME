@@ -109,6 +109,56 @@ of the units around them. Under the new narrative canon
 (`docs/narrative/FLAME-FOUNDATION.md`) the hero is the only light source in the world,
 so this is not a lighting flourish — it is the game's primary read.
 
+> **BUILT 2026-07-23 (debug-renderer approximation).** The intent below — units lit on
+> the flame-facing side, dark on the side turned to the dark — is now live in
+> `TickDebugRender`, and confirmed by eye (a stationary hero rings the retinue radially,
+> so front/back shows without needing motion). It is *not yet* the SubUV frame-bucket
+> mechanism specced below; that waits on the Niagara sprite path being fixed
+> (`GATE1-FUN-PROTOTYPE.md` §3a). The stop-gap: each unit is drawn as **two rotated
+> half-boxes** split along the direction to the flame — the near half bright, the far
+> half `Swarm.UnitBackShade`× dimmer — with brightness also falling off by distance and
+> floored at `Swarm.UnitLightFloor` so edge units stay readable silhouettes (this
+> incidentally fixes the gate-G5 vanishing noted in §4b.8). Point-light-correct: the
+> lit side is always the hemisphere toward the flame, so it is radial, not based on the
+> unit's travel facing. Toggle `Swarm.UnitShading`; `0` restores the flat single box.
+>
+> **Cost / caveats.** Doubles debug draws (~2 boxes/unit, so ~1640 at a 700-brood
+> wave) — a debug-renderer cost that evaporates when the real sprite path lands. Two
+> known softnesses, both acceptable for now: (1) near the flame the screen-space pool
+> lifts *both* halves toward Pale and the split washes out — fine, the hot core reads
+> as overexposed anyway; (2) the demichrome pass quantises each half to a single
+> palette value, so a unit shows *two* values, not a gradient — which is correct for
+> 2-bit and on-style. The values below are the tuning surface; the two-value-per-unit
+> look is a property of the palette, not a bug to smooth out.
+
+### 4a.1 The brood exposure window — enemies fade in (owner, 2026-07-26)
+The §4a shading above lit both teams through one curve: `Lerp(UnitLightFloor, 1, Atten)`.
+Two owner-reported problems, both artefacts of the shared curve rather than of the light:
+
+**Blown out at close.** With the top of the range at `1`, a brood standing in the pool draws
+at full albedo, and the flame's screen-space lift then pushes it over `Threshold3` into Pale
+— the *enemy* ends up at the brightest value in the frame, next to a hero whose whole premise
+is that he is the light. Brood now have a **ceiling** (`Swarm.BroodLightCeil`, 0.7). This is
+the world-side twin of the panel's `BroodCeil` (§4d finding 3) and enforces the same rule:
+brood sit a step below retinue at *every* distance, so a soldier beside a brood always reads
+as the lit one.
+
+**They arrive already visible.** `Swarm.UnitLightFloor` (0.28) is a promise about *your* line
+— gate G5 says your soldiers must stay a countable silhouette out at the leash. Applied to
+the tide as well, it pinned every distant brood at one flat mid-value, so a brood popped into
+being at the spawn ring as a fully-formed shape. Brood now have their own **floor**
+(`Swarm.BroodLightFloor`, **0**): at the outer edge of the pool a brood is drawn black, the
+demichrome pass quantises that to `Palette[0]` — the same value as the ground — and it is
+simply *not there* until the approach lifts it. The tide **fades into existence** out of the
+dark instead of crossing a visibility line. Retinue keep the shared floor untouched, so G5 is
+unaffected for the team it was written for.
+
+> **Deliberate asymmetry, not an oversight.** The silhouette-rescue rule (§2.5) now applies
+> to retinue only. That is the point: what you can and cannot see of the enemy is the
+> horror budget, and it is exactly what the flame is *for*. If a playtest says the tide is
+> unreadable rather than dreadful, `Swarm.BroodLightFloor` is the single dial back —
+> 0.10–0.15 restores a hint of shape at the edge without returning the flat grey crowd.
+
 ### Why the post pass alone cannot deliver it
 The Phase A/C post pass is screen-space: it knows pixel position and depth, nothing
 about **sprite facing**. It produces correct *distance* falloff — a pool of light
@@ -267,6 +317,30 @@ sprite path renders the whole army stacked on one point and is still unfixed —
 
 G1 is the only one that can kill the feature. G3–G4 are fixable; G1 is a design failure.
 
+> **G5 does not currently hold for the SPRITE renderer — measured 2026-07-25.**
+> `Swarm.UnitLightFloor` (0.28) is the silhouette-rescue mechanism, but it is applied by
+> multiplying the debug renderer's box colour in `TickDebugRender`. `M_Swarm` is
+> **Unlit + Masked and samples `T_Swarm_2bit` directly**, so on the sprite path there is
+> no floor at all: whatever value the texture holds is what draws, everywhere in the pool.
+>
+> This bites exactly the subject the art direction asks for. `npc-silhouette-brief.md`
+> (c) specifies an enemy whose "entire body is flat Demichrome Dark" — and Demichrome Dark
+> is also the world's ground state, so such a sprite is **invisible**, not merely dim.
+> Verified with the owner-supplied brood art (PixelLab `4a75b4ac…`, 94% Dark): against the
+> Dark floor only its Pale teeth read; the silhouette vanished completely.
+>
+> Worked around in the sheet rather than the shader, by **light-shifting the brood one
+> step up the `palette.json` ladder** (Dark→Steel) so the body is 92–93% Steel. That keeps
+> it strictly on-palette, keeps it value-disjoint from the Bone-dominant retinue, costs no
+> generations — and means **the shipped brood is not Dark-dominant**, which is a deliberate
+> deviation from (c) and wants an owner ruling. Its hit frame is shifted twice
+> (→91% Bone / 7% Pale) because a flat body cannot express pose: all nine frames of its
+> recoil animation are visually identical, so the hit has to be a value event.
+>
+> The real fixes, if the (c) mechanism is to be honoured literally: give `M_Swarm` its own
+> value floor (a max() against a minimum ramp step before output), or reserve the darkest
+> value for the world and never author a unit body at Dark. Neither is done.
+
 ### 4b.7 Build results — **BUILT 2026-07-23**
 
 Phase A is implemented and running on `L_Spike1`. Five things the build measured
@@ -311,27 +385,57 @@ on by default (`Swarm.DitherWorldAnchor 1`) — but neither has been judged by e
 motion, which is the whole point of G1. **A human has to drive it and say whether
 it reads as a carried fire.**
 
-#### 4b.9 Spring-arm lag — **owner call 2026-07-23**
+#### 4b.9 Spring-follow — **owner calls 2026-07-23**
 
-The flame is no longer pinned to the bearer. `TickFlame` eases a smoothed position
-toward the hero via `FMath::VInterpTo` — the exact lag `USpringArmComponent` uses — so
-the light trails and sloshes as the hero moves. `Swarm.FlameLagSpeed` (default 3.5)
-is the stiffness; lower is laggier, `<=0` snaps instantly. It snaps on the first tick
-so the pool doesn't streak in from the world origin.
+The flame is no longer pinned to the bearer. `TickFlame` pulls a smoothed position
+toward the hero and the light reads *that*, so it trails and sloshes as the hero moves.
 
-**Only the light lags.** Steering, targeting, and the leash all still read
+**First pass was `FMath::VInterpTo`** (the `USpringArmComponent` lag). It was replaced
+the same day: the owner wanted it *more responsive* and wanted it to **overshoot on a
+fast 180**, and VInterpTo is a critically-damped ease — it physically cannot overshoot
+at any speed. It has no momentum.
+
+**Now a real damped spring.** Semi-implicit Euler, `accel = k·(target−pos) − c·vel`,
+so the light carries velocity: reverse direction quickly and its momentum sails it past
+the hero before the spring reels it back. Two dials:
+
+- `Swarm.FlameStiffness` (default 55) — responsiveness. Higher = snappier, catches up
+  faster.
+- `Swarm.FlameDamping` (default 0.6) — damping *ratio*, as a fraction of critical, so
+  it is independent of stiffness (the coefficient `c = ratio · 2·√k` is derived).
+  **1.0 = critically damped, never overshoots** (the old VInterpTo feel is still one
+  CVar away); **below 1.0 overshoots** on a direction change, lower = bouncier and
+  longer to settle.
+
+`dt` is clamped to 1/30 s inside the integrator so a frame spike can't make the
+explicit spring blow up. Snaps on the first tick and resets velocity so the pool
+doesn't streak in from the world origin.
+
+**Validated numerically** (headless step response, light released 500uu from a
+stationary target):
+
+| Damping ratio | Overshoot past target | Reaches target | Settles |
+|---|---|---|---|
+| 1.0 (critical) | 0% | ~0.53s | ~1.0s |
+| **0.6 (default)** | **8%** | **~0.32s** | **~1.0s** |
+| 0.4 | 24% | ~0.25s | ~1.7s |
+| 0.6 @ stiffness 90 | 8% | ~0.25s | ~0.8s |
+
+So the defaults deliver both asks: reaches the hero faster than the old ease, and
+overshoots ~8% on a hard reversal. The integrator is confirmed stable at 60fps.
+
+**Only the light springs.** Steering, targeting, and the leash all still read
 `USwarmSubsystem::GetAttractor()` — the true hero position — so retinue behaviour is
-unchanged and exact. One deliberate consequence: the lit pool and the leash "home"
-now diverge while moving. Under the current values (900uu pool, 2000uu leash, already
-decoupled per §4b.8) this is invisible, but if the light/leash relationship is ever
-re-coupled (L10), the lag makes it a *soft* relationship, not a rigid one — the fire
-trailing behind the runner rather than clamped to them.
+unchanged and exact. Deliberate consequence: the lit pool and the leash "home" diverge
+while moving; under the current values (900uu pool, 2000uu leash, decoupled per §4b.8)
+that is invisible, but if the two are ever re-coupled (L10) the spring makes it a
+*soft* relationship — fire trailing the runner, not clamped to them.
 
-**Feel is unjudged.** Like G1, the lag can only be evaluated with a human driving
-WASD — a discrete key-injection can't reproduce continuous player movement, and a
-stationary hero converges the smoothed position onto itself (so a static capture shows
-a centred pool regardless of lag speed). The default 3.5 is a starting guess for
-"slowly follows"; expect to tune it by feel.
+**Feel is unjudged.** The physics is validated, but the *feel* — like G1 — can only be
+set with a human driving WASD; headless input can't reproduce continuous player
+movement, and a stationary hero converges the spring onto itself (a static capture
+shows a centred pool at any stiffness). Defaults 55 / 0.6 are a calibrated starting
+point; tune both live, no rebuild needed.
 
 #### 4b.8 The focusing core, and radius decoupled — **owner call 2026-07-23**
 
@@ -388,13 +492,28 @@ one to make silently.
 | `Swarm.FlameIntensity` | 0.55 | Coupled to the core: higher pushes the pool to Pale and the core stops reading (§4b.8) |
 | `Swarm.FlameFalloff` | 2.0 | Higher = heavier dark, more sudden pool edge |
 | `Swarm.FlameFlicker` | 0.06 | Anti-vignette mechanism 2 |
-| `Swarm.FlameLagSpeed` | 3.5 | Spring-arm lag: the flame eases toward the hero instead of pinning to them (§4b.9). Lower = laggier, <=0 snaps |
+| `Swarm.FlameStiffness` | 55 | Spring responsiveness — higher catches up faster (§4b.9). <=0 snaps |
+| `Swarm.FlameDamping` | 0.6 | Damping ratio: 1.0 = no overshoot, <1.0 overshoots on a 180 (§4b.9) |
 | `Swarm.DitherWorldAnchor` | 1 | Anti-vignette mechanism 1. 0 = screen-locked. This is the L5 A/B |
 | `Swarm.WorldDitherScale` | 12 | See finding 3 |
+| `Swarm.DitherBandWidth` | 0.326 | Width of the Bayer dither band at each palette step. Wider = softer/grainier steps, narrower = harder banding, 0 = pure posterise |
+| `Swarm.DitherThreshold1` | 0.40 | Luminance of the value 0→1 step. Keep 1 < 2 < 3 |
+| `Swarm.DitherThreshold2` | 0.50 | Luminance of the value 1→2 step (mid split) |
+| `Swarm.DitherThreshold3` | 0.75 | Luminance of the value 2→3 step. Raising it holds the pool at Bone so the white core reads (§4b.8) |
+| `Swarm.UnitShading` | 1 | Per-unit flame shading, front-lit/back-dark (§4a build note). 0 = flat single box |
+| `Swarm.UnitBackShade` | 0.32 | How dark the dark-facing half is (0 = black back, 1 = no split) |
+| `Swarm.UnitLightFloor` | 0.28 | Min brightness at the pool edge so units don't vanish (fixes G5). **Retinue only** since 2026-07-26 (§4a.1) |
+| `Swarm.BroodLightFloor` | 0 | Brood-only floor. 0 = brood are black at the pool edge and **fade into existence** on the approach (§4a.1) |
+| `Swarm.BroodLightCeil` | 0.7 | Brightest a brood is ever drawn — the anti blow-out dial. Holds brood below retinue at every distance (§4a.1) |
 
 Material-side (edit on `MPC_Flame`, no rebuild needed): `FlameCoreColor` — the core's
-colour, pure white by default. Demichrome thresholds live on `M_PP_Demichrome`
-(`Threshold1` 0.40 / `Threshold2` 0.50 / `Threshold3` 0.75, `DitherBandWidth` 0.326).
+colour, pure white by default. The Demichrome thresholds and dither band width
+(`Threshold1` 0.40 / `Threshold2` 0.50 / `Threshold3` 0.75, `DitherBandWidth` 0.326) used
+to be bake-time scalars on `M_PP_Demichrome`; they now route through `MPC_Flame` and are
+driven live by the `Swarm.DitherThreshold1/2/3` and `Swarm.DitherBandWidth` CVars above.
+`PixelScale` (screen-space dither pixelation) is still a bare material scalar — not
+exposed. The material reads all four via `CollectionParameter` nodes into the demichrome
+Custom node.
 
 #### Two engine gotchas worth remembering
 
@@ -443,6 +562,133 @@ the light moves constantly and every falloff edge in the game is in motion.
 reserved for UI. This means unit "shading" is largely authored into the sheet
 (§4a) rather than computed — which is the cheaper path *and* the one that keeps
 craft control. **Decide in Phase A by eye; this is L5 below.**
+
+## 4d. The Unit Cam, without a second render — projection prototype (2026-07-23)
+
+**Status: BUILT (needs a rebuild to load — new UCLASSes).** Source:
+`ELVTR/Source/ELVTR/UI/UnitCamProjector.{h,cpp}`.
+
+### The problem this sidesteps
+The Unit Cam close-up was built as a real second camera (`AUnitPortraitStage` →
+`SceneCaptureComponent2D`). The capture investigation (`docs/UNIT-CAM-HANDOFF.md`) hit
+three walls, two of them architectural: SceneCaptures **cannot see `DrawDebug`
+primitives** (so the default debug-box swarm is invisible to it), and the capture films
+`SCS_FinalColorLDR` — the demichrome pass — so a close-up **collapses to one flat value**.
+The 2-bit look that is right for the main view is wrong for a close-up capture.
+
+### The mechanism (Doom-sprite forced perspective)
+The world here is near-black empty space, a flat floor, a light pool, and billboards —
+almost nothing a second viewpoint reveals through parallax. So the "camera" is a **pure
+math construct, not a render**: define a virtual camera (position, orientation, FOV),
+project each in-frame unit through it, scale each by `1/depth`, sort far→near, and blit
+them as billboards into a Slate panel. Every input already exists on the CPU each tick —
+`USwarmSubsystem::GetRenderPositions()` / `GetRenderAnimBits()` / `GetAttractor()` — the
+same buffers the Niagara bridge reads.
+
+Consequences, stated plainly:
+- **Independent of the sprite/Niagara path.** It reads sim positions, not rendered
+  primitives, so it works in the default `Swarm.DebugRender 1` (debug-box) mode — wall #1
+  does not apply.
+- **No demichrome capture to flatten** — shading is applied per-billboard here, reusing
+  the same flame-distance falloff as `Swarm.UnitShading`, so the panel matches the world
+  without the post pass collapsing it (wall #3 does not apply).
+- **Cost scales with units-in-frame, not total swarm**, and there is no second scene
+  render. This is the claim the performance-director should put a number on before it goes
+  past prototype (capture on/off vs. projection, via `-SwarmBench`).
+
+### Prototype scope / not-yet
+**Soldiers (retinue) now draw a real sprite** — the `vanguard` grayscale render, runtime-
+loaded from `RawArt/Renders/hero-rev1-grayscale/vanguard/south.png` via
+`FImageUtils::ImportFileAsTexture2D` (prototype path; a proper Content import replaces it
+later), bottom-anchored on the ground point at texture aspect, tinted only by flame
+distance. Because the panel is UMG (drawn *after* post-processing), the sprite shows crisp
+— it does **not** get demichrome-flattened the way the old capture did (handoff wall #3).
+Brood still draw as flat dark-red quads. Still not-yet: **one facing only** (south) — the
+per-direction facing bucket (§4a: bucket the unit's facing against the **virtual** camera's
+forward, using the 8 `vanguard` directions) is the next layer. Painter's-order overlap is
+not true occlusion; fine for a handful of units.
+
+### Relationship to the capture path
+It is now the **default Unit Cam**: `UEmberkeepHud::RebuildBand` hosts a
+`UUnitCamProjector` in the band's right bookend (where the capture feed's "UNIT CAM"
+used to sit), so it shows on Play with the auto-HUD (`Emberkeep.UI.AutoShow 1`) — no
+console command. It is embedded in the HUD band, so it cannot be occluded by the HUD the
+way a separately-viewport-added panel was. The old `AUnitPortraitStage` unit SceneCapture
+is **retired** (`ShowCombatHud` no longer spawns it) — that per-frame full-scene render is
+gone; the HUD's "cams mode" signal moved to the hero render target. The hero cam still uses
+a capture (separate feature, left as-is).
+
+### Panel shading — the close-up needs its own light model (2026-07-25)
+
+Reusing `Swarm.UnitShading`'s distance falloff verbatim was not enough: brood read as a
+**flat grey crowd**, indistinguishable near or far. Three separate causes, each fixed:
+
+**1. No directional term.** The world renderer sells its light by splitting a unit into a
+flame-lit half and a `Swarm.UnitBackShade` half. A billboard cannot be split, so the panel
+had *only* distance — and distance alone is nearly constant across a close-up, where every
+unit in frame is at a similar radius from the bearer. The fix resolves the same geometry
+against the **virtual camera** instead: `dot(unit→flame, unit→lens)` in the ground plane is
+how much of the lit hemisphere the lens can actually see. `+1` = the flame is behind the
+lens and we see the lit face; `−1` = the flame is behind the unit and it is a backlit
+silhouette. Because the camera sits behind the bearer looking out, brood advancing on him
+resolve toward `+1` and **brighten as they arrive** — the "walking into the light" read
+falls out of the geometry rather than being authored per-unit. Shares `Swarm.UnitBackShade`
+with the world so the two cannot drift.
+
+**2. The shared light floor was pinning brood at grey.** `Swarm.UnitLightFloor` (0.28)
+exists so units never vanish at gameplay zoom (gate G5), but in a close-up it clamps every
+distant brood to one flat mid-grey — they read as fog, not as something coming out of the
+dark. Brood now get their own far lower floor, so they start near-black at the pool edge
+and are *lifted by the approach*. Retinue keep the shared floor: they are yours and must
+stay legible out at the leash.
+
+**3. A Slate tint can only darken.** The instinct — overdrive the tint past 1 so the light
+*lifts* the value the way §4b.7 finding 1 requires — **does not work here.** Slate packs the
+tint to an 8-bit vertex colour (`FSlateElementBatcher::PackVertexColor` → `ToFColor`), which
+clamps: the sprite as authored is a hard ceiling. Since the atlas draws both teams as
+mid-grey figures, the lever that *does* work is the opposite one — hold the brood **ceiling
+down** so they stay below the retinue in value at every distance, and a soldier beside a
+brood always reads as the lit one. This is the world's brood rule (`SwarmRenderActor.cpp`:
+brood sit low in the value range, the flame lifts them only as they close) applied here.
+
+Finally the light is **banded into discrete tiers** (`LightSteps`). The panel is UMG, drawn
+*after* the demichrome pass, so nothing downstream posterises it and a continuous multiplier
+smears the 2-bit art through every intermediate grey. Note this steps the **light, not the
+pixels** — snapping the sprite itself to palette entries is precisely what collapsed the old
+SceneCapture close-up to one flat value (`docs/UNIT-CAM-HANDOFF.md` wall #3), so each body
+keeps its internal values and only its lighting tier is quantised.
+
+| CVar | Default | Note |
+|---|---|---|
+| `Emberkeep.UnitCamProj.DirShade` | 1 | Shade by which side the lens sees. 0 = distance only (the old flat look) |
+| `Emberkeep.UnitCamProj.BroodFloor` | 0.05 | Brood-only light floor, replacing `Swarm.UnitLightFloor` in this panel. Lower = brood emerge from deeper dark |
+| `Emberkeep.UnitCamProj.BroodCeil` | 0.7 | Brightest a brood is ever drawn. Clamped to ≥ `BroodFloor`. 1 = brood may reach full sprite brightness |
+| `Emberkeep.UnitCamProj.LightSteps` | 5 | Discrete lighting tiers. 0/1 = continuous (smooth, off-style); 4–6 reads as 2-bit |
+
+Reused from the world so the panel and the main view stay locked together:
+`Swarm.FlameRadius`, `Swarm.FlameFalloff`, `Swarm.UnitBackShade`, `Swarm.UnitLightFloor`.
+
+### Camera manager (seed) + near-plane fade
+`FUnitCamDirector` resolves what the camera centres on each frame — the seed of the
+flexible manager. `Emberkeep.UnitCamProj.Focus`: `0` = the hero (overview), `1` = **follow
+a soldier** (default). Follow uses *nearest-unit continuity* — each frame it locks the
+nearest retinue unit to last frame's focus, which stays the same unit as it moves, so the
+camera rides along with no per-frame entity handle and survives the render buffers being
+rebuilt. Smoothed by `FollowSpeed` (VInterpTo). Camera focus and the flame/shading origin
+are split: the cam follows a unit, but lighting still radiates from the bearer.
+
+Units entering near the fake camera's near plane **fade in** rather than pop
+(`NearFade`, uu band above the near plane). The open design fork is the *selection model*:
+how the followed unit is chosen (auto-nearest today, vs click-select / cycle / auto-pick
+most-wounded/threatened) — that's the next layer on top of the director.
+
+### Try it
+Just press Play — the bottom-right "UNIT CAM" bookend follows a soldier. Dials (live, no
+rebuild): `Emberkeep.UnitCamProj.Focus / FollowSpeed / SoldierScale / NearFade / Fov / Dist
+/ Height / Yaw / Range / Scale`, plus the shading set `DirShade / BroodFloor / BroodCeil /
+LightSteps`. `SoldierScale` is the soldier framing-size dial; `Focus 0`
+drops back to the hero overview. The standalone `Emberkeep.UI.UnitCamProj` toggle still
+exists for isolated testing (it lands top-left, outside the HUD).
 
 ## 5. Open decisions
 

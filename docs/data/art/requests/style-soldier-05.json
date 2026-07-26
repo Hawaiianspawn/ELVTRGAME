@@ -1,0 +1,92 @@
+{
+  "$schema": "../sprite-request.schema.json",
+  "id": "style-soldier-05",
+  "revision": 1,
+  "subject": {
+    "title": "Style test 05 - detailed shading / high detail",
+    "kind": "retinue",
+    "faction": "none",
+    "class_tie": "Vanguard",
+    "brief": "../../../art/npc-silhouette-brief.md",
+    "spec": "../../../art/retinue-militia.md"
+  },
+  "canon": {
+    "palette": "demichrome-4",
+    "value_dominance": "bone",
+    "pale_usage": "none",
+    "silhouette": "ragged and irregular - mismatched scavenged gear breaks the outline: one bulky pauldron against one thin bandaged arm, a head capped on one side only, a torso split cloth-against-plate, mismatched legs, and an off-vertical improvised club leaving the body outline",
+    "reads_as": "a patched, uneven person pressed into a rank - motley, never uniform",
+    "moving": true,
+    "light_shift_variant": false
+  },
+  "prompt": {
+    "description": "A ragged militia footman in mismatched scavenged gear, stocky and small-limbed with an oversized head. A battered metal skullcap sits low over one side of the head; the other side is bare scalp and an open face. One shoulder carries a bulky salvaged pauldron and armoured sleeve; the opposite arm is thin, bare and wrapped in bandages. The chest is half patched cloth jerkin, half a single scavenged breastplate. One leg is booted, the other bare and wrapped. Held low and angled away from the body, an improvised wooden club with an iron-bound head. Nothing matches.",
+    "must_include": [
+      "uneven shoulder line - one bulky pauldron sitting higher, one thin bandaged arm sitting lower",
+      "skullcap covering only one side of the head, bare scalp and open face on the other",
+      "torso split down the middle, patched cloth on one side and a single scavenged plate on the other",
+      "one booted leg and one bare wrapped leg",
+      "improvised club held at an off-vertical angle, its far end clear of the body outline",
+      "two dark eye recesses in an open face"
+    ],
+    "must_avoid": [
+      "matched or uniform armour",
+      "closed helmet, visor, faceplate, crest or plume",
+      "symmetrical shoulders or a flat level shoulder line",
+      "banner, flag, pennant or standard",
+      "rectangular, round or kite shield",
+      "spear, polearm or any weapon held vertically",
+      "lamp, torch, candle or visible flame",
+      "glow, halo, sparks or rays around any pixel",
+      "bright or glowing eyes",
+      "white or near-white highlights, specular glints",
+      "cape or cloak"
+    ],
+    "style_mode": "depth"
+  },
+  "pixellab": {
+    "mode": "standard",
+    "size": 48,
+    "view": "high top-down",
+    "n_directions": 4,
+    "outline": "single color black outline",
+    "detail": "high detail",
+    "shading": "detailed shading",
+    "proportions": {
+      "type": "preset",
+      "name": "chibi"
+    },
+    "text_guidance_scale": 12,
+    "body_type": "humanoid",
+    "template": null
+  },
+  "anchor": {
+    "strategy": "text-only",
+    "source_direction": "south",
+    "shared_anchor_id": null,
+    "approved": false
+  },
+  "animations": [],
+  "portrait": {
+    "enabled": false
+  },
+  "output": {
+    "cell": 48,
+    "grid": [
+      4,
+      1
+    ],
+    "frame_map": {
+      "0": "south.idle",
+      "1": "west.idle",
+      "2": "north.idle",
+      "3": "east.idle"
+    },
+    "texture": "T_Test_Soldier_05",
+    "content_path": "/Game/Sprites/Tests",
+    "sheet_srgb": true
+  },
+  "budget": {
+    "max_generations": 2
+  }
+}

@@ -1,0 +1,94 @@
+{
+  "$schema": "../sprite-request.schema.json",
+  "id": "soldier-05",
+  "revision": 1,
+  "subject": {
+    "title": "Flame-tender (soldier roster v1, the caged bright)",
+    "kind": "retinue",
+    "faction": "none",
+    "class_tie": "none",
+    "spec": "../../../art/soldier-roster-v1.md"
+  },
+  "canon": {
+    "palette": "demichrome-4",
+    "value_dominance": "steel",
+    "pale_usage": "halo",
+    "silhouette": "squat and shrouded - a peaked metal hood with a deep dark face cavity, a fuel bundle breaking the outline low on one side, and a hard-rimmed iron firepot held level at chest height with a bright core boxed inside it on all four sides",
+    "reads_as": "the only bright thing on the field that is not the bearer, and it is carried in an iron pot",
+    "moving": true,
+    "light_shift_variant": false
+  },
+  "prompt": {
+    "description": "A flame-tender who keeps the fire fed. A peaked metal hood with a pointed cap and a deep shadowed face cavity, only a small patch of face visible inside it, eyes as dark recesses. A heavy metal apron and thick gauntlets. Held level at chest height in both hands, a squat iron firepot with a hard rim on every side; inside it a small bright core of burning fuel, boxed in by the rim on all four sides and never spilling past it. A bundle of fuel staves slung low on one side breaks the outline. Squat and wide-footed.",
+    "must_include": [
+      "a peaked metal hood with a pointed cap and a deep shadowed face cavity",
+      "a squat iron firepot held level at chest height in both hands",
+      "a hard rim enclosing the firepot on all four sides",
+      "a small bright burning core inside the pot, fully boxed in by the rim, at chest height and never above the head",
+      "a bundle of fuel staves slung low on one side, breaking the body outline",
+      "eyes as dark recesses inside the hood"
+    ],
+    "must_avoid": [
+      "a lamp, lantern, torch or candle, and anything held up or held high",
+      "any glow, halo, rays, sparks or embers outside the pot",
+      "a free-floating light, wisp or flame detached from the body",
+      "bright pixels anywhere except inside the firepot",
+      "bright or glowing eyes",
+      "helmet, brim, visor, crest or plume",
+      "banner, flag, pennant or standard",
+      "shield, spear, sword or any weapon",
+      "cape or cloak",
+      "large solid black body mass, heavy internal outlining, deep recesses, cast shadow"
+    ],
+    "style_mode": "flat"
+  },
+  "pixellab": {
+    "mode": "standard",
+    "size": 48,
+    "view": "high top-down",
+    "n_directions": 8,
+    "outline": "selective outline",
+    "detail": "low detail",
+    "shading": "flat shading",
+    "proportions": {
+      "type": "preset",
+      "name": "chibi"
+    },
+    "text_guidance_scale": 12,
+    "body_type": "humanoid",
+    "template": null
+  },
+  "anchor": {
+    "strategy": "authored",
+    "source_direction": "south",
+    "shared_anchor_id": null,
+    "approved": true
+  },
+  "animations": [],
+  "portrait": {
+    "enabled": false
+  },
+  "output": {
+    "cell": 48,
+    "grid": [
+      4,
+      2
+    ],
+    "frame_map": {
+      "0": "south.idle",
+      "1": "south-east.idle",
+      "2": "east.idle",
+      "3": "north-east.idle",
+      "4": "north.idle",
+      "5": "north-west.idle",
+      "6": "west.idle",
+      "7": "south-west.idle"
+    },
+    "texture": "T_Soldier_05",
+    "content_path": "/Game/Sprites/Units",
+    "sheet_srgb": true
+  },
+  "budget": {
+    "max_generations": 4
+  }
+}

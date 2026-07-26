@@ -1,0 +1,122 @@
+{
+  "$schema": "../sprite-request.schema.json",
+
+  "id": "hero-vanguard",
+  "revision": 3,
+
+  "subject": {
+    "title": "Vanguard (hero)",
+    "kind": "hero",
+    "faction": "none",
+    "class_tie": "Vanguard",
+    "brief": null,
+    "spec": "../../../art/vanguard.md"
+  },
+
+  "canon": {
+    "palette": "demichrome-4",
+    "value_dominance": "steel",
+    "pale_usage": "banner",
+    "silhouette": "lines and geometry - a flat-topped rectangle stack: horizontal shoulder line, axis-aligned rectangular tower shield, dead-vertical 2px banner pole",
+    "reads_as": "a walking rectangle under a pale flag - the one straight-edged figure in the crowd",
+    "moving": true,
+    "light_shift_variant": false
+  },
+
+  "prompt": {
+    "description": "A stocky armored standard-bearer in heavy plate. Oversized head in an open-faced helm with no visor and no crest, broad blunt face, squared pauldrons forming a flat horizontal shoulder line, short thick legs. One arm holds a large rectangular tower shield with a flat top edge and a single straight band across its middle; the other grips a straight vertical banner pole at the hip, topped by a small rectangular flag of plain undecorated cloth. A short sword stays sheathed at the hip. Boxy build, hard straight edges, everything squared off.",
+    "must_include": [
+      "flat horizontal shoulder line, unbroken by collar or cloth",
+      "rectangular tower shield with a flat top edge and four straight sides",
+      "dead-vertical thin banner pole running down to a hand at hip height",
+      "small rectangular flag with four straight edges, clear of the head",
+      "open face visible under the helm, no visor"
+    ],
+    "must_avoid": [
+      "cape or cloak",
+      "swallowtail, forked, torn or curving flag edges",
+      "any device, emblem or writing on the flag",
+      "helm crest, plume, wings or horns",
+      "lamp, torch, candle or visible flame",
+      "glow, halo, sparks or rays around any pixel",
+      "bright or glowing eyes",
+      "round, kite-shaped or bossed shield",
+      "raised, swinging or oversized weapon",
+      "tassels, fringe, ragged cloth or straps hanging off the silhouette",
+      "diagonal pole or spear-like angle"
+    ]
+  },
+
+  "pixellab": {
+    "mode": "standard",
+    "size": 48,
+    "view": "low top-down",
+    "n_directions": 8,
+    "outline": "selective outline",
+    "detail": "low detail",
+    "shading": "flat shading",
+    "proportions": { "type": "preset", "name": "chibi" },
+    "text_guidance_scale": 12,
+    "body_type": "humanoid",
+    "template": null
+  },
+
+  "anchor": {
+    "strategy": "authored",
+    "source_direction": "south",
+    "shared_anchor_id": null,
+    "approved": false
+  },
+
+  "animations": [
+    {
+      "name": "walk",
+      "mode": "template",
+      "template_animation_id": "walking-4-frames",
+      "directions": [
+        "south",
+        "south-west",
+        "west",
+        "north-west",
+        "north",
+        "north-east",
+        "east",
+        "south-east"
+      ]
+    }
+  ],
+
+  "portrait": {
+    "enabled": false
+  },
+
+  "output": {
+    "cell": 48,
+    "grid": [4, 4],
+    "frame_map": {
+      "0": "south.idle",
+      "1": "south.walk1",
+      "2": "south-west.idle",
+      "3": "south-west.walk1",
+      "4": "west.idle",
+      "5": "west.walk1",
+      "6": "north-west.idle",
+      "7": "north-west.walk1",
+      "8": "north.idle",
+      "9": "north.walk1",
+      "10": "north-east.idle",
+      "11": "north-east.walk1",
+      "12": "east.idle",
+      "13": "east.walk1",
+      "14": "south-east.idle",
+      "15": "south-east.walk1"
+    },
+    "texture": "T_Hero_Vanguard",
+    "content_path": "/Game/Sprites/Heroes",
+    "sheet_srgb": true
+  },
+
+  "budget": {
+    "max_generations": 20
+  }
+}

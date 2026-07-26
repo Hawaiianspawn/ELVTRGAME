@@ -1,0 +1,157 @@
+<title>Emberkeep — Dynamic render areas (individual ↔ mass)</title>
+<style>
+  :root{
+    --dark:#211e20; --steel:#555568; --bone:#a0a08b; --pale:#e9efec;
+    --flame:#fff8ec; --warn:#b23a2c;
+    --mono: ui-monospace,"Cascadia Mono","SF Mono","JetBrains Mono",Consolas,monospace;
+    --ucamH: 220px;
+  }
+  *{box-sizing:border-box;}
+  body{margin:0;}
+  .app{
+    min-height:100vh; background:var(--dark); color:var(--pale);
+    font-family:var(--mono); -webkit-font-smoothing:antialiased;
+    display:flex; flex-direction:column; padding:clamp(12px,2vw,26px); gap:14px;
+  }
+
+  .top{ display:flex; align-items:center; gap:clamp(12px,2vw,28px); flex-wrap:wrap; }
+  .top .lede{ max-width:40ch; }
+  .top .eyebrow{ font-size:10px; letter-spacing:.3em; text-transform:uppercase; color:var(--bone); }
+  .top h1{ font-size:clamp(15px,2vw,20px); margin:.3em 0 0; letter-spacing:.03em; }
+
+  .ctrl{ display:flex; align-items:center; gap:12px; margin-left:auto; }
+  .ctrl label{ font-size:10px; letter-spacing:.16em; text-transform:uppercase; color:var(--bone); }
+  input[type=range]{ width:clamp(150px,22vw,280px); accent-color:var(--pale); }
+  .readout{ min-width:150px; text-align:right; }
+  .readout .n{ font-size:22px; font-weight:700; font-variant-numeric:tabular-nums; letter-spacing:.02em; }
+  .readout .mode{ font-size:10px; letter-spacing:.14em; text-transform:uppercase; color:var(--bone); }
+
+  /* the individual↔mass axis meter */
+  .axis{ display:flex; align-items:center; gap:8px; font-size:9px; letter-spacing:.14em; text-transform:uppercase; color:var(--bone); }
+  .axis .track{ position:relative; width:clamp(120px,16vw,200px); height:4px; background:var(--steel); }
+  .axis .track i{ position:absolute; top:-3px; width:10px; height:10px; background:var(--pale); transform:translateX(-50%); }
+
+  /* the two render areas */
+  .stage{ flex:1; display:flex; flex-direction:column; gap:10px; min-height:0; }
+  .mainwin{ position:relative; flex:1; border:1px solid var(--steel); overflow:hidden; min-height:180px; }
+  .mainwin canvas{ display:block; width:100%; height:100%; }
+  .mainwin .tag{ position:absolute; top:8px; left:10px; font-size:9px; letter-spacing:.2em; text-transform:uppercase; color:var(--bone); }
+  .mainwin .tag.r{ left:auto; right:10px; color:var(--pale); }
+
+  .unitcam{
+    height:var(--ucamH); border:2px solid var(--steel); position:relative; overflow:hidden;
+    background:radial-gradient(60% 90% at 50% 60%, rgba(160,160,139,.14), rgba(33,30,32,0) 75%), var(--dark);
+    display:flex; align-items:center; justify-content:center; gap:6%;
+    transition:height .45s cubic-bezier(.4,0,.2,1);
+    align-self:center; width:min(560px,100%);
+  }
+  .unitcam .tag{ position:absolute; top:6px; left:9px; font-size:9px; letter-spacing:.2em; text-transform:uppercase; color:var(--bone); }
+  .indiv{ height:44%; aspect-ratio:.55/1; background:linear-gradient(90deg,var(--pale) 52%,var(--steel) 52%);
+    box-shadow:0 0 18px 6px rgba(255,248,236,.12); }
+
+  .explain{ font-size:11px; line-height:1.65; color:var(--bone); max-width:96ch; }
+  .explain b{ color:var(--pale); }
+
+  @media (prefers-reduced-motion:reduce){ .unitcam{ transition:none; } }
+</style>
+
+<div class="app">
+  <div class="top">
+    <div class="lede">
+      <div class="eyebrow">Emberkeep · HUD · drawing board</div>
+      <h1>The two render areas breathe with the army</h1>
+    </div>
+    <div class="ctrl">
+      <div class="axis">
+        individual
+        <div class="track"><i id="pin"></i></div>
+        mass
+      </div>
+      <label for="army">Army</label>
+      <input id="army" type="range" min="0" max="100" value="28">
+      <div class="readout"><div class="n" id="armyN">240</div><div class="mode" id="mode">the company</div></div>
+    </div>
+  </div>
+
+  <div class="stage">
+    <div class="mainwin">
+      <span class="tag">Main window · the host ringed on the flame</span>
+      <span class="tag r" id="ringTag">6 rings</span>
+      <canvas id="pool"></canvas>
+    </div>
+    <div class="unitcam">
+      <span class="tag">Unit Cam · the individual</span>
+      <div class="indiv"></div><div class="indiv"></div><div class="indiv"></div>
+    </div>
+  </div>
+
+  <div class="explain">
+    <b>The composition IS the main window</b> — your soldiers ring the flame exactly as they do in-game, so strength is read at a glance from the rings, not a separate roster.
+    As the army grows the main window <b>fills and the rings pack denser</b> — each soldier becomes a pixel — while the Unit Cam <b>shrinks</b>: the bigger the host, the less any one of them matters. A small band <b>inverts it</b>: the Unit Cam swells and you fight alongside individuals. Drag <b>Army</b> to feel the trade.
+  </div>
+</div>
+
+<script>
+  const cv = document.getElementById("pool"), ctx = cv.getContext("2d");
+  const slider = document.getElementById("army");
+  const armyN = document.getElementById("armyN"), modeEl = document.getElementById("mode");
+  const pin = document.getElementById("pin"), ringTag = document.getElementById("ringTag");
+
+  // slider 0..100 -> army 12..2400, exponential so the low end has resolution
+  const sliderToArmy = v => Math.round(12 * Math.pow(2400/12, v/100));
+
+  function draw(army){
+    const dpr = Math.min(2, window.devicePixelRatio||1);
+    const w = cv.clientWidth, h = cv.clientHeight;
+    cv.width = w*dpr; cv.height = h*dpr; ctx.setTransform(dpr,0,0,dpr,0,0);
+    ctx.fillStyle = "#211e20"; ctx.fillRect(0,0,w,h);
+    const cx = w/2, cy = h*0.52, R = Math.min(w,h)*0.5;
+
+    const g = ctx.createRadialGradient(cx,cy,0,cx,cy,R);
+    g.addColorStop(0,"rgba(255,248,236,.95)"); g.addColorStop(.07,"rgba(255,248,236,.6)");
+    g.addColorStop(.3,"rgba(160,160,139,.26)"); g.addColorStop(.6,"rgba(85,85,104,.07)");
+    g.addColorStop(1,"rgba(33,30,32,0)");
+    ctx.fillStyle = g; ctx.beginPath(); ctx.arc(cx,cy,R,0,7); ctx.fill();
+    ctx.fillStyle = "#fff8ec"; ctx.beginPath(); ctx.arc(cx,cy,R*0.045,0,7); ctx.fill();
+
+    // ring spacing shrinks as the army grows, so a big host stays inside the pool (dots pack denser)
+    const spacing = Math.max(6, R / (Math.sqrt(army)/2.4 + 3.6));
+    const sz = Math.max(1.8, spacing*0.3);
+    let placed = 0, ring = 1;
+    while (placed < army && ring*spacing < R*1.12){
+      const slots = ring*8, rad = ring*spacing;
+      for (let s=0; s<slots && placed<army; s++){
+        const a = (s/slots)*Math.PI*2 + ring*0.17;
+        const jr = rad + Math.sin(s*3.1+ring)*spacing*0.12;
+        const x = cx+Math.cos(a)*jr, y = cy+Math.sin(a)*jr;
+        ctx.fillStyle = (rad > R*0.94) ? "rgba(178,58,44,.9)" : "#e9efec";
+        ctx.fillRect(x-sz/2, y-sz/2, sz, sz);
+        placed++;
+      }
+      ring++;
+    }
+    return ring-1;
+  }
+
+  function update(){
+    const army = sliderToArmy(+slider.value);
+    armyN.textContent = army;
+    const rings = draw(army);
+    ringTag.textContent = rings + (rings===1?" ring":" rings");
+
+    // the two areas trade size: unit cam 240px (few) -> 60px (many)
+    const t = +slider.value/100;
+    const ucamH = Math.round(240 - t*180);
+    document.documentElement.style.setProperty("--ucamH", ucamH+"px");
+    pin.style.left = (t*100) + "%";
+
+    modeEl.textContent = army < 60 ? "every soldier counts"
+                       : army < 260 ? "the company"
+                       : army < 900 ? "the horde"
+                       : "the mass — a soldier is a pixel";
+  }
+
+  slider.addEventListener("input", update);
+  window.addEventListener("resize", update);
+  update();
+</script>

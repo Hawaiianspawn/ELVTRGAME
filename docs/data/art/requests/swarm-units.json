@@ -1,0 +1,93 @@
+{
+ "$schema": "../sprite-request.schema.json",
+ "id": "swarm-units",
+ "revision": 2,
+ "subject": {
+  "title": "Swarm unit atlas (retinue + brood), 8-direction - composite, generates nothing",
+  "kind": "retinue",
+  "faction": "none",
+  "class_tie": "none",
+  "brief": "../../../art/npc-silhouette-brief.md",
+  "spec": "../../../art/npc-silhouette-brief.md"
+ },
+ "composite": {
+  "sources": [
+   {
+    "prefix": "brood",
+    "frames": {
+     "south.walk0": "RawArt/Renders/brood-ooze/derived/south.walk0.png",
+     "south.walk1": "RawArt/Renders/brood-ooze/derived/south.walk1.png"
+    },
+    "quantize": true,
+    "note": "PLACEHOLDER until the enemy has canon. Owner-supplied art: PixelLab character 4a75b4ac-7732-499a-84f4-d3a06937a6c2 'Black ooze with teeth'. LIGHT-SHIFTED derivations, not the raw frames -- the raw body is 94% Demichrome Dark, invisible against the Dark floor in the sprite path (M_Swarm is Unlit+Masked and samples the texture directly, so it has no equivalent of the debug renderer's Swarm.UnitLightFloor). Shifted once (Dark->Steel). r2: the brood has NO rotations, so it stays direction-agnostic -- all 8 direction columns reference this same south pair, and the decode in SwarmSheet still indexes it by direction so the brood upgrades to real facings later without a layout change. attack/hit frames dropped at r2 with the rest of the anim axis."
+   },
+   {
+    "prefix": "retinue",
+    "frames": {
+     "south.walk0": "RawArt/Renders/unit-knight/raw/animations/walk/south/frame_000.png",
+     "south.walk1": "RawArt/Renders/unit-knight/raw/animations/walk/south/frame_002.png",
+     "south-east.walk0": "RawArt/Renders/unit-knight/raw/rotations/south-east.png",
+     "south-east.walk1": "RawArt/Renders/unit-knight/raw/rotations/south-east.png",
+     "east.walk0": "RawArt/Renders/unit-knight/raw/rotations/east.png",
+     "east.walk1": "RawArt/Renders/unit-knight/raw/rotations/east.png",
+     "north-east.walk0": "RawArt/Renders/unit-knight/raw/rotations/north-east.png",
+     "north-east.walk1": "RawArt/Renders/unit-knight/raw/rotations/north-east.png",
+     "north.walk0": "RawArt/Renders/unit-knight/raw/rotations/north.png",
+     "north.walk1": "RawArt/Renders/unit-knight/raw/rotations/north.png",
+     "north-west.walk0": "RawArt/Renders/unit-knight/raw/rotations/north-west.png",
+     "north-west.walk1": "RawArt/Renders/unit-knight/raw/rotations/north-west.png",
+     "west.walk0": "RawArt/Renders/unit-knight/raw/rotations/west.png",
+     "west.walk1": "RawArt/Renders/unit-knight/raw/rotations/west.png",
+     "south-west.walk0": "RawArt/Renders/unit-knight/raw/rotations/south-west.png",
+     "south-west.walk1": "RawArt/Renders/unit-knight/raw/rotations/south-west.png"
+    },
+    "quantize": true,
+    "note": "OWNER-SUPPLIED, replaces the managed 'unit-retinue' militia 2026-07-25 at the owner's direction: PixelLab character 1c935515-0ea3-459b-8c63-e7f8cf368272 'Hallam (Vanguard)', a uniform armoured knight with closed helm, kite shield and spear. Kept as an unmanaged path map because the character was authored in the web Character Creator, so no prompt/anchor of ours reproduces it. Straight quantize, NO light-shift: measured 38% Dark / 37% Steel / 21% Bone / 3% Pale, close to the ideal 4-value spread. r2 (2026-07-26): the eight rotations under raw/rotations/ were sitting UNUSED -- r1 packed south only. They are now the direction axis. south keeps its real walk pair (frame_000/002); the other seven duplicate their idle rotation into both walk columns, so a unit walking south bobs and one walking north is static. That is additive, not a regression (r1 had no facing at all), and it resolves with one 8-direction template walk (~8 generations) that drops straight into the walk1 row with NO layout, decode or Sub UV change."
+   }
+  ]
+ },
+ "output": {
+  "cell": 48,
+  "grid": [
+   8,
+   4
+  ],
+  "frame_map": {
+   "0": "brood:south.walk0",
+   "1": "brood:south.walk0",
+   "2": "brood:south.walk0",
+   "3": "brood:south.walk0",
+   "4": "brood:south.walk0",
+   "5": "brood:south.walk0",
+   "6": "brood:south.walk0",
+   "7": "brood:south.walk0",
+   "8": "brood:south.walk1",
+   "9": "brood:south.walk1",
+   "10": "brood:south.walk1",
+   "11": "brood:south.walk1",
+   "12": "brood:south.walk1",
+   "13": "brood:south.walk1",
+   "14": "brood:south.walk1",
+   "15": "brood:south.walk1",
+   "16": "retinue:south.walk0",
+   "17": "retinue:south-east.walk0",
+   "18": "retinue:east.walk0",
+   "19": "retinue:north-east.walk0",
+   "20": "retinue:north.walk0",
+   "21": "retinue:north-west.walk0",
+   "22": "retinue:west.walk0",
+   "23": "retinue:south-west.walk0",
+   "24": "retinue:south.walk1",
+   "25": "retinue:south-east.walk1",
+   "26": "retinue:east.walk1",
+   "27": "retinue:north-east.walk1",
+   "28": "retinue:north.walk1",
+   "29": "retinue:north-west.walk1",
+   "30": "retinue:west.walk1",
+   "31": "retinue:south-west.walk1"
+  },
+  "texture": "T_Swarm_2bit",
+  "content_path": "/Game/Spike1",
+  "sheet_srgb": true
+ }
+}

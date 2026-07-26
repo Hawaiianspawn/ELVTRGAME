@@ -1,4 +1,4 @@
-# Game Design Document — Working Title: *ELVTR Game*
+# Game Design Document — *Emberkeep*
 
 **Version:** 0.4 (living document) · Companion docs: `CLASSES.md`, `WORLD.md`
 **Last updated:** 2026-07-09
@@ -30,12 +30,29 @@ character — you build an army.*
    social weight.
 4. **Readable at scale.** The 2-bit style isn't just a resource saver — it's what keeps
    a thousand-entity battle legible. Silhouette, contrast, and motion carry the visuals.
-5. **Every run tells a story.** Procedural generation + decision events + class/retinue
-   combinations make each run structurally different, not just cosmetically reshuffled.
+5. **Every run is its own run.** Procedural generation + decision events +
+   class/retinue combinations make each run structurally different — new shapes, new
+   forks, new army — with occasional authored callbacks from the world flags (§6a).
+   Scoped honestly: the v1 persistence layer is "flags, not simulation," so this
+   pillar promises *emergent variety with callbacks*, not authored per-run narrative.
 
 ---
 
 ## 3. Core Loop
+
+### Genre spine — DECIDED 2026-07-21: roguelike run; retinue growth is the progression axis
+This is a **roguelike first**. The load-bearing loop is the run — enter, grow your
+retinue through decision events, win or die, reset — and **retinue growth (not loot,
+not the persistent world) is the primary progression axis and the run's reward.**
+The other genres this doc borrows from are explicitly **support, not co-equal**:
+- The **RTS / Pikmin-lite** command layer (§4) is how retinue power is expressed
+  moment-to-moment. It serves the run; it is not a separate strategy game.
+- The **horde-survivor** power fantasy (§7) is the *feel* of late-run escalation,
+  not the retention model.
+- The **persistent world** (§6a) is **seasoning** — a between-run flavor layer,
+  deliberately minimal, never the core reward.
+When these pull against each other, the roguelike run wins. Onboarding, market
+category, and the vertical-slice reward loop all resolve against this spine.
 
 ### Moment-to-moment (seconds)
 Move → position your retinue → fight → collect drops → push deeper.
@@ -109,6 +126,20 @@ Design rules:
   a color/value channel per faction.
 - **Multiplayer density:** 4 players × hundreds of units × enemy hordes = the tech
   problem that defines this project (see §10).
+- **Leash vs. Hold-wall — DECIDED 2026-07-26: Hold is porous by design, not a
+  barricade.** Resolved toward the sim: a held line pins the retinue's formation to
+  the spot it was issued at (leash rule unchanged — units past radius, incl. on
+  Hold, still revert to Follow), but nothing about Hold raises how far brood will
+  divert to engage it — the tide bites whatever's near its own path and flows past
+  what isn't. A hard blocking wall would need per-unit pathing obstruction, which
+  is exactly the individual special-casing §10's Mass Entity constraints rule out
+  at horde scale, and cuts against §7's "soft costs over hard numeric caps." The
+  Vanguard's Shield Wall (`CLASSES.md` §1) is rewritten to match: a positioning
+  tool that reads as a wall only where level geometry already makes it one (see
+  `SYSTEMS.md` §6 for the mechanics and the open procgen follow-up — does arena
+  generation guarantee a chokepoint narrow enough for this to matter?). The
+  Relickeeper's Bulwark (`CLASSES.md` §2) makes the identical claim and inherits
+  the identical fork; unresolved, since the Relickeeper isn't built in the sim yet.
 
 ---
 
@@ -164,6 +195,12 @@ spine of a run.
 - **Fork events:** e.g., save the caged prisoners (gain units, alert the floor) vs.
   loot the vault quietly.
 - **Sacrifice offers:** trade retinue lives, hero HP, or loot for power spikes.
+  **Class-aware pricing (DECIDED 2026-07-21):** retinue permanence differs by class —
+  Vanguard Veterans permadeath, Pathfinder pack is "found again," Relickeeper Awakened
+  self-repair, Lampbearer Guided regenerate — so a flat "sacrifice N units" template
+  is a real loss for one class and a rounding error for another. Sacrifice templates
+  price in a **common currency of loss** (banked progression / upkeep supply / world
+  standing), not raw unit count, so the choice is comparably meaningful for all four.
 - **Path choices:** branching floor exits with telegraphed risk/reward (elite floor
   vs. treasure floor vs. shortcut).
 - **Moral/faction choices:** decisions that shift how the dungeon reacts to you across
@@ -174,6 +211,16 @@ Decisions are **per-player where possible** ("each person will have their
 opportunities"): a decision event targets one player, and their choice can affect the
 whole party. This creates social texture — credit, blame, negotiation.
 
+**Resolution rule — DECIDED 2026-07-21: vote on weight.**
+- **Self / current-run-only** (affects only the deciding player or just this run):
+  the owning player decides alone, resolved instantly.
+- **Party-wide or persistent** (consequence lands on the party or writes a world
+  flag): settled by **party vote**, resolved the moment the vote closes. Passes on
+  **simple majority**; absent / downed / disconnected players **abstain**; a tied
+  or failed vote keeps the world exactly as it stands, so the run always keeps
+  moving forward.
+Cheap choices resolve instantly; heavy choices resolve fairly, through the party.
+
 ### 6a. Persistent World State — **DECIDED: yes, this is the meta-game**
 
 Decisions don't just shape the current run — they scar the world. This is our
@@ -182,7 +229,7 @@ meta-progression (§3): the world changes instead of your stats.
 **How it works (v1 — deliberately minimal):**
 - The world tracks a small set of **world flags** per save: faction standings
   (Still Legion, the Quiet — see `WORLD.md`; the Unwitnessed have no standing,
-  only sealed breaches), ~5 **named NPCs** (alive/dead/changed), and ~6 **site
+  only sealed breaches), **5 named NPCs** (alive/dead/changed), and **8 site
   states** (landmark locations: sealed / saved / held / claimed).
 - Procedural generation reads these flags: a faction you betrayed seeds hostile
   elites into its territory; a site you saved becomes a mid-run safe room; a spared
@@ -196,8 +243,17 @@ generator and event system read — no persistent economy, no evolving settlemen
 §7); nothing gets added without removing something. Decision-event templates
 (8 for v1) are specced in `WORLD.md` §8.
 
-**Multiplayer rule:** world state belongs to the **host's world** (like Valheim);
-guests' own worlds are unaffected. Revisit post-v1 if it confuses players. **[WATCH]**
+**Multiplayer rule — DECIDED 2026-07-21: the party owns the scar.**
+Every world-altering decision carries the whole party's agreement: a shared NPC's
+fate, a faction's standing, or a site's ruin always reflects everyone's will, settled
+by **party vote** (§6 resolution rule). Self/current-run-only choices belong to the
+deciding player alone, resolved instantly.
+
+**World-write target — DECIDED 2026-07-21: all present players' worlds.** When a
+vote passes, the persistent outcome writes to **every present player's world**, host
+and guests alike — so a co-op session leaves every participant a mark on a save they
+own, closing the guest-earns-nothing gap. The host's world stays the **shared stage**
+the run is generated from.
 
 ---
 
@@ -211,8 +267,22 @@ that would trivialize the early game by orders of magnitude.
   the 2-bit style and entity tech make affordable.
 - Breakpoints and "run-defining" pickups (à la Vampire Survivors evolutions / Risk of
   Rain item stacking) create spike moments, not just smooth growth.
-- Anti-cap philosophy: prefer soft costs (screen chaos, retinue upkeep, elite enemies
-  that punish pure swarm) over hard numeric caps.
+- Anti-cap philosophy: prefer soft costs over hard numeric caps. The primary soft
+  cost is **retinue upkeep** (specced below); screen chaos and swarm-punishing elites
+  back it up.
+
+**Retinue upkeep — DECIDED 2026-07-21 (spec; tunables in `docs/RTS-VERTICAL-SLICE.md`
+§2):** Retinue size is *governed, not capped*. Every active unit draws **upkeep**
+from a per-run supply pool replenished only at growth/supply sites. When demand
+outruns supply, units don't die — they **degrade** (reduced stats / dimmed /
+"unfed"), and newly recruited units enter degraded until supply recovers. One
+mechanic, three jobs:
+- gives the exponential curve above a real governor — you can't bank hundreds of
+  full-strength units without continuously feeding them;
+- bounds the entity budget (§10) — degraded units stay in the cheap Mass tier and
+  are first demoted from "promoted Actor" status, capping live Actor promotions;
+- lets negative world flags (§6a) bite as *supply pressure* instead of pure added
+  difficulty, so the world-ratchet has something to push back against.
 
 ---
 
@@ -224,6 +294,12 @@ Deferred by design, but reserving the slot. Direction notes:
 - Loot should feed **both** hero and retinue (e.g., a banner item that upgrades all
   soldiers vs. a weapon for the hero) — this is our twist on the formula.
 - Rarity tiers, run-based (no persistent gear inventory) to keep the roguelike frame.
+- **Base Camp Loot Manager — CUT 2026-07-21.** A cross-player donation cache +
+  bot-proxy feature that reopened the host-world rule (§6a) for a parked stretch
+  goal, layered on a loot system that doesn't exist yet. Removed from canon to stop
+  scope gravity; revisit only if/when the loot system *and* the Gatecamp hub are
+  real. (History preserved in `docs/GDD-TODO.md` Part C and this project's design
+  session log.)
 
 ---
 
@@ -237,10 +313,24 @@ Deferred by design, but reserving the slot. Direction notes:
   *requirement*, not a nicety — retinues need room), decision-event sites, secrets,
   and a floor objective (boss/exit).
 - Likely approach: prefab room library + graph-based layout (rooms as nodes, corridors
-  as edges), with constraint rules (e.g., every floor has ≥1 arena, ≥1 decision event,
-  ≥1 optional risk room). Tile-level noise/variation on top.
-- Seeded generation — all players in a session see the identical dungeon; seeds
-  shareable for community runs.
+  as edges), with constraint rules. Site counts **scale with party size**: a floor
+  baseline of ≥1 arena, ≥1 decision event, ≥1 optional risk room, **plus ≥1 growth
+  site per player** so a 4-player party isn't starved and a solo player isn't flooded.
+  Where two players share a class (same yield type), a contested site either **splits
+  yield or duplicates** — decided per site type in `docs/RTS-VERTICAL-SLICE.md` — so
+  "shared sites, class-specific yields" (`CLASSES.md`) stops silently assuming a
+  one-of-each party. Tile-level noise/variation on top.
+- Seeded generation — all players in a session see the identical dungeon: the
+  generator reads the **session stage's** world flags (the host's world as the
+  shared stage), then applies the seed **deterministically on top of the resolved
+  flag set** (DECIDED 2026-07-21: seed evaluates *after* flag injection, so "same
+  seed" means "same seed + same flags"). Community seeds are therefore shareable
+  **at a declared flag baseline** (e.g. a fresh/neutral world); a seed shared
+  without its flag state won't reproduce across differing saves. The community-seed
+  feature is scoped to neutral-baseline runs, not veteran saves — stated plainly
+  rather than implied. (Note: whether the deterministic-ish swarm sim itself desyncs
+  under this model is a tech-spike question, tracked under the entity-count spike
+  gate in §10, not resolved here.)
 
 ---
 
@@ -248,6 +338,12 @@ Deferred by design, but reserving the slot. Direction notes:
 
 **Engine:** UE5.8. **The defining technical challenge is entity count under
 multiplayer.**
+
+### Resourcing posture — DECIDED 2026-07-21: pre-resourcing, gated
+This document is **pre-resourcing**: team size, disciplines, budget, and ship window
+are **TBD**. The v1 scope tables (§11) describe an *intended* scope, **not a
+committed plan** — nothing here is costed until a team exists. To keep that honest,
+the concept-defining tech risk carries a hard gate (below).
 
 ### Entity architecture — important note
 - **Niagara** is the right call for *rendering and VFX at scale* (GPU-instanced
@@ -260,6 +356,14 @@ multiplayer.**
   simple AI) + Niagara/instanced static meshes for representation + full Actors only
   for heroes, bosses, and "promoted" elite units. Prototype this first — it is the
   project's biggest risk.
+
+**Entity-count spike gate — DECIDED 2026-07-21 (go/no-go).** No content or class
+production begins until the Mass Entity spikes pass at the **full 4-player target
+load** (not the 2-client half-target). Pass = the entity budget above (4 players ×
+late-run retinue + enemy hordes) holding 60fps under the aggregate-replication model.
+**A gate failure invalidates the concept, it does not merely trim it** — the defined
+fallbacks to evaluate are: (a) reduced entity counts, (b) single-player-only mass, or
+(c) a fake-crowd hybrid. This is the project's go/no-go before major investment.
 
 ### 2-bit rendering
 - 2-bit = 4 values per palette. Options: strict global 4-color palette (Game Boy
@@ -283,7 +387,9 @@ multiplayer.**
 ### Early technical milestones
 1. **Spike 1 — The Thousand:** 1,000+ Mass Entity units with basic follow/attack AI at
    60fps, Niagara/ISM rendered.
-2. **Spike 2 — The Thousand, Networked:** same scene with 2 clients connected.
+2. **Spike 2 — The Thousand, Networked:** same scene at the **full 4-client target
+   load** (raised from 2 so the spike proves the real entity budget, not half of
+   it), aggregate-replication model.
 3. **Spike 3 — Procedural floor:** graph-based floor generation with arena constraints.
 4. **RTS vertical slice:** 1 class, 1 biome, 3 floors, 1 boss, 2 decision events,
    co-op. Full definition, gates, and bill of materials: `docs/RTS-VERTICAL-SLICE.md`.
@@ -298,7 +404,7 @@ multiplayer.**
 | 1–4 player co-op | Fancy loot/evolution system | Modding/community content |
 | 3 biomes, floor-based runs | More world flags, evolving sites | Console ports |
 | Stance-based retinue control (4 stances) | Class-specific stance variants | Persistent economy/settlement sim |
-| Minimal world flags (~10–15) | Off-class hybrid events (few in v1, more later) | |
+| World flags (15: 2 standings + 5 NPCs + 8 sites) | Off-class hybrid events (few in v1, more later) | |
 
 ---
 
@@ -312,10 +418,15 @@ multiplayer.**
 | 4 | Max party size | **4 players co-op (§10)** | ✅ Decided 2026-07-09 |
 | 5 | Sprite flipbooks vs. flat-shaded 3D for 2-bit look | Flipbooks on instanced quads | Needs art test |
 | 6 | Strict 4-color global palette vs. per-faction palettes | Per-faction | Open |
-| 7 | Loot system design (Vampire Survivors–style) | — | Deferred by design |
-| 8 | Host-owned world state confusing in co-op? | Valheim-style host world | Watch post-v1 |
+| 7 | Loot system design (Vampire Survivors–style) | Deferred by design — deferral is now legitimate: retinue growth is the run reward loop (§3 genre spine), not loot | Deferred by design |
+| 8 | Co-op world writes | **RESOLVED: party vote on any world-scarring/party-wide decision; no unilateral scars; passed outcomes echo to all present players' worlds (§6a)** | ✅ Decided 2026-07-21 |
+| 15 | Genre spine (roguelike vs. RTS vs. horde-survivor vs. persistent-world) | **Roguelike run is primary; retinue growth is the progression axis; the rest are support (§3)** | ✅ Decided 2026-07-21 |
+| 16 | Retinue upkeep / power-curve governor | **Degrade-not-die upkeep economy, fed by supply sites (§7)** | ✅ Decided 2026-07-21 |
+| 17 | Sacrifice-event pricing across classes | **Common currency of loss, not raw unit count (§6)** | ✅ Decided 2026-07-21 |
+| 18 | Decision resolution rule (blocking vs. not) | **Self/current-run = non-blocking solo call; party-wide/persistent = party vote (§6)** | ✅ Decided 2026-07-21 |
+| 19 | Pre-resourcing posture + entity-count go/no-go | **Team/budget/timeline TBD; Spike 2 raised to full 4-client load as the gate (§10)** | ✅ Decided 2026-07-21 |
 | 9 | v1 class roster | **4 classes: Vanguard / Relickeeper / Pathfinder / Lampbearer** (see `CLASSES.md`; working names) | ✅ Decided 2026-07-09 |
-| 10 | Game name | Candidates emerging from `WORLD.md` (Undervault, Hollow Crown, etc.) | Open — naming pass |
+| 10 | Game name | **Emberkeep** — chosen from the light-in-darkness theme (soul-flames, lamp-halls, the war of light vs. the Quiet) | ✅ Decided 2026-07-21 |
 | 12 | World/setting design (factions, biomes, antagonist, NPCs) | **See `WORLD.md`** — Undervault / Hollow Crown / 3 factions / 3 biomes / 5 NPCs (working names) | ✅ Drafted 2026-07-09 |
 | 13 | Unwitnessed faction (name, titan variety, horror level) | First draft in `WORLD.md` §3a | ⏸ Parked — revisit before content lock |
 | 14 | v1 world-flag list + decision-event templates | **15 flags / 8 templates — `WORLD.md` §7–8** | ✅ Drafted 2026-07-09 |

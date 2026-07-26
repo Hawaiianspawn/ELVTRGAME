@@ -107,8 +107,18 @@ run you are marching a liberated army through the dark.
 ### Stance reflavors
 - **Charge → Advance the Line:** ranks move as a wall, shields up — slower than a
   generic charge but units take reduced damage while advancing.
-- **Hold → Shield Wall:** the defining stance. A braced line that blocks enemy
-  pathing entirely; enemies must break it or go around.
+- **Hold → Shield Wall:** anchors the line to the ground it was called on — the
+  formation stops tracking the hero and holds that spot, even as he moves on to
+  fight elsewhere, until Hold is lifted or a unit outruns its leash (`GDD.md` §4).
+  It is a **positioning tool, not a barricade** (`SYSTEMS.md` §6): soldiers fight
+  whatever comes within their own reach, but nothing about Hold makes brood target
+  the wall over the flame — the tide bites what's close and flows past what isn't.
+  Shield Wall earns its name where the room does the rest: planted across a
+  doorway or a corridor mouth, there's nowhere for the tide to flow around, and
+  the line reads exactly like the fortress its fiction promises. Planted in the
+  open, it's a strongpoint the tide can step past — the honest cost of holding
+  ground instead of chasing the fight: a place that's always defended, not a line
+  nothing can cross.
 - **Rally → To the Banner:** collapses on the *banner* if planted, else on the hero.
 
 ### Scaling & decision hooks
@@ -393,12 +403,18 @@ this class owns vision and reveals.
 - Decision hooks: *Guide the gathered souls home at a shrine — releasing them (lose
   the units, gain a permanent world flag: this floor's souls rest, its haunts are
   gone) — or keep them burning for the run?* This is the game's meta-loop tension
-  (§3/§6a) embodied in one class: **power now vs. a healed world.** The
-  discipline holds for every stranger's soul without exception — and she has
-  never once applied it to the one soul riding in her own lamp, who has asked.
-  · *A dying survivor can be saved as a Guided light or escorted (slow,
-  dangerous) to a rescue site to fight for the Vanguard instead — whose army
-  grows?*
+  (§3/§6a) embodied in one class: **power now vs. a healed world.** **Owned as
+  deliberate temptation (DECIDED 2026-07-21):** hoarding is *not* cost-free. Guided
+  kept past a shrine accrue **unrest** — rising upkeep draw (`GDD.md` §7) and
+  progressive dimming — so "keep them burning" is a temptation with a mounting
+  price, never the silent optimum. This resolves the tone tension (§5 "we are the
+  good guys"): the light-bearer *can* conscript the dead as batteries, but the game
+  names it as the dark choice and makes it cost, instead of rewarding it by default.
+  The discipline holds for every stranger's soul without exception — and the one
+  soul riding in her own lamp is a standing exception nobody has named out loud yet
+  (softened 2026-07-21 — not a scoped event; see C11). · *A dying survivor can be
+  saved as a Guided light or escorted (slow, dangerous) to a rescue site to fight
+  for the Vanguard instead — whose army grows?*
 - World flags: relit beacon halls; floors whose souls were laid to rest.
 
 ### 2-bit readability
@@ -432,7 +448,7 @@ this class owns vision and reveals.
 |---|---|---|---|
 | C1 | Final class names | Vanguard / Relickeeper / Pathfinder / Lampbearer | Working names set — revisit at naming pass |
 | C2 | Pathfinder weapon: bow vs. repeating crossbow | Bow | Art/feel test |
-| C3 | Pack death: permanent vs. "found again, changed" | Found again, changed | Prototype the feels |
+| C3 | Pack death & cross-run recurrence | Within a run: permanent loss, mourned. Across runs: **the name is a role, not the individual** — next run's Relay is a new bearer the Pathfinder names (consistent with "a name is the one thing the Pathfinder still gives away for free"). Mourning stays within-run; the reset doesn't cheapen it. | Decided 2026-07-21 — prototype the feel |
 | C4 | Veteran promotion visible on-unit in 2-bit? | Yes — helmet pixel-tier | Art test |
 | C5 | Do Awakened persist as world-flag site defenders after a run? | Yes, at flagged sites | Tie to §6a flag budget |
 | C6 | Guided wisps: pure Niagara particles vs. lightweight Mass entities? | Niagara-first, promote to Mass only for units with gameplay effects | Tech spike |
@@ -440,4 +456,4 @@ this class owns vision and reveals.
 | C8 | Pathfinder growth verb: keep "Bond & Train" or rename to foreground found-family (e.g. "Take In & Train")? | Kept "Bond & Train" — still fits | Flagged by narrative pass, open |
 | C9 | Waylight provenance: taught by a fellow orphan, or invented by the Pathfinder alone? | Taught by a fellow orphan | Flagged by narrative pass, open |
 | C10 | Does the Lampbearer's mentor get promoted to a full WORLD.md §5 named NPC (own flag/E8 hook)? | No — stays unnamed, off the 15-flag budget | Flagged by narrative pass, open |
-| C11 | Does the mentor's soul ever get released (capstone E6 variant)? | Left unresolved by design, on purpose | Flagged by narrative pass, open — revisit if a capstone content pass is scoped |
+| C11 | Does the mentor's soul ever get released (capstone E6 variant)? | Left unresolved by design, on purpose | Flagged by narrative pass, open — revisit if a capstone content pass is scoped. Foregrounded "who has asked" promise softened 2026-07-21 (review finding: doc was advertising an unbudgeted payoff) — see §4 Lampbearer decision hooks |

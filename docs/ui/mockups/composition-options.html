@@ -1,0 +1,226 @@
+<title>Emberkeep — Army Composition · 4 directions</title>
+<style>
+  :root{
+    --dark:#211e20; --steel:#555568; --bone:#a0a08b; --pale:#e9efec;
+    --flame:#fff8ec; --warn:#b23a2c;
+    --mono: ui-monospace,"Cascadia Mono","SF Mono","JetBrains Mono",Consolas,monospace;
+  }
+  *{box-sizing:border-box;}
+  body{margin:0;}
+  .page{
+    min-height:100vh; background:var(--dark); color:var(--pale);
+    font-family:var(--mono); -webkit-font-smoothing:antialiased;
+    padding:clamp(16px,3vw,40px);
+  }
+  .head{ max-width:1180px; margin:0 auto clamp(18px,3vw,34px); }
+  .eyebrow{ font-size:10px; letter-spacing:.32em; text-transform:uppercase; color:var(--bone); }
+  .head h1{ font-size:clamp(20px,2.6vw,30px); letter-spacing:.04em; margin:.35em 0 .3em; text-wrap:balance; }
+  .head p{ font-size:13px; line-height:1.6; color:var(--bone); max-width:64ch; margin:0; }
+  .head p b{ color:var(--pale); }
+
+  .grid{
+    max-width:1180px; margin:0 auto;
+    display:grid; grid-template-columns:repeat(2,1fr); gap:clamp(14px,2vw,26px);
+  }
+  @media (max-width:820px){ .grid{ grid-template-columns:1fr; } }
+
+  .opt{ border:1px solid var(--steel); background:rgba(255,255,255,.015); display:flex; flex-direction:column; }
+  .opt__bar{ display:flex; align-items:baseline; gap:10px; padding:11px 14px; border-bottom:1px solid var(--steel); }
+  .opt__no{ font-size:11px; color:var(--dark); background:var(--pale); padding:2px 7px 1px; letter-spacing:.1em; }
+  .opt__name{ font-size:13px; letter-spacing:.16em; text-transform:uppercase; font-weight:700; }
+  .opt__tag{ margin-left:auto; font-size:9px; letter-spacing:.14em; text-transform:uppercase; color:var(--bone); }
+
+  /* the live mini-scene */
+  .scene{ position:relative; height:clamp(210px,26vw,260px); background:
+      radial-gradient(60% 60% at 50% 50%, rgba(233,239,236,.05), rgba(33,30,32,0) 70%); overflow:hidden; }
+
+  .opt__why{ padding:12px 14px 14px; border-top:1px solid var(--steel); display:flex; flex-direction:column; gap:7px; }
+  .opt__idea{ font-size:12px; line-height:1.55; color:var(--pale); }
+  .opt__meta{ display:flex; gap:14px; flex-wrap:wrap; font-size:10.5px; color:var(--bone); }
+  .opt__meta b{ color:var(--pale); font-weight:700; letter-spacing:.06em; }
+
+  /* ---------- shared cam token ---------- */
+  .cam{ position:relative; border:1.5px solid var(--steel); background:
+      radial-gradient(circle at 50% 55%, var(--flame) 0%, rgba(255,248,236,.5) 5%,
+      rgba(160,160,139,.28) 26%, rgba(85,85,104,.08) 48%, var(--dark) 76%); }
+  .cam .flame{ position:absolute; left:50%; top:28%; width:5px; height:5px; transform:translate(-50%,-50%);
+      background:var(--flame); border-radius:50%; box-shadow:0 0 12px 5px rgba(255,248,236,.7); }
+  .cam .fig{ position:absolute; left:50%; top:56%; width:6px; height:12px; transform:translate(-50%,-50%);
+      background:linear-gradient(90deg,var(--pale) 50%,var(--steel) 50%); }
+
+  /* ---------- 1 · Flanking Wings ---------- */
+  .wings{ display:grid; grid-template-columns:1fr auto 1fr; align-items:center; gap:12px; height:100%; padding:12px 14px; }
+  .wings .wing{ display:flex; flex-direction:column; gap:6px; }
+  .wings .wing.l{ align-items:flex-end; }
+  .wings .cam{ width:96px; height:96px; }
+  .sq{ border:1px solid var(--steel); background:rgba(33,30,32,.6); padding:4px 6px; min-width:76px; }
+  .wings .wing.l .sq{ transform:perspective(600px) rotateY(7deg); transform-origin:right; }
+  .wings .wing.r .sq{ transform:perspective(600px) rotateY(-7deg); transform-origin:left; }
+  .sq__t{ display:flex; justify-content:space-between; gap:8px; font-size:8.5px; letter-spacing:.08em; text-transform:uppercase; }
+  .sq__t .n{ color:var(--pale); font-weight:700; } .sq__t .c{ color:var(--bone); font-variant-numeric:tabular-nums; }
+  .sq .prow{ display:flex; gap:1.5px; margin-top:3px; } .wings .wing.l .sq .prow{ justify-content:flex-end; }
+  .pip{ width:4px; height:4px; background:var(--steel); } .pip.up{ background:var(--pale); }
+
+  /* ---------- 2 · Radial Muster ---------- */
+  .radial{ height:100%; position:relative; }
+  .radial .cam{ position:absolute; left:50%; top:50%; width:84px; height:84px; transform:translate(-50%,-50%); border-radius:50%; }
+  .radial .cam{ background:radial-gradient(circle at 50% 50%, var(--flame) 0%, rgba(255,248,236,.5) 8%,
+      rgba(160,160,139,.28) 34%, rgba(85,85,104,.06) 60%, rgba(33,30,32,0) 78%); border-color:transparent; }
+  .radial .rc{ position:absolute; transform:translate(-50%,-50%); text-align:center; min-width:58px; }
+  .radial .rc .n{ font-size:8.5px; letter-spacing:.08em; text-transform:uppercase; color:var(--pale); font-weight:700; }
+  .radial .rc .c{ font-size:8px; color:var(--bone); font-variant-numeric:tabular-nums; }
+  .radial .rc .b{ height:3px; background:var(--steel); margin-top:2px; }
+  .radial .rc .b i{ display:block; height:100%; background:var(--pale); }
+
+  /* ---------- 3 · Command Rail ---------- */
+  .rail{ display:grid; grid-template-columns:auto 1fr; height:100%; }
+  .rail .list{ border-right:1px solid var(--steel); padding:9px 10px; display:flex; flex-direction:column; gap:7px; min-width:158px; }
+  .rail .row{ display:grid; grid-template-columns:1fr; gap:2px; }
+  .rail .row .top{ display:flex; justify-content:space-between; font-size:8.5px; letter-spacing:.07em; text-transform:uppercase; }
+  .rail .row .top .n{ color:var(--pale); font-weight:700; } .rail .row .top .c{ color:var(--bone); font-variant-numeric:tabular-nums; }
+  .rail .bar{ height:5px; background:var(--steel); }
+  .rail .bar i{ display:block; height:100%; background:var(--pale); }
+  .rail .bar.warn i{ background:var(--warn); }
+  .rail .stage2{ display:flex; align-items:center; justify-content:center; }
+  .rail .cam{ width:120px; height:120px; }
+
+  /* ---------- 4 · Formation Map ---------- */
+  .map{ height:100%; display:flex; align-items:center; justify-content:center; padding:12px; }
+  .map .field{ position:relative; width:min(240px,90%); aspect-ratio:1.35/1; border:1px solid var(--steel);
+      background:
+        repeating-linear-gradient(0deg, rgba(85,85,104,.14) 0 1px, transparent 1px 26px),
+        repeating-linear-gradient(90deg, rgba(85,85,104,.14) 0 1px, transparent 1px 26px),
+        radial-gradient(40% 46% at 50% 50%, rgba(255,248,236,.10), rgba(33,30,32,0) 70%); }
+  .map .hero{ position:absolute; left:50%; top:50%; width:8px; height:8px; transform:translate(-50%,-50%);
+      background:var(--flame); border-radius:50%; box-shadow:0 0 12px 5px rgba(255,248,236,.7); }
+  .map .blob{ position:absolute; transform:translate(-50%,-50%); text-align:center; }
+  .map .blob .dot{ margin:0 auto; border-radius:50%; background:var(--pale); }
+  .map .blob.w .dot{ background:var(--warn); }
+  .map .blob .n{ font-size:7.5px; letter-spacing:.05em; text-transform:uppercase; color:var(--bone); margin-top:2px; }
+
+  .foot{ max-width:1180px; margin:clamp(18px,3vw,30px) auto 0; font-size:11px; line-height:1.7; color:var(--bone); }
+  .foot b{ color:var(--pale); }
+  .foot .axis{ display:flex; gap:8px; align-items:center; flex-wrap:wrap; margin-top:8px; font-size:10px; letter-spacing:.04em; }
+  .foot .axis span{ border:1px solid var(--steel); padding:3px 8px; }
+</style>
+
+<div class="page">
+  <div class="head">
+    <div class="eyebrow">Emberkeep · HUD · drawing board</div>
+    <h1>Army composition — four directions</h1>
+    <p>Every option keeps the <b>bearer + flame as the centre</b> and the locked Demichrome palette. They differ on
+       one axis: <b>how literally the roster maps to the battlefield</b> — from a ceremonial readout to a live tactical map.</p>
+  </div>
+
+  <div class="grid">
+
+    <!-- 1 -->
+    <section class="opt">
+      <div class="opt__bar"><span class="opt__no">1</span><span class="opt__name">Flanking Wings</span><span class="opt__tag">ceremonial · symmetric</span></div>
+      <div class="scene"><div class="wings">
+        <div class="wing l" id="w1l"></div>
+        <div class="cam"><div class="flame"></div><div class="fig"></div></div>
+        <div class="wing r" id="w1r"></div>
+      </div></div>
+      <div class="opt__why">
+        <div class="opt__idea">The host arrays to either side of the bearer, each wing a stack of squads leaning inward — the deity flanked by the congregation.</div>
+        <div class="opt__meta"><span><b>Best</b> reads as fantasy; symmetric; scales down a wing</span><span><b>Watch</b> needs a left/right rule</span></div>
+      </div>
+    </section>
+
+    <!-- 2 -->
+    <section class="opt">
+      <div class="opt__bar"><span class="opt__no">2</span><span class="opt__name">Radial Muster</span><span class="opt__tag">thematic · encircling</span></div>
+      <div class="scene"><div class="radial" id="rad">
+        <div class="cam"></div>
+      </div></div>
+      <div class="opt__why">
+        <div class="opt__idea">Squads ring the bearer like the light itself radiating outward — the point-light fantasy made into the HUD. Order around the circle can mirror the real ring.</div>
+        <div class="opt__meta"><span><b>Best</b> most on-theme; no wasted corners</span><span><b>Watch</b> tight for 8+ squads; labels crowd</span></div>
+      </div>
+    </section>
+
+    <!-- 3 -->
+    <section class="opt">
+      <div class="opt__bar"><span class="opt__no">3</span><span class="opt__name">Command Rail</span><span class="opt__tag">utility · dense</span></div>
+      <div class="scene"><div class="rail">
+        <div class="list" id="rail"></div>
+        <div class="stage2"><div class="cam"><div class="flame"></div><div class="fig"></div></div></div>
+      </div></div>
+      <div class="opt__why">
+        <div class="opt__idea">One clean roster of strength bars docked to a side, the cam centre-stage beside it. The RTS-standard read: scan the bars, click to command.</div>
+        <div class="opt__meta"><span><b>Best</b> densest; scrolls to any count; clickable</span><span><b>Watch</b> least distinctive; one-sided</span></div>
+      </div>
+    </section>
+
+    <!-- 4 -->
+    <section class="opt">
+      <div class="opt__bar"><span class="opt__no">4</span><span class="opt__name">Formation Map</span><span class="opt__tag">tactical · spatial</span></div>
+      <div class="scene"><div class="map">
+        <div class="field" id="map"><div class="hero"></div></div>
+      </div></div>
+      <div class="opt__why">
+        <div class="opt__idea">Squads sit where they actually are around the hero — composition <i>is</i> position. Blob size = headcount, colour = health. Doubles as a minimap.</div>
+        <div class="opt__meta"><span><b>Best</b> ties UI to the sim; real tactics</span><span><b>Watch</b> headcount harder to read exactly</span></div>
+      </div>
+    </section>
+
+  </div>
+
+  <div class="foot">
+    <b>How to choose:</b> pick the one whose <b>strength</b> matches what the moment-to-moment game is about.
+    <div class="axis">
+      <span>1 — feeling / spectacle</span><span>2 — theme / identity</span><span>3 — control / clarity</span><span>4 — tactics / position</span>
+    </div>
+  </div>
+</div>
+
+<script>
+  const SQUADS = [
+    ["Shield",24,24],["Spearmen",50,50],["Vets",20,20],
+    ["Shield",24,18,true],["Reserve",20,16],["Banner",2,2]
+  ];
+  const pct = s => Math.round(100*s[2]/s[1]);
+
+  // 1 · Wings — split half/half
+  function squadCard(s){
+    const [n,size,st]=s, cols=Math.min(10,Math.ceil(Math.sqrt(size)*1.3));
+    const el=document.createElement("div"); el.className="sq";
+    let pips=""; for(let i=0;i<Math.min(size,24);i++) pips+=`<span class="pip${i<st?' up':''}"></span>`;
+    el.innerHTML=`<div class="sq__t"><span class="n">${n}</span><span class="c">${st}/${size}</span></div>
+      <div class="prow" style="max-width:${cols*5.5}px;flex-wrap:wrap">${pips}</div>`;
+    return el;
+  }
+  SQUADS.slice(0,3).forEach(s=>w1l.appendChild(squadCard(s)));
+  SQUADS.slice(3).forEach(s=>w1r.appendChild(squadCard(s)));
+
+  // 2 · Radial — arc around the cam
+  const R=88, cx=50, cy=50;
+  SQUADS.forEach((s,i)=>{
+    const a=(-90 + i*(360/SQUADS.length)) * Math.PI/180;
+    const x=cx+Math.cos(a)*R*0.62, y=cy+Math.sin(a)*R*0.52;
+    const el=document.createElement("div"); el.className="rc";
+    el.style.left=x+"%"; el.style.top=y+"%";
+    el.innerHTML=`<div class="n">${s[0]}</div><div class="c">${s[2]}/${s[1]}</div>
+      <div class="b"><i style="width:${pct(s)}%;background:${s[3]?'var(--warn)':'var(--pale)'}"></i></div>`;
+    rad.appendChild(el);
+  });
+
+  // 3 · Rail — bar list
+  SQUADS.forEach(s=>{
+    const el=document.createElement("div"); el.className="row";
+    el.innerHTML=`<div class="top"><span class="n">${s[0]}</span><span class="c">${s[2]}/${s[1]}</span></div>
+      <div class="bar${s[3]?' warn':''}"><i style="width:${pct(s)}%"></i></div>`;
+    rail.appendChild(el);
+  });
+
+  // 4 · Map — positions around the hero (front / flanks / rear)
+  const POS=[[50,20],[76,40],[24,40],[68,74],[32,74],[50,88]];
+  SQUADS.forEach((s,i)=>{
+    const [x,y]=POS[i], d=8+Math.round(s[1]/50*14);
+    const el=document.createElement("div"); el.className="blob"+(s[3]?" w":"");
+    el.style.left=x+"%"; el.style.top=y+"%";
+    el.innerHTML=`<div class="dot" style="width:${d}px;height:${d}px"></div><div class="n">${s[0]}</div>`;
+    map.appendChild(el);
+  });
+</script>

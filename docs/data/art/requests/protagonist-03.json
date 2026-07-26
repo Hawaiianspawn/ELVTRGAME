@@ -1,0 +1,89 @@
+{
+  "$schema": "../sprite-request.schema.json",
+
+  "id": "protagonist-03",
+  "revision": 1,
+
+  "subject": {
+    "title": "Protagonist prototype 03 - The Tender",
+    "kind": "hero",
+    "faction": "none",
+    "class_tie": "none",
+    "brief": null,
+    "spec": "../../../art/protagonist-prototypes.md"
+  },
+
+  "canon": {
+    "palette": "demichrome-4",
+    "value_dominance": "bone",
+    "pale_usage": "halo",
+    "silhouette": "an O - a closed loop of hood, forward arms and bowl, the robe a single unbroken taper to the feet",
+    "reads_as": "a hooded figure bent closed around a bowl of fire it is carrying in both hands",
+    "moving": true,
+    "light_shift_variant": false
+  },
+
+  "prompt": {
+    "description": "A hooded figure in a long ankle-length cloth robe, leaning slightly forward and cradling a wide shallow iron bowl of fire at waist height in both hands. The arms come forward and close around the bowl so that arms, bowl and body form one closed loop. Deep pointed hood with the face sunk back into a dark recess inside it. The robe falls straight to the feet and hides the legs entirely; narrow shoulders, no armour, no belt kit, bare hands. The bowl has a hard thick rim and the fire sits down inside it, below the rim line.",
+    "must_include": [
+      "both hands on a wide shallow bowl held at waist height",
+      "arms closing forward into a loop around the bowl",
+      "deep pointed hood with the face recessed and dark inside it",
+      "long robe reaching the feet, legs hidden",
+      "fire contained down inside the bowl rim"
+    ],
+    "must_avoid": [
+      "helmet, hat or bare head",
+      "armour plate, pauldrons or mail",
+      "any second held object, weapon or banner",
+      "bowl raised above the chest or held in one hand",
+      "glow, halo, sparks or rays around any pixel",
+      "bright or glowing eyes",
+      "flames rising above the head",
+      "wide planted stance"
+    ],
+    "style_mode": "flat"
+  },
+
+  "pixellab": {
+    "mode": "standard",
+    "size": 48,
+    "view": "low top-down",
+    "n_directions": 8,
+    "outline": "selective outline",
+    "detail": "low detail",
+    "shading": "flat shading",
+    "proportions": { "type": "preset", "name": "chibi" },
+    "text_guidance_scale": 12,
+    "body_type": "humanoid",
+    "template": null
+  },
+
+  "anchor": {
+    "strategy": "text-only",
+    "source_direction": "south",
+    "shared_anchor_id": null,
+    "approved": false
+  },
+
+  "animations": [],
+
+  "portrait": {
+    "enabled": false
+  },
+
+  "output": {
+    "cell": 48,
+    "grid": [1, 1],
+    "frame_map": {
+      "0": "south.idle"
+    },
+    "texture": "T_Proto_Protagonist_03",
+    "content_path": "/Game/Sprites/Prototypes",
+    "sheet_srgb": true
+  },
+
+  "budget": {
+    "max_generations": 2
+  }
+}

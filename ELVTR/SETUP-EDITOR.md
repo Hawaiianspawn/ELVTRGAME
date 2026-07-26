@@ -7,10 +7,64 @@ author: the Niagara system, its material, and the map. Do them in order.
 Double-click `ELVTR.uproject` (UE 5.8). If prompted to rebuild modules, accept.
 
 ## 1. Import the texture
-1. Content Drawer → make folder `Content/Spike1`.
-2. Drag `RawArt/T_Swarm_2bit.png` into it.
-3. Open `T_Swarm_2bit`: **Filter = Nearest** (pixel art), Mip Gen Settings =
-   NoMipmaps, Compression = UserInterface2D (or Masked), sRGB = on. Save.
+
+The sheet is **owned by the `/sprite` pipeline** — do not hand-assemble it. It is built
+from `docs/data/art/requests/swarm-units.json` (a *composite* request: one texture,
+two subjects) and lands at `RawArt/Sheets/T_Swarm_2bit.png`:
+
+```
+py Scripts/art/pixelpipe.py validate swarm-units
+py Scripts/art/pixelpipe.py pack     swarm-units
+py Scripts/art/pixelpipe.py report   swarm-units
+```
+
+Import is also scripted — run this in the **editor** console rather than dragging, so
+the texture settings are applied *and read back*:
+
+```
+py "C:/Projects/ELVTRGAME/Scripts/art/import_sprites.py" swarm-units
+```
+
+It sets Filter = **Nearest**, NoMipmaps, UserInterface2D, sRGB on, then verifies them
+and logs `SPRITE import ... [OK]` or `[VERIFY FAILED]`. If you do import by hand
+instead, set those four yourself — Nearest is the one that silently ruins pixel art.
+
+**Sheet layout (changed 2026-07-26: was 4×2, now 8×4).** 384 × 192, 48px cells.
+**The column axis is now FACING, not animation state:**
+
+```
+col:    0     1     2     3     4     5     6     7
+        S    SE     E    NE     N    NW     W    SW
+row 0: brood walk0  (all eight columns hold the same south frame —
+row 1: brood walk1   the brood has no rotations yet)
+row 2: retinue walk0 (eight real facings)
+row 3: retinue walk1
+```
+
+The attack and hit columns are **gone**, on the owner's call (2026-07-26). Attack still
+reads — it was always also a lunge, and that lunge is now the whole tell. Hit does
+**not** read on the sprite path any more: the debug renderer still flashes, but Niagara
+has no per-particle colour array here, so restoring it needs a new array plus a graph
+edit. `SwingBit`/`HitFlashBit` are still written and still used by the debug renderer —
+they are simply no longer decoded into a cell.
+
+The same grid is declared in C++ as `SwarmSheet` (`Mass/SwarmFragments.h`) and is
+**not** readable by the Niagara asset — if you change it, change §3.5's Sub UV too.
+Getting them out of step is silent and looks like every unit wearing the wrong frame.
+
+Column order is south-first, counter-clockwise, matching the order PixelLab returns
+rotations in and the `frame_map` in `docs/data/art/requests/swarm-units.json`.
+
+`report swarm-units` prints a **PLACEHOLDER** verdict while any cell is unmanaged art.
+As of 2026-07-26 all 32 are: the brood has no prose spec to generate against (canon has
+no antagonist yet) and the retinue is owner-supplied art from the web Character Creator
+rather than a managed request. That verdict is the signal — treat the sprites as a
+stand-in until it reads PASS.
+
+**Known gap:** only the *south* column has true walk frames. The other seven duplicate
+their idle rotation into both walk rows, so a unit walking south bobs and one walking
+north is static. One 8-direction template walk (~8 generations) fills them in with no
+layout, decode or Sub UV change.
 
 ## 2. Material `M_Swarm`
 1. New Material in `Content/Spike1`, name `M_Swarm`.
@@ -37,12 +91,20 @@ Double-click `ELVTR.uproject` (UE 5.8). If prompted to rebuild modules, accept.
      (Select Position From Array, Direct Set by `Engine.ExecIndex`).
    - Set `Particles.SubImageIndex` = `User.SubImages[Exec Index]`
      (Select Float From Array, Direct Set by `Engine.ExecIndex`).
-     The index is already decoded on the CPU in `SwarmRenderActor.cpp`:
-     walk frame (bit 0) + 2 × team (bit 3) → 2×2 SubUV cell. Attack tint
-     (bit 1) and flip (bit 2) are optional for the spike.
+     The index is already decoded on the CPU in `SwarmRenderActor.cpp` via
+     `SwarmSheet::CellFor` — `col + 8*row`, where the column is the unit's facing
+     resolved against the live camera yaw (`SwarmFacing::ColumnFor`) and the row is
+     the team bit plus the walk frame.
 5. Render section — **Sprite Renderer**:
-   - Material = `M_Swarm`, **Sub UV = 2 × 2**, Alignment = Unaligned,
-     Facing Mode = Face Camera.
+   - Material = `M_Swarm`, **Sub UV = 8 × 4** (updated 2026-07-26, was 4 × 2, before
+     that 2 × 2 — see §1), Alignment = Unaligned, Facing Mode = Face Camera.
+   - This field **can** be set from script, but only through the Niagara MCP toolset
+     (`NiagaraToolset_System.SetRendererData`), not editor Python — see the sprite
+     skill's "Niagara Sub UV" note for the exact calls and the save trap. It was set to
+     8 × 4 that way on 2026-07-26 and read back to confirm.
+   - A stale Sub UV is silent and just draws the wrong frame on every unit, so after any
+     sheet change, read it back (or open `NS_Swarm` and check by eye) before judging the
+     result.
 6. Save. (If array sampling nodes differ in 5.8's UI, the invariant is:
    particle i takes Positions[i] and SubImages[i], burst count = Count.)
 

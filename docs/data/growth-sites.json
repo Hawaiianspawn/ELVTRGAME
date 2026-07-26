@@ -1,0 +1,39 @@
+{
+  "$schema_note": "The growth site — where the run's meaningful decisions happen. It is the same breadth/depth/sustain axis as the GDD §6 fork events, at a continuous grain. Decisions + rationale in SYSTEMS.md §4/§7. PROTOTYPE DIALS.",
+  "version": "0.1-vslice",
+  "last_updated": "2026-07-24",
+
+  "site": {
+    "note": "A camp panel reached at each breather. Player arrives with an Ember pool and allocates across the actions below. Costs are set so ~30-40 Embers buys 2-3 actions — you cannot buy all. The scarcity is the design.",
+    "actions": [
+      { "id": "recruit",   "label": "Rally the freed", "embers": 12, "effect": "+10 units at FREED tier",        "supply_demand_delta": 10, "lane": "breadth" },
+      { "id": "promote",   "label": "Drill the line",  "embers": 15, "effect": "promote up to 20 units one tier","supply_demand_delta": 0,  "lane": "depth" },
+      { "id": "provision", "label": "Break out stores","embers": 10, "effect": "+25 Supply capacity",            "supply_demand_delta": 0,  "lane": "sustain" },
+      { "id": "item",      "label": "Take up arms",    "embers": 20, "effect": "choose 1 of 3 offered items",    "supply_demand_delta": 0,  "lane": "spice" },
+      { "id": "hero",      "label": "Sharpen the kit", "embers": 18, "effect": "buy 1 hero ability node",        "supply_demand_delta": 0,  "lane": "hero" }
+    ],
+    "budget_note": "The three TRIANGLE lanes (recruit/promote/provision) total 37 Embers — at ~33 on arrival you can take two of three, or two lanes plus a partial. Item (20) and hero (18) are the real temptations: taking one means giving up most of the triangle that turn."
+  },
+
+  "slice_placement": [
+    {
+      "id": "growth-A",
+      "after": "wave 1 breather (replaces the gate-1 flat refill-to-120)",
+      "embers_on_arrival_est": 33,
+      "embers_math": "~230 brood killed x 0.1 + 10 grant",
+      "note": "First real decision of the run. Currently a free refill — the single highest-leverage change to add meaningful choice."
+    },
+    {
+      "id": "growth-B",
+      "after": "wave 2 breather",
+      "embers_on_arrival_est": 52,
+      "embers_math": "~420 brood killed x 0.1 + 10 grant (wave 2 is bigger, so income scales)",
+      "note": "Bigger pool before the hardest wave — the run-defining allocation. Whether the wave-2 income scaled correctly is a key tuning read."
+    }
+  ],
+
+  "relation_to_decision_events": {
+    "note": "The GDD §6 fork/sacrifice events are the DRAMATIC one-shot version of this same triangle. 'Free the pens vs. raid the armory' is breadth-vs-depth authored as a story beat. The growth site is the continuous, player-driven version. Same axis, two grains — the economy and the decisions pillar are one system.",
+    "slice_scope": "The slice's 2 authored decision events (RTS-VERTICAL-SLICE §5) sit ON TOP of these growth sites, not instead of them."
+  }
+}

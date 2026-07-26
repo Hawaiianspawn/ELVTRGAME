@@ -1,0 +1,97 @@
+{
+  "$schema": "../sprite-request.schema.json",
+  "id": "soldier-01",
+  "revision": 2,
+  "subject": {
+    "title": "Volunteer (soldier roster v1, rung 1)",
+    "kind": "retinue",
+    "faction": "none",
+    "class_tie": "Vanguard",
+    "spec": "../../../art/soldier-roster-v1.md"
+  },
+  "canon": {
+    "palette": "demichrome-4",
+    "value_dominance": "bone",
+    "pale_usage": "none",
+    "silhouette": "thin and destitute - a rag-wrapped soft-topped head with no hard headgear and no brim line, narrow sloping shoulders, and one rigid haft on a hard forty-five degree diagonal, thick and dead straight along its whole length, gripped at the chest and stopping well below the top of the head",
+    "reads_as": "a person who picked up a tool and followed the light - destitute, not equipped",
+    "moving": true,
+    "light_shift_variant": false
+  },
+  "prompt": {
+    "description": "A destitute volunteer with nothing that was ever issued to them. An oversized head wrapped in a torn cloth rag, no helmet and no brim, an open face with two sunken eyes. A plain unbelted shirt, thin sloping shoulders, bare wrapped legs and rag-bound feet. Shouldered out to one side at a hard forty-five degree angle, one thick stiff wooden haft with a small squared iron cap. Nothing on this person is armour.",
+    "must_include": [
+      "torn cloth rag wrapping the head, knotted to one side - no helmet or brim",
+      "one thick wooden haft on a hard forty-five degree diagonal, dead straight and rigid, the same thickness along its whole length",
+      "the haft gripped at the chest and stopping below the top of the head - it never rises past the crown",
+      "a small squared iron cap on the raised end, no wider than the haft",
+      "a plain unbelted shirt and bare wrapped legs, no armour of any kind",
+      "two dark sunken eye recesses in an open face"
+    ],
+    "must_avoid": [
+      "helmet, skullcap, brim, visor, crest or plume",
+      "any armour plate, pauldron, mail or greaves",
+      "spear, polearm or any weapon held vertically",
+      "a curved, bent, drooping, tapering or flexible haft, or a rope, chain, whip or flail",
+      "an axe head, blade, hammer or ball on the end of the haft",
+      "any held object rising above the top of the head",
+      "shield, banner, flag or standard",
+      "lamp, torch, candle or visible flame",
+      "glow, halo, sparks or rays around any pixel",
+      "bright or glowing eyes",
+      "near-white highlights or specular glints",
+      "cape or cloak",
+      "large solid black masses, heavy internal outlining or cast shadow"
+    ],
+    "style_mode": "flat"
+  },
+  "pixellab": {
+    "mode": "standard",
+    "size": 48,
+    "view": "high top-down",
+    "n_directions": 8,
+    "outline": "selective outline",
+    "detail": "low detail",
+    "shading": "flat shading",
+    "proportions": {
+      "type": "preset",
+      "name": "chibi"
+    },
+    "text_guidance_scale": 12,
+    "body_type": "humanoid",
+    "template": null
+  },
+  "anchor": {
+    "strategy": "authored",
+    "source_direction": "south",
+    "shared_anchor_id": null,
+    "approved": true
+  },
+  "animations": [],
+  "portrait": {
+    "enabled": false
+  },
+  "output": {
+    "cell": 48,
+    "grid": [
+      4,
+      2
+    ],
+    "frame_map": {
+      "0": "south.idle",
+      "1": "south-east.idle",
+      "2": "east.idle",
+      "3": "north-east.idle",
+      "4": "north.idle",
+      "5": "north-west.idle",
+      "6": "west.idle",
+      "7": "south-west.idle"
+    },
+    "texture": "T_Soldier_01",
+    "content_path": "/Game/Sprites/Units",
+    "sheet_srgb": true
+  },
+  "budget": {
+    "max_generations": 4
+  }
+}

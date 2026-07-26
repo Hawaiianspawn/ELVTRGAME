@@ -1,0 +1,232 @@
+<title>Emberkeep — Army Composition (flanking concept)</title>
+<style>
+  :root {
+    /* Demichrome — the four locked values (docs/art/aesthetic-direction.md) */
+    --dark:  #211e20;   /* ground / ink            */
+    --steel: #555568;   /* borders / spent / fallen */
+    --bone:  #a0a08b;   /* surfaces / body text     */
+    --pale:  #e9efec;   /* focus / healthy / glint  */
+    --flame: #fff8ec;   /* the one white exception, the flame core */
+    --warn:  #b23a2c;   /* reserved red — cost / a squad in trouble, used once */
+
+    --mono: ui-monospace, "Cascadia Mono", "SF Mono", "JetBrains Mono", Consolas, monospace;
+    --pip: 7px;
+    --stack-gap: clamp(10px, 1.4vh, 18px);
+  }
+
+  * { box-sizing: border-box; }
+  body { margin: 0; }
+
+  .stage {
+    min-height: 100vh;
+    /* the dark world + the bearer's pool of light at dead centre */
+    background:
+      radial-gradient(58% 52% at 50% 47%,
+        rgba(233,239,236,.12), rgba(160,160,139,.06) 42%, rgba(33,30,32,0) 72%),
+      var(--dark);
+    color: var(--pale);
+    font-family: var(--mono);
+    -webkit-font-smoothing: antialiased;
+    display: grid;
+    grid-template-columns: 1fr auto 1fr;
+    align-items: center;
+    gap: clamp(14px, 3.5vw, 54px);
+    padding: clamp(14px, 3vw, 44px);
+  }
+
+  /* ---- the flanking host stacks ------------------------------------ */
+  .host {
+    display: flex;
+    flex-direction: column;
+    gap: var(--stack-gap);
+    max-width: 320px;
+  }
+  .host--left  { align-items: flex-end;  justify-self: end;   text-align: right; }
+  .host--right { align-items: flex-start; justify-self: start; text-align: left;  }
+
+  .squad {
+    width: 100%;
+    max-width: 300px;
+    border: 1px solid var(--steel);
+    background: rgba(33,30,32,.62);
+    padding: 8px 10px 9px;
+    display: flex;
+    flex-direction: column;
+    gap: 7px;
+    /* the stacks lean into the centre — the host turned toward the bearer */
+    transition: border-color .15s ease, transform .15s ease;
+  }
+  .host--left  .squad { transform: perspective(900px) rotateY(6deg);  transform-origin: right center; }
+  .host--right .squad { transform: perspective(900px) rotateY(-6deg); transform-origin: left center;  }
+  .squad:hover { border-color: var(--bone); }
+
+  .squad__top {
+    display: flex; align-items: baseline; gap: 10px;
+    justify-content: space-between;
+  }
+  .host--left .squad__top { flex-direction: row-reverse; }
+  .squad__name {
+    font-size: 11px; letter-spacing: .14em; text-transform: uppercase;
+    color: var(--pale); font-weight: 700;
+  }
+  .squad__count {
+    font-size: 11px; color: var(--bone); font-variant-numeric: tabular-nums;
+    white-space: nowrap;
+  }
+  .squad__count b { color: var(--pale); font-weight: 700; }
+
+  /* pip muster grid — Pale = standing, Steel = fallen */
+  .pips { display: grid; gap: 2px; justify-content: inherit; }
+  .host--left  .pips { justify-content: end; }
+  .host--right .pips { justify-content: start; }
+  .pip { width: var(--pip); height: var(--pip); background: var(--steel); }
+  .pip.up { background: var(--pale); }
+
+  .chip {
+    align-self: flex-start;
+    font-size: 8px; letter-spacing: .18em; text-transform: uppercase;
+    color: var(--dark); background: var(--pale);
+    padding: 2px 6px 1px;
+  }
+  .host--left .chip { align-self: flex-end; }
+
+  /* a squad in real trouble gets the one red glint (reserved colour) */
+  .squad.wounded { border-color: color-mix(in srgb, var(--warn) 55%, var(--steel)); }
+  .squad.wounded .chip { background: var(--warn); color: var(--flame); }
+
+  /* ---- the bearer at the centre ------------------------------------ */
+  .bearer { display: flex; flex-direction: column; align-items: center; gap: 14px; }
+
+  .cam {
+    --s: clamp(220px, 30vw, 340px);
+    position: relative; width: var(--s); height: var(--s);
+    border: 2px solid var(--steel);
+    background: radial-gradient(circle at 50% 54%,
+        var(--flame) 0%, rgba(255,248,236,.55) 5%,
+        rgba(160,160,139,.30) 26%, rgba(85,85,104,.10) 46%, rgba(33,30,32,1) 74%);
+    overflow: hidden;
+    image-rendering: pixelated;
+  }
+  .cam__label {
+    position: absolute; top: 6px; left: 8px;
+    font-size: 8px; letter-spacing: .2em; color: var(--bone);
+    text-transform: uppercase; opacity: .8;
+  }
+  /* the flame, riding above the bearer's head */
+  .flamecore {
+    position: absolute; left: 50%; top: 26%; width: 9px; height: 9px;
+    transform: translate(-50%,-50%);
+    background: var(--flame); border-radius: 50%;
+    box-shadow: 0 0 22px 10px rgba(255,248,236,.7);
+    animation: flick 2.3s ease-in-out infinite;
+  }
+  @keyframes flick { 0%,100%{opacity:1; transform:translate(-50%,-50%) scale(1);} 50%{opacity:.82; transform:translate(-50%,-52%) scale(.9);} }
+  /* the bearer silhouette, lit on the flame-facing side */
+  .bearerfig {
+    position: absolute; left: 50%; top: 54%; width: 12px; height: 22px;
+    transform: translate(-50%,-50%);
+    background: linear-gradient(90deg, var(--pale) 50%, var(--steel) 50%);
+  }
+  /* the retinue ringing the light; brood pressing in from the dark edge */
+  .u { position: absolute; width: 8px; height: 8px; transform: translate(-50%,-50%); }
+  .u.ret { background: var(--pale); }
+  .u.bro { background: var(--warn); opacity: .85; }
+
+  .company { text-align: center; display: flex; flex-direction: column; gap: 4px; }
+  .company__name { font-size: 13px; letter-spacing: .22em; text-transform: uppercase; color: var(--pale); font-weight: 700; }
+  .company__stat { font-size: 11px; color: var(--bone); font-variant-numeric: tabular-nums; }
+  .company__stat b { color: var(--pale); }
+  .company__stat .st { color: var(--pale); letter-spacing: .12em; }
+
+  /* ---- drawing-board caption --------------------------------------- */
+  .note {
+    position: fixed; left: 0; right: 0; bottom: 0;
+    padding: 8px 14px;
+    font-size: 10px; letter-spacing: .06em; color: var(--bone);
+    background: linear-gradient(rgba(33,30,32,0), rgba(33,30,32,.9));
+    display: flex; gap: 8px 22px; flex-wrap: wrap; justify-content: center;
+  }
+  .note b { color: var(--pale); font-weight: 700; }
+
+  @media (max-width: 720px) {
+    .stage { grid-template-columns: 1fr; gap: 20px; }
+    .host { max-width: 100%; align-items: stretch !important; justify-self: stretch; text-align: left; }
+    .host--left .squad, .host--right .squad { transform: none; }
+  }
+  @media (prefers-reduced-motion: reduce) { .flamecore { animation: none; } }
+</style>
+
+<div class="stage">
+  <!-- LEFT WING -->
+  <div class="host host--left">
+    <div class="squad" data-size="24" data-standing="24" data-cols="6">
+      <div class="squad__top"><span class="squad__name">Shield</span><span class="squad__count"><b>24</b>/24</span></div>
+      <div class="pips"></div><span class="chip">Hold</span>
+    </div>
+    <div class="squad" data-size="50" data-standing="50" data-cols="10">
+      <div class="squad__top"><span class="squad__name">Spearmen</span><span class="squad__count"><b>50</b>/50</span></div>
+      <div class="pips"></div><span class="chip">Follow</span>
+    </div>
+    <div class="squad" data-size="20" data-standing="20" data-cols="5">
+      <div class="squad__top"><span class="squad__name">Vets</span><span class="squad__count"><b>20</b>/20</span></div>
+      <div class="pips"></div><span class="chip">Follow</span>
+    </div>
+  </div>
+
+  <!-- THE BEARER -->
+  <div class="bearer">
+    <div class="cam">
+      <div class="cam__label">Unit Cam</div>
+      <div class="flamecore"></div>
+      <div class="bearerfig"></div>
+    </div>
+    <div class="company">
+      <div class="company__name">Vanguard Company</div>
+      <div class="company__stat"><b>130</b> / 140 standing &nbsp;·&nbsp; <span class="st">Follow</span></div>
+    </div>
+  </div>
+
+  <!-- RIGHT WING -->
+  <div class="host host--right">
+    <div class="squad wounded" data-size="24" data-standing="18" data-cols="6">
+      <div class="squad__top"><span class="squad__name">Shield</span><span class="squad__count"><b>18</b>/24</span></div>
+      <div class="pips"></div><span class="chip">Rally</span>
+    </div>
+    <div class="squad" data-size="20" data-standing="16" data-cols="5">
+      <div class="squad__top"><span class="squad__name">Reserve</span><span class="squad__count"><b>16</b>/20</span></div>
+      <div class="pips"></div><span class="chip">Hold</span>
+    </div>
+    <div class="squad" data-size="2" data-standing="2" data-cols="2">
+      <div class="squad__top"><span class="squad__name">Banner</span><span class="squad__count"><b>2</b>/2</span></div>
+      <div class="pips"></div><span class="chip">Follow</span>
+    </div>
+  </div>
+</div>
+
+<div class="note">
+  <span><b>Concept</b> — the roster flanks the bearer; the flame is the focal point.</span>
+  <span>Open question: <b>what splits left / right?</b> (role · flank · charge-order)</span>
+  <span>Palette locked to Demichrome; a wounded squad shows the one reserved red.</span>
+</div>
+
+<script>
+  for (const sq of document.querySelectorAll(".squad")) {
+    const size = +sq.dataset.size, standing = +sq.dataset.standing, cols = +sq.dataset.cols;
+    const grid = sq.querySelector(".pips");
+    grid.style.gridTemplateColumns = `repeat(${cols}, var(--pip))`;
+    for (let i = 0; i < size; i++) {
+      const p = document.createElement("span");
+      p.className = "pip" + (i < standing ? " up" : "");
+      grid.appendChild(p);
+    }
+  }
+  // scatter a few units inside the light pool so the centre reads as the live view
+  const cam = document.querySelector(".cam");
+  const units = [[50,40,'bro'],[62,44,'bro'],[40,45,'bro'],[44,64,'ret'],[57,66,'ret'],[50,74,'ret'],[36,58,'ret'],[64,60,'ret']];
+  for (const [x,y,k] of units) {
+    const u = document.createElement("div");
+    u.className = "u " + k;
+    u.style.left = x + "%"; u.style.top = y + "%";
+    cam.appendChild(u);
+  }
+</script>

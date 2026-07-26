@@ -1,0 +1,95 @@
+{
+  "$schema": "../sprite-request.schema.json",
+  "id": "soldier-02",
+  "revision": 1,
+  "subject": {
+    "title": "Line infantry (soldier roster v1, rung 2)",
+    "kind": "retinue",
+    "faction": "none",
+    "class_tie": "Vanguard",
+    "spec": "../../../art/soldier-roster-v1.md"
+  },
+  "canon": {
+    "palette": "demichrome-4",
+    "value_dominance": "mixed",
+    "pale_usage": "none",
+    "silhouette": "regular and symmetric - a plain metal dome helm with a hard dark brim, a flat level shoulder line, and one dead-vertical wooden shaft held close to the body; nothing leaves the outline sideways",
+    "reads_as": "the plain soldier the rest of the roster is measured against",
+    "moving": true,
+    "light_shift_variant": false
+  },
+  "prompt": {
+    "description": "An ordinary line soldier, plainly and symmetrically equipped. A smooth rounded metal skullcap sits low over an oversized head with a hard shadowed brim beneath it, and an open face with two sunken eyes. A padded jack over the torso with plain cloth sleeves, a belt, a short armoured skirt, bare shins and dark boots. Held dead upright beside the body, a plain wooden spear with a small narrow iron head. Both shoulders are level and nothing juts out to either side.",
+    "must_include": [
+      "a smooth rounded metal skullcap with a hard dark brim beneath it",
+      "a flat level shoulder line, bilaterally symmetric",
+      "one plain wooden spear held dead vertical and close to the body",
+      "a small narrow iron spear head no more than four pixels wide",
+      "a short armoured skirt below the belt with bare shins beneath it",
+      "two dark sunken eye recesses in an open face"
+    ],
+    "must_avoid": [
+      "banner, flag, pennant, standard or any cloth rectangle",
+      "shield of any shape",
+      "asymmetric, mismatched or scavenged gear",
+      "visor, faceplate, crest or plume",
+      "horn, trumpet or any curved object",
+      "lamp, torch, candle or visible flame",
+      "glow, halo, sparks or rays around any pixel",
+      "bright or glowing eyes",
+      "white or near-white highlights, specular glints",
+      "cape or cloak",
+      "large solid black body mass, heavy internal outlining, deep recesses, cast shadow"
+    ],
+    "style_mode": "flat"
+  },
+  "pixellab": {
+    "mode": "standard",
+    "size": 48,
+    "view": "high top-down",
+    "n_directions": 8,
+    "outline": "selective outline",
+    "detail": "low detail",
+    "shading": "flat shading",
+    "proportions": {
+      "type": "preset",
+      "name": "chibi"
+    },
+    "text_guidance_scale": 12,
+    "body_type": "humanoid",
+    "template": null
+  },
+  "anchor": {
+    "strategy": "authored",
+    "source_direction": "south",
+    "shared_anchor_id": null,
+    "approved": true
+  },
+  "animations": [],
+  "portrait": {
+    "enabled": false
+  },
+  "output": {
+    "cell": 48,
+    "grid": [
+      4,
+      2
+    ],
+    "frame_map": {
+      "0": "south.idle",
+      "1": "south-east.idle",
+      "2": "east.idle",
+      "3": "north-east.idle",
+      "4": "north.idle",
+      "5": "north-west.idle",
+      "6": "west.idle",
+      "7": "south-west.idle"
+    },
+    "texture": "T_Soldier_02",
+    "content_path": "/Game/Sprites/Units",
+    "sheet_srgb": true
+  },
+  "budget": {
+    "max_generations": 4
+  }
+}

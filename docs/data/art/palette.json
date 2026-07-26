@@ -1,0 +1,98 @@
+{
+  "version": "1.0",
+  "updated": "2026-07-25",
+  "note": "Machine-readable form of the palette locked by the 2026-07-12 reset in docs/art/aesthetic-direction.md. That document is the source of truth; this file exists so the pipeline can ENFORCE it. If they disagree, the markdown wins and this file is the bug.",
+
+  "luma_model": {
+    "space": "gamma sRGB (no linearization)",
+    "weights": { "r": 0.2126, "g": 0.7152, "b": 0.0722 },
+    "why": "Rec.709 luma on gamma-space sRGB values. The ramp is near-neutral, so quantizing by luma distance is more predictable than RGB distance and keeps the four values evenly separated. Linear-light luminance would crush the ramp toward the dark end and misassign midtones."
+  },
+
+  "palettes": {
+    "demichrome-4": {
+      "name": "2-bit Demichrome",
+      "locked": "2026-07-12",
+      "authority": "docs/art/aesthetic-direction.md (RESET banner, lines 8-46)",
+      "scope": "Every sprite in the game — heroes, retinue, Still Legion, the Quiet, the Unwitnessed, UI, portraits, vignettes. No sprite may introduce a fifth value or a palette-swapped variant without an explicit owner exception.",
+      "values": [
+        {
+          "key": "dark",
+          "hex": "#211e20",
+          "rgb": [33, 30, 32],
+          "luma": 0.1207,
+          "name": "Demichrome Dark",
+          "role": "darkest — outline, void, recess, ground state"
+        },
+        {
+          "key": "steel",
+          "hex": "#555568",
+          "rgb": [85, 85, 104],
+          "luma": 0.3387,
+          "name": "Demichrome Steel",
+          "role": "dark-mid — the game's only cold/armor/shadow value"
+        },
+        {
+          "key": "bone",
+          "hex": "#a0a08b",
+          "rgb": [160, 160, 139],
+          "luma": 0.6216,
+          "name": "Demichrome Bone",
+          "role": "pale-mid — the game's only warm/skin/highlight value"
+        },
+        {
+          "key": "pale",
+          "hex": "#e9efec",
+          "rgb": [233, 239, 236],
+          "luma": 0.9314,
+          "name": "Demichrome Pale",
+          "role": "brightest — the game's only bright: lamps, eyes, marks, UI"
+        }
+      ],
+      "mask": {
+        "note": "Transparency is not a value. Alpha must be binary (0 or 255) — the material is Unlit + Masked and partial alpha is the most common silent breakage.",
+        "threshold": 128
+      },
+      "ascii_legend": {
+        "note": "The characters art specs use to draw pixel maps in markdown (the silhouette guides in docs/art/*.md). 'pixelpipe.py authored' renders such a block straight to a PNG -- so a spec's silhouette guide is not a sketch of the sprite, it IS the sprite: on-palette by construction, correctly proportioned, and costing zero generations. Keep these characters stable; changing one invalidates every existing spec.",
+        "map": { ".": null, "#": "dark", "S": "steel", "b": "bone", "@": "pale" }
+      },
+      "light_shift": {
+        "rule": "Light is a one-value-brighter shift along this same ladder, never a new hex. dark->steel, steel->bone, bone->pale, pale->pale.",
+        "map": { "dark": "steel", "steel": "bone", "bone": "pale", "pale": "pale" }
+      },
+      "dim_shift": {
+        "rule": "The inverse: one value darker along the same ladder, never a new hex. Added 2026-07-25 because the flame premise needs dimming at least as often as brightening -- units outside the leash render one value down (docs/narrative/FLAME-FOUNDATION.md 3a), and a guttering flame dims the bearer itself. Both are a 4-entry value remap driven by one scalar on the Unlit+Masked material, not a second texture.",
+        "map": { "pale": "bone", "bone": "steel", "steel": "dark", "dark": "dark" }
+      },
+      "dither": {
+        "moving_min_block": 2,
+        "static_min_block": 1,
+        "rule": "2x2 blocks minimum on anything that moves; 1px halftone is reserved for static UI and portraits. 1px dither on a moving sprite shimmers at horde scale.",
+        "authority": "docs/art/aesthetic-direction.md (Direction A, rendering/dither rules)"
+      }
+    }
+  },
+
+  "retired_hexes": {
+    "note": "Hexes voided by the 2026-07-12 reset. The validator rejects any request or linked spec that cites one. Several are still present in stale docs (CLASSES.md:78 cites #f0b84a) — that is why this list exists.",
+    "entries": [
+      { "hex": "#211210", "was": "Vault Dark",      "family": "Gatecamp / Honey Milk", "retired_by": "docs/art/hero-palettes.md reset banner" },
+      { "hex": "#5e2d20", "was": "Patched Steel",   "family": "Gatecamp / Honey Milk", "retired_by": "docs/art/hero-palettes.md reset banner" },
+      { "hex": "#c76b2a", "was": "Kitchen Tin",     "family": "Gatecamp / Honey Milk", "retired_by": "docs/art/hero-palettes.md reset banner" },
+      { "hex": "#f0c260", "was": "Gatecamp Bright", "family": "Gatecamp / Honey Milk", "retired_by": "docs/art/hero-palettes.md reset banner" },
+      { "hex": "#f0b84a", "was": "Roll-Gold",       "family": "older hero-bright trio", "retired_by": "docs/art/hero-palettes.md reset banner", "still_cited_in": "CLASSES.md:78" },
+      { "hex": "#1a1c2c", "was": "Vault Dark (older)",  "family": "older hero-bright trio", "retired_by": "docs/art/hero-palettes.md reset banner" },
+      { "hex": "#4e5a66", "was": "unnamed dark-mid",    "family": "older hero-bright trio", "retired_by": "docs/art/hero-palettes.md reset banner" },
+      { "hex": "#b08b5e", "was": "unnamed pale-mid",    "family": "older hero-bright trio", "retired_by": "docs/art/hero-palettes.md reset banner" }
+    ]
+  },
+
+  "shape_carriers": {
+    "note": "The four shape-only bright carriers survive the reset (docs/art/hero-palettes.md §3). With hue gone game-wide, these are load-bearing: they are how the single bright value stays legible as four different things.",
+    "rectangle_flip": { "owner": "Vanguard",     "use": "banners only" },
+    "dot_cluster":    { "owner": "Relickeeper",  "use": "rune marks" },
+    "thin_contour":   { "owner": "Pathfinder",   "use": "quarry marks" },
+    "point_halo":     { "owner": "Lampbearer",   "use": "lamps and honest light" }
+  }
+}

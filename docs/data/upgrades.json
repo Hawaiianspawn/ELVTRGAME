@@ -1,0 +1,45 @@
+{
+  "$schema_note": "Tuned numbers for the three upgrade layers: unit-tier ladder (depth), stacking run-items (spice), hero ability nodes. Decisions + rationale in SYSTEMS.md §1/§3/§8. PROTOTYPE DIALS — re-tune in play.",
+  "version": "0.1-vslice",
+  "last_updated": "2026-07-24",
+
+  "tier_ladder": {
+    "note": "The Liberated ladder from CLASSES.md §1. RECRUIT adds bodies at FREED (weak). PROMOTE (depth) spends Embers to move units up a tier — adds NO upkeep, so it is the upkeep-efficient path. MILITIA = the gate-1 prototype unit (130 HP / 30 DPS) and the balance anchor. All tiers are RUN-SCOPED (reset each run — roguelike purity, GDD §3).",
+    "tiers": [
+      { "id": "freed",     "hp": 90,  "dps": 20, "upkeep": 1, "traits": ["improvised weapons", "routs under pressure"] },
+      { "id": "militia",   "hp": 130, "dps": 30, "upkeep": 1, "traits": ["armed", "BALANCE ANCHOR — the gate-1 unit"] },
+      { "id": "veteran",   "hp": 190, "dps": 45, "upkeep": 1, "traits": ["holds formation under fear (no rout)", "persists across waves"] },
+      { "id": "bannerman", "hp": 160, "dps": 35, "upkeep": 1, "rare": true, "stretch": true, "traits": ["aura: +15% attack speed to Liberated within 400uu", "SLICE STRETCH — item/event reward only, not a purchasable tier"] }
+    ]
+  },
+
+  "items": {
+    "note": "Stacking run-items — the sanctioned 'Loot v0' (RTS-VERTICAL-SLICE §4), NOT the real deferred loot system (GDD §8). Each item feeds hero OR retinue OR the economy — the GDD twist that loot serves the army, not just the hero. 3 offered per growth site; take 1.",
+    "catalog": [
+      { "id": "muster_horn",   "kind": "hero",     "effect": "Banner Slam radius +30%" },
+      { "id": "whetstone",     "kind": "retinue",  "stacks": true, "effect": "+3 DPS to all Liberated (per copy)" },
+      { "id": "iron_rations",  "kind": "economy",  "effect": "+15 Supply capacity" },
+      { "id": "war_drum",      "kind": "retinue",  "effect": "+10% retinue move speed; re-form to formation faster" },
+      { "id": "field_standard","kind": "economy",  "effect": "degrade floor softened: min DPS multiplier 0.4 -> 0.7 (halves the unfed penalty)" },
+      { "id": "oath_ledger",   "kind": "economy",  "effect": "each Veteran that survives a wave yields +2 Embers (turns on embers.income.veteran_survives_wave)" }
+    ]
+  },
+
+  "hero_nodes": {
+    "note": "Vanguard kit upgrades (GDD/CLASSES.md §1). Bought with Embers at a growth site — so a hero node DIRECTLY competes with retinue growth for the same currency. That competition IS the point (hero-vs-army relevance tension, GDD §4). Pick one node per ability line.",
+    "abilities": {
+      "banner_slam": [
+        { "id": "longer_watch", "effect": "+50% Banner Slam duration" },
+        { "id": "braced",       "effect": "allies in the banner radius also take -20% damage" }
+      ],
+      "shield_rush": [
+        { "id": "wider_wedge",  "effect": "+50% knockback and bodyblock width" },
+        { "id": "second_wind",  "effect": "-30% Shield Rush cooldown" }
+      ],
+      "the_muster": [
+        { "id": "quicker_muster", "effect": "ult charges 20% faster" },
+        { "id": "field_mend",     "effect": "the Muster charge restores degraded units to full strength for its duration" }
+      ]
+    }
+  }
+}

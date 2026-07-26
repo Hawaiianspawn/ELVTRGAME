@@ -1,0 +1,89 @@
+{
+  "$schema": "../sprite-request.schema.json",
+
+  "id": "protagonist-02",
+  "revision": 1,
+
+  "subject": {
+    "title": "Protagonist prototype 02 - The Ember Core",
+    "kind": "hero",
+    "faction": "none",
+    "class_tie": "none",
+    "brief": null,
+    "spec": "../../../art/protagonist-prototypes.md"
+  },
+
+  "canon": {
+    "palette": "demichrome-4",
+    "value_dominance": "steel",
+    "pale_usage": "halo",
+    "silhouette": "an A - a wide planted base under a narrow hard-edged torso, nothing leaving the body outline, the bright caged inside the chest",
+    "reads_as": "an empty-handed figure planted wide, lit from a slot cut in its own chest",
+    "moving": true,
+    "light_shift_variant": false
+  },
+
+  "prompt": {
+    "description": "A bare-headed figure in a heavy segmented breastplate, standing planted with the feet wide apart and both hands empty and open at the sides. No helmet, no hat, no hood: cropped hair, blunt face, heavy brow. Set into the centre of the breastplate is a small square iron window, barred across, with fire burning behind the bars; thick metal frames it hard on all four sides and no fire escapes it. Narrow shoulders over a wide braced stance, short thick legs, bare forearms. Nothing is carried and nothing hangs off the body.",
+    "must_include": [
+      "bare head, no helmet, no hat, no hood",
+      "both hands empty and open, nothing carried",
+      "small square barred fire window set into the centre of the breastplate",
+      "feet planted wide apart, wide base under narrow shoulders",
+      "clean unbroken body outline, nothing protruding"
+    ],
+    "must_avoid": [
+      "cape, cloak or hanging cloth",
+      "helmet, hat, hood or headband",
+      "any held weapon, staff, lantern or banner",
+      "glow, halo, sparks or rays around any pixel",
+      "bright or glowing eyes",
+      "fire escaping the chest frame or licking past the armour",
+      "backpack or shoulder-mounted object",
+      "wings, horns or crest"
+    ],
+    "style_mode": "flat"
+  },
+
+  "pixellab": {
+    "mode": "standard",
+    "size": 48,
+    "view": "low top-down",
+    "n_directions": 8,
+    "outline": "selective outline",
+    "detail": "low detail",
+    "shading": "flat shading",
+    "proportions": { "type": "preset", "name": "chibi" },
+    "text_guidance_scale": 12,
+    "body_type": "humanoid",
+    "template": null
+  },
+
+  "anchor": {
+    "strategy": "text-only",
+    "source_direction": "south",
+    "shared_anchor_id": null,
+    "approved": false
+  },
+
+  "animations": [],
+
+  "portrait": {
+    "enabled": false
+  },
+
+  "output": {
+    "cell": 48,
+    "grid": [1, 1],
+    "frame_map": {
+      "0": "south.idle"
+    },
+    "texture": "T_Proto_Protagonist_02",
+    "content_path": "/Game/Sprites/Prototypes",
+    "sheet_srgb": true
+  },
+
+  "budget": {
+    "max_generations": 2
+  }
+}

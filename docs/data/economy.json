@@ -1,0 +1,50 @@
+{
+  "$schema_note": "Tuned numbers for the retinue economy. Decisions + rationale live in SYSTEMS.md §7. All values are PROTOTYPE DIALS (first pass) to be re-tuned in play, not committed balance.",
+  "version": "0.1-vslice",
+  "last_updated": "2026-07-24",
+
+  "supply": {
+    "model": "headroom-ratio",
+    "note": "Supply is CAPACITY (headroom), not a draining stock. Upkeep DEMAND = sum of per-unit upkeep. Units degrade when demand > capacity; they NEVER die from upkeep (GDD §7). Provision raises capacity; recruiting raises demand.",
+    "start_capacity": 60,
+    "upkeep_per_unit": 1,
+    "upkeep_note": "Uniform 1/unit across tiers in the slice. This makes PROMOTE upkeep-neutral (quality lane) and RECRUIT upkeep-hungry (breadth lane) — the core of the triangle. Per-tier upkeep is a parked v2 knob.",
+    "degrade": {
+      "trigger": "demand > capacity",
+      "dps_multiplier": "clamp(capacity / demand, min_multiplier, 1.0)",
+      "min_multiplier": 0.4,
+      "also_applies": [
+        "dimmed sprite ('unfed' read)",
+        "cannot hold formation reliably (may rout under pressure)",
+        "freshly recruited units enter degraded until capacity recovers (GDD §7)"
+      ],
+      "never": "death — degrade is the whole mechanic"
+    }
+  },
+
+  "embers": {
+    "note": "Embers are the SPEND currency for the RECRUIT / PROMOTE / PROVISION triangle and for items / hero nodes. Tuned so a player reaches each growth site with ~30-40 Embers — enough for 2-3 actions, never all of them. Scarcity IS the decision.",
+    "income": {
+      "per_brood_killed": 0.1,
+      "growth_site_grant": 10,
+      "veteran_survives_wave": 0,
+      "veteran_survives_wave_note": "0 by default; the 'oath_ledger' item turns this on (+2) — an economy-engine item, not a baseline."
+    }
+  },
+
+  "scaling_curve": {
+    "note": "One curve across the slice's 3 waves — the first act of the exponential fantasy (RTS-VERTICAL-SLICE §4). Brood counts are the gate-1 values; the economy must let a well-played run keep pace.",
+    "waves": [
+      { "wave": 1, "brood": 250, "multiplier_vs_prev": null },
+      { "wave": 2, "brood": 450, "multiplier_vs_prev": 1.8 },
+      { "wave": 3, "brood": 700, "multiplier_vs_prev": 1.56 }
+    ]
+  },
+
+  "slice_targets": {
+    "start_units": 40,
+    "start_tier": "militia",
+    "growth_sites": 2,
+    "design_intent": "Gate-1 zero-input baseline LOSES wave 3 by 4-13 brood (docs/GATE1-FUN-PROTOTYPE.md §3). The economy layer must be the margin: played well it turns the narrow loss into a win; hoarded or mismanaged (over-recruit past supply → a degraded, dimmed army) it turns into a blowout loss. If a single dominant allocation always wins, the triangle has failed and needs re-tuning."
+  }
+}

@@ -1,0 +1,90 @@
+{
+  "$schema": "../sprite-request.schema.json",
+
+  "id": "protagonist-01",
+  "revision": 2,
+
+  "subject": {
+    "title": "Protagonist prototype 01 - The Standard",
+    "kind": "hero",
+    "faction": "none",
+    "class_tie": "Vanguard",
+    "brief": null,
+    "spec": "../../../art/protagonist-prototypes.md"
+  },
+
+  "canon": {
+    "palette": "demichrome-4",
+    "value_dominance": "steel",
+    "pale_usage": "banner",
+    "silhouette": "an I - a narrow upright column with a flat horizontal shoulder line and a dead-vertical pole carrying one detached rectangle above the crown",
+    "reads_as": "a walking rectangle under a pale flag - the one straight-edged figure in the crowd",
+    "moving": true,
+    "light_shift_variant": false
+  },
+
+  "prompt": {
+    "description": "A stocky armored standard-bearer in heavy plate. Oversized head in an open-faced helm with a flat top, no visor and no crest, broad blunt face. Squared pauldrons make a flat horizontal shoulder line; short thick legs with the feet close together, so the whole body reads as a narrow upright column. One hand grips a dead-straight vertical pole at the hip; the pole rises well clear above the head and carries a small plain rectangular banner of undecorated cloth, burning bright. The other hand hangs empty at the side. Boxy build, hard straight edges, everything squared off.",
+    "must_include": [
+      "flat horizontal shoulder line, unbroken by collar or cloth",
+      "dead-vertical pole gripped at hip height, rising clear above the head",
+      "small rectangular banner with four straight edges, clear of the head",
+      "open face under the helm, no visor",
+      "narrow upright body, feet close together"
+    ],
+    "must_avoid": [
+      "cape or cloak",
+      "swallowtail, forked, torn or curving banner edges",
+      "any device, emblem or writing on the banner",
+      "helm crest, plume, wings or horns",
+      "glow, halo, sparks or rays around any pixel",
+      "bright or glowing eyes",
+      "diagonal or shouldered pole",
+      "wide planted stance",
+      "lantern, torch or bowl held in the hand"
+    ],
+    "style_mode": "flat"
+  },
+
+  "pixellab": {
+    "mode": "standard",
+    "size": 48,
+    "view": "low top-down",
+    "n_directions": 8,
+    "outline": "selective outline",
+    "detail": "low detail",
+    "shading": "flat shading",
+    "proportions": { "type": "preset", "name": "chibi" },
+    "text_guidance_scale": 12,
+    "body_type": "humanoid",
+    "template": null
+  },
+
+  "anchor": {
+    "strategy": "text-only",
+    "source_direction": "south",
+    "shared_anchor_id": null,
+    "approved": false
+  },
+
+  "animations": [],
+
+  "portrait": {
+    "enabled": false
+  },
+
+  "output": {
+    "cell": 48,
+    "grid": [1, 1],
+    "frame_map": {
+      "0": "south.idle"
+    },
+    "texture": "T_Proto_Protagonist_01",
+    "content_path": "/Game/Sprites/Prototypes",
+    "sheet_srgb": true
+  },
+
+  "budget": {
+    "max_generations": 4
+  }
+}

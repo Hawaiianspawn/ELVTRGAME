@@ -1,0 +1,445 @@
+<title>Emberkeep — The Sampler Frame & Muster HUD</title>
+<style>
+  /* ============================================================
+     EMBERKEEP — The Sampler Frame + central Muster (unit management)
+     Palette is LOCKED: strict global 4-value Demichrome. No 5th value.
+     Single-theme by intent — the locked palette IS the design; a
+     light/dark inversion would violate the art direction.
+     This is a LAYOUT PREVIEW. Flanking figures / dragon lintel shown
+     as stitched-silhouette placeholders -> real plates are an art
+     brief to the pixel-art-director.
+     ============================================================ */
+  :root{
+    --dark:#211e20;   /* darkest — ground, frame ink, wells, text-on-pale */
+    --steel:#555568;  /* dark-mid — inactive, hairline, spent/lost, track */
+    --bone:#a0a08b;   /* pale-mid — surface, body text, neutral fill */
+    --pale:#e9efec;   /* the only bright — title, focus, healthy fill, glint */
+    --red:#8f2d24;    /* RUBRICATION — reserved: cost/temptation. Legend only. */
+
+    --face-chronicle:"Iowan Old Style","Palatino Linotype",Palatino,"Book Antiqua",Georgia,serif;
+    --face-tapestry:ui-monospace,"Cascadia Mono","DejaVu Sans Mono","Roboto Mono","Courier New",monospace;
+
+    --gap:clamp(8px,1.1vw,16px);
+    --rail:14px;               /* stitched frame rail thickness */
+    /* 1px halftone — legal here: static, pixel-locked UI only */
+    --halftone:repeating-conic-gradient(from 0deg,#26232500 0deg 90deg,#2c2a2c 90deg 180deg) 0 0/2px 2px;
+    --stitch-h:repeating-linear-gradient(90deg,var(--bone) 0 3px,transparent 3px 7px);
+    --stitch-v:repeating-linear-gradient(0deg,var(--bone) 0 3px,transparent 3px 7px);
+  }
+
+  *{box-sizing:border-box;margin:0;padding:0;}
+  html{-webkit-text-size-adjust:100%;}
+  body{
+    background:var(--dark);
+    background-image:radial-gradient(120% 90% at 50% 0%,#2a272a 0%,#211e20 60%,#1a181a 100%);
+    color:var(--bone);
+    font-family:var(--face-tapestry);
+    line-height:1.35;
+    min-height:100vh;
+    display:flex;
+    justify-content:center;
+    align-items:flex-start;
+    padding:clamp(10px,2.4vw,40px);
+    image-rendering:pixelated;
+  }
+  img,svg{image-rendering:pixelated;}
+
+  /* ---- the screen ---------------------------------------------------- */
+  .screen{
+    width:min(1180px,100%);
+    background:var(--dark);
+    position:relative;
+    padding:var(--rail);
+    box-shadow:0 0 0 2px var(--dark),0 0 0 3px var(--steel);
+  }
+  /* stitched outer border rails */
+  .screen::before,.screen::after{content:"";position:absolute;pointer-events:none;}
+  .screen::before{ /* top+bottom running stitch */
+    left:var(--rail);right:var(--rail);top:5px;height:3px;
+    background:var(--stitch-h);opacity:.7;
+    box-shadow:0 calc(100% + 3px) 0 0 rgba(0,0,0,0);
+  }
+  .rail-b{position:absolute;left:var(--rail);right:var(--rail);bottom:5px;height:3px;background:var(--stitch-h);opacity:.7;}
+  .rail-l{position:absolute;top:var(--rail);bottom:var(--rail);left:5px;width:3px;background:var(--stitch-v);opacity:.7;}
+  .rail-r{position:absolute;top:var(--rail);bottom:var(--rail);right:5px;width:3px;background:var(--stitch-v);opacity:.7;}
+
+  .frame{
+    border:2px solid var(--steel);
+    background:var(--dark);
+    display:grid;
+    grid-template-columns:minmax(140px,180px) 1fr minmax(140px,180px);
+    grid-template-rows:auto 1fr auto;
+    grid-template-areas:
+      "header header header"
+      "left   well   right"
+      "footer footer footer";
+  }
+
+  /* ---- corner medallions (decorative sampler rosettes) --------------- */
+  .rosette{
+    position:absolute;width:46px;height:46px;z-index:5;
+    border-radius:50%;
+    background:
+      repeating-conic-gradient(var(--bone) 0deg 9deg,transparent 9deg 18deg),
+      radial-gradient(circle at 50% 50%,var(--dark) 0 34%,var(--bone) 34% 40%,var(--dark) 40% 52%,var(--steel) 52% 100%);
+    box-shadow:0 0 0 2px var(--dark),0 0 0 3px var(--steel);
+  }
+  .rosette::after{content:"";position:absolute;inset:38%;border-radius:50%;background:var(--pale);opacity:.85;}
+  .rosette.tl{top:2px;left:2px;} .rosette.tr{top:2px;right:2px;}
+  .rosette.bl{bottom:2px;left:2px;} .rosette.br{bottom:2px;right:2px;}
+
+  /* ---- header band --------------------------------------------------- */
+  .header{
+    grid-area:header;position:relative;
+    padding:10px 64px 12px;
+    border-bottom:2px solid var(--steel);
+    background:var(--halftone),var(--dark);
+    text-align:center;
+    overflow:hidden;
+  }
+  .lintel{display:block;width:min(560px,80%);height:64px;margin:0 auto 2px;}
+  .crest{
+    font-family:var(--face-chronicle);
+    font-weight:700;
+    color:var(--pale);
+    font-size:clamp(26px,4.4vw,44px);
+    letter-spacing:.14em;
+    line-height:1;
+    text-transform:uppercase;
+    text-wrap:balance;
+    text-shadow:2px 2px 0 var(--dark),3px 3px 0 var(--steel);
+  }
+  .crest small{
+    display:block;font-family:var(--face-tapestry);color:var(--bone);
+    font-size:clamp(9px,1.15vw,12px);font-weight:400;letter-spacing:.5em;
+    text-transform:uppercase;text-shadow:none;margin-top:8px;padding-left:.5em;
+  }
+  .inscribe{
+    font-family:var(--face-chronicle);font-style:italic;color:var(--steel);
+    font-size:clamp(11px,1.4vw,14px);letter-spacing:.02em;margin-top:6px;
+  }
+
+  /* ---- flanking guardian panels -------------------------------------- */
+  .flank{position:relative;display:flex;flex-direction:column;padding:12px 8px;gap:10px;}
+  .flank.left{grid-area:left;border-right:2px solid var(--steel);}
+  .flank.right{grid-area:right;border-left:2px solid var(--steel);}
+  .guardian{width:100%;height:150px;opacity:.9;}
+  .flank-label{
+    font-size:10px;letter-spacing:.28em;text-transform:uppercase;color:var(--steel);
+    text-align:center;border-top:1px dotted var(--steel);border-bottom:1px dotted var(--steel);
+    padding:4px 0;
+  }
+
+  /* hero medallion */
+  .medallion{
+    --sz:96px;width:var(--sz);height:var(--sz);margin:0 auto;position:relative;border-radius:50%;
+    background:
+      repeating-conic-gradient(var(--bone) 0deg 7deg,transparent 7deg 14deg),
+      radial-gradient(circle,var(--dark) 0 64%,var(--steel) 64% 72%,var(--dark) 72% 80%,var(--bone) 80% 86%,var(--dark) 86% 100%);
+    box-shadow:0 0 0 2px var(--dark),0 0 0 3px var(--steel);
+    display:grid;place-items:center;
+  }
+  .medallion svg{width:66%;height:66%;}
+  .hero-name{text-align:center;color:var(--pale);font-size:12px;letter-spacing:.18em;text-transform:uppercase;}
+  .hero-role{text-align:center;color:var(--steel);font-size:9px;letter-spacing:.3em;text-transform:uppercase;margin-top:-4px;}
+
+  /* ---- meters (counted-stitch segmented pips) ------------------------ */
+  .meter{display:flex;gap:2px;height:14px;align-items:stretch;}
+  .meter.sm{height:9px;}
+  .meter.lg{height:18px;}
+  .seg{flex:1 1 0;background:var(--dark);box-shadow:inset 0 0 0 1px var(--steel);}
+  .seg.full{background:var(--pale);box-shadow:inset 0 0 0 1px var(--dark);}
+  .seg.wound{background:var(--steel);box-shadow:inset 0 0 0 1px var(--dark);}
+  .meter-row{display:flex;flex-direction:column;gap:4px;}
+  .meter-cap{display:flex;justify-content:space-between;align-items:baseline;font-size:10px;letter-spacing:.12em;text-transform:uppercase;}
+  .meter-cap .val{color:var(--pale);font-variant-numeric:tabular-nums;letter-spacing:.06em;}
+  .meter-cap .lbl{color:var(--bone);}
+
+  /* ---- central well: the Muster -------------------------------------- */
+  .well{grid-area:well;padding:14px clamp(12px,1.8vw,22px) 16px;display:flex;flex-direction:column;gap:14px;background:var(--dark);}
+  .well-title{display:flex;justify-content:space-between;align-items:flex-end;gap:12px;flex-wrap:wrap;}
+  .well-title h2{
+    font-family:var(--face-chronicle);color:var(--pale);font-size:clamp(16px,2.2vw,22px);
+    letter-spacing:.06em;text-transform:uppercase;font-weight:700;text-wrap:balance;
+  }
+  .well-title .sub{color:var(--steel);font-size:10px;letter-spacing:.24em;text-transform:uppercase;}
+  .company{border:2px solid var(--steel);background:var(--halftone),var(--dark);padding:11px 13px;display:flex;flex-direction:column;gap:8px;}
+  .company .top{display:flex;justify-content:space-between;align-items:baseline;}
+  .company .top b{font-family:var(--face-chronicle);color:var(--pale);font-size:15px;letter-spacing:.08em;text-transform:uppercase;font-weight:700;}
+  .company .strength{color:var(--bone);font-size:11px;letter-spacing:.14em;}
+  .company .strength var{font-style:normal;color:var(--pale);font-variant-numeric:tabular-nums;}
+
+  /* squad note */
+  .ranknote{font-size:10px;color:var(--steel);letter-spacing:.02em;line-height:1.55;}
+  .ranknote b{color:var(--bone);font-weight:400;}
+
+  /* ---- square RTS squad cards (Warcraft-format) ---------------------- */
+  .roster{display:grid;grid-template-columns:repeat(auto-fill,minmax(120px,1fr));gap:8px;align-items:start;}
+  .squad{
+    border:1px solid var(--steel);background:var(--dark);
+    display:flex;flex-direction:column;gap:6px;padding:7px;position:relative;
+  }
+  .squad.wide{grid-column:span 2;}
+  .squad:focus-within,.squad.sel{border-color:var(--pale);box-shadow:inset 0 0 0 1px var(--pale);}
+  .shead{display:flex;justify-content:space-between;align-items:center;gap:6px;}
+  .stype{display:flex;align-items:center;gap:6px;min-width:0;}
+  .stype svg{width:15px;height:15px;flex:none;}
+  .stype b{font-size:10px;letter-spacing:.08em;text-transform:uppercase;color:var(--bone);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+  .size{font-size:12px;color:var(--pale);font-variant-numeric:tabular-nums;letter-spacing:.02em;flex:none;}
+  .size s{color:var(--steel);text-decoration:none;font-size:9px;}
+  /* the muster: rank & file — one pip = a soldier (a FILE at scale) */
+  .muster{display:grid;gap:2px;background:var(--dark);padding:5px;box-shadow:inset 0 0 0 1px var(--steel);}
+  .pip{aspect-ratio:1;background:var(--dark);box-shadow:inset 0 0 0 1px var(--steel);}
+  .pip.alive{background:var(--pale);box-shadow:none;}
+  .pip.lost{opacity:.5;}
+  .sfoot{display:flex;justify-content:space-between;align-items:center;gap:6px;}
+  .hpread{font-size:9px;color:var(--steel);letter-spacing:.08em;font-variant-numeric:tabular-nums;}
+
+  .chip{
+    justify-self:end;text-align:center;min-width:70px;
+    font-size:10px;letter-spacing:.16em;text-transform:uppercase;
+    padding:5px 6px;border:1px solid var(--steel);color:var(--bone);background:var(--dark);
+  }
+  .chip.on{border-color:var(--pale);color:var(--dark);background:var(--pale);font-weight:700;}
+  .chip.sq{justify-self:auto;min-width:0;padding:3px 8px;font-size:9px;letter-spacing:.12em;}
+
+  /* ---- right flank: stance wheel + leash ----------------------------- */
+  .orders{display:flex;flex-direction:column;gap:12px;align-items:center;}
+  .wheel{--w:132px;width:var(--w);height:var(--w);position:relative;border-radius:50%;
+    background:radial-gradient(circle,var(--dark) 0 30%,var(--steel) 30% 31%,var(--dark) 31% 100%);
+    box-shadow:0 0 0 2px var(--dark),0 0 0 3px var(--steel);}
+  .wheel .hubv{position:absolute;inset:0;display:grid;place-items:center;font-size:9px;letter-spacing:.14em;color:var(--pale);text-transform:uppercase;text-align:center;}
+  .wheel .hubv b{font-family:var(--face-chronicle);font-size:13px;letter-spacing:.06em;}
+  .stance{position:absolute;width:44px;height:24px;display:grid;place-items:center;font-size:9px;letter-spacing:.1em;text-transform:uppercase;color:var(--bone);border:1px solid var(--steel);background:var(--dark);}
+  .stance.on{color:var(--dark);background:var(--pale);border-color:var(--pale);font-weight:700;}
+  .stance.n{top:-6px;left:50%;transform:translateX(-50%);}
+  .stance.e{right:-16px;top:50%;transform:translateY(-50%);}
+  .stance.s{bottom:-6px;left:50%;transform:translateX(-50%);}
+  .stance.w{left:-16px;top:50%;transform:translateY(-50%);}
+
+  .leash{width:100%;display:flex;flex-direction:column;gap:5px;}
+  .leash .track{position:relative;height:12px;background:var(--dark);box-shadow:inset 0 0 0 1px var(--steel);}
+  .leash .fill{position:absolute;inset:1px auto 1px 1px;width:calc(64% - 2px);background:var(--bone);}
+  .leash .warn{position:absolute;top:-3px;bottom:-3px;left:80%;width:2px;background:var(--pale);}
+  .leash .warn::after{content:"80%";position:absolute;top:-13px;left:50%;transform:translateX(-50%);font-size:8px;color:var(--pale);letter-spacing:.05em;}
+  .leash-cap{display:flex;justify-content:space-between;font-size:9px;letter-spacing:.14em;text-transform:uppercase;color:var(--steel);}
+  .leash-cap var{font-style:normal;color:var(--bone);font-variant-numeric:tabular-nums;}
+
+  /* ---- footer -------------------------------------------------------- */
+  .footer{
+    grid-area:footer;border-top:2px solid var(--steel);
+    background:var(--halftone),var(--dark);
+    display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;
+    padding:9px 20px;
+  }
+  .hints{display:flex;gap:16px;flex-wrap:wrap;}
+  .hint{display:flex;align-items:center;gap:6px;font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:var(--bone);}
+  .btn{display:inline-grid;place-items:center;min-width:18px;height:18px;padding:0 4px;border-radius:50%;background:var(--bone);color:var(--dark);font-size:10px;font-weight:700;}
+  .btn.sq{border-radius:2px;}
+  .legend{display:flex;align-items:center;gap:8px;font-size:9px;letter-spacing:.1em;text-transform:uppercase;color:var(--steel);}
+  .swatch{width:10px;height:10px;display:inline-block;box-shadow:inset 0 0 0 1px var(--dark);}
+  .swatch.r{background:var(--red);}
+
+  /* baked light-flicker on Pale glints (portrait-register §3) */
+  @keyframes glint{0%,88%{opacity:.85;}92%{opacity:1;}96%{opacity:.7;}100%{opacity:.85;}}
+  .glint{animation:glint 3.2s steps(1,end) infinite;}
+  @media (prefers-reduced-motion:reduce){.glint{animation:none;}}
+
+  /* ---- caption below the screen -------------------------------------- */
+  .caption{width:min(1180px,100%);margin-top:14px;color:var(--steel);font-size:11px;letter-spacing:.04em;line-height:1.5;}
+  .caption b{color:var(--bone);font-weight:400;}
+  .caption code{color:var(--pale);}
+
+  /* ---- responsive collapse (Deck / narrow): flanks stack ------------- */
+  @media (max-width:720px){
+    .frame{grid-template-columns:1fr;grid-template-areas:"header" "well" "left" "right" "footer";}
+    .flank.left,.flank.right{flex-direction:row;flex-wrap:wrap;justify-content:center;border:none;border-top:2px solid var(--steel);}
+    .guardian{display:none;}
+    .roster{grid-template-columns:repeat(auto-fill,minmax(104px,1fr));}
+    .squad.wide{grid-column:span 2;}
+  }
+</style>
+
+<div class="screen">
+  <span class="rail-b"></span><span class="rail-l"></span><span class="rail-r"></span>
+  <div class="rosette tl"></div><div class="rosette tr"></div>
+  <div class="rosette bl"></div><div class="rosette br"></div>
+
+  <div class="frame">
+
+    <!-- ============ HEADER: beast lintel + blackletter crest ========= -->
+    <header class="header">
+      <svg class="lintel" viewBox="0 0 560 64" role="img" aria-label="Beast lintel (placeholder plate)">
+        <defs>
+          <pattern id="dith" width="2" height="2" patternUnits="userSpaceOnUse">
+            <rect width="2" height="2" fill="#a0a08b"/><rect width="1" height="1" fill="#211e20"/><rect x="1" y="1" width="1" height="1" fill="#211e20"/>
+          </pattern>
+        </defs>
+        <!-- sinuous dragon silhouette, stitched-dither fill -->
+        <path fill="url(#dith)" d="M18 40 q40 -30 92 -14 q30 8 66 2 q26 -4 40 -18 q6 -6 14 -3 q6 3 3 11 q-6 16 -30 24 q28 -2 50 6 q30 11 62 6 q30 -5 52 -22 q14 -11 30 -8 q10 2 8 12 q-3 14 -22 22 q22 3 40 -4 q10 -4 18 2 q6 5 0 12 q-14 15 -44 15 q-40 0 -74 -12 q-40 -14 -80 -12 q-46 2 -86 18 q-30 12 -60 10 q-24 -2 -34 -14 q-6 -8 1 -15 q7 -7 17 -1 z"/>
+        <!-- horned head -->
+        <path fill="url(#dith)" d="M40 44 l-22 -6 l10 10 l-14 2 l16 6 l-8 8 l18 -4 l6 8 l6 -12 z"/>
+        <circle cx="30" cy="46" r="2" fill="#e9efec" class="glint"/>
+      </svg>
+      <div class="crest">Emberkeep<small>The Sampler Frame</small></div>
+      <div class="inscribe">— the record keeps what you save —</div>
+    </header>
+
+    <!-- ============ LEFT FLANK: guardian + hero medallion ============ -->
+    <aside class="flank left">
+      <svg class="guardian" viewBox="0 0 120 150" role="img" aria-label="Vanguard guardian (placeholder plate)">
+        <use href="#guard"/>
+        <g fill="url(#dith)">
+          <!-- helm + plume -->
+          <path d="M60 8 l10 6 l-2 12 l-16 0 l-2 -12 z"/>
+          <rect x="58" y="2" width="4" height="8"/>
+          <!-- shoulders / cloak -->
+          <path d="M40 30 q20 -8 40 0 l6 40 l-8 44 l-36 0 l-8 -44 z"/>
+          <!-- shield disc -->
+          <circle cx="34" cy="70" r="15"/>
+        </g>
+        <!-- spear with honest-light glint -->
+        <rect x="90" y="10" width="3" height="120" fill="#555568"/>
+        <path d="M91.5 4 l6 12 l-12 0 z" fill="#e9efec" class="glint"/>
+      </svg>
+      <div class="flank-label">Commander</div>
+      <div class="medallion">
+        <svg viewBox="0 0 60 60" role="img" aria-label="Vanguard hero portrait medallion">
+          <g fill="url(#dith)"><path d="M30 12 l11 7 l-2 12 l-18 0 l-2 -12 z"/><path d="M16 34 q14 -8 28 0 l4 20 l-36 0 z"/></g>
+          <rect x="27" y="6" width="6" height="8" fill="url(#dith)"/>
+        </svg>
+      </div>
+      <div class="hero-name">The Vanguard</div>
+      <div class="hero-role">Commander</div>
+      <div class="meter-row">
+        <div class="meter-cap"><span class="lbl">Vigor</span><span class="val">88%</span></div>
+        <div class="meter sm" data-total="16" data-full="14" aria-label="Hero vigor 88 percent"></div>
+      </div>
+    </aside>
+
+    <!-- ============ CENTRAL WELL: the Muster (unit management) ======== -->
+    <main class="well">
+      <div class="well-title">
+        <h2>Muster</h2>
+        <span class="sub">Highgates · Floor II</span>
+      </div>
+
+      <!-- aggregate company health -->
+      <section class="company" aria-label="Company strength">
+        <div class="top">
+          <b>Vanguard Company</b>
+          <span class="strength">Standing <var>99</var> / 180 · <var>85%</var> · 5 squads</span>
+        </div>
+        <div class="meter lg" data-total="30" data-full="26" aria-label="Company standing 85 percent"></div>
+      </section>
+
+      <p class="ranknote">Retinue is mustered as <b>squads</b> — rank-and-file groups of ~20 / 50. Each pip is a soldier (a <b>file</b> at larger scale): <b>lit = standing, dark = fallen</b>. Squads are the unit of logic — the sim commands the group, not every soldier.</p>
+
+      <!-- square RTS squad cards; card health = the rank-and-file muster -->
+      <section class="roster" aria-label="Retinue squads">
+        <div class="squad sel" tabindex="0">
+          <div class="shead"><span class="stype"><svg viewBox="0 0 24 24"><g fill="url(#dith)"><rect x="7" y="3" width="10" height="7"/><circle cx="12" cy="15" r="6"/></g></svg><b>Shieldmen</b></span><span class="size">23<s>/24</s></span></div>
+          <div class="muster" data-size="24" data-alive="23" data-cols="6" aria-label="Shieldmen squad — 23 of 24 standing"></div>
+          <div class="sfoot"><span class="hpread">96% · Squad A</span><span class="chip sq on">Hold</span></div>
+        </div>
+
+        <div class="squad" tabindex="0">
+          <div class="shead"><span class="stype"><svg viewBox="0 0 24 24"><g fill="url(#dith)"><rect x="7" y="3" width="10" height="7"/><circle cx="12" cy="15" r="6"/></g></svg><b>Shieldmen</b></span><span class="size">22<s>/24</s></span></div>
+          <div class="muster" data-size="24" data-alive="22" data-cols="6" aria-label="Shieldmen squad — 22 of 24 standing"></div>
+          <div class="sfoot"><span class="hpread">92% · Squad B</span><span class="chip sq on">Hold</span></div>
+        </div>
+
+        <div class="squad" tabindex="0">
+          <div class="shead"><span class="stype"><svg viewBox="0 0 24 24"><g fill="url(#dith)"><path d="M12 3 l9 5 l-2 11 l-14 0 l-2 -11 z"/></g><rect x="10" y="1" width="4" height="5" fill="#e9efec"/></svg><b>Veterans</b></span><span class="size">14<s>/16</s></span></div>
+          <div class="muster" data-size="16" data-alive="14" data-cols="4" aria-label="Veterans squad — 14 of 16 standing"></div>
+          <div class="sfoot"><span class="hpread">88% · elite</span><span class="chip sq on">Charge</span></div>
+        </div>
+
+        <div class="squad" tabindex="0">
+          <div class="shead"><span class="stype"><svg viewBox="0 0 24 24"><g fill="url(#dith)"><rect x="10" y="2" width="3" height="20"/><path d="M13 3 l9 3 l-9 6 z"/></g></svg><b>Banner</b></span><span class="size">2<s>/2</s></span></div>
+          <div class="muster" data-size="2" data-alive="2" data-cols="2" aria-label="Bannermen — 2 of 2 standing"></div>
+          <div class="sfoot"><span class="hpread">100%</span><span class="chip sq">Follow</span></div>
+        </div>
+
+        <!-- a 50-strong compacted squad: one wide card, a 10-file rank block -->
+        <div class="squad wide" tabindex="0">
+          <div class="shead"><span class="stype"><svg viewBox="0 0 24 24"><g fill="url(#dith)"><path d="M12 2 l2 6 l-2 14 l-2 -14 z"/><rect x="6" y="9" width="12" height="4"/></g></svg><b>Spearmen · compacted</b></span><span class="size">38<s>/50</s></span></div>
+          <div class="muster" data-size="50" data-alive="38" data-cols="10" aria-label="Spearmen squad — 38 of 50 standing, ten files"></div>
+          <div class="sfoot"><span class="hpread">76% · 10 files × 5 ranks</span><span class="chip sq on">Charge</span></div>
+        </div>
+      </section>
+    </main>
+
+    <!-- ============ RIGHT FLANK: stance wheel + leash =============== -->
+    <aside class="flank right">
+      <svg class="guardian" viewBox="0 0 120 150" role="img" aria-label="Still Legion guardian (placeholder plate)" style="transform:scaleX(-1)">
+        <g fill="url(#dith)">
+          <path d="M60 8 l10 6 l-2 12 l-16 0 l-2 -12 z"/>
+          <rect x="58" y="2" width="4" height="8"/>
+          <path d="M40 30 q20 -8 40 0 l6 40 l-8 44 l-36 0 l-8 -44 z"/>
+          <circle cx="34" cy="70" r="15"/>
+        </g>
+        <rect x="90" y="10" width="3" height="120" fill="#555568"/>
+        <path d="M85 18 l16 0 l-8 12 z" fill="#555568"/>
+      </svg>
+      <div class="flank-label">Orders</div>
+
+      <div class="orders">
+        <div class="wheel" role="img" aria-label="Stance wheel — Charge active">
+          <span class="stance n">Follow</span>
+          <span class="stance e on">Charge</span>
+          <span class="stance s">Hold</span>
+          <span class="stance w">Rally</span>
+          <span class="hubv"><span><b>Charge</b><br>active</span></span>
+        </div>
+
+        <div class="leash" aria-label="Leash tension 64 percent, warning at 80">
+          <div class="leash-cap"><span>Leash</span><span><var>64%</var></span></div>
+          <div class="track"><div class="fill"></div><div class="warn"></div></div>
+          <div class="leash-cap"><span style="color:var(--bone)">Holding</span><span>break @ 80</span></div>
+        </div>
+      </div>
+    </aside>
+
+    <!-- ============ FOOTER: input hints + reserved-red legend ======== -->
+    <footer class="footer">
+      <div class="hints">
+        <span class="hint"><span class="btn">A</span>Confirm</span>
+        <span class="hint"><span class="btn">B</span>Back</span>
+        <span class="hint"><span class="btn sq">▤</span>Stance Wheel</span>
+        <span class="hint"><span class="btn sq">↹</span>Cycle Group</span>
+      </div>
+      <div class="legend">
+        <span class="swatch r"></span> Rubrication reserved — cost / temptation only · not shown here
+      </div>
+    </footer>
+
+  </div>
+</div>
+
+<p class="caption">
+  <b>What to look at:</b> the woodcut reference becomes <b>The Sampler Frame</b> — beast lintel + blackletter crest, two flanking guardian panels, four corner rosette medallions, footer input band. The reference's empty middle is repurposed as the <b>central well</b>: an RTS company readout — aggregate <b>company meter</b> on top, then <b>square squad cards</b> (Warcraft-format). Each card's health <em>is</em> its <b>rank-and-file muster</b>: one pip per soldier (a file at scale), lit = standing, dark = fallen — so a squad's count, formation, health and scale are one read. The wide card is a <b>50-strong compacted squad</b> (10 files × 5 ranks). The <code>Follow / Charge / Hold / Rally</code> wheel and leash gauge stay on the right.
+  Strictly the four locked Demichrome values; 1px halftone on static bands only. Dragon and guardian figures are <b>placeholder plates</b> — real art is an art brief to the pixel-art-director. Resize narrow to see the Steam-Deck collapse (flanks unstack, guardians drop).
+</p>
+
+<script>
+  // Company / hero meters: full = Pale present; next 2 = Steel wound; rest Dark.
+  for (const m of document.querySelectorAll('.meter[data-total]')){
+    const total = +m.dataset.total, full = +m.dataset.full;
+    for (let i=0;i<total;i++){
+      const s=document.createElement('span');
+      s.className='seg '+(i<full?'full':(i<full+2?'wound':''));
+      m.appendChild(s);
+    }
+  }
+  // Squad musters: rank & file grid. alive = Pale pip (standing), rest = fallen.
+  for (const el of document.querySelectorAll('.muster[data-size]')){
+    const size=+el.dataset.size, alive=+el.dataset.alive, cols=+el.dataset.cols||6;
+    el.style.gridTemplateColumns='repeat('+cols+',1fr)';
+    for (let i=0;i<size;i++){
+      const p=document.createElement('span');
+      p.className='pip '+(i<alive?'alive':'lost');
+      el.appendChild(p);
+    }
+  }
+</script>
