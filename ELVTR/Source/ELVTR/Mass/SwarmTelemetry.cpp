@@ -280,10 +280,10 @@ void USwarmTelemetrySubsystem::WriteSampleHeader()
 		TEXT("# melee=%.0f maxAttackersPerUnit=%d leash=%.0f\n")
 		TEXT("t,stance,aliveRetinue,aliveBrood,killedRetinue,killedBrood,heroHP,dmgToRetinue,dmgToBrood,heroContactsNow,leashBroken,heroContactsTotal\n"),
 		Current.Index, *FDateTime::Now().ToString(),
-		SwarmCombatTuning::RetinueMaxHP, SwarmCombatTuning::RetinueDPS,
-		SwarmCombatTuning::BroodMaxHP, SwarmCombatTuning::BroodDPS,
-		SwarmCombatTuning::HeroMaxHP, SwarmCombatTuning::HeroDPS,
-		SwarmCombatTuning::MeleeRange, SwarmCombatTuning::MaxAttackersPerUnit,
+		SwarmCombatTuning::RetinueMaxHP(), SwarmCombatTuning::RetinueDPS(),
+		SwarmCombatTuning::BroodMaxHP(), SwarmCombatTuning::BroodDPS(),
+		SwarmCombatTuning::HeroMaxHP(), SwarmCombatTuning::HeroDPS(),
+		SwarmCombatTuning::MeleeRange(), SwarmCombatTuning::MaxAttackersPerUnit(),
 		SwarmLeash::Radius);
 
 	FFileHelper::SaveStringToFile(Header, *SampleFilePath);
@@ -338,10 +338,10 @@ void USwarmTelemetrySubsystem::AppendSummaryRow() const
 		Current.TimeToFirstBlood, Current.PeakHeroContacts, Current.PeakLeashBroken,
 		Current.StanceSeconds[0], Current.StanceSeconds[1],
 		Current.StanceSeconds[2], Current.StanceSeconds[3],
-		SwarmCombatTuning::RetinueMaxHP, SwarmCombatTuning::RetinueDPS,
-		SwarmCombatTuning::BroodMaxHP, SwarmCombatTuning::BroodDPS,
-		SwarmCombatTuning::HeroMaxHP, SwarmCombatTuning::HeroDPS,
-		SwarmCombatTuning::MeleeRange, SwarmCombatTuning::MaxAttackersPerUnit);
+		SwarmCombatTuning::RetinueMaxHP(), SwarmCombatTuning::RetinueDPS(),
+		SwarmCombatTuning::BroodMaxHP(), SwarmCombatTuning::BroodDPS(),
+		SwarmCombatTuning::HeroMaxHP(), SwarmCombatTuning::HeroDPS(),
+		SwarmCombatTuning::MeleeRange(), SwarmCombatTuning::MaxAttackersPerUnit());
 
 	FFileHelper::SaveStringToFile(Row, *Path,
 		FFileHelper::EEncodingOptions::ForceAnsi,	// no repeated BOM mid-file

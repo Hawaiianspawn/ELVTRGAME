@@ -103,9 +103,10 @@ private:
 	TArray<float> SubImageScratch;
 	float FlameSeed = 0.f;
 
-	// Spring-arm lag state for the flame (see TickFlame). Not a UPROPERTY — plain
+	// Damped-spring state for the flame (see TickFlame). Not a UPROPERTY — plain
 	// per-instance runtime state, reset each PIE because the actor is recreated.
 	FVector SmoothedFlamePos = FVector::ZeroVector;
+	FVector FlameVel = FVector::ZeroVector;
 	bool bFlameInitialized = false;
 
 	float SpacingLogTimer = 0.f;

@@ -23,6 +23,22 @@
 
 namespace
 {
+	/**
+	 * Emberkeep.Cam.Yaw, by name.
+	 *
+	 * It is owned by ASpikeHeroPawn's translation unit, and duplicating the
+	 * TAutoConsoleVariable here would register the same name twice. Looked up once and
+	 * cached — the console manager hands back a stable pointer for the process lifetime,
+	 * and a null (pawn module not loaded, e.g. a commandlet) just means yaw 0, which is
+	 * the default anyway.
+	 */
+	FORCEINLINE float GetCameraYawDegrees()
+	{
+		static IConsoleVariable* CamYaw =
+			IConsoleManager::Get().FindConsoleVariable(TEXT("Emberkeep.Cam.Yaw"));
+		return CamYaw ? CamYaw->GetFloat() : 0.f;
+	}
+
 	TAutoConsoleVariable<int32> CVarSwarmDebugRender(
 		TEXT("Swarm.DebugRender"),
 		1,
@@ -105,14 +121,67 @@ namespace
 		TEXT("vignette is perfectly steady, a carried fire is not. 0 disables."),
 		ECVF_Default);
 
-	TAutoConsoleVariable<float> CVarSwarmFlameLagSpeed(
-		TEXT("Swarm.FlameLagSpeed"),
-		3.5f,
-		TEXT("How fast the flame catches up to the bearer, like a spring arm's lag speed.\n")
-		TEXT("The light is NOT pinned to the hero — it eases toward them via VInterpTo, the\n")
-		TEXT("same lag USpringArmComponent uses. Lower = laggier / more trailing; higher =\n")
-		TEXT("tighter. <=0 snaps instantly (no lag). Only the LIGHT lags — steering and the\n")
-		TEXT("leash still read the true hero position, so the retinue math stays exact."),
+	TAutoConsoleVariable<float> CVarSwarmFlameStiffness(
+		TEXT("Swarm.FlameStiffness"),
+		55.f,
+		TEXT("Spring stiffness pulling the flame toward the bearer — the responsiveness dial.\n")
+		TEXT("Higher = snappier / catches up faster. Replaces the old VInterpTo lag, which\n")
+		TEXT("could never overshoot; this is a real damped spring so a fast 180 lets the\n")
+		TEXT("light's momentum sail past the hero before the spring reels it back. <=0 snaps\n")
+		TEXT("instantly. Only the LIGHT springs — steering and the leash still read the true\n")
+		TEXT("hero position, so the retinue math stays exact."),
+		ECVF_Default);
+
+	TAutoConsoleVariable<float> CVarSwarmFlameDamping(
+		TEXT("Swarm.FlameDamping"),
+		0.6f,
+		TEXT("Damping ratio, as a fraction of critical. 1.0 = critically damped (eases in,\n")
+		TEXT("NEVER overshoots — the old VInterpTo feel). Below 1.0 overshoots on a fast\n")
+		TEXT("direction change; lower = more overshoot and a longer settle. Above 1.0 is\n")
+		TEXT("overdamped (sluggish). 0.6 gives a clear overshoot on a 180 that settles fast.\n")
+		TEXT("Independent of stiffness — the critical coefficient is derived from it."),
+		ECVF_Default);
+
+	// --- soldier shadows on the flame (docs/RENDERING-LIGHTING.md §4b Phase C) --
+	// There is no real light, so there is no real shadow: the flame is a luminance
+	// trick in M_PP_Demichrome, and the shadow is the same trick. Each frame the
+	// nearest retinue are published to MPC_Flame as occluders; the post pass casts
+	// a radial wedge outward from each and dims the light there. Cost is flat —
+	// N occluders in a per-pixel pass, independent of total swarm count.
+
+	TAutoConsoleVariable<int32> CVarSwarmFlameShadows(
+		TEXT("Swarm.FlameShadows"),
+		0,
+		TEXT("Soldiers cast shadows into the flame pool. 0 = off (the material is a no-op,\n")
+		TEXT("identical to before). 1 = publish the nearest retinue as occluders each frame."),
+		ECVF_Default);
+
+	TAutoConsoleVariable<float> CVarSwarmFlameShadowStrength(
+		TEXT("Swarm.FlameShadowStrength"),
+		0.6f,
+		TEXT("How dark a soldier's shadow wedge gets, 0-1. 0 = no dimming, 1 = the wedge\n")
+		TEXT("kills the light entirely (dithers to the outer dark)."),
+		ECVF_Default);
+
+	TAutoConsoleVariable<float> CVarSwarmFlameShadowSoft(
+		TEXT("Swarm.FlameShadowSoft"),
+		0.5f,
+		TEXT("Penumbra width as a fraction of the occluder's angular size. 0 = hard edge,\n")
+		TEXT("higher = softer, wider fade at the wedge sides."),
+		ECVF_Default);
+
+	TAutoConsoleVariable<float> CVarSwarmFlameShadowRadius(
+		TEXT("Swarm.FlameShadowRadius"),
+		45.f,
+		TEXT("Caster radius in uu — sets each soldier's angular shadow width. Bigger =\n")
+		TEXT("fatter wedges. A soldier's debug box is ~22uu; 45 casts a readable wedge."),
+		ECVF_Default);
+
+	TAutoConsoleVariable<int32> CVarSwarmFlameShadowCount(
+		TEXT("Swarm.FlameShadowCount"),
+		8,
+		TEXT("Max soldiers that cast a shadow at once (the nearest to the flame win).\n")
+		TEXT("Hard-capped at 8 by the number of occluder slots in MPC_Flame."),
 		ECVF_Default);
 
 	TAutoConsoleVariable<float> CVarSwarmDitherWorldAnchor(
@@ -134,14 +203,200 @@ namespace
 		TEXT("anything that moves."),
 		ECVF_Default);
 
-	// Retinue pure white, brood dark red. Separation is by *value* first so it
-	// survives the demichrome dither, with hue as a secondary cue — the same
-	// light-retinue / dark-brood convention the sprite pipeline is aiming for.
+	// --- demichrome dither fine dials (M_PP_Demichrome, via MPC_Flame) -------
+	// The post-process quantises scene luminance to the 4 locked Demichrome values
+	// using 3 thresholds; each threshold's step is softened by a Bayer dither band.
+	// These used to be bake-time-only material scalars — now routed through MPC_Flame
+	// so they can be tuned live like the flame dials.
+
+	TAutoConsoleVariable<float> CVarSwarmDitherBandWidth(
+		TEXT("Swarm.DitherBandWidth"),
+		0.326f,
+		TEXT("Width of the Bayer dither transition zone straddling each palette threshold.\n")
+		TEXT("Wider = the two neighbouring values interleave over a bigger luminance range,\n")
+		TEXT("so steps read softer and grainier; narrower = harder, cleaner banding with a\n")
+		TEXT("more sudden value change. 0 = no dithering (pure hard posterise)."),
+		ECVF_Default);
+
+	TAutoConsoleVariable<float> CVarSwarmDitherThreshold1(
+		TEXT("Swarm.DitherThreshold1"),
+		0.40f,
+		TEXT("Luminance where the palette steps from value 0 (darkest) to value 1. Lower\n")
+		TEXT("pushes more of the image into the darker value. Keep 1 < 2 < 3 ordered."),
+		ECVF_Default);
+
+	TAutoConsoleVariable<float> CVarSwarmDitherThreshold2(
+		TEXT("Swarm.DitherThreshold2"),
+		0.50f,
+		TEXT("Luminance where the palette steps from value 1 to value 2 (the mid split).\n")
+		TEXT("Keep 1 < 2 < 3 ordered."),
+		ECVF_Default);
+
+	TAutoConsoleVariable<float> CVarSwarmDitherThreshold3(
+		TEXT("Swarm.DitherThreshold3"),
+		0.75f,
+		TEXT("Luminance where the palette steps from value 2 to value 3 (brightest). Raising\n")
+		TEXT("it keeps the body of the lit pool at Bone so the white core reads (§4b.8).\n")
+		TEXT("Keep 1 < 2 < 3 ordered."),
+		ECVF_Default);
+
+	// --- per-unit flame shading (docs/RENDERING-LIGHTING.md §4a) -------------
+
+	TAutoConsoleVariable<int32> CVarSwarmUnitShading(
+		TEXT("Swarm.UnitShading"),
+		0,
+		TEXT("Light each unit from the flame: the hemisphere facing the flame draws\n")
+		TEXT("brighter, the hemisphere turned to the dark draws dimmer, and both dim with\n")
+		TEXT("distance from the flame. Grounds the units in the world as a point light\n")
+		TEXT("would. 0 = flat single box (one colour, no direction).\n")
+		TEXT("\n")
+		TEXT("DEFAULTS TO 0 since 2026-07-26. It draws TWO DrawDebugSolidBox calls per\n")
+		TEXT("unit per frame instead of one, on the path that is currently the whole\n")
+		TEXT("shipping picture. Measured (-SwarmBench, clean A/B, retinue=100):\n")
+		TEXT("  2000 brood  40.66 -> 18.43 ms frame  (25 -> 54 fps)  2.21x\n")
+		TEXT(" 10000 brood 350.02 -> 135.47 ms frame ( 2.9 -> 7.4)   2.58x\n")
+		TEXT("The ratio worsens with count as batching overhead compounds. It also\n")
+		TEXT("rotates each unit's shading boundary to face the flame, which is a\n")
+		TEXT("contributor to the 'offset overlapping grids' dither artifact against the\n")
+		TEXT("world-anchored dither. Set 1 to see the directional read; expect the cost.\n")
+		TEXT("Both go away with the Niagara sprite path (docs/perf/niagara-sprite-refactor.md)."),
+		ECVF_Default);
+
+	TAutoConsoleVariable<float> CVarSwarmUnitBackShade(
+		TEXT("Swarm.UnitBackShade"),
+		0.32f,
+		TEXT("How dark the dark-facing hemisphere is, as a fraction of the lit side.\n")
+		TEXT("0 = black back (hard shading), 1 = no front/back difference."),
+		ECVF_Default);
+
+	TAutoConsoleVariable<float> CVarSwarmUnitLightFloor(
+		TEXT("Swarm.UnitLightFloor"),
+		0.28f,
+		TEXT("Minimum brightness a unit keeps at the very edge of the light, so the horde\n")
+		TEXT("never sinks fully into the dark and vanishes (the silhouette-rescue rule,\n")
+		TEXT("docs/RENDERING-LIGHTING.md §2.5 / gate G5). 0 lets edge units disappear.\n")
+		TEXT("RETINUE ONLY since 2026-07-26 — brood use BroodLightFloor/BroodLightCeil."),
+		ECVF_Default);
+
+	// --- brood-only exposure window (owner 2026-07-26) ----------------------
+	// The silhouette-rescue floor is a promise about YOUR line, not about the tide.
+	// Applied to both teams it did two things the owner called out: it pinned every
+	// distant brood at one flat mid-value so they popped into being at the pool edge
+	// as fully-formed shapes, and it let the near ones ride the full albedo into the
+	// top of the ramp and blow out. Brood now get their own window — near-black at
+	// spawn distance, held below the retinue at contact — which is the same split
+	// Emberkeep.UnitCamProj.BroodFloor/BroodCeil already makes in the close-up panel
+	// (docs/RENDERING-LIGHTING.md §4d finding 2/3). Keep the two roughly in step.
+	TAutoConsoleVariable<float> CVarSwarmBroodLightFloor(
+		TEXT("Swarm.BroodLightFloor"),
+		0.f,
+		TEXT("Minimum brightness for BROOD, replacing Swarm.UnitLightFloor for that team.\n")
+		TEXT("0 means a brood at the outer edge of the pool is drawn black, which the\n")
+		TEXT("demichrome pass quantises to Palette[0] — the same value as the ground, so\n")
+		TEXT("it is invisible and FADES IN as it walks toward the flame. Raise it toward\n")
+		TEXT("Swarm.UnitLightFloor to buy back the old always-visible tide."),
+		ECVF_Default);
+
+	TAutoConsoleVariable<float> CVarSwarmBroodLightCeil(
+		TEXT("Swarm.BroodLightCeil"),
+		0.7f,
+		TEXT("Brightest a brood is ever drawn, as a fraction of its albedo — the anti\n")
+		TEXT("blow-out dial for units standing in the flame. Clamped to >= BroodLightFloor.\n")
+		TEXT("1 = the pre-2026-07-26 look (brood reach full albedo at the hero's feet).\n")
+		TEXT("Holding it under 1 keeps brood a step below retinue at every distance, so a\n")
+		TEXT("soldier beside a brood always reads as the lit one."),
+		ECVF_Default);
+
+	// --- body size, per team (added 2026-07-26) ---------------------------
+	// Until now the only way to resize a unit was to select the placed ASwarmRenderActor
+	// and edit its BroodDebugPointSize/RetinueDebugPointSize UPROPERTY, which is not a
+	// thing you can do mid-fight. These override those at runtime.
+	//
+	// 0 deliberately means "don't override" rather than "zero-sized", so the level's
+	// placed actor stays the design-time default and these stay a live experiment on top
+	// of it. The exec file writes explicit positive values, so the breadboard row shows a
+	// real number rather than a sentinel.
+	//
+	// Size is only half a decision: a brood grown past Swarm.BroodSeparation (60uu) will
+	// visibly interpenetrate its neighbours, because separation is what actually holds
+	// bodies apart and it has no idea how big they are. Move the two together.
+	TAutoConsoleVariable<float> CVarSwarmBroodSize(
+		TEXT("Swarm.BroodSize"),
+		0.f,
+		TEXT("Brood body half-extent in uu, overriding the render actor's BroodDebugPointSize\n")
+		TEXT("(14). 0 = don't override. Read against RetinueSize: the size difference is how a\n")
+		TEXT("player tells the tide from their own line before either resolves into a sprite.\n")
+		TEXT("Grow it past Swarm.BroodSeparation and bodies interpenetrate — raise both."),
+		ECVF_Default);
+
+	TAutoConsoleVariable<float> CVarSwarmRetinueSize(
+		TEXT("Swarm.RetinueSize"),
+		0.f,
+		TEXT("Retinue body half-extent in uu, overriding RetinueDebugPointSize (22).\n")
+		TEXT("0 = don't override. Here because a size dial is only meaningful next to the\n")
+		TEXT("thing it is compared against. Formation spacing is ~86uu, so keep under ~40."),
+		ECVF_Default);
+
+	// --- per-unit size variation -----------------------------------------
+	// A horde whose every member is the exact same box reads as one texture, not as a
+	// crowd. These are amplitudes on a per-entity roll the sim publishes in the spare
+	// high bits of the anim int32 (SwarmRenderPack), so they retune live with no respawn.
+	//
+	// NOT honoured by the Niagara sprite path, which would need its own per-particle size
+	// array and a graph edit. Only the debug-box renderer and the Unit Cam vary. That is
+	// currently the whole shipping picture (Swarm.DebugRender is 1 because the emitter
+	// draws nothing) but it is a trap waiting for the day it isn't.
+	TAutoConsoleVariable<float> CVarSwarmBroodSizeJitter(
+		TEXT("Swarm.BroodSizeJitter"),
+		0.2f,
+		TEXT("Per-brood size variation: each body draws at 1 +/- this fraction of\n")
+		TEXT("Swarm.BroodSize, fixed for its lifetime. The dial that stops the tide reading\n")
+		TEXT("as one repeated stamp. 0 = every brood identical (the pre-2026-07-26 look).\n")
+		TEXT("Quantised to 16 steps, so beyond ~0.5 the banding starts to show."),
+		ECVF_Default);
+
+	TAutoConsoleVariable<float> CVarSwarmRetinueSizeJitter(
+		TEXT("Swarm.RetinueSizeJitter"),
+		0.f,
+		TEXT("Same for your soldiers, and 0 on purpose: a drilled line that is uniform\n")
+		TEXT("against a tide that is not is a free read on which team a body belongs to.\n")
+		TEXT("Raise it if the retinue should look conscripted rather than trained."),
+		ECVF_Default);
+
+	TAutoConsoleVariable<float> CVarSwarmBodyHeight(
+		TEXT("Swarm.BodyHeight"),
+		0.5f,
+		TEXT("Body height as a multiple of half-extent, both teams. 0.5 is the shipped flat\n")
+		TEXT("slab; ~1.5 stands the boxes up into figures. A placeholder-geometry dial — it\n")
+		TEXT("goes away the day the boxes become sprites."),
+		ECVF_Default);
+
+	// Base albedos for the shaded path — brought down from pure white/bright so the
+	// flame has room to modulate them; the light does the brightening, not the sprite.
+	const FColor RetinueBaseAlbedo(232, 232, 238);
+	const FColor BroodBaseAlbedo(170, 44, 36);
+
+	// Retinue pure white, brood dark red — the flat fallback when UnitShading is off.
 	const FColor RetinueDebugColor(255, 255, 255);
 	// Brood sit low in the value range on purpose (owner 2026-07-23): they read as
 	// the dark made flesh, and they are darkest at the edge of the pool where they
 	// enter — the flame lifts them only as they close on the hero. Was (190,45,35).
 	const FColor BroodDebugColor(130, 32, 26);
+
+	/**
+	 * Hit flash. Pure white, and deliberately NOT shaded by the flame.
+	 *
+	 * Two reasons it has to be light-exempt. A unit struck at the edge of the pool has
+	 * its brightness floored by Swarm.UnitLightFloor (0.28), which the demichrome pass
+	 * then quantises well below Threshold3 — so an attenuated "white" flash out there
+	 * would not even reach the brightest palette value and the hit would be invisible
+	 * exactly where the fighting starts. And retinue are *already* near-white, so a
+	 * tint alone does nothing for them; what makes a soldier's flash read is the
+	 * two-tone shading dropping away for an instant (see TickDebugRender).
+	 *
+	 * Same class of deliberate palette exception as the flame's white core.
+	 */
+	const FColor HitFlashColor(255, 255, 255);
 
 	constexpr float DebugPointZOffset = 30.f;
 }
@@ -184,9 +439,19 @@ void ASwarmRenderActor::BeginPlay()
 		ExecFileContents.ParseIntoArrayLines(ExecLines);
 		for (const FString& Line : ExecLines)
 		{
-			if (!Line.TrimStartAndEnd().IsEmpty())
+			// Strip inline comments (# or ;) so the file can be self-documenting;
+			// what remains is the bare console command. Whole-line comments and
+			// blank lines fall out here too.
+			FString Command = Line;
+			int32 CommentAt;
+			if (Command.FindChar(TEXT('#'), CommentAt) || Command.FindChar(TEXT(';'), CommentAt))
 			{
-				BenchExec(Line);
+				Command = Command.Left(CommentAt);
+			}
+			Command.TrimStartAndEndInline();
+			if (!Command.IsEmpty())
+			{
+				BenchExec(Command);
 			}
 		}
 	}
@@ -324,19 +589,29 @@ void ASwarmRenderActor::TickFlame(float DeltaSeconds)
 	// of truth for "where the bearer is" — the swarm and the light can't disagree.
 	const FVector Target = Swarm->GetAttractor();
 
-	// Spring-arm lag: the flame eases toward the bearer instead of being pinned to
-	// them (owner 2026-07-23), so it trails and sloshes as the hero moves. Snap on
-	// the first tick so it doesn't streak in from the world origin; snap thereafter
-	// only if lag is disabled. VInterpTo is exactly what USpringArmComponent uses.
-	const float LagSpeed = CVarSwarmFlameLagSpeed.GetValueOnGameThread();
-	if (!bFlameInitialized || LagSpeed <= 0.f)
+	// Damped spring pulling the flame toward the bearer (owner 2026-07-23), so it
+	// trails, and — unlike the old VInterpTo ease — carries momentum: a fast 180
+	// lets it overshoot before the spring reels it back. Snap on the first tick so
+	// it doesn't streak in from the world origin; snap thereafter only if disabled.
+	const float Stiffness = CVarSwarmFlameStiffness.GetValueOnGameThread();
+	if (!bFlameInitialized || Stiffness <= 0.f)
 	{
 		SmoothedFlamePos = Target;
+		FlameVel = FVector::ZeroVector;
 		bFlameInitialized = true;
 	}
 	else
 	{
-		SmoothedFlamePos = FMath::VInterpTo(SmoothedFlamePos, Target, DeltaSeconds, LagSpeed);
+		// accel = k·(target−pos) − c·vel, semi-implicit Euler (update vel then pos).
+		// c is derived from the damping RATIO so overshoot is independent of
+		// stiffness: critical is 2·sqrt(k); ratio<1 underdamps and overshoots.
+		// dt is clamped so a frame spike can't make the explicit integrator blow up.
+		const float SpringDt = FMath::Min(DeltaSeconds, 1.f / 30.f);
+		const float Ratio = FMath::Max(CVarSwarmFlameDamping.GetValueOnGameThread(), 0.f);
+		const float Damping = Ratio * 2.f * FMath::Sqrt(Stiffness);
+		const FVector ToTarget = Target - SmoothedFlamePos;
+		FlameVel += (ToTarget * Stiffness - FlameVel * Damping) * SpringDt;
+		SmoothedFlamePos += FlameVel * SpringDt;
 	}
 	const FVector Flame = SmoothedFlamePos;
 
@@ -364,6 +639,69 @@ void ASwarmRenderActor::TickFlame(float DeltaSeconds)
 	SetScalar(TEXT("FlameIntensity"), FMath::Max(Intensity, 0.f));
 	SetScalar(TEXT("DitherWorldAnchor"), CVarSwarmDitherWorldAnchor.GetValueOnGameThread());
 	SetScalar(TEXT("WorldDitherScale"), CVarSwarmWorldDitherScale.GetValueOnGameThread());
+	SetScalar(TEXT("DitherBandWidth"), CVarSwarmDitherBandWidth.GetValueOnGameThread());
+	SetScalar(TEXT("Threshold1"), CVarSwarmDitherThreshold1.GetValueOnGameThread());
+	SetScalar(TEXT("Threshold2"), CVarSwarmDitherThreshold2.GetValueOnGameThread());
+	SetScalar(TEXT("Threshold3"), CVarSwarmDitherThreshold3.GetValueOnGameThread());
+
+	// --- radial shadow buffer: ALL soldiers occlude the flame (§4b Phase C, faked).
+	// 64 angular bins around the flame, each holding the nearest retinue distance in
+	// that direction (0 = none). Every soldier splats itself across the bins it
+	// subtends — a closer soldier wins its bins. Packed into FlameOcc0..15 (4 bins
+	// per vector); the post pass samples one bin per pixel. No real light, no shadow
+	// maps. Shadows off → an all-zero buffer, so the shader is a no-op.
+	constexpr int32 NumBins = 64; // must match the shader (16 occluder vectors x 4)
+	float Bins[NumBins];
+	for (int32 b = 0; b < NumBins; ++b)
+	{
+		Bins[b] = 0.f;
+	}
+
+	if (CVarSwarmFlameShadows.GetValueOnGameThread() != 0)
+	{
+		const TArray<FVector>& Positions = Swarm->GetRenderPositions();
+		const TArray<int32>& AnimBits = Swarm->GetRenderAnimBits();
+		const int32 Num = FMath::Min(Positions.Num(), AnimBits.Num());
+		const float PoolR = FMath::Max(CVarSwarmFlameRadius.GetValueOnGameThread(), 1.f);
+		const float CasterR = FMath::Max(CVarSwarmFlameShadowRadius.GetValueOnGameThread(), 1.f);
+		const float TwoPi = 2.f * PI;
+
+		for (int32 i = 0; i < Num; ++i)
+		{
+			if ((AnimBits[i] & SwarmAnim::TeamBit) == 0)
+			{
+				continue; // retinue only — brood don't carry the light's story
+			}
+			const float Dx = Positions[i].X - Flame.X;
+			const float Dy = Positions[i].Y - Flame.Y;
+			const float D = FMath::Sqrt(Dx * Dx + Dy * Dy);
+			if (D < 1.f || D > PoolR)
+			{
+				continue; // outside the pool casts nothing visible
+			}
+			// Bin range this soldier subtends, at its distance. Half-angle grows as
+			// the soldier nears the flame, so close soldiers throw wider wedges.
+			const float Centre = (FMath::Atan2(Dy, Dx) / TwoPi + 0.5f) * NumBins;
+			const float HalfBins = (FMath::Atan(CasterR / D) / TwoPi) * NumBins + 0.5f;
+			const int32 Lo = FMath::FloorToInt(Centre - HalfBins);
+			const int32 Hi = FMath::CeilToInt(Centre + HalfBins);
+			for (int32 b = Lo; b <= Hi; ++b)
+			{
+				const int32 Bi = ((b % NumBins) + NumBins) % NumBins;
+				Bins[Bi] = (Bins[Bi] <= 0.f) ? D : FMath::Min(Bins[Bi], D);
+			}
+		}
+	}
+
+	// Pack the 64 bins into FlameOcc0..15 (xyzw = four consecutive bins).
+	for (int32 v = 0; v < NumBins / 4; ++v)
+	{
+		UKismetMaterialLibrary::SetVectorParameterValue(
+			World, FlameCollection, FName(*FString::Printf(TEXT("FlameOcc%d"), v)),
+			FLinearColor(Bins[v * 4 + 0], Bins[v * 4 + 1], Bins[v * 4 + 2], Bins[v * 4 + 3]));
+	}
+	SetScalar(TEXT("FlameShadowStrength"), CVarSwarmFlameShadowStrength.GetValueOnGameThread());
+	SetScalar(TEXT("FlameShadowSoft"), CVarSwarmFlameShadowSoft.GetValueOnGameThread());
 }
 
 void ASwarmRenderActor::TickDebugRender()
@@ -380,20 +718,101 @@ void ASwarmRenderActor::TickDebugRender()
 	const TArray<FVector>& Positions = Swarm->GetRenderPositions();
 	const TArray<int32>& AnimBits = Swarm->GetRenderAnimBits();
 
+	const bool bShade = CVarSwarmUnitShading.GetValueOnGameThread() != 0;
+
+	// Shade from the same point the light springs to, so the units and the pool
+	// agree about where the flame is. Falls back to the true hero position if the
+	// flame writer is disabled and the smoothed value was never seeded.
+	const FVector FlamePos = bFlameInitialized ? SmoothedFlamePos : Swarm->GetAttractor();
+	const float Radius = FMath::Max(CVarSwarmFlameRadius.GetValueOnGameThread(), 1.f);
+	const float Falloff = FMath::Max(CVarSwarmFlameFalloff.GetValueOnGameThread(), 0.001f);
+	const float BackShade = FMath::Clamp(CVarSwarmUnitBackShade.GetValueOnGameThread(), 0.f, 1.f);
+	const float LightFloor = FMath::Clamp(CVarSwarmUnitLightFloor.GetValueOnGameThread(), 0.f, 1.f);
+	const float BroodFloor = FMath::Clamp(CVarSwarmBroodLightFloor.GetValueOnGameThread(), 0.f, 1.f);
+	const float BroodCeil = FMath::Clamp(CVarSwarmBroodLightCeil.GetValueOnGameThread(), BroodFloor, 1.f);
+
+	// Per-team size. A CVar of 0 falls back to the placed actor's UPROPERTY, so the level
+	// keeps its design-time default and these stay a live override on top of it.
+	const float BroodOverride = CVarSwarmBroodSize.GetValueOnGameThread();
+	const float RetinueOverride = CVarSwarmRetinueSize.GetValueOnGameThread();
+	const float BroodHalf = BroodOverride > 0.f ? BroodOverride : BroodDebugPointSize;
+	const float RetinueHalf = RetinueOverride > 0.f ? RetinueOverride : RetinueDebugPointSize;
+	const float HeightRatio = FMath::Max(CVarSwarmBodyHeight.GetValueOnGameThread(), 0.01f);
+	const float BroodJitter = FMath::Clamp(CVarSwarmBroodSizeJitter.GetValueOnGameThread(), 0.f, 0.95f);
+	const float RetinueJitter = FMath::Clamp(CVarSwarmRetinueSizeJitter.GetValueOnGameThread(), 0.f, 0.95f);
+
+	const auto Shade = [](const FColor& C, float M) -> FColor
+	{
+		return FColor(
+			(uint8)FMath::Clamp(FMath::RoundToInt(C.R * M), 0, 255),
+			(uint8)FMath::Clamp(FMath::RoundToInt(C.G * M), 0, 255),
+			(uint8)FMath::Clamp(FMath::RoundToInt(C.B * M), 0, 255));
+	};
+
 	const int32 Num = FMath::Min(Positions.Num(), AnimBits.Num());
 	for (int32 i = 0; i < Num; ++i)
 	{
 		const bool bRetinue = (AnimBits[i] & SwarmAnim::TeamBit) != 0;
-		const float HalfSize = bRetinue ? RetinueDebugPointSize : BroodDebugPointSize;
+		const float HalfSize = (bRetinue ? RetinueHalf : BroodHalf)
+			* SwarmRenderPack::SizeScale(AnimBits[i], bRetinue ? RetinueJitter : BroodJitter);
+		const float HalfZ = HalfSize * HeightRatio;
+		// Lift the box off the floor by at least its own half-height, so a body can never
+		// sink through the ground plane as it scales. DebugPointZOffset (30) is the tuned
+		// resting lift and still wins at every default size (HalfZ is 7 brood / 11 retinue),
+		// so this changes nothing until a size dial makes a body taller than the lift —
+		// which is exactly the case it exists for.
+		const FVector Centre = Positions[i] + FVector(0.f, 0.f, FMath::Max(DebugPointZOffset, HalfZ));
 
-		DrawDebugSolidBox(
-			World,
-			Positions[i] + FVector(0.f, 0.f, DebugPointZOffset),
-			FVector(HalfSize, HalfSize, HalfSize * 0.5f),
-			bRetinue ? RetinueDebugColor : BroodDebugColor,
-			/*bPersistent=*/false,
-			/*LifeTime=*/-1.f,
-			/*DepthPriority=*/0);
+		// Struck this instant: one solid white box, full size, no directional split and
+		// no distance falloff. Collapsing the two half-boxes is what sells it — the dark
+		// half vanishing for a tenth of a second is a much louder change than a colour
+		// shift, and it works on retinue, who are already almost white.
+		if ((AnimBits[i] & SwarmAnim::HitFlashBit) != 0)
+		{
+			DrawDebugSolidBox(
+				World, Centre, FVector(HalfSize, HalfSize, HalfZ), HitFlashColor,
+				/*bPersistent=*/false, /*LifeTime=*/-1.f, /*DepthPriority=*/0);
+			continue;
+		}
+
+		if (!bShade)
+		{
+			DrawDebugSolidBox(
+				World, Centre, FVector(HalfSize, HalfSize, HalfZ),
+				bRetinue ? RetinueDebugColor : BroodDebugColor,
+				/*bPersistent=*/false, /*LifeTime=*/-1.f, /*DepthPriority=*/0);
+			continue;
+		}
+
+		// Direction to the flame in the ground plane. The lit hemisphere is the one
+		// this points at; the far hemisphere is turned to the outer dark.
+		const FVector2D ToFlame(FlamePos.X - Centre.X, FlamePos.Y - Centre.Y);
+		const float Dist = ToFlame.Size();
+		const FVector2D Dir = Dist > 1.f ? ToFlame / Dist : FVector2D(1.f, 0.f);
+
+		// Distance attenuation mapped into a per-team exposure window. Retinue keep the
+		// shared silhouette-rescue floor and the full range above it; brood ride their own
+		// narrower window, so they surface out of the dark on the approach instead of
+		// arriving already visible, and stop short of the top of the ramp when they get here.
+		const float T = FMath::Clamp(Dist / Radius, 0.f, 1.f);
+		const float Atten = 1.f - FMath::Pow(T, Falloff);
+		const float Floor = bRetinue ? LightFloor : BroodFloor;
+		const float Ceil = bRetinue ? 1.f : BroodCeil;
+		const float Lit = FMath::Lerp(Floor, Ceil, Atten);
+
+		const FColor& Base = bRetinue ? RetinueBaseAlbedo : BroodBaseAlbedo;
+		const FColor FrontCol = Shade(Base, Lit);
+		const FColor BackCol = Shade(Base, Lit * BackShade);
+
+		// Two half-boxes split along the flame direction: near half lit, far half dark.
+		const FQuat Rot(FRotator(0.f, FMath::RadiansToDegrees(FMath::Atan2(Dir.Y, Dir.X)), 0.f));
+		const FVector HalfExtent(HalfSize * 0.5f, HalfSize, HalfZ);
+		const FVector Offset = Rot.RotateVector(FVector(HalfSize * 0.5f, 0.f, 0.f));
+
+		DrawDebugSolidBox(World, Centre - Offset, HalfExtent, Rot, BackCol,
+			/*bPersistent=*/false, /*LifeTime=*/-1.f, /*DepthPriority=*/0);
+		DrawDebugSolidBox(World, Centre + Offset, HalfExtent, Rot, FrontCol,
+			/*bPersistent=*/false, /*LifeTime=*/-1.f, /*DepthPriority=*/0);
 	}
 }
 
@@ -440,11 +859,28 @@ void ASwarmRenderActor::Tick(float DeltaSeconds)
 
 	const TArray<int32>& AnimBits = Swarm->GetRenderAnimBits();
 	SubImageScratch.Reset(AnimBits.Num());
+
+	// The sim stores a WORLD facing; this camera turns it into a column. Reading the
+	// live orbit CVar here rather than baking a column in the sim is what keeps sprites
+	// correct while Emberkeep.Cam.Yaw spins the map — otherwise every unit would keep
+	// facing its old screen direction as the view rotated under it.
+	const float ViewYaw = GetCameraYawDegrees();
+
 	for (const int32 Bits : AnimBits)
 	{
-		const float Frame = (Bits & SwarmAnim::FrameBit) ? 1.f : 0.f;
-		const float Team = (Bits & SwarmAnim::TeamBit) ? 2.f : 0.f;
-		SubImageScratch.Add(Frame + Team);
+		// One shared decode (SwarmSheet::CellFor) rather than the old inline
+		// `frame + 2*team`, so the Unit Cam and this bridge cannot drift apart on what
+		// cell a given anim byte means.
+		//
+		// The (uint8) cast is load-bearing, not tidiness: bits 8-11 carry the per-entity
+		// size roll and bits 12-16 the facing (SwarmRenderPack); both would decode as
+		// garbage anim state without it. This path also IGNORES the size roll —
+		// Swarm.BroodSizeJitter does nothing to Niagara sprites, which need a
+		// per-particle size array and a graph edit to honour it. Every brood sprite is
+		// the same size until that exists.
+		const int32 Column = SwarmFacing::ColumnFor(
+			SwarmRenderPack::Facing(Bits), ViewYaw, SwarmSheet::Columns);
+		SubImageScratch.Add((float)SwarmSheet::CellFor((uint8)Bits, Column));
 	}
 
 	UNiagaraDataInterfaceArrayFunctionLibrary::SetNiagaraArrayPosition(

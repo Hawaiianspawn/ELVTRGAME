@@ -28,6 +28,11 @@ public:
 	UPROPERTY(EditAnywhere, Category = "Spike")
 	float MoveSpeed = 600.f;
 
+	/**
+	 * Seeds the camera's constructor placement only. At runtime TickCamera owns the transform
+	 * from Emberkeep.Cam.Dist, so editing this in the details panel will not move the in-game
+	 * shot — change the CVar (or its line in Saved/SwarmExecOnPlay.txt) instead.
+	 */
 	UPROPERTY(EditAnywhere, Category = "Spike")
 	float CameraHeight = 1200.f;
 
@@ -37,6 +42,15 @@ private:
 
 	void TickStanceInput(const APlayerController& PC);
 	void TickHeroCombat(float DeltaSeconds);
+
+	/**
+	 * Drive the whole camera transform from the Emberkeep.Cam.* dials — projection, pitch/yaw,
+	 * distance, focus offset — plus the up-axis bias that keeps the HUD from pushing the hero
+	 * out of the visible strip. Owns the camera every frame, so the constructor's values only
+	 * survive as the editor preview before BeginPlay.
+	 */
+	void TickCamera(float DeltaSeconds, const class USwarmSubsystem* Swarm);
+
 	void DrawHUD() const;
 
 	/** True on the frame Key transitions up->down. */
@@ -47,6 +61,25 @@ private:
 
 	UPROPERTY(VisibleAnywhere, Category = "Spike")
 	TObjectPtr<UCameraComponent> Camera;
+
+	/**
+	 * The hero's own swing clock, in seconds, wrapping on Swarm.SwingInterval.
+	 *
+	 * The hero is a pawn, not a Mass entity, so it needs its own copy of the cadence
+	 * every unit runs — otherwise the one attack the player actually feels would be
+	 * the only one still bleeding damage continuously, with no blow to see land.
+	 * Plain runtime state, not a UPROPERTY: the pawn is recreated each PIE.
+	 */
+	float HeroSwingTime = 0.f;
+
+	/** Smoothed camera offset along its up-axis compensating for the HUD's occluded band. */
+	float CameraHudBias = 0.f;
+
+	/** Where the camera actually is, so Emberkeep.Cam.Lerp has something to ease from. */
+	FVector CameraLoc = FVector::ZeroVector;
+	FRotator CameraRot = FRotator::ZeroRotator;
+	/** False until the first TickCamera places it — stops Lerp swooping in from the origin. */
+	bool bCameraPlaced = false;
 
 	// Edge-detection latches for the polled keys.
 	bool bWasDownFollow = false;

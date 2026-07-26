@@ -20,6 +20,37 @@
 
 namespace
 {
+	// How far out the brood tide appears and converges from. Under the flame
+	// (a ~900uu light pool) these spawn deep in the dark and emerge as they close.
+	// There is no distance culling on the renderer, so this ring is the only
+	// "how far out do enemies appear" number.
+	TAutoConsoleVariable<float> CVarBroodSpawnRadiusMin(
+		TEXT("Swarm.BroodSpawnRadiusMin"), 2500.f,
+		TEXT("Inner radius (uu) of the ring brood spawn in, measured from the hero."), ECVF_Default);
+	TAutoConsoleVariable<float> CVarBroodSpawnRadiusMax(
+		TEXT("Swarm.BroodSpawnRadiusMax"), 4000.f,
+		TEXT("Outer radius (uu) of the brood spawn ring. Keep >= BroodSpawnRadiusMin."), ECVF_Default);
+
+	// A full 360 ring is the "surrounded" case and it is the only one the spike could
+	// stage. An arc is what lets a wave arrive as a FRONT — which is the situation the
+	// stances are actually about, since Hold only means something if there is a
+	// direction to hold against.
+	TAutoConsoleVariable<float> CVarBroodSpawnArc(
+		TEXT("Swarm.BroodSpawnArc"), 360.f,
+		TEXT("Width in DEGREES of the arc brood spawn along. 360 = surrounded on all\n")
+		TEXT("sides; ~90 = one flank; ~30 = a column down one approach. [0..360]"), ECVF_Default);
+
+	TAutoConsoleVariable<float> CVarBroodSpawnArcCenter(
+		TEXT("Swarm.BroodSpawnArcCenter"), 0.f,
+		TEXT("Bearing in degrees the spawn arc is centred on, world +X = 0, CCW positive.\n")
+		TEXT("Ignored while Arc is 360. [-180..180]"), ECVF_Default);
+
+	TAutoConsoleVariable<float> CVarBroodSpeedJitter(
+		TEXT("Swarm.BroodSpeedJitter"), 0.15f,
+		TEXT("Per-brood speed variation, +/- this fraction of Swarm.BroodSpeed, rolled at\n")
+		TEXT("spawn. This is what strings the tide out into a ragged arrival instead of one\n")
+		TEXT("rigid wall — 0 makes the whole wave land on the same frame. [0..0.8]"), ECVF_Default);
+
 	struct FSwarmSpawnParams
 	{
 		bool bBrood = true;
@@ -63,6 +94,7 @@ namespace
 			FSwarmAnimFragment::StaticStruct(),
 			FSwarmJitterFragment::StaticStruct(),
 			FSwarmHealthFragment::StaticStruct(),
+			FSwarmStrikeFragment::StaticStruct(),
 			FSwarmTag::StaticStruct()
 		};
 		if (Params.bBrood)
@@ -85,7 +117,21 @@ namespace
 		const FVector Center = Swarm->GetAttractor();
 		FRandomStream Rand(FPlatformTime::Cycles());
 
-		const float MaxHP = Params.bBrood ? SwarmCombatTuning::BroodMaxHP : SwarmCombatTuning::RetinueMaxHP;
+		const float MaxHP = Params.bBrood ? SwarmCombatTuning::BroodMaxHP() : SwarmCombatTuning::RetinueMaxHP();
+		const float SpawnRadiusMin = CVarBroodSpawnRadiusMin.GetValueOnGameThread();
+		const float SpawnRadiusMax = CVarBroodSpawnRadiusMax.GetValueOnGameThread();
+
+		// Arc, in radians, as a half-width either side of the centre bearing.
+		const float ArcHalf = FMath::DegreesToRadians(
+			FMath::Clamp(CVarBroodSpawnArc.GetValueOnGameThread(), 0.f, 360.f) * 0.5f);
+		const float ArcCenter = FMath::DegreesToRadians(CVarBroodSpawnArcCenter.GetValueOnGameThread());
+
+		// Retinue keeps the original fixed +/-15%: your line's raggedness isn't a dial
+		// anyone has asked to move, and the formation slots already stagger it.
+		constexpr float RetinueSpeedJitter = 0.15f;
+		const float SpeedJitter = Params.bBrood
+			? FMath::Clamp(CVarBroodSpeedJitter.GetValueOnGameThread(), 0.f, 0.95f)
+			: RetinueSpeedJitter;
 
 		for (int32 Index = 0; Index < Entities.Num(); ++Index)
 		{
@@ -95,8 +141,8 @@ namespace
 			if (Params.bBrood)
 			{
 				// Ring well outside the play area so the tide visibly converges.
-				const float Angle = Rand.FRandRange(0.f, 2.f * PI);
-				const float Radius = Rand.FRandRange(2500.f, 4000.f);
+				const float Angle = ArcCenter + Rand.FRandRange(-ArcHalf, ArcHalf);
+				const float Radius = Rand.FRandRange(SpawnRadiusMin, SpawnRadiusMax);
 				SpawnLocation = Center + FVector(FMath::Cos(Angle) * Radius, FMath::Sin(Angle) * Radius, 0.f);
 			}
 			else
@@ -109,16 +155,25 @@ namespace
 			View.GetFragmentData<FTransformFragment>().GetMutableTransform().SetTranslation(SpawnLocation);
 
 			FSwarmJitterFragment& JitterFragment = View.GetFragmentData<FSwarmJitterFragment>();
-			JitterFragment.SpeedScale = Rand.FRandRange(0.85f, 1.15f);
+			JitterFragment.SpeedScale = Rand.FRandRange(1.f - SpeedJitter, 1.f + SpeedJitter);
 			JitterFragment.Phase = Rand.FRandRange(0.f, 10.f);
 
 			FSwarmHealthFragment& HealthFragment = View.GetFragmentData<FSwarmHealthFragment>();
 			HealthFragment.MaxHP = MaxHP;
 			HealthFragment.HP = MaxHP;
 
+			// Desynchronise the swing clocks. Reuse the jitter phase that already
+			// staggers the walk cycle — spawning a wave with every unit's swing at
+			// zero would make the whole front line strike on the same frame, which
+			// reads as one pulsing organism rather than a mêlée.
+			View.GetFragmentData<FSwarmStrikeFragment>().SwingTime =
+				FMath::Fmod(JitterFragment.Phase, SwarmCombatTuning::SwingInterval());
+
 			if (!Params.bBrood)
 			{
-				View.GetFragmentData<FSwarmAnimFragment>().Bits = SwarmAnim::TeamBit;
+				FSwarmAnimFragment& AnimFragment = View.GetFragmentData<FSwarmAnimFragment>();
+				AnimFragment.Bits = SwarmAnim::TeamBit;
+				AnimFragment.SquadId = (uint8)USwarmSubsystem::SquadIdForSlot(Params.SlotBase + Index);
 			}
 		}
 

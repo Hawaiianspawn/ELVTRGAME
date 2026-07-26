@@ -46,31 +46,69 @@ struct FSwarmHealthFragment : public FMassFragment
 
 namespace SwarmCombatTuning
 {
+	// These were compile-time constants; they are now backed by Swarm.* CVars so
+	// combat can be tuned live (CVar declarations + these getters' definitions
+	// live in SwarmCombatProcessors.cpp). The old `...Sq` helpers were dropped —
+	// call sites square the range locally, cached once per processor pass so the
+	// hot loop still does zero per-entity CVar reads.
+
 	// A retinue soldier must be individually worth several brood, or numbers
-	// alone decide every fight and stances stop mattering. At these values one
+	// alone decide every fight and stances stop mattering. At the defaults one
 	// soldier kills a brood in 2s and survives ~2.3s against a full 4-brood
 	// swarm — so being surrounded is what kills you, not being outnumbered in
 	// aggregate. That is the distinction the stances exist to control.
-	constexpr float RetinueMaxHP = 130.f;
-	constexpr float RetinueDPS = 30.f;
-	constexpr float BroodMaxHP = 60.f;
-	constexpr float BroodDPS = 14.f;
+	float RetinueMaxHP();
+	float RetinueDPS();
+	float BroodMaxHP();
+	float BroodDPS();
 
-	constexpr float MeleeRange = 95.f;
-	constexpr float MeleeRangeSq = MeleeRange * MeleeRange;
+	float MeleeRange();
 
-	/** A single unit can only be meaningfully swarmed by so many at once. */
-	constexpr int32 MaxAttackersPerUnit = 4;
+	/**
+	 * Hard SAFETY clamp on blows counted against one unit in a single frame.
+	 *
+	 * No longer the rate limiter it used to be. It capped the first N enemies found in
+	 * grid iteration order, and since the grid is rebuilt every frame as units move,
+	 * that set churned — over one swing interval far more than N attackers each landed
+	 * a blow, and the error grew with the interval (measured 2026-07-25: wave-1 retinue
+	 * survivors 97-103 -> 60-62). Incoming damage is now bounded by geometry instead:
+	 * a striker hits only its TargetsPerHit nearest enemies. This survives purely to
+	 * stop a pathological pile-up producing an absurd single-frame spike.
+	 */
+	int32 MaxAttackersPerUnit();
 
-	// The hero is tanky but is NOT a win condition on his own. At 120 DPS he
+	/**
+	 * How many enemies one blow lands on — the attacker's K nearest. Per team, because
+	 * the pre-2026-07-25 continuous model was implicitly infinite-cleave on output while
+	 * capping intake, and that asymmetry is what let an outnumbered line hold. A single
+	 * shared K cannot express it: raising it lifts both sides equally.
+	 * Retinue cleave; brood commit to one target. The retinue dial is the cleave powerup.
+	 */
+	int32 RetinueTargetsPerHit();
+	int32 BroodTargetsPerHit();
+
+	// --- swing cadence + hit reaction -----------------------------------
+	// The DPS values above are still the design currency; the cadence only decides
+	// how that damage is *parcelled out*. One blow removes DPS * SwingInterval, so
+	// average throughput is unchanged and the Gate 1 tuning still reads true. What
+	// changed is that there is now an instant to react to.
+	float SwingInterval();
+	float SwingStrikeAt();
+	float SwingLunge();
+	float HitFlashTime();
+
+	/** How far a struck unit is shoved, in uu, and over how long. */
+	float KnockbackDistance();
+	float KnockbackTime();
+
+	// The hero is tanky but is NOT a win condition on his own. At high DPS he
 	// could clear a wave solo after the army died, which is exactly the failure
 	// GDD §4 "hero relevance" warns about — the hero must matter as a commander,
 	// not as the damage. He survives long enough to reposition the line; he
 	// cannot replace it.
-	constexpr float HeroMaxHP = 500.f;
-	constexpr float HeroDPS = 55.f;
-	constexpr float HeroMeleeRange = 190.f;
-	constexpr float HeroMeleeRangeSq = HeroMeleeRange * HeroMeleeRange;
+	float HeroMaxHP();
+	float HeroDPS();
+	float HeroMeleeRange();
 }
 
 namespace SwarmLeash

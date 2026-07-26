@@ -21,7 +21,15 @@ public class ELVTR : ModuleRules
 			"MassMovement",
 			"Niagara",
 			"RenderCore",
-			"RHI"
+			"RHI",
+
+			// UI (M1 prototype — docs/ui/UI-PROTOTYPE-PLAN.md)
+			"UMG",
+			"Slate",
+			"SlateCore",
+			"CommonUI",
+			"CommonInput",
+			"GameplayTags"
 		});
 	}
 }

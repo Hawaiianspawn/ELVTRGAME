@@ -3,7 +3,24 @@
 #include "Kismet/GameplayStatics.h"
 #include "Mass/SwarmSpawn.h"
 #include "Mass/SwarmSubsystem.h"
+#include "Misc/CommandLine.h"
+#include "Misc/Parse.h"
 #include "SpikeHeroPawn.h"
+#include "UI/EmberkeepUIDebug.h"
+#include "TimerManager.h"
+
+namespace
+{
+	/**
+	 * True when launched with -SwarmBench, i.e. ASwarmRenderActor's benchmark owns
+	 * the entity population. Evaluated once; the command line cannot change at runtime.
+	 */
+	bool IsBenchmarkRun()
+	{
+		static const bool bBench = FParse::Param(FCommandLine::Get(), TEXT("SwarmBench"));
+		return bBench;
+	}
+}
 
 ASpike1GameMode::ASpike1GameMode()
 {
@@ -14,7 +31,28 @@ ASpike1GameMode::ASpike1GameMode()
 void ASpike1GameMode::BeginPlay()
 {
 	Super::BeginPlay();
-	RestartRun();
+
+	// Under -SwarmBench the benchmark owns the entity population: ASwarmRenderActor
+	// clears and respawns an exact retinue/brood count at every step, then times it.
+	// Auto-starting the wave run here lays a second, independently-scheduled
+	// population on top of that, so each step times some unknown mix of the two and
+	// no two runs are comparable — which is fatal for an A/B. Skip the auto-start and
+	// let the harness have the field to itself.
+	//
+	// Manual RestartRun (R on the hero pawn) still works. Arming the benchmark via
+	// the actor's bRunBenchmark property instead of the command line will still
+	// collide — use -SwarmBench for measurement runs.
+	if (!IsBenchmarkRun())
+	{
+		RestartRun();
+	}
+
+	// Show the combat HUD on play by default (toggle with `Emberkeep.UI.AutoShow 0`).
+	// Next tick so the local player's viewport and pawn are ready.
+	GetWorldTimerManager().SetTimerForNextTick(FTimerDelegate::CreateLambda([this]()
+	{
+		EmberkeepUI::AutoShowIfEnabled(GetWorld());
+	}));
 }
 
 void ASpike1GameMode::RestartRun()
@@ -61,6 +99,14 @@ void ASpike1GameMode::BeginWave()
 void ASpike1GameMode::Tick(float DeltaSeconds)
 {
 	Super::Tick(DeltaSeconds);
+
+	// Skipping RestartRun in BeginPlay is not enough on its own: Phase starts at
+	// Deploying, so this state machine would still advance into wave 1 by itself and
+	// spawn brood on top of the benchmark's population. Stay out entirely.
+	if (IsBenchmarkRun())
+	{
+		return;
+	}
 
 	USwarmSubsystem* Swarm = GetWorld()->GetSubsystem<USwarmSubsystem>();
 	if (!Swarm)

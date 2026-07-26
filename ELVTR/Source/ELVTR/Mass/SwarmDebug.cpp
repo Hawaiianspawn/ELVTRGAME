@@ -118,6 +118,11 @@ namespace SwarmDebug
 			return;
 		}
 
+		// Measures the render buffer on purpose — same data the renderer draws, so it
+		// checks the sim independently of what is on screen. One caveat since the swing
+		// lunge landed: a unit mid-swing publishes a position offset toward its target by
+		// Swarm.SwingLunge (~12uu), so mid-combat spacing carries that much cosmetic
+		// noise. Formation-at-rest numbers are unaffected — nothing at rest is swinging.
 		const TArray<FVector>& Positions = Swarm->GetRenderPositions();
 		const TArray<int32>& AnimBits = Swarm->GetRenderAnimBits();
 		if (Positions.Num() != AnimBits.Num())
