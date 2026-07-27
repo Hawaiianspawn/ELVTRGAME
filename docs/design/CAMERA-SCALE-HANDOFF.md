@@ -118,6 +118,29 @@ end the frame sits inside `Swarm.FlameRadius 900` and blows out to white, and `D
 makes the world-anchored dither enormous on screen. The flame and the dither are both tuned to a
 fixed zoom, and moving the camera is what breaks them. That — not projection — is the next problem.
 
+**Landed 2026-07-26 (this session) — the flame-pool half of §4.5.** `Swarm.FlameScaleWithView`
+(default 0 = world-fixed, today's behaviour) scales `FlameRadius`/`FlameCoreRadius` by the live view
+width over `Swarm.FlameScaleReferenceWidth` (default 2400, the shipped `OrthoWidth`) when set to 1 —
+same A/B-behind-a-CVar idiom as `ScaleStages`/`ScaleRatchet`, not a baked-in pick. Implementation in
+`SwarmRenderActor.cpp`'s `TickFlame`, sharing a new `GetLiveViewWidthUU` helper with
+`Swarm.DitherZoomCompensate` rather than a third copy of the ortho/perspective width math (that
+construction now exists in three places total: this helper, `DitherZoomCompensate`'s old inline copy
+now routed through it, and `SpikeHeroPawn::TickCamera`'s HUD-bias extent, which still has its own copy
+since it lives in a different translation unit).
+
+Verified by screenshot, camera hand-dialled to bypass the retinue-casualty dependency (the "alone"
+end normally needs a dead retinue to reach; the same Width/Dist/Pitch triple reproduces it without
+that): `SwarmDebugShot00034.png` (dial 0, close end, 700uu framing — reproduces the blowout exactly,
+almost the entire frame is pure white) vs. `SwarmDebugShot00035.png` (dial 1, same framing — pool is
+back to a bounded, falling-off shape with visible dark ground either side). Shipped framing (2400uu,
+ortho, pitch -90) checked both ways too: `SwarmDebugShot00030.png`/`00032.png` (dial 0) and
+`SwarmDebugShot00036.png` (dial 1) are visually identical — the compensation is a no-op at the
+framing it's calibrated against, as designed.
+
+Not yet decided: world-fixed vs. screen-proportional is still the owner's call (this CVar is the A/B,
+not the answer). §4.4 (ortho -> perspective) and the dither's own zoom coupling are unaffected by
+this change.
+
 ## 4. The camera agenda is unchanged
 
 `CAMERA-SCALE.md` §4's six open questions are still the agenda and are still genuinely open. Nothing

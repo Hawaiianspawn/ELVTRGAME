@@ -42,6 +42,41 @@ namespace
 		return CamYaw ? CamYaw->GetFloat() : 0.f;
 	}
 
+	/**
+	 * World units across the live view at a given world-space focus point's depth, or 0.f
+	 * if it can't be measured (no viewport, no camera yet). Ortho spans OrthoWidth outright;
+	 * perspective spans 2*Dist*tan(FOV/2) at the focus point's distance from the camera.
+	 *
+	 * Shared rather than duplicated on purpose: Swarm.DitherZoomCompensate and
+	 * Swarm.FlameScaleWithView both need this exact "how wide is the screen, in world
+	 * units, at this depth" measurement, and SpikeHeroPawn::TickCamera's HUD-bias extent
+	 * derives the same quantity a third time for its own purpose (there, at the camera's
+	 * own focus point rather than an arbitrary world position). Do not add a fourth copy —
+	 * if a caller needs this from outside this translation unit, promote it instead.
+	 */
+	float GetLiveViewWidthUU(UWorld* World, const FVector& FocusPoint, FVector2D& OutViewportSize)
+	{
+		OutViewportSize = FVector2D::ZeroVector;
+		if (GEngine && GEngine->GameViewport)
+		{
+			GEngine->GameViewport->GetViewportSize(OutViewportSize);
+		}
+		const APlayerController* PC = World ? World->GetFirstPlayerController() : nullptr;
+		const APlayerCameraManager* CamMgr = PC ? PC->PlayerCameraManager : nullptr;
+		if (!CamMgr || OutViewportSize.X <= 1.0)
+		{
+			return 0.f;
+		}
+
+		const FMinimalViewInfo& View = CamMgr->GetCameraCacheView();
+		if (View.ProjectionMode == ECameraProjectionMode::Perspective)
+		{
+			const float Dist = FMath::Max((float)FVector::Dist(View.Location, FocusPoint), 1.f);
+			return 2.f * Dist * FMath::Tan(FMath::DegreesToRadians(View.FOV) * 0.5f);
+		}
+		return View.OrthoWidth;
+	}
+
 	TAutoConsoleVariable<int32> CVarSwarmDebugRender(
 		TEXT("Swarm.DebugRender"),
 		1,
@@ -96,6 +131,37 @@ namespace
 		TEXT("The core sits outside the 4-value palette on purpose; its edge is cut with the\n")
 		TEXT("same Bayer threshold as the pool so it dissolves rather than ending on a clean\n")
 		TEXT("circle. Colour is MPC_Flame's FlameCoreColor (white by default)."),
+		ECVF_Default);
+
+	// --- flame pool vs. the army-scale camera (CAMERA-SCALE-HANDOFF.md #1/#4.5) ---
+	// FlameRadius/FlameCoreRadius are dialed against the SHIPPED framing (2400uu). At the
+	// close end of Emberkeep.Cam.Scale (~700uu) FlameCoreRadius alone (330uu, ~660uu across)
+	// exceeds the frame and the whole view sits inside the pure-white core — a genuine
+	// blowout, not a tuning miss (evidence: SwarmDebugShot00027.png). Two coherent answers,
+	// neither ruled: keep the pool WORLD-FIXED (physically honest, but then the close
+	// framing must never be narrower than the pool) or make it SCREEN-PROPORTIONAL (the
+	// pool keeps a constant screen fraction at every zoom, at the cost of the light's world
+	// reach now depending on army size). Same idiom as Emberkeep.Cam.ScaleStages/Ratchet —
+	// both live behind a CVar so the owner judges it live rather than it being baked in.
+	TAutoConsoleVariable<int32> CVarSwarmFlameScaleWithView(
+		TEXT("Swarm.FlameScaleWithView"),
+		0,
+		TEXT("0 = world-fixed (default, today's behaviour): FlameRadius/FlameCoreRadius are\n")
+		TEXT("literal world-unit values, so the pool's reach never changes but its SCREEN size\n")
+		TEXT("grows as Emberkeep.Cam.Scale narrows the view — at the close end this blows the\n")
+		TEXT("whole frame out to the white core. 1 = screen-proportional: both radii scale by\n")
+		TEXT("the live view width over Swarm.FlameScaleReferenceWidth, so the pool keeps a\n")
+		TEXT("constant fraction of the screen at every zoom (the 'carried light, darkness\n")
+		TEXT("beyond' read never breaks), at the cost that the light's actual reach in the\n")
+		TEXT("world now changes with army size. Undecided which is right — this is the A/B."),
+		ECVF_Default);
+
+	TAutoConsoleVariable<float> CVarSwarmFlameScaleReferenceWidth(
+		TEXT("Swarm.FlameScaleReferenceWidth"), 2400.f,
+		TEXT("View width in uu at which FlameRadius/FlameCoreRadius render exactly as dialed,\n")
+		TEXT("used only while Swarm.FlameScaleWithView is 1. Matches the shipped OrthoWidth /\n")
+		TEXT("Emberkeep.Cam.ScaleWidthFull default, so a full-army run looks identical to\n")
+		TEXT("today; the radii only start scaling once the camera narrows past this."),
 		ECVF_Default);
 
 	TAutoConsoleVariable<float> CVarSwarmFlameFalloff(
@@ -281,6 +347,51 @@ namespace
 		TEXT("Luminance where the palette steps from value 2 to value 3 (brightest). Raising\n")
 		TEXT("it keeps the body of the lit pool at Bone so the white core reads (§4b.8).\n")
 		TEXT("Keep 1 < 2 < 3 ordered."),
+		ECVF_Default);
+
+	// --- palette presets (docs/art/palette.json, task-043) -------------------
+	//
+	// The four output colours of the demichrome pass, driven live so a candidate
+	// ramp can be judged in PIE instead of on a swatch. They ride MPC_Flame as
+	// Palette0..3 and land on M_PP_Demichrome's Custom node inputs C0..C3 — the
+	// same route Threshold1/2/3 already take.
+	//
+	// Sprites recolour too, and that is the point: the pass quantises scene
+	// LUMINANCE into four buckets, so a sprite baked at Bone (luma 0.622) lands in
+	// bucket 2 and emerges as whatever entry 2 currently is. Baked sheets do not
+	// need regenerating to preview a ramp.
+	//
+	// NOT recoloured: UMG (EmberkeepPalette.h) draws after post-processing.
+	//
+	// TO ADD A CANDIDATE: one row here, darkest to brightest, plus the matching
+	// entry in docs/data/art/palette.json. That is the whole cost, by design —
+	// palettes are meant to be shopped.
+	struct FSwarmPalettePreset
+	{
+		const TCHAR* Name;
+		FColor Values[4];   // sRGB bytes, darkest -> brightest
+	};
+
+	const FSwarmPalettePreset GSwarmPalettePresets[] =
+	{
+		// name            dark                    steel/low-mid           bone/high-mid           pale/bright
+		{ TEXT("demichrome"),  { FColor(0x21,0x1E,0x20), FColor(0x55,0x55,0x68), FColor(0xA0,0xA0,0x8B), FColor(0xE9,0xEF,0xEC) } },
+		{ TEXT("eulbink-4"),   { FColor(0x25,0x24,0x46), FColor(0x00,0x98,0xDB), FColor(0x0C,0xE6,0xF2), FColor(0xFF,0xFF,0xFF) } },
+		{ TEXT("rust-gold-4"), { FColor(0x33,0x1C,0x17), FColor(0x72,0x59,0x56), FColor(0xBB,0x7F,0x57), FColor(0xF6,0xCD,0x26) } },
+	};
+
+	const int32 GSwarmPaletteCount = UE_ARRAY_COUNT(GSwarmPalettePresets);
+
+	TAutoConsoleVariable<int32> CVarSwarmPalette(
+		TEXT("Emberkeep.Palette"),
+		0,
+		TEXT("Which palette the demichrome pass outputs. Live — no rebuild, no sprite regen.\n")
+		TEXT("  0 = demichrome  (LOCKED direction, min luma gap 0.218)\n")
+		TEXT("  1 = eulbink-4   (cold blue->white, 0.235 — separates better than demichrome)\n")
+		TEXT("  2 = rust-gold-4 (warm rust->gold, 0.168)\n")
+		TEXT("Out-of-range clamps to 0. UI does NOT follow — UMG draws after post.\n")
+		TEXT("Judge candidates at horde density, not on a swatch: the minimum luma gap is\n")
+		TEXT("what carries friend/foe readability at 700 units."),
 		ECVF_Default);
 
 	// --- per-unit flame shading (docs/RENDERING-LIGHTING.md §4a) -------------
@@ -676,54 +787,63 @@ void ASwarmRenderActor::TickFlame(float DeltaSeconds)
 		UKismetMaterialLibrary::SetScalarParameterValue(World, FlameCollection, FName(Name), Value);
 	};
 
-	SetScalar(TEXT("FlameRadius"), CVarSwarmFlameRadius.GetValueOnGameThread());
-	SetScalar(TEXT("FlameCoreRadius"), CVarSwarmFlameCoreRadius.GetValueOnGameThread());
+	// Pool radii, optionally re-derived from the live framing so the pool keeps a constant
+	// SCREEN fraction while the camera zooms (Swarm.FlameScaleWithView) instead of blowing
+	// out at the close end of Emberkeep.Cam.Scale. Off by default — see the CVar comment.
+	float EffectiveFlameRadius = CVarSwarmFlameRadius.GetValueOnGameThread();
+	float EffectiveFlameCoreRadius = CVarSwarmFlameCoreRadius.GetValueOnGameThread();
+	FVector2D ViewportSize = FVector2D::ZeroVector;
+	const float ViewWidthUU = GetLiveViewWidthUU(World, Flame, ViewportSize);
+	if (CVarSwarmFlameScaleWithView.GetValueOnGameThread() != 0 && ViewWidthUU > 1.f)
+	{
+		const float RefWidth = FMath::Max(CVarSwarmFlameScaleReferenceWidth.GetValueOnGameThread(), 1.f);
+		const float ViewScale = ViewWidthUU / RefWidth;
+		EffectiveFlameRadius *= ViewScale;
+		EffectiveFlameCoreRadius *= ViewScale;
+	}
+
+	SetScalar(TEXT("FlameRadius"), EffectiveFlameRadius);
+	SetScalar(TEXT("FlameCoreRadius"), EffectiveFlameCoreRadius);
 	SetScalar(TEXT("FlameFalloff"), CVarSwarmFlameFalloff.GetValueOnGameThread());
 	SetScalar(TEXT("FlameIntensity"), FMath::Max(Intensity, 0.f));
 	SetScalar(TEXT("DitherWorldAnchor"), CVarSwarmDitherWorldAnchor.GetValueOnGameThread());
 
 	// World dither scale, optionally re-derived from the live framing so a Bayer texel keeps a
-	// constant PIXEL size while the camera zooms (Swarm.DitherZoomCompensate).
+	// constant PIXEL size while the camera zooms (Swarm.DitherZoomCompensate). Reuses the same
+	// live-view-width measurement as the pool radii above.
 	float WorldDitherScale = CVarSwarmWorldDitherScale.GetValueOnGameThread();
-	if (CVarSwarmDitherZoomCompensate.GetValueOnGameThread() != 0.f)
+	if (CVarSwarmDitherZoomCompensate.GetValueOnGameThread() != 0.f && ViewWidthUU > 1.f)
 	{
-		// World units per screen pixel at the flame's depth. Read from the live camera rather
-		// than from the Emberkeep.Cam.* dials, so this stays correct whether the army-scale
-		// camera is driving or someone is moving the shot by hand.
-		FVector2D ViewportSize = FVector2D::ZeroVector;
-		if (GEngine && GEngine->GameViewport)
-		{
-			GEngine->GameViewport->GetViewportSize(ViewportSize);
-		}
-		const APlayerController* PC = World->GetFirstPlayerController();
-		const APlayerCameraManager* CamMgr = PC ? PC->PlayerCameraManager : nullptr;
-		if (CamMgr && ViewportSize.X > 1.0)
-		{
-			const FMinimalViewInfo& View = CamMgr->GetCameraCacheView();
-			// Same construction as the HUD-bias extent in SpikeHeroPawn::TickCamera: ortho spans
-			// OrthoWidth outright; perspective spans 2*Dist*tan(FOV/2) at the plane it focuses on,
-			// which here is the flame — the thing the dither is being judged against.
-			float ViewWidthUU = View.OrthoWidth;
-			if (View.ProjectionMode == ECameraProjectionMode::Perspective)
-			{
-				const float DistToFlame = FMath::Max(
-					(float)FVector::Dist(View.Location, Flame), 1.f);
-				ViewWidthUU = 2.f * DistToFlame
-					* FMath::Tan(FMath::DegreesToRadians(View.FOV) * 0.5f);
-			}
-			if (ViewWidthUU > 1.f)
-			{
-				const float UUPerPixel = ViewWidthUU / (float)ViewportSize.X;
-				WorldDitherScale = FMath::Max(
-					UUPerPixel * CVarSwarmDitherTexelPixels.GetValueOnGameThread(), 0.01f);
-			}
-		}
+		const float UUPerPixel = ViewWidthUU / (float)ViewportSize.X;
+		WorldDitherScale = FMath::Max(
+			UUPerPixel * CVarSwarmDitherTexelPixels.GetValueOnGameThread(), 0.01f);
 	}
 	SetScalar(TEXT("WorldDitherScale"), WorldDitherScale);
 	SetScalar(TEXT("DitherBandWidth"), CVarSwarmDitherBandWidth.GetValueOnGameThread());
 	SetScalar(TEXT("Threshold1"), CVarSwarmDitherThreshold1.GetValueOnGameThread());
 	SetScalar(TEXT("Threshold2"), CVarSwarmDitherThreshold2.GetValueOnGameThread());
 	SetScalar(TEXT("Threshold3"), CVarSwarmDitherThreshold3.GetValueOnGameThread());
+
+	// Palette: push the selected preset's four colours to MPC_Flame every tick, so
+	// dragging Emberkeep.Palette in the Breadboard recolours the world immediately.
+	//
+	// Deliberately NOT FLinearColor::FromSRGBColor. palette.json's luma_model is
+	// "gamma sRGB (no linearization)" and the material's existing Color_* defaults
+	// store the raw byte/255 (0x21 -> 0.129412). Linearizing here would darken every
+	// value and silently break the threshold calibration the whole look is tuned to.
+	{
+		const int32 Index = FMath::Clamp(
+			CVarSwarmPalette.GetValueOnGameThread(), 0, GSwarmPaletteCount - 1);
+		const FSwarmPalettePreset& Preset = GSwarmPalettePresets[Index];
+		for (int32 v = 0; v < 4; ++v)
+		{
+			const FColor& C = Preset.Values[v];
+			UKismetMaterialLibrary::SetVectorParameterValue(
+				World, FlameCollection,
+				FName(*FString::Printf(TEXT("Palette%d"), v)),
+				FLinearColor(C.R / 255.f, C.G / 255.f, C.B / 255.f, 1.f));
+		}
+	}
 
 	// --- radial shadow buffer: ALL soldiers occlude the flame (§4b Phase C, faked).
 	// 64 angular bins around the flame, each holding the nearest retinue distance in
@@ -743,7 +863,9 @@ void ASwarmRenderActor::TickFlame(float DeltaSeconds)
 		const TArray<FVector>& Positions = Swarm->GetRenderPositions();
 		const TArray<int32>& AnimBits = Swarm->GetRenderAnimBits();
 		const int32 Num = FMath::Min(Positions.Num(), AnimBits.Num());
-		const float PoolR = FMath::Max(CVarSwarmFlameRadius.GetValueOnGameThread(), 1.f);
+		// Effective (possibly view-scaled) radius, so a soldier's shadow wedge switches off
+		// at the same visual pool edge the post-process is actually drawing.
+		const float PoolR = FMath::Max(EffectiveFlameRadius, 1.f);
 		const float CasterR = FMath::Max(CVarSwarmFlameShadowRadius.GetValueOnGameThread(), 1.f);
 		const float TwoPi = 2.f * PI;
 
