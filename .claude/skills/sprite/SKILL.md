@@ -287,10 +287,22 @@ This is the only human gate in the chain. Do not skip it and do not infer approv
 ```
 py Scripts/art/pixelpipe.py prompt <id> --stage rotation
 ```
-Base64-encode the **quantized** anchor (`quantized/anchor/<source_direction>.png`, max
-256×256) and call `create_character` with `mode="v3"` and that string as
-`reference_image_base64`. The quantized frame, not the raw one — feeding back the raw
-frame throws away the whole point.
+**Prefer `reference_image_url` over `reference_image_base64` for this call.** PixelLab's
+`create_character` docs recommend the URL form and warn that inline base64 is often cut
+off mid-string by MCP clients, which silently corrupts the reference image — a failure
+mode that would not show up as an error, just as a rotation pass that quietly drifted
+from the approved anchor. The docs put the crossover around ~32×32; our anchors are 48px
+minimum and the concept pass runs up to 256×256, so this call sits well inside the range
+where the corruption risk is real, not a footnote.
+
+Use the **quantized** anchor (`quantized/anchor/<source_direction>.png`), not the raw
+one, regardless of which transport is used — feeding back the raw frame throws away the
+whole point of the anchor stage. If `reference_image_url` needs the file reachable at an
+actual URL and no upload path is wired up yet, check `agent_help` for how PixelLab expects
+that image to be hosted before falling back to base64 — don't default to base64 out of
+habit now that the safer path is documented. If base64 is genuinely the only option
+available, treat the transport as a known corruption risk on this call specifically and
+sanity-check the fetched rotation against the approved anchor before proceeding to F.
 
 Record, poll, fetch to `--stage rotation`.
 

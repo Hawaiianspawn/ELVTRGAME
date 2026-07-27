@@ -2,15 +2,15 @@
   "$schema": "../sprite-request.schema.json",
 
   "id": "protagonist-04",
-  "revision": 2,
+  "revision": 3,
 
   "subject": {
-    "title": "Protagonist prototype 04 - The Brazier",
+    "title": "The Bearer (hero) - winning design, was Protagonist prototype 04 The Brazier",
     "kind": "hero",
     "faction": "none",
     "class_tie": "none",
     "brief": null,
-    "spec": "../../../art/protagonist-prototypes.md"
+    "spec": "../../../art/flame-bearer.md"
   },
 
   "canon": {
@@ -18,7 +18,7 @@
     "value_dominance": "mixed",
     "pale_usage": "halo",
     "silhouette": "a T - a wide horizontal ribbed bar of fire riding across the shoulders over a narrow waist and narrow legs",
-    "reads_as": "a narrow figure under a wide iron crossbar of fire - top-heavy, the light riding on the shoulders",
+    "reads_as": "a narrow figure under a wide flickering bar of fire - top-heavy, the light worn on the shoulders rather than held or hidden",
     "moving": true,
     "light_shift_variant": false
   },
@@ -60,13 +60,29 @@
   },
 
   "anchor": {
-    "strategy": "text-only",
+    "strategy": "authored",
     "source_direction": "south",
     "shared_anchor_id": null,
     "approved": false
   },
 
-  "animations": [],
+  "animations": [
+    {
+      "name": "walk",
+      "mode": "template",
+      "template_animation_id": "walking-4-frames",
+      "directions": [
+        "south",
+        "south-west",
+        "west",
+        "north-west",
+        "north",
+        "north-east",
+        "east",
+        "south-east"
+      ]
+    }
+  ],
 
   "portrait": {
     "enabled": false
@@ -74,16 +90,31 @@
 
   "output": {
     "cell": 48,
-    "grid": [1, 1],
+    "grid": [4, 4],
     "frame_map": {
-      "0": "south.idle"
+      "0": "south.idle",
+      "1": "south.walk1",
+      "2": "south-west.idle",
+      "3": "south-west.walk1",
+      "4": "west.idle",
+      "5": "west.walk1",
+      "6": "north-west.idle",
+      "7": "north-west.walk1",
+      "8": "north.idle",
+      "9": "north.walk1",
+      "10": "north-east.idle",
+      "11": "north-east.walk1",
+      "12": "east.idle",
+      "13": "east.walk1",
+      "14": "south-east.idle",
+      "15": "south-east.walk1"
     },
-    "texture": "T_Proto_Protagonist_04",
-    "content_path": "/Game/Sprites/Prototypes",
+    "texture": "T_Hero_Bearer",
+    "content_path": "/Game/Sprites/Heroes",
     "sheet_srgb": true
   },
 
   "budget": {
-    "max_generations": 4
+    "max_generations": 20
   }
 }

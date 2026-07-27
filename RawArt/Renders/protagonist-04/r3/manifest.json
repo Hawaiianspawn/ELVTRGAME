@@ -1,0 +1,85 @@
+{
+  "id": "protagonist-04",
+  "revision": 3,
+  "created": "2026-07-27T03:38:34+00:00",
+  "stages": {
+    "anchor": {
+      "source": "authored",
+      "spec": "docs/art/flame-bearer.md",
+      "generations": 0,
+      "updated": "2026-07-27T03:39:46+00:00",
+      "quantized": "2026-07-27T03:39:54+00:00"
+    }
+  },
+  "generations_spent": 0,
+  "request_snapshot": {
+    "prompt": {
+      "description": "A narrow figure under a wide flat-brimmed iron hat, carrying a broad iron brazier basket mounted on a back frame so that it rides across the shoulders and sticks out well past them on both sides. The basket is a long horizontal cage of thick vertical iron ribs with fire visible only in the gaps between the ribs, and its top edge is flat. Heavy wide upper mass over a narrow waist, narrow legs and small feet, so the whole shape is top-heavy. Both hands hang empty at the sides. Short belted cloth tunic, no armour plate.",
+      "must_include": [
+        "wide flat brim hat with a straight brim",
+        "broad horizontal brazier cage riding across the shoulders, wider than the body",
+        "thick vertical iron ribs across the fire, fire only visible between them",
+        "wide top over a narrow waist and narrow legs",
+        "both hands empty at the sides"
+      ],
+      "must_avoid": [
+        "cape or cloak",
+        "fire escaping past the cage ribs or rising in a plume",
+        "glow, halo, sparks or rays around any pixel",
+        "bright or glowing eyes",
+        "held lantern, torch, pole or banner",
+        "helmet, hood or bare head",
+        "armour plate or pauldrons",
+        "round or domed basket"
+      ],
+      "style_mode": "flat"
+    },
+    "pixellab": {
+      "mode": "standard",
+      "size": 48,
+      "view": "low top-down",
+      "n_directions": 8,
+      "outline": "selective outline",
+      "detail": "low detail",
+      "shading": "flat shading",
+      "proportions": {
+        "type": "preset",
+        "name": "chibi"
+      },
+      "text_guidance_scale": 12,
+      "body_type": "humanoid",
+      "template": null
+    }
+  },
+  "qc": {
+    "anchor": {
+      "south.png": {
+        "pixels": 2304,
+        "opaque_pixels": 628,
+        "alpha_partial_before": 0,
+        "off_palette_before": 0,
+        "on_palette_before_pct": 100.0,
+        "luma_span_before": 0.811,
+        "normalized": false,
+        "stipple_px_before": 0,
+        "dither_enforced": false,
+        "stipple_px_after": 0,
+        "histogram": {
+          "dark": 224,
+          "steel": 180,
+          "bone": 164,
+          "pale": 60
+        },
+        "values_used": 4,
+        "histogram_pct": {
+          "dark": 35.7,
+          "steel": 28.7,
+          "bone": 26.1,
+          "pale": 9.6
+        },
+        "dominant": "dark",
+        "pale_uncaged": 0
+      }
+    }
+  }
+}
