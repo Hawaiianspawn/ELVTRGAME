@@ -4,7 +4,9 @@
 #include "MassCommonFragments.h"
 #include "MassExecutionContext.h"
 #include "MassMovementFragments.h"
+#include "Algo/BinarySearch.h"
 #include "SwarmCombat.h"
+#include "SwarmFormation.h"
 #include "SwarmFragments.h"
 #include "SwarmStats.h"
 #include "SwarmSubsystem.h"
@@ -387,6 +389,76 @@ void UBroodSteeringProcessor::Execute(FMassEntityManager& EntityManager, FMassEx
 }
 
 //----------------------------------------------------------------------
+// Retinue: close ranks over the dead
+//----------------------------------------------------------------------
+URetinueFormationProcessor::URetinueFormationProcessor()
+	: EntityQuery(*this)
+{
+	ExecutionFlags = static_cast<int32>(EProcessorExecutionFlags::All);
+	ExecutionOrder.ExecuteInGroup = FName(TEXT("SwarmSteering"));
+	ExecutionOrder.ExecuteAfter.Add(FName(TEXT("SwarmGrid")));
+	ProcessingPhase = EMassProcessingPhase::PrePhysics;
+	// Deliberately NOT ordered against RetinueFollow. If the follow pass runs first it
+	// steers one frame against the pre-repack slots, which is a single frame of a line
+	// that was about to re-form anyway — not worth a serialisation point on the group.
+}
+
+void URetinueFormationProcessor::ConfigureQueries(const TSharedRef<FMassEntityManager>& EntityManager)
+{
+	EntityQuery.AddRequirement<FRetinueFollowFragment>(EMassFragmentAccess::ReadWrite);
+	EntityQuery.AddTagRequirement<FRetinueTag>(EMassFragmentPresence::All);
+}
+
+void URetinueFormationProcessor::Execute(FMassEntityManager& EntityManager, FMassExecutionContext& Context)
+{
+	SWARM_SCOPE(STAT_SwarmRetinueFormation, SwarmRetinueFormation);
+
+	USwarmSubsystem* Swarm = Context.GetWorld()->GetSubsystem<USwarmSubsystem>();
+	if (!Swarm || !Swarm->NeedsFormationRepack() || !SwarmFormation::ReadParams().bCompact)
+	{
+		return;
+	}
+
+	// Compaction is a RANKING, not a reassignment: gather every live slot index, sort,
+	// and each unit's new index is where its old one lands in that order. Nobody swaps
+	// places with anybody — the survivors keep their relative positions and simply step
+	// inward over the gaps, which is what closing ranks looks like. Doing it any other
+	// way (say, handing out indices in chunk order) would reshuffle the whole army
+	// every time one soldier died.
+	TArray<int32> Live;
+	Live.Reserve(FMath::Max(Swarm->GetAliveRetinue(), 64));
+
+	EntityQuery.ForEachEntityChunk(Context, [&Live](FMassExecutionContext& ChunkContext)
+	{
+		const TConstArrayView<FRetinueFollowFragment> Follow = ChunkContext.GetFragmentView<FRetinueFollowFragment>();
+		for (int32 i = 0; i < ChunkContext.GetNumEntities(); ++i)
+		{
+			Live.Add(Follow[i].SlotIndex);
+		}
+	});
+
+	if (Live.Num() == 0)
+	{
+		Swarm->MarkFormationPacked();
+		return;
+	}
+	Live.Sort();
+
+	EntityQuery.ForEachEntityChunk(Context, [&Live](FMassExecutionContext& ChunkContext)
+	{
+		const TArrayView<FRetinueFollowFragment> Follow = ChunkContext.GetMutableFragmentView<FRetinueFollowFragment>();
+		for (int32 i = 0; i < ChunkContext.GetNumEntities(); ++i)
+		{
+			Follow[i].SlotIndex = Algo::LowerBound(Live, Follow[i].SlotIndex);
+		}
+	});
+
+	// Mark against the count the repack was DERIVED from, not the one we just produced,
+	// so a death landing mid-pass is picked up next frame instead of being swallowed.
+	Swarm->MarkFormationPacked();
+}
+
+//----------------------------------------------------------------------
 // Retinue: hold formation slot around the hero
 //----------------------------------------------------------------------
 URetinueFollowProcessor::URetinueFollowProcessor()
@@ -421,9 +493,14 @@ void URetinueFollowProcessor::Execute(FMassEntityManager& EntityManager, FMassEx
 	const ESwarmStance GlobalStance = Swarm->GetStance();
 	const FVector StanceAnchor = Swarm->GetStanceAnchor();
 
+	// Shape, spacing and bearing, read once per pass rather than per unit. Resolved here
+	// rather than baked at spawn so every dial in SwarmFormation.h re-forms the standing
+	// army the instant it moves.
+	const SwarmFormation::FParams Formation = SwarmFormation::ReadParams();
+
 	int32 BrokenThisFrame = 0;
 
-	EntityQuery.ForEachEntityChunk(Context, [Swarm, Attractor, GlobalStance, StanceAnchor, &BrokenThisFrame](FMassExecutionContext& ChunkContext)
+	EntityQuery.ForEachEntityChunk(Context, [Swarm, Attractor, GlobalStance, StanceAnchor, Formation, &BrokenThisFrame](FMassExecutionContext& ChunkContext)
 	{
 		const TConstArrayView<FTransformFragment> Transforms = ChunkContext.GetFragmentView<FTransformFragment>();
 		const TConstArrayView<FSwarmJitterFragment> Jitter = ChunkContext.GetFragmentView<FSwarmJitterFragment>();
@@ -434,7 +511,7 @@ void URetinueFollowProcessor::Execute(FMassEntityManager& EntityManager, FMassEx
 		for (int32 i = 0; i < ChunkContext.GetNumEntities(); ++i)
 		{
 			const FVector Location = Transforms[i].GetTransform().GetLocation();
-			const FVector2D Slot = Follow[i].SlotOffset;
+			const FVector2D Slot = SwarmFormation::SlotOffset(Follow[i].SlotIndex, Formation);
 			const float HeroDistSq = FVector::DistSquared2D(Location, Attractor);
 
 			// --- leash (docs/RTS-VERTICAL-SLICE.md §2) -------------------

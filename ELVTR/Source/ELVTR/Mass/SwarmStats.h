@@ -19,6 +19,7 @@ DECLARE_STATS_GROUP(TEXT("Swarm"), STATGROUP_Swarm, STATCAT_Advanced);
 DECLARE_CYCLE_STAT_EXTERN(TEXT("Grid build"), STAT_SwarmGridBuild, STATGROUP_Swarm, );
 DECLARE_CYCLE_STAT_EXTERN(TEXT("Brood steering"), STAT_SwarmBroodSteering, STATGROUP_Swarm, );
 DECLARE_CYCLE_STAT_EXTERN(TEXT("Retinue follow"), STAT_SwarmRetinueFollow, STATGROUP_Swarm, );
+DECLARE_CYCLE_STAT_EXTERN(TEXT("Retinue formation"), STAT_SwarmRetinueFormation, STATGROUP_Swarm, );
 DECLARE_CYCLE_STAT_EXTERN(TEXT("Combat"), STAT_SwarmCombat, STATGROUP_Swarm, );
 DECLARE_CYCLE_STAT_EXTERN(TEXT("Integrate"), STAT_SwarmIntegrate, STATGROUP_Swarm, );
 DECLARE_CYCLE_STAT_EXTERN(TEXT("Death"), STAT_SwarmDeath, STATGROUP_Swarm, );

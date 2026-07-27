@@ -15,6 +15,7 @@
 #include "MassEntityView.h"
 #include "MassMovementFragments.h"
 #include "SwarmCombat.h"
+#include "SwarmFormation.h"
 #include "SwarmFragments.h"
 #include "SwarmSubsystem.h"
 
@@ -57,21 +58,6 @@ namespace
 		int32 Count = 0;
 		int32 SlotBase = 0;
 	};
-
-	/** Concentric rings: ring r holds 8*r slots at 110uu spacing. */
-	FVector2D FormationSlot(int32 Index)
-	{
-		int32 Ring = 1;
-		int32 SlotsBefore = 0;
-		while (Index >= SlotsBefore + Ring * 8)
-		{
-			SlotsBefore += Ring * 8;
-			++Ring;
-		}
-		const int32 SlotInRing = Index - SlotsBefore;
-		const float Angle = (2.f * PI * SlotInRing) / (Ring * 8);
-		return FVector2D(FMath::Cos(Angle) * Ring * 110.f, FMath::Sin(Angle) * Ring * 110.f);
-	}
 
 	void SpawnSwarm(UWorld* World, const FSwarmSpawnParams& Params)
 	{
@@ -117,6 +103,8 @@ namespace
 		const FVector Center = Swarm->GetAttractor();
 		FRandomStream Rand(FPlatformTime::Cycles());
 
+		const SwarmFormation::FParams Formation = SwarmFormation::ReadParams();
+
 		const float MaxHP = Params.bBrood ? SwarmCombatTuning::BroodMaxHP() : SwarmCombatTuning::RetinueMaxHP();
 		const float SpawnRadiusMin = CVarBroodSpawnRadiusMin.GetValueOnGameThread();
 		const float SpawnRadiusMax = CVarBroodSpawnRadiusMax.GetValueOnGameThread();
@@ -147,8 +135,12 @@ namespace
 			}
 			else
 			{
-				const FVector2D Offset = FormationSlot(Params.SlotBase + Index);
-				View.GetFragmentData<FRetinueFollowFragment>().SlotOffset = Offset;
+				// Only the index is stored — the offset below is just where to drop the
+				// unit on frame one. The steering pass re-derives its place every frame
+				// from the live formation dials (SwarmFormation.h).
+				const int32 Slot = Params.SlotBase + Index;
+				View.GetFragmentData<FRetinueFollowFragment>().SlotIndex = Slot;
+				const FVector2D Offset = SwarmFormation::SlotOffset(Slot, Formation);
 				SpawnLocation = Center + FVector(Offset.X, Offset.Y, 0.f);
 			}
 
@@ -204,7 +196,15 @@ namespace
 		FConsoleCommandWithWorldAndArgsDelegate::CreateStatic(
 			[](const TArray<FString>& Args, UWorld* World)
 			{
-				SwarmSpawn::SpawnRetinue(World, ParseCount(Args, 100), 0);
+				// Base the new slots past the standing line rather than at 0. Two batches
+				// both starting at 0 hand the same slot index to two soldiers, and since
+				// the formation repack ranks by index it cannot tell them apart — they
+				// would stand inside each other for the rest of the run. The game mode
+				// already passes its own cursor (Spike1GameMode); this is the console
+				// path catching up with it.
+				const USwarmSubsystem* Swarm = World ? World->GetSubsystem<USwarmSubsystem>() : nullptr;
+				const int32 SlotBase = Swarm ? Swarm->GetAliveRetinue() : 0;
+				SwarmSpawn::SpawnRetinue(World, ParseCount(Args, 100), SlotBase);
 			}));
 
 	FAutoConsoleCommandWithWorldAndArgs GClearCmd(

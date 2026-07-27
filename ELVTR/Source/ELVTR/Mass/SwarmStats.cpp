@@ -3,6 +3,7 @@
 DEFINE_STAT(STAT_SwarmGridBuild);
 DEFINE_STAT(STAT_SwarmBroodSteering);
 DEFINE_STAT(STAT_SwarmRetinueFollow);
+DEFINE_STAT(STAT_SwarmRetinueFormation);
 DEFINE_STAT(STAT_SwarmCombat);
 DEFINE_STAT(STAT_SwarmIntegrate);
 DEFINE_STAT(STAT_SwarmDeath);

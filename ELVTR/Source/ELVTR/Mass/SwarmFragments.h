@@ -301,13 +301,22 @@ struct FSwarmJitterFragment : public FMassFragment
 	float Phase = 0.f; // walk-cycle offset, seconds
 };
 
-/** Retinue only: fixed formation slot, relative to the hero. */
+/** Retinue only: this unit's place in the formation. */
 USTRUCT()
 struct FRetinueFollowFragment : public FMassFragment
 {
 	GENERATED_BODY()
 
-	FVector2D SlotOffset = FVector2D::ZeroVector;
+	/**
+	 * Slot INDEX, not an offset — the offset is derived from it every frame by
+	 * SwarmFormation::SlotOffset. Storing the resolved position here (as this did until
+	 * 2026-07-26) made the shape a property of a spawn that had already happened, so no
+	 * formation dial could move a standing army.
+	 *
+	 * Also not the spawn order: while Swarm.Formation.Compact is on, the repack pass
+	 * re-densifies these as units die so the formation shrinks instead of going holey.
+	 */
+	int32 SlotIndex = 0;
 
 	/**
 	 * Leash hysteresis latch (docs/RTS-VERTICAL-SLICE.md §2). Set when the unit

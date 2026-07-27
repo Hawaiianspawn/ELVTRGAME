@@ -5,7 +5,8 @@
 #include "SwarmProcessors.generated.h"
 
 // Execution chain (all PrePhysics):
-//   GridBuild -> BroodSteering / RetinueFollow -> Combat -> Integrate -> Death / Contact
+//   GridBuild -> BroodSteering / RetinueFormation / RetinueFollow -> Combat -> Integrate
+//     -> Death / Contact
 // Combat and Death live in SwarmCombatProcessors.h.
 
 UCLASS()
@@ -26,6 +27,23 @@ class UBroodSteeringProcessor : public UMassProcessor
 	GENERATED_BODY()
 public:
 	UBroodSteeringProcessor();
+protected:
+	virtual void ConfigureQueries(const TSharedRef<FMassEntityManager>& EntityManager) override;
+	virtual void Execute(FMassEntityManager& EntityManager, FMassExecutionContext& Context) override;
+	FMassEntityQuery EntityQuery;
+};
+
+/**
+ * Closes ranks: re-densifies retinue formation slots after casualties, so the shape
+ * shrinks with the army instead of filling with holes. Runs only on frames where the
+ * standing count moved — see USwarmSubsystem::NeedsFormationRepack.
+ */
+UCLASS()
+class URetinueFormationProcessor : public UMassProcessor
+{
+	GENERATED_BODY()
+public:
+	URetinueFormationProcessor();
 protected:
 	virtual void ConfigureQueries(const TSharedRef<FMassEntityManager>& EntityManager) override;
 	virtual void Execute(FMassEntityManager& EntityManager, FMassExecutionContext& Context) override;

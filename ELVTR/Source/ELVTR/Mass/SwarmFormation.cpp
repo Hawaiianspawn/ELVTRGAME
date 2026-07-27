@@ -1,0 +1,212 @@
+#include "SwarmFormation.h"
+
+#include "HAL/IConsoleManager.h"
+
+namespace
+{
+	TAutoConsoleVariable<int32> CVarShape(
+		TEXT("Swarm.Formation.Shape"), 1,
+		TEXT("How the retinue arranges itself around you.\n")
+		TEXT("  0 Ring   - concentric rings, the original. Surrounds you, and under a camera\n")
+		TEXT("             that does not rotate it parks half your army off the bottom of frame.\n")
+		TEXT("  1 Block  - rectangle, Columns wide, ranks stacking away from camera (default).\n")
+		TEXT("  2 Wedge  - V pointing away from camera, wings trailing back past you.\n")
+		TEXT("  3 Arc    - shield wall bowed around the far side of you.\n")
+		TEXT("Live: changing this re-forms the standing army, it is not a spawn property."),
+		ECVF_Default);
+
+	TAutoConsoleVariable<float> CVarSpacing(
+		TEXT("Swarm.Formation.Spacing"), 110.f,
+		TEXT("Gap between neighbours WITHIN a rank, uu. Below about 70 the separation force\n")
+		TEXT("(Swarm steering, 60uu personal space) fights the slots and the line seethes\n")
+		TEXT("instead of standing. [40..400]"), ECVF_Default);
+
+	TAutoConsoleVariable<float> CVarRankSpacing(
+		TEXT("Swarm.Formation.RankSpacing"), 110.f,
+		TEXT("Gap BETWEEN ranks, uu — the depth dial. Under a shallow camera pitch this is\n")
+		TEXT("what decides whether the back ranks are legible or hidden behind the front\n")
+		TEXT("one, so it is worth setting larger than Spacing once Cam.Pitch leaves -90.\n")
+		TEXT("[40..400]"), ECVF_Default);
+
+	TAutoConsoleVariable<int32> CVarColumns(
+		TEXT("Swarm.Formation.Columns"), 12,
+		TEXT("Slots per rank, for Block and Arc. THE framing dial: wide and shallow puts\n")
+		TEXT("the most bodies across the screen and makes losses read as the line getting\n")
+		TEXT("shorter; narrow and deep reads as a column. Note the army-scale camera pulls\n")
+		TEXT("back as you lose people, so a very wide line stays framed. [1..64]"),
+		ECVF_Default);
+
+	TAutoConsoleVariable<float> CVarForward(
+		TEXT("Swarm.Formation.Forward"), 150.f,
+		TEXT("Push the whole formation away from the camera, uu, so the bearer stands behind\n")
+		TEXT("his line rather than inside it. Positive = deeper into frame. Negative puts\n")
+		TEXT("the army between you and the viewer. [-2000..2000]"), ECVF_Default);
+
+	TAutoConsoleVariable<float> CVarArcDegrees(
+		TEXT("Swarm.Formation.Arc"), 140.f,
+		TEXT("Arc shape only: how many degrees of circle the front rank subtends. 360 is a\n")
+		TEXT("closed ring at fixed radius; ~140 is a shield wall that still wraps your\n")
+		TEXT("flanks; ~60 is nearly a straight line. [10..360]"), ECVF_Default);
+
+	TAutoConsoleVariable<float> CVarArcRadius(
+		TEXT("Swarm.Formation.ArcRadius"), 700.f,
+		TEXT("Arc shape only: radius of the FRONT rank, uu. Ranks behind it step inward by\n")
+		TEXT("RankSpacing, so keep this comfortably above Columns * RankSpacing or the inner\n")
+		TEXT("ranks collapse through the centre. [100..4000]"), ECVF_Default);
+
+	TAutoConsoleVariable<float> CVarYaw(
+		TEXT("Swarm.Formation.Yaw"), 0.f,
+		TEXT("Extra bearing, degrees, added on top of whatever FaceCamera resolves. Use it to\n")
+		TEXT("angle the line off-square to the viewer without touching the camera. [-180..180]"),
+		ECVF_Default);
+
+	TAutoConsoleVariable<int32> CVarFaceCamera(
+		TEXT("Swarm.Formation.FaceCamera"), 1,
+		TEXT("1 = the formation's 'forward' is up-screen, tracking Emberkeep.Cam.Yaw, so the\n")
+		TEXT("line stays broadside to the viewer however the camera is set (default).\n")
+		TEXT("0 = forward is world +X regardless of where the camera is looking."),
+		ECVF_Default);
+
+	TAutoConsoleVariable<int32> CVarCompact(
+		TEXT("Swarm.Formation.Compact"), 1,
+		TEXT("1 = slots re-densify as people die, so the formation visibly SHRINKS and its\n")
+		TEXT("outline is a readout of your remaining strength (default).\n")
+		TEXT("0 = each unit keeps the slot it spawned into, and casualties leave holes where\n")
+		TEXT("they fell — the block stays full size and stops reporting anything.\n")
+		TEXT("Caveat: turning this off does not restore spawn slots that have already been\n")
+		TEXT("compacted, it only stops further repacking. Respawn to get them back."),
+		ECVF_Default);
+
+	/**
+	 * The camera's bearing, read by name rather than by linking to the pawn.
+	 *
+	 * Emberkeep.Cam.Yaw is owned by SpikeHeroPawn.cpp — a spike actor the Mass side has
+	 * no business depending on, and which may not exist at all in a later shipping mode.
+	 * Finding it by name costs one lookup per pass and degrades to "world axes" if the
+	 * pawn's translation unit never registered it, which is exactly the right failure.
+	 */
+	float CameraYawDegrees()
+	{
+		static IConsoleVariable* CamYaw = nullptr;
+		if (!CamYaw)
+		{
+			CamYaw = IConsoleManager::Get().FindConsoleVariable(TEXT("Emberkeep.Cam.Yaw"));
+		}
+		return CamYaw ? CamYaw->GetFloat() : 0.f;
+	}
+
+	/** Ring slot in formation space. Ring r holds 8r slots at r * Spacing. */
+	FVector2D RingSlot(int32 Index, const SwarmFormation::FParams& P)
+	{
+		int32 Ring = 1;
+		int32 SlotsBefore = 0;
+		while (Index >= SlotsBefore + Ring * 8)
+		{
+			SlotsBefore += Ring * 8;
+			++Ring;
+		}
+		const int32 SlotInRing = Index - SlotsBefore;
+		const float Angle = (2.f * PI * SlotInRing) / (Ring * 8);
+		const float Radius = Ring * P.Spacing;
+		return FVector2D(FMath::Cos(Angle) * Radius, FMath::Sin(Angle) * Radius);
+	}
+
+	/** Rectangle: rank 0 nearest the bearer, ranks stacking away from camera. */
+	FVector2D BlockSlot(int32 Index, const SwarmFormation::FParams& P)
+	{
+		const int32 Columns = FMath::Max(P.Columns, 1);
+		const int32 Rank = Index / Columns;
+		const int32 Column = Index % Columns;
+
+		// Centre the rank on the anchor so the bearer sits under the middle of his line
+		// rather than off its left end.
+		const float Right = (Column - (Columns - 1) * 0.5f) * P.Spacing;
+		return FVector2D(Rank * P.RankSpacing, Right);
+	}
+
+	/**
+	 * V, apex furthest from camera. Rank r holds 2r+1 slots, so the wings widen by one
+	 * either side per rank while stepping back toward the bearer — a shape that reads as
+	 * pointed at whatever you are walking into.
+	 */
+	FVector2D WedgeSlot(int32 Index, const SwarmFormation::FParams& P)
+	{
+		int32 Rank = 0;
+		int32 SlotsBefore = 0;
+		while (Index >= SlotsBefore + (2 * Rank + 1))
+		{
+			SlotsBefore += 2 * Rank + 1;
+			++Rank;
+		}
+		const int32 SlotInRank = Index - SlotsBefore;
+		const float Right = (SlotInRank - Rank) * P.Spacing;
+		return FVector2D(-Rank * P.RankSpacing, Right);
+	}
+
+	/** Shield wall: Columns-wide ranks bowed on an arc, each rank one step inward. */
+	FVector2D ArcSlot(int32 Index, const SwarmFormation::FParams& P)
+	{
+		const int32 Columns = FMath::Max(P.Columns, 1);
+		const int32 Rank = Index / Columns;
+		const int32 Column = Index % Columns;
+
+		const float Sweep = FMath::DegreesToRadians(FMath::Clamp(P.ArcDegrees, 1.f, 360.f));
+		const float T = (Columns > 1) ? ((float)Column / (float)(Columns - 1) - 0.5f) : 0.f;
+		const float Angle = T * Sweep;
+
+		// Floor the radius rather than letting deep formations invert through the centre,
+		// which would fold the back ranks out the far side pointing the wrong way.
+		const float Radius = FMath::Max(P.ArcRadius - Rank * P.RankSpacing, P.Spacing);
+		return FVector2D(FMath::Cos(Angle) * Radius, FMath::Sin(Angle) * Radius);
+	}
+}
+
+namespace SwarmFormation
+{
+	FParams ReadParams()
+	{
+		FParams P;
+		P.Shape = (EShape)FMath::Clamp(CVarShape.GetValueOnAnyThread(), 0, 3);
+		P.Spacing = FMath::Max(CVarSpacing.GetValueOnAnyThread(), 1.f);
+		P.RankSpacing = FMath::Max(CVarRankSpacing.GetValueOnAnyThread(), 1.f);
+		P.Columns = FMath::Clamp(CVarColumns.GetValueOnAnyThread(), 1, 64);
+		P.Forward = CVarForward.GetValueOnAnyThread();
+		P.ArcDegrees = CVarArcDegrees.GetValueOnAnyThread();
+		P.ArcRadius = CVarArcRadius.GetValueOnAnyThread();
+		P.bCompact = CVarCompact.GetValueOnAnyThread() != 0;
+
+		const float Bearing = CVarYaw.GetValueOnAnyThread()
+			+ (CVarFaceCamera.GetValueOnAnyThread() != 0 ? CameraYawDegrees() : 0.f);
+		P.YawRadians = FMath::DegreesToRadians(Bearing);
+		return P;
+	}
+
+	FVector2D SlotOffset(int32 Index, const FParams& P)
+	{
+		Index = FMath::Max(Index, 0);
+
+		FVector2D Local;
+		switch (P.Shape)
+		{
+		case EShape::Block: Local = BlockSlot(Index, P); break;
+		case EShape::Wedge: Local = WedgeSlot(Index, P); break;
+		case EShape::Arc:   Local = ArcSlot(Index, P);   break;
+		case EShape::Ring:
+		default:            Local = RingSlot(Index, P);  break;
+		}
+
+		// Ring is the one shape with no front, so a forward shove would just slide the
+		// bearer out of his own circle rather than framing anything. Left alone.
+		if (P.Shape != EShape::Ring)
+		{
+			Local.X += P.Forward;
+		}
+
+		// Formation space is (forward, right); rotate it onto the world ground plane.
+		// At Yaw 0 forward is world +X, which is what 'W' pushes along and what the
+		// camera treats as up-screen — the three agree by construction.
+		const float S = FMath::Sin(P.YawRadians);
+		const float C = FMath::Cos(P.YawRadians);
+		return FVector2D(Local.X * C - Local.Y * S, Local.X * S + Local.Y * C);
+	}
+}

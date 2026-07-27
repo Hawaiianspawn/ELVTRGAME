@@ -317,6 +317,19 @@ public:
 	int32 GetLeashBrokenCount() const { return LeashBroken; }
 	void AddLeashBroken(int32 Count) { LeashBroken += Count; }
 
+	// --- formation repack --------------------------------------------------
+	// The formation slot index has to stay DENSE for the shape to mean anything: with a
+	// baked index, casualties punch holes through a block and its outline never shrinks,
+	// so the formation stops reporting how much army is left. Repacking is O(N log N),
+	// so it is gated on the standing count actually having moved rather than run per
+	// frame. AliveRetinue is last frame's count when the steering pass reads it, which is
+	// exactly right — one frame of lag on re-forming a line is invisible.
+
+	bool NeedsFormationRepack() const { return AliveRetinue != PackedRetinueCount; }
+	void MarkFormationPacked() { PackedRetinueCount = AliveRetinue; }
+	/** Force a repack next pass — for changes the count alone would not reveal. */
+	void MarkFormationDirty() { PackedRetinueCount = -1; }
+
 	// --- bookkeeping -------------------------------------------------------
 	void TrackSpawned(const TArray<FMassEntityHandle>& Handles) { AllEntities.Append(Handles); }
 	TArray<FMassEntityHandle>& GetTrackedEntities() { return AllEntities; }
@@ -371,6 +384,7 @@ private:
 	int32 AliveRetinue = 0;
 	int32 AliveBrood = 0;
 	int32 LeashBroken = 0;
+	int32 PackedRetinueCount = -1;	// standing count as of the last formation repack
 	int64 HeroContacts = 0;
 	int32 HeroContactsThisFrame = 0;
 
