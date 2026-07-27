@@ -22,3 +22,7 @@ Desktop.ini
 # Local-only state
 .claude/settings.local.json
 .obsidian/workspace.json
+
+# Python bytecode caches (build artifacts — never source)
+__pycache__/
+*.pyc
