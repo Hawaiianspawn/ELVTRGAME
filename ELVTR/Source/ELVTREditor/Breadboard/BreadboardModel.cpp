@@ -123,6 +123,40 @@ namespace BreadboardParse
 			Row.RangeMax = FCString::Atod(*MaxPart);
 		}
 	}
+
+	/**
+	 * Pull a `{0=Ring, 1=Block, 2=Wedge}` dropdown hint out of the help text.
+	 *
+	 * Braces rather than brackets so a dial can carry both a range and a choice list without
+	 * the two parsers eating each other's text.
+	 */
+	static void ParseChoiceHint(const FString& Comment, FBreadboardRow& Row)
+	{
+		int32 Open = INDEX_NONE;
+		int32 Close = INDEX_NONE;
+		if (!Comment.FindChar(TEXT('{'), Open) || !Comment.FindChar(TEXT('}'), Close) || Close < Open)
+		{
+			return;
+		}
+
+		TArray<FString> Parts;
+		Comment.Mid(Open + 1, Close - Open - 1).ParseIntoArray(Parts, TEXT(","), /*InCullEmpty=*/true);
+		for (const FString& Part : Parts)
+		{
+			FString Value;
+			FString Label;
+			if (!Part.Split(TEXT("="), &Value, &Label))
+			{
+				continue;   // not a `value=label` pair; ignore rather than guess
+			}
+			Value.TrimStartAndEndInline();
+			Label.TrimStartAndEndInline();
+			if (!Value.IsEmpty() && !Label.IsEmpty())
+			{
+				Row.Choices.Emplace(Value, Label);
+			}
+		}
+	}
 }
 
 FString FBreadboardModel::GetExecFilePath()
@@ -233,6 +267,7 @@ bool FBreadboardModel::Load()
 		Row.CommentMarker = Marker;
 		Row.Type = ClassifyCVar(Name);
 		BreadboardParse::ParseRangeHint(Comment, Row);
+		BreadboardParse::ParseChoiceHint(Comment, Row);
 
 		const int32 RowIndex = Rows.Add(MoveTemp(Row));
 

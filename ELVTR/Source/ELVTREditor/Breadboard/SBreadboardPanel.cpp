@@ -1,8 +1,10 @@
 #include "Breadboard/SBreadboardPanel.h"
 
 #include "Styling/AppStyle.h"
+#include "Framework/Application/SlateApplication.h"
 #include "Widgets/Input/SButton.h"
 #include "Widgets/Input/SCheckBox.h"
+#include "Widgets/Input/SComboButton.h"
 #include "Widgets/Input/SEditableTextBox.h"
 #include "Widgets/Input/SSearchBox.h"
 #include "Widgets/Input/SSpinBox.h"
@@ -460,6 +462,64 @@ TSharedRef<SWidget> SBreadboardPanel::BuildValueEditor(TSharedRef<FBreadboardRow
 	double SliderMin = 0.0;
 	double SliderMax = 1.0;
 	BreadboardUI::SliderRange(Row, SliderMin, SliderMax);
+
+	// A `{0=Ring, 1=Block}` hint outranks the CVar's own type: a mode dial is registered as an
+	// int, but a spin box on one is an instrument that lies — it implies the values are a
+	// magnitude you can scrub through, when 2 is not "more" than 1, it is Wedge.
+	if (Row.Choices.Num() > 0)
+	{
+		// SComboButton + a menu rather than SComboBox: SComboBox instantiates SListView, whose
+		// key handling pulls the EKeys statics out of InputCore, and this module does not link
+		// it. A ten-item mode list does not need a virtualised list view anyway.
+		return SNew(SComboButton)
+			.ContentPadding(FMargin(6.f, 2.f))
+			.ButtonContent()
+			[
+				// Reads the live edit rather than a selection the button caches, so "Pull live",
+				// Revert and a console-side change all show up here instead of leaving the
+				// button displaying a stale name.
+				SNew(STextBlock)
+				.Text_Lambda([this, State]()
+				{
+					return FText::FromString(RowFor(State).ChoiceLabel(State->Edit));
+				})
+			]
+			.OnGetMenuContent_Lambda([this, State]() -> TSharedRef<SWidget>
+			{
+				TSharedRef<SVerticalBox> Menu = SNew(SVerticalBox);
+				for (const TPair<FString, FString>& Choice : RowFor(State).Choices)
+				{
+					const FString Value = Choice.Key;
+					Menu->AddSlot()
+					.AutoHeight()
+					[
+						SNew(SButton)
+						.ButtonStyle(FAppStyle::Get(), "SimpleButton")
+						.ContentPadding(FMargin(8.f, 3.f))
+						.HAlign(HAlign_Left)
+						.OnClicked_Lambda([this, State, Value]()
+						{
+							CommitRow(State, Value, /*bApplyLive=*/true);
+							FSlateApplication::Get().DismissAllMenus();
+							return FReply::Handled();
+						})
+						[
+							SNew(STextBlock)
+							.Text(FText::FromString(Choice.Value))
+							.ColorAndOpacity_Lambda([State, Value]()
+							{
+								// The current value is highlighted rather than ticked: a tick
+								// column would be the only one in the panel.
+								return State->Edit == Value
+									? FSlateColor::UseForeground()
+									: FSlateColor(BreadboardUI::MutedColor);
+							})
+						]
+					];
+				}
+				return Menu;
+			});
+	}
 
 	switch (Row.Type)
 	{

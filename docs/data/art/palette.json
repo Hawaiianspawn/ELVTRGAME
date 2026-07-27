@@ -74,6 +74,39 @@
     }
   },
 
+  "trial_palettes": {
+    "note": "Candidate ramps for the Emberkeep.Palette dial (task-043) — NOT canon. demichrome-4 above remains the locked direction; these exist so a candidate can be judged in PIE at horde density instead of on a swatch. The index here is the CVar value and must match the GSwarmPalettePresets table in Rendering/SwarmRenderActor.cpp. TO ADD ONE: append an entry here and one row there.",
+    "how_to_judge": "min_luma_gap is the number that matters. It is the tightest step on the ramp, and it is what carries friend/foe readability at 700 units — demichrome's 0.218 is the bar. A palette that photographs better and reads worse in a wave has lost.",
+    "entries": [
+      {
+        "index": 0,
+        "key": "demichrome-4",
+        "name": "2-bit Demichrome (LOCKED — the incumbent)",
+        "hexes": ["#211e20", "#555568", "#a0a08b", "#e9efec"],
+        "min_luma_gap": 0.218,
+        "source": "docs/art/aesthetic-direction.md reset banner, 2026-07-12"
+      },
+      {
+        "index": 1,
+        "key": "eulbink-4",
+        "name": "Eulbink (4-value cut)",
+        "hexes": ["#252446", "#0098db", "#0ce6f2", "#ffffff"],
+        "min_luma_gap": 0.235,
+        "source": "https://lospec.com/palette-list/eulbink",
+        "note": "Cut from the 7-colour set, whose bottom three blues sit within 0.10 luma and cannot all survive as distinct values. Separates BETTER than the incumbent. Would also close open decision L11 (docs/RENDERING-LIGHTING.md:705) — the flame pool currently reads warm because it grades through Bone; a blue->white ramp gives a white pool without a palette exception. Tonally cold, for a game about carrying fire."
+      },
+      {
+        "index": 2,
+        "key": "rust-gold-4",
+        "name": "Rust Gold (4-value cut)",
+        "hexes": ["#331c17", "#725956", "#bb7f57", "#f6cd26"],
+        "min_luma_gap": 0.168,
+        "source": "https://lospec.com/palette-list/rust-gold-8",
+        "note": "Cut from the 8-colour set, which CANNOT work whole under a luminance quantizer: #202020/#331c17 are luma 0.125/0.128 and #563226/#393939 are 0.223/0.224, so those pairs collapse into one bucket. The full set separates by HUE, which needs the Phase B index pipeline (task-041). This 4-cut is a proper value ramp and gives the warm tone without it."
+      }
+    ]
+  },
+
   "retired_hexes": {
     "note": "Hexes voided by the 2026-07-12 reset. The validator rejects any request or linked spec that cites one. Several are still present in stale docs (CLASSES.md:78 cites #f0b84a) — that is why this list exists.",
     "entries": [

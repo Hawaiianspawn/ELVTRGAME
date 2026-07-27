@@ -33,6 +33,34 @@ struct FBreadboardRow
 	double RangeMin = 0.0;
 	double RangeMax = 0.0;
 
+	/**
+	 * Optional `{0=Ring, 1=Block}` dropdown hint parsed out of the comment: value -> label.
+	 *
+	 * A mode dial is an enumeration wearing an int's clothes, and a spin box is the wrong
+	 * instrument for one — it invites scrubbing through 2 to reach 3, and it makes the panel
+	 * ask you to remember that Wedge is 2. Where this hint is present the row becomes a
+	 * dropdown of names instead.
+	 *
+	 * Declared in the exec file rather than a table here for the same reason the ranges and
+	 * the @tab markers are: the file is the tuning surface and the /cvars skill rewrites it,
+	 * so a C++ table would silently miss every dial that skill adds later. This way a new
+	 * enum dial is a one-line comment edit with no rebuild.
+	 */
+	TArray<TPair<FString, FString>> Choices;
+
+	/** Label for a value, or the raw value when it isn't one of the declared choices. */
+	FString ChoiceLabel(const FString& Value) const
+	{
+		for (const TPair<FString, FString>& Choice : Choices)
+		{
+			if (Choice.Key == Value)
+			{
+				return Choice.Value;
+			}
+		}
+		return Value;
+	}
+
 	EBreadboardValueType Type = EBreadboardValueType::Unregistered;
 };
 
