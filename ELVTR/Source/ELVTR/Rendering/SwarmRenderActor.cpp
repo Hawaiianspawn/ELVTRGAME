@@ -1,7 +1,10 @@
 #include "SwarmRenderActor.h"
 
+#include "Camera/PlayerCameraManager.h"
 #include "DrawDebugHelpers.h"
 #include "Engine/Engine.h"
+#include "Engine/GameViewportClient.h"
+#include "GameFramework/PlayerController.h"
 #include "HAL/IConsoleManager.h"
 #include "Kismet/KismetMaterialLibrary.h"
 #include "Mass/SwarmCombat.h"
@@ -201,6 +204,46 @@ namespace
 		TEXT("Bayer texel under 2px and the pattern read as noise. 12uu keeps texels at\n")
 		TEXT("the 2x2-pixel minimum that docs/art/aesthetic-direction.md §2.4 requires of\n")
 		TEXT("anything that moves."),
+		ECVF_Default);
+
+	TAutoConsoleVariable<float> CVarSwarmDitherZoomCompensate(
+		TEXT("Swarm.DitherZoomCompensate"),
+		0.f,
+		TEXT("1 = derive WorldDitherScale from the LIVE view width each frame so a Bayer texel\n")
+		TEXT("keeps a constant size in PIXELS; 0 = off (default), WorldDitherScale is used as a\n")
+		TEXT("fixed world-unit value exactly as before.\n")
+		TEXT("\n")
+		TEXT("Why this exists: WorldDitherScale is calibrated in WORLD units against a FIXED\n")
+		TEXT("2400uu framing, but the constraint it encodes ('a texel must be at least 2 screen\n")
+		TEXT("pixels', aesthetic-direction.md §2.4) is a SCREEN-space one. The moment the camera\n")
+		TEXT("zooms — which is the whole point of Emberkeep.Cam.Scale — the two disagree: at a\n")
+		TEXT("700uu framing an 8uu texel becomes ~10px instead of ~3px and the ground reads as a\n")
+		TEXT("giant checkerboard. This keeps world ANCHORING (the anti-vignette mechanism, and\n")
+		TEXT("the thing that proves the world moves through the light) while removing the zoom\n")
+		TEXT("coupling.\n")
+		TEXT("\n")
+		TEXT("Cost, stated honestly: the pattern's world scale now breathes as the camera scales,\n")
+		TEXT("so it is no longer rigidly welded to the ground. Camera scale tracks attrition and\n")
+		TEXT("moves slowly, so this is invisible frame to frame — whereas the wrong texel size is\n")
+		TEXT("glaring. That trade is the reason to prefer it, not an oversight."),
+		ECVF_Default);
+
+	TAutoConsoleVariable<float> CVarSwarmDitherTexelPixels(
+		TEXT("Swarm.DitherTexelPixels"),
+		4.35f,
+		TEXT("Target size of one Bayer texel in SCREEN PIXELS while DitherZoomCompensate is 1.\n")
+		TEXT("Floor is 2 (aesthetic-direction.md §2.4, for anything that moves); below that the\n")
+		TEXT("pattern reads as noise. This replaces WorldDitherScale as the dial you tune once\n")
+		TEXT("compensation is on.\n")
+		TEXT("\n")
+		TEXT("The default is not a taste call — it is derived to REPRODUCE the owner-tuned\n")
+		TEXT("WorldDitherScale of 8uu at the shipped 2400uu framing: a ~1305px game viewport puts\n")
+		TEXT("2400uu at ~1.84uu/px, and 8 / 1.84 = 4.35. So switching compensation on leaves the\n")
+		TEXT("wide shot looking as it does today and only changes what happens when you zoom.\n")
+		TEXT("Note the honest caveat: because this is now measured in pixels, the world-unit\n")
+		TEXT("figure it lands on will differ at a different resolution. That is the intended\n")
+		TEXT("behaviour — the §2.4 constraint was always about pixels — but it does mean the old\n")
+		TEXT("8uu number was only ever correct for one window size."),
 		ECVF_Default);
 
 	// --- demichrome dither fine dials (M_PP_Demichrome, via MPC_Flame) -------
@@ -638,7 +681,45 @@ void ASwarmRenderActor::TickFlame(float DeltaSeconds)
 	SetScalar(TEXT("FlameFalloff"), CVarSwarmFlameFalloff.GetValueOnGameThread());
 	SetScalar(TEXT("FlameIntensity"), FMath::Max(Intensity, 0.f));
 	SetScalar(TEXT("DitherWorldAnchor"), CVarSwarmDitherWorldAnchor.GetValueOnGameThread());
-	SetScalar(TEXT("WorldDitherScale"), CVarSwarmWorldDitherScale.GetValueOnGameThread());
+
+	// World dither scale, optionally re-derived from the live framing so a Bayer texel keeps a
+	// constant PIXEL size while the camera zooms (Swarm.DitherZoomCompensate).
+	float WorldDitherScale = CVarSwarmWorldDitherScale.GetValueOnGameThread();
+	if (CVarSwarmDitherZoomCompensate.GetValueOnGameThread() != 0.f)
+	{
+		// World units per screen pixel at the flame's depth. Read from the live camera rather
+		// than from the Emberkeep.Cam.* dials, so this stays correct whether the army-scale
+		// camera is driving or someone is moving the shot by hand.
+		FVector2D ViewportSize = FVector2D::ZeroVector;
+		if (GEngine && GEngine->GameViewport)
+		{
+			GEngine->GameViewport->GetViewportSize(ViewportSize);
+		}
+		const APlayerController* PC = World->GetFirstPlayerController();
+		const APlayerCameraManager* CamMgr = PC ? PC->PlayerCameraManager : nullptr;
+		if (CamMgr && ViewportSize.X > 1.0)
+		{
+			const FMinimalViewInfo& View = CamMgr->GetCameraCacheView();
+			// Same construction as the HUD-bias extent in SpikeHeroPawn::TickCamera: ortho spans
+			// OrthoWidth outright; perspective spans 2*Dist*tan(FOV/2) at the plane it focuses on,
+			// which here is the flame — the thing the dither is being judged against.
+			float ViewWidthUU = View.OrthoWidth;
+			if (View.ProjectionMode == ECameraProjectionMode::Perspective)
+			{
+				const float DistToFlame = FMath::Max(
+					(float)FVector::Dist(View.Location, Flame), 1.f);
+				ViewWidthUU = 2.f * DistToFlame
+					* FMath::Tan(FMath::DegreesToRadians(View.FOV) * 0.5f);
+			}
+			if (ViewWidthUU > 1.f)
+			{
+				const float UUPerPixel = ViewWidthUU / (float)ViewportSize.X;
+				WorldDitherScale = FMath::Max(
+					UUPerPixel * CVarSwarmDitherTexelPixels.GetValueOnGameThread(), 0.01f);
+			}
+		}
+	}
+	SetScalar(TEXT("WorldDitherScale"), WorldDitherScale);
 	SetScalar(TEXT("DitherBandWidth"), CVarSwarmDitherBandWidth.GetValueOnGameThread());
 	SetScalar(TEXT("Threshold1"), CVarSwarmDitherThreshold1.GetValueOnGameThread());
 	SetScalar(TEXT("Threshold2"), CVarSwarmDitherThreshold2.GetValueOnGameThread());
