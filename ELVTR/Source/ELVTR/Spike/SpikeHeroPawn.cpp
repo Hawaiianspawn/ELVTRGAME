@@ -106,6 +106,129 @@ namespace
 		TEXT("teleporting. 0 = snap, which is the honest setting while tuning: smoothing hides\n")
 		TEXT("how far a value actually moved the shot."),
 		ECVF_Default);
+
+	// --- army-scale camera (docs/design/CAMERA-SCALE.md) -------------------------
+	// "The camera tells you whether you are an army or a man." One scalar — how much army
+	// you still have — drives width, pitch, distance and projection together. While Scale is
+	// 0 every dial below is inert and the camera behaves exactly as it always has.
+
+	TAutoConsoleVariable<int32> CVarCamScale(
+		TEXT("Emberkeep.Cam.Scale"), 0,
+		TEXT("1 = the camera scales with how much army you have left; 0 = off (default), and the\n")
+		TEXT("Cam.OrthoWidth / Pitch / Dist / Ortho dials drive the shot by hand as before.\n")
+		TEXT("While on, this OVERRIDES those four — they stop responding, by design."),
+		ECVF_Default);
+
+	// Weights deliberately mirror Emberkeep.UnitCamProj.Size* — the Unit Cam already solved
+	// "how much army is this" and the two views must not disagree about it.
+	TAutoConsoleVariable<float> CVarCamScaleRetinueWeight(
+		TEXT("Emberkeep.Cam.ScaleRetinueWeight"), 10.f,
+		TEXT("Weight of one live retinue soldier in the army-scale total. Heavily outweighs\n")
+		TEXT("ScaleBroodWeight on purpose: attrition of YOUR army is what the shot is about."),
+		ECVF_Default);
+
+	TAutoConsoleVariable<float> CVarCamScaleBroodWeight(
+		TEXT("Emberkeep.Cam.ScaleBroodWeight"), 0.25f,
+		TEXT("Weight of one live brood in the army-scale total. Small but non-zero, so being\n")
+		TEXT("swarmed widens the shot a little — the tide is part of the picture."),
+		ECVF_Default);
+
+	TAutoConsoleVariable<float> CVarCamScaleBodies(
+		TEXT("Emberkeep.Cam.ScaleBodies"), 1200.f,
+		TEXT("WEIGHTED body count at which the camera is fully at its 'army' end. Not a raw\n")
+		TEXT("headcount — see ScaleRetinueWeight / ScaleBroodWeight.\n")
+		TEXT("Calibrated to RetinueCap * ScaleRetinueWeight (120 * 10), so a FULL RETINUE ON ITS\n")
+		TEXT("OWN pins the scalar at 1 and you get the true top-down map — exactly the shipped\n")
+		TEXT("framing. Brood then only holds you at the wide end, it can never push past it.\n")
+		TEXT("Raise this above the retinue's own weight and full strength no longer reaches the\n")
+		TEXT("top of its own axis: the map view becomes unreachable in normal play."),
+		ECVF_Default);
+
+	TAutoConsoleVariable<float> CVarCamScaleCurve(
+		TEXT("Emberkeep.Cam.ScaleCurve"), 1.f,
+		TEXT("Shaping exponent on the 0..1 army scalar. 1 = linear. >1 holds the wide shot\n")
+		TEXT("longer and collapses late (attrition feels survivable, then sudden); <1 descends\n")
+		TEXT("early and eases out."),
+		ECVF_Default);
+
+	TAutoConsoleVariable<float> CVarCamScaleWidthFull(
+		TEXT("Emberkeep.Cam.ScaleWidthFull"), 2400.f,
+		TEXT("World units across the view at full army. Matches the shipped OrthoWidth, so a\n")
+		TEXT("full-strength run looks exactly like today."),
+		ECVF_Default);
+
+	TAutoConsoleVariable<float> CVarCamScaleWidthAlone(
+		TEXT("Emberkeep.Cam.ScaleWidthAlone"), 700.f,
+		TEXT("World units across the view with nobody left — the character-camera end."),
+		ECVF_Default);
+
+	TAutoConsoleVariable<float> CVarCamScalePitchFull(
+		TEXT("Emberkeep.Cam.ScalePitchFull"), -90.f,
+		TEXT("Camera pitch at full army. -90 = straight down, the battlefield map."),
+		ECVF_Default);
+
+	TAutoConsoleVariable<float> CVarCamScalePitchAlone(
+		TEXT("Emberkeep.Cam.ScalePitchAlone"), -22.f,
+		TEXT("Camera pitch with nobody left. Shallow enough to read as standing behind a person\n")
+		TEXT("rather than looking down at a token."),
+		ECVF_Default);
+
+	TAutoConsoleVariable<float> CVarCamScaleDistFull(
+		TEXT("Emberkeep.Cam.ScaleDistFull"), 1200.f,
+		TEXT("Camera distance back along the view axis at full army."),
+		ECVF_Default);
+
+	TAutoConsoleVariable<float> CVarCamScaleDistAlone(
+		TEXT("Emberkeep.Cam.ScaleDistAlone"), 420.f,
+		TEXT("Camera distance with nobody left. Short enough that perspective actually bites."),
+		ECVF_Default);
+
+	TAutoConsoleVariable<float> CVarCamScaleSwapAt(
+		TEXT("Emberkeep.Cam.ScaleSwapAt"), 0.35f,
+		TEXT("Army scalar (0..1) below which the projection switches to perspective. You cannot\n")
+		TEXT("lerp an ortho matrix into a perspective one, so this is a HARD swap — but the FOV\n")
+		TEXT("is solved from the same framing width, so the frame is identical across the cut and\n")
+		TEXT("only parallax changes. Set 0 to stay orthographic for the whole run."),
+		ECVF_Default);
+
+	TAutoConsoleVariable<int32> CVarCamScaleStages(
+		TEXT("Emberkeep.Cam.ScaleStages"), 0,
+		TEXT("0 = continuous (the camera is always subtly moving). N > 0 quantises the army\n")
+		TEXT("scalar into N steps, so the shot SETTLES and only re-frames when a step is\n")
+		TEXT("crossed. This is CAMERA-SCALE.md's open question 2 as a live dial — try 4 or 5\n")
+		TEXT("against 0 and judge, rather than deciding it on paper."),
+		ECVF_Default);
+
+	TAutoConsoleVariable<int32> CVarCamScaleRatchet(
+		TEXT("Emberkeep.Cam.ScaleRatchet"), 0,
+		TEXT("1 = one-way: the camera descends as the army dies and never rises again, even if a\n")
+		TEXT("breather refills the retinue. 0 = reversible. CAMERA-SCALE.md's open question 3 —\n")
+		TEXT("one-way is the stronger dramatic statement and the worse feedback loop. Resets each\n")
+		TEXT("time the camera is (re)placed, i.e. per run."),
+		ECVF_Default);
+
+	TAutoConsoleVariable<float> CVarCamScaleLerp(
+		TEXT("Emberkeep.Cam.ScaleLerp"), 1.5f,
+		TEXT("Easing speed on the army scalar itself (FInterpTo). Deliberately separate from\n")
+		TEXT("Cam.Lerp: this smooths the DRIVER so a squad wiping doesn't jolt the shot, while\n")
+		TEXT("Cam.Lerp smooths the resulting move. 0 = react instantly."),
+		ECVF_Default);
+}
+
+namespace
+{
+	/**
+	 * Eased army scalar, and the low-water mark used by ScaleRatchet.
+	 *
+	 * File-static rather than members on purpose: adding a member would change the class
+	 * layout, which Live Coding cannot apply — it reports success and then crashes the next
+	 * PIE. Keeping this out of the header means the whole army-scale feature is a
+	 * function-body change and stays hot-reloadable while it is being tuned. One hero pawn
+	 * exists in the prototype, so a single static is sound; it becomes wrong the moment
+	 * there are two (4-player co-op), and should move onto the pawn then.
+	 */
+	float GCamArmyScale = 0.f;
+	float GCamArmyScaleLow = 1.f;
 }
 
 ASpikeHeroPawn::ASpikeHeroPawn()
@@ -321,21 +444,101 @@ void ASpikeHeroPawn::TickCamera(float DeltaSeconds, const USwarmSubsystem* Swarm
 		return;
 	}
 
+	// --- army scale ---------------------------------------------------------
+	// One scalar, 0 (alone) .. 1 (full army), drives width, pitch, distance and projection
+	// together so they can never disagree about what the shot is saying.
+	const bool bScale = CVarCamScale.GetValueOnGameThread() != 0;
+
+	// Hand-driven defaults. Each is replaced below when army scale is on.
+	bool bOrtho = CVarCamOrtho.GetValueOnGameThread() != 0;
+	float Width = FMath::Max(CVarCamOrthoWidth.GetValueOnGameThread(), 1.f);
+	float Fov = FMath::Clamp(CVarCamFov.GetValueOnGameThread(), 5.f, 170.f);
+	float Pitch = CVarCamPitch.GetValueOnGameThread();
+	float Dist = CVarCamDist.GetValueOnGameThread();
+
+	if (bScale)
+	{
+		// Weighted, not a headcount — the same total the Unit Cam sizes itself from
+		// (UnitCamProjector.cpp). Your soldiers drive the framing; the tide only nudges it.
+		float Army = 0.f;
+		if (Swarm)
+		{
+			const float Weighted =
+				(float)Swarm->GetAliveRetinue() * CVarCamScaleRetinueWeight.GetValueOnGameThread() +
+				(float)Swarm->GetAliveBrood() * CVarCamScaleBroodWeight.GetValueOnGameThread();
+			const float Full = FMath::Max(CVarCamScaleBodies.GetValueOnGameThread(), 1.f);
+			Army = FMath::Clamp(Weighted / Full, 0.f, 1.f);
+
+			const float Curve = CVarCamScaleCurve.GetValueOnGameThread();
+			if (Curve > 0.f && !FMath::IsNearlyEqual(Curve, 1.f))
+			{
+				Army = FMath::Pow(Army, Curve);
+			}
+		}
+
+		// Quantise BEFORE easing, so a stage change still glides into place rather than
+		// snapping — stages decide when the shot re-frames, not how abruptly.
+		const int32 Stages = CVarCamScaleStages.GetValueOnGameThread();
+		if (Stages > 0)
+		{
+			Army = FMath::RoundToFloat(Army * (float)Stages) / (float)Stages;
+		}
+
+		// Ratchet: track the low-water mark so a breather that refills the retinue does not
+		// lift the camera back up. Reset with the camera placement, i.e. once per run.
+		if (!bCameraPlaced)
+		{
+			GCamArmyScale = Army;
+			GCamArmyScaleLow = Army;
+		}
+		GCamArmyScaleLow = FMath::Min(GCamArmyScaleLow, Army);
+		const float TargetArmy = CVarCamScaleRatchet.GetValueOnGameThread() != 0
+			? GCamArmyScaleLow : Army;
+
+		const float ScaleSpeed = FMath::Max(CVarCamScaleLerp.GetValueOnGameThread(), 0.f);
+		GCamArmyScale = (ScaleSpeed > 0.f && bCameraPlaced)
+			? FMath::FInterpTo(GCamArmyScale, TargetArmy, DeltaSeconds, ScaleSpeed)
+			: TargetArmy;
+
+		const float A = FMath::Clamp(GCamArmyScale, 0.f, 1.f);
+		Width = FMath::Lerp(
+			CVarCamScaleWidthAlone.GetValueOnGameThread(),
+			CVarCamScaleWidthFull.GetValueOnGameThread(), A);
+		Pitch = FMath::Lerp(
+			CVarCamScalePitchAlone.GetValueOnGameThread(),
+			CVarCamScalePitchFull.GetValueOnGameThread(), A);
+		Dist = FMath::Lerp(
+			CVarCamScaleDistAlone.GetValueOnGameThread(),
+			CVarCamScaleDistFull.GetValueOnGameThread(), A);
+		Width = FMath::Max(Width, 1.f);
+
+		// The hard swap. An ortho matrix cannot be blended into a perspective one, so instead
+		// of interpolating projections we CUT between them at a frame where both frame the
+		// same world width: ortho spans Width; perspective spans 2*Dist*tan(Fov/2). Solving
+		// that for Fov makes the two images agree at the seam, so the only thing that changes
+		// across the cut is parallax — and at this pitch and distance that is nearly nil.
+		bOrtho = A >= CVarCamScaleSwapAt.GetValueOnGameThread();
+		if (!bOrtho)
+		{
+			const float SafeDist = FMath::Max(FMath::Abs(Dist), 1.f);
+			Fov = FMath::RadiansToDegrees(2.f * FMath::Atan(Width / (2.f * SafeDist)));
+			Fov = FMath::Clamp(Fov, 5.f, 170.f);
+		}
+	}
+
 	// --- projection ---------------------------------------------------------
 	// Only touched on a change: both setters dirty the component's render state.
-	const bool bOrtho = CVarCamOrtho.GetValueOnGameThread() != 0;
 	const ECameraProjectionMode::Type Mode = bOrtho
 		? ECameraProjectionMode::Orthographic : ECameraProjectionMode::Perspective;
 	if (Camera->ProjectionMode != Mode)
 	{
 		Camera->SetProjectionMode(Mode);
 	}
-	const float OrthoWidth = FMath::Max(CVarCamOrthoWidth.GetValueOnGameThread(), 1.f);
+	const float OrthoWidth = Width;
 	if (bOrtho && !FMath::IsNearlyEqual(Camera->OrthoWidth, OrthoWidth))
 	{
 		Camera->SetOrthoWidth(OrthoWidth);
 	}
-	const float Fov = FMath::Clamp(CVarCamFov.GetValueOnGameThread(), 5.f, 170.f);
 	if (!bOrtho && !FMath::IsNearlyEqual(Camera->FieldOfView, Fov))
 	{
 		Camera->SetFieldOfView(Fov);
@@ -345,7 +548,7 @@ void ASpikeHeroPawn::TickCamera(float DeltaSeconds, const USwarmSubsystem* Swarm
 	// The pawn only ever translates (AddActorWorldOffset), so its component space is world-
 	// aligned and a relative rotation here is a world rotation.
 	const FRotator Rot(
-		CVarCamPitch.GetValueOnGameThread(),
+		Pitch,
 		CVarCamYaw.GetValueOnGameThread(),
 		0.f);
 	const FRotationMatrix Basis(Rot);
@@ -356,7 +559,6 @@ void ASpikeHeroPawn::TickCamera(float DeltaSeconds, const USwarmSubsystem* Swarm
 		CVarCamOffsetX.GetValueOnGameThread(),
 		CVarCamOffsetY.GetValueOnGameThread(),
 		CVarCamOffsetZ.GetValueOnGameThread());
-	const float Dist = CVarCamDist.GetValueOnGameThread();
 
 	// --- HUD bias -----------------------------------------------------------
 	// The combat HUD covers the bottom of the screen, so the middle of the VIEWPORT is not the

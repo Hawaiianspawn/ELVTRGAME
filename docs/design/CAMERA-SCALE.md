@@ -103,9 +103,14 @@ Answer these before building. They are genuinely open.
 Retiring `UUnitCamProjector` also retires **the only sprite-rendering path currently working.**
 
 **Do not delete it until the main window actually renders sprites.** Sequence matters: the Niagara
-path must be standing up first (`docs/perf/niagara-sprite-refactor.md`), and as of 2026-07-26 the
-emitter draws zero particles even with correct `Engine.ExecIndex` bindings and the per-frame position
-update enabled.
+path must be standing up first (`docs/perf/niagara-sprite-refactor.md`).
+
+> **Update 2026-07-26 — this prerequisite is now met.** The emitter renders. The cause was
+> `SimTarget: GPUComputeSim` on the `Swarm` emitter, fixed to `CPUSim`; the `Engine.ExecIndex`
+> bindings were correct all along, as this section already suspected. See
+> [CAMERA-SCALE-HANDOFF.md](CAMERA-SCALE-HANDOFF.md) for what changed, the post-fix measurements,
+> and the editor-driving notes. Retiring `UUnitCamProjector` is now safe *in principle* — but the
+> list below of what must not be lost still applies, and retiring it is not required to start.
 
 Worth reading before rewriting, in `ELVTR/Source/ELVTR/UI/UnitCamProjector.h/.cpp`:
 
