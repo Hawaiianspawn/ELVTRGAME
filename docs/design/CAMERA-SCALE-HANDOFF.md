@@ -109,9 +109,58 @@ The army-scale camera is **built**, in `SpikeHeroPawn.cpp`, behind `Emberkeep.Ca
 pitch -90, shipped framing) and `SwarmDebugShot00025.png` (forced to the alone end: genuinely
 perspective, ground receding to a horizon).
 
-**NOT verified, do not assume:** the **transition itself** has never been watched — both shots are
-separate runs at fixed scalars, so the seam's real quality is unproven. `ScaleStages` and
-`ScaleRatchet` are written but never exercised. Both need a real play session, not a screenshot.
+**Verified 2026-07-26 (this session) — the transition itself, watched across real combat, not
+fixed-scalar screenshots.** `L_Spike1`'s own wave 1/2 fights are lethal enough on their own (no
+artificial pressure needed) to walk the army scalar from 1.0 down past `ScaleSwapAt` within a single
+PIE session; `Swarm.DebugShotAfter` only fires once per session, so this used repeat runs from the
+same starting state (120 retinue, wave 1 auto-start) sampled at increasing elapsed time, cross-checked
+against the exact `SwarmFight N: ... retinue X->Y` log lines `SwarmCombat.cpp` already emits every
+~0.7-1s — that log is what makes this a real measurement and not a guess from screenshots:
+
+| t | retinue (log) | brood (log) | weighted Army | mode (predicted) | screenshot |
+|---|---|---|---|---|---|
+| 6s | 120 | 250 | 1.0 (clamped) | ortho | `SwarmDebugShot00038.png` — wide, matches shipped look |
+| 25s | 78 | 49 | 0.66 | ortho | `SwarmDebugShot00040.png` — visibly narrower, still plan-view |
+| 55s | ~20 | 174 | 0.20 | **perspective** (past 0.35) | `SwarmDebugShot00041.png` — still reads fairly plan-view |
+| 60s | 8 | 190 (hero dead) | 0.11 | perspective | `SwarmDebugShot00039.png` — unmistakably perspective, ground receding |
+
+**The cut itself is confirmed invisible, and now there's a concrete reason why, not just the design
+intent:** at 55s the scalar (0.20) is already well past the 0.35 swap point — so that frame IS
+perspective — yet it doesn't read as a dramatic change from the 25s ortho frame. Why: `Pitch` and
+`Dist` lerp continuously across the *entire* 0..1 range alongside `Width`, and at Army=0.20 they're
+still much closer to their full-army values than their alone-army ones (`Pitch` = lerp(-22,-90,0.20)
+≈ -35.8°, still a steep, plan-ish angle) — the dramatic foreshortened, horizon-receding look that
+makes 60s (Army=0.11, Pitch ≈ -29.2°) unmistakably a perspective shot only shows up as Army
+approaches 0. The projection mode flips at the swap point exactly as designed, but the *visual*
+character of "ortho vs. perspective" is a gradient the mode-flip rides on top of, not something that
+itself pops at the cut. That is the mechanism CAMERA-SCALE.md's §4.4 answer predicted
+(`Fov` solved so both projections frame the same world width at the swap), now confirmed against a
+real, continuously-attriting army rather than two isolated hand-set scalars.
+
+**`ScaleRatchet` — exercised live, mechanism not fully isolated.** Ran twice with `ScaleRatchet 1`
+under real combat. Both times the army scalar only ever decreased over the sampled window (once a
+clean 120->8 hero-down spiral, once a 120->~17 spiral after a milder wave-1 dip) — in a monotonic
+decline, `GCamArmyScaleLow` (the ratchet's low-water mark) equals the live value every frame, so
+these runs cannot distinguish ratchet-on from ratchet-off: nothing was ever available to prove it
+prevents recovering. Neither run happened to catch a "survive the wave, get reinforced, does the
+camera stay down" cycle — that needs the retinue to survive a wave outright (an earlier,
+non-ratchet baseline run *did* show that shape: wave 1 cleared with 107/120 survivors, +13
+reinforcements, back near full strength) landing at the same moment a low-water mark worth holding
+onto had been set, and engineering that overlap needs either a longer session, a milder brood count,
+or a scripted mid-session nudge that this exec-file-at-BeginPlay mechanism can't do (no live console
+access, one shot per session). Code read: the logic itself
+(`GCamArmyScaleLow = FMath::Min(GCamArmyScaleLow, Army)`, `TargetArmy = Ratchet ? GCamArmyScaleLow :
+Army`) is straightforward and ran without incident across both sessions — this is a gap in live
+observation, not a reason to doubt the implementation.
+
+**`ScaleStages` — exercised live, quantisation too fine at this sample to see by eye.** One run with
+`ScaleStages 5`, sampled at t=20s: retinue 88 / brood 81, weighted Army = 0.75, which quantises to
+0.80 (`round(0.75*5)/5`) — a 0.05 shift, which at these Width/Pitch/Dist ranges is a difference of
+tens of uu, not visible in a still (`SwarmDebugShot00042.png`). Proving "does it visibly settle
+between steps" needs either a video capture across a boundary crossing or two samples that straddle
+one cleanly, neither of which this session's one-shot-per-PIE-session screenshot tooling supports
+well. Ran without error; genuinely still an open call for the owner to make by eye in a live session,
+per the CVar's own help text.
 
 **What this surfaced, and it is now the live blocker:** §4.5 is no longer theoretical. At the close
 end the frame sits inside `Swarm.FlameRadius 900` and blows out to white, and `DitherWorldAnchor 1`
