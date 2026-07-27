@@ -142,7 +142,39 @@ exit; there's no manual teardown.
 
 ---
 
-## 6. When *not* to use a team
+## 6. Where the tasks come from
+
+Don't invent a teammate's task list in the spawn prompt — take it from
+`docs/backlog/INDEX.md`. Each task file carries a **paste-ready spawn prompt**, written
+self-contained precisely because of §5's rule that teammates load `CLAUDE.md` but not the
+lead's conversation history.
+
+The backlog also mechanises the two rules in this document that actually bite:
+
+- **§3, disjoint files.** Every task declares `owns:` globs. `py Scripts/backlog.py validate`
+  fails if two simultaneously-active tasks claim overlapping paths, and `approve` refuses a
+  transition that would create the collision. This is why `task-038` exists as its own task:
+  five design specs each wanted to write `SYSTEMS.md`, so the shared write was split out.
+- **§5, one editor.** Tasks declare `resources:` — `unreal-editor`, `mcp-9000`,
+  `pixellab-credits`. The same check treats them as mutexes, so two teammates can never be
+  approved into driving the editor at once. Credits are locked because they cost real money.
+
+Dispatch is gated by `py Scripts/backlog.py dispatch <id> --teammate <name>`, which records
+which teammate holds which task and **refuses any task that is not `approved` with its
+dependencies closed**. Run it before spawning: if it refuses, no tokens have been spent. The
+`teammate:` stamp is what lets a resumed session tell a live teammate from a §5 ghost.
+
+Two workflows, one task store:
+
+| | Intake | Who spawns |
+| --- | --- | --- |
+| `/backlog` | sweeps the repo for latent work → ranked queue → owner approves | the owner, or the lead when asked |
+| `/host "<goal>"` | a goal the owner brings → clarify → one drafted task → plan presented → owner approves | the lead, immediately on approval |
+
+The `host` agent proposes, ranks and drafts; it never approves and never spawns. Spawning
+belongs to the lead session, always after an approval that `backlog_guard.py` prompted on.
+
+## 7. When *not* to use a team
 
 Sequential work, same-file edits, or anything with heavy dependencies between steps. Use subagents
 or just one session — the coordination overhead and the per-teammate token cost aren't worth it.

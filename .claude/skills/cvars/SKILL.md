@@ -41,6 +41,17 @@ add one here only if the owner asks.)
 - **Dither:** `Swarm.DitherWorldAnchor`, `Swarm.WorldDitherScale`, `Swarm.DitherBandWidth`,
   `Swarm.DitherThreshold1`, `Swarm.DitherThreshold2`, `Swarm.DitherThreshold3` — the last
   four route through `MPC_Flame` into `M_PP_Demichrome`
+- **Palette:** `Emberkeep.Palette` — which 4-value ramp the demichrome pass outputs
+  (`0` demichrome / `1` eulbink-4 / `2` rust-gold-4), added 2026-07-26 by task-043. Defined in
+  `Rendering/SwarmRenderActor.cpp`; the four colours ride `MPC_Flame` as `Palette0..3` into
+  `M_PP_Demichrome`'s Custom node inputs `C0..C3` — the same route the thresholds take.
+  Sprites recolour too, because the pass quantises scene **luminance** into four buckets, so
+  a sheet baked at Bone lands in bucket 2 and emerges as whatever entry 2 is; **no sprite
+  needs regenerating to preview a ramp.** UMG does **not** follow — `EmberkeepPalette.h`
+  draws after post-processing. Candidate list and the luma gaps live in
+  `docs/data/art/palette.json` under `trial_palettes`; the index there must match the
+  `GSwarmPalettePresets` table in the .cpp. Adding a candidate is one row in each.
+  This is a **judging dial, not a canon change** — Direction A stays locked
 - **Unit shading:** `Swarm.UnitShading`, `Swarm.UnitBackShade`, `Swarm.UnitLightFloor`
 - **Body size:** `Swarm.BroodSize`, `Swarm.RetinueSize`, `Swarm.BodyHeight` — defined in
   `Rendering/SwarmRenderActor.cpp`, added 2026-07-26. These **override** the placed
