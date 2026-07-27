@@ -211,7 +211,32 @@ namespace
 		TEXT("Emberkeep.Cam.ScaleLerp"), 1.5f,
 		TEXT("Easing speed on the army scalar itself (FInterpTo). Deliberately separate from\n")
 		TEXT("Cam.Lerp: this smooths the DRIVER so a squad wiping doesn't jolt the shot, while\n")
-		TEXT("Cam.Lerp smooths the resulting move. 0 = react instantly."),
+		TEXT("Cam.Lerp smooths the resulting move. 0 = react instantly.\n")
+		TEXT("ONLY USED when Cam.ScaleStiffness is 0 — the spring below supersedes it."),
+		ECVF_Default);
+
+	// A spring, not a lerp, because of what the two actually feel like. FInterpTo eases OUT
+	// only: it moves fastest on the first frame after the army changes and decelerates into
+	// the target, so every casualty reads as a small shove. A damped spring starts from rest,
+	// accelerates, and settles — the camera slows INTO the new scale at both ends. That is the
+	// motion the owner asked for, and it matches how the flame already moves (TickFlame's
+	// stiffness/damping pair), so the two big continuous motions in the game share a feel.
+	TAutoConsoleVariable<float> CVarCamScaleStiffness(
+		TEXT("Emberkeep.Cam.ScaleStiffness"), 3.f,
+		TEXT("Spring stiffness (natural frequency, rad/s) pulling the army scalar toward its\n")
+		TEXT("target. Higher = the camera commits to a new scale sooner. 0 disables the spring\n")
+		TEXT("entirely and falls back to Cam.ScaleLerp's plain FInterpTo.\n")
+		TEXT("Roughly: settle time to ~5%% is about 3/Stiffness seconds at Damping 1, so the\n")
+		TEXT("default 3 settles in ~1s."),
+		ECVF_Default);
+
+	TAutoConsoleVariable<float> CVarCamScaleDamping(
+		TEXT("Emberkeep.Cam.ScaleDamping"), 1.f,
+		TEXT("Spring damping RATIO. 1 = critically damped: fastest approach with NO overshoot,\n")
+		TEXT("and the right default here because overshoot on this scalar means the camera\n")
+		TEXT("visibly rebounds past the framing and comes back, which reads as a mistake rather\n")
+		TEXT("than as weight. Below 1 overshoots and oscillates; above 1 is sluggish but always\n")
+		TEXT("monotonic. Try 0.7 only if the descent wants to feel like it lurches."),
 		ECVF_Default);
 }
 
@@ -229,6 +254,7 @@ namespace
 	 */
 	float GCamArmyScale = 0.f;
 	float GCamArmyScaleLow = 1.f;
+	float GCamArmyScaleVel = 0.f;
 }
 
 ASpikeHeroPawn::ASpikeHeroPawn()
@@ -490,15 +516,37 @@ void ASpikeHeroPawn::TickCamera(float DeltaSeconds, const USwarmSubsystem* Swarm
 		{
 			GCamArmyScale = Army;
 			GCamArmyScaleLow = Army;
+			GCamArmyScaleVel = 0.f;
 		}
 		GCamArmyScaleLow = FMath::Min(GCamArmyScaleLow, Army);
 		const float TargetArmy = CVarCamScaleRatchet.GetValueOnGameThread() != 0
 			? GCamArmyScaleLow : Army;
 
-		const float ScaleSpeed = FMath::Max(CVarCamScaleLerp.GetValueOnGameThread(), 0.f);
-		GCamArmyScale = (ScaleSpeed > 0.f && bCameraPlaced)
-			? FMath::FInterpTo(GCamArmyScale, TargetArmy, DeltaSeconds, ScaleSpeed)
-			: TargetArmy;
+		const float Stiffness = FMath::Max(CVarCamScaleStiffness.GetValueOnGameThread(), 0.f);
+		if (Stiffness > 0.f && bCameraPlaced)
+		{
+			// Critically-dampable spring: accel = w^2 * (target - x) - 2*zeta*w * v.
+			// Explicit Euler is fine at this stiffness, but a frame hitch (or a PIE
+			// breakpoint) can hand us a dt large enough to make it blow up, so clamp the
+			// step rather than trusting DeltaSeconds. A camera that explodes on a hitch is
+			// worse than one that eases a fraction slower through it.
+			const float Zeta = FMath::Max(CVarCamScaleDamping.GetValueOnGameThread(), 0.f);
+			const float Dt = FMath::Min(DeltaSeconds, 1.f / 30.f);
+			const float Accel = Stiffness * Stiffness * (TargetArmy - GCamArmyScale)
+							  - 2.f * Zeta * Stiffness * GCamArmyScaleVel;
+			GCamArmyScaleVel += Accel * Dt;
+			GCamArmyScale += GCamArmyScaleVel * Dt;
+		}
+		else
+		{
+			// Legacy path: plain FInterpTo, kept so Stiffness 0 is a true A/B against the
+			// spring rather than just "no smoothing at all".
+			const float ScaleSpeed = FMath::Max(CVarCamScaleLerp.GetValueOnGameThread(), 0.f);
+			GCamArmyScale = (ScaleSpeed > 0.f && bCameraPlaced)
+				? FMath::FInterpTo(GCamArmyScale, TargetArmy, DeltaSeconds, ScaleSpeed)
+				: TargetArmy;
+			GCamArmyScaleVel = 0.f;
+		}
 
 		const float A = FMath::Clamp(GCamArmyScale, 0.f, 1.f);
 		Width = FMath::Lerp(
