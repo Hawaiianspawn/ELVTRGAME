@@ -455,3 +455,66 @@ Two consequences for planning:
 **Caveat on these numbers:** `InitializeParticle.Lifetime` is still the `0.5` placeholder with
 `InterpolatedSpawnMode: Interpolation`, so roughly 30 particle generations coexist. These figures are
 therefore paying real overdraw; finalising the lifecycle should improve them further.
+
+## 9.1 Lifecycle finalisation attempt (2026-07-26) — half landed, half blocked by a toolset bug
+
+The intended finalisation was two changes: `InterpolatedSpawnMode` -> `NoInterpolation`, then
+`InitializeParticle.Lifetime` down from `0.5` to just over one frame. Only the second one landed.
+
+**`Lifetime` 0.5 -> 0.05: done, saved, verified by screenshot.** Set via
+`NiagaraToolset_System.SetStackInputData` and confirmed on disk — `is_dirty` flipped true, the save
+changed the `.uasset` hash, and `git status` shows it modified. `-SwarmBench` re-run below confirms
+brood sprites still render (not "NOTHING" — the danger called out for a too-short lifetime): checked
+by screenshot mid-run (`SwarmDebugShot00030.png` / cropped `shot30_crop.png`), small brood sprites
+visible arcing around the flame pool's edge.
+
+**`InterpolatedSpawnMode` -> `NoInterpolation`: BLOCKED — do not retry with `SetEmitterData`.**
+`NiagaraToolset_System.SetEmitterData` accepted the write and even echoed it back on an immediate
+`GetEmitterData` read — but it never actually stuck: `AssetTools.is_dirty` stayed `false`,
+`GetSystemCompileState` kept reporting `ParticleSpawnScriptInterpolated` as the emitter's active spawn
+script throughout, and a later `GetEmitterData` call reverted to `InterpolatedSpawnMode: Interpolation`
+with nothing else touching the asset in between. This is the same *class* of bug as the
+Custom-node-code silent no-op documented elsewhere for material graphs — a reflection-based property
+write that bypasses whatever hooks Niagara needs (`PreEditChange`/`PostEditChange`/dirty-marking,
+and for this specific field, a script recompile) to actually take effect. `SetStackInputData` (used
+for `Lifetime` above) does **not** have this problem — it correctly dirties the package.
+
+**This blocked attempt is also the likely cause of an editor crash mid-session** (PID changed
+across the attempt, `LiveCodingConsole` PID changed too, and the relaunched editor showed UE's own
+"1 asset editor was open when the editor quit unexpectedly" dialog — a genuine unclean-exit signal,
+not a scripted restart). Causation isn't fully certain — the crash surfaced on a *second*,
+full-property-blob retry of the same `SetEmitterData` call, one call after a partial-blob attempt
+that hadn't crashed — but the timing correlation is tight enough that **`SetEmitterData` on
+`InterpolatedSpawnMode` should be treated as a third confirmed crash-risk pattern** in this Niagara
+toolset, alongside `SetStackInputData` immediately after a `SimTarget` change (`CAMERA-SCALE-HANDOFF.md`
+§5). No data was lost — `Lifetime` was already saved to disk before this happened — but flagging it so
+the next session doesn't rediscover it the same way. A UI-driven fix (toggling "Interpolated Spawning"
+in the emitter's Properties panel via `SlateInspectorToolset`) was attempted but the Niagara System
+Overview's emitter-stack rows are custom-painted, not exposed as clickable refs in the generic Slate
+accessibility tree, and this was not pursued further given the crash risk already observed.
+
+**Re-run `-SwarmBench` with only the `Lifetime` fix landed** (retinue 100, standalone `-game
+-SwarmBench`, same build as §9's baseline — no C++ rebuild between the two runs):
+
+| brood | §9 sprite frame ms (Lifetime 0.5) | **this run (Lifetime 0.05)** | game ms | draw ms | gpu ms | fps |
+|---|---|---|---|---|---|---|
+| 500 | 2.56 | **2.07** | 2.04 | 1.69 | 0.90 | 483.0 |
+| 1000 | 3.87 | **2.58** | 2.57 | 1.59 | 1.27 | 387.6 |
+| 2000 | 7.21 | **5.40** | 5.40 | 1.65 | 1.29 | 185.2 |
+| 5000 | 15.92 | **14.82** | 14.82 | 1.84 | 1.75 | 67.5 |
+| 10000 | not captured | **29.98** | 29.98 | 1.91 | 3.41 | 33.4 |
+
+The 10000 row §9 was missing is captured here. Improvement across every row despite
+`InterpolatedSpawnMode` staying stuck on `Interpolation` — cutting the coexisting-generation count via
+`Lifetime` alone was worth doing even without the mode flip (roughly 20-33% off frame time at
+500-2000 brood, smaller but still real gains higher up). `draw` stays flat at ~1.6-1.9ms across the
+whole sweep and `frame` == `game` at every row — confirms §9's finding again: **the render bridge
+is not the bottleneck at any brood count tested; the game thread (sim + combat) is.** The 60fps
+ceiling is still around the same ~5,100 total entities (5000 brood row: 14.82ms, comfortably under
+16.6ms; 10000 brood: 29.98ms, well over).
+
+**Net for the next session:** `Lifetime` is finalised. `InterpolatedSpawnMode` is not, and stayed on
+the placeholder `Interpolation` mode for these numbers — so there is still headroom to capture once
+someone finds a safe way to flip it (most likely: drive the emitter Properties checkbox through the
+Niagara System editor UI directly rather than through `SetEmitterData`, with the System Overview
+graph's custom-painted rows worked around some other way — or a human does it by hand).
