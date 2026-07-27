@@ -132,6 +132,23 @@ it entirely — **on by default** until the sprite pipeline is verified.
 Only one renderer is ever active; the Niagara component is hidden while debug
 render is on, so a broken sprite setup can't be mistaken for a broken sim.
 
+### Sprite path status 2026-07-26 — **FIXED. The emitter graph was not the fault.**
+
+The cause was the `Swarm` emitter's **`SimTarget` being `GPUComputeSim`**; switching it to
+**`CPUSim`** made the sprites render. The module stack, the `Engine.ExecIndex` array bindings, the
+renderer properties and the Sub UV were all already correct.
+
+Two claims in the superseded section below are wrong and should not be repeated:
+- *"Fixing it needs a human in the Niagara editor: UE 5.8's Python exposes no emitter members at
+  all."* — false. `NiagaraToolsets.NiagaraToolset_System` reads **and writes** the emitter/module
+  stack from a live editor session (this is how the fix was applied).
+- *"`NS_Swarm` Sub UV verified **4×2** on disk"* — it is **8×4**, matching `SwarmSheet::Columns = 8`
+  / `Rows = 4` in `ELVTR/Source/ELVTR/Mass/SwarmFragments.h`.
+
+`Swarm.DebugRender` can now be set to `0`. Measurements: `docs/perf/niagara-sprite-refactor.md` §9.
+
+<details><summary>Superseded 2026-07-25 diagnosis, kept for the record</summary>
+
 ### Sprite path status 2026-07-25 — **fault isolated to the NS_Swarm emitter graph**
 
 `Swarm.DebugRender 0` currently renders **nothing**: mid-combat with 219 units alive
@@ -158,6 +175,8 @@ Fixing it needs a human in the Niagara editor: UE 5.8's Python exposes **no emit
 members at all** on `unreal.NiagaraSystem`, so the module stack cannot be inspected or
 edited from script (renderer *properties* can be reached by subobject name — see the
 `sprite` skill — but the graph cannot).
+
+</details>
 
 ### Two UE gotchas worth remembering
 - **Instanced static meshes were the first attempt and silently failed.** Every

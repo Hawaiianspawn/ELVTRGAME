@@ -52,6 +52,27 @@ bigger cost. Revisit it once the render bridge stops dominating (tracked in
 
 ## 2. What actually blocks the emitter today
 
+> **RESOLVED 2026-07-26 — this section's diagnosis was wrong. Read this box before §2.**
+>
+> The emitter drew nothing because the `Swarm` emitter's **`SimTarget` was `GPUComputeSim`**.
+> Setting it to **`CPUSim`** made hundreds of sprites render immediately (evidence:
+> `Saved/Screenshots/WindowsEditor/SwarmDebugShot00021.png`, and `00023.png` from the saved asset).
+> CPU sim is also the correct target: the swarm is simulated entirely on the CPU and positions are
+> pushed per frame via `SetNiagaraArrayPosition`, so there is nothing for the GPU to simulate.
+>
+> **The emitter graph was never at fault.** Read live via `NiagaraToolsets.NiagaraToolset_System`,
+> every layer this section suspected was already correct: `SpawnPerFrame.Spawn Count` linked to
+> `User.Count`, `SpawnBurst_Instantaneous` disabled, `Particles.Position`/`SubImageIndex` bound
+> through `Engine.ExecIndex`, renderer on `M_Swarm` with `SubImageSize 8×4` (matching `SwarmSheet`),
+> emitter `CalculateBoundsMode: Fixed ±100000`, zero compile warnings, system correctly assigned on
+> the level's `SwarmRenderActor_0`.
+>
+> Consequently **§8's recommendation #1 is void** — the one-hour "can MCP reach the module graph"
+> test was already run on 2026-07-23 (`docs/UNIT-CAM-HANDOFF.md`, a doc this proposal does not
+> cite) and the answer was yes. The toolset reads *and writes* the module stack.
+>
+> Post-fix measurements are in §9.
+
 Per `docs/GATE1-FUN-PROTOTYPE.md` §3a (2026-07-25 measurement pass), every other
 layer of the bridge is confirmed working:
 
@@ -404,3 +425,33 @@ this section:
    Niagara rendering is structured, **not a measured number** — treat it as the reason
    to expect a big win, not as a substitute for re-measuring once there's something to
    measure.
+
+## 9. Measured after the fix (2026-07-26)
+
+Standalone `-SwarmBench` run against the **sprite path** (`Swarm.DebugRender 0`, `SimTarget: CPUSim`,
+ParticleUpdate `SetVariables` disabled), retinue held at 100. Compared against the debug-box
+baselines from §1 (A = `UnitShading 1`, B = `UnitShading 0`); all figures are frame ms.
+
+| brood | A frame ms | B frame ms | **sprite frame ms** | vs A | sprite draw ms | sprite game ms |
+|---|---|---|---|---|---|---|
+| 500 | 4.85 | 3.10 | **2.56** | 1.9x | 2.52 | 2.05 |
+| 1000 | 14.62 | 7.59 | **3.87** | 3.8x | 3.73 | 2.80 |
+| 2000 | 40.66 | 18.43 | **7.21** | 5.6x | 5.41 | 6.06 |
+| 5000 | 132.33 | 57.15 | **15.92** | 8.3x | 2.81 | 15.91 |
+
+The 10000 row was not captured — the game window was closed during that step (clean exit, no crash).
+
+**§8.7's prediction held: the win is structural, not a change of slope.** Draw ms has decoupled from
+frame ms. At 5000 brood, draw is 2.81ms inside a 15.92ms frame while `game` is 15.91ms — the render
+bridge no longer dominates and **the game thread is now the constraint**.
+
+Two consequences for planning:
+- The 60fps ceiling moved from **~1,930 total entities** (§1's interpolated figure for the flat
+  debug-box renderer) to **~5,100** (100 retinue + 5000 brood at 15.92ms).
+- **Finding #2 is no longer invisible.** §1 deferred the uncapped per-neighbour `GetSafeNormal` +
+  K-insertion-sort in the combat pass because "the game thread stays under 27ms in every row." It is
+  now the thing being waited on, and is the correct next target.
+
+**Caveat on these numbers:** `InitializeParticle.Lifetime` is still the `0.5` placeholder with
+`InterpolatedSpawnMode: Interpolation`, so roughly 30 particle generations coexist. These figures are
+therefore paying real overdraw; finalising the lifecycle should improve them further.
