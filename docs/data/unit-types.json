@@ -1,0 +1,80 @@
+{
+  "$schema_note": "Per-type stat/formation/growth dials for the typed unit model. Decisions + rationale live in docs/design/squad-group-system.md §1/§2/§4. All values are PROTOTYPE DIALS (first pass, unmeasured) — same status as economy.json and squads.json.",
+  "version": "0.1-prototype",
+  "last_updated": "2026-07-27",
+  "note": "Records the SHIPPED CVAR DEFAULTS this spec proposes (Swarm.Formation.<Type>.*, Swarm.<Type>Combat.* — CVar names to be finalized by whoever implements task-046), the same role squads.json already plays for allocation dials. Not a runtime-read table; CVars stay the live source of truth so these remain tunable while the game runs, per SwarmFormation.h's own stated reasoning.",
+
+  "types": {
+    "spearmen": {
+      "display_name": "Spearmen",
+      "role": "melee_line",
+      "note": "Mechanically today's retinue, renamed and formalized as a type. Stats are the shipped Gate 1 defaults, unchanged (docs/GATE1-FUN-PROTOTYPE.md §3b 'shipped defaults').",
+      "combat": {
+        "max_hp": 130,
+        "dps": 30,
+        "engage_range": 95,
+        "min_engage_range": 0,
+        "targets_per_hit": 8,
+        "move_speed_scale": 1.0
+      },
+      "formation": {
+        "shape": "Block",
+        "columns": 12,
+        "spacing": 42.4,
+        "rank_spacing": 110,
+        "forward": 250,
+        "arc_degrees": 140,
+        "arc_radius": 700
+      },
+      "growth_source_weight": 0.8,
+      "stance_reflavor": {
+        "follow": "escort at FollowEngageRange, engage what comes close",
+        "charge": "Advance the Line",
+        "hold": "Shield Wall",
+        "rally": "To the Banner"
+      }
+    },
+    "archers": {
+      "display_name": "Archers",
+      "role": "ranged_line",
+      "note": "New in this revision. UNMEASURED — needs the same zero-input-baseline treatment GATE1-FUN-PROTOTYPE.md §3 gave the original retinue tuning before these numbers should be trusted for balance.",
+      "combat": {
+        "max_hp": 70,
+        "dps": 18,
+        "engage_range": 750,
+        "min_engage_range": 150,
+        "targets_per_hit": 1,
+        "move_speed_scale": 0.9
+      },
+      "formation": {
+        "shape": "Block",
+        "columns": 20,
+        "spacing": 55,
+        "rank_spacing": 70,
+        "forward": 40,
+        "arc_degrees": 140,
+        "arc_radius": 700
+      },
+      "growth_source_weight": 0.2,
+      "stance_reflavor": {
+        "follow": "hold formation, engage anything inside EngageRange without closing distance",
+        "charge": "Volley Advance (rate/cleave bump, not movement — never closes to melee)",
+        "hold": "Loose from Cover (anchors identically to Follow; value is in addressing one unit)",
+        "rally": "Fall Back (collapses behind the nearest Spearmen unit if one exists, else the hero)"
+      }
+    }
+  },
+
+  "allocation": {
+    "unit_claim_order": ["spearmen", "archers"],
+    "unit_claim_order_note": "Spearmen claim their fair share of MaxSquads (docs/data/squads.json squad_manager.max_squads) first; Archers get the remainder. See squads.json squad_manager.typed_allocation for the formula this feeds."
+  },
+
+  "ranged_combat_model": {
+    "physical_projectiles": false,
+    "line_of_sight_occlusion": false,
+    "friendly_fire": false,
+    "volley_grouping": false,
+    "note": "Minimum viable model (spec §2): reuses the existing StrikeReachSq/BlowsClaimed grid mechanism with a larger EngageRange. min_engage_range per type is the only line-of-fire mitigation — an approximation (archers won't target anything already in melee range of anyone), not true LOS. The volley visual is a render-only cue (an arc/trail on SwingBit), out of this file's scope — a performance-director / render-bridge ask, not a sim mechanic."
+  }
+}

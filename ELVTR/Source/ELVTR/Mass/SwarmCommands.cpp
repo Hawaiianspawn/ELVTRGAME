@@ -27,30 +27,100 @@ namespace
 	// "how far out do enemies appear" number.
 	TAutoConsoleVariable<float> CVarBroodSpawnRadiusMin(
 		TEXT("Swarm.BroodSpawnRadiusMin"), 2500.f,
-		TEXT("Inner radius (uu) of the ring brood spawn in, measured from the hero."), ECVF_Default);
+		TEXT("Inner radius (uu) of the ring brood spawn in, measured from the hero. Also the\n")
+		TEXT("radius of the FRONT rank in the brood formation below (Swarm.BroodFormation.*)\n")
+		TEXT("— the line that leads the wave and arrives first."), ECVF_Default);
 	TAutoConsoleVariable<float> CVarBroodSpawnRadiusMax(
 		TEXT("Swarm.BroodSpawnRadiusMax"), 4000.f,
-		TEXT("Outer radius (uu) of the brood spawn ring. Keep >= BroodSpawnRadiusMin."), ECVF_Default);
+		TEXT("Outer radius (uu) of the brood spawn ring — kept as the REFERENCE depth a\n")
+		TEXT("typical wave is sized to fit within (see BroodFormation.RankSpacing), not a\n")
+		TEXT("hard bound: a bigger spawn's back ranks simply run past it, deeper into the\n")
+		TEXT("dark, which reads fine since there is no distance culling on the renderer.\n")
+		TEXT("Keep >= BroodSpawnRadiusMin."), ECVF_Default);
 
 	// A full 360 ring is the "surrounded" case and it is the only one the spike could
 	// stage. An arc is what lets a wave arrive as a FRONT — which is the situation the
 	// stances are actually about, since Hold only means something if there is a
 	// direction to hold against.
+	//
+	// 120 (2026-07-27, was 360) is the owner's "mostly from the front" width, not a
+	// guess: at the BroodFormation defaults below (Columns 60, RankSpacing 140) the front
+	// rank sits at RadiusMin (2500uu), and 120 degrees there puts ~90uu between
+	// neighbouring columns — comfortably above the 60uu separation radius (Swarm.
+	// BroodSeparation) so the front rank doesn't arrive already shoving itself apart —
+	// while still leaving the retinue's flanks and rear (the other 240 degrees) clear of
+	// spawns entirely.
 	TAutoConsoleVariable<float> CVarBroodSpawnArc(
-		TEXT("Swarm.BroodSpawnArc"), 360.f,
-		TEXT("Width in DEGREES of the arc brood spawn along. 360 = surrounded on all\n")
-		TEXT("sides; ~90 = one flank; ~30 = a column down one approach. [0..360]"), ECVF_Default);
+		TEXT("Swarm.BroodSpawnArc"), 120.f,
+		TEXT("Width in DEGREES of arrival, AND the sweep the brood rank formation\n")
+		TEXT("(Swarm.BroodFormation.*) fans its columns across — one dial, so the envelope\n")
+		TEXT("brood spawn in and the ranks they spawn IN can't disagree. 360 = surrounded on\n")
+		TEXT("all sides (the old default); ~90 = one flank; ~30 = a column down one\n")
+		TEXT("approach; 120 (default) = a broad front. [0..360]"), ECVF_Default);
+
+	// The retinue's own "forward" (Swarm.Formation.FaceCamera/Yaw) tracks the camera so
+	// the line always stands broadside to the viewer. The brood's arc has to track the
+	// SAME heading for the same reason: a fixed world bearing stops being "the front" the
+	// instant the camera turns, and the owner would see brood spawning behind them. This
+	// mirrors that composition exactly (same idea, same shape) rather than sharing its
+	// CVars, so a scripted encounter can pin the brood's arrival direction independently
+	// of wherever the retinue happens to be facing.
+	TAutoConsoleVariable<int32> CVarBroodSpawnFaceCamera(
+		TEXT("Swarm.BroodSpawnFaceCamera"), 1,
+		TEXT("1 = the arc's centre bearing tracks the same heading the retinue faces\n")
+		TEXT("(Emberkeep.Cam.Yaw, via the same composition Swarm.Formation.FaceCamera uses),\n")
+		TEXT("so 'the front' keeps meaning the direction your line stands broadside to,\n")
+		TEXT("however the camera turns (default). 0 = BroodSpawnArcCenter below is a\n")
+		TEXT("literal fixed world bearing, for a scripted encounter that should always\n")
+		TEXT("attack from one compass direction regardless of facing."), ECVF_Default);
 
 	TAutoConsoleVariable<float> CVarBroodSpawnArcCenter(
 		TEXT("Swarm.BroodSpawnArcCenter"), 0.f,
-		TEXT("Bearing in degrees the spawn arc is centred on, world +X = 0, CCW positive.\n")
-		TEXT("Ignored while Arc is 360. [-180..180]"), ECVF_Default);
+		TEXT("Bearing in degrees, world +X = 0, CCW positive. While BroodSpawnFaceCamera is\n")
+		TEXT("1 (default) this is EXTRA bearing added on top of the tracked camera yaw —\n")
+		TEXT("mirrors Swarm.Formation.Yaw, for angling the front off-square without\n")
+		TEXT("touching the camera. While 0, this IS the bearing, fixed. Ignored while Arc\n")
+		TEXT("is 360 (no front to aim). [-180..180]"), ECVF_Default);
 
+	// Same vocabulary as Swarm.Formation.Columns/RankSpacing (SwarmFormation.h), kept as
+	// separate dials rather than shared ones: a wide shallow line of attackers against a
+	// tight block of defenders is the readable case, and that needs the two formations to
+	// be independently tunable, not locked together.
+	TAutoConsoleVariable<int32> CVarBroodFormationColumns(
+		TEXT("Swarm.BroodFormation.Columns"), 60,
+		TEXT("Brood per rank in the spawn-time wave formation. THE framing dial, same idea\n")
+		TEXT("as Formation.Columns: wide (default) reads as a broad tide-front advancing in\n")
+		TEXT("rows; narrow and deep reads as a column punching down one approach. [1..200]"),
+		ECVF_Default);
+
+	TAutoConsoleVariable<float> CVarBroodFormationRankSpacing(
+		TEXT("Swarm.BroodFormation.RankSpacing"), 140.f,
+		TEXT("Radial gap between ranks, uu. Ranks step OUTWARD from BroodSpawnRadiusMin (the\n")
+		TEXT("front rank, which leads the wave and arrives first) rather than inward like\n")
+		TEXT("the retinue's Arc shape — the brood is still closing on the anchor, not\n")
+		TEXT("standing at rest around it. At the defaults this fits a ~700-strong wave\n")
+		TEXT("roughly inside the old RadiusMin..RadiusMax band; a bigger spawn just runs\n")
+		TEXT("more ranks further back into the dark. [20..400]"), ECVF_Default);
+
+	// Lowered 2026-07-26 -> 2026-07-27 (0.15 -> 0.06) once the brood got ranks to arrive
+	// in. The two dials were fighting: over the ~10s crossing from RadiusMin to contact,
+	// even a small per-unit speed gap compounds with distance and time into hundreds of uu
+	// of drift between the fastest and slowest brood in a rank — at 0.15 that is enough to
+	// blur the ranks together well before they reach the retinue, which defeats the entire
+	// point of spawning them in rows. 0.06 keeps a rank's edge legible for longer while
+	// still staggering the wave off one rigid, frame-perfect wall. What is lost: some of
+	// the loose, unsynchronised trickle within a single rank — the wave now reads as
+	// crisper advancing bars for most of the approach. That reads as MORE on-brand for the
+	// Still Legion (G9), not less: an administrating enemy that closes in unsettlingly
+	// even rows, not a rabble. Ranks still break up into ordinary per-unit steering at
+	// contact regardless of this dial — see BroodFormation.RankSpacing and SwarmSteering.
 	TAutoConsoleVariable<float> CVarBroodSpeedJitter(
-		TEXT("Swarm.BroodSpeedJitter"), 0.15f,
+		TEXT("Swarm.BroodSpeedJitter"), 0.06f,
 		TEXT("Per-brood speed variation, +/- this fraction of Swarm.BroodSpeed, rolled at\n")
-		TEXT("spawn. This is what strings the tide out into a ragged arrival instead of one\n")
-		TEXT("rigid wall — 0 makes the whole wave land on the same frame. [0..0.8]"), ECVF_Default);
+		TEXT("spawn. Strings the tide's arrival off one rigid frame; 0 makes the whole wave\n")
+		TEXT("land at once. Lowered from 0.15 once the brood got a rank formation to arrive\n")
+		TEXT("IN — see the comment above CVarBroodSpeedJitter in SwarmCommands.cpp for the\n")
+		TEXT("full reconciliation. [0..0.8]"), ECVF_Default);
 
 	struct FSwarmSpawnParams
 	{
@@ -105,14 +175,25 @@ namespace
 
 		const SwarmFormation::FParams Formation = SwarmFormation::ReadParams();
 
-		const float MaxHP = Params.bBrood ? SwarmCombatTuning::BroodMaxHP() : SwarmCombatTuning::RetinueMaxHP();
-		const float SpawnRadiusMin = CVarBroodSpawnRadiusMin.GetValueOnGameThread();
-		const float SpawnRadiusMax = CVarBroodSpawnRadiusMax.GetValueOnGameThread();
+		// Brood formation: SwarmFormation::FParams/BroodSlotOffset again (SwarmFormation.h)
+		// — the retinue's own vocabulary, laid out on the brood's spawn arc instead of the
+		// retinue's block. Built here, not via a ReadParams-style helper living next to
+		// ReadParams, because every dial it needs (Arc, RadiusMin, ArcCenter, FaceCamera)
+		// is already a spawn-owned CVar in this file; SwarmFormation.CameraYawDegrees()
+		// is the one piece that has to be shared rather than re-looked-up, so the brood
+		// front tracks the exact same camera reading the retinue formation does.
+		SwarmFormation::FParams BroodFormation;
+		BroodFormation.Columns = FMath::Clamp(CVarBroodFormationColumns.GetValueOnGameThread(), 1, 200);
+		BroodFormation.RankSpacing = FMath::Max(CVarBroodFormationRankSpacing.GetValueOnGameThread(), 1.f);
+		BroodFormation.ArcDegrees = FMath::Clamp(CVarBroodSpawnArc.GetValueOnGameThread(), 0.f, 360.f);
+		BroodFormation.ArcRadius = FMath::Max(CVarBroodSpawnRadiusMin.GetValueOnGameThread(), 0.f);
+		{
+			const float BroodBearingDeg = CVarBroodSpawnArcCenter.GetValueOnGameThread()
+				+ (CVarBroodSpawnFaceCamera.GetValueOnGameThread() != 0 ? SwarmFormation::CameraYawDegrees() : 0.f);
+			BroodFormation.YawRadians = FMath::DegreesToRadians(BroodBearingDeg);
+		}
 
-		// Arc, in radians, as a half-width either side of the centre bearing.
-		const float ArcHalf = FMath::DegreesToRadians(
-			FMath::Clamp(CVarBroodSpawnArc.GetValueOnGameThread(), 0.f, 360.f) * 0.5f);
-		const float ArcCenter = FMath::DegreesToRadians(CVarBroodSpawnArcCenter.GetValueOnGameThread());
+		const float MaxHP = Params.bBrood ? SwarmCombatTuning::BroodMaxHP() : SwarmCombatTuning::RetinueMaxHP();
 
 		// Retinue keeps the original fixed +/-15%: your line's raggedness isn't a dial
 		// anyone has asked to move, and the formation slots already stagger it.
@@ -128,10 +209,14 @@ namespace
 			FVector SpawnLocation;
 			if (Params.bBrood)
 			{
-				// Ring well outside the play area so the tide visibly converges.
-				const float Angle = ArcCenter + Rand.FRandRange(-ArcHalf, ArcHalf);
-				const float Radius = Rand.FRandRange(SpawnRadiusMin, SpawnRadiusMax);
-				SpawnLocation = Center + FVector(FMath::Cos(Angle) * Radius, FMath::Sin(Angle) * Radius, 0.f);
+				// Rank/column slot on the spawn arc (SwarmFormation::BroodSlotOffset).
+				// Rank 0 sits at BroodSpawnRadiusMin and leads the wave; later ranks step
+				// outward and arrive later — this IS the front-as-rows arrangement, not a
+				// scatter. No position jitter added on top: BroodSpeedJitter is what
+				// unsettles this over the march, the same way the retinue's own grid-exact
+				// slots only move once steering (not spawn) touches them.
+				const FVector2D Offset = SwarmFormation::BroodSlotOffset(Index, BroodFormation);
+				SpawnLocation = Center + FVector(Offset.X, Offset.Y, 0.f);
 			}
 			else
 			{

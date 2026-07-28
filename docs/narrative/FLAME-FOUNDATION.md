@@ -52,7 +52,7 @@ test any future lore must pass.
 | Fire must be fed or it dims | **Upkeep — degrade, don't die** (GDD §7); unfed units literally dim | Specced, not built |
 | You are the only light source | **Hero relevance** (GDD §4 tension) without needing hero DPS | Unblocks the 55-DPS problem |
 | A god is obeyed in *intent*, not orders | **Stances**, no unit selection, no micro (GDD §4) | **Built.** 4 stances |
-| Many bearers, united | **1–4 player co-op** is the fiction, not a mode | Spike 2 target |
+| Many bearers, united | **The run objective** — find the other fires and bring them together (see §4.4) | Unbuilt; co-op deferred 2026-07-27 |
 | They die for you gladly | **Sacrifice events** price differently — the cost is that they *want* to | GDD §6, unbuilt |
 
 **The rule going forward:** if a piece of lore doesn't appear in that right-hand
@@ -110,10 +110,18 @@ written around.
    strong image and currently has no system attached. Candidate jobs: it's how
    abilities are cast, it's what upgrades apply to, it's what the retinue is made
    of. **Pick one, later.**
-4. **Uniting flames — co-op mechanic or run objective or both?** Overlapping light
-   from two players should probably *do something* (brighter, larger, safer). If it
-   does, co-op gains a mechanic no other game in the genre has. If it doesn't,
-   "many bearers" is just flavor for the lobby.
+4. **Uniting flames — co-op mechanic or run objective or both?** ✅ **ANSWERED
+   2026-07-27 (owner): run objective.** The game is single-player first, so the other
+   bearers are people you *find in the dark* over the course of a run and unite with —
+   not other players in a lobby. This is the better version of the idea: the objective is
+   always present instead of contingent on having friends online, and "many bearers"
+   stops being flavor.
+
+   What still needs designing: what uniting a fire actually *does* (brighter, larger,
+   longer-lasting, a second congregation folded into yours?), and what it costs. The
+   co-op reading is preserved for later — overlapping light between two players doing
+   something real is a mechanic no other game in the genre has — but it is a multiplier
+   on a proven loop, not a v1 requirement.
 5. **Does the dark have monsters, or is the dark itself the enemy?** Both is likely,
    but the ratio decides whether this is a horde game with a light gimmick or a
    survival game about a fire. Not decided.

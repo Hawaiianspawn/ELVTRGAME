@@ -29,6 +29,7 @@ or hand-write `INDEX.md`.
 | `/backlog park 9 <reason>` | `py Scripts/backlog.py park 9 -r "<reason>"` |
 | `/backlog add <description>` | Write one new task file, then `validate` + `reindex` |
 | `/backlog show 12` | `py Scripts/backlog.py show 12` |
+| `/backlog epic <slug>` | `py Scripts/backlog.py epic <slug>` — a threaded project's fan and what moves next |
 
 Approve / reject / park / done will raise a permission prompt. That prompt **is** the
 approval gate — never try to route around it, and never suggest allowlisting these
@@ -96,9 +97,16 @@ Copy `docs/backlog/TEMPLATE.md` below its `═══` line. Get the id from
   this session's history. Name what the task must not touch, and carry the canon warnings
   (superseded WORLD.md, stale `niagara-sprite-refactor.md` §2/§8.1) into the prompt itself.
 
+- **`epic:`** — optional, kebab-case, only when one project was threaded into several
+  sibling tasks meant to run at once. Omit it for standalone work; a fan of one is just a
+  task, and `validate` warns about it.
+
 **Two tasks must never own the same file.** If several tasks all need to write one file —
 `SYSTEMS.md` is the recurring case — split the shared write into its own task that depends
-on the rest. `task-038` exists for exactly that reason.
+on the rest. `task-038` exists for exactly that reason. When those tasks are siblings in an
+`epic:`, that split-out task is the fan's **join**, and `validate` treats a sibling overlap
+as an error rather than waiting for `approve` to refuse it. See `/host` §3a for how to cut
+one; `py Scripts/backlog.py epic <slug>` for where a running fan stands.
 
 **Recommending a park is a real outcome.** An agent cannot set `parked`, so file it as
 `proposed` with the recommended `backlog.py park` command in the body and let the owner run

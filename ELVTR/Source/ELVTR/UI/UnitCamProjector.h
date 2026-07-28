@@ -19,8 +19,26 @@ struct FUnitCamBillboard
 	float HalfSize = 0.f;                      // half-width as a fraction of the panel width
 	float Depth = 0.f;                         // camera-space depth, for the far->near sort
 	FLinearColor Color = FLinearColor::White;  // for sprites this is a light-only tint (Lit,Lit,Lit,1)
-	int32 Cell = INDEX_NONE;                   // T_Swarm_2bit atlas cell, or INDEX_NONE for a flat quad
+
+	/**
+	 * Which sprite SHEET this body draws from — index into SUnitCamCanvas's BrushSets, one
+	 * TArray<FSlateBrush> per texture. 0 is always the shared T_Swarm_2bit atlas (brood, and
+	 * retinue when SoldierVariants is off); the rest are named in UnitCamSprite
+	 * (UnitCamProjector.cpp) — the bearer's own T_Hero_Vanguard, the high-resolution knight,
+	 * and the high-resolution archer. Added so a billboard is no longer forced to share one
+	 * atlas with every other body. Task-050 originally drew retinue from six 48px
+	 * soldier-roster variants (docs/art/soldier-roster-v1.md); the owner then rejected that
+	 * as a resolution downgrade ("we degraded with the units again") and named exactly two
+	 * high-resolution units to replace it — the six variant .uassets/sheets still exist in
+	 * Content/RawArt, just unreferenced by this widget now.
+	 */
+	uint8 SpriteSet = 0;
+
+	int32 Cell = INDEX_NONE;                   // cell within that sheet, or INDEX_NONE for a flat quad
 	bool bHero = false;                        // the bearer: bigger, never dimmed, drawn over everyone
+
+	/** Army View only (empty otherwise): the squad's live standing count, drawn over its block. */
+	FString Label;
 };
 
 class SUnitCamCanvas;
@@ -42,11 +60,13 @@ public:
 	void SetBillboards(TArray<FUnitCamBillboard>&& InBillboards);
 
 	/**
-	 * One pre-sliced brush per cell of the T_Swarm_2bit atlas, indexed by FUnitCamBillboard::Cell.
-	 * Every drawn body — brood, retinue and the bearer alike — picks its frame out of this array,
-	 * so the panel can show per-unit walk/attack/hit exactly as the world view does.
+	 * One brush array per sprite sheet (T_Swarm_2bit, T_Hero_Vanguard, the knight, the
+	 * archer — see UnitCamSprite in UnitCamProjector.cpp), each pre-sliced into one brush
+	 * per cell. FUnitCamBillboard::SpriteSet picks the array, ::Cell the brush within it.
+	 * Replaces the single shared-atlas SetCellBrushes now that not every body draws from
+	 * the same texture.
 	 */
-	void SetCellBrushes(TArray<FSlateBrush>&& InBrushes);
+	void SetBrushSets(TArray<TArray<FSlateBrush>>&& InSets);
 
 	/** Live soldier-size multiple (framing dial); pushed each tick. */
 	void SetSoldierScale(float InScale);
@@ -54,12 +74,23 @@ public:
 	/** Extra size multiple applied to the hero billboard on top of SoldierScale. */
 	void SetHeroScale(float InScale);
 
+	/** Live width-only stretch on every billboard, applied after the sheet's own cell aspect —
+	 *  see CVarProjSoldierAspect's doc comment (UnitCamProjector.cpp) for the "more broad"
+	 *  request this answers and why it's a taste dial layered on a packing fix, not instead
+	 *  of one. */
+	void SetSoldierAspect(float InAspect);
+
 	/**
 	 * Where a body sits relative to its projected point: 1 = standing on it, 0.5-worth of
 	 * body centred on it at 0. The projected point is ground contact, so anything below 1
 	 * draws units partly buried and makes every size dial dig downward.
 	 */
 	void SetFootAnchor(float InAnchor);
+
+	/** The reticle marks the perspective virtual camera's aim point — meaningless in Army View's
+	 *  fixed top-down block layout (there is no perspective camera in that mode), so it's hidden
+	 *  there rather than left drawing over the blocks. */
+	void SetShowReticle(bool bInShow);
 
 protected:
 	virtual TSharedRef<SWidget> RebuildWidget() override;
@@ -113,6 +144,17 @@ protected:
 	virtual TSharedRef<SWidget> RebuildWidget() override;
 	virtual void NativeTick(const FGeometry& MyGeometry, float DeltaTime) override;
 
+	/**
+	 * Army View (docs/design/squad-group-system.md §4.1) — the resting state (no squad
+	 * selected): <=8 per-squad aggregate blocks instead of individual billboards. Does not touch
+	 * Director or the perspective camera at all; a fixed, bearer-centred top-down read, same as
+	 * an RTS group overview. FAKE, disclosed: block position is a placeholder ring around the
+	 * bearer (USwarmSubsystem has no real per-squad centroid yet); standing count and the live
+	 * label ARE real (GetSquadStanding); tint is the one global GetStance(), not a real
+	 * per-squad stance (also not built yet) — every block tints identically for now.
+	 */
+	void BuildArmyView(const class USwarmSubsystem& Swarm);
+
 	UPROPERTY(Transient) TObjectPtr<UUnitCamCanvasWidget> CanvasWidget = nullptr;
 
 	// Resized every tick by total bodies on the field (individual <-> mass), and the frame is
@@ -120,11 +162,25 @@ protected:
 	UPROPERTY(Transient) TObjectPtr<USizeBox> RootBox = nullptr;
 	UPROPERTY(Transient) TObjectPtr<UBorder> FrameBorder = nullptr;
 
-	/** The 4x2 T_Swarm_2bit atlas (brood row 0, retinue row 1) that every billboard slices its
-	 *  frame out of. Loaded from Content once and held so it isn't GC'd. */
+	/** The 8x4 T_Swarm_2bit atlas (brood rows 0-1) that brood billboards, and retinue when
+	 *  SoldierVariants is off, slice their frame out of. Loaded from Content once and held so
+	 *  it isn't GC'd. */
 	UPROPERTY(Transient) TObjectPtr<UTexture2D> SwarmAtlas = nullptr;
+
+	/** T_Hero_Vanguard (Content/Sprites/Heroes) — the bearer's own dedicated sheet, replacing
+	 *  the placeholder cell of SwarmAtlas his billboard used to draw (task-050). */
+	UPROPERTY(Transient) TObjectPtr<UTexture2D> HeroTexture = nullptr;
+
+	/** T_Soldier_Knight (Content/Sprites/Units) — the owner-chosen high-resolution melee
+	 *  retinue look (88x88 native, PixelLab character 1c935515-...). See provenance.json. */
+	UPROPERTY(Transient) TObjectPtr<UTexture2D> KnightTexture = nullptr;
+
+	/** T_Soldier_Archer — a temporary PixelLab proxy (RawArt/Renders/archer-proxy/), owner
+	 *  flagged for a later swap, now high-resolution (92x92 native). See provenance.json. */
+	UPROPERTY(Transient) TObjectPtr<UTexture2D> ArcherTexture = nullptr;
+
 	bool bAtlasLoadAttempted = false;  // load once, even on failure, so we don't retry every frame
-	bool bCellBrushesPushed = false;   // the slices never change; build them once, not per tick
+	bool bBrushSetsPushed = false;     // the slices never change; build them once, not per tick
 
 	/** The camera manager seed — resolves which world point the virtual camera follows. */
 	FUnitCamDirector Director;

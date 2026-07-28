@@ -25,7 +25,19 @@ class USwarmSubsystem : public UWorldSubsystem
 	GENERATED_BODY()
 
 public:
-	static constexpr float GridCellSize = 200.f;
+	/**
+	 * World-space side length of one spatial-hash bucket. QueryNeighbors walks a 3x3
+	 * neighbourhood around an entity's own cell, so the true search radius this buys is
+	 * GridCellSize * 3 — 750uu at this value. Raised from 200 (task-052) specifically so
+	 * Swarm.BroodAggroRange / a future ranged-combat EngageRange of 750uu (squad-group-
+	 * system.md §2.2) is physically reachable; at 200 the same 3x3 walk topped out at
+	 * 600uu no matter what any CVar asked for. Nothing else in the codebase derives a
+	 * value from this constant except FIntPoint bucketing in ToCell() below — confirmed
+	 * by grep before this change. Cost tradeoff (fewer, denser buckets = cheaper TMap
+	 * overhead but more entries walked per QueryNeighbors call) measured in
+	 * docs/perf/grid-cell-size.md; re-check that doc before raising this again.
+	 */
+	static constexpr float GridCellSize = 250.f;
 
 	// --- cosmetic squads (muster UI) -------------------------------------
 	static constexpr int32 MaxSquads = 8;        // hard cap; slots beyond fold into the last squad

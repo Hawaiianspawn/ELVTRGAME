@@ -9,6 +9,8 @@ why now). This script does everything mechanical, so two runs never disagree:
     py Scripts/backlog.py reindex         # regenerate docs/backlog/INDEX.md
     py Scripts/backlog.py list --top 7    # the audit queue, ranked
     py Scripts/backlog.py show 3          # one task, resolved score
+    py Scripts/backlog.py epic            # every epic, with its fan's progress
+    py Scripts/backlog.py epic hud-pass   # one epic: what can dispatch now, what waits
     py Scripts/backlog.py sweep-report    # raw ingest surface as JSON
 
 Status transitions:
@@ -27,6 +29,14 @@ Dispatch — `start` with the teammate recorded, for the /host flow:
 It refuses unless the task is already `approved` with every dependency closed, so
 "spawn a teammate on unapproved work" is not reachable by accident. It is not itself
 privileged: the owner's decision already happened at `approve`.
+
+`dispatch` takes exactly one task because a teammate name identifies one spawned
+agent. Threading one project across several teammates is therefore a *fan*: several
+sibling tasks sharing an `epic:`, cut so their `owns:` globs are disjoint, approved
+in one batch (`approve 44,45,46`) and dispatched one teammate each. Where the
+siblings have to converge on a shared file, that write is its own join task owning
+it, with `depends-on` naming every sibling — which is what stops two teammates
+overwriting each other in the one place a fan is tempted to.
 
 PRIVILEGED transitions are the owner's call. They are unreachable through file
 editing (Scripts/backlog_guard.py denies it) and this command is deliberately
@@ -83,6 +93,9 @@ FM = re.compile(r"\A---\r?\n(.*?)\r?\n---\r?\n", re.DOTALL)
 # Mirrors the Agent tool's own `name` constraint, so a name recorded here is always
 # one the lead can actually spawn and address with SendMessage.
 TEAMMATE_NAME = re.compile(r"\A[A-Za-z0-9][A-Za-z0-9_-]{0,63}\Z")
+# `epic:` groups the sibling tasks one project was threaded into. Kebab-case so it
+# reads the same as a task slug and can never need quoting in frontmatter.
+EPIC_SLUG = re.compile(r"\A[a-z0-9][a-z0-9-]{0,47}\Z")
 
 
 # ---------------------------------------------------------------- model
@@ -114,6 +127,16 @@ class Task:
     @property
     def agent(self) -> str:
         return str(self.meta.get("agent", "")).strip()
+
+    @property
+    def epic(self) -> str:
+        """The fan this task belongs to, or "" for standalone work.
+
+        Optional by design: the tasks filed before threading existed are still
+        valid, and a project that is genuinely one task should not have to invent
+        a group to hold it.
+        """
+        return str(self.meta.get("epic", "") or "").strip()
 
     def listy(self, key: str) -> list:
         v = self.meta.get(key) or []
@@ -174,6 +197,23 @@ def load_all() -> list:
     return tasks
 
 
+def epic_groups(tasks: list) -> dict:
+    """{epic slug: [tasks]}, ordered by id, standalone tasks excluded."""
+    groups = {}
+    for t in tasks:
+        if t.epic:
+            groups.setdefault(t.epic, []).append(t)
+    for g in groups.values():
+        g.sort(key=lambda t: t.id)
+    return dict(sorted(groups.items()))
+
+
+def joins(group: list) -> list:
+    """The tasks in a fan that wait on a sibling — the convergence points."""
+    sibling_ids = {t.id for t in group}
+    return [t for t in group if sibling_ids & set(t.deps)]
+
+
 def unblock_counts(tasks: list) -> dict:
     """1 + the number of not-yet-closed tasks that name this one in depends-on."""
     counts = {t.id: 1 for t in tasks}
@@ -227,6 +267,72 @@ def find_conflicts(tasks: list) -> list:
     return problems
 
 
+def find_cycles(tasks: list) -> list:
+    """depends-on cycles, which threading makes reachable for the first time.
+
+    A standalone task rarely depends on anything. A fan with a join task is a graph,
+    and a cycle in it deadlocks `dispatch` silently — every task in the ring waits
+    forever on a sibling that is waiting on it.
+    """
+    by_id = {t.id: t for t in tasks}
+    problems, seen = [], set()
+    for start in sorted(by_id):
+        stack = [(start, [start])]
+        while stack:
+            node, path = stack.pop()
+            for d in by_id[node].deps if node in by_id else []:
+                if d not in by_id:
+                    continue  # dangling deps are reported separately
+                if d == start:
+                    ring = tuple(sorted(path))
+                    if ring not in seen:
+                        seen.add(ring)
+                        chain = " -> ".join(f"task-{i:03d}" for i in path + [start])
+                        problems.append(f"depends-on cycle: {chain}")
+                elif d not in path and d > start:
+                    stack.append((d, path + [d]))
+    return problems
+
+
+def check_epics(tasks: list, warnings: list) -> list:
+    """Rules that only apply once a project has been threaded into a fan.
+
+    The expensive mistake is a bad cut: siblings that claim the same file, or that
+    hold the same mutex, cannot be approved as one batch and so are not really a
+    fan. Catching that at draft time costs a re-edit; catching it at `approve`
+    costs the owner a refused verdict on a plan they already read.
+    """
+    errors = []
+    for t in tasks:
+        if t.epic and not EPIC_SLUG.match(t.epic):
+            errors.append(
+                f"{t.path.name}: epic {t.epic!r} is not a kebab-case slug "
+                f"(lowercase letters, digits and -; max 48)")
+
+    for slug, group in epic_groups(tasks).items():
+        open_siblings = [t for t in group if t.status not in CLOSED]
+        if len(group) == 1:
+            warnings.append(
+                f"epic {slug!r} holds only task-{group[0].id:03d} — a fan of one is "
+                f"just a task; drop the epic or draft the siblings")
+        for i, a in enumerate(open_siblings):
+            for b in open_siblings[i + 1:]:
+                for ga in a.owns:
+                    for gb in b.owns:
+                        if overlaps(ga, gb):
+                            errors.append(
+                                f"epic {slug!r}: task-{a.id:03d} and task-{b.id:03d} are "
+                                f"siblings claiming overlapping paths ({ga!r} vs {gb!r}) — "
+                                f"cut on file ownership, or move the shared write into a "
+                                f"join task both depend on")
+                for r in set(a.resources) & set(b.resources):
+                    warnings.append(
+                        f"epic {slug!r}: task-{a.id:03d} and task-{b.id:03d} both hold the "
+                        f"{r!r} lock, so this fan cannot be approved in one batch — they "
+                        f"will serialise")
+    return errors
+
+
 # ---------------------------------------------------------------- validate
 
 
@@ -277,6 +383,8 @@ def cmd_validate(args) -> int:
                     )
 
     errors.extend(find_conflicts(tasks))
+    errors.extend(find_cycles(tasks))
+    errors.extend(check_epics(tasks, warnings))
 
     for w in warnings:
         print(f"warn:  {w}")
@@ -307,6 +415,8 @@ def cmd_list(args) -> int:
     if args.status:
         want = set(args.status.split(","))
         tasks = [t for t in tasks if t.status in want]
+    if args.epic:
+        tasks = [t for t in tasks if t.epic == args.epic.strip()]
     rows = ranked(tasks)
     if args.top:
         rows = rows[: args.top]
@@ -336,6 +446,11 @@ def cmd_show(args) -> int:
         print(f"\n=== task-{t.id:03d} · {t.title} ===")
         print(f"status    {t.status}")
         print(f"agent     {t.agent}")
+        if t.epic:
+            fan = epic_groups(tasks).get(t.epic, [])
+            closed = sum(1 for x in fan if x.status in CLOSED)
+            print(f"epic      {t.epic}  ({closed}/{len(fan)} closed — "
+                  f"`epic {t.epic}` for the fan)")
         print(f"score     {t.total(counts[t.id])}  "
               f"(gate {t.score_input('gate')} × risk {t.score_input('risk')} "
               f"× unblocks {counts[t.id]} ÷ cost {t.score_input('cost')})")
@@ -349,6 +464,100 @@ def cmd_show(args) -> int:
         print(f"evidence  {t.meta.get('evidence')}")
         print(f"source    {t.meta.get('source')}")
         print(t.body.rstrip())
+    return 0
+
+
+def cmd_epic(args) -> int:
+    """The roll-up a threaded project needs: where the fan is, and what moves next.
+
+    `show` answers "what is this task". Across a fan the question is different —
+    which sibling is holding the join up, and which of them the lead may dispatch
+    right now without a refusal.
+    """
+    tasks = load_all()
+    groups = epic_groups(tasks)
+    if not groups:
+        print("(no epics — every task is standalone)")
+        return 0
+
+    if not args.slug:
+        print(f"{'epic':<28} {'tasks':>5} {'done':>5} {'live':>5}  next")
+        print("-" * 88)
+        for slug, group in groups.items():
+            closed = sum(1 for t in group if t.status in CLOSED)
+            live = sum(1 for t in group if t.status in ACTIVE)
+            waiting = sum(1 for t in group if t.status == "proposed")
+            nxt = (f"{waiting} awaiting approval" if waiting
+                   else "complete" if closed == len(group)
+                   else f"{live} in flight")
+            print(f"{slug:<28} {len(group):>5} {closed:>5} {live:>5}  {nxt}")
+        return 0
+
+    slug = args.slug.strip()
+    group = groups.get(slug)
+    if not group:
+        print(f"epic {slug!r}: not found. Known: {', '.join(groups) or '(none)'}")
+        return 1
+
+    by_id = {t.id: t for t in tasks}
+    counts = unblock_counts(tasks)
+    join_ids = {t.id for t in joins(group)}
+    closed = sum(1 for t in group if t.status in CLOSED)
+
+    print(f"\n=== epic {slug} · {closed}/{len(group)} closed ===\n")
+    print(f"{'id':>4} {'':1} {'status':<13} {'agent':<20} {'teammate':<16} title")
+    print("-" * 100)
+    for t in group:
+        mark = "⨝" if t.id in join_ids else " "
+        mate = str(t.meta.get("teammate", "") or "").strip() or "—"
+        print(f"{t.id:>4} {mark} {t.status:<13} {t.agent:<20} {mate:<16} {t.title}")
+
+    ready, blocked, unapproved, review = [], [], [], []
+    for t in group:
+        if t.status in CLOSED:
+            continue
+        if t.status == "needs-review":
+            review.append(t)
+        elif t.status == "in-progress":
+            continue
+        elif t.status != "approved":
+            unapproved.append(t)
+        else:
+            open_deps = [d for d in t.deps
+                         if d in by_id and by_id[d].status not in CLOSED]
+            (blocked if open_deps else ready).append((t, open_deps))
+
+    print()
+    if unapproved:
+        ids = ",".join(str(t.id) for t in unapproved)
+        print(f"awaiting approval  {ids}")
+        print(f"    py Scripts/backlog.py approve {ids}")
+        print("    (one prompt, one collision dry-run across the whole fan)")
+    if ready:
+        print("dispatchable now")
+        for t, _ in ready:
+            print(f"    py Scripts/backlog.py dispatch {t.id} --teammate <name>")
+    if blocked:
+        print("blocked")
+        for t, open_deps in blocked:
+            waits = ", ".join(f"task-{d:03d} ({by_id[d].status})" for d in open_deps)
+            print(f"    task-{t.id:03d} waits on {waits}")
+    if review:
+        ids = ",".join(str(t.id) for t in review)
+        print(f"handed back, awaiting your verdict  {ids}")
+        print(f"    py Scripts/backlog.py done {ids}")
+    if not (unapproved or ready or blocked or review):
+        print("nothing to move — every open task is in flight with a teammate."
+              if any(t.status == "in-progress" for t in group) else "epic complete.")
+
+    conflicts = [c for c in find_conflicts(tasks)
+                 if any(f"task-{t.id:03d}" in c for t in group)]
+    if conflicts:
+        print("\n⚠ lock conflicts touching this fan")
+        for c in conflicts:
+            print(f"    {c}")
+    print(f"\nscores: " + "  ".join(
+        f"{t.id:03d}={t.total(counts[t.id])}" for t in group))
     return 0
 
 
@@ -394,6 +603,31 @@ def cmd_reindex(args) -> int:
         out.append("Approve with `py Scripts/backlog.py approve <ids>` "
                    "(or `/backlog approve <ids>`).")
     out.append("")
+
+    groups = epic_groups(tasks)
+    if groups:
+        out.append("## Epics — projects threaded across several teammates")
+        out.append("")
+        out.append("| epic | progress | tasks | joins | next move |")
+        out.append("|---|---|---|---|---|")
+        for slug, group in groups.items():
+            closed = sum(1 for t in group if t.status in CLOSED)
+            waiting = [t for t in group if t.status == "proposed"]
+            ids = ", ".join(f"[`{t.id:03d}`]({t.path.name})" for t in group)
+            jn = ", ".join(f"`{t.id:03d}`" for t in joins(group)) or "—"
+            if waiting:
+                nxt = ("approve `" +
+                       ",".join(str(t.id) for t in waiting) + "`")
+            elif closed == len(group):
+                nxt = "complete"
+            else:
+                nxt = f"`epic {slug}`"
+            out.append(f"| `{slug}` | {closed}/{len(group)} closed | {ids} | {jn} | {nxt} |")
+        out.append("")
+        out.append("A fan is approved in one batch and dispatched one teammate per task. "
+                   "`⨝` joins own the shared writes and wait on their siblings — see "
+                   "`py Scripts/backlog.py epic <slug>`.")
+        out.append("")
 
     for status in STATUSES:
         group = [r for r in rows if r[2].status == status]
@@ -560,7 +794,12 @@ def cmd_dispatch(args) -> int:
 
     if len(targets) > 1:
         print("error: dispatch takes one task — a teammate name identifies one "
-              "spawned agent, and two tasks sharing it makes the record a lie")
+              "spawned agent, and two tasks sharing it makes the record a lie.")
+        epics = {t.epic for t in targets if t.epic}
+        if len(epics) == 1:
+            print(f"       These are siblings in epic {epics.pop()!r}. Threading a "
+                  f"project across teammates means one dispatch per task, each with "
+                  f"its own --teammate name; only `approve` takes the fan at once.")
         return 1
 
     for t in targets:
@@ -700,11 +939,16 @@ def main() -> int:
     p = sub.add_parser("list")
     p.add_argument("--status", help="comma-separated statuses to include")
     p.add_argument("--top", type=int, help="only the N highest-scoring")
+    p.add_argument("--epic", help="only tasks in this epic")
     p.set_defaults(fn=cmd_list)
 
     p = sub.add_parser("show")
     p.add_argument("ids")
     p.set_defaults(fn=cmd_show)
+
+    p = sub.add_parser("epic")
+    p.add_argument("slug", nargs="?", help="the epic to expand; omit to list all")
+    p.set_defaults(fn=cmd_epic)
 
     p = sub.add_parser("sweep-report")
     p.add_argument("--json", action="store_true")

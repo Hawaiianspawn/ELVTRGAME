@@ -68,4 +68,28 @@ namespace SwarmFormation
 	 * which is what lets the spawner place a unit and the steering pass agree.
 	 */
 	FVector2D SlotOffset(int32 Index, const FParams& Params);
+
+	/**
+	 * Brood's version of SlotOffset. Same idea — a dense index resolves to a ground-plane
+	 * offset, pure in the same sense — but ranks step OUTWARD from Params.ArcRadius (the
+	 * front rank, which leads the wave and arrives first) instead of inward, because the
+	 * brood is a tide still closing on the anchor, not a shield wall standing at rest
+	 * around it. Columns fan across Params.ArcDegrees exactly as the retinue's own Arc
+	 * shape does — same fields, same meanings, just read by a function that steps the
+	 * other way in depth. Kept separate rather than folded into EShape as a fifth case
+	 * because the retinue never wants ranks that grow away from it; sharing one switch
+	 * would just be a trap for whichever shape reads it next. Params.Shape/Spacing/Forward/
+	 * bCompact are unused here — see SwarmCommands.cpp for how the brood-side FParams is
+	 * built (ArcDegrees/ArcRadius/YawRadians from the Swarm.BroodSpawn* CVars, Columns/
+	 * RankSpacing from Swarm.BroodFormation.*).
+	 */
+	FVector2D BroodSlotOffset(int32 Index, const FParams& Params);
+
+	/**
+	 * Emberkeep.Cam.Yaw, looked up by name and cached (see ReadParams for why by-name).
+	 * Exposed so the brood spawn arc (SwarmCommands.cpp, Swarm.BroodSpawnFaceCamera) can
+	 * track the exact same camera reading the retinue formation does — two separate
+	 * lookups of the same CVar would risk drifting apart by a frame under a live edit.
+	 */
+	float CameraYawDegrees();
 }

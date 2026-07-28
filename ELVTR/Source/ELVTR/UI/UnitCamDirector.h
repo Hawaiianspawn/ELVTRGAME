@@ -38,7 +38,8 @@ struct FUnitCamShot
  * Holds smoothing state across frames, so one instance belongs to one panel.
  *
  * Dials: Emberkeep.UnitCamProj.{Focus,FollowSpeed,Yaw,AutoLook,LookLerp,CombatScan,
- * CastFocusSpeed,CastZoom} — defined in UnitCamDirector.cpp alongside the logic they drive.
+ * CastFocusSpeed,CastZoom,YawClampDeg,SelectedSquad,SelectSpeed} — defined in
+ * UnitCamDirector.cpp alongside the logic they drive.
  */
 struct FUnitCamDirector
 {
@@ -50,11 +51,30 @@ struct FUnitCamDirector
 	FVector2D LookDir = FVector2D(1.0, 0.0);
 	bool bLookInit = false;
 
+	// The bearer's own last-known movement heading (docs/design/squad-group-system.md §5). In
+	// Hero focus, Outward (FocusPos - HeroPos) is ZERO by definition, so AutoLook's yaw clamp
+	// needs a base heading that ISN'T derived from the same unstable enemy-cluster signal it's
+	// meant to bound — this is that independent anchor. Updated every Tick regardless of focus
+	// mode or cast state, so it's never stale when a cast ends or the mode changes.
+	FVector LastHeroPos = FVector::ZeroVector;
+	bool bHeroPosInit = false;
+	FVector2D HeroMoveDir = FVector2D::ZeroVector; // last NONZERO movement heading; holds while stationary
+
 	/** The auto-look azimuth in degrees, derived from the smoothed LookDir. */
 	float LookYawDeg() const { return FMath::RadiansToDegrees(FMath::Atan2(LookDir.Y, LookDir.X)); }
 
 	/** The focus mode currently selected by the CVar. */
 	static EUnitCamFocus CurrentFocusMode();
+
+	/**
+	 * Which squad (0-7) the panel is framed on, or -1 for none (Army View's resting state).
+	 * Exposed here — not as a raw CVar read in UnitCamProjector.cpp — because the CVar itself
+	 * (Emberkeep.UnitCamProj.SelectedSquad) is registered in this translation unit; a second
+	 * TAutoConsoleVariable of the same console name in another .cpp would collide with it.
+	 * Also keeps with the file split this class already documents: the director owns the
+	 * camera/selection decision, the projector only asks it what to draw.
+	 */
+	static int32 SelectedSquad();
 
 	/**
 	 * Resolve this frame's shot.

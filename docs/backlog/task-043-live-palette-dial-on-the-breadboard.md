@@ -1,7 +1,7 @@
 ---
 id: 043
 title: Put a live palette-preset dial on the Breadboard
-status: needs-review
+status: done
 agent: claude
 owns: ["ELVTR/Content/PostProcess/M_PP_Demichrome**", "ELVTR/Content/PostProcess/MPC_Flame**", "ELVTR/Source/ELVTR/Rendering/SwarmRenderActor.cpp", ".claude/skills/cvars/SKILL.md", "docs/data/art/palette.json"]
 resources: ["unreal-editor", "mcp-9000"]
@@ -9,7 +9,7 @@ depends-on: []
 evidence: A PIE session where dragging one Breadboard row recolours the whole world and every unit between demichrome, eulbink and rust-gold, live, with no rebuild and no sprite regenerated.
 score: {gate: 3, risk: 2, cost: 2}
 source: user
-decided: "2026-07-26 needs-review"
+decided: "2026-07-27 done"
 ---
 
 ## Why now

@@ -1,7 +1,7 @@
 ---
 id: 040
 title: Replace the literal white hit-flash in the Unit Cam panel with Demichrome Pale
-status: proposed
+status: parked
 agent: claude
 owns: ["ELVTR/Source/**/UnitCamProjector.cpp"]
 resources: []
@@ -9,7 +9,7 @@ depends-on: []
 evidence: UnitCamProjector.cpp:857 uses Demichrome Pale, and a screenshot of a hit-flash on the panel shows no value brighter than the ramp's top.
 score: {gate: 2, risk: 1, cost: 1}
 source: docs/art/palette-exceptions.md:45
-decided: ""
+decided: "2026-07-27 parked"
 ---
 
 ## Why now

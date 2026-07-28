@@ -16,10 +16,13 @@ namespace
 		ECVF_Default);
 
 	TAutoConsoleVariable<float> CVarSpacing(
-		TEXT("Swarm.Formation.Spacing"), 110.f,
-		TEXT("Gap between neighbours WITHIN a rank, uu. Below about 70 the separation force\n")
-		TEXT("(Swarm steering, 60uu personal space) fights the slots and the line seethes\n")
-		TEXT("instead of standing. [40..400]"), ECVF_Default);
+		TEXT("Swarm.Formation.Spacing"), 42.4f,
+		TEXT("Gap between neighbours WITHIN a rank, uu. Owner-tuned to 42.4 (was 110): tight\n")
+		TEXT("ranks are what make the line read as ROWS in the Unit Cam panel rather than a\n")
+		TEXT("loose crowd. This sits BELOW the ~70 threshold where the separation force\n")
+		TEXT("(Swarm steering, 60uu personal space) starts fighting the slots and the line\n")
+		TEXT("can seethe instead of standing — kept because it reads correctly on screen.\n")
+		TEXT("If seething shows up in play, lower the separation force, not this. [40..400]"), ECVF_Default);
 
 	TAutoConsoleVariable<float> CVarRankSpacing(
 		TEXT("Swarm.Formation.RankSpacing"), 110.f,
@@ -77,22 +80,12 @@ namespace
 		TEXT("compacted, it only stops further repacking. Respawn to get them back."),
 		ECVF_Default);
 
-	/**
-	 * The camera's bearing, read by name rather than by linking to the pawn.
-	 *
-	 * Emberkeep.Cam.Yaw is owned by SpikeHeroPawn.cpp — a spike actor the Mass side has
-	 * no business depending on, and which may not exist at all in a later shipping mode.
-	 * Finding it by name costs one lookup per pass and degrades to "world axes" if the
-	 * pawn's translation unit never registered it, which is exactly the right failure.
-	 */
-	float CameraYawDegrees()
+	/** Rotate a formation-space (local) offset onto the world ground plane by a bearing. */
+	FVector2D RotateToWorld(const FVector2D& Local, float YawRadians)
 	{
-		static IConsoleVariable* CamYaw = nullptr;
-		if (!CamYaw)
-		{
-			CamYaw = IConsoleManager::Get().FindConsoleVariable(TEXT("Emberkeep.Cam.Yaw"));
-		}
-		return CamYaw ? CamYaw->GetFloat() : 0.f;
+		const float S = FMath::Sin(YawRadians);
+		const float C = FMath::Cos(YawRadians);
+		return FVector2D(Local.X * C - Local.Y * S, Local.X * S + Local.Y * C);
 	}
 
 	/** Ring slot in formation space. Ring r holds 8r slots at r * Spacing. */
@@ -159,6 +152,26 @@ namespace
 		const float Radius = FMath::Max(P.ArcRadius - Rank * P.RankSpacing, P.Spacing);
 		return FVector2D(FMath::Cos(Angle) * Radius, FMath::Sin(Angle) * Radius);
 	}
+
+	/**
+	 * Brood's arc slot — see SwarmFormation::BroodSlotOffset for why this isn't ArcSlot
+	 * with a sign flipped. Rank 0 sits at ArcRadius (the front, closest to the anchor,
+	 * arriving first); later ranks step OUTWARD, away from the anchor, the opposite sense
+	 * from the retinue's shield wall stepping inward toward a bearer standing still.
+	 */
+	FVector2D BroodArcSlot(int32 Index, const SwarmFormation::FParams& P)
+	{
+		const int32 Columns = FMath::Max(P.Columns, 1);
+		const int32 Rank = Index / Columns;
+		const int32 Column = Index % Columns;
+
+		const float Sweep = FMath::DegreesToRadians(FMath::Clamp(P.ArcDegrees, 0.f, 360.f));
+		const float T = (Columns > 1) ? ((float)Column / (float)(Columns - 1) - 0.5f) : 0.f;
+		const float Angle = T * Sweep;
+
+		const float Radius = FMath::Max(P.ArcRadius + Rank * P.RankSpacing, 1.f);
+		return FVector2D(FMath::Cos(Angle) * Radius, FMath::Sin(Angle) * Radius);
+	}
 }
 
 namespace SwarmFormation
@@ -205,8 +218,30 @@ namespace SwarmFormation
 		// Formation space is (forward, right); rotate it onto the world ground plane.
 		// At Yaw 0 forward is world +X, which is what 'W' pushes along and what the
 		// camera treats as up-screen — the three agree by construction.
-		const float S = FMath::Sin(P.YawRadians);
-		const float C = FMath::Cos(P.YawRadians);
-		return FVector2D(Local.X * C - Local.Y * S, Local.X * S + Local.Y * C);
+		return RotateToWorld(Local, P.YawRadians);
+	}
+
+	FVector2D BroodSlotOffset(int32 Index, const FParams& P)
+	{
+		Index = FMath::Max(Index, 0);
+		return RotateToWorld(BroodArcSlot(Index, P), P.YawRadians);
+	}
+
+	/**
+	 * The camera's bearing, read by name rather than by linking to the pawn.
+	 *
+	 * Emberkeep.Cam.Yaw is owned by SpikeHeroPawn.cpp — a spike actor the Mass side has
+	 * no business depending on, and which may not exist at all in a later shipping mode.
+	 * Finding it by name costs one lookup per pass and degrades to "world axes" if the
+	 * pawn's translation unit never registered it, which is exactly the right failure.
+	 */
+	float CameraYawDegrees()
+	{
+		static IConsoleVariable* CamYaw = nullptr;
+		if (!CamYaw)
+		{
+			CamYaw = IConsoleManager::Get().FindConsoleVariable(TEXT("Emberkeep.Cam.Yaw"));
+		}
+		return CamYaw ? CamYaw->GetFloat() : 0.f;
 	}
 }

@@ -1,0 +1,79 @@
+{
+  "$schema_note": "Flat, row-per-CVar table for the feeding/distraction mechanic (docs/design/feeding-distraction.md). Unlike unit-types.json/squads.json (nested config), this is deliberately a flat DataTable shape -- one row per tuning dial, single typed Value column -- per task-053's explicit 'must import cleanly as a UE DataTable' requirement. Bool/int dials are stored as float (0/1 or integer-valued) so every row shares one struct shape.",
+  "version": "0.1-prototype",
+  "last_updated": "2026-07-27",
+  "note": "All values are PROTOTYPE DIALS, unmeasured against the real Mass sim (spec's density check, §8, used a scratch Fermi model, not an engine run). Each row mirrors a Swarm.Feeding.* CVar task-054 should register.",
+
+  "rows": [
+    {
+      "Name": "Swarm.Feeding.Enabled",
+      "ValueType": "Bool",
+      "Value": 1,
+      "Team": "Any",
+      "Description": "Master on/off. Lets task-054 reproduce a zero-input A/B baseline with and without feeding, same measurement pattern as docs/GATE1-FUN-PROTOTYPE.md section 3."
+    },
+    {
+      "Name": "Swarm.Feeding.MaxPerCorpse",
+      "ValueType": "Int",
+      "Value": 3,
+      "Team": "Any",
+      "Description": "Hard cap on the killer set (spec section 2/4): at most this many simultaneous killers of one victim enter feeding. Owner-specified cap."
+    },
+    {
+      "Name": "Swarm.Feeding.ChompRate",
+      "ValueType": "Float",
+      "Value": 0.05,
+      "Team": "Any",
+      "Description": "Seconds of feed duration per point of the killed unit's MaxHP (spec section 3). Proxy for armor until task-002 lands the real stat -- see the spec's task-002 handoff note."
+    },
+    {
+      "Name": "Swarm.Feeding.MinDuration",
+      "ValueType": "Float",
+      "Value": 1.5,
+      "Team": "Any",
+      "Description": "Floor on feed duration, seconds. Keeps even a fodder kill legible instead of a single-frame flicker."
+    },
+    {
+      "Name": "Swarm.Feeding.MaxDuration",
+      "ValueType": "Float",
+      "Value": 8.0,
+      "Team": "Any",
+      "Description": "Ceiling on feed duration, seconds. Stops a future high-MaxHP titan/elite kill from freezing a unit absurdly long."
+    },
+    {
+      "Name": "Swarm.Feeding.RetinueFeedChance",
+      "ValueType": "Float",
+      "Value": 0.35,
+      "Team": "Retinue",
+      "Description": "Per-killer-set-member chance a RETINUE killer actually enters feeding. Load-bearing anti-stall dial -- spec section 8 measures the unthrottled retinue duty cycle at ~31% of the whole army (scale-invariant, not just a wave-3 artifact) and this dial is what brings it down to ~11%."
+    },
+    {
+      "Name": "Swarm.Feeding.BroodFeedChance",
+      "ValueType": "Float",
+      "Value": 0.85,
+      "Team": "Brood",
+      "Description": "Per-killer-set-member chance a BROOD killer actually enters feeding. Kept high on purpose -- the 700-brood wave-3 pool absorbs it (spec section 8 measures under 17% of the pool feeding even in the worst case tested), and it should read often as the tone/horror beat (spec section 7)."
+    },
+    {
+      "Name": "Swarm.Feeding.Cooldown",
+      "ValueType": "Float",
+      "Value": 4.0,
+      "Team": "Any",
+      "Description": "Seconds after a completed feed before that unit can be selected into another killer set. Secondary valve against one high-kill-rate unit chain-feeding back to back at short feed durations."
+    },
+    {
+      "Name": "Swarm.Feeding.HealFraction",
+      "ValueType": "Float",
+      "Value": 0.20,
+      "Team": "Any",
+      "Description": "Fraction of the feeder's own MaxHP restored on UNINTERRUPTED completion only (spec section 6). A feeder killed mid-feed gets nothing -- keeps the payoff incidental to the (involuntary) act rather than a chosen reward."
+    },
+    {
+      "Name": "Swarm.Feeding.HeroExempt",
+      "ValueType": "Bool",
+      "Value": 1,
+      "Team": "Hero",
+      "Description": "The hero never enters feeding, regardless of kills. Exposed as a CVar per house convention but should stay 1 -- this is a GDD section 4 hero-relevance guardrail, not a balance knob."
+    }
+  ]
+}

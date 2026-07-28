@@ -67,7 +67,8 @@ namespace
 		TEXT("horde-behaviour dial: high = the tide is stopped by your line and a front\n")
 		TEXT("forms; low = it flows past the line and dives for the flame, and holding\n")
 		TEXT("ground stops being enough. Capped in practice by the 3x3 grid reach\n")
-		TEXT("(~600uu at GridCellSize 200), so values beyond that read the same. [0..600]"), ECVF_Default);
+		TEXT("(750uu at GridCellSize 250, task-052; was ~600uu at GridCellSize 200), so\n")
+		TEXT("values beyond that read the same. [0..750]"), ECVF_Default);
 
 	TAutoConsoleVariable<float> CVarBroodContactRange(
 		TEXT("Swarm.BroodContactRange"), 120.f,
@@ -322,6 +323,22 @@ void USwarmGridBuildProcessor::Execute(FMassEntityManager& EntityManager, FMassE
 
 //----------------------------------------------------------------------
 // Brood steering: seek attractor + separation
+//----------------------------------------------------------------------
+// RANKS UNDER CONTACT (task-047): brood ranks (SwarmCommands.cpp, Swarm.BroodFormation.*)
+// are a SPAWN-TIME arrangement only — there is no brood equivalent of
+// URetinueFollowProcessor holding a slot fragment, and deliberately so. The moment a rank
+// starts marching, THIS pass (seek the attractor or whichever soldier is in AggroRange,
+// plus separation) is already what moves it, individually, every frame. So the degrade
+// from "neat rows" to "per-unit melee" isn't a state transition anything decides — it's
+// just what these two forces do to a grid of exact starting positions once
+// Swarm.BroodSpeedJitter and per-target divergence stop agreeing unit-to-unit. A rank
+// holding rigid through a melee (matching the retinue's compaction) would need every
+// brood to share a target and a pace, which is precisely the "one pulsing organism"
+// look the game is trying to avoid on the retinue's own attack cadence (see the swing-
+// phase desync comment in SwarmCommands.cpp) — a rigid enemy line reads as scripted, not
+// implacable. Letting ordinary steering own the whole lifecycle costs nothing extra: it
+// is the same per-unit seek+separation math regardless of whether a unit spawned in a
+// row five seconds ago or is mid-swing, so there is no separate bookkeeping to pay for.
 //----------------------------------------------------------------------
 UBroodSteeringProcessor::UBroodSteeringProcessor()
 	: EntityQuery(*this)

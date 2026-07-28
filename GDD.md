@@ -1,21 +1,41 @@
-# Game Design Document — *Emberkeep*
+# Game Design Document — *Kindled*
 
-**Version:** 0.4 (living document) · Companion docs: `CLASSES.md`, `WORLD.md`
-**Last updated:** 2026-07-09
+**Version:** 0.5 (living document) · Companion docs: `CLASSES.md`, `docs/narrative/FLAME-FOUNDATION.md`
+**Last updated:** 2026-07-27
 **Engine target:** Unreal Engine 5.8
+
+> ### Two owner decisions this document has not fully absorbed
+>
+> **1. Title: _Kindled_ (2026-07-27).** Replaces *Emberkeep*, which came from the discarded
+> canon. The participle is the point: it names the state of everyone who is *not* the player —
+> they have been kindled, by you, and go out without you. (Q10 below is updated; scattered
+> references elsewhere in the repo are not.)
+>
+> **2. Single-player first (2026-07-27).** 1P is the design target. **Co-op is a later
+> multiplier on a proven loop, not a v1 requirement.** This is the largest scope reduction the
+> project has taken and it changes the concept's go/no-go gate — see §10. Sections still
+> written for a 1–4 player party are marked **[MP — deferred]** inline; they are preserved
+> rather than deleted because co-op is postponed, not abandoned.
+>
+> **Also stale:** `WORLD.md` is superseded in full (narrative reset, 2026-07-22). Everything
+> in §6a about world flags, and every faction/biome/NPC name in §9, belongs to the discarded
+> canon. Current narrative canon is `docs/narrative/FLAME-FOUNDATION.md`.
 
 ---
 
 ## 1. High Concept
 
-A top-down multiplayer dungeon crawler with roguelike structure and procedural level
-generation, rendered in a 2-bit art style. The hook: **massive entity counts**. Every
-player commands not just a hero, but a growing retinue of subjects/soldiers that fight
-alongside them. Runs escalate to extreme power levels, with hundreds-to-thousands of
-units and enemies on screen at once.
+A top-down single-player dungeon crawler with roguelike structure and procedural level
+generation, rendered in a 2-bit art style. The hook: **massive entity counts**. You command
+not just a hero, but a growing retinue of subjects/soldiers that fight alongside you. Runs
+escalate to extreme power levels, with hundreds-to-thousands of units and enemies on screen
+at once.
 
-**One-liner:** *A co-op roguelike dungeon crawler where you don't just build a
-character — you build an army.*
+You carry the only fire in a pitch-dark world, and the army gathers in your light because
+outside it they die (`docs/narrative/FLAME-FOUNDATION.md`).
+
+**One-liner:** *A roguelike where you don't just build a character — you build an army, and
+you are the only thing keeping it alive.*
 
 ---
 
@@ -124,8 +144,9 @@ Design rules:
   Hero abilities should be force multipliers (buffs, formations, ults) not just DPS.
 - **Screen readability:** friendly vs. enemy mobs must read instantly in 2-bit. Reserve
   a color/value channel per faction.
-- **Multiplayer density:** 4 players × hundreds of units × enemy hordes = the tech
-  problem that defines this project (see §10).
+- **Entity density:** one hero × hundreds of units × enemy hordes = the tech problem that
+  defines this project (see §10). *Was "4 players ×" until the single-player decision of
+  2026-07-27; the problem is the same shape, roughly a quarter the size.*
 - **Leash vs. Hold-wall — DECIDED 2026-07-26: Hold is porous by design, not a
   barricade.** Resolved toward the sim: a held line pins the retinue's formation to
   the spot it was issued at (leash rule unchanged — units past radius, incl. on
@@ -206,12 +227,19 @@ spine of a run.
 - **Moral/faction choices:** decisions that shift how the dungeon reacts to you across
   the rest of the run (persistent consequence within a run).
 
-### Multiplayer wrinkle
-Decisions are **per-player where possible** ("each person will have their
-opportunities"): a decision event targets one player, and their choice can affect the
-whole party. This creates social texture — credit, blame, negotiation.
+### Single-player resolution — **DECIDED 2026-07-27**
+Every decision belongs to the bearer, alone, and resolves instantly. There is no party, no
+vote, and no negotiation layer. This *simplifies* the decision system rather than weakening
+it: a sacrifice offer is a conversation between the player and their own congregation, and
+the discomfort of that (they will pay the price gladly) is the point — §6a of
+`FLAME-FOUNDATION`.
 
-**Resolution rule — DECIDED 2026-07-21: vote on weight.**
+### Multiplayer wrinkle — **[MP — deferred 2026-07-27]**
+*Kept for when co-op returns; not in scope.* Decisions were **per-player where possible**:
+a decision event targets one player, and their choice can affect the whole party — social
+texture through credit, blame, negotiation.
+
+**Resolution rule — DECIDED 2026-07-21, superseded for v1: vote on weight.**
 - **Self / current-run-only** (affects only the deciding player or just this run):
   the owning player decides alone, resolved instantly.
 - **Party-wide or persistent** (consequence lands on the party or writes a world
@@ -221,7 +249,14 @@ whole party. This creates social texture — credit, blame, negotiation.
   moving forward.
 Cheap choices resolve instantly; heavy choices resolve fairly, through the party.
 
-### 6a. Persistent World State — **DECIDED: yes, this is the meta-game**
+### 6a. Persistent World State — **DISCARDED 2026-07-22 (narrative reset); [MP — deferred] throughout**
+
+> **This entire section is stale.** The 15 world flags, 2 faction standings, 5 named NPCs and
+> 8 site states belong to the discarded `WORLD.md` canon. Meta-progression is now
+> *deliberately unwritten* (`FLAME-FOUNDATION` §5) until the prototype answers whether
+> standing in the circle stagnates and whether uniting flames is a run objective. The
+> multiplayer rules below are additionally deferred by the single-player decision. Kept
+> verbatim as the record of a decision that was made and then unmade.
 
 Decisions don't just shape the current run — they scar the world. This is our
 meta-progression (§3): the world changes instead of your stats.
@@ -313,13 +348,11 @@ Deferred by design, but reserving the slot. Direction notes:
   *requirement*, not a nicety — retinues need room), decision-event sites, secrets,
   and a floor objective (boss/exit).
 - Likely approach: prefab room library + graph-based layout (rooms as nodes, corridors
-  as edges), with constraint rules. Site counts **scale with party size**: a floor
-  baseline of ≥1 arena, ≥1 decision event, ≥1 optional risk room, **plus ≥1 growth
-  site per player** so a 4-player party isn't starved and a solo player isn't flooded.
-  Where two players share a class (same yield type), a contested site either **splits
-  yield or duplicates** — decided per site type in `docs/RTS-VERTICAL-SLICE.md` — so
-  "shared sites, class-specific yields" (`CLASSES.md`) stops silently assuming a
-  one-of-each party. Tile-level noise/variation on top.
+  as edges), with constraint rules. Floor baseline: ≥1 arena, ≥1 decision event, ≥1
+  optional risk room, ≥1 growth site. **Party-size scaling is [MP — deferred 2026-07-27]** —
+  the old rule (≥1 growth site *per player*, contested sites splitting or duplicating yield
+  for same-class parties) exists only for when co-op returns. Single-player needs one
+  sizing, tuned once. Tile-level noise/variation on top.
 - Seeded generation — all players in a session see the identical dungeon: the
   generator reads the **session stage's** world flags (the host's world as the
   shared stage), then applies the seed **deterministically on top of the resolved
@@ -357,13 +390,24 @@ the concept-defining tech risk carries a hard gate (below).
   for heroes, bosses, and "promoted" elite units. Prototype this first — it is the
   project's biggest risk.
 
-**Entity-count spike gate — DECIDED 2026-07-21 (go/no-go).** No content or class
-production begins until the Mass Entity spikes pass at the **full 4-player target
-load** (not the 2-client half-target). Pass = the entity budget above (4 players ×
-late-run retinue + enemy hordes) holding 60fps under the aggregate-replication model.
-**A gate failure invalidates the concept, it does not merely trim it** — the defined
-fallbacks to evaluate are: (a) reduced entity counts, (b) single-player-only mass, or
-(c) a fake-crowd hybrid. This is the project's go/no-go before major investment.
+**Entity-count spike gate — REDEFINED 2026-07-27 (go/no-go).** No content or class
+production begins until the Mass Entity spike passes at the **single-client late-run
+entity budget**: one hero × late-run retinue + enemy hordes holding **60fps (16.6ms)**.
+There is no replication term.
+
+This supersedes the 2026-07-21 gate ("full 4-player target load under the
+aggregate-replication model"), which the single-player decision retires. Two consequences
+worth stating plainly:
+
+- The bar drops by roughly **4×**, and the replication risk — which this document called
+  "the second-biggest risk" — is **deleted, not deferred-with-a-cost**. Fallback (b) of the
+  old gate, *single-player-only mass*, has in effect been chosen up front rather than as a
+  failure response.
+- **The gate is still not passed.** As of 2026-07-26 the debug-box renderer costs **14.62ms
+  of draw at 1,000 units on one client** — over budget before anything else in the frame
+  runs (`docs/perf/BUDGETS.md`). The Niagara sprite path was repaired 2026-07-26 and has no
+  measured baseline yet. **A gate failure still invalidates the concept rather than trimming
+  it**; the surviving fallbacks are (a) reduced entity counts and (c) a fake-crowd hybrid.
 
 ### 2-bit rendering
 - 2-bit = 4 values per palette. Options: strict global 4-color palette (Game Boy
@@ -374,37 +418,44 @@ fallbacks to evaluate are: (a) reduced entity counts, (b) single-player-only mas
   as 2-bit — **[DECIDE via art test]**. Instanced flipbook quads driven by Niagara is
   the likely winner for mass units.
 
-### Multiplayer
-- Co-op, 1–4 players. **DECIDED.** Entity budget must be proven at 4 players ×
-  late-run retinue sizes plus enemy hordes — this is the number Spikes 1–2 target.
-- Listen server vs. dedicated — start listen-server for prototyping.
-- **Replication strategy is the second-biggest risk:** you cannot naively replicate
-  hundreds of units per player. Approach: replicate authoritative *aggregate* state
-  (unit group positions/counts/seeds) and simulate cosmetically on clients;
-  deterministic-ish local sim for the swarm, full replication only for heroes,
-  elites, and bosses. Prototype alongside the Mass Entity spike.
+### Multiplayer — **[MP — deferred 2026-07-27]**
+**Single-player is the design target.** Co-op returns as a later multiplier on a proven
+loop, not as a v1 requirement. Nothing below is in scope; it is kept because the design is
+deliberately written so co-op stays *possible*, and those affordances cost nothing now:
+
+- Stances replicate as **one intent enum per army**, not per unit (§4) — the cheap shape.
+- The leash clusters units on their hero (§4), which is exactly what makes replication
+  relevancy and off-screen LOD tractable later.
+- When it returns: co-op, 1–4 players, listen-server first; replicate authoritative
+  *aggregate* state (group positions/counts/seeds) with cosmetic client-side simulation,
+  and full replication only for heroes, elites, and bosses. **Do not build toward this
+  now** — the single-client gate above has to pass first.
 
 ### Early technical milestones
 1. **Spike 1 — The Thousand:** 1,000+ Mass Entity units with basic follow/attack AI at
-   60fps, Niagara/ISM rendered.
-2. **Spike 2 — The Thousand, Networked:** same scene at the **full 4-client target
-   load** (raised from 2 so the spike proves the real entity budget, not half of
-   it), aggregate-replication model.
+   60fps, single client, Niagara/ISM rendered. **This is now the gate** (see above);
+   built and playable, but unmeasured on the repaired sprite path.
+2. ~~**Spike 2 — The Thousand, Networked**~~ — **CUT 2026-07-27** with the single-player
+   decision. Revisit only after the slice loop is proven fun on one client.
 3. **Spike 3 — Procedural floor:** graph-based floor generation with arena constraints.
-4. **RTS vertical slice:** 1 class, 1 biome, 3 floors, 1 boss, 2 decision events,
-   co-op. Full definition, gates, and bill of materials: `docs/RTS-VERTICAL-SLICE.md`.
+   Deferrable — the slice may ship hand-assembled floors (`docs/RTS-VERTICAL-SLICE.md` §5).
+4. **Vertical slice:** 1 class (Vanguard), 1 biome, 3 floors, 1 boss, single-player.
+   Full definition, gates, and bill of materials: `docs/RTS-VERTICAL-SLICE.md`.
 
 ---
 
 ## 11. Scope Guardrails (v1 targets)
 
+**Revised 2026-07-27** for the single-player decision and the narrative reset.
+
 | In (v1) | Later | Out (for now) |
 |---|---|---|
-| 4 classes | 6+ classes | PvP |
-| 1–4 player co-op | Fancy loot/evolution system | Modding/community content |
-| 3 biomes, floor-based runs | More world flags, evolving sites | Console ports |
+| **Single-player** | **1–4 player co-op** — a multiplier on a proven loop | PvP |
+| 1 class (Vanguard) for the slice; 4 designed | 6+ classes | Modding/community content |
+| Floor-based runs, 1 biome in the slice | 3 biomes | Console ports |
 | Stance-based retinue control (4 stances) | Class-specific stance variants | Persistent economy/settlement sim |
-| World flags (15: 2 standings + 5 NPCs + 8 sites) | Off-class hybrid events (few in v1, more later) | |
+| Retinue upkeep (degrade, don't die) | Fancy loot/evolution system | ~~World flags~~ — discarded with the lore |
+| The leash, rendered as light | Meta-progression (unwritten by choice) | |
 
 ---
 
@@ -415,18 +466,19 @@ fallbacks to evaluate are: (a) reduced entity counts, (b) single-player-only mas
 | 1 | Meta-progression model | **Hybrid: knowledge + persistent world state (§3, §6a)** | ✅ Decided 2026-07-09 |
 | 2 | Retinue control model | **Stance commands: Follow/Charge/Hold/Rally (§4)** | ✅ Decided 2026-07-09 |
 | 3 | Classes locked to retinue type? | **Locked start, hybrid via in-run events (§5)** | ✅ Decided 2026-07-09 |
-| 4 | Max party size | **4 players co-op (§10)** | ✅ Decided 2026-07-09 |
+| 4 | Max party size | **SUPERSEDED: single-player first (§10, Q20). Co-op returns later at 1–4.** | ⏸ Superseded 2026-07-27 |
+| 20 | Player count for v1 | **Single-player. Co-op is a later multiplier on a proven loop, not a v1 requirement.** Rationale: it retires the replication risk outright, cuts the entity gate by ~4×, and answers `FLAME-FOUNDATION` §4.4 — uniting flames becomes a *run objective* found in single-player, not a co-op mode. | ✅ Decided 2026-07-27 |
 | 5 | Sprite flipbooks vs. flat-shaded 3D for 2-bit look | Flipbooks on instanced quads | Needs art test |
 | 6 | Strict 4-color global palette vs. per-faction palettes | Per-faction | Open |
 | 7 | Loot system design (Vampire Survivors–style) | Deferred by design — deferral is now legitimate: retinue growth is the run reward loop (§3 genre spine), not loot | Deferred by design |
-| 8 | Co-op world writes | **RESOLVED: party vote on any world-scarring/party-wide decision; no unilateral scars; passed outcomes echo to all present players' worlds (§6a)** | ✅ Decided 2026-07-21 |
+| 8 | Co-op world writes | ~~Party vote on any world-scarring decision~~ — **MOOT.** The world flags were discarded (2026-07-22) and the party was deferred (2026-07-27); the question no longer has either term. | ⏸ Moot 2026-07-27 |
 | 15 | Genre spine (roguelike vs. RTS vs. horde-survivor vs. persistent-world) | **Roguelike run is primary; retinue growth is the progression axis; the rest are support (§3)** | ✅ Decided 2026-07-21 |
 | 16 | Retinue upkeep / power-curve governor | **Degrade-not-die upkeep economy, fed by supply sites (§7)** | ✅ Decided 2026-07-21 |
 | 17 | Sacrifice-event pricing across classes | **Common currency of loss, not raw unit count (§6)** | ✅ Decided 2026-07-21 |
-| 18 | Decision resolution rule (blocking vs. not) | **Self/current-run = non-blocking solo call; party-wide/persistent = party vote (§6)** | ✅ Decided 2026-07-21 |
-| 19 | Pre-resourcing posture + entity-count go/no-go | **Team/budget/timeline TBD; Spike 2 raised to full 4-client load as the gate (§10)** | ✅ Decided 2026-07-21 |
+| 18 | Decision resolution rule (blocking vs. not) | **SIMPLIFIED: every decision is the bearer's alone and resolves instantly (§6).** The vote rule is preserved for co-op's return. | ✅ Re-decided 2026-07-27 |
+| 19 | Pre-resourcing posture + entity-count go/no-go | **Team/budget/timeline TBD. Gate REDEFINED 2026-07-27: single client at the late-run entity budget, 60fps, no replication term (§10). Spike 2 cut.** | ✅ Redefined 2026-07-27 |
 | 9 | v1 class roster | **4 classes: Vanguard / Relickeeper / Pathfinder / Lampbearer** (see `CLASSES.md`; working names) | ✅ Decided 2026-07-09 |
-| 10 | Game name | **Emberkeep** — chosen from the light-in-darkness theme (soul-flames, lamp-halls, the war of light vs. the Quiet) | ✅ Decided 2026-07-21 |
+| 10 | Game name | **Kindled** — the participle, naming the state of everyone who is *not* the player: kindled by you, and out without you. Replaces *Emberkeep*, which named a place in the discarded canon. | ✅ Re-decided 2026-07-27 |
 | 12 | World/setting design (factions, biomes, antagonist, NPCs) | **See `WORLD.md`** — Undervault / Hollow Crown / 3 factions / 3 biomes / 5 NPCs (working names) | ✅ Drafted 2026-07-09 |
 | 13 | Unwitnessed faction (name, titan variety, horror level) | First draft in `WORLD.md` §3a | ⏸ Parked — revisit before content lock |
 | 14 | v1 world-flag list + decision-event templates | **15 flags / 8 templates — `WORLD.md` §7–8** | ✅ Drafted 2026-07-09 |

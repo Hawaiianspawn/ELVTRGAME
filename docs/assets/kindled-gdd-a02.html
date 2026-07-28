@@ -1,0 +1,648 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Kindled — Final Game Design Document</title>
+<style>
+  @page { size: Letter; margin: 18mm 16mm 16mm 16mm; }
+
+  :root {
+    --ink:      #17171a;
+    --ink-soft: #4a4a52;
+    --ink-mute: #6e6e78;
+    --rule:     #d8d8dd;
+    --rule-lt:  #ececef;
+    --ember:    #b4531a;
+    --ember-lt: #fdf3ec;
+    --band:     #f6f6f7;
+  }
+
+  * { box-sizing: border-box; }
+
+  body {
+    font-family: "Segoe UI", -apple-system, "Helvetica Neue", Arial, sans-serif;
+    font-size: 9.4pt;
+    line-height: 1.45;
+    color: var(--ink);
+    margin: 0;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  /* ---------- cover block ---------- */
+  .cover { border-bottom: 2.5pt solid var(--ink); padding-bottom: 11pt; margin-bottom: 16pt; }
+  .eyebrow {
+    font-size: 7.6pt; letter-spacing: .17em; text-transform: uppercase;
+    color: var(--ember); font-weight: 700; margin: 0 0 6pt;
+  }
+  h1.title {
+    font-size: 33pt; line-height: 1; letter-spacing: -.022em;
+    margin: 0 0 3pt; font-weight: 800;
+  }
+  .subtitle { font-size: 12.4pt; font-weight: 500; color: var(--ink-soft); margin: 0 0 10pt; }
+  .meta { font-size: 8.4pt; color: var(--ink-mute); line-height: 1.65; }
+  .meta strong { color: var(--ink-soft); font-weight: 600; }
+
+  .logline {
+    font-size: 11.4pt; line-height: 1.45; font-style: italic;
+    color: var(--ink); border-left: 3pt solid var(--ember);
+    padding: 3pt 0 3pt 12pt; margin: 0 0 16pt;
+  }
+
+  /* ---------- headings ---------- */
+  h2 {
+    font-size: 12.6pt; font-weight: 750; letter-spacing: -.012em;
+    margin: 16pt 0 6pt; padding-bottom: 4pt;
+    border-bottom: 1pt solid var(--rule);
+    break-after: avoid; page-break-after: avoid;
+  }
+  h2 .num { color: var(--ember); font-weight: 800; margin-right: 7pt; }
+  h3 {
+    font-size: 9.9pt; font-weight: 700; margin: 11pt 0 4pt;
+    break-after: avoid; page-break-after: avoid;
+  }
+  h4 {
+    font-size: 9.6pt; font-weight: 700; color: var(--ink-soft);
+    margin: 10pt 0 3pt;
+    break-after: avoid; page-break-after: avoid;
+  }
+
+  p { margin: 0 0 6pt; }
+  ul, ol { margin: 0 0 7pt; padding-left: 15pt; }
+  li { margin-bottom: 3pt; }
+  li > ul { margin-top: 3pt; }
+  strong { font-weight: 680; }
+  em { font-style: italic; }
+  code {
+    font-family: "Cascadia Mono", Consolas, "SF Mono", monospace;
+    font-size: 8.5pt; background: var(--band); padding: .5pt 3pt;
+    border-radius: 2pt; color: #37373d;
+  }
+
+  /* ---------- tables ---------- */
+  table {
+    width: 100%; border-collapse: collapse; margin: 7pt 0 10pt;
+    font-size: 8.2pt; line-height: 1.35;
+    break-inside: avoid; page-break-inside: avoid;
+  }
+  th {
+    text-align: left; font-weight: 700; font-size: 7.5pt;
+    letter-spacing: .07em; text-transform: uppercase; color: var(--ink-soft);
+    border-bottom: 1.2pt solid var(--ink-soft); padding: 4pt 7pt 4pt 0;
+    vertical-align: bottom;
+  }
+  td { padding: 3.6pt 7pt 3.6pt 0; border-bottom: .6pt solid var(--rule-lt); vertical-align: top; }
+  tr:last-child td { border-bottom: none; }
+  th:last-child, td:last-child { padding-right: 0; }
+  table.compact td, table.compact th { font-size: 8.3pt; }
+  .num-col { text-align: right; font-variant-numeric: tabular-nums; white-space: nowrap; }
+
+  /* ---------- callouts ---------- */
+  .callout {
+    background: var(--ember-lt); border-left: 2.5pt solid var(--ember);
+    padding: 8pt 11pt; margin: 9pt 0 11pt;
+    break-inside: avoid; page-break-inside: avoid;
+  }
+  .callout p:last-child, .note p:last-child { margin-bottom: 0; }
+  .callout .lbl {
+    display: block; font-size: 7.4pt; letter-spacing: .14em; text-transform: uppercase;
+    font-weight: 700; color: var(--ember); margin-bottom: 4pt;
+  }
+  .note {
+    background: var(--band); padding: 8pt 11pt; margin: 9pt 0 11pt;
+    border-left: 2.5pt solid var(--rule);
+    break-inside: avoid; page-break-inside: avoid;
+  }
+  .note .lbl {
+    display: block; font-size: 7.4pt; letter-spacing: .14em; text-transform: uppercase;
+    font-weight: 700; color: var(--ink-mute); margin-bottom: 4pt;
+  }
+
+  .winloss { display: flex; gap: 11pt; margin: 9pt 0 11pt; }
+  .winloss > div {
+    flex: 1; border: .8pt solid var(--rule); padding: 7pt 10pt;
+  }
+  .winloss .lbl {
+    display: block; font-size: 7.4pt; letter-spacing: .14em; text-transform: uppercase;
+    font-weight: 700; color: var(--ember); margin-bottom: 3pt;
+  }
+  .winloss p { margin: 0; font-size: 9.2pt; }
+
+  .src {
+    font-size: 7.8pt; color: var(--ink-mute); font-style: italic;
+    margin: -3pt 0 9pt;
+  }
+  .src code { font-size: 7.6pt; font-style: normal; background: none; padding: 0; }
+
+  .keys { font-size: 8.6pt; }
+  .keys td:first-child {
+    font-family: "Cascadia Mono", Consolas, monospace; font-weight: 700;
+    width: 34pt; color: var(--ember);
+  }
+
+  footer.doc {
+    margin-top: 20pt; padding-top: 8pt; border-top: 1pt solid var(--rule);
+    font-size: 7.8pt; color: var(--ink-mute);
+  }
+
+  .pb { break-before: page; page-break-before: always; }
+  .avoid { break-inside: avoid; page-break-inside: avoid; }
+
+  /* ---------- figures ---------- */
+  figure {
+    margin: 9pt auto 11pt; padding: 0; max-width: 76%;
+    break-inside: avoid; page-break-inside: avoid;
+  }
+  figure img {
+    display: block; width: 100%; height: auto;
+    border: .8pt solid var(--rule);
+    background: #17171a;
+    image-rendering: -webkit-optimize-contrast;
+  }
+  figure.pixel img { image-rendering: pixelated; }
+  figcaption {
+    font-size: 7.9pt; line-height: 1.45; color: var(--ink-mute);
+    margin-top: 4.5pt; padding-left: 0;
+  }
+  figcaption b { color: var(--ink-soft); font-weight: 700; }
+  .figrow { display: flex; gap: 10pt; align-items: flex-start; }
+  .figrow figure { flex: 1; margin-top: 0; }
+</style>
+</head>
+<body>
+
+<div class="cover">
+  <p class="eyebrow">Multi-Agent AI for Game Development &nbsp;·&nbsp; Assignment #02</p>
+  <h1 class="title">KINDLED</h1>
+  <p class="subtitle">Final Game Design Document</p>
+  <p class="meta">
+    <strong>Aaron Low</strong> &nbsp;·&nbsp; 27 July 2026 &nbsp;·&nbsp; Unreal Engine 5.8<br>
+    Supersedes the Assignment&nbsp;#1 first draft (21 July 2026), submitted under the working title <em>Emberkeep</em>.<br>
+    <strong>Working title.</strong> Named for what happens to the people who gather to you; see §2.3.
+  </p>
+</div>
+
+<p class="logline">You are the only light. Everything that lives, lives inside your circle — and they think you are a god.</p>
+
+<h2><span class="num">1</span>Executive Summary</h2>
+
+<p><strong>Kindled</strong> is a single-player roguelike in which you carry the only fire in a pitch-dark
+world, and an army gathers in your light because outside it they die.</p>
+
+<p>The world is not at night — it is <em>dark</em>, and the dark takes what it touches. Power exists only
+where it passes through fire, so a <strong>flame-bearer</strong> is the one place anything can happen. People
+gather to you, fight for you, and need you to live; this is not loyalty, it is physics. They do not
+think you are a person — a bearer is a god to the people around them, and you can neither ask for
+that nor decline it. Other bearers are scattered in the dark, each with a small congregation in a
+small circle of light. Alone, a flame holds a room. <strong>United, flames do what no single fire can</strong> —
+and finding them is what a run is <em>for</em>. They are people you locate in the dark and unite with, not
+other players in a lobby (§2.3).</p>
+
+<p>In play: a top-down roguelike run where you command a growing retinue — three to ten units early,
+hundreds by late run — through four broad <strong>stances</strong> rather than unit selection or targeting. It
+renders in a locked four-value 2-bit palette chosen so a several-hundred-unit battle stays legible by
+silhouette and value alone. Retinue growth, not loot, is the progression axis and the run's reward.</p>
+
+<div class="winloss">
+  <div>
+    <span class="lbl">Win condition — per run</span>
+    <p>Survive three escalating waves and kill what the last one brings. The fire is still burning when the floor is clear.</p>
+  </div>
+  <div>
+    <span class="lbl">Loss condition</span>
+    <p>Hero death. The flame goes out, everyone standing in it is in the dark, and the run ends immediately and finally.</p>
+  </div>
+</div>
+
+<p>The rule the whole design hangs on is the <strong>leash</strong>: every unit has a maximum distance from the
+bearer, and that distance is drawn on the ground as the reach of your light. Inside it, lit floor and
+full-value units. Outside, the dark ground state and units dimmed a palette step. A unit that strays
+too far drops whatever order you gave and returns — not disobedience, but <em>running back to the light</em>.
+You may anchor a line at a chokepoint, but you can never walk away from it.</p>
+
+<div class="callout">
+  <span class="lbl">Project status — playable, measured, not yet passing its own gate</span>
+  <p>The Gate&nbsp;1 prototype (all four stances, the leash, a three-wave run, win and lose states) was
+  built 2026-07-22 and has been tuned against measured runs since. It is calibrated so that a
+  <strong>zero-input run loses</strong> — narrowly and repeatably, three runs out of three — so everything the
+  player adds is the margin between defeat and victory. The concept's go/no-go gate, entity count at
+  frame budget, is <em>not</em> passed: §5 states exactly why and what it costs.</p>
+</div>
+
+<figure>
+  <img src="img/fig-1-formation.png" alt="The bearer's flame lighting a formation of 120 retinue, brood approaching from the dark above">
+  <figcaption><b>Figure 1 — the game as it runs today.</b> The bearer's flame is the bright core; the
+  dithered falloff around it is the lit floor, which is also the leash radius (§3.2). 120 retinue hold
+  formation inside it while brood approach from the dark at the top of frame. The panel along the
+  bottom is the Unit Cam: a close-up of the line, flanked by six squad-strength readouts.
+  <em>Debug-box renderer — the sprite path is repaired but unmeasured (§5.1).</em></figcaption>
+</figure>
+
+<h2><span class="num">2</span>What Changed Since the First Draft</h2>
+
+<p>Three inputs drove this revision: a narrative reset, three corrections that review and measurement
+forced, and my own judgement calls. The largest change is first.</p>
+
+<h3>2.1 &nbsp;The narrative reset — the whole world was discarded</h3>
+
+<p>Assignment&nbsp;#1 described the <em>Undervault</em>: a kingdom a thousand years dark, the Hollow Crown,
+three factions, five named NPCs, fifteen persistent world flags and eight decision-event templates.
+On 2026-07-22, <strong>all of it was discarded.</strong> The world document is superseded in full and kept
+unedited as history.</p>
+
+<p>The reason: <strong>the set dressing had outrun the prototype.</strong> Eight event templates written and none
+built; fifteen world flags specified and one stubbed write planned — while the playable build carried
+a question no amount of faction lore could answer, namely whether the leash reads as a rule the
+player understands or whether the army just feels disobedient. The fiction was accumulating faster
+than the thing it described.</p>
+
+<p>The replacement premise (§1) is deliberately short and mechanics-first, and ships with a rule every
+future piece of lore must pass: <strong>if a piece of fiction does not explain a mechanic that already
+exists or is already needed, it is decoration and it waits.</strong> The premise was written against that
+test:</p>
+
+<table>
+  <thead><tr><th style="width:34%">Fiction</th><th style="width:40%">Mechanic it explains</th><th>Status in code</th></tr></thead>
+  <tbody>
+    <tr><td>Outside the light, the dark takes you</td><td>The leash — radius, break latch, warn bit</td><td><strong>Built</strong></td></tr>
+    <tr><td>A god is obeyed in intent, not in orders</td><td>Stances; no unit selection, no micro</td><td><strong>Built</strong> — 4 stances</td></tr>
+    <tr><td>Fire must be fed or it dims</td><td>Upkeep — units degrade rather than die</td><td>Specced</td></tr>
+    <tr><td>You are the only light source</td><td>Hero relevance without hero damage</td><td>Unblocks the 55-DPS problem</td></tr>
+    <tr><td>Many bearers, united</td><td>The run objective — find the other fires, bring them together</td><td>Unbuilt; the run's spine (§2.3)</td></tr>
+    <tr><td>They die for you gladly</td><td>Sacrifice events priced by what it costs <em>you</em></td><td>Specced</td></tr>
+  </tbody>
+</table>
+
+<h4>What the reset bought immediately</h4>
+<ul>
+  <li><strong>The leash became visible instead of a rule.</strong> Rendering the leash radius as the lit floor
+  answers the prototype's open question directly, and costs one floor decal plus a per-unit value
+  shift the renderer already has the data for.</li>
+  <li><strong>Hold and Charge acquired a price.</strong> Both push units toward the edge of the leash — which is
+  precisely where the fiction says it is dangerous to stand. That is not a bug, it is the game. Three
+  of the four stances now have a cost the player can feel; previously they were movement modes.</li>
+  <li><strong>The hero stopped needing damage.</strong> The first draft worried openly that a 55-DPS hero was
+  "a camera with a health bar." The hero is now <em>the thing everyone is standing in</em>: abilities concern
+  where the light reaches, how bright, how long, and at what cost.</li>
+</ul>
+
+<h4>What the reset cost — stated, not hidden</h4>
+<p>The first draft's <strong>meta-win condition went with the lore.</strong> Progression across runs was "your
+decisions write world flags that weaken the Hollow Crown's grip." There is no Hollow Crown and there
+are no flags. Meta-progression is now <em>deliberately unwritten</em>, because the prototype question that
+decides what a persistent world would need to contain — does standing in the circle stagnate into a
+dominant strategy? — is unanswered. Writing it now would repeat the mistake the reset exists to undo.
+Per-run win and loss (§1) are unaffected and are what the build implements today.</p>
+
+<h3>2.2 &nbsp;Three corrections review and measurement forced</h3>
+
+<p>The first two contradict sentences in the submitted first draft.</p>
+
+<p><strong>a. The Shield Wall claim was wrong.</strong> Assignment&nbsp;#1 said "the Vanguard's Hold is a literal
+Shield Wall that blocks enemy pathing." A blocking wall needs per-unit pathing obstruction — exactly
+the individual special-casing Mass Entity rules out at horde scale. <strong>Corrected 2026-07-26 toward the
+simulation:</strong> Hold pins the formation where it was issued, but nothing about it changes how far an
+enemy will divert to engage. The tide bites what is near its path and flows past what is not. Shield
+Wall is now a positioning tool that reads as a wall only where geometry already makes it one.</p>
+
+<p><strong>b. A balance claim I made was false, and measurement caught it.</strong> Moving from continuous damage
+to discrete swings, I wrote that average DPS was unchanged. Wave-1 survivors fell from 97–103 to
+60–62. The cause: <code>MaxAttackersPerUnit</code> — called "the single most important dial in the model" in
+my own design — <strong>never bounded a damage rate at all.</strong> It capped the first N enemies in <em>grid
+iteration order</em>, and the grid rebuilds every frame as units move, so that set churned and far more
+than N attackers landed blows per interval. Fixed with geometry rather than counters: each attacker
+publishes the distance to its K-th nearest enemy, and a victim takes a blow if inside it — one
+compare, no cross-entity writes. That fix then exposed a second thing: a <em>constant</em> K removed a
+stabiliser the broken model had by accident, and fights went <strong>bimodal</strong>. Hence the shipped defaults,
+which restore the stabiliser deliberately.</p>
+
+<p><strong>c. The renderer cannot hold the bar it was assumed to hold.</strong> At 1,000 enemies the debug-box
+renderer costs <strong>14.62&nbsp;ms on draw alone</strong> against a 16.6&nbsp;ms frame — and 350&nbsp;ms at 10,000. Draw
+time <em>is</em> frame time at every count tested. Since the Spike&nbsp;1 floor is "1,000+ units at 60&nbsp;fps,"
+this renderer cannot pass it. Now the project's binding technical fact rather than an assumption (§5).</p>
+
+<h3>2.3 &nbsp;What I changed by my own judgement</h3>
+<ul>
+  <li><strong>The title.</strong> <em>Emberkeep</em> came from the discarded canon — it named a place, and the
+  place no longer exists. <strong>Kindled</strong> names a <em>state</em> instead, and specifically the state of
+  everyone who is not the player: they have been kindled, by you, and they will go out without you.
+  The participle was chosen over the bare verb deliberately. <em>Kindle</em> would have named what the
+  bearer does; <em>Kindled</em> names what it does to the people standing in the light, which is the part
+  of the premise the game is actually about — and it clears the search collision the verb form
+  carries.</li>
+  <li><strong>The game is single-player.</strong> The first draft opened "1–4 player co-op" and treated that as
+  the premise rather than a mode. It is now <strong>single-player first, with co-op as a later multiplier on a
+  proven loop</strong> — and this is the largest scope reduction the project has taken, larger than cutting
+  three classes. It does three things at once. It <em>retires</em> the replication risk the first draft called
+  "the second-biggest risk," rather than deferring it with a cost. It cuts the entity gate by roughly 4×
+  (§5.1). And it <em>answers</em> a question the premise had left open — whether uniting flames was a co-op
+  mechanic or a run objective. It is the run objective: the other bearers are found in the dark over the
+  course of a run. That is the better version, because the objective is now always present instead of
+  contingent on having three friends online.</li>
+  <li><strong>The roster narrows to one class.</strong> The first draft scoped four classes for v1 and one for the
+  slice; this draft commits the semester to the <strong>Vanguard</strong> alone and says so everywhere (§3.6, §5).</li>
+  <li><strong>Ad-hoc dispatch was replaced with a scored, lock-checked backlog.</strong> The reason is a
+  coordination failure specific to this project rather than a general tidiness urge — see §4.2.</li>
+</ul>
+
+<h2 class="pb"><span class="num">3</span>Game Mechanics — What the Player Sees and Does</h2>
+
+<h3>3.1 &nbsp;The moment</h3>
+<p>Top-down. You move one hero with WASD and a visible army moves with you. There is no unit
+selection, no drag-box, and no targeting: the entire command vocabulary is four keys, issuable
+instantly mid-fight, that state an <em>intent</em> the units interpret for themselves. That is not a
+simplification of an RTS — it is the fiction and the input model being the same decision. A god is
+obeyed in intent, not in orders.</p>
+
+<table class="keys">
+  <thead><tr><th style="width:34pt">Key</th><th style="width:70pt">Stance</th><th>What the army does</th></tr></thead>
+  <tbody>
+    <tr><td>1</td><td><strong>Follow</strong></td><td>Formation rings around you; engage whatever comes close. The default.</td></tr>
+    <tr><td>2</td><td><strong>Charge</strong></td><td>Surge at the cursor. Wide engage range, +25% speed — thrown past the edge of your light, on faith.</td></tr>
+    <tr><td>3</td><td><strong>Hold</strong></td><td>Anchor the formation where it stands; short engage range. Asking people to stand at the edge of the light, where the dark presses.</td></tr>
+    <tr><td>4</td><td><strong>Rally</strong></td><td>Collapse tight onto you — 45% slot radius, short engage. Everyone inside the fire.</td></tr>
+  </tbody>
+</table>
+<p class="src">Built and playable. The same four are drivable headlessly via console for scripted measurement runs.</p>
+
+<h3>3.2 &nbsp;The leash — the rule everything else is built on</h3>
+<p>Every unit has a maximum distance from the hero, roughly 1.25 screens. Cross it and the unit
+latches "broken": it ignores your stance and behaves as Follow until it is well back inside — a
+hysteresis band, so a unit sitting exactly on the boundary cannot flicker between states. A warning
+fires at 80% of the radius, because breaking must never feel random, and the HUD reports how many
+units are currently outside.</p>
+<p>Under the flame premise this stops being an invisible rule and becomes the most legible thing on
+screen: inside is lit ground and full-value units, outside is the dark ground state and units dimmed
+one palette step. The player reads their own reach at a glance.</p>
+<p>The consequence is the design's load-bearing restriction: <strong>you cannot park the army on a
+chokepoint and walk away.</strong> Anchoring a line always means standing in the fight beside it. Hero
+relevance is enforced by rule rather than by tuning numbers until it happens to be true.</p>
+
+<h3>3.3 &nbsp;What a fight feels like</h3>
+<p>Damage arrives in visible blows, not as a slide. Each unit runs its own swing clock — windup, strike
+a third of the way in, recover — edge-triggered so a blow lands exactly once regardless of frame rate.
+The clocks are desynchronised at spawn; without that, a whole wave strikes on the same frame and the
+army reads as one pulsing organism rather than a crowd.</p>
+<p>A struck unit flashes and is shoved 35uu — sized against measured spacing (86uu at rest, ~45uu
+compressed, 95uu melee reach) so it is visible without blowing the line apart. The flash is
+deliberately exempt from light attenuation: dimmed correctly it would quantise below the palette's
+lowest threshold and vanish at the edge of the fire, which is exactly where fighting starts.</p>
+
+<h3>3.4 &nbsp;The run, and how it is calibrated</h3>
+<p>Three seconds to deploy, then wave one, a breather in which your retinue refills toward its cap,
+wave two, another breather, wave three. Clear the last wave and you win the floor. Die and the run
+ends.</p>
+
+<table class="compact">
+  <thead><tr><th>Zero-input baseline (hero never moves, no stance ever issued)</th><th class="num-col">Wave 1 survivors</th><th class="num-col">Wave 2 survivors</th><th>Result</th></tr></thead>
+  <tbody>
+    <tr><td>Original continuous-damage model, 3 runs</td><td class="num-col">97–103 / 120</td><td class="num-col">4–12</td><td>Lost wave 3, by 4–13 enemies</td></tr>
+    <tr><td><strong>Shipped defaults</strong>, 4 runs</td><td class="num-col">109–111 / 120</td><td class="num-col">16–24</td><td>Lost wave 3, by 131–145 enemies</td></tr>
+  </tbody>
+</table>
+
+<figure>
+  <img src="img/fig-2-combat.png" alt="Mid-run: retinue down to 78 of 120, hero at 248 of 500, six squad panels partially depleted">
+  <figcaption><b>Figure 2 — the same run, mid-fight.</b> Retinue 78 of 120, hero at 248/500, brood 49
+  still alive. The six squad readouts have gone ragged — Shield down to 5/20, Vets 11/20 — which is
+  what attrition looks like before the line breaks. Losing units is expected and mournable; it is why
+  they have no fixed names.</figcaption>
+</figure>
+
+<p><strong>The run is lost by default, in every run, with tight variance.</strong> That is the intended
+calibration and it is the reason this build is usable as an A/B harness: everything a player adds —
+repositioning, Rally before a flank lands, Hold on a choke, the hero's own damage aimed somewhere
+useful — is the margin between losing and winning. The remaining honest gap is that the current margin
+is 131–145 enemies rather than the original 4–13, so a player has more to claw back than the
+calibration intends. Closing it is another tuning pass, and it should be judged by feel as much as by
+the number, because the model underneath it changed (§2.2b).</p>
+
+<h3>3.5 &nbsp;Growth and upkeep — the progression axis</h3>
+<p>Retinue growth <em>is</em> the reward for a run; there is no loot system and its absence is a design
+position rather than an omission. Units are gained by rescuing and rallying what the dark has taken.</p>
+<p>Size is <strong>governed, not capped</strong>. Every active unit draws upkeep from a per-run supply pool
+replenished only at supply sites. When demand outruns supply, units do not die — they <strong>degrade</strong>:
+dimmer, weaker, visibly unfed, and newly recruited units arrive degraded until supply recovers. Fire
+must be fed or it dims. One mechanic does three jobs: it gives the exponential power curve a real
+governor, it bounds the entity budget by keeping degraded units in the cheap simulation tier, and it
+gives pressure on the player somewhere to land that is not simply "more enemies." <em>Specced; not yet
+built.</em></p>
+
+<h3>3.6 &nbsp;The Vanguard — the one class this semester ships</h3>
+<p><em>The many.</em> You are the shield at the front and the banner they follow. Every cell door you break
+open, every conscript you free, your line grows longer, and by late run you are marching a liberated
+army through the dark. High count, disciplined; growth verb <em>rescue and rally</em>; a retinue of
+liberated soldiers and militia that reads as a marching legion.</p>
+<p>Three further classes are designed and parked — a fortifier who awakens stone guardians, a
+skirmisher with a small elite pack, a healer trailing a constellation of kindled souls — chosen to
+occupy distinct corners of count-versus-quality so the massive-entity fantasy shows four faces. None
+of them are in scope for the remaining weeks (§5).</p>
+
+<figure class="pixel">
+  <img src="img/fig-3-units.png" alt="The shipping sprite atlas: two rows of brood, two rows of retinue soldiers, eight rotations each">
+  <figcaption><b>Figure 3 — the actual shipping atlas</b> (<code>T_Swarm_2bit</code>, 8 rotations × 4 rows,
+  imported and running). Brood read as a dark hooded mass with no discernible kit; retinue read pale,
+  armoured, and <em>equipped</em> — shield, spear, banner. That separation is doing the work described in
+  §3.7: at two hundred units you are not reading faces, you are reading light shape against dark
+  shape.</figcaption>
+</figure>
+
+<h3>3.7 &nbsp;How it looks, and why that is a systems decision</h3>
+<p>A locked four-value palette, flat and unlit, with a post-process dither. This is not only a
+production saving: at several hundred units, silhouette and value are the only channels that survive,
+so the palette is what keeps friend, foe and boss separable at a glance without health bars. The
+render budget goes to entity count rather than to shading. Exceptions to the four values exist, are
+deliberate, and are documented individually — the flame's white core and the hit-flash above are the
+two current ones, each with a stated reason.</p>
+
+<figure class="pixel">
+  <img src="img/fig-4-roster.png" alt="Six soldier archetypes shown large, and again small at crowd scale">
+  <figcaption><b>Figure 4 — the readability test the art has to pass.</b> Six authored soldier anchors,
+  100% on the locked four-value ramp, shown at hero scale (top) and again at the size they actually
+  occupy in a crowd (bottom). The top row is where you design; <em>the bottom row is where you judge.</em>
+  Volunteer, line infantry, veteran, rally-caller, flame-tender and shield-heavy have to stay
+  distinguishable at that second size or the silhouette language has failed — which is why every art
+  spec is reviewed at gameplay zoom with hundreds of units moving, never as a single sprite on a
+  canvas.</figcaption>
+</figure>
+
+<h2><span class="num">4</span>The Development Crew</h2>
+
+<p>The game is built by one person directing a crew of specialised agents, two MCP tool servers that
+give those agents real hands on the engine and the art pipeline, and a task system that keeps them
+from overwriting each other. Every canon file has <strong>exactly one</strong> agent with write access; everyone
+else treats it as read-only.</p>
+
+<h3>4.1 &nbsp;Roles — what each agent produces, and in what format</h3>
+
+<table class="compact">
+  <thead><tr><th style="width:22%">Agent</th><th style="width:41%">What it produces</th><th>Output format &amp; where it lands</th></tr></thead>
+  <tbody>
+    <tr>
+      <td><strong>narrative-director</strong></td>
+      <td>The premise, decision-event text, and any fiction that survives §2.1's test. Ends visual work with an art brief rather than describing an image.</td>
+      <td>Markdown prose in <code>docs/narrative/</code>; numbered briefs in <code>docs/briefs/</code></td>
+    </tr>
+    <tr>
+      <td><strong>pixel-art-director</strong></td>
+      <td>Silhouette and value rules, palette tables, sprite-sheet layouts, readability reviews (Figure 4). Specs only — never image files.</td>
+      <td>Markdown specs in <code>docs/art/</code>, each ending in an acceptance checklist</td>
+    </tr>
+    <tr>
+      <td><strong>gameplay-director</strong></td>
+      <td>Stat blocks per tier, the scaling curve, encounter budgets, retinue tuning — the numbers behind "a handful of militia" becoming an army.</td>
+      <td>Schema-validated JSON in <code>docs/data/</code> that must import cleanly as an Unreal DataTable, plus a companion spec in <code>docs/design/</code></td>
+    </tr>
+    <tr>
+      <td><strong>performance-director</strong></td>
+      <td>Frame-time measurement and the plan behind it: what we hold today versus what the design needs, never what we hope to hold.</td>
+      <td>Measured tables in <code>docs/perf/BUDGETS.md</code>, each row citing the harness that produced it</td>
+    </tr>
+    <tr>
+      <td><strong>ui-director</strong></td>
+      <td>HUD and menu layout, screen flow, widget specs — plus a viewable version before anything is built in engine.</td>
+      <td>Specs in <code>docs/ui/</code> plus a self-contained HTML mockup published to a URL</td>
+    </tr>
+    <tr>
+      <td><strong>host</strong> (backlog)</td>
+      <td>Sweeps the repo for undone and newly stale work; turns a goal into one scored, lock-checked task. Proposes and ranks; never approves, never spawns.</td>
+      <td>One task file per unit of work in <code>docs/backlog/</code>, each carrying a paste-ready spawn prompt</td>
+    </tr>
+    <tr>
+      <td><strong>Lead session</strong></td>
+      <td>Briefs each director with only the section it owns, integrates the results, carries every dispatch and hand-back. The only role that spawns anything.</td>
+      <td>Commits, and the merged state of the canon</td>
+    </tr>
+    <tr>
+      <td><strong>GDD Review Board</strong></td>
+      <td>Six isolated-context reviewers — systems, narrative, player psychology, feasibility, adversarial QA, business — critique the canon independently, cross-examine, then a moderator synthesises.</td>
+      <td>A ranked, ratifiable edit plan; the party-vote rule in the first draft exists because this board argued for it</td>
+    </tr>
+    <tr>
+      <td><strong>unreal-mcp</strong> <em>(tool server)</em></td>
+      <td>Exposes the live Unreal 5.8 editor — actors, Blueprints, Niagara, materials — over HTTP, so an agent builds in-editor instead of describing a build.</td>
+      <td>Direct edits to the project; this is how the stances, the leash and the swarm exist at all</td>
+    </tr>
+    <tr>
+      <td><strong>pixellab</strong> <em>(tool server)</em></td>
+      <td>Generates sprites, portraits and animations to the art director's written spec.</td>
+      <td>PNGs to a holding folder, promoted only after a human keep/reject call</td>
+    </tr>
+  </tbody>
+</table>
+
+<h3>4.2 &nbsp;The two coordination rules that actually bite — and how they were mechanised</h3>
+
+<p>Both rules come from failures on this project, not from theory. Agents run as parallel sessions
+with their own context windows, which creates exactly two ways to lose work:</p>
+
+<ul>
+  <li><strong>Two agents editing one file overwrite each other; there is no merge.</strong> Every task
+  declares the file globs it <em>owns</em>, and validation fails if two active tasks claim overlapping
+  paths. The concrete case: five design specs each wanted to write the same systems document, so the
+  shared write was split into its own task depending on all five. Specs fan wide; the file they
+  converge on is a single join.</li>
+  <li><strong>There is one Unreal editor.</strong> Tasks declare the resources they need — editor, MCP port,
+  art-generation credits — and those are global mutexes, so two agents can never be approved into
+  driving the editor at once. Credits are locked because they cost real money.</li>
+</ul>
+
+<p>Dispatch is gated on both checks and refuses any task not approved with its dependencies closed.
+The refusal is the point: <strong>if it refuses, no tokens have been spent.</strong> In practice this caps the
+crew at three or four live threads — a cap set by the single editor, not by ambition.</p>
+
+<div class="note">
+  <span class="lbl">Two failure modes worth recording, because both cost time</span>
+  <p>An agent treats its spawn prompt as binding — telling a teammate mid-run that a restriction is
+  lifted does not reliably override an instruction in its original prompt, and arguably shouldn't. The
+  fix is to spawn a fresh one with the right scope, not to negotiate. Separately, an agent may
+  honestly report that it has no access to a tool and then successfully call that same tool minutes
+  later, because tools can be surfaced lazily rather than declared up front. Do not design around an
+  agent's first answer about its own capabilities.</p>
+</div>
+
+<h2><span class="num">5</span>Scope and Constraints</h2>
+
+<h3>5.1 &nbsp;Named constraints</h3>
+
+<table class="compact">
+  <thead><tr><th style="width:26%">Constraint</th><th>What it means in practice</th></tr></thead>
+  <tbody>
+    <tr>
+      <td><strong>One developer,<br>one editor</strong></td>
+      <td>All in-engine work serialises through a single live Unreal process. Directors write specs in parallel; exactly one thing builds at a time. Previously held in my head, now enforced by the resource mutex in §4.2.</td>
+    </tr>
+    <tr>
+      <td><strong>The render bridge is over budget</strong> <em>(the binding one)</em></td>
+      <td>14.62&nbsp;ms of draw at 1,000 units against a 16.6&nbsp;ms frame. The single-player decision <em>redefined</em> this gate — it is now one client at the late-run entity budget, with no replication term, roughly a quarter of the old bar — and the gate <strong>still does not pass</strong>. That is the clearest statement of where the project actually stands. The Niagara sprite path was repaired on 2026-07-26 but has no measured baseline yet, so the honest statement is that the replacement is untested rather than proven.</td>
+    </tr>
+    <tr>
+      <td><strong>Art generation is separately metered</strong></td>
+      <td>Sprite generation draws on a credit balance independent of language-model usage, so art volume is a hard-costed budget line. Every generation is retained before any keep/reject decision, so a rejected asset can still be compared against.</td>
+    </tr>
+  </tbody>
+</table>
+
+<h3>5.2 &nbsp;What one person can actually finish in the remaining weeks</h3>
+
+<p>The first draft projected a semester of one class, one biome, three floors, one boss, two decision
+events and two-to-four-player replication. <strong>Four of those six are now out</strong>, and one of them — the
+replication — is out permanently rather than postponed, because the game is single-player (§2.3). That
+correction is the scope lesson of this revision, and the sequencing below is ordered by what
+invalidates what.</p>
+
+<table class="compact">
+  <thead><tr><th style="width:5%">#</th><th style="width:47%">In scope</th><th>Why it is first</th></tr></thead>
+  <tbody>
+    <tr><td>1</td><td>Measure the repaired sprite path; record a GO / ADJUST / KILL verdict on the entity gate</td><td>Nothing downstream is trustworthy until this is a number rather than a hope. A KILL invalidates the concept rather than trimming it; the fallbacks — fewer entities, or a faked crowd — are already named.</td></tr>
+    <tr><td>2</td><td>Play the prototype and answer its five open feel questions</td><td>Is Hold a real tool at this leash radius? Does a leash break read, or does the army feel disobedient? Is Charge distinct from Follow? Does the hero feel like a commander at reduced damage? Does 120 units read at this camera height? None are settled by any number above.</td></tr>
+    <tr><td>3</td><td>Render the leash as light</td><td>The cheapest thing the reset unlocked, and the direct fix for question 2 — a floor decal and a value shift on data the renderer already has.</td></tr>
+    <tr><td>4</td><td>Sprites in place of debug boxes (Figure 3 is the atlas; it is imported and running)</td><td>Gated on 1. The current renderer is both over budget and visually placeholder; one change addresses both.</td></tr>
+    <tr><td>5</td><td>One hand-assembled arena floor with a boss, replacing ring-spawn</td><td>Turns a wave harness into a run. Hand-built deliberately — procedural generation is out.</td></tr>
+  </tbody>
+</table>
+
+<div class="callout">
+  <span class="lbl">Explicitly out, and why</span>
+  <p><strong>The other three classes</strong> — one class is enough to prove the command layer, and four is four
+  times the art. <strong>Procedural generation</strong> — the fallback to hand-assembled floors is already written
+  into the slice definition, and constraint 5.1 says I get to build one thing at a time.
+  <strong>Persistent world state</strong> — discarded with the lore in §2.1 and correctly not rewritten yet.
+  <strong>Loot</strong> — deferred by design, because retinue growth is the reward loop. <strong>Networked co-op</strong> —
+  not a semester cut but a <em>design decision</em> (§2.3): the game is single-player, and four-client
+  replication of aggregate swarm state is not a thing this project has to prove at all. The design keeps
+  the door open at zero cost rather than walking through it — a stance is one intent enum per army rather
+  than per unit, and the leash clusters units on their hero, which is exactly what would make replication
+  relevancy tractable if co-op ever returns.</p>
+</div>
+
+<h2><span class="num">6</span>Appendix — Build Status</h2>
+
+<p>What separates this document from the first draft is that most of the following can be checked by
+running the project rather than by trusting the prose — Figures 1 and 2 are that build.</p>
+
+<table class="compact">
+  <thead><tr><th style="width:30%">System</th><th style="width:16%">State</th><th>Evidence</th></tr></thead>
+  <tbody>
+    <tr><td>Four stances + hero movement</td><td><strong>Built</strong></td><td>Playable on keys 1–4; also drivable from console for scripted runs</td></tr>
+    <tr><td>Leash — radius, hysteresis, warn bit, break-to-Follow</td><td><strong>Built</strong></td><td>Per-unit latch; live broken count on the HUD</td></tr>
+    <tr><td>Mass Entity swarm — grid, steering, separation</td><td><strong>Built</strong></td><td>Measured: 120 of 120 units at distinct positions, 86uu median spacing at rest, no collision system involved</td></tr>
+    <tr><td>Discrete-swing combat, hit flash, knockback</td><td><strong>Built</strong></td><td>Tuned across five measured model variants (§2.2b)</td></tr>
+    <tr><td>Three-wave run with win and lose states</td><td><strong>Built</strong></td><td>Zero-input baseline loses repeatably (§3.4)</td></tr>
+    <tr><td>Four-value palette + post-process dither</td><td><strong>Built</strong></td><td>Locked ramp; documented exceptions</td></tr>
+    <tr><td>Niagara sprite rendering</td><td><strong>Repaired, unmeasured</strong></td><td>Root cause was an emitter simulating on GPU where it needed CPU; no performance baseline yet</td></tr>
+    <tr><td>Leash rendered as light</td><td>Specced</td><td>§2.1 — next build item</td></tr>
+    <tr><td>Upkeep economy</td><td>Specced</td><td>§3.5</td></tr>
+    <tr><td>Decision events</td><td>Specced</td><td>Templates discarded with the lore; the resolution rule survives</td></tr>
+    <tr><td>Procedural generation, loot, persistence, networking</td><td>Out of scope</td><td>§5.2</td></tr>
+  </tbody>
+</table>
+
+<footer class="doc">
+  <strong>Kindled</strong> — Final Game Design Document · Aaron Low · 27 July 2026 · Multi-Agent AI for Game
+  Development, Assignment&nbsp;#02. Working title; supersedes the Assignment&nbsp;#1 draft submitted as
+  <em>Emberkeep</em>. All measurements cited were produced by the project's own in-engine benchmark
+  harness on the current development branch, single client.
+</footer>
+
+</body>
+</html>

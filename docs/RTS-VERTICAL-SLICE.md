@@ -7,10 +7,16 @@
 
 ## 1. What the slice proves
 
-> A 30–45 minute co-op run of the real game feels good from floor 1 to boss kill.
+> A 30–45 minute run of the real game feels good from floor 1 to boss kill.
 
-Scope line from GDD §10: **1 class, 1 biome, 3 floors, 1 boss, 2 decision events, co-op.**
+Scope line from GDD §10: **1 class, 1 biome, 3 floors, 1 boss, 2 decision events,
+single-player.**
 Everything below serves that sentence; anything that doesn't is cut or faked.
+
+> **Revised 2026-07-27 — single-player.** Co-op is deferred to a later multiplier on a
+> proven loop (GDD §12 Q20). Gate 4 (Spike 2, networking) is **cut**, and the replication
+> line in §5's bill of materials with it. The leash's replication side-benefits in §2 are
+> kept: they cost nothing now and keep the door open.
 
 ---
 
@@ -58,8 +64,9 @@ detach the army from the player.
    Output: the entity ceiling that sizes every encounter below.
 3. **Art test (GDD Open Question #5)** — flipbooks vs. flat-shaded 3D. Gates all
    sprite production.
-4. **Spike 2 — networking**: 2 players, heroes fully replicated, swarms as
-   aggregate state. Co-op cannot be bolted on later.
+4. ~~**Spike 2 — networking**~~ — **CUT 2026-07-27** with the single-player decision.
+   The old rationale ("co-op cannot be bolted on later") is why the *affordances* stay:
+   one intent enum per army, units leashed to their hero. The spike itself is not run.
 
 Spike 3 (procgen) is partially deferrable — see §5 Tech.
 
@@ -95,7 +102,7 @@ Spike 3 (procgen) is partially deferrable — see §5 Tech.
 - [ ] Mass sim + **aggregation** (squad-as-entity, renders as N sprites) — built in
       from the start; this is the Steam Deck perceived-scale strategy
 - [ ] Leash system per §2 (radius, hysteresis, warning, break-to-Follow)
-- [ ] Replication 2–4 players: heroes/elites/boss full, swarms aggregate
+- ~~Replication 2–4 players~~ — **CUT 2026-07-27**, single-player
 - [ ] Stance UI + minimal HUD (retinue count, HP, stance indicator) —
       **controller-first** (Deck target)
 - [ ] Run structure: start → 3 floors → boss → victory/death screen
@@ -126,10 +133,12 @@ hybridization events · the real loot/evolution system · pacing director AI.
 ## 7. Schedule shape & risks
 
 Fun prototype → Spike 1 measurement (overlap fine, same map) → art test →
-Spike 2 → slice production, with §4 design numbers running ahead of content.
+slice production, with §4 design numbers running ahead of content. *(Spike 2 removed from
+the chain 2026-07-27.)*
 
 **Top risks:**
 1. Sprite production starting before the art-test decision (long pole, gated late).
-2. Netcode discovered late (hence Spike 2 before production).
+2. ~~Netcode discovered late~~ — **retired 2026-07-27**; there is no netcode. This was
+   ranked the project's second-biggest risk, and the single-player decision deletes it.
 3. Leash tuning: if `LeashRadius` is too small, Hold feels useless; too big and
    the hero-relevance rule evaporates. It's a first-class fun-prototype dial.

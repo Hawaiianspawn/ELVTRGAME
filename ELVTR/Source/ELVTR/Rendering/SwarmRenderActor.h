@@ -6,6 +6,8 @@
 
 class UNiagaraComponent;
 class UMaterialParameterCollection;
+class USceneCaptureComponent2D;
+class UTextureRenderTarget2D;
 
 /**
  * Bridges Mass -> Niagara. Place one in the map with NS_Swarm assigned.
@@ -68,6 +70,32 @@ public:
 	float BroodDebugPointSize = 14.f;
 
 	/**
+	 * task-048: Swarm.DebugShotAfter's capture path. NOT FScreenshotRequest — that call still
+	 * exists in engine code but is USELESS for an agent-driven PIE session, because it is
+	 * fulfilled inside UGameViewportClient::Draw(), which only runs when Slate actually paints
+	 * the game viewport. An unfocused/occluded PIE window can sit for a full auto-fight with
+	 * the game thread ticking normally (spawns, combat, everything) while Draw() is simply never
+	 * called, so the request sits queued forever and no file ever lands — confirmed empirically
+	 * (task-047 ran a full fight to completion with zero screenshot output).
+	 *
+	 * A SceneCaptureComponent2D sidesteps this entirely: CaptureScene() issues its own render
+	 * command straight to a render target, independent of Slate window paint/focus/occlusion.
+	 * It also fixes two problems FScreenshotRequest never solved: resolution is the render
+	 * target's, not the on-screen window's (so it's sharp regardless of how small/tiled the PIE
+	 * viewport is), and — unlike the MCP CaptureViewport tool, which renders the persistent
+	 * EDITOR world and so shows editor-only gizmo icons and zero swarm (verified 2026-07-28,
+	 * task-048) — this component lives IN the PIE actor, so it captures the actual game world
+	 * the swarm renders into.
+	 *
+	 * Every shot copies the live PlayerCameraManager's cached view (location/rotation/FOV or
+	 * OrthoWidth) onto this component rather than re-deriving ASpikeHeroPawn's Ortho/Pitch/Yaw/
+	 * Dist/HudBias math a second time — one source of truth for "what the player is actually
+	 * seeing", same idiom as GetLiveViewWidthUU above.
+	 */
+	UPROPERTY(VisibleAnywhere, Category = "Swarm|Debug")
+	TObjectPtr<USceneCaptureComponent2D> DebugCaptureComponent;
+
+	/**
 	 * Self-driving Spike 1 benchmark. When set (or the game runs with
 	 * -SwarmBench), steps through BenchmarkBroodCounts: clear, respawn
 	 * retinue + brood, wait BenchmarkSettleSeconds for convergence, then
@@ -99,6 +127,16 @@ private:
 	void TickDebugRender();
 	void TickSpacingLog(float DeltaSeconds);
 	void TickFlame(float DeltaSeconds);
+
+	/** Fires once from TickSpacingLog when Swarm.DebugShotAfter's timer elapses. See
+	 * DebugCaptureComponent's doc comment for why this replaced FScreenshotRequest. */
+	void TakeDebugShot();
+
+	// Lazily (re)created in TakeDebugShot at Swarm.DebugShotWidth/Height's current size — not a
+	// UPROPERTY on the actor's own declaration list above because it is pure runtime scratch,
+	// same reasoning as SmoothedFlamePos below.
+	UPROPERTY(Transient)
+	TObjectPtr<UTextureRenderTarget2D> DebugCaptureRT;
 
 	TArray<float> SubImageScratch;
 	float FlameSeed = 0.f;

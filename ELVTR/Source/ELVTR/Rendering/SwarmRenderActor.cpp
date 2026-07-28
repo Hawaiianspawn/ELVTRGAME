@@ -1,12 +1,15 @@
 #include "SwarmRenderActor.h"
 
 #include "Camera/PlayerCameraManager.h"
+#include "Components/SceneCaptureComponent2D.h"
 #include "DrawDebugHelpers.h"
 #include "Engine/Engine.h"
 #include "Engine/GameViewportClient.h"
+#include "Engine/TextureRenderTarget2D.h"
 #include "GameFramework/PlayerController.h"
 #include "HAL/IConsoleManager.h"
 #include "Kismet/KismetMaterialLibrary.h"
+#include "Kismet/KismetRenderingLibrary.h"
 #include "Mass/SwarmCombat.h"
 #include "Mass/SwarmDebug.h"
 #include "Materials/MaterialParameterCollection.h"
@@ -14,6 +17,7 @@
 #include "Mass/SwarmStats.h"
 #include "Mass/SwarmSubsystem.h"
 #include "Misc/CommandLine.h"
+#include "Misc/DateTime.h"
 #include "Misc/FileHelper.h"
 #include "Misc/Parse.h"
 #include "Misc/Paths.h"
@@ -95,7 +99,42 @@ namespace
 		TEXT("Swarm.DebugShotAfter"),
 		0.f,
 		TEXT("Take one screenshot this many seconds after BeginPlay. 0 disables.\n")
-		TEXT("Lets a headless/scripted run capture what the renderer is actually drawing."),
+		TEXT("Lets a headless/scripted run capture what the renderer is actually drawing.\n")
+		TEXT("\n")
+		TEXT("task-048: this is a SceneCaptureComponent2D capture (DebugCaptureComponent), NOT\n")
+		TEXT("the engine's FScreenshotRequest — that path is fulfilled inside the game viewport's\n")
+		TEXT("Slate Draw() call, which simply never runs on an unfocused/occluded PIE window, so\n")
+		TEXT("the request can sit queued through an entire run and nothing lands on disk (verified\n")
+		TEXT("empirically, task-047). The scene capture issues its own render command and needs no\n")
+		TEXT("window paint, so it works the same whether or not the PIE window has OS focus.\n")
+		TEXT("\n")
+		TEXT("If Swarm.DebugRender is 1 (debug-box mode) the shot will show the flame pool but NO\n")
+		TEXT("units: DrawDebugSolidBox primitives are not visible to a scene capture (verified,\n")
+		TEXT("see docs/AGENT-TEAMS.md capture recipe). Set Swarm.DebugRender 0 (Niagara) before\n")
+		TEXT("shooting if the swarm itself needs to be in frame. The log line this prints says\n")
+		TEXT("which mode was active so a blank-looking shot is diagnosable after the fact.\n")
+		TEXT("\n")
+		TEXT("NOT YET VALID FOR JUDGING ART: this capture came back RAW, not the styled game view —\n")
+		TEXT("the flame pool showed as blown-out flat facets, not the dithered 4-value demichrome\n")
+		TEXT("ramp, despite SCS_FinalColorLDR. Use it for geometry/formation/counts/framing only,\n")
+		TEXT("never for palette or dither judgement, until that gap is closed. See docs/AGENT-\n")
+		TEXT("TEAMS.md §8 for the two untested candidate causes (capture exposure convergence,\n")
+		TEXT("double-gamma on export) before assuming it's architectural."),
+		ECVF_Default);
+
+	TAutoConsoleVariable<int32> CVarSwarmDebugShotWidth(
+		TEXT("Swarm.DebugShotWidth"),
+		1920,
+		TEXT("Render target width, px, for Swarm.DebugShotAfter's capture. Independent of the\n")
+		TEXT("actual PIE window/viewport size — task-048's fix for units landing at 8-16px in a\n")
+		TEXT("desktop screenshot squeezed into part of the editor. Clamped to [64, 7680]."),
+		ECVF_Default);
+
+	TAutoConsoleVariable<int32> CVarSwarmDebugShotHeight(
+		TEXT("Swarm.DebugShotHeight"),
+		1080,
+		TEXT("Render target height, px, for Swarm.DebugShotAfter's capture. See DebugShotWidth.\n")
+		TEXT("Clamped to [64, 4320]."),
 		ECVF_Default);
 
 	TAutoConsoleVariable<float> CVarSwarmSpacingLog(
@@ -564,6 +603,17 @@ ASwarmRenderActor::ASwarmRenderActor()
 	RootComponent = NiagaraComponent;
 	NiagaraComponent->SetAutoActivate(true);
 
+	// task-048: on-demand capture for Swarm.DebugShotAfter. bCaptureEveryFrame/OnMovement are
+	// both false — this only renders when TakeDebugShot() calls CaptureScene() explicitly, so it
+	// costs nothing the rest of the time. SCS_FinalColorLDR (not SceneColorHDR) is what pulls the
+	// demichrome post-process into the capture, same as the live game view — a shot that skipped
+	// post-processing would prove nothing about what the game actually looks like.
+	DebugCaptureComponent = CreateDefaultSubobject<USceneCaptureComponent2D>(TEXT("DebugCaptureComponent"));
+	DebugCaptureComponent->SetupAttachment(RootComponent);
+	DebugCaptureComponent->bCaptureEveryFrame = false;
+	DebugCaptureComponent->bCaptureOnMovement = false;
+	DebugCaptureComponent->CaptureSource = SCS_FinalColorLDR;
+
 	// Resolved here rather than left for a designer to assign: the light is not
 	// optional set dressing, it is the only light in the game, and an actor
 	// placed without it would render a black level with no obvious cause.
@@ -699,10 +749,7 @@ void ASwarmRenderActor::TickSpacingLog(float DeltaSeconds)
 	if (!bDebugShotTaken && ShotAfter > 0.f && PlayTime >= ShotAfter)
 	{
 		bDebugShotTaken = true;
-		// Direct request rather than the HighResShot console command, which
-		// silently does nothing in a packaged/-game session.
-		FScreenshotRequest::RequestScreenshot(TEXT("SwarmDebugShot"), /*bInShowUI=*/true, /*bAddFilenameSuffix=*/true);
-		UE_LOG(LogTemp, Display, TEXT("SwarmDebug: screenshot requested at t=%.1fs"), PlayTime);
+		TakeDebugShot();
 	}
 
 	const float Interval = CVarSwarmSpacingLog.GetValueOnGameThread();
@@ -722,6 +769,66 @@ void ASwarmRenderActor::TickSpacingLog(float DeltaSeconds)
 			CVarSwarmDebugRender.GetValueOnGameThread(),
 			NiagaraComponent ? (int32)NiagaraComponent->IsVisible() : -1);
 	}
+}
+
+void ASwarmRenderActor::TakeDebugShot()
+{
+	UWorld* World = GetWorld();
+	if (!World || !DebugCaptureComponent)
+	{
+		return;
+	}
+
+	// Mirror the live game camera exactly rather than re-deriving ASpikeHeroPawn's Ortho/Pitch/
+	// Yaw/Dist/HudBias math a second time here — see the doc comment on DebugCaptureComponent.
+	const APlayerController* PC = World->GetFirstPlayerController();
+	const APlayerCameraManager* CamMgr = PC ? PC->PlayerCameraManager : nullptr;
+	if (!CamMgr)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("SwarmDebug: no active player camera to shoot from — skipping capture."));
+		return;
+	}
+	const FMinimalViewInfo& View = CamMgr->GetCameraCacheView();
+
+	const int32 Width = FMath::Clamp(CVarSwarmDebugShotWidth.GetValueOnGameThread(), 64, 7680);
+	const int32 Height = FMath::Clamp(CVarSwarmDebugShotHeight.GetValueOnGameThread(), 64, 4320);
+	if (!DebugCaptureRT || DebugCaptureRT->SizeX != Width || DebugCaptureRT->SizeY != Height)
+	{
+		// Routed through the same Blueprint-facing helper the "Create Render Target 2D" node
+		// uses, rather than hand-rolling NewObject+InitAutoFormat, so this doesn't have to track
+		// engine-version init-order quirks separately.
+		DebugCaptureRT = UKismetRenderingLibrary::CreateRenderTarget2D(
+			this, Width, Height, RTF_RGBA8_SRGB, FLinearColor::Black, /*bAutoGenerateMipMaps=*/false);
+	}
+	DebugCaptureComponent->TextureTarget = DebugCaptureRT;
+
+	DebugCaptureComponent->SetWorldLocationAndRotation(View.Location, View.Rotation);
+	if (View.ProjectionMode == ECameraProjectionMode::Orthographic)
+	{
+		DebugCaptureComponent->ProjectionType = ECameraProjectionMode::Orthographic;
+		DebugCaptureComponent->OrthoWidth = FMath::Max(View.OrthoWidth, 1.f);
+	}
+	else
+	{
+		DebugCaptureComponent->ProjectionType = ECameraProjectionMode::Perspective;
+		DebugCaptureComponent->FOVAngle = View.FOV;
+	}
+
+	DebugCaptureComponent->CaptureScene();
+
+	const FString Dir = FPaths::ProjectSavedDir() / TEXT("Screenshots");
+	const FString FileName = FString::Printf(TEXT("SwarmDebugShot_%s.png"), *FDateTime::Now().ToString(TEXT("%Y%m%d_%H%M%S")));
+	UKismetRenderingLibrary::ExportRenderTarget(this, DebugCaptureRT, Dir, FileName);
+
+	// DrawDebugSolidBox primitives are not visible to a scene capture (verified, task-048 /
+	// docs/AGENT-TEAMS.md) — flag it plainly so a blank-looking shot is diagnosable without
+	// re-deriving this from scratch.
+	const bool bDebugBoxMode = CVarSwarmDebugRender.GetValueOnGameThread() != 0;
+	UE_LOG(LogTemp, Display,
+		TEXT("SwarmDebug: capture written to %s (%dx%d, %s)%s"),
+		*(Dir / FileName), Width, Height,
+		bDebugBoxMode ? TEXT("debug-box mode") : TEXT("Niagara sprite mode"),
+		bDebugBoxMode ? TEXT(" — WARNING: debug boxes do not render into scene captures; set Swarm.DebugRender 0 to see the swarm in this shot") : TEXT(""));
 }
 
 void ASwarmRenderActor::TickFlame(float DeltaSeconds)

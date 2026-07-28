@@ -8,7 +8,7 @@ the total so a disagreement costs one sentence, not a re-read.
 
 | proposed | approved | in-progress | needs-review | done | rejected | parked |
 |---|---|---|---|---|---|---|
-| 41 | 0 | 1 | 1 | 0 | 0 | 0 |
+| 41 | 0 | 1 | 2 | 9 | 0 | 1 |
 
 ## Audit queue — top 7 awaiting your verdict
 
@@ -16,13 +16,21 @@ the total so a disagreement costs one sentence, not a re-read.
 |---|---|---|---|---|---|---|
 | 1 | **18.0** | 3×2×6÷2 | [Spec the entity tier stat blocks (fodder → soldier → elite → titan → boss)](task-002-systems-entity-tier-stat-blocks.md) `#002` | gameplay-director | 2 | docs/data/entity-tiers.json imports cleanly as a UE DataTable, plus the spec's Simulation notes section showing TTK per tier at the slice's density. |
 | 2 | **18.0** | 3×3×4÷2 | [Settle GDD Q5 — flipbooks vs. flat-shaded 3D — with an actual art test](task-015-gdd-q5-flipbooks-vs-3d-art-test.md) `#015` | pixel-art-director | 2 | A side-by-side comparison at gameplay zoom and horde density, with a recommendation and the cost/risk of each path stated. |
-| 3 | **13.5** | 3×3×3÷2 | [Run Spike 1 and fill SPIKE1-RESULTS.md with measured numbers and a verdict](task-007-fill-spike1-results-and-verdict.md) `#007` | performance-director | 2 | SPIKE1-RESULTS.md with every table cell filled from a real -SwarmBench run, machine specs recorded, and exactly one of GO / ADJUST / KILL ticked. |
-| 4 | **12.0** | 3×2×4÷2 | [Spec one scaling curve across the slice's three floors](task-003-systems-scaling-curve-three-floors.md) `#003` | gameplay-director | 2 | A plotted curve across floors 1-3 × party sizes 1-4 in the spec's Simulation notes, showing where TTK spikes or collapses. |
-| 5 | **12.0** | 3×2×2÷1 | [Play Gate 1 and answer its five open feel questions](task-008-gate1-playtest-feel-questions.md) `#008` | claude | 1 | The five questions in GATE1-FUN-PROTOTYPE.md §"open" answered from an actual play session, each with the tuning value tried and what it felt like. |
-| 6 | **10.0** | 2×2×5÷2 | [Spec the per-floor encounter budget table](task-004-systems-encounter-budget-table.md) `#004` | gameplay-director | 2 | docs/data/encounter-budget.json with a spend-per-room-type table, plus a simulated floor walkthrough showing density staying inside the measured entity budget. |
+| 3 | **12.0** | 3×2×4÷2 | [Spec one scaling curve across the slice's three floors](task-003-systems-scaling-curve-three-floors.md) `#003` | gameplay-director | 2 | A plotted curve across floors 1-3 in the spec's Simulation notes, showing where TTK spikes or collapses. |
+| 4 | **12.0** | 3×2×2÷1 | [Play Gate 1 and answer its five open feel questions](task-008-gate1-playtest-feel-questions.md) `#008` | claude | 1 | The five questions in GATE1-FUN-PROTOTYPE.md §"open" answered from an actual play session, each with the tuning value tried and what it felt like. |
+| 5 | **10.0** | 2×2×5÷2 | [Spec the per-floor encounter budget table](task-004-systems-encounter-budget-table.md) `#004` | gameplay-director | 2 | docs/data/encounter-budget.json with a spend-per-room-type table, plus a simulated floor walkthrough showing density staying inside the measured entity budget. |
+| 6 | **9.0** | 3×3×2÷2 | [Run Spike 1 and fill SPIKE1-RESULTS.md with measured numbers and a verdict](task-007-fill-spike1-results-and-verdict.md) `#007` | performance-director | 2 | SPIKE1-RESULTS.md with every table cell filled from a real -SwarmBench run, machine specs recorded, and exactly one of GO / ADJUST / KILL ticked. |
 | 7 | **6.0** | 3×2×2÷2 | [Tune the Vanguard retinue — growth, attrition, per-floor cap](task-005-vanguard-retinue-tuning.md) `#005` | gameplay-director | 2 | Simulation showing whether a Vanguard's retinue grows, holds, or starves per floor at the spec'd replenishment and death rates. |
 
 Approve with `py Scripts/backlog.py approve <ids>` (or `/backlog approve <ids>`).
+
+## Epics — projects threaded across several teammates
+
+| epic | progress | tasks | joins | next move |
+|---|---|---|---|---|
+| `feeding-distraction` | 0/2 closed | [`053`](task-053-feeding-distraction-mechanic-spec.md), [`054`](task-054-build-feeding-distraction-in-mass.md) | `054` | approve `54` |
+
+A fan is approved in one batch and dispatched one teammate per task. `⨝` joins own the shared writes and wait on their siblings — see `py Scripts/backlog.py epic <slug>`.
 
 ## proposed (41)
 
@@ -30,10 +38,10 @@ Approve with `py Scripts/backlog.py approve <ids>` (or `/backlog approve <ids>`)
 |---|---|---|---|---|---|
 | `002` | 18.0 | [Spec the entity tier stat blocks (fodder → soldier → elite → titan → boss)](task-002-systems-entity-tier-stat-blocks.md) | gameplay-director | `docs/design/entity-tiers.md`, `docs/data/entity-tiers.json`, `docs/data/entity-tiers.schema.md` | `docs/GDD-TODO.md:86` |
 | `015` | 18.0 | [Settle GDD Q5 — flipbooks vs. flat-shaded 3D — with an actual art test](task-015-gdd-q5-flipbooks-vs-3d-art-test.md) | pixel-art-director | `docs/art/flipbook-vs-3d-test.md` | `GDD.md:429` |
-| `007` | 13.5 | [Run Spike 1 and fill SPIKE1-RESULTS.md with measured numbers and a verdict](task-007-fill-spike1-results-and-verdict.md) | performance-director | `docs/SPIKE1-RESULTS.md` | `docs/SPIKE1-RESULTS.md:31` |
 | `003` | 12.0 | [Spec one scaling curve across the slice's three floors](task-003-systems-scaling-curve-three-floors.md) | gameplay-director | `docs/design/scaling-curve.md`, `docs/data/scaling-curve.json`, `docs/data/scaling-curve.schema.md` | `docs/GDD-TODO.md:87` |
 | `008` | 12.0 | [Play Gate 1 and answer its five open feel questions](task-008-gate1-playtest-feel-questions.md) | claude | `docs/GATE1-FUN-PROTOTYPE.md` | `docs/GATE1-FUN-PROTOTYPE.md:377` |
 | `004` | 10.0 | [Spec the per-floor encounter budget table](task-004-systems-encounter-budget-table.md) | gameplay-director | `docs/design/encounter-budget.md`, `docs/data/encounter-budget.json`, `docs/data/encounter-budget.schema.md` | `docs/GDD-TODO.md:88` |
+| `007` | 9.0 | [Run Spike 1 and fill SPIKE1-RESULTS.md with measured numbers and a verdict](task-007-fill-spike1-results-and-verdict.md) | performance-director | `docs/SPIKE1-RESULTS.md` | `docs/SPIKE1-RESULTS.md:31` |
 | `005` | 6.0 | [Tune the Vanguard retinue — growth, attrition, per-floor cap](task-005-vanguard-retinue-tuning.md) | gameplay-director | `docs/design/retinue-tuning-vanguard.md`, `docs/data/retinue-vanguard.json`, `docs/data/retinue-vanguard.schema.md` | `docs/GDD-TODO.md:89` |
 | `006` | 6.0 | [Design loot v0 — unit orbs, healing, 4-6 stacking items](task-006-loot-v0-slice-scoped.md) | gameplay-director | `docs/design/loot-v0.md`, `docs/data/loot-v0.json`, `docs/data/loot-v0.schema.md` | `docs/GDD-TODO.md:90` |
 | `024` | 6.0 | [Extend the run structure from waves to three floors plus a boss](task-024-run-structure-three-floors-and-boss.md) | gameplay-director | `docs/design/run-structure.md` | `docs/RTS-VERTICAL-SLICE.md:101` |
@@ -45,15 +53,14 @@ Approve with `py Scripts/backlog.py approve <ids>` (or `/backlog approve <ids>`)
 | `010` | 2.0 | [Run the retinue militia acceptance checklist against the packed sheet](task-010-retinue-militia-acceptance-pass.md) | pixel-art-director | `docs/art/retinue-militia.md` | `docs/art/retinue-militia.md:426` |
 | `011` | 2.0 | [Run the soldier roster v1 acceptance checklist across all six variants](task-011-soldier-roster-acceptance-pass.md) | pixel-art-director | `docs/art/soldier-roster-v1.md` | `docs/art/soldier-roster-v1.md:1093` |
 | `012` | 2.0 | [Write the Pathfinder rework art spec (brief-005)](task-012-pathfinder-rework-art-spec.md) | pixel-art-director | `docs/art/merle.md`, `docs/briefs/brief-005-pathfinder-rework.md` | `docs/briefs/brief-005-pathfinder-rework.md` |
-| `021` | 2.0 | [Build Mass squad-as-entity aggregation (renders as N sprites)](task-021-mass-squad-aggregation.md) | performance-director | `docs/perf/squad-aggregation.md` | `docs/RTS-VERTICAL-SLICE.md:95` |
 | `022` | 2.0 | [Design Spike 2 — replication for 2-4 players with aggregate swarms](task-022-replication-two-to-four-players.md) | performance-director | `docs/perf/replication-spike2.md` | `docs/RTS-VERTICAL-SLICE.md:98` |
 | `027` | 2.0 | [Produce the slice sprite set — Vanguard, retinue, 5 enemies, walk/attack/death each](task-027-slice-sprite-animation-production.md) | claude | `docs/data/art/requests/**`, `RawArt/Renders/**`, `ELVTR/Content/Sprites/**` | `docs/RTS-VERTICAL-SLICE.md:110` |
 | `030` | 2.0 | [Answer CAMERA-SCALE §4's six open questions](task-030-camera-scale-six-open-questions.md) | claude | `docs/design/CAMERA-SCALE-HANDOFF.md` | `docs/design/CAMERA-SCALE-HANDOFF.md:89` |
 | `031` | 2.0 | [Check the shipped leash system against RTS-VERTICAL-SLICE §2's spec](task-031-leash-system-conformance-check.md) | claude | `docs/RTS-VERTICAL-SLICE.md` | `docs/RTS-VERTICAL-SLICE.md:97` |
 | `038` | 2.0 | [Fold the settled design specs into SYSTEMS.md as decision records](task-038-fold-settled-specs-into-systems-md.md) | gameplay-director | `SYSTEMS.md` | `docs/GDD-TODO.md:85` |
-| `040` | 2.0 | [Replace the literal white hit-flash in the Unit Cam panel with Demichrome Pale](task-040-unitcam-literal-white-violates-ramp.md) | claude | `ELVTR/Source/**/UnitCamProjector.cpp` | `docs/art/palette-exceptions.md:45` |
 | `042` | 2.0 | [Trial rust-gold and eulbink as LUT rows against the locked demichrome](task-042-trial-candidate-palettes-as-lut-rows.md) | pixel-art-director | `docs/art/palette-trials.md` | `user` |
 | `041` | 1.5 | [Build Phase B — the index + palette-ID LUT pipeline](task-041-phase-b-index-lut-pipeline.md) | claude | `ELVTR/Content/PostProcess/**`, `ELVTR/Source/ELVTR/Rendering/**`, `ELVTR/Source/ELVTR/UI/EmberkeepPalette.h`, `docs/RENDERING-LIGHTING.md`, `Scripts/art/pixelpipe.py` | `docs/RENDERING-LIGHTING.md:21` |
+| `046` | 1.33 | [Build the squad command layer in Mass — sticky SquadId, per-squad stance, published centroids](task-046-squad-command-layer-in-mass.md) | claude | `ELVTR/Source/ELVTR/Mass/**`, `ELVTR/Source/ELVTR/UI/UnitCamDirector.cpp`, `ELVTR/Source/ELVTR/UI/UnitCamDirector.h`, `ELVTR/Source/ELVTR/UI/UnitCamProjector.cpp`, `ELVTR/Source/ELVTR/UI/UnitCamProjector.h` | `docs/design/squad-group-system.md` |
 | `013` | 1.0 | [Write the Lampbearer rework art spec (brief-006)](task-013-lampbearer-rework-art-spec.md) | pixel-art-director | `docs/art/noll.md`, `docs/briefs/brief-006-lampbearer-rework.md` | `docs/briefs/brief-006-lampbearer-rework.md` |
 | `016` | 1.0 | [Write GDD §12 Q6's resolution back into the table](task-016-gdd-q6-palette-strategy.md) | claude | `GDD.md` | `GDD.md:430` |
 | `019` | 1.0 | [Retire the stale "emitter draws zero particles" claims across the perf and camera docs](task-019-retire-stale-sprite-gpu-sim-claims.md) | performance-director | `docs/perf/niagara-sprite-refactor.md`, `docs/design/CAMERA-SCALE.md` | `docs/perf/niagara-sprite-refactor.md:94` |
@@ -61,6 +68,7 @@ Approve with `py Scripts/backlog.py approve <ids>` (or `/backlog approve <ids>`)
 | `029` | 1.0 | [Spec the minimal audio set — hits, deaths, stance confirmations](task-029-minimal-audio-readability-set.md) | gameplay-director | `docs/design/audio-minimal.md` | `docs/RTS-VERTICAL-SLICE.md:113` |
 | `032` | 1.0 | [Final naming pass on the four classes (GDD Q11 / CLASSES C1)](task-032-final-class-naming-pass.md) | narrative-director | `docs/narrative/class-naming-pass.md` | `GDD.md:437` |
 | `035` | 1.0 | [Design the S8 "Silent Bell" world-flag effects](task-035-silent-bell-world-flag-effects.md) | gameplay-director | `docs/design/world-flag-s8.md` | `docs/GDD-TODO.md:114` |
+| `054` | 1.0 | [Build the feeding-distraction mechanic in Mass — corpses, kill attribution, and the three-slot feed](task-054-build-feeding-distraction-in-mass.md) | claude | `ELVTR/Source/ELVTR/Mass/SwarmCombat.h`, `ELVTR/Source/ELVTR/Mass/SwarmCombatProcessors.cpp`, `ELVTR/Source/ELVTR/Mass/SwarmCombatProcessors.h`, `ELVTR/Source/ELVTR/Mass/SwarmFragments.h`, `ELVTR/Saved/SwarmExecOnPlay.txt` | `user` |
 | `025` | 0.67 | [Spec the procgen room-graph generator over the prefab library](task-025-procgen-room-graph-generator.md) | gameplay-director | `docs/design/procgen-room-graph.md`, `docs/data/room-types.json`, `docs/data/room-types.schema.md` | `docs/RTS-VERTICAL-SLICE.md:102` |
 | `026` | 0.67 | [Produce the Highgates tileset](task-026-highgates-tileset.md) | pixel-art-director | `docs/art/highgates-tileset.md` | `docs/RTS-VERTICAL-SLICE.md:109` |
 | `036` | 0.67 | [Design the runtime pacing director (L4D-style intensity manager)](task-036-pacing-director-intensity-manager.md) | gameplay-director | `docs/design/pacing-director.md` | `docs/GDD-TODO.md:115` |
@@ -76,12 +84,33 @@ Approve with `py Scripts/backlog.py approve <ids>` (or `/backlog approve <ids>`)
 |---|---|---|---|---|---|
 | `039` | 9.0 | [Retire the dead Gatecamp hexes from six art specs, CLASSES.md, and the art-director definition](task-039-retire-dead-gatecamp-hexes.md) | pixel-art-director | `docs/art/hallam.md`, `docs/art/edda.md`, `docs/art/merle.md`, `docs/art/noll.md`, `docs/art/warden-captain-bree.md`, `docs/art/brees-stairwell.md`, `docs/art/aesthetic-direction.md`, `.claude/agents/pixel-art-director.md` | `docs/art/aesthetic-direction.md:556` |
 
-## needs-review (1)
+## needs-review (2)
+
+| id | score | task | agent | owns | source |
+|---|---|---|---|---|---|
+| `052` | 2.0 | [Widen the spatial grid so archers can actually reach 750uu, and measure what it costs](task-052-widen-the-spatial-grid-for-archer-range.md) | claude | `ELVTR/Source/ELVTR/Mass/SwarmSubsystem.h`, `ELVTR/Source/ELVTR/Mass/SwarmProcessors.cpp`, `ELVTR/Source/ELVTR/Mass/SwarmProcessors.h`, `ELVTR/Source/ELVTR/Mass/SwarmCombatProcessors.cpp`, `docs/perf/grid-cell-size.md` | `user` |
+| `053` | 2.0 | [Spec the feeding-distraction mechanic — killers go null on the corpse, three per body, armor sets the chomp](task-053-feeding-distraction-mechanic-spec.md) | gameplay-director | `docs/design/feeding-distraction.md`, `docs/data/feeding.json`, `docs/data/feeding.schema.md` | `user` |
+
+## done (9)
 
 | id | score | task | agent | owns | source |
 |---|---|---|---|---|---|
 | `043` | 6.0 | [Put a live palette-preset dial on the Breadboard](task-043-live-palette-dial-on-the-breadboard.md) | claude | `ELVTR/Content/PostProcess/M_PP_Demichrome**`, `ELVTR/Content/PostProcess/MPC_Flame**`, `ELVTR/Source/ELVTR/Rendering/SwarmRenderActor.cpp`, `.claude/skills/cvars/SKILL.md`, `docs/data/art/palette.json` | `user` |
+| `045` | 4.0 | [Frame the majority of the retinue in both centre-column panels and clamp the Unit Cam yaw](task-045-unit-cam-group-framing-and-yaw-clamp.md) | claude | `ELVTR/Source/ELVTR/UI/UnitCamDirector.cpp`, `ELVTR/Source/ELVTR/UI/UnitCamDirector.h`, `ELVTR/Source/ELVTR/UI/UnitCamProjector.cpp`, `ELVTR/Source/ELVTR/UI/UnitCamProjector.h`, `ELVTR/Source/ELVTR/UI/ViewCamCapture.cpp`, `ELVTR/Source/ELVTR/UI/ViewCamCapture.h` | `user` |
+| `050` | 3.0 | [Draw the real sprite set in the Unit Cam — six soldier variants, the hero, and an archer proxy](task-050-wire-real-sprites-into-the-unit-cam.md) | claude | `ELVTR/Source/ELVTR/UI/UnitCamProjector.cpp`, `ELVTR/Source/ELVTR/UI/UnitCamProjector.h`, `ELVTR/Content/Sprites/**`, `RawArt/Renders/archer-proxy/**`, `RawArt/Sheets/T_Soldier_Archer.png`, `docs/data/art/provenance.json` | `user` |
+| `021` | 2.0 | [Measure the per-entity cost and design the group-as-cost-boundary (squad aggregation)](task-021-mass-squad-aggregation.md) | performance-director | `docs/perf/squad-aggregation.md` | `docs/RTS-VERTICAL-SLICE.md:95` |
+| `044` | 2.0 | [Spec the squad group system and the Unit Cam group-framing target](task-044-squad-group-system-and-framing-target.md) | gameplay-director | `docs/design/squad-group-system.md`, `docs/data/squads.json`, `docs/data/squads.schema.md`, `ELVTR/Content/SwarmControls/**` | `user` |
+| `047` | 2.0 | [Make the brood arrive as a front, in ranks, instead of surrounding the hero as a mob](task-047-brood-arrives-as-a-front-in-ranks.md) | claude | `ELVTR/Source/ELVTR/Mass/SwarmCommands.cpp`, `ELVTR/Source/ELVTR/Mass/SwarmFormation.cpp`, `ELVTR/Source/ELVTR/Mass/SwarmFormation.h`, `ELVTR/Source/ELVTR/Mass/SwarmProcessors.cpp`, `ELVTR/Source/ELVTR/Mass/SwarmProcessors.h`, `ELVTR/Source/ELVTR/Mass/SwarmFragments.h`, `ELVTR/Saved/SwarmExecOnPlay.txt` | `user` |
+| `048` | 2.0 | [Fix the visual-evidence capture path so agent-driven PIE can prove what it built](task-048-fix-the-visual-evidence-capture-path.md) | claude | `ELVTR/Source/ELVTR/Rendering/SwarmRenderActor.cpp`, `docs/AGENT-TEAMS.md` | `user` |
+| `049` | 2.0 | [Rework the squad system as typed Total War-style units, and settle the Unit Cam default view](task-049-typed-units-total-war-model.md) | gameplay-director | `docs/design/squad-group-system.md`, `docs/data/squads.json`, `docs/data/squads.schema.md`, `docs/data/unit-types.json`, `docs/data/unit-types.schema.md` | `user` |
+| `051` | 1.0 | [Build the art asset matrix and a coverage audit that finds missing, unwired and off-ramp art](task-051-art-coverage-matrix-and-audit.md) | claude | `docs/data/art/asset-matrix.json`, `docs/data/art/asset-matrix.schema.md`, `.claude/skills/art-coverage/**`, `Scripts/art/coverage.py` | `user` |
+
+## parked (1)
+
+| id | score | task | agent | owns | source |
+|---|---|---|---|---|---|
+| `040` | 2.0 | [Replace the literal white hit-flash in the Unit Cam panel with Demichrome Pale](task-040-unitcam-literal-white-violates-ramp.md) | claude | `ELVTR/Source/**/UnitCamProjector.cpp` | `docs/art/palette-exceptions.md:45` |
 
 ---
 
-*Regenerated 2026-07-26 · 43 task(s) · decisions in [LOG.md](LOG.md).*
+*Regenerated 2026-07-27 · 54 task(s) · decisions in [LOG.md](LOG.md).*

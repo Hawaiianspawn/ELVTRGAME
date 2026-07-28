@@ -8,3 +8,44 @@ Rejected and parked tasks keep their files — this records why.
 - 2026-07-26 · `task-043` · proposed → **approved** · Put a live palette-preset dial on the Breadboard
 - 2026-07-26 · `task-043` · approved → **in-progress** · Put a live palette-preset dial on the Breadboard
 - 2026-07-26 · `task-043` · in-progress → **needs-review** · Put a live palette-preset dial on the Breadboard
+- 2026-07-27 · `task-043` · needs-review → **done** · Put a live palette-preset dial on the Breadboard
+- 2026-07-27 · `task-044` · proposed → **approved** · Spec the squad group system and the Unit Cam group-framing target
+- 2026-07-27 · `task-044` · approved → **in-progress** · Spec the squad group system and the Unit Cam group-framing target — dispatched to teammate `squad-group-system`
+- 2026-07-27 · `task-044` · in-progress → **needs-review** · Spec the squad group system and the Unit Cam group-framing target
+- 2026-07-27 · `task-044` · needs-review → **done** · Spec the squad group system and the Unit Cam group-framing target
+- 2026-07-27 · `task-040` · proposed → **parked** · Replace the literal white hit-flash in the Unit Cam panel with Demichrome Pale — Absorbed into task-045: same file (UnitCamProjector.cpp), would have been a lock collision. The Demichrome Pale fix and its no-touch caveats are carried into task-045's Done when and spawn prompt.
+- 2026-07-27 · `task-045` · proposed → **approved** · Frame the majority of the retinue in both centre-column panels and clamp the Unit Cam yaw
+- 2026-07-27 · `task-045` · approved → **in-progress** · Frame the majority of the retinue in both centre-column panels and clamp the Unit Cam yaw — dispatched to teammate `unit-cam-framing`
+- 2026-07-27 · `task-045` · in-progress → **needs-review** · Frame the majority of the retinue in both centre-column panels and clamp the Unit Cam yaw
+- 2026-07-27 · `task-045` · needs-review → **done** · Frame the majority of the retinue in both centre-column panels and clamp the Unit Cam yaw
+- 2026-07-27 · `task-047` · proposed → **approved** · Make the brood arrive as a front, in ranks, instead of surrounding the hero as a mob
+- 2026-07-27 · `task-047` · approved → **in-progress** · Make the brood arrive as a front, in ranks, instead of surrounding the hero as a mob — dispatched to teammate `brood-front-ranks`
+- 2026-07-27 · `task-047` · in-progress → **needs-review** · Make the brood arrive as a front, in ranks, instead of surrounding the hero as a mob
+- 2026-07-27 · `task-049` · proposed → **approved** · Rework the squad system as typed Total War-style units, and settle the Unit Cam default view
+- 2026-07-27 · `task-049` · approved → **in-progress** · Rework the squad system as typed Total War-style units, and settle the Unit Cam default view — dispatched to teammate `typed-units-model`
+- 2026-07-27 · `task-047` · needs-review → **done** · Make the brood arrive as a front, in ranks, instead of surrounding the hero as a mob
+- 2026-07-27 · `task-048` · proposed → **approved** · Fix the visual-evidence capture path so agent-driven PIE can prove what it built
+- 2026-07-27 · `task-048` · approved → **in-progress** · Fix the visual-evidence capture path so agent-driven PIE can prove what it built — dispatched to teammate `evidence-capture`
+- 2026-07-27 · `task-049` · in-progress → **needs-review** · Rework the squad system as typed Total War-style units, and settle the Unit Cam default view
+- 2026-07-27 · `task-048` · in-progress → **needs-review** · Fix the visual-evidence capture path so agent-driven PIE can prove what it built
+- 2026-07-27 · `task-048` · needs-review → **done** · Fix the visual-evidence capture path so agent-driven PIE can prove what it built
+- 2026-07-27 · `task-049` · needs-review → **done** · Rework the squad system as typed Total War-style units, and settle the Unit Cam default view
+- 2026-07-27 · `task-021` · proposed → **approved** · Measure the per-entity cost and design the group-as-cost-boundary (squad aggregation)
+- 2026-07-27 · `task-021` · approved → **in-progress** · Measure the per-entity cost and design the group-as-cost-boundary (squad aggregation) — dispatched to teammate `cost-boundary`
+- 2026-07-27 · `task-021` · in-progress → **parked** · Measure the per-entity cost and design the group-as-cost-boundary (squad aggregation) — Owner: measurement is not representative while the Unit Cam draws placeholder assets. Wire real assets first (task-050), then re-dispatch this against a representative build.
+- 2026-07-27 · `task-050` · proposed → **approved** · Draw the real sprite set in the Unit Cam — six soldier variants, the hero, and an archer proxy
+- 2026-07-27 · `task-050` · approved → **in-progress** · Draw the real sprite set in the Unit Cam — six soldier variants, the hero, and an archer proxy — dispatched to teammate `unit-cam-assets`
+- 2026-07-27 · `task-051` · proposed → **approved** · Build the art asset matrix and a coverage audit that finds missing, unwired and off-ramp art
+- 2026-07-27 · `task-051` · approved → **in-progress** · Build the art asset matrix and a coverage audit that finds missing, unwired and off-ramp art — dispatched to teammate `art-coverage`
+- 2026-07-27 · `task-021` · parked → **done** · Measure the per-entity cost and design the group-as-cost-boundary (squad aggregation)
+- 2026-07-27 · `task-051` · in-progress → **needs-review** · Build the art asset matrix and a coverage audit that finds missing, unwired and off-ramp art
+- 2026-07-27 · `task-050` · in-progress → **needs-review** · Draw the real sprite set in the Unit Cam — six soldier variants, the hero, and an archer proxy
+- 2026-07-27 · `task-051` · needs-review → **done** · Build the art asset matrix and a coverage audit that finds missing, unwired and off-ramp art
+- 2026-07-27 · `task-050` · needs-review → **needs-review** · Draw the real sprite set in the Unit Cam — six soldier variants, the hero, and an archer proxy
+- 2026-07-27 · `task-053` · proposed → **approved** · Spec the feeding-distraction mechanic — killers go null on the corpse, three per body, armor sets the chomp
+- 2026-07-27 · `task-053` · approved → **in-progress** · Spec the feeding-distraction mechanic — killers go null on the corpse, three per body, armor sets the chomp — dispatched to teammate `feeding-distraction-spec`
+- 2026-07-27 · `task-053` · in-progress → **needs-review** · Spec the feeding-distraction mechanic — killers go null on the corpse, three per body, armor sets the chomp
+- 2026-07-27 · `task-050` · needs-review → **done** · Draw the real sprite set in the Unit Cam — six soldier variants, the hero, and an archer proxy
+- 2026-07-27 · `task-052` · proposed → **approved** · Widen the spatial grid so archers can actually reach 750uu, and measure what it costs
+- 2026-07-27 · `task-052` · approved → **in-progress** · Widen the spatial grid so archers can actually reach 750uu, and measure what it costs — dispatched to teammate `grid-reach`
+- 2026-07-27 · `task-052` · in-progress → **needs-review** · Widen the spatial grid so archers can actually reach 750uu, and measure what it costs

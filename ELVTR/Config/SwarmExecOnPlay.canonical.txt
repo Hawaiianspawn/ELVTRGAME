@@ -1,0 +1,428 @@
+# ============================================================================
+# CANONICAL COPY — this is the VERSION-CONTROLLED copy of the tuning surface.
+#
+# The engine reads ELVTR/Saved/SwarmExecOnPlay.txt, which is GITIGNORED
+# (.gitignore:5 excludes all of ELVTR/Saved/). That working copy has no history
+# and no backup: if it is corrupted or deleted, nothing can restore it — and it
+# holds every tuning decision, while OVERRIDING the C++ defaults at play time.
+# So it is effectively the game's real configuration, living outside git.
+#
+# This file exists so that tuning is diffable and recoverable.
+#
+# WHY THIS WAS ADDED (2026-07-27): four separate agents cited "git diff on
+# SwarmExecOnPlay.txt is empty" as proof they had cleanly restored the owner's
+# tuning after a test. That check CANNOT FAIL on an untracked, ignored file — it
+# reported success regardless of what had actually been done. Nobody was wrong on
+# purpose; the evidence was simply vacuous. With this copy tracked, a real diff
+# against it is meaningful proof.
+#
+# KEEPING THEM IN SYNC: after changing the working copy in Saved/, copy it here
+# and commit. Before trusting a "restored it" claim, diff the two. Owner-tuned
+# values are marked "(owner-tuned)" in the body below and must survive any test.
+# ============================================================================
+
+# SwarmExecOnPlay.txt — console commands run once at BeginPlay on L_Spike1.
+# Every non-comment line is executed as a console command by ASwarmRenderActor.
+# Lines starting with # or ; are ignored. Blank lines are ignored.
+# Edit a value and re-enter PIE — no rebuild needed.
+# Values are the source defaults EXCEPT where marked (owner-tuned) — those are kept
+# deliberately and differ from the C++ default.
+# Full reference: docs/RENDERING-LIGHTING.md §4b. Surface owned by the /cvars skill.
+#
+# Breadboard tabs. Each section title below ends in an "@tab <Name>" marker saying which
+# tab it belongs to; the line below fixes the ORDER those tabs appear in on the bar, so the
+# file can stay grouped for reading (dither next to lighting) while the bar stays grouped
+# for browsing. A tab named here with no sections is skipped; a section tagged with a tab
+# missing from here still appears, on the end.
+# @tabs Player, Unit, Horde, Camera, Debug
+
+# ============================================================
+# LIGHTING — the bearer's flame spotlight (§4b)   @tab Player
+# ============================================================
+Swarm.Flame 1              ; master on/off; 0 freezes the light (vignette test)
+Swarm.FlameRadius 900      ; outer edge of the pool, uu. Decoupled from the leash
+Swarm.FlameCoreRadius 330  ; pure-white focusing core, uu
+Swarm.FlameFalloff 2       ; 1 = linear; higher = heavier dark, harder pool edge
+Swarm.FlameIntensity 0.55  ; base brightness before flicker; coupled to the core read
+Swarm.FlameFlicker 0.06    ; flicker amplitude 0-1; anti-vignette mechanism #2
+Swarm.FlameStiffness 55    ; spring responsiveness toward the bearer; <=0 snaps
+Swarm.FlameDamping 0.6     ; damping ratio; 1.0 = no overshoot, <1.0 overshoots on a 180
+
+# ============================================================
+# DITHER — thresholds route through MPC_Flame into M_PP_Demichrome   @tab Debug
+# ============================================================
+Swarm.DitherWorldAnchor 1  ; 1 = world-anchored (sticks to floor), 0 = screen; anti-vignette #1
+Swarm.WorldDitherScale 8   ; (owner-tuned, src 12) world uu per dither texel; lower = finer
+Swarm.DitherBandWidth 0.5  ; (owner-tuned, src 0.326) Bayer transition width; live-tune 0.4-0.9
+Swarm.DitherThreshold1 0.4  ; luminance where value 0 -> 1. Keep 1 < 2 < 3 ordered
+Swarm.DitherThreshold2 0.5  ; luminance where value 1 -> 2 (the mid split)
+Swarm.DitherThreshold3 0.75 ; luminance where value 2 -> 3; higher keeps the pool at Bone
+
+# ============================================================
+# PALETTE — which 4-value ramp the demichrome pass outputs   @tab Debug
+# ============================================================
+# The four colours ride MPC_Flame as Palette0..3 into M_PP_Demichrome's Custom node
+# inputs C0..C3. Sprites recolour too: the pass quantises scene LUMINANCE into four
+# buckets, so a sheet baked at Bone lands in bucket 2 and comes out as entry 2 — no
+# sprite needs regenerating to try a ramp. UI does NOT follow (UMG draws after post).
+# Candidates + luma gaps: docs/data/art/palette.json "trial_palettes". Adding one is a
+# row there and a row in GSwarmPalettePresets (Rendering/SwarmRenderActor.cpp).
+# 0 = demichrome (LOCKED, min luma gap 0.218) | 1 = eulbink-4 (0.235) | 2 = rust-gold-4 (0.168)
+Emberkeep.Palette 0        ; [0..2] which ramp; judge candidates at horde density, not on a swatch
+
+# ============================================================
+# FLAME SHADOWS — ALL soldiers occlude the flame via a 64-bin radial buffer (§4b Phase C, faked)   @tab Unit
+# ============================================================
+Swarm.FlameShadows 1          ; (owner-tuned, src 0) every soldier casts into the radial buffer
+Swarm.FlameShadowStrength 0.4 ; (owner-tuned, src 0.6) how dark the shadow gets, 0-1
+Swarm.FlameShadowSoft 0.5     ; penumbra depth — softens the front/back shadow edge; 0 = hard
+Swarm.FlameShadowRadius 45    ; caster radius uu — angular width each soldier occludes
+
+# ============================================================
+# BODY SIZE — the placeholder-geometry dials, both teams   @tab Unit
+# The brood's own size lives on the Horde tab; this is its counterpart plus the shared
+# height. All three go away the day the debug boxes become sprites.
+# ============================================================
+Swarm.RetinueSize 22           ; [4..60] retinue half-extent uu, overriding the render actor's
+                               ; RetinueDebugPointSize. Formation spacing is ~86uu, so under ~40
+Swarm.RetinueSizeJitter 0      ; [0..0.6] per-soldier size variation. 0 on purpose: a drilled line
+                               ; that is uniform against a tide that is not is a free read on which
+                               ; team a body belongs to. Raise it for a conscripted look
+Swarm.BodyHeight 0.5           ; [0.1..3] body height as a multiple of half-extent, both teams.
+                               ; 0.5 = the shipped flat slab; ~1.5 stands them up into figures
+
+# ============================================================
+# PER-UNIT SHADING   @tab Unit
+# ============================================================
+Swarm.UnitShading 0        ; (owner-tuned, src 1) 0 = flat single box; 1 = front-lit/back-dark.
+                           ; Measured 2026-07-26 (-SwarmBench, clean A/B): the two-box split costs
+                           ; 2.21x draw at 2000 brood (40.66 -> 18.43ms frame, 25 -> 54 fps) and
+                           ; 2.58x at 10000. Interim dial until the Niagara sprite path lands —
+                           ; it also drops the rotated shading boundary that drives the dither
+                           ; artifact. Cost: loses the front/back directional read
+Swarm.UnitBackShade 0.32   ; darkness of the dark-facing half, fraction of the lit side
+Swarm.UnitLightFloor 0.28  ; [0..1] min brightness at the pool edge so the horde stays visible
+                           ; (G5). RETINUE ONLY — brood use the two dials below
+Swarm.BroodLightFloor 0    ; [0..0.3] brood-only floor. 0 = a brood at the outer edge is drawn
+                           ; black, quantises to the same palette value as the ground, and so
+                           ; FADES INTO EXISTENCE as it walks in. Raise toward UnitLightFloor
+                           ; to buy back the old always-visible tide
+Swarm.BroodLightCeil 0.7   ; [0.3..1] brightest a brood is ever drawn — the anti blow-out dial
+                           ; for brood standing in the flame. Under 1 also keeps them a step
+                           ; below retinue at every distance. 1 = the pre-2026-07-26 look
+
+# ============================================================
+# UNIT CAM — projection close-up (docs/RENDERING-LIGHTING.md §4d)   @tab Camera
+# ============================================================
+Emberkeep.UnitCamProj.Focus 0         ; 0 = HERO centre-frame (default), 1 = follow a soldier
+Emberkeep.UnitCamProj.FollowSpeed 6   ; follow smoothing; lower = laggier, 0 = frozen
+Emberkeep.UnitCamProj.SoldierScale 0.75 ; unit sprite size (framing dial)
+Emberkeep.UnitCamProj.SoldierAspect 1  ; width-only stretch on every billboard, after the sheet's
+                                      ; own cell aspect. task-050: owner said the knight/archer read
+                                      ; "a little scaled oddly... more broad?" -- real cause was the
+                                      ; PACKING (cells were 96x96 but the actual content only measured
+                                      ; ~23-46px per side, so half of every cell was blank padding
+                                      ; drawn at full size), fixed at the source with tighter 56x60
+                                      ; cells, not with this dial. 1 (no extra stretch) already reads
+                                      ; broad and crisp against that fix -- left at 1 on purpose, not
+                                      ; because the dial doesn't work. Raise it live here for further
+                                      ; taste on top of the fix; past ~1.2 it visibly distorts the
+                                      ; pixel art sideways instead of just filling the cell more
+Emberkeep.UnitCamProj.FullColorFloor 0.55 ; min brightness for the knight/archer sprite sets ONLY
+                                      ; (Swarm.UnitLightFloor 0.28 still governs brood/hero/world --
+                                      ; untouched). task-050: full-colour art already carries its own
+                                      ; hood shadows and armour recesses, so the SAME model that was
+                                      ; fine on flat 4-value art crushed it toward black. 0.55 chosen
+                                      ; by looking at a typical-combat-distance capture, not guessed --
+                                      ; verified the panel no longer reads as near-black speckle there
+Emberkeep.UnitCamProj.FullColorDimStrength 0.5 ; how much of the shared flame-distance/facing falloff
+                                      ; still applies to the knight/archer sprite sets before the
+                                      ; floor above takes over. 1 = full strength (same as brood);
+                                      ; 0 = no falloff at all -- DO NOT set 0, it deletes the
+                                      ; flame-distance read for these two units, which is the one
+                                      ; thing this change must not do. 0.5 keeps a real, visible
+                                      ; near/far gradient while keeping the far end well short of
+                                      ; crushed -- see docs/data/art/provenance.json
+                                      ; in_panel_lighting_finding for the capture that drove this
+Emberkeep.UnitCamProj.FootAnchor 1    ; [0..1] 1 = bodies STAND ON their projected ground point;
+                                      ; 0 = centred on it (pre-2026-07-26), which draws every unit
+                                      ; half-buried and makes SoldierScale/HeroScale/BroodScale and
+                                      ; the size roll dig downward through the floor as much as up.
+                                      ; 1 lifts every body half its height up the panel, so re-check
+                                      ; Pitch/Height after changing it
+Emberkeep.UnitCamProj.BroodTint 0     ; 1 = wash the reserved red over brood sprites (pre-art threat read)
+Emberkeep.UnitCamProj.NearFade 150    ; near-plane fade-in band, uu; 0 = hard pop
+Emberkeep.UnitCamProj.NearPlane 10    ; near clip distance of the fake camera, uu
+Emberkeep.UnitCamProj.Fov 45.6        ; virtual-camera HORIZONTAL FOV, degrees (owner-tuned)
+Emberkeep.UnitCamProj.Dist 320        ; camera distance behind the focus, uu
+Emberkeep.UnitCamProj.Height 100      ; camera height above the focus, uu (owner-tuned: was 200 —
+                                      ; dropping to eye level is what puts the ranks in rows)
+Emberkeep.UnitCamProj.Pitch -9.2      ; lens tilt, deg; negative = angle UP toward eye level
+                                      ; (owner-tuned: was -20; flatter lens = less foreshortening,
+                                      ; so back ranks stay readable instead of stacking up)
+Emberkeep.UnitCamProj.Yaw 35          ; camera azimuth (used only when AutoLook 0)
+Emberkeep.UnitCamProj.AutoLook 2      ; 0 manual, 1 look outward, 2 outward+toward the fight
+Emberkeep.UnitCamProj.LookLerp 1.5    ; auto-look rotation easing speed. Was 3 here, which was
+                                      ; OVERRIDING the new 1.5 code default from task-045 — the
+                                      ; halved damping never actually took effect in play
+Emberkeep.UnitCamProj.CombatScan 1200 ; radius, uu, AutoLook 2 scans for enemies to aim at
+Emberkeep.UnitCamProj.CastFocusSpeed 12 ; how fast focus punches to a spell cast
+Emberkeep.UnitCamProj.CastZoom 0.7    ; camera distance x while a cast is focused (<1 = punch in)
+Emberkeep.UnitCamProj.Range 1400      ; how far around the focus units are included, uu
+Emberkeep.UnitCamProj.Scale 1         ; billboard world half-size multiplier
+
+# --- hero proxy (the bearer, drawn in the panel; he is a pawn, not a Mass entity) ---
+Emberkeep.UnitCamProj.Hero 1          ; draw the bearer in the Unit Cam; 0 = swarm only
+Emberkeep.UnitCamProj.HeroScale 1.6   ; hero billboard size as a multiple of a soldier's
+Emberkeep.UnitCamProj.HeroCell 6      ; sheet cell for the hero (placeholder): 6 = retinue attack pose
+
+# --- panel framing (the HUD command rectangle) ---
+# Panel size is driven by YOUR force, not by how crowded the field is: a full retinue shrinks
+# the cam (commanding a mass, no one body matters), and attrition grows it back until the cam
+# is the primary view. Brood only nudge it — see the weights below.
+Emberkeep.UnitCamProj.SizeMax 620     ; panel HEIGHT px when your army is gone (individual matters)
+Emberkeep.UnitCamProj.SizeMin 300     ; panel height px at full strength (mass)
+Emberkeep.UnitCamProj.SizeBodies 1500 ; WEIGHTED total to reach SizeMin (not a headcount)
+Emberkeep.UnitCamProj.SizeRetinueWeight 10   ; each soldier's pull on the panel size
+Emberkeep.UnitCamProj.SizeBroodWeight 0.25   ; each enemy's pull; 0 = size purely on your retinue
+Emberkeep.UnitCamProj.SizeCurve 1     ; ramp shape; <1 = dramatic late swell, >1 = holds large longer
+Emberkeep.UnitCamProj.Aspect 1.35     ; panel width as a multiple of height; 1 = square
+Emberkeep.UnitCamProj.ThreatTint 1    ; frame bleeds red as brood outnumber the host
+Emberkeep.UI.Muster.WingRatio 0.5     ; retinue wing width as a fraction of the cam's width
+
+# --- split centre column (OFF: unit cam is primary, full height) ---
+# The minimap that lived in the top half was tried and rejected 2026-07-26 — pulled back far
+# enough to show the brood spawn ring, the lit pool became a dot in a black field. The split
+# machinery survives behind ViewCam because the SPLIT is fine; the minimap content wasn't.
+# Set ViewCam 1 to bring the second panel back for whatever goes there next.
+Emberkeep.UI.ViewCam 0                ; 0 = UNIT CAM ALONE full height (primary), 1 = split in two
+Emberkeep.UI.Rect.Split 0.5           ; if split: fraction of column height to the TOP panel
+Emberkeep.UI.Rect.ViewOnTop 1         ; if split: 1 = second feed on top, 0 = swap the panels
+Emberkeep.UI.ViewCam.Res 640          ; if split: longest edge of the feed's render target, px
+Emberkeep.UI.ViewCam.Rate 1           ; if split: capture every N frames (the cost dial)
+Emberkeep.UI.ViewCam.Mode 1           ; if split: 1 = own top-down zoom, 0 = mirror the player camera
+Emberkeep.UI.ViewCam.MapWidth 4000    ; if split: top-down ortho width uu (9000 read as empty black)
+Emberkeep.UI.ViewCam.MapHeight 5000   ; if split: altitude uu (ortho: affects clipping, not framing)
+
+# ============================================================
+# GAME CAMERA — bias around the HUD so the hero stays in the visible strip   @tab Camera
+# The combat HUD covers the bottom of the screen, so viewport-centre is not view-centre.
+# The rectangle scales with the body count, so the correction tracks it every frame.
+# ============================================================
+Emberkeep.Cam.HudBias 1        ; 1 = hero dead centre of the UNOBSTRUCTED strip; 0 = off; >1 overshoots
+Emberkeep.Cam.HudBiasLerp 6    ; easing speed as the HUD resizes; 0 = snap
+
+# --- the shot: projection, angle, distance, framing offset ---
+# These own the camera every frame (added 2026-07-25). The defaults below reproduce the
+# shot the constructor used to hard-code, so changing nothing changes nothing.
+Emberkeep.Cam.Ortho 1          ; 1 = orthographic (shipped look), 0 = perspective
+Emberkeep.Cam.OrthoWidth 2400  ; [400..8000] ortho view WIDTH uu — the zoom dial while Ortho 1
+Emberkeep.Cam.Fov 60           ; [10..140] horizontal FOV, used only while Ortho 0
+Emberkeep.Cam.Dist 1200        ; [200..6000] camera distance from the hero along the view axis
+Emberkeep.Cam.Pitch -90        ; [-90..-5] -90 = straight down; ~-50 = angled RTS shot
+Emberkeep.Cam.Yaw 0            ; [-180..180] orbit the view around the hero
+Emberkeep.Cam.YawInput 1       ; 1 = WASD follows the yaw so W is always up-screen; 0 = world axes
+Emberkeep.Cam.OffsetX 0        ; [-2000..2000] world offset on the point the camera centres
+Emberkeep.Cam.OffsetY 0        ; [-2000..2000] world offset on the focus
+Emberkeep.Cam.OffsetZ 0        ; [-2000..2000] world offset on the focus (aim above his feet)
+Emberkeep.Cam.Lerp 0           ; smoothing on camera moves; 0 = snap (honest while tuning)
+
+# ============================================================
+# BEARER COMBAT — what the hero himself does in a fight   @tab Player
+# ============================================================
+Swarm.HeroMaxHP 500            ; hero/bearer HP
+Swarm.HeroDPS 55               ; hero damage/sec to brood in reach
+Swarm.HeroMeleeRange 190       ; hero melee reach, uu
+
+# ============================================================
+# RETINUE FORMATION — how your army arranges itself around you   @tab Unit
+# ============================================================
+Swarm.Formation.Shape 1        ; {0=Ring, 1=Block, 2=Wedge, 3=Arc} the camera does not rotate, so
+                               ; a Ring parks half your army off the bottom of frame. The others
+                               ; stand broadside to the viewer and put the whole line where you
+                               ; can count it. Live — changing it re-forms the standing army
+Swarm.Formation.Columns 12     ; [1..64] slots per rank (Block, Arc). THE framing dial: wide and
+                               ; shallow puts the most bodies across screen and makes losses read
+                               ; as the line getting shorter. Wedge ignores it — its width is
+                               ; implied by the count, since rank r holds 2r+1 soldiers
+Swarm.Formation.Spacing 42.4   ; [40..400] lateral gap within a rank, uu. Owner-tuned from 110 —
+                               ; tight ranks are what make the line read as ROWS in the Unit Cam.
+                               ; NOTE this is below the ~70 threshold the old comment warned about
+                               ; ("the 60uu separation force fights the slots and the line seethes").
+                               ; Kept anyway: it looks right on screen. If the line visibly seethes
+                               ; in play, that separation force is the thing to lower, not this.
+Swarm.Formation.RankSpacing 110 ; [40..400] gap between ranks, uu — the depth dial. Worth exceeding
+                               ; Spacing once Cam.Pitch leaves -90, or the back ranks hide
+Swarm.Formation.Forward 150    ; [-2000..2000] push the formation away from camera, uu, so the
+                               ; bearer stands BEHIND his line rather than inside it. Ring ignores
+                               ; it — a ring has no front, so this would just slide you out of it
+Swarm.Formation.Arc 140        ; [10..360] Arc only: degrees the front rank subtends. 360 = ring
+Swarm.Formation.ArcRadius 700  ; [100..4000] Arc only: front-rank radius, uu. Keep well above
+                               ; Columns * RankSpacing or the inner ranks collapse through centre
+Swarm.Formation.Yaw 0          ; [-180..180] extra bearing on top of FaceCamera — angle the line
+                               ; off-square to the viewer without touching the camera
+Swarm.Formation.FaceCamera 1   ; 1 = forward is up-screen, tracking Emberkeep.Cam.Yaw, so the line
+                               ; stays broadside however the camera is set. 0 = world +X
+Swarm.Formation.Compact 1      ; 1 = ranks close over the dead, so the formation SHRINKS and its
+                               ; outline reports your remaining strength. 0 = casualties leave
+                               ; holes and the block stays full size, reporting nothing
+
+# ============================================================
+# RETINUE COMBAT — your soldiers' side of the exchange   @tab Unit
+# ============================================================
+Swarm.RetinueMaxHP 130         ; your soldier HP
+Swarm.RetinueDPS 30            ; damage/sec one soldier deals to an adjacent brood
+Swarm.RetinueTargetsPerHit 8   ; brood hit per retinue blow (its K nearest). The cleave powerup dial.
+                               ; 8 is deliberate, not maxed out: a CONSTANT cleave removes the
+                               ; scaling stabiliser the old model had by accident and makes fights
+                               ; bimodal (K=3 lost with ~220 brood, K=4 won outright)
+
+# ============================================================
+# BROOD COMBAT — the tide's side of the exchange   @tab Horde
+# ============================================================
+Swarm.BroodMaxHP 60            ; enemy unit HP
+Swarm.BroodDPS 35              ; dmg/sec one brood deals to the ONE unit it commits to. Was 14,
+                               ; which was tuned when every unit implicitly cleaved everything in
+                               ; range; a single-target brood at 14 took ZERO wave-1 losses
+Swarm.BroodTargetsPerHit 1     ; retinue hit per brood blow. 1 = numbers are a positioning problem
+
+# ============================================================
+# HORDE SIZE — how big the tide reads   @tab Horde
+# These OVERRIDE the placed SwarmRenderActor's BroodDebugPointSize, which until now was
+# the only way to resize a unit and needed you to select an actor in the level. 0 in the
+# CVar means "leave the actor's value alone"; the explicit numbers below take over.
+# Size and spacing are one decision: grow a brood past Swarm.BroodSeparation (60) and
+# bodies interpenetrate, because separation holds them apart with no idea how big they are.
+# ============================================================
+Swarm.BroodSize 14             ; [4..60] brood half-extent uu in the world view. Against
+                               ; RetinueSize 22 the size gap is how you tell the tide from
+                               ; your own line before either resolves into a sprite
+Swarm.BroodSizeJitter 0.2      ; [0..0.6] PER-UNIT variation: each body draws at 1 +/- this
+                               ; fraction of BroodSize, fixed for its lifetime. The dial that
+                               ; stops the tide reading as one repeated stamp. 0 = the old
+                               ; identical-boxes look. Quantised to 16 steps, so past ~0.5 the
+                               ; banding shows. IGNORED by the Niagara sprite path (needs a
+                               ; per-particle size array + graph edit) — boxes and cam only
+Emberkeep.UnitCamProj.BroodScale 1 ; [0.2..4] the same call for the UNIT CAM panel, as a multiple
+                               ; of a soldier's billboard. The panel is where the difference is
+                               ; actually legible — the world view is boxes from above — so move
+                               ; this with BroodSize or the two views disagree about a brood
+
+# ============================================================
+# HORDE MOVEMENT — how the tide crosses the dark   @tab Horde
+# Constexpr until 2026-07-26: the only tunable thing about the brood was how hard it
+# hit. These are the dials that decide how it READS coming at you.
+# ============================================================
+Swarm.BroodSpeed 320           ; [0..1200] march speed uu/s. Against RetinueSpeed 450 this decides
+                               ; whether the tide can be outrun or has to be fought
+Swarm.BroodAggroRange 600      ; [0..750] how far a brood diverts from the bearer to bite a soldier.
+                               ; THE behaviour dial: high = your line stops the tide and a front
+                               ; forms; low = it flows PAST the line and dives for the flame, and
+                               ; holding ground stops being enough. The 3x3 grid caps it near 750
+                               ; (task-052, GridCellSize 200->250; was 600 at the old cell size)
+Swarm.BroodSeparation 60       ; [0..300] personal space uu — the density dial. Low packs the tide
+                               ; into a solid mass that arrives at once; high spreads it into skirmish
+Swarm.BroodSeparationWeight 1.4 ; [0..4] how hard spacing competes with closing. >~2 mills instead of
+                               ; charging; 0 stacks the horde into a single column
+Swarm.BroodSeparationCap 6     ; [1..16] neighbours one brood pushes against per frame. Also the COST
+                               ; dial for the steering pass — this bounds its inner loop
+Swarm.BroodWalkHz 6            ; [0..20] brood walk-cycle rate, full frames/sec. Split from the
+                               ; retinue's so the two teams read as different creatures
+
+# ============================================================
+# MELEE RESOLUTION — shared by every team, so it lives on its own   @tab Unit
+# ============================================================
+Swarm.MeleeRange 95            ; unit-to-unit melee reach, uu
+Swarm.MaxAttackersPerUnit 4    ; SAFETY CLAMP ONLY on blows counted in one frame. No longer the
+                               ; rate limiter it was: it capped the first N enemies in grid order
+                               ; and that set churned every frame, so it never bounded a rate
+
+# ============================================================
+# HIT REACTION — swing cadence, flash, knockback (docs/GATE1-FUN-PROTOTYPE.md §3b)   @tab Unit
+# Feel dials, not balance dials: only SwingInterval touches throughput, and only by
+# changing how damage is parcelled (one blow = DPS x interval).
+# ============================================================
+Swarm.SwingInterval 0.9        ; seconds between blows; very short = back to a continuous bleed
+Swarm.SwingStrikeAt 0.35       ; fraction of the interval where the blow lands; before = windup
+Swarm.SwingLunge 12            ; uu a unit leans toward its target while swinging (cosmetic)
+Swarm.HitFlashTime 0.1         ; seconds a struck unit flashes white (light-exempt)
+Swarm.KnockbackDistance 35     ; uu a struck unit is shoved; 0 disables. Cf. 86uu rest spacing
+Swarm.KnockbackTime 0.1        ; seconds to spend that shove; shorter = sharper pop
+
+# ============================================================
+# HORDE ARRIVAL — where the tide comes from, in what ranks, and how ragged it lands   @tab Horde
+# There is no distance culling on the renderer, so RadiusMin/Max are the only
+# "how far out do enemies appear" numbers.
+# ============================================================
+Swarm.BroodSpawnRadiusMin 2500       ; [0..8000] inner radius of the spawn ring, uu — ALSO the
+                                     ; radius of the FRONT rank in the formation below
+Swarm.BroodSpawnRadiusMax 4000       ; [0..8000] outer radius, uu — reference depth a typical wave
+                                     ; is sized to fit within (BroodFormation.RankSpacing); not a
+                                     ; hard bound, a bigger wave just recedes further back
+Swarm.BroodSpawnArc 120              ; [0..360] DEGREES of arrival, AND the sweep the brood rank
+                                     ; formation fans its columns across. 360 = surrounded (used to
+                                     ; be the default); ~90 = one flank; ~30 = a column down one
+                                     ; approach. 120 = a broad FRONT — wide enough to read as a
+                                     ; tide, narrow enough to leave flanks and rear clear
+Swarm.BroodSpawnFaceCamera 1         ; 1 = the arc's centre bearing tracks the same heading the
+                                     ; retinue faces (mirrors Formation.FaceCamera/Yaw), so "the
+                                     ; front" survives the camera turning. 0 = ArcCenter below is a
+                                     ; fixed world bearing, for a scripted encounter
+Swarm.BroodSpawnArcCenter 0          ; [-180..180] +X=0, CCW positive. Extra bearing on top of the
+                                     ; tracked yaw while FaceCamera 1 (mirrors Formation.Yaw); the
+                                     ; bearing directly while FaceCamera 0. Ignored while Arc is 360
+Swarm.BroodFormation.Columns 60      ; [1..200] brood per rank — same vocabulary as
+                                     ; Formation.Columns, applied to the arc instead of the
+                                     ; retinue's block. Wide reads as a broad front; narrow and
+                                     ; deep reads as a column
+Swarm.BroodFormation.RankSpacing 140 ; [20..400] radial gap between ranks, uu. Ranks step OUTWARD
+                                     ; from RadiusMin (front rank leads, arrives first) — opposite
+                                     ; sense from the retinue's Arc shape, which steps inward
+                                     ; toward a bearer standing still
+Swarm.BroodSpeedJitter 0.06          ; [0..0.8] per-brood speed variation, was 0.15. Lowered once
+                                     ; the brood got ranks to arrive in: over the ~10s crossing,
+                                     ; even a small per-unit gap compounds into hundreds of uu of
+                                     ; drift, enough at 0.15 to blur ranks together well before
+                                     ; contact. 0.06 keeps lines readable longer while still
+                                     ; staggering the wave off one rigid frame
+
+# ============================================================
+# DEBUG / RENDER / CAPTURE — outside the tuning surface, kept as configured   @tab Debug
+# ============================================================
+Swarm.DebugRender 0        ; 0 = Niagara sprites (the real path), 1 = debug boxes.
+                           ; RETRACTED, 2026-07-27: this line used to be 1, justified by "the
+                           ; NIAGARA path draws NOTHING" (verified 2026-07-25, zero sprites with
+                           ; DebugRender 0). That diagnosis was WRONG. The emitter graph was never
+                           ; at fault — NS_Swarm was set to GPUComputeSim; switching it to CPUSim
+                           ; fixed it, and sprites have drawn correctly since.
+                           ; Two further reasons 0 is now the right value:
+                           ;   - There was a SECOND, bare "Swarm.DebugRender 0" further down this
+                           ;     file. Exec lines apply in file order, so that one silently won and
+                           ;     the live value was already 0 — by accident of ordering, not intent.
+                           ;     That duplicate is removed; this line is now the single source.
+                           ;   - Debug boxes are INVISIBLE to any scene capture, so DebugRender 1
+                           ;     breaks Swarm.DebugShotAfter (see docs/AGENT-TEAMS.md §8) — the
+                           ;     shot succeeds but shows a flame pool with no units.
+Swarm.DebugPlainView 0     ; 1 = disable post-process (drops the demichrome dither)
+Swarm.DebugShotAfter 0     ; screenshot N seconds after BeginPlay; 0 disables
+Swarm.SpacingLogInterval 0 ; seconds between auto spacing reports; 0 disables
+
+# ============================================================
+# ACTIONS — uncomment to auto-run at BeginPlay
+# ============================================================
+# Swarm.SpawnRetinue 100
+# Swarm.SpawnBrood 700
+# Swarm.Stance Follow      ; Follow | Charge | Hold | Rally
+# Swarm.SpacingReport
+# Swarm.Clear
+
+# ============================================================
+# ARMY-SCALE CAMERA   @tab Camera
+# ============================================================
+Emberkeep.Cam.Scale 1
+Emberkeep.Cam.ScaleBodies 1200        ; = RetinueCap(120) * RetinueWeight(10)
+Emberkeep.Cam.ScaleSwapAt 0.5         ; (owner-tuned, src 0.35) swap to perspective sooner
+Emberkeep.Cam.ScaleStiffness 3        ; spring: eases INTO the move, not just out of it
+Emberkeep.Cam.ScaleDamping 1          ; 1 = critically damped, no overshoot
+Emberkeep.Cam.ScaleStages 0
+Emberkeep.Cam.ScaleRatchet 0

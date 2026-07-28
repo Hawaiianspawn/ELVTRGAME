@@ -42,6 +42,17 @@ each other) or the same resource (§5 — only one thing drives the Unreal edito
 `py Scripts/backlog.py validate` enforces both, and `approve` refuses a transition
 that would create a collision. `pixellab-credits` is a lock because it is real money.
 
+**`epic` threads one project across several teammates.** Optional, kebab-case, and
+omitted for standalone work. Sibling tasks sharing an `epic:` are a *fan*: cut so
+their `owns:` are disjoint, approved in one batch (`approve 44,45,46` — one prompt,
+one collision dry-run), then dispatched one teammate each. Where siblings must
+converge on a shared file, that write is a **join task** owning it with `depends-on`
+naming every sibling; `dispatch` refuses the join until they close. Cut on file
+ownership, not subject matter — two threads exist because they write different
+files. `py Scripts/backlog.py epic <slug>` shows where the fan is and what may move
+next; `validate` rejects siblings that claim the same path and warns when two of
+them hold the same resource, because that fan cannot be batch-approved at all.
+
 ═══════════════════════════════════════════════════════════════════════════
 
 ---
@@ -52,6 +63,7 @@ agent: gameplay-director  # gameplay|narrative|performance|pixel-art|ui-director
 owns: []                  # path globs this task will write, e.g. ["docs/design/**"]
 resources: []             # unreal-editor | pixellab-credits | mcp-9000
 depends-on: []            # task ids that must close first, e.g. [4, 12]
+epic: ""                  # optional kebab-case slug grouping a fan of sibling tasks
 evidence: <the artifact that proves this is done>
 score: {gate: 1, risk: 1, cost: 2}
 source: <file:line this was ingested from, or "user">

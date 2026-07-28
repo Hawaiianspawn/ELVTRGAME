@@ -28,6 +28,60 @@
 
 namespace
 {
+	// --- per-body sprite sheets (task-050) -----------------------------------
+	// Every billboard used to slice its frame out of ONE shared atlas (T_Swarm_2bit). Now a
+	// body can draw from any of several textures, each with its own grid — the bearer's own
+	// portrait sheet, the knight, the archer. SUnitCamCanvas keeps one TArray<FSlateBrush>
+	// per sheet (BrushSets); a billboard names which one via SpriteSet.
+	//
+	// History worth knowing if you're reading this after a git blame: task-050 originally drew
+	// retinue from six 48px soldier-roster variants (docs/art/soldier-roster-v1.md,
+	// T_Soldier_01..06). The owner rejected that on sight — "we degraded with the units again.
+	// I only want my high resolution units for the retinue" — and named exactly two PixelLab
+	// characters (88-92px native) to replace it. The six variant textures still exist in
+	// Content/Sprites/Units and RawArt/Sheets; this file just no longer loads or draws them.
+	namespace UnitCamSprite
+	{
+		constexpr uint8 SwarmAtlas = 0;  // T_Swarm_2bit — brood, and retinue when RetinueHighRes is off
+		constexpr uint8 Hero = 1;        // T_Hero_Vanguard
+		constexpr uint8 Knight = 2;      // T_Soldier_Knight
+		constexpr uint8 Archer = 3;      // T_Soldier_Archer
+		constexpr uint8 Count = 4;
+	}
+
+	// docs/data/art/requests/hero-vanguard.json output.grid: 4x4, 16 cells, (idle, walk1) pairs
+	// per direction. Order is S,SW,W,NW,N,NE,E,SE — the OPPOSITE rotation sense from
+	// SwarmFacing's south-first-COUNTER-clockwise convention (S,SE,E,NE,N,NW,W,SW), which is
+	// what the knight/archer sheets use (see RetinueSheetColumns below). That mismatch is why
+	// the hero billboard below does NOT attempt per-view facing yet — mapping a resolved
+	// SwarmFacing column onto this sheet would silently mirror every non-south direction. Fixed
+	// at cell 0 (south idle) until someone builds that column remap deliberately.
+	constexpr int32 HeroSheetColumns = 4;
+	constexpr int32 HeroSheetRows = 4;
+
+	// T_Soldier_Knight and T_Soldier_Archer share one grid, 5 cols x 2 rows = 10 cells, on
+	// purpose — one code path for both rather than a per-unit special case:
+	//   cells 0-7: the 8 real rotations, south-first counter-clockwise (S,SE,E,NE,N,NW,W,SW) —
+	//     the SAME order and sense SwarmFacing already uses, so SwarmFacing::ColumnFor(..., 8)
+	//     hands back a value that IS the flat cell index here. This identity (Row*Columns+Col
+	//     recovers the direction index) holds for ANY column count, not just a divisor of 8 —
+	//     it is plain row-major integer div/mod, so 5 columns works exactly like the old
+	//     4-column militia sheets did.
+	//   cells 8-9: a SOUTH-ONLY two-frame walk toggle (see the retinue billboard loop below,
+	//     which switches to these only when the resolved facing is south). The knight has two
+	//     real frames from its generated 4-frame walk cycle; the archer has no animation source
+	//     at all, so its two cells duplicate its south idle — a frozen "toggle", disclosed in
+	//     provenance.json, not a real animation. Kept the SAME grid shape for both anyway so
+	//     this file has one selection path instead of an if-knight/if-archer branch.
+	// Cell size is native pixel resolution (88-92px) centred with margin in a 96px cell, NOT
+	// downscaled — the owner's whole complaint was units reading as low-resolution, so nothing
+	// in this pipeline may resample them down. Niagara's SubUV power-of-two constraint does not
+	// apply here; these sheets are sliced by UV fraction in Slate, not read by any Niagara emitter.
+	constexpr int32 RetinueSheetColumns = 5;
+	constexpr int32 RetinueSheetRows = 2;
+	constexpr int32 RetinueSouthWalkCellA = 8; // FrameBit 0
+	constexpr int32 RetinueSouthWalkCellB = 9; // FrameBit 1
+
 	// Fallback desired size only — NativeTick overrides the SizeBox from the live body count.
 	constexpr float PanelSize = 480.f; // the Unit Cam is the focal point of the HUD now
 
@@ -61,7 +115,46 @@ namespace
 
 	TAutoConsoleVariable<float> CVarProjRange(
 		TEXT("Emberkeep.UnitCamProj.Range"), 1400.f,
-		TEXT("Only units within this XY distance of the focus are considered for the panel."),
+		TEXT("Only units within this XY distance of the focus are considered for the panel. Acts\n")
+		TEXT("as a FLOOR in Unit/Squad View: FrameFraction/FrameFloor may widen the EFFECTIVE range\n")
+		TEXT("(and pull the camera back to match) beyond this, but never shrink below it."),
+		ECVF_Default);
+
+	// --- group-framing target (docs/design/squad-group-system.md §4.2) ------
+	// "The majority of the army visible" translated into numbers: how much of the framed
+	// population must fit before the shot is allowed to crop it, and the floor that overrides
+	// the fraction at low counts. Protects squad cohesion by pulling the camera back (raising the
+	// effective Range/Dist) rather than cropping — the bearer may drift off-centre first.
+	TAutoConsoleVariable<float> CVarProjFrameFraction(
+		TEXT("Emberkeep.UnitCamProj.FrameFraction"), 0.6f,
+		TEXT("Minimum fraction of the framed population (the selected squad's standing, or the\n")
+		TEXT("whole retinue with nothing selected) that must fit in Unit/Squad View before the\n")
+		TEXT("camera is allowed to widen no further. Spec default 60% (squad-group-system.md §4.2's\n")
+		TEXT("UnitCamProjector row; ViewFeed's 80% is a different panel, not this one)."),
+		ECVF_Default);
+
+	TAutoConsoleVariable<int32> CVarProjFrameFloor(
+		TEXT("Emberkeep.UnitCamProj.FrameFloor"), 6,
+		TEXT("Body-count floor that overrides FrameFraction at low counts — a 5-soldier squad\n")
+		TEXT("shows all 5, not 60% of 5 rounded down. Also the point below which the population is\n")
+		TEXT("small enough that FrameFraction can't apply at all."),
+		ECVF_Default);
+
+	// --- Army View (docs/design/squad-group-system.md §4.1) ------------------
+	// Placeholder centroid layout: a ring around the bearer, evenly split among the live squads.
+	// USwarmSubsystem has no real per-squad centroid yet (SquadCentroidSum is proposed, not
+	// built — Mass/**, out of this task's scope), so this is the disclosed stand-in.
+	TAutoConsoleVariable<float> CVarProjArmyRingRadius(
+		TEXT("Emberkeep.UnitCamProj.ArmyRingRadius"), 700.f,
+		TEXT("World-space radius (uu) of the placeholder ring Army View arranges its <=8 squad\n")
+		TEXT("blocks around the bearer on. FAKE positioning — replace with real per-squad\n")
+		TEXT("centroids (SquadCentroidSum) once the Mass layer publishes them."),
+		ECVF_Default);
+
+	TAutoConsoleVariable<float> CVarProjArmyBlockScale(
+		TEXT("Emberkeep.UnitCamProj.ArmyBlockScale"), 1.f,
+		TEXT("Multiplier on Army View block size. Each block already scales with its own standing\n")
+		TEXT("relative to SquadTargetSize; this is the overall bigness dial on top of that."),
 		ECVF_Default);
 
 	// --- dynamic panel size by total bodies (individual <-> mass) -----------
@@ -143,6 +236,31 @@ namespace
 		TEXT("framing-size dial for the units themselves."),
 		ECVF_Default);
 
+	// task-050: owner feedback on the knight/archer capture — "the units they are a little
+	// scaled oddly. Can they be more broad?" Diagnosis: the real cause was the PACKING, not the
+	// draw math — the two sheets' cells were 96x96, but every rotation's actual alpha content
+	// only measures ~23-46px per side (PixelLab's "low top-down" characters ship with a large,
+	// roughly-symmetric transparent margin on all sides), so ~50%+ of every cell was blank
+	// padding drawn at the same on-screen size as the content. Fixed at the source: rev 5's
+	// pack_fullcolor_retinue.py cells are 56x60, sized to the measured content with a real
+	// margin, not the source canvas — see RawArt/Renders/knight and archer-proxy provenance.
+	// This dial is NOT a patch over that packing bug (a dial compensating for a mistake would
+	// be worse than fixing it, and the mistake is fixed) — it is a live width-only knob left in
+	// place because "more broad" is a taste call, not just a bug, and the owner should be able
+	// to keep tuning it without a rebuild. Multiplies DrawW only, after Aspect: height and the
+	// foot anchor are untouched, so widening never changes how tall a unit reads or where it
+	// stands. Above ~1.2 this starts visibly stretching already-packed pixel art sideways
+	// rather than just filling more of the cell, since (unlike the packing fix) it IS a resize,
+	// done live at draw time on an already-fixed sheet — worth knowing before pushing it far.
+	TAutoConsoleVariable<float> CVarProjSoldierAspect(
+		TEXT("Emberkeep.UnitCamProj.SoldierAspect"), 1.f,
+		TEXT("Width-only multiplier on every billboard (brood, retinue, hero alike), applied\n")
+		TEXT("after the sheet's own cell aspect. >1 = broader, <1 = narrower. 1 = exactly as\n")
+		TEXT("packed. This is a LIVE STRETCH, not a repack — past ~1.2 it reads as distortion,\n")
+		TEXT("not as 'more content filling the box'. If a sheet's own padding is the problem,\n")
+		TEXT("fix the packing (tighter cell) first; use this for taste on top of that."),
+		ECVF_Default);
+
 	// SoldierScale sizes every body at once; this is the per-team split. The panel is where
 	// the size difference between the tide and your line is actually legible — in the world
 	// view they are boxes seen from above — so a horde size change has to be answerable here
@@ -199,19 +317,43 @@ namespace
 		TEXT("so he reads bigger than the retinue around him."),
 		ECVF_Default);
 
-	// Cell indices below are into the 8x4 T_Swarm_2bit grid (SwarmSheet, SwarmFragments.h).
-	// Columns are the eight FACINGS (south first, counter-clockwise); rows are
-	//   0 = brood walk0, 1 = brood walk1, 2 = retinue walk0, 3 = retinue walk1.
-	// These defaults have now MOVED TWICE: 2x2 -> 4x2 (retinue row started at 4) ->
-	// 8x4 (retinue row starts at 16). The attack and hit columns no longer exist.
+	// Cell index below is into T_Hero_Vanguard's OWN 4x4 grid now (see HeroSheetColumns/Rows
+	// above) — the hero no longer shares SwarmAtlas at all (task-050). The real sprite this
+	// dial used to be a placeholder FOR now exists; the dial survives as "which of its 16
+	// cells" rather than being retired, since the sheet still has an idle+walk1 pair per
+	// direction and nothing currently animates the hero's pose or turns him to face the cam.
 
 	TAutoConsoleVariable<int32> CVarProjHeroCell(
-		TEXT("Emberkeep.UnitCamProj.HeroCell"), 16,
-		TEXT("Which cell of the 8x4 T_Swarm_2bit sheet the hero draws from (0-31).\n")
-		TEXT("Defaults to 16 = retinue walk0 facing SOUTH, i.e. a soldier turned toward the\n")
-		TEXT("viewer — the closest thing to a portrait the atlas has, and never a brood\n")
-		TEXT("frame. Was 6 (retinue ATTACK) until the sheet gained a facing axis and lost\n")
-		TEXT("its attack column. Placeholder until the real hero sprite exists."),
+		TEXT("Emberkeep.UnitCamProj.HeroCell"), 0,
+		TEXT("Which cell of T_Hero_Vanguard's own 4x4 sheet the hero draws from (0-15).\n")
+		TEXT("Defaults to 0 = south idle — a portrait pose turned toward the viewer, matching\n")
+		TEXT("what the old shared-atlas default (retinue walk0 facing south) was standing in\n")
+		TEXT("for. Odd cells are each direction's walk1 frame; see the doc comment on\n")
+		TEXT("HeroSheetColumns/Rows in the anonymous namespace above for the direction order\n")
+		TEXT("and why this does not yet resolve per-view like the retinue variants do."),
+		ECVF_Default);
+
+	// --- high-resolution retinue: knight + archer (task-050) ------------------
+	TAutoConsoleVariable<int32> CVarProjSoldierVariants(
+		TEXT("Emberkeep.UnitCamProj.SoldierVariants"), 1,
+		TEXT("Draw retinue billboards from the two owner-chosen high-resolution units\n")
+		TEXT("(T_Soldier_Knight, T_Soldier_Archer) instead of one shared cell of T_Swarm_2bit\n")
+		TEXT("for every soldier. 0 = old behaviour (A/B against this change, or a fallback if a\n")
+		TEXT("texture is missing from Content). Brood are unaffected either way — this dial is\n")
+		TEXT("retinue-only. Name kept from the six-variant era (task-050 rev 1) rather than\n")
+		TEXT("renamed, since it still means exactly the same thing: 'is retinue high-res or not'."),
+		ECVF_Default);
+
+	TAutoConsoleVariable<float> CVarProjArcherFraction(
+		TEXT("Emberkeep.UnitCamProj.ArcherFraction"), 0.35f,
+		TEXT("Fraction of retinue billboards drawn as the archer (T_Soldier_Archer) rather than\n")
+		TEXT("the knight (T_Soldier_Knight), picked by a stable per-entity hash (see\n")
+		TEXT("PickSoldierLook below) — so it is a consistent ~this-much of the panel, not a\n")
+		TEXT("random flicker frame to frame. 0.35 is a placeholder eyeballed for a visibly mixed\n")
+		TEXT("two-unit panel (a two-team retinue reads better with a real minority than a token\n")
+		TEXT("few); the previous six-variant era used 0.15 against a very different split. There\n")
+		TEXT("is no real archer/spearman unit type in the sim yet (task-046, unbuilt), so this\n")
+		TEXT("is cosmetic only."),
 		ECVF_Default);
 
 	TAutoConsoleVariable<int32> CVarProjBroodTint(
@@ -269,6 +411,53 @@ namespace
 		TEXT("0 or 1 = continuous (smooth, off-style). 4-6 reads as 2-bit."),
 		ECVF_Default);
 
+	// --- full-colour retinue lighting (task-050) ------------------------------
+	// LightFloor/BroodFloor above were tuned against FLAT 4-value sprites, which have no
+	// internal shadow of their own to lose — dimming one just steps it down a palette rung and
+	// it stays legible. The knight and archer are full-colour PixelLab renders with their OWN
+	// hood shadows and armour recesses already baked in; multiplying that by the SAME model
+	// compounds two darkenings into one (source shadow x panel tint), and measured captures
+	// showed it crushing toward near-black well short of the source's real saturation — see
+	// docs/data/art/provenance.json's in_panel_lighting_finding. These two CVars scope a
+	// gentler model to JUST the knight/archer sprite sets (PickSoldierLook's output) — brood,
+	// the hero, and everything the world renderer draws are computed exactly as before,
+	// untouched, because their art was never the problem.
+	//
+	// Two independent knobs, not one, because a floor alone can't fix this: raising ONLY the
+	// floor (like BroodFloor above) still lets a unit slide from bright to dim across its
+	// whole visible range, and a full-colour body slides through a lot more visible detail on
+	// the way down than a flat one did. FullColorDimStrength instead scales back HOW FAR the
+	// existing distance/facing falloff (Atten, computed once above and shared with brood) is
+	// allowed to pull a body down from full brightness, before the floor even applies —
+	// preserving the FALLOFF'S SHAPE (a unit further from the bearer or facing away still
+	// reads dimmer than one close and lit; the flame still means something) while shrinking
+	// its amplitude. 1 = the shared falloff, full strength, same as brood; 0 = full colour
+	// exempt entirely (always max brightness — NOT the goal, kills the flame read for these
+	// two units, don't set this). FullColorFloor is the same kind of floor as LightFloor/
+	// BroodFloor, just a separate, higher number so it doesn't also raise brood or retire the
+	// shared retinue floor other sprite sets still use.
+	TAutoConsoleVariable<float> CVarProjFullColorFloor(
+		TEXT("Emberkeep.UnitCamProj.FullColorFloor"), 0.55f,
+		TEXT("Minimum brightness for the knight/archer sprite sets only (Swarm.UnitLightFloor's\n")
+		TEXT("0.28 still applies to brood, hero and anything else). Chosen by looking at a\n")
+		TEXT("typical-distance capture, not guessed — 0.28 crushed full-colour detail toward\n")
+		TEXT("black; 0.55 keeps a unit at the edge of the pool clearly a lit colour, not a\n")
+		TEXT("silhouette. Combine with FullColorDimStrength below, which controls how much of\n")
+		TEXT("the gap between this floor and full brightness the flame falloff actually uses."),
+		ECVF_Default);
+
+	TAutoConsoleVariable<float> CVarProjFullColorDimStrength(
+		TEXT("Emberkeep.UnitCamProj.FullColorDimStrength"), 0.5f,
+		TEXT("How much of the shared distance/facing falloff (Atten) is applied to the knight/\n")
+		TEXT("archer sprite sets before FullColorFloor takes over. 1 = full strength, identical\n")
+		TEXT("proportional dimming to brood/retinue. 0 = falloff has no effect at all (constant\n")
+		TEXT("max brightness) — DON'T use 0, it deletes the flame-distance read for these two\n")
+		TEXT("units, which is the one thing this change must not do. 0.5 (default) means a body\n")
+		TEXT("at the far edge of the flame's radius sits roughly halfway between\n")
+		TEXT("FullColorFloor and full brightness rather than pinned at the floor — dimmer=\n")
+		TEXT("further still reads, it just never reads as crushed."),
+		ECVF_Default);
+
 	// Read the live flame falloff so the panel shades units the same way the world does,
 	// rather than duplicating the numbers. Flame position ~= the attractor for the
 	// prototype (the smoothed spring pos lives privately on ASwarmRenderActor).
@@ -284,6 +473,65 @@ namespace
 	// Same base albedos as the debug renderer's shaded path (SwarmRenderActor.cpp).
 	const FColor RetinueAlbedo(232, 232, 238);
 	const FColor BroodAlbedo(170, 44, 36);
+
+	/**
+	 * Deterministic, per-entity soldier look — knight or archer — WITHOUT touching SquadId or
+	 * FRetinueFollowFragment::SlotIndex.
+	 *
+	 * Both of those renumber on ANY casualty anywhere in the retinue: SquadId is derived from
+	 * the dense formation-repack slot index (SquadIdForSlot = Slot / SquadTargetSize,
+	 * SwarmSubsystem.h), and NeedsFormationRepack() fires whenever AliveRetinue !=
+	 * PackedRetinueCount — i.e. on every death, anywhere, not just this soldier's own.
+	 * Hanging the choice on either would flicker a surviving soldier's look every time a
+	 * squad-mate elsewhere died and the formation repacked (docs/design/squad-group-system.md
+	 * §1.3, a known, documented defect task-046 is meant to fix).
+	 *
+	 * What IS stable: SwarmRenderPack::SizeBucket, already carried in the render buffer for a
+	 * different reason (the per-body size roll). It is derived from FSwarmJitterFragment::Phase,
+	 * which SwarmProcessors.cpp fixes once at spawn and never touches again — "the only
+	 * per-entity random the swarm has" (SwarmFragments.h). Reusing it costs nothing extra to
+	 * reach and is provably immutable for exactly the reason the size roll doesn't shimmer.
+	 *
+	 * A second, different irrational multiplier re-hashes the 0-15 bucket before thresholding
+	 * it, so the archer/knight choice doesn't correlate with the size roll itself (two soldiers
+	 * rolled the same physical size shouldn't systematically share a look). Simplified from the
+	 * six-variant-era version (task-050 rev 1) now that there are only two looks to choose
+	 * between — a straight threshold, no sub-index math needed.
+	 */
+	uint8 PickSoldierLook(int32 PackedAnimBits, float ArcherFraction)
+	{
+		const int32 Bucket = SwarmRenderPack::SizeBucket(PackedAnimBits); // 0-15, stable per soldier
+		const float U = FMath::Frac((float)Bucket * 1.41421356f); // sqrt(2) -- not the size roll's golden ratio
+		return U < ArcherFraction ? UnitCamSprite::Archer : UnitCamSprite::Knight;
+	}
+
+	/** Slice Tex into Columns x Rows cells of one FSlateBrush each, UV-mapped like the existing
+	 *  SwarmAtlas slicing did. Empty (not a null-filled array) if Tex is null, so a missing
+	 *  texture degrades to SUnitCamCanvas's existing untextured-quad fallback rather than a
+	 *  crash or a wrong-sized array. */
+	TArray<FSlateBrush> BuildBrushSet(UTexture2D* Tex, int32 Columns, int32 Rows)
+	{
+		TArray<FSlateBrush> Brushes;
+		if (!Tex || Columns <= 0 || Rows <= 0)
+		{
+			return Brushes;
+		}
+		const float CellW = 1.f / (float)Columns;
+		const float CellH = 1.f / (float)Rows;
+		Brushes.Reserve(Columns * Rows);
+		for (int32 Cell = 0; Cell < Columns * Rows; ++Cell)
+		{
+			const float U = (Cell % Columns) * CellW;
+			const float V = (Cell / Columns) * CellH;
+			FSlateBrush Brush;
+			Brush.SetResourceObject(Tex);
+			Brush.ImageSize = FVector2D(Tex->GetSizeX() * CellW, Tex->GetSizeY() * CellH);
+			Brush.DrawAs = ESlateBrushDrawType::Image;
+			Brush.SetUVRegion(FBox2f(FVector2f(U, V), FVector2f(U + CellW, V + CellH)));
+			Brushes.Add(MoveTemp(Brush));
+		}
+		return Brushes;
+	}
 }
 
 // ---------------------------------------------------------------------------
@@ -303,16 +551,20 @@ public:
 		Billboards = MoveTemp(InBillboards);
 	}
 
-	void SetCellBrushes(TArray<FSlateBrush>&& InBrushes)
+	void SetBrushSets(TArray<TArray<FSlateBrush>>&& InSets)
 	{
-		CellBrushes = MoveTemp(InBrushes);
+		BrushSets = MoveTemp(InSets);
 	}
 
 	void SetSoldierScale(float InScale) { SoldierScale = InScale; }
 
 	void SetHeroScale(float InScale) { HeroScale = InScale; }
 
+	void SetSoldierAspect(float InAspect) { SoldierAspect = InAspect; }
+
 	void SetFootAnchor(float InAnchor) { FootAnchor = InAnchor; }
+
+	void SetShowReticle(bool bInShow) { bShowReticle = bInShow; }
 
 	virtual int32 OnPaint(const FPaintArgs& Args, const FGeometry& AllottedGeometry,
 		const FSlateRect& MyCullingRect, FSlateWindowElementList& OutDrawElements,
@@ -342,14 +594,18 @@ public:
 			// sized to the cell's aspect. B.Color is a light-only tint (flame distance dims the
 			// sprite). The bearer is scaled up and sits a layer above the swarm so he is never
 			// lost behind whoever is in front of him.
-			if (CellBrushes.IsValidIndex(B.Cell))
+			const TArray<FSlateBrush>* Brushes = BrushSets.IsValidIndex(B.SpriteSet) ? &BrushSets[B.SpriteSet] : nullptr;
+			if (Brushes && Brushes->IsValidIndex(B.Cell))
 			{
-				const FSlateBrush& CellBrush = CellBrushes[B.Cell];
+				const FSlateBrush& CellBrush = (*Brushes)[B.Cell];
 				const float ImgX = (float)CellBrush.ImageSize.X;
 				const float ImgY = (float)CellBrush.ImageSize.Y;
 				const float Aspect = ImgY > 0.f ? ImgX / ImgY : 1.f;
 				const float DrawH = 2.f * Half * SoldierScale * (B.bHero ? HeroScale : 1.f);
-				const float DrawW = DrawH * Aspect;
+				// SoldierAspect: a live width-only stretch on top of the cell's own aspect — see
+				// CVarProjSoldierAspect's doc comment for why this is a taste dial layered on a
+				// packing fix, not a substitute for one.
+				const float DrawW = DrawH * Aspect * SoldierAspect;
 				FSlateDrawElement::MakeBox(OutDrawElements, LayerId + (B.bHero ? 2 : 1),
 					AllottedGeometry.ToPaintGeometry(
 						FVector2f(DrawW, DrawH),
@@ -365,18 +621,33 @@ public:
 					FVector2f(2.f * Half, 2.f * Half),
 					FSlateLayoutTransform(FVector2f(Centre.X - Half, Centre.Y - 2.f * Half * AnchorY))),
 				&Brush, ESlateDrawEffect::None, B.Color);
+
+			// Army View blocks carry a live-count label; nothing else sets one.
+			if (!B.Label.IsEmpty())
+			{
+				const FVector2f LabelSize(48.f, 14.f);
+				const FSlateFontInfo Font = FCoreStyle::GetDefaultFontStyle("Bold", 9);
+				FSlateDrawElement::MakeText(OutDrawElements, LayerId + 2,
+					AllottedGeometry.ToPaintGeometry(LabelSize,
+						FSlateLayoutTransform(Centre - LabelSize * 0.5f)),
+					FText::FromString(B.Label), Font, ESlateDrawEffect::None, Demichrome::Pale());
+			}
 		}
 
-		// Focus reticle (panel centre = where the virtual camera is aimed), so orbiting
-		// the Yaw dial reads clearly as the world turning around the hero.
-		const FVector2f C = Size * 0.5f;
-		const float R = 5.f;
-		FSlateDrawElement::MakeBox(OutDrawElements, LayerId + 3,
-			AllottedGeometry.ToPaintGeometry(FVector2f(2.f * R, 1.f), FSlateLayoutTransform(C - FVector2f(R, 0.f))),
-			&Brush, ESlateDrawEffect::None, Demichrome::Steel());
-		FSlateDrawElement::MakeBox(OutDrawElements, LayerId + 3,
-			AllottedGeometry.ToPaintGeometry(FVector2f(1.f, 2.f * R), FSlateLayoutTransform(C - FVector2f(0.f, R))),
-			&Brush, ESlateDrawEffect::None, Demichrome::Steel());
+		// Focus reticle (panel centre = where the virtual camera is aimed), so orbiting the Yaw
+		// dial reads clearly as the world turning around the hero. Hidden in Army View: that mode
+		// has no perspective camera to mark a reticle for (see SetShowReticle's doc comment).
+		if (bShowReticle)
+		{
+			const FVector2f C = Size * 0.5f;
+			const float R = 5.f;
+			FSlateDrawElement::MakeBox(OutDrawElements, LayerId + 3,
+				AllottedGeometry.ToPaintGeometry(FVector2f(2.f * R, 1.f), FSlateLayoutTransform(C - FVector2f(R, 0.f))),
+				&Brush, ESlateDrawEffect::None, Demichrome::Steel());
+			FSlateDrawElement::MakeBox(OutDrawElements, LayerId + 3,
+				AllottedGeometry.ToPaintGeometry(FVector2f(1.f, 2.f * R), FSlateLayoutTransform(C - FVector2f(0.f, R))),
+				&Brush, ESlateDrawEffect::None, Demichrome::Steel());
+		}
 
 		return LayerId + 3;
 	}
@@ -388,10 +659,12 @@ public:
 
 private:
 	TArray<FUnitCamBillboard> Billboards;
-	TArray<FSlateBrush> CellBrushes; // one per atlas cell; empty until the texture loads
+	TArray<TArray<FSlateBrush>> BrushSets; // one array per sprite sheet; empty until textures load
 	float SoldierScale = SoldierHeightScale;
 	float HeroScale = 1.6f;
+	float SoldierAspect = 1.f; // live width-only stretch on top of the cell's own aspect
 	float FootAnchor = 1.f;   // 1 = bodies stand on their projected ground point
+	bool bShowReticle = true; // off in Army View — see SetShowReticle
 };
 
 // ---------------------------------------------------------------------------
@@ -405,11 +678,11 @@ void UUnitCamCanvasWidget::SetBillboards(TArray<FUnitCamBillboard>&& InBillboard
 	}
 }
 
-void UUnitCamCanvasWidget::SetCellBrushes(TArray<FSlateBrush>&& InBrushes)
+void UUnitCamCanvasWidget::SetBrushSets(TArray<TArray<FSlateBrush>>&& InSets)
 {
 	if (Canvas.IsValid())
 	{
-		Canvas->SetCellBrushes(MoveTemp(InBrushes));
+		Canvas->SetBrushSets(MoveTemp(InSets));
 	}
 }
 
@@ -429,11 +702,27 @@ void UUnitCamCanvasWidget::SetHeroScale(float InScale)
 	}
 }
 
+void UUnitCamCanvasWidget::SetSoldierAspect(float InAspect)
+{
+	if (Canvas.IsValid())
+	{
+		Canvas->SetSoldierAspect(InAspect);
+	}
+}
+
 void UUnitCamCanvasWidget::SetFootAnchor(float InAnchor)
 {
 	if (Canvas.IsValid())
 	{
 		Canvas->SetFootAnchor(InAnchor);
+	}
+}
+
+void UUnitCamCanvasWidget::SetShowReticle(bool bInShow)
+{
+	if (Canvas.IsValid())
+	{
+		Canvas->SetShowReticle(bInShow);
 	}
 }
 
@@ -520,6 +809,61 @@ TSharedRef<SWidget> UUnitCamProjector::RebuildWidget()
 	return Super::RebuildWidget();
 }
 
+void UUnitCamProjector::BuildArmyView(const USwarmSubsystem& Swarm)
+{
+	// See the class-header doc comment and CVarProjArmyRingRadius/ArmyBlockScale above for what's
+	// real (standing count, live label) versus placeholder (ring position, one shared stance tint).
+	TArray<FUnitCamBillboard> Out;
+
+	int32 LiveSquads = 0;
+	for (int32 i = 0; i < USwarmSubsystem::MaxSquads; ++i)
+	{
+		if (Swarm.GetSquadStanding(i) > 0) { ++LiveSquads; }
+	}
+	if (LiveSquads == 0)
+	{
+		CanvasWidget->SetBillboards({});
+		return;
+	}
+
+	// Value-only stance tint, on-ramp (Demichrome is grayscale by design — no new hue). Per-squad
+	// stance (SquadStance[8]) doesn't exist yet, so every block tints the same, off the ONE global
+	// stance the sim tracks today.
+	FLinearColor StanceTint = Demichrome::Steel();
+	switch (Swarm.GetStance())
+	{
+	case ESwarmStance::Charge: StanceTint = FMath::Lerp(Demichrome::Steel(), Demichrome::Pale(), 0.6f); break;
+	case ESwarmStance::Hold:   StanceTint = FMath::Lerp(Demichrome::Steel(), Demichrome::Dark(), 0.5f); break;
+	default: break; // Follow, Rally — neutral Steel
+	}
+
+	const float RingFrac = 0.42f; // block ring radius as a fraction of the panel's half-size
+	const float BlockScale = FMath::Max(CVarProjArmyBlockScale.GetValueOnGameThread(), 0.05f);
+	const float RefSize = FMath::Max((float)USwarmSubsystem::SquadTargetSize, 1.f);
+
+	int32 RingSlot = 0; // NOT "Slot" — UWidget already declares a Slot member and shadows it (C4458)
+	for (int32 i = 0; i < USwarmSubsystem::MaxSquads; ++i)
+	{
+		const int32 Standing = Swarm.GetSquadStanding(i);
+		if (Standing <= 0) { continue; }
+
+		const float Angle = 2.f * PI * ((float)RingSlot / (float)LiveSquads);
+		++RingSlot;
+
+		FUnitCamBillboard B;
+		B.Center = FVector2f(0.5f + RingFrac * FMath::Cos(Angle), 0.5f + RingFrac * FMath::Sin(Angle));
+		const float Fill = FMath::Clamp((float)Standing / RefSize, 0.f, 1.f); // understrength reads smaller
+		B.HalfSize = FMath::Lerp(0.05f, 0.16f, Fill) * BlockScale;
+		B.Depth = 0.f;
+		B.Color = StanceTint;
+		B.Cell = INDEX_NONE; // flat block — no atlas sprite, this is an aggregate icon, not a soldier
+		B.Label = FString::Printf(TEXT("%d"), Standing);
+		Out.Add(MoveTemp(B));
+	}
+
+	CanvasWidget->SetBillboards(MoveTemp(Out));
+}
+
 void UUnitCamProjector::NativeTick(const FGeometry& MyGeometry, float DeltaTime)
 {
 	Super::NativeTick(MyGeometry, DeltaTime);
@@ -529,9 +873,10 @@ void UUnitCamProjector::NativeTick(const FGeometry& MyGeometry, float DeltaTime)
 		return;
 	}
 
-	// Unit sprites = the 2-bit swarm atlas — the same texture the main view uses, so the panel
-	// and the world can never show a unit in two different poses. Loaded once from Content and
-	// sliced into one brush per cell; the slices are static, so this happens on first tick only.
+	// Unit sprites: the shared brood atlas plus, since task-050, one dedicated texture each for
+	// the bearer, the knight and the archer. All loaded once from Content on first tick;
+	// SwarmAtlas stays the source for brood (and for retinue if SoldierVariants is switched
+	// off) so the panel and the Niagara bridge can never show a brood in two different poses.
 	if (!SwarmAtlas && !bAtlasLoadAttempted)
 	{
 		bAtlasLoadAttempted = true;
@@ -541,34 +886,44 @@ void UUnitCamProjector::NativeTick(const FGeometry& MyGeometry, float DeltaTime)
 			UE_LOG(LogTemp, Warning,
 				TEXT("UnitCamProj: T_Swarm_2bit not found in Content — units fall back to quads."));
 		}
-	}
-	if (SwarmAtlas && !bCellBrushesPushed)
-	{
-		// Grid comes from SwarmSheet so the panel's UVs can't drift from the Niagara bridge's.
-		bCellBrushesPushed = true;
-		const int32 CellCount = SwarmSheet::Columns * SwarmSheet::Rows;
-		const float CellW = 1.f / (float)SwarmSheet::Columns;
-		const float CellH = 1.f / (float)SwarmSheet::Rows;
-		TArray<FSlateBrush> Brushes;
-		Brushes.Reserve(CellCount);
-		for (int32 Cell = 0; Cell < CellCount; ++Cell)
+		HeroTexture = LoadObject<UTexture2D>(nullptr, TEXT("/Game/Sprites/Heroes/T_Hero_Vanguard.T_Hero_Vanguard"));
+		if (!HeroTexture)
 		{
-			const float U = (Cell % SwarmSheet::Columns) * CellW;
-			const float V = (Cell / SwarmSheet::Columns) * CellH;
-			FSlateBrush Brush;
-			Brush.SetResourceObject(SwarmAtlas);
-			// The cell, not the whole sheet — this is what the draw aspect is computed from,
-			// and a 4x2 sheet's full size would stretch every unit to twice its width.
-			Brush.ImageSize = FVector2D(
-				SwarmAtlas->GetSizeX() * CellW, SwarmAtlas->GetSizeY() * CellH);
-			Brush.DrawAs = ESlateBrushDrawType::Image;
-			Brush.SetUVRegion(FBox2f(FVector2f(U, V), FVector2f(U + CellW, V + CellH)));
-			Brushes.Add(MoveTemp(Brush));
+			UE_LOG(LogTemp, Warning,
+				TEXT("UnitCamProj: T_Hero_Vanguard not found in Content — hero falls back to a quad."));
 		}
-		CanvasWidget->SetCellBrushes(MoveTemp(Brushes));
+		KnightTexture = LoadObject<UTexture2D>(nullptr, TEXT("/Game/Sprites/Units/T_Soldier_Knight.T_Soldier_Knight"));
+		if (!KnightTexture)
+		{
+			UE_LOG(LogTemp, Warning,
+				TEXT("UnitCamProj: T_Soldier_Knight not found in Content — knight-hashed retinue fall back to the shared atlas cell."));
+		}
+		ArcherTexture = LoadObject<UTexture2D>(nullptr, TEXT("/Game/Sprites/Units/T_Soldier_Archer.T_Soldier_Archer"));
+		if (!ArcherTexture)
+		{
+			UE_LOG(LogTemp, Warning,
+				TEXT("UnitCamProj: T_Soldier_Archer not found in Content — archer-hashed retinue fall back to the shared atlas cell."));
+		}
+	}
+	if (bAtlasLoadAttempted && !bBrushSetsPushed)
+	{
+		// Grid for SwarmAtlas comes from SwarmSheet so the panel's UVs can't drift from the
+		// Niagara bridge's; the rest use their own sheet's own grid (see the doc comments on
+		// HeroSheetColumns/Rows and RetinueSheetColumns/Rows above). Built once — the slices
+		// never change — even if a texture is still missing, so a late-loading asset doesn't
+		// retry every frame; SUnitCamCanvas falls back to an untextured quad per-body regardless.
+		bBrushSetsPushed = true;
+		TArray<TArray<FSlateBrush>> Sets;
+		Sets.SetNum(UnitCamSprite::Count);
+		Sets[UnitCamSprite::SwarmAtlas] = BuildBrushSet(SwarmAtlas, SwarmSheet::Columns, SwarmSheet::Rows);
+		Sets[UnitCamSprite::Hero] = BuildBrushSet(HeroTexture, HeroSheetColumns, HeroSheetRows);
+		Sets[UnitCamSprite::Knight] = BuildBrushSet(KnightTexture, RetinueSheetColumns, RetinueSheetRows);
+		Sets[UnitCamSprite::Archer] = BuildBrushSet(ArcherTexture, RetinueSheetColumns, RetinueSheetRows);
+		CanvasWidget->SetBrushSets(MoveTemp(Sets));
 	}
 	CanvasWidget->SetSoldierScale(CVarProjSoldierScale.GetValueOnGameThread());
 	CanvasWidget->SetHeroScale(FMath::Max(CVarProjHeroScale.GetValueOnGameThread(), 0.f));
+	CanvasWidget->SetSoldierAspect(FMath::Max(CVarProjSoldierAspect.GetValueOnGameThread(), 0.1f));
 	CanvasWidget->SetFootAnchor(CVarProjFootAnchor.GetValueOnGameThread());
 
 	const UWorld* World = GetWorld();
@@ -622,6 +977,18 @@ void UUnitCamProjector::NativeTick(const FGeometry& MyGeometry, float DeltaTime)
 		}
 	}
 
+	// Mode gate (docs/design/squad-group-system.md §4.3): -1 (default) is the resting state,
+	// Army View — <=8 squad blocks, no perspective camera, no yaw (§5 scopes the yaw clamp to
+	// Unit/Squad View only, and there's nothing else here for it to do). >=0 is Unit/Squad View,
+	// the existing per-soldier billboard path below, now framed by FrameFraction/FrameFloor.
+	const int32 SelectedSquad = FUnitCamDirector::SelectedSquad();
+	CanvasWidget->SetShowReticle(SelectedSquad >= 0);
+	if (SelectedSquad < 0)
+	{
+		BuildArmyView(*Swarm);
+		return;
+	}
+
 	const TArray<FVector>& Positions = Swarm->GetRenderPositions();
 	const TArray<int32>& AnimBits = Swarm->GetRenderAnimBits();
 	const int32 Num = FMath::Min(Positions.Num(), AnimBits.Num());
@@ -638,11 +1005,75 @@ void UUnitCamProjector::NativeTick(const FGeometry& MyGeometry, float DeltaTime)
 	const FUnitCamShot Shot = Director.Tick(Positions, AnimBits, FlamePos, DeltaTime, bCastFocus, CastPos);
 	const FVector CamFocus = Shot.Focus;
 
+	// Lens geometry, computed BEFORE the camera position: the group-framing pull-back below
+	// needs TanHalf to solve for how far back Dist has to go, so it can no longer wait until
+	// after CamPos is built the way it used to.
+	const float FovRad = FMath::DegreesToRadians(FMath::Clamp(CVarProjFov.GetValueOnGameThread(), 10.f, 120.f));
+	const float TanHalf = FMath::Tan(FovRad * 0.5f); // HORIZONTAL half-angle (Fov is horizontal)
+	// Vertical half-angle follows the panel's aspect, so a wide panel shows a wider swath of
+	// world rather than horizontally stretching a square image. Prefer the geometry we were
+	// ACTUALLY allotted over the Aspect CVar: once the cam is one half of a split column its
+	// real shape is set by the host, and trusting the CVar would stretch the image.
+	const FVector2D Allotted = MyGeometry.GetLocalSize();
+	const float Aspect = (Allotted.X > 1.0 && Allotted.Y > 1.0)
+		? (float)(Allotted.X / Allotted.Y)
+		: FMath::Max(CVarProjAspect.GetValueOnGameThread(), 0.1f);
+	const float TanHalfV = TanHalf / FMath::Max(Aspect, 0.1f);
+
+	// --- group-framing pull-back (docs/design/squad-group-system.md §4.2) -----------------
+	// "The majority of the army visible" as a real dial: find the world-space radius R around
+	// CamFocus that already contains FrameFraction (floor FrameFloor) of the framed population,
+	// then make sure BOTH the cull radius (Range) and the camera distance (Dist) cover it — Dist
+	// alone would leave the extra units culled before they're ever tested against the frustum;
+	// Range alone would cull them in without actually being far enough back to fit them in frame.
+	// Protects cohesion by widening coverage, never by cropping — the bearer may drift off-centre
+	// first (Design Law 6 over Design Law 4, scoped to this one panel per the spec).
+	//
+	// Population is the selected squad's REAL standing count (GetSquadStanding) — but the units
+	// actually drawn below are still whatever's within range, NOT filtered to that squad's real
+	// members (see the SquadId comment in UnitCamDirector.cpp::Tick). So this gets the TARGET
+	// COUNT right and the pull-back distance right; it does not yet crop the frame to one squad.
+	float RequiredRadius = 0.f;
+	{
+		const int32 TargetCount = Swarm->GetSquadStanding(
+			FMath::Clamp(SelectedSquad, 0, USwarmSubsystem::MaxSquads - 1));
+		if (TargetCount > 0)
+		{
+			const int32 Floor = FMath::Max(CVarProjFrameFloor.GetValueOnGameThread(), 0);
+			const int32 Required = FMath::Min(TargetCount, FMath::Max(Floor,
+				FMath::CeilToInt(CVarProjFrameFraction.GetValueOnGameThread() * (float)TargetCount)));
+
+			TArray<float> RetinueDistSq;
+			RetinueDistSq.Reserve(TargetCount);
+			for (int32 i = 0; i < Num; ++i)
+			{
+				if ((AnimBits[i] & SwarmAnim::TeamBit) != 0)
+				{
+					RetinueDistSq.Add((float)FVector::DistSquaredXY(Positions[i], CamFocus));
+				}
+			}
+			if (RetinueDistSq.Num() >= Required && Required > 0)
+			{
+				RetinueDistSq.Sort();
+				RequiredRadius = FMath::Sqrt(RetinueDistSq[Required - 1]);
+			}
+			else if (RetinueDistSq.Num() > 0)
+			{
+				RetinueDistSq.Sort();
+				RequiredRadius = FMath::Sqrt(RetinueDistSq.Last()); // fewer on screen than asked for — show them all
+			}
+		}
+	}
+	// 15% headroom so the Required-th unit sits just inside the edge, not exactly on it.
+	const float CoverageMargin = 1.15f;
+	const float NeededRange = RequiredRadius * CoverageMargin;
+	const float NeededDist = TanHalf > KINDA_SMALL_NUMBER ? NeededRange / TanHalf : 0.f;
+
 	// Build the virtual camera: orbit the focus by the shot's yaw, sit Dist behind and Height
 	// above, look back at it. Pure math — no component, no second scene render.
 	const float Yaw = FMath::DegreesToRadians(Shot.YawDeg);
 	const FVector Behind(-FMath::Cos(Yaw), -FMath::Sin(Yaw), 0.f);
-	const float DistVal = CVarProjDist.GetValueOnGameThread() * Shot.DistScale;
+	const float DistVal = FMath::Max(CVarProjDist.GetValueOnGameThread(), NeededDist) * Shot.DistScale;
 	const FVector CamPos = CamFocus + Behind * DistVal
 		+ FVector(0.f, 0.f, CVarProjHeight.GetValueOnGameThread());
 	FVector Forward = (CamFocus - CamPos).GetSafeNormal();
@@ -669,19 +1100,8 @@ void UUnitCamProjector::NativeTick(const FGeometry& MyGeometry, float DeltaTime)
 	// the sheet has no pitch axis, and the cam's tilt must not rotate the sprite.
 	const float ViewYaw = FMath::RadiansToDegrees(FMath::Atan2(-Forward.Y, Forward.X));
 
-	const float FovRad = FMath::DegreesToRadians(FMath::Clamp(CVarProjFov.GetValueOnGameThread(), 10.f, 120.f));
-	const float TanHalf = FMath::Tan(FovRad * 0.5f); // HORIZONTAL half-angle (Fov is horizontal)
-	// Vertical half-angle follows the panel's aspect, so a wide panel shows a wider swath of
-	// world rather than horizontally stretching a square image. Prefer the geometry we were
-	// ACTUALLY allotted over the Aspect CVar: once the cam is one half of a split column its
-	// real shape is set by the host, and trusting the CVar would stretch the image.
-	const FVector2D Allotted = MyGeometry.GetLocalSize();
-	const float Aspect = (Allotted.X > 1.0 && Allotted.Y > 1.0)
-		? (float)(Allotted.X / Allotted.Y)
-		: FMath::Max(CVarProjAspect.GetValueOnGameThread(), 0.1f);
-	const float TanHalfV = TanHalf / FMath::Max(Aspect, 0.1f);
 	const float NearPlane = FMath::Max(CVarProjNearPlane.GetValueOnGameThread(), 1.f);
-	const float RangeSq = FMath::Square(CVarProjRange.GetValueOnGameThread());
+	const float RangeSq = FMath::Square(FMath::Max(CVarProjRange.GetValueOnGameThread(), NeededRange));
 	const float UnitHalf = 40.f * CVarProjScale.GetValueOnGameThread();
 	const float NearFade = FMath::Max(CVarProjNearFade.GetValueOnGameThread(), 0.f);
 	const float BroodScale = FMath::Max(CVarProjBroodScale.GetValueOnGameThread(), 0.f);
@@ -696,7 +1116,7 @@ void UUnitCamProjector::NativeTick(const FGeometry& MyGeometry, float DeltaTime)
 	if (CVarProjDebugFrustum.GetValueOnGameThread() != 0 && World)
 	{
 		const float FocusDist = (float)FVector::Dist(CamFocus, CamPos);
-		const float Far = FocusDist + FMath::Max(CVarProjRange.GetValueOnGameThread(), 0.f);
+		const float Far = FocusDist + FMath::Sqrt(RangeSq); // effective range, incl. group-framing pull-back
 		const FColor FrustumCol(80, 160, 255);
 		const FColor AimCol(255, 200, 60);
 
@@ -726,7 +1146,7 @@ void UUnitCamProjector::NativeTick(const FGeometry& MyGeometry, float DeltaTime)
 		DrawDebugSphere(World, CamPos, 22.f, 10, FrustumCol, false, -1.f, 0, 1.5f);
 		DrawDebugLine(World, CamPos, CamFocus, AimCol, false, -1.f, 0, 1.f);
 		DrawDebugSphere(World, CamFocus, 26.f, 10, AimCol, false, -1.f, 0, 1.5f);
-		DrawDebugCircle(World, CamFocus, FMath::Max(CVarProjRange.GetValueOnGameThread(), 1.f), 48,
+		DrawDebugCircle(World, CamFocus, FMath::Sqrt(RangeSq), 48,
 			AimCol, false, -1.f, 0, 1.5f, FVector(1.f, 0.f, 0.f), FVector(0.f, 1.f, 0.f), false);
 	}
 
@@ -741,6 +1161,9 @@ void UUnitCamProjector::NativeTick(const FGeometry& MyGeometry, float DeltaTime)
 	const float BroodCeil = FMath::Clamp(CVarProjBroodCeil.GetValueOnGameThread(), BroodFloor, 1.f);
 	const bool bDirShade = CVarProjDirShade.GetValueOnGameThread() != 0;
 	const int32 LightSteps = CVarProjLightSteps.GetValueOnGameThread();
+	const float FullColorFloor = FMath::Clamp(CVarProjFullColorFloor.GetValueOnGameThread(), 0.f, 1.f);
+	const float FullColorDimStrength = FMath::Clamp(CVarProjFullColorDimStrength.GetValueOnGameThread(), 0.f, 1.f);
+	const bool bSoldierVariants = CVarProjSoldierVariants.GetValueOnGameThread() != 0; // read once, not per-body
 
 	TArray<FUnitCamBillboard> Out;
 	Out.Reserve(Num);
@@ -769,6 +1192,9 @@ void UUnitCamProjector::NativeTick(const FGeometry& MyGeometry, float DeltaTime)
 		}
 
 		const bool bRetinue = (AnimBits[i] & SwarmAnim::TeamBit) != 0;
+		// Decided once, up front, and reused both for lighting (below) and sprite selection
+		// (further down) so the two can never disagree about which bodies are full-colour.
+		const bool bFullColorRetinue = bRetinue && bSoldierVariants;
 
 		FUnitCamBillboard B;
 		B.Center = FVector2f(0.5f + 0.5f * NX, 0.5f - 0.5f * NY); // NDC -> panel, y down
@@ -825,9 +1251,18 @@ void UUnitCamProjector::NativeTick(const FGeometry& MyGeometry, float DeltaTime)
 		// leash. Brood start near-black at the edge of the pool and are lifted by the approach,
 		// but never all the way: they stay under the retinue at every distance, so a soldier
 		// standing next to a brood is always the brighter of the two.
-		const float Floor = bRetinue ? LightFloor : BroodFloor;
-		const float Ceil = bRetinue ? 1.f : BroodCeil;
-		const float Lit = FMath::Lerp(Floor, Ceil, FMath::Clamp(Atten, 0.f, 1.f));
+		//
+		// Full-colour retinue (the knight/archer sprite sets) get a THIRD range, gentler than
+		// the flat-art one above — see CVarProjFullColorFloor/DimStrength's doc comment for why
+		// the same model crushed them. DimStrength softens Atten itself (how far the falloff is
+		// allowed to pull toward dark) before the floor/ceiling lerp runs, so the flame-distance
+		// read still survives, just scaled down — it does not touch LightFloor/BroodFloor or
+		// anything brood/hero/world-side.
+		const float Floor = bFullColorRetinue ? FullColorFloor : (bRetinue ? LightFloor : BroodFloor);
+		const float Ceil = bRetinue ? 1.f : BroodCeil; // full-colour retinue still caps at 1 — full brightness is the authored art, untinted
+		const float ClampedAtten = FMath::Clamp(Atten, 0.f, 1.f);
+		const float LitAtten = bFullColorRetinue ? FMath::Lerp(1.f, ClampedAtten, FullColorDimStrength) : ClampedAtten;
+		const float Lit = FMath::Lerp(Floor, Ceil, LitAtten);
 
 		// Near-plane fade: a unit right at the near plane is transparent and ramps to solid
 		// NearFade uu deeper, so a unit entering close to the fake camera fades in, not pops.
@@ -835,18 +1270,42 @@ void UUnitCamProjector::NativeTick(const FGeometry& MyGeometry, float DeltaTime)
 			? FMath::Clamp((CamFwd - NearPlane) / NearFade, 0.f, 1.f)
 			: 1.f;
 
-		// Same row the world view picks for this unit, from the same bits — so the panel shows
-		// the brood's own art and plays its walk per body instead of freezing every unit on
-		// one global frame. Brood live on rows 0-1 of the atlas, retinue on rows 2-3.
-		//
-		// The COLUMN, though, is deliberately not the world view's. This camera looks from
-		// somewhere else, so a unit the main view sees from the front is seen from the side
-		// here; resolving facing per-view against the same stored world angle is the whole
-		// reason SwarmFacing stores 32 world steps instead of a baked column.
-		B.Cell = SwarmAtlas
-			? SwarmSheet::CellFor((uint8)AnimBits[i],
-				SwarmFacing::ColumnFor(SwarmRenderPack::Facing(AnimBits[i]), ViewYaw, SwarmSheet::Columns))
-			: INDEX_NONE;
+		// The COLUMN is deliberately not the world view's. This camera looks from somewhere
+		// else, so a unit the main view sees from the front is seen from the side here;
+		// resolving facing per-view against the same stored world angle is the whole reason
+		// SwarmFacing stores 32 world steps instead of a baked column. 8 buckets regardless of
+		// which sheet ends up drawn below — both SwarmSheet and the variant sheets are
+		// authored to the same 8-direction, south-first-counter-clockwise convention.
+		const int32 DirCol = SwarmFacing::ColumnFor(SwarmRenderPack::Facing(AnimBits[i]), ViewYaw, 8);
+
+		if (bFullColorRetinue)
+		{
+			// The knight or the archer, chosen by a hash of this soldier's own immutable spawn
+			// data — see PickSoldierLook's doc comment for why SquadId/SlotIndex are the wrong
+			// thing to key this on. DirCol IS the flat cell index into either sheet's 5x2 grid
+			// (RetinueSheetColumns divides 8 evenly for the direction cells), so no further row
+			// math is needed the way SwarmSheet::CellFor needs for the 8x4 atlas.
+			B.SpriteSet = PickSoldierLook(AnimBits[i], FMath::Clamp(CVarProjArcherFraction.GetValueOnGameThread(), 0.f, 1.f));
+			// South-only walk toggle (RetinueSouthWalkCellA/B): the two high-res sheets carry a
+			// two-frame walk cycle ONLY for south (the knight's real generated walk frames 0
+			// and 2; the archer has no animation source, so its two cells are a duplicated idle
+			// — see the grid doc comment above and provenance.json). Reuses the sim's existing
+			// walk-cycle bit (the same one that already toggled which row of the old shared
+			// atlas a body drew from), so this costs no new per-entity data. Every OTHER
+			// direction still gets its real idle rotation — this does not fake a walk for them.
+			B.Cell = (DirCol == 0)
+				? ((AnimBits[i] & SwarmAnim::FrameBit) ? RetinueSouthWalkCellB : RetinueSouthWalkCellA)
+				: DirCol;
+		}
+		else
+		{
+			// Brood, or SoldierVariants forced off: the shared atlas, as before. Same row the
+			// world view picks for this unit, from the same bits, so the panel plays each
+			// body's own walk instead of freezing everyone on one global frame. Brood live on
+			// rows 0-1 of the atlas, retinue (when drawn from here) on rows 2-3.
+			B.SpriteSet = UnitCamSprite::SwarmAtlas;
+			B.Cell = SwarmAtlas ? SwarmSheet::CellFor((uint8)AnimBits[i], DirCol) : INDEX_NONE;
+		}
 		const bool bSprite = B.Cell != INDEX_NONE;
 		if ((AnimBits[i] & SwarmAnim::HitFlashBit) != 0)
 		{
@@ -854,7 +1313,16 @@ void UUnitCamProjector::NativeTick(const FGeometry& MyGeometry, float DeltaTime)
 			// is the close-up, so it is where a flinch reads best — the panel would look
 			// oddly serene if the only place hits didn't register were the shot framed
 			// to show them.
-			B.Color = FLinearColor(1.f, 1.f, 1.f, FadeAlpha);
+			//
+			// Demichrome::Pale(), NOT literal (1,1,1) (docs/art/palette-exceptions.md, task-040
+			// ruling): unlike the world renderer's DrawDebugSolidBox hit-flash, THIS panel is UMG
+			// drawn after post-processing, so nothing downstream quantizes it — literal white
+			// would render as a real fifth palette value. Pale is already the ramp's "brightest a
+			// unit can be" register and there's no "must outshine Pale" requirement here, so it
+			// doesn't qualify for the flame-core-style exception; the perceptual difference over
+			// Swarm.HitFlashTime (0.10s default) isn't detectable in play.
+			const FLinearColor Flash = Demichrome::Pale();
+			B.Color = FLinearColor(Flash.R, Flash.G, Flash.B, FadeAlpha);
 		}
 		else if (bSprite)
 		{
@@ -880,8 +1348,10 @@ void UUnitCamProjector::NativeTick(const FGeometry& MyGeometry, float DeltaTime)
 	// --- the hero proxy ----------------------------------------------------
 	// The bearer is a pawn (ASpikeHeroPawn), not a Mass entity, so he is absent from the
 	// render buffers the loop above walks — without this the panel frames a hero-shaped hole.
-	// One billboard, projected through the same camera, at the attractor he publishes.
-	if (CVarProjHero.GetValueOnGameThread() != 0 && SwarmAtlas && Swarm->IsHeroAlive())
+	// One billboard, projected through the same camera, at the attractor he publishes. No
+	// longer gated on SwarmAtlas — he draws from his own T_Hero_Vanguard now (task-050); if
+	// that texture is missing SUnitCamCanvas's untextured-quad fallback still marks his spot.
+	if (CVarProjHero.GetValueOnGameThread() != 0 && Swarm->IsHeroAlive())
 	{
 		const FVector V = FlamePos - CamPos;
 		const float CamFwd = (float)FVector::DotProduct(V, Forward);
@@ -896,14 +1366,19 @@ void UUnitCamProjector::NativeTick(const FGeometry& MyGeometry, float DeltaTime)
 				H.HalfSize = (UnitHalf / CamFwd) / TanHalf * 0.5f;
 				H.Depth = CamFwd;
 				H.bHero = true;
+				H.SpriteSet = UnitCamSprite::Hero;
 				H.Cell = FMath::Clamp(CVarProjHeroCell.GetValueOnGameThread(),
-					0, SwarmSheet::Columns * SwarmSheet::Rows - 1);
+					0, HeroSheetColumns * HeroSheetRows - 1);
 				// Never dimmed by the flame falloff: he IS the flame, so distance-to-light is
 				// zero by definition. Only the near-plane fade applies.
 				const float FadeAlpha = NearFade > 0.f
 					? FMath::Clamp((CamFwd - NearPlane) / NearFade, 0.f, 1.f)
 					: 1.f;
-				H.Color = FLinearColor(1.f, 1.f, 1.f, FadeAlpha);
+				// Pale, not literal white — same palette-exceptions.md reasoning as the hit-flash
+				// fix above: this panel is UMG, drawn after post-processing, so nothing downstream
+				// quantizes (1,1,1) down to the ramp. Pale is already "brightest a body gets" here.
+				const FLinearColor HeroTint = Demichrome::Pale();
+				H.Color = FLinearColor(HeroTint.R, HeroTint.G, HeroTint.B, FadeAlpha);
 				Out.Add(MoveTemp(H));
 			}
 		}

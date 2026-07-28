@@ -1,0 +1,109 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 960 742" width="960" height="742" font-family="Segoe UI, Helvetica, Arial, sans-serif">
+  <defs>
+    <marker id="arw" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M 0 0 L 10 5 L 0 10 z" fill="#5a5a66"/>
+    </marker>
+    <marker id="arwE" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M 0 0 L 10 5 L 0 10 z" fill="#b4531a"/>
+    </marker>
+  </defs>
+
+  <style>
+    .agent  { fill:#2b2b33; stroke:#b4531a; stroke-width:2; }
+    .src    { fill:#f4f4f6; stroke:#9a9aa4; stroke-width:1.5; }
+    .out    { fill:#fdf3ec; stroke:#b4531a; stroke-width:1.5; }
+    .an     { fill:#ffffff; font-size:17px; font-weight:700; }
+    .ar     { fill:#b9b9c4; font-size:12.5px; font-style:italic; }
+    .st     { fill:#22222a; font-size:13px; font-weight:700; }
+    .ss     { fill:#63636e; font-size:11.5px; }
+    .ot     { fill:#22222a; font-size:12.5px; font-weight:700; }
+    .edge   { stroke:#5a5a66; stroke-width:1.6; fill:none; marker-end:url(#arw); }
+    .edgeE  { stroke:#b4531a; stroke-width:2.2; fill:none; marker-end:url(#arwE); stroke-dasharray:7 5; }
+    .el     { fill:#6e6e78; font-size:11.5px; font-style:italic; }
+    .elE    { fill:#b4531a; font-size:12px; font-weight:700; }
+    .band   { fill:#8a8a94; font-size:11px; letter-spacing:.14em; font-weight:700; }
+  </style>
+
+  <!-- ── sources ───────────────────────────────────────────── -->
+  <text class="band" x="60" y="20">REPO CANON — REAL PROJECT FILES</text>
+  <rect class="src" x="60"  y="32" width="380" height="52" rx="6"/>
+  <text class="st" x="76" y="55">docs/GATE1-FUN-PROTOTYPE.md</text>
+  <text class="ss" x="76" y="72">shipped combat defaults, wave sizes, retinue cap</text>
+
+  <rect class="src" x="520" y="32" width="380" height="52" rx="6"/>
+  <text class="st" x="536" y="55">docs/perf/BUDGETS.md</text>
+  <text class="ss" x="536" y="72">measured draw-cost curve, 5 points</text>
+
+  <!-- ── canon-reader ──────────────────────────────────────── -->
+  <path class="edge" d="M250,84 L250,104 L462,104 L462,120"/>
+  <path class="edge" d="M710,84 L710,104 L498,104 L498,120"/>
+  <rect class="agent" x="270" y="122" width="420" height="54" rx="7"/>
+  <text class="an" x="290" y="147">canon-reader</text>
+  <text class="ar" x="290" y="165">grounds every downstream number in a measured source</text>
+
+  <!-- ── roster-architect ──────────────────────────────────── -->
+  <path class="edge" d="M480,176 L480,206"/>
+  <text class="el" x="490" y="196">canon</text>
+  <rect class="agent" x="270" y="208" width="420" height="54" rx="7"/>
+  <text class="an" x="290" y="233">roster-architect</text>
+  <text class="ar" x="290" y="251">fodder → soldier → elite → boss, as measured multipliers</text>
+
+  <!-- ── negotiation pair ──────────────────────────────────── -->
+  <text class="band" x="60" y="296">THE NEGOTIATION — THIS LOOP IS WHAT MAKES IT A CREW</text>
+  <path class="edge" d="M400,262 L400,300 L230,300 L230,318"/>
+  <text class="el" x="410" y="284">tiers</text>
+
+  <rect class="agent" x="60" y="320" width="360" height="58" rx="7"/>
+  <text class="an" x="80" y="345">encounter-architect</text>
+  <text class="ar" x="80" y="364">composes 3 waves; redesigns when rejected</text>
+
+  <rect class="agent" x="540" y="320" width="360" height="58" rx="7"/>
+  <text class="an" x="560" y="345">budget-auditor</text>
+  <text class="ar" x="560" y="364">prices peak entities on the measured curve</text>
+
+  <path class="edge" d="M420,338 L536,338"/>
+  <text class="el" x="440" y="332">plan</text>
+  <path class="edgeE" d="M540,366 L424,366"/>
+  <text class="elE" x="432" y="392">revision_directive — REVISE, over budget</text>
+
+  <!-- ── readability ───────────────────────────────────────── -->
+  <path class="edge" d="M170,378 L170,432"/>
+  <text class="el" x="180" y="410">plan</text>
+  <rect class="agent" x="60" y="434" width="360" height="58" rx="7"/>
+  <text class="an" x="80" y="459">readability-auditor</text>
+  <text class="ar" x="80" y="478">guards the locked 4-value palette</text>
+
+  <!-- ── emitter ───────────────────────────────────────────── -->
+  <path class="edge" d="M720,378 L720,520 L690,520"/>
+  <text class="el" x="730" y="450">budget_verdict</text>
+  <path class="edge" d="M240,492 L240,520 L268,520"/>
+  <text class="el" x="88" y="514">readability_verdict</text>
+
+  <rect class="agent" x="270" y="494" width="420" height="54" rx="7"/>
+  <text class="an" x="290" y="519">data-emitter</text>
+  <text class="ar" x="290" y="537">refuses to write an unaudited or over-budget encounter</text>
+
+  <!-- ── outputs ───────────────────────────────────────────── -->
+  <text class="band" x="60" y="572">GAME-READY OUTPUT</text>
+  <path class="edge" d="M370,548 L370,584 L200,584 L200,602"/>
+  <path class="edge" d="M480,548 L480,602"/>
+  <path class="edge" d="M590,548 L590,584 L760,584 L760,602"/>
+
+  <rect class="out" x="60"  y="604" width="280" height="62" rx="6"/>
+  <text class="ot" x="76" y="626">encounters.json</text>
+  <text class="ss" x="76" y="644">flat typed rows —</text>
+  <text class="ss" x="76" y="659">imports as an Unreal DataTable</text>
+
+  <rect class="out" x="360" y="604" width="240" height="62" rx="6"/>
+  <text class="ot" x="376" y="626">encounters.schema.md</text>
+  <text class="ss" x="376" y="644">column contract +</text>
+  <text class="ss" x="376" y="659">audit state at generation</text>
+
+  <rect class="out" x="620" y="604" width="280" height="62" rx="6"/>
+  <text class="ot" x="636" y="626">run-report.md</text>
+  <text class="ss" x="636" y="644">roles, encounter table,</text>
+  <text class="ss" x="636" y="659">full negotiation transcript</text>
+
+  <text class="ss" x="60" y="700">Every agent declares the blackboard keys it may read and write. The Blackboard enforces those declarations at runtime,</text>
+  <text class="ss" x="60" y="717">so removing any agent halts the run at the first consumer that needs its artifact — the graph above is executable, not drawn.</text>
+</svg>

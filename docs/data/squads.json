@@ -1,0 +1,131 @@
+{
+  "$schema_note": "Tuned numbers for the squad group system. Decisions + rationale live in docs/design/squad-group-system.md. All values are PROTOTYPE DIALS (first pass, not playtested) — same status as economy.json. Per-type stat/formation/growth dials live in unit-types.json, not here.",
+  "version": "0.3-prototype",
+  "last_updated": "2026-07-27",
+  "revision_note": "0.3 is the typed-unit rework, owner ask 2026-07-27: 'retinue turned into simpler units, much like Total War... spearmen and archers.' Squad = unit now (squad-group-system.md §1.0). squad_target_size_formula (0.2, single pool) replaced by squad_manager.typed_allocation (two pools, Spearmen claim first). Adds map_mode (new third view) and army_view_lens_geometry.orthographic_check. view_modes/selection_responsiveness/yaw_envelope carried over from 0.2 unchanged except where noted.",
+
+  "squad_manager": {
+    "max_squads": 8,
+    "max_squads_note": "Fixed through the near-term bigger-retinue stage. Not a power cap (GDD §7 Law 2) — bounds the number of command handles a player juggles, not total retinue power. Matches the muster HUD's existing 4-card-per-wing mirrored layout. Now SHARED across both unit types (typed_allocation below), not per-type.",
+    "typed_allocation": {
+      "formula": "WantedUnits(type) = ceil(Pool(type) / squad_size_legibility_ceiling); Units(spearmen) = max(1, WantedUnits(spearmen)) if Pool(spearmen) > 0 else 0; Units(archers) = clamp(max(1, WantedUnits(archers)), 0, max_squads - Units(spearmen)) if Pool(archers) > 0 else 0",
+      "claim_order": ["spearmen", "archers"],
+      "claim_order_note": "Spearmen claim their fair share of the 8-handle budget first (CLASSES.md: 'high count, disciplined', the primary identity); Archers get the remainder, folding overflow into their own existing units if the budget runs out before their want is met. Replaces 0.2's single-pool 'ceil(alive_retinue / max_squads)' formula, which assumed one undifferentiated pool.",
+      "recompute_cadence": "every formation repack, same as 0.2 — but now TWO independent dense repacks (one per type), see squad-group-system.md §1.2/§8"
+    },
+    "squad_size_legibility_ceiling": 80,
+    "squad_size_legibility_ceiling_note": "Approximate body count past which one unit stops reading as a single commandable shape at a glance (Unit/Squad View target, §4.2/§7 of the spec). Not the same constraint as Army View's lens-geometry ceiling — see army_view_lens_geometry below. Same value, now applied per-type independently.",
+    "membership_assignment": "assigned once at recruit time (fill-lowest-first within the soldier's type across that type's live units), persists for that soldier's lifetime — TYPE is assigned at the same moment and is equally permanent",
+    "membership_assignment_note": "MUST NOT be derived from the per-frame dense formation-repack slot index (today's SquadIdForSlot behavior) — see squad-group-system.md §1.3 for why that breaks once units carry independent stances AND types."
+  },
+
+  "view_modes": {
+    "army_view": {
+      "subject": "the whole standing retinue, as <= max_squads blocks",
+      "representation": "aggregate block per squad — NEVER individual per-soldier billboards",
+      "representation_reason": "lens-geometry finding, §6.2: covering the leash-bounded worst-case spread (~4000uu diameter) requires CamFwd ~5500uu, at which individual billboards draw ~6-12px tall (illegible) regardless of headcount. Distance/coverage is the binding constraint, not body count — an aggregate block's on-screen size is a UI choice, not a 1/depth projection, so it never degrades.",
+      "fraction_of_retinue": 1.0,
+      "fraction_note": "100% of squads represented, always — not a body-count fraction. Falls out of switching representation; nothing is ever dropped from frame because the leash radius bounds the required coverage to a known, fixed area.",
+      "sacrifices_first": "per_soldier_fidelity",
+      "sacrifices_first_note": "Traded up front as a standing representation choice, not a per-frame crop. No cohesion-vs-bearer tradeoff applies here (see unit_squad_view for that).",
+      "block_sizing": "standing / target-size-for-that-type (an understrength unit reads visibly smaller)",
+      "block_position": "squad centroid (SquadCentroidSum / standing)",
+      "block_tint": "current squad stance",
+      "block_type_marker": "0.3 NEW — each block also carries a type label/icon (e.g. 'S·34' / 'A·12'), since blocks are no longer a single undifferentiated pool. Rendering detail, not a new representation; still O(max_squads) draws.",
+      "yaw": "none — fixed top-down / bearer-heading-locked layout, does not use the perspective virtual camera or the yaw_envelope below"
+    },
+    "unit_squad_view": {
+      "subject": "the selected unit (see selection_responsiveness); falls back to the most-engaged unit if nothing is selected yet",
+      "representation": "individual per-soldier billboards, same mechanism as today's close-up",
+      "unit_cam_panel": { "fraction_of_selected_squad": 0.60, "body_floor": 6, "sacrifices_first": "proximity_to_bearer", "protects": "squad_cohesion" },
+      "view_feed_panel": { "fraction_of_selected_squad": 0.80, "body_floor": 6, "sacrifices_first": "proximity_to_bearer", "protects": "squad_cohesion" },
+      "note": "Fraction is read against the SELECTED unit's standing count (corrected in 0.2 — the 0.1 draft's simulation table incorrectly computed fraction against whole-retinue count; see spec §6.1 of the prior revision). Body floor overrides the fraction at low counts. Unchanged in 0.3 — typed units don't change this view's math, only what a selected unit's own sprite looks like."
+    }
+  },
+
+  "map_mode": {
+    "status": "NEW in 0.3 — spec §5.5",
+    "purpose": "the wider, on-demand 'more information and options' surface the owner asked for, and the actual answer to 'mini retinue units by default' (see army_view_lens_geometry.orthographic_check for why the compact panel can't be that answer).",
+    "representation": "real per-soldier positions, both types, orthographic top-down (fixed world-to-pixel scale, no camera pull-back math) — not the compact panel's aggregate blocks",
+    "coverage": "full leash-bound worst-case spread (4000uu diameter), same as army_view's coverage guarantee, achieved by scale not by camera distance",
+    "recommended_panel_height_px": 1200,
+    "recommended_panel_height_note": "Interpolated from army_view_lens_geometry.orthographic_check's target-height table: 1200px lands sprites at ~18px tall and in-rank neighbor spacing at ~13px — workably legible. 1000px (15px sprites) is the floor; below that reproduces the compact panel's own illegibility.",
+    "selection": "clicking a unit cluster is the SAME selection action as a muster-card click / hotkey — see selection_responsiveness below",
+    "leash_visualization": "flagged as a natural fit (renders FLAME-FOUNDATION.md §3a's 'leash as lit floor', still unbuilt anywhere) — NOT specced or claimed solved here, a render-bridge task for whoever builds this mode",
+    "cost_class": "O(N) draw pass — same class as today's Unit/Squad View walk, cheaper per-unit if icons are flat primitives rather than atlas sprite frames. This is the first mode in this file's history to give up the O(max_squads) guarantee army_view/the old single-mode design had — see spec §8 performance requests."
+  },
+
+  "selection_responsiveness": {
+    "driver": "same input as squad-addressed orders — muster card click or hotkey 1-8; selecting for command and for camera-viewing is the same action",
+    "transition": {
+      "mode": "travel (VInterpTo-based focus pull), not a hard cut",
+      "speed": 10,
+      "speed_note": "New dial, between ambient Emberkeep.UnitCamProj.FollowSpeed (6, ~0.5s settle) and Emberkeep.UnitCamProj.CastFocusSpeed (12, ~0.25s settle). At speed 10 a typical hop settles in ~0.3s. A hard cut across leash-radius distances (~2000uu) reads as a glitch; ambient FollowSpeed reads as unresponsive to a deliberate player action — this sits between the two on purpose."
+    },
+    "persistence": {
+      "mode": "latch",
+      "mode_note": "Selection holds until explicitly changed or cleared (same-card click / dedicated Army input toggles back). Recommended over idle-decay: a decay timer would yank the camera away during a deliberate sustained watch. Taste call, not technical — alternative below if playtesting disagrees.",
+      "idle_decay_alternative_seconds": 6,
+      "idle_decay_alternative_note": "Documented fallback dial, NOT the default. Only wire this in if the owner overrides the latch recommendation after playtesting."
+    },
+    "resting_state_no_selection": "army_view",
+    "explicit_vs_auto_fallback": "explicit selection always wins while active; the most-engaged-squad rule is only the fallback pick when Unit/Squad View is entered with nothing selected yet, and becomes a normal selection from that point (does not keep auto-following combat underneath it)",
+    "selected_squad_wiped_mid_fight": "drop to army_view (resting state) — do NOT auto-reselect a different squad the player never chose",
+    "cast_focus_precedence": "unchanged — cast-focus still outranks Army View, Unit/Squad View, and any selection; hands control back to whichever was active when the cast ends"
+  },
+
+  "primary_squad_selection_fallback": {
+    "rule": "the squad whose centroid has the most brood within CombatScan (default 1200uu) — the squad most engaged right now",
+    "tiebreak": "nearest centroid to the bearer",
+    "no_combat_fallback": "nearest squad to the bearer",
+    "wipe_fallback": "Hero focus mode (today's mode 0), unchanged",
+    "usage_note": "Renamed from 0.1's 'primary_squad_selection' — this is now ONLY the fallback rule used when Unit/Squad View has no explicit player selection yet (see selection_responsiveness.explicit_vs_auto_fallback), not the camera's default subject."
+  },
+
+  "yaw_envelope": {
+    "scope": "Unit/Squad View's virtual camera only — Army View does not use the perspective camera and has no yaw concept (see view_modes.army_view.yaw)",
+    "clamp_deg": 30,
+    "base_heading": "bearer -> selected-squad-centroid direction (falls back to the bearer's last movement heading if no squad/centroid exists, e.g. retinue wiped)",
+    "look_lerp": 1.5,
+    "look_lerp_note": "Lowered from the current Emberkeep.UnitCamProj.LookLerp default of 3.0 — roughly doubles settle time so a swing across the full 60-degree arc reads as a deliberate pan, not a whip.",
+    "settle_target_deg": 0,
+    "settle_note": "Eases back to dead-on-base-heading whenever nothing inside CombatScan is pulling the auto-look, rather than holding wherever it last pointed.",
+    "cast_focus_override": "unchanged — still punches through for its dialed duration (CastFocusSpeed/CastZoom)"
+  },
+
+  "army_view_lens_geometry": {
+    "note": "Supporting numbers for view_modes.army_view.representation_reason — see spec §6.2 for the full derivation. NOT measured against a real play session; qualitative conclusion (distance-bound, not count-bound) is robust, exact uu crossing points are estimates.",
+    "leash_radius_uu": 2000,
+    "worst_case_spread_diameter_uu": 4000,
+    "cam_fwd_to_cover_worst_case_uu": 5495,
+    "sprite_height_px_at_that_distance": { "small_panel_405px_wide": 6.1, "large_panel_837px_wide": 12.6 },
+    "cam_fwd_for_15px_legibility_uu": { "small_panel_405px_wide": 2225, "large_panel_837px_wide": 4599 },
+    "area_saturation_body_count_at_worst_case_distance": 6584,
+    "area_saturation_note": "Headcount-driven sprite overlap does not bind until ~6500+ bodies at the leash-covering distance — several multiples past any retinue size this repo has data for. Distance/coverage, not headcount, is what breaks individual-billboard legibility.",
+    "orthographic_check": {
+      "status": "NEW in 0.3 — spec §5.1, re-derives the above under an orthographic (fixed-scale) projection instead of perspective, to test whether projection method rescues per-soldier legibility for the owner's 'mini units by default' ask.",
+      "sprite_height_px_at_worst_case_coverage": { "small_panel_405px_wide": 6.08, "large_panel_837px_wide": 12.55 },
+      "finding": "Matches the perspective numbers almost exactly (6.1/12.6 vs 6.08/12.55) — projection method does not change the binding constraint, which is panel_px * unit_size / world_diameter regardless of how that ratio is computed. Confirms the original 'distance/coverage, not headcount' finding generalizes to 'pixel budget, not projection method.'",
+      "panel_height_needed_for_target_sprite_height_px": { "10": 667, "12": 800, "15": 1000, "20": 1333, "24": 1600 },
+      "panel_height_needed_note": "Solves panel_px = target_height * worst_case_spread_diameter_uu / sprite_world_height_uu (60uu = 2*UnitHalf(40)*SoldierScale(0.75)). This is what motivates map_mode's recommended_panel_height_px (1200) above — the compact panel (405-837px) cannot reach even the 10px row."
+    }
+  },
+
+  "simulation_extrapolation": {
+    "growth_rate_per_site": 1.25,
+    "growth_rate_note": "Placeholder net-growth-per-growth-site multiplier (+25%), standing in for 'recruit outweighs attrition when played competently' since no economy curve exists yet for a stage bigger than the 3-wave slice. NOT measured data.",
+    "start_retinue": 40,
+    "sites_simulated": 20,
+    "single_pool_legibility_ceiling_crossed_at_site": "12-13",
+    "single_pool_legibility_ceiling_crossed_at_retinue_approx": 640,
+    "single_pool_note": "0.2's finding, single undifferentiated pool — kept for reference. This is squad_manager.squad_size_legibility_ceiling (Unit/Squad View), not the Army View lens-geometry ceiling above — the two are independent findings.",
+    "typed_allocation_trajectory": {
+      "status": "NEW in 0.3 — spec §4.2, same growth assumptions extended to a two-pool split",
+      "spearmen_archer_split": "80/20, matching unit-types.json growth_source_weight",
+      "breaks_at_site": 13,
+      "breaks_at_retinue_approx": 728,
+      "breaks_at_spearmen_pool_approx": 580,
+      "finding": "Breaks SOONER than the single-pool ~640-750 ceiling, and for a different reason: Spearmen alone consume the entire 8-unit budget once their own pool passes ~580 (ceil(580/80)=8), independent of Archers — at which point Archers are force-folded into one oversized unit regardless of how small the Archer pool is. Cross-type competition for the fixed 8-handle budget, not single-type growth, is the new binding constraint."
+    }
+  }
+}

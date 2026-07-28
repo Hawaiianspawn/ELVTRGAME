@@ -1,0 +1,391 @@
+{
+  "$schema_note": "See docs/data/art/asset-matrix.schema.md for field meanings. Consumed by Scripts/art/coverage.py / .claude/skills/art-coverage/SKILL.md. Derived from sprite-request.schema.json output blocks where a request exists, ELVTR/Source/ELVTR/Mass/SwarmFragments.h + ELVTR/Source/ELVTR/UI/UnitCamProjector.cpp for the code's own sheet contract, and docs/art/*.md prose specs for palette canon. Nothing here decides an open design question -- see open_questions / global_open_questions.",
+  "version": "1.0",
+  "updated": "2026-07-27",
+
+  "derived_from": [
+    "docs/data/art/sprite-request.schema.json",
+    "docs/data/art/requests/protagonist-04.json",
+    "docs/data/art/requests/hero-vanguard.json",
+    "docs/data/art/requests/soldier-01.json .. soldier-06.json",
+    "docs/data/art/requests/unit-retinue.json",
+    "docs/data/art/requests/swarm-units.json",
+    "docs/data/art/palette.json",
+    "ELVTR/Source/ELVTR/Mass/SwarmFragments.h (SwarmSheet, SwarmAnim)",
+    "ELVTR/Source/ELVTR/UI/UnitCamProjector.cpp (what is actually LoadObject'd and how cells are sliced)",
+    "docs/art/flame-bearer.md",
+    "docs/art/vanguard.md",
+    "docs/art/soldier-roster-v1.md",
+    "docs/art/retinue-militia.md",
+    "docs/data/unit-types.json (typed-unit roster: spearmen, archers)",
+    "docs/backlog/task-050-wire-real-sprites-into-the-unit-cam.md (archer proxy scope, provenance.json path)",
+    "measured PNG dimensions under RawArt/Sheets/ and frame counts under RawArt/Renders/, read directly rather than trusted from prose"
+  ],
+
+  "excluded": [
+    {
+      "id": "style-soldier-01 .. style-soldier-06",
+      "reason": "docs/art/soldier-style-depth-test.md's controlled rendering-treatment test on ONE subject (six shading/detail/outline variants of the same militia footman), not six characters. soldier-roster-v1.md is the character set these fed into; the style-soldier-* requests are a methodology artifact, not a roster entry."
+    },
+    {
+      "id": "protagonist-01, protagonist-02, protagonist-03",
+      "reason": "Rejected bearer-design candidates (docs/art/flame-bearer.md §0). protagonist-04 won and is this matrix's 'bearer' entry (T_Hero_Bearer). Kept on disk under the pipeline's retention rule but not a required character."
+    }
+  ],
+
+  "families": {
+    "bearer": {
+      "display_name": "The flame bearer",
+      "note": "Two entries live in this family on purpose, not by mistake: T_Hero_Bearer (the current winning single-bearer design) and T_Hero_Vanguard (the superseded-but-not-yet-retired per-class hero). See global_open_questions -- which one the game actually wants is an open owner decision, not something this matrix resolves."
+    },
+    "retinue-congregation": {
+      "display_name": "Retinue congregation (soldier roster v1)",
+      "note": "The six mutually-disjoint militia variants (docs/art/soldier-roster-v1.md) plus the legacy single generic strip (T_Unit_Retinue) it was authored to replace. Both are 'required: true' here for the same reason as the bearer family -- nobody has recorded a decision to retire the legacy asset, so this matrix records the contest rather than picking a side."
+    },
+    "swarm-atlas": {
+      "display_name": "Swarm atlas (brood + retinue, composite)",
+      "note": "T_Swarm_2bit, the one texture the game's Mass/Niagara render path and the Unit Cam actually load today. Built by the composite request swarm-units.json from two unmanaged sources, not generated itself."
+    },
+    "archer-typed-unit": {
+      "display_name": "Archers (typed-unit roster)",
+      "note": "docs/data/unit-types.json names 'archers' as a required v1 unit type alongside spearmen. There is no sprite spec and no filed request for this character yet -- only a proxy asset (T_Soldier_Archer) built directly by task-050 from an owner-supplied PixelLab character, bypassing the /sprite request pipeline. This entry's required_frame_count is matrix-derived by analogy to the rest of the roster, not from any filed contract -- see its open_questions."
+    }
+  },
+
+  "characters": [
+    {
+      "id": "T_Hero_Bearer",
+      "character": "The Bearer (protagonist, class-independent)",
+      "family": "bearer",
+      "kind": "hero",
+      "required": true,
+      "source_request": "docs/data/art/requests/protagonist-04.json",
+      "spec": "docs/art/flame-bearer.md",
+      "derived_from": ["request_output_block"],
+      "texture": "T_Hero_Bearer",
+      "content_path": "/Game/Sprites/Heroes",
+      "disk_sheet": "RawArt/Sheets/T_Hero_Bearer.png",
+      "sheet": {
+        "cell": 48,
+        "grid": [4, 4],
+        "frame_axes": ["direction", "walk_frame"],
+        "total_px": [192, 192]
+      },
+      "required_frames": [
+        "south.idle", "south.walk1", "south-west.idle", "south-west.walk1",
+        "west.idle", "west.walk1", "north-west.idle", "north-west.walk1",
+        "north.idle", "north.walk1", "north-east.idle", "north-east.walk1",
+        "east.idle", "east.walk1", "south-east.idle", "south-east.walk1"
+      ],
+      "required_frame_count": null,
+      "palette": { "ref": "demichrome-4", "value_dominance": "mixed", "pale_usage": "halo" },
+      "wiring": {
+        "expected_consumer": "No code path exists yet. UUnitCamProjector's hero billboard (the CVarProjHero block in ELVTR/Source/ELVTR/UI/UnitCamProjector.cpp) currently draws a CELL OF T_Swarm_2bit (CVarProjHeroCell, default 16) instead of any dedicated hero texture -- wiring this in is a code change out of this matrix's scope, not a missing LoadObject call to find.",
+        "check": { "method": "grep_source", "patterns": ["T_Hero_Bearer"] }
+      },
+      "provenance_id": "protagonist-04",
+      "open_questions": [
+        "protagonist-04.json revision 3 has anchor.approved: false -- the pipeline's one human gate (.claude/skills/sprite/SKILL.md stage D) has not been passed. 'required: true' here means 'the current winning design per flame-bearer.md §0', not 'ready to generate or ship'.",
+        "See global_open_questions #1 -- whether this or T_Hero_Vanguard is the hero the Unit Cam should actually draw is an open owner decision."
+      ],
+      "notes": "Confirmed absent from RawArt/Sheets/ and ELVTR/Content/ as of 2026-07-27. This is expected: the flame-bearer.md decision that named this the winning design is dated 2026-07-26 and nothing has generated it yet."
+    },
+
+    {
+      "id": "T_Hero_Vanguard",
+      "character": "Vanguard hero (legacy per-class design)",
+      "family": "bearer",
+      "kind": "hero",
+      "required": true,
+      "source_request": "docs/data/art/requests/hero-vanguard.json",
+      "spec": "docs/art/vanguard.md",
+      "derived_from": ["request_output_block"],
+      "texture": "T_Hero_Vanguard",
+      "content_path": "/Game/Sprites/Heroes",
+      "disk_sheet": "RawArt/Sheets/T_Hero_Vanguard.png",
+      "sheet": {
+        "cell": 48,
+        "grid": [4, 4],
+        "frame_axes": ["direction", "walk_frame"],
+        "total_px": [192, 192]
+      },
+      "required_frames": [
+        "south.idle", "south.walk1", "south-west.idle", "south-west.walk1",
+        "west.idle", "west.walk1", "north-west.idle", "north-west.walk1",
+        "north.idle", "north.walk1", "north-east.idle", "north-east.walk1",
+        "east.idle", "east.walk1", "south-east.idle", "south-east.walk1"
+      ],
+      "required_frame_count": null,
+      "palette": { "ref": "demichrome-4", "value_dominance": "steel", "pale_usage": "banner" },
+      "wiring": {
+        "expected_consumer": "docs/backlog/task-050-wire-real-sprites-into-the-unit-cam.md (in-progress as of 2026-07-27) explicitly requires 'the bearer draws T_Hero_Vanguard' via UUnitCamProjector's hero billboard path.",
+        "check": { "method": "grep_source", "patterns": ["T_Hero_Vanguard"] }
+      },
+      "provenance_id": "hero-vanguard",
+      "open_questions": [
+        "flame-bearer.md canon proposal 2 (2026-07-26) proposes marking vanguard.md/this texture superseded now that the owner picked ONE class-independent bearer (protagonist-04/T_Hero_Bearer) rather than one hero per class. That proposal has NOT been ratified by the owner as of 2026-07-27. This matrix keeps the entry required:true because a currently in-progress task is explicitly tasked with wiring this exact texture in. If the supersession is ratified, this entry should flip to required:false or be merged into T_Hero_Bearer.",
+        "hero-vanguard.json revision 3 has anchor.approved:false, yet a packed 192x192 sheet already exists on both RawArt/Sheets/ and ELVTR/Content/ -- most likely packed under an earlier, since-revised revision. Worth reconciling which revision the shipped asset actually corresponds to before trusting it as current."
+      ],
+      "notes": "Confirmed present on disk and in Content, and confirmed by grep to have ZERO references anywhere in ELVTR/Source -- nothing loads this texture today. This is a currently-real 'unwired' case, independent of and in addition to the six soldier variants."
+    },
+
+    {
+      "id": "T_Soldier_01",
+      "character": "Volunteer (soldier roster v1, rung 1)",
+      "family": "retinue-congregation",
+      "kind": "retinue",
+      "required": true,
+      "source_request": "docs/data/art/requests/soldier-01.json",
+      "spec": "docs/art/soldier-roster-v1.md",
+      "derived_from": ["request_output_block", "prose_spec_checklist"],
+      "texture": "T_Soldier_01",
+      "content_path": "/Game/Sprites/Units",
+      "disk_sheet": "RawArt/Sheets/T_Soldier_01.png",
+      "sheet": { "cell": 48, "grid": [4, 2], "frame_axes": ["direction"], "total_px": [192, 96] },
+      "required_frames": [
+        "south.idle", "south-east.idle", "east.idle", "north-east.idle",
+        "north.idle", "north-west.idle", "west.idle", "south-west.idle"
+      ],
+      "required_frame_count": null,
+      "palette": { "ref": "demichrome-4", "value_dominance": "bone", "pale_usage": "none" },
+      "wiring": {
+        "expected_consumer": "None today. Intended consumer per docs/backlog/task-050: UUnitCamProjector should draw one of the six T_Soldier_0N variants per retinue soldier instead of one shared cell of T_Swarm_2bit.",
+        "check": { "method": "grep_source", "patterns": ["T_Soldier_01"] }
+      },
+      "provenance_id": "soldier-01",
+      "open_questions": [
+        "See family-wide open question in retinue-congregation's family note and global_open_questions #2: this sheet carries 8 IDLE poses (frame_axes: [\"direction\"]) with no walk-frame variation at all, which does not match the SwarmSheet code contract's own axes (direction x walk_frame, SwarmFragments.h). Whether a soldier variant needs its own walk pair per direction, or the game accepts a static per-variant pose, is a design question this matrix does not decide.",
+        "docs/art/soldier-roster-v1.md's own header states 'Sheet: 4×1 → 192×48 each', which disagrees with the schema-validated request's output.grid [4, 2] (192x96, confirmed by the actual file on disk). This matrix uses the request/measured value as authoritative and flags the prose header as stale rather than correcting the spec file (out of this matrix's ownership)."
+      ],
+      "notes": null
+    },
+    {
+      "id": "T_Soldier_02",
+      "character": "Line infantry (soldier roster v1, rung 2)",
+      "family": "retinue-congregation",
+      "kind": "retinue",
+      "required": true,
+      "source_request": "docs/data/art/requests/soldier-02.json",
+      "spec": "docs/art/soldier-roster-v1.md",
+      "derived_from": ["request_output_block", "prose_spec_checklist"],
+      "texture": "T_Soldier_02",
+      "content_path": "/Game/Sprites/Units",
+      "disk_sheet": "RawArt/Sheets/T_Soldier_02.png",
+      "sheet": { "cell": 48, "grid": [4, 2], "frame_axes": ["direction"], "total_px": [192, 96] },
+      "required_frames": [
+        "south.idle", "south-east.idle", "east.idle", "north-east.idle",
+        "north.idle", "north-west.idle", "west.idle", "south-west.idle"
+      ],
+      "required_frame_count": null,
+      "palette": { "ref": "demichrome-4", "value_dominance": "mixed", "pale_usage": "none" },
+      "wiring": {
+        "expected_consumer": "None today. Same intended consumer as T_Soldier_01.",
+        "check": { "method": "grep_source", "patterns": ["T_Soldier_02"] }
+      },
+      "provenance_id": "soldier-02",
+      "open_questions": ["Same direction-only-vs-walk-frame question as T_Soldier_01 -- see that entry and global_open_questions #2."],
+      "notes": null
+    },
+    {
+      "id": "T_Soldier_03",
+      "character": "Veteran (soldier roster v1, rung 3)",
+      "family": "retinue-congregation",
+      "kind": "retinue",
+      "required": true,
+      "source_request": "docs/data/art/requests/soldier-03.json",
+      "spec": "docs/art/soldier-roster-v1.md",
+      "derived_from": ["request_output_block", "prose_spec_checklist"],
+      "texture": "T_Soldier_03",
+      "content_path": "/Game/Sprites/Units",
+      "disk_sheet": "RawArt/Sheets/T_Soldier_03.png",
+      "sheet": { "cell": 48, "grid": [4, 2], "frame_axes": ["direction"], "total_px": [192, 96] },
+      "required_frames": [
+        "south.idle", "south-east.idle", "east.idle", "north-east.idle",
+        "north.idle", "north-west.idle", "west.idle", "south-west.idle"
+      ],
+      "required_frame_count": null,
+      "palette": { "ref": "demichrome-4", "value_dominance": "steel", "pale_usage": "none" },
+      "wiring": {
+        "expected_consumer": "None today. Same intended consumer as T_Soldier_01.",
+        "check": { "method": "grep_source", "patterns": ["T_Soldier_03"] }
+      },
+      "provenance_id": "soldier-03",
+      "open_questions": ["Same direction-only-vs-walk-frame question as T_Soldier_01 -- see that entry and global_open_questions #2."],
+      "notes": null
+    },
+    {
+      "id": "T_Soldier_04",
+      "character": "Rally caller (soldier roster v1, rung 4)",
+      "family": "retinue-congregation",
+      "kind": "retinue",
+      "required": true,
+      "source_request": "docs/data/art/requests/soldier-04.json",
+      "spec": "docs/art/soldier-roster-v1.md",
+      "derived_from": ["request_output_block", "prose_spec_checklist"],
+      "texture": "T_Soldier_04",
+      "content_path": "/Game/Sprites/Units",
+      "disk_sheet": "RawArt/Sheets/T_Soldier_04.png",
+      "sheet": { "cell": 48, "grid": [4, 2], "frame_axes": ["direction"], "total_px": [192, 96] },
+      "required_frames": [
+        "south.idle", "south-east.idle", "east.idle", "north-east.idle",
+        "north.idle", "north-west.idle", "west.idle", "south-west.idle"
+      ],
+      "required_frame_count": null,
+      "palette": { "ref": "demichrome-4", "value_dominance": "bone", "pale_usage": "none" },
+      "wiring": {
+        "expected_consumer": "None today. Same intended consumer as T_Soldier_01.",
+        "check": { "method": "grep_source", "patterns": ["T_Soldier_04"] }
+      },
+      "provenance_id": "soldier-04",
+      "open_questions": ["Same direction-only-vs-walk-frame question as T_Soldier_01 -- see that entry and global_open_questions #2."],
+      "notes": null
+    },
+    {
+      "id": "T_Soldier_05",
+      "character": "Flame-tender (soldier roster v1, rung 5)",
+      "family": "retinue-congregation",
+      "kind": "retinue",
+      "required": true,
+      "source_request": "docs/data/art/requests/soldier-05.json",
+      "spec": "docs/art/soldier-roster-v1.md",
+      "derived_from": ["request_output_block", "prose_spec_checklist"],
+      "texture": "T_Soldier_05",
+      "content_path": "/Game/Sprites/Units",
+      "disk_sheet": "RawArt/Sheets/T_Soldier_05.png",
+      "sheet": { "cell": 48, "grid": [4, 2], "frame_axes": ["direction"], "total_px": [192, 96] },
+      "required_frames": [
+        "south.idle", "south-east.idle", "east.idle", "north-east.idle",
+        "north.idle", "north-west.idle", "west.idle", "south-west.idle"
+      ],
+      "required_frame_count": null,
+      "palette": { "ref": "demichrome-4", "value_dominance": "steel", "pale_usage": "halo" },
+      "wiring": {
+        "expected_consumer": "None today. Same intended consumer as T_Soldier_01.",
+        "check": { "method": "grep_source", "patterns": ["T_Soldier_05"] }
+      },
+      "provenance_id": "soldier-05",
+      "open_questions": [
+        "Same direction-only-vs-walk-frame question as T_Soldier_01 -- see that entry and global_open_questions #2.",
+        "pale_usage 'halo' here means CAGED halo per soldier-roster-v1.md §10's free-vs-caged distinction, not the Lampbearer's free point_halo carrier -- the coverage audit's off-ramp check only verifies palette membership, not the caging rule (that needs pixelpipe.py's pale_uncaged neighbour check, which this read-only tool does not reimplement)."
+      ],
+      "notes": null
+    },
+    {
+      "id": "T_Soldier_06",
+      "character": "Shield-heavy (soldier roster v1, rung 6)",
+      "family": "retinue-congregation",
+      "kind": "retinue",
+      "required": true,
+      "source_request": "docs/data/art/requests/soldier-06.json",
+      "spec": "docs/art/soldier-roster-v1.md",
+      "derived_from": ["request_output_block", "prose_spec_checklist"],
+      "texture": "T_Soldier_06",
+      "content_path": "/Game/Sprites/Units",
+      "disk_sheet": "RawArt/Sheets/T_Soldier_06.png",
+      "sheet": { "cell": 48, "grid": [4, 2], "frame_axes": ["direction"], "total_px": [192, 96] },
+      "required_frames": [
+        "south.idle", "south-east.idle", "east.idle", "north-east.idle",
+        "north.idle", "north-west.idle", "west.idle", "south-west.idle"
+      ],
+      "required_frame_count": null,
+      "palette": { "ref": "demichrome-4", "value_dominance": "mixed", "pale_usage": "none" },
+      "wiring": {
+        "expected_consumer": "None today. Same intended consumer as T_Soldier_01.",
+        "check": { "method": "grep_source", "patterns": ["T_Soldier_06"] }
+      },
+      "provenance_id": "soldier-06",
+      "open_questions": ["Same direction-only-vs-walk-frame question as T_Soldier_01 -- see that entry and global_open_questions #2."],
+      "notes": null
+    },
+
+    {
+      "id": "T_Unit_Retinue",
+      "character": "Retinue militia (legacy single generic strip)",
+      "family": "retinue-congregation",
+      "kind": "retinue",
+      "required": true,
+      "source_request": "docs/data/art/requests/unit-retinue.json",
+      "spec": "docs/art/retinue-militia.md",
+      "derived_from": ["request_output_block", "prose_spec_checklist"],
+      "texture": "T_Unit_Retinue",
+      "content_path": "/Game/Sprites/Units",
+      "disk_sheet": "RawArt/Sheets/T_Unit_Retinue.png",
+      "sheet": { "cell": 48, "grid": [4, 1], "frame_axes": ["action"], "total_px": [192, 48] },
+      "required_frames": ["south.walkv32", "south.walkv34", "south.attack5", "south.hit4"],
+      "required_frame_count": null,
+      "palette": { "ref": "demichrome-4", "value_dominance": "bone", "pale_usage": "none" },
+      "wiring": {
+        "expected_consumer": "Historically the swarm-units.json composite's retinue row, before it switched to owner-supplied 'unit-knight' art (see swarm-units.json revision note, 2026-07-25). No current consumer.",
+        "check": { "method": "grep_source", "patterns": ["T_Unit_Retinue"] }
+      },
+      "provenance_id": "unit-retinue",
+      "open_questions": [
+        "This sheet's own frame_axes (walk0/walk1/attack/hit on ONE direction) match the PRE-2026-07-26 SwarmSheet layout, which SwarmFragments.h's own doc comment says was replaced: the column axis is now 8 directions and the attack/hit columns no longer exist on the sprite path at all (SwingBit/HitFlashBit are still written but no longer decoded into a cell). This texture is not just unwired, it is built for a sheet layout the code no longer reads. Whether it should be regenerated to the current layout, retired in favour of soldier-01..06, or something else is an owner/pixel-art-director decision, not this matrix's to make.",
+        "Superseded in intent by docs/art/soldier-roster-v1.md's six-variant set (see that spec's §5a, 'a regular/uniformed enemy register... vs 01 vs the retinue militia' -- soldier-roster-v1.md §5 explicitly discusses retinue-militia.md as the mechanism it extends). Whether T_Unit_Retinue should still be considered 'required' at all is the same open question as T_Hero_Vanguard's -- see global_open_questions #1."
+      ],
+      "notes": "Confirmed on disk (RawArt/Sheets and Content) with zero references anywhere in ELVTR/Source. Unlike the six soldier variants, this asset's own frame layout is stale against the current code contract, not just unconsumed."
+    },
+
+    {
+      "id": "T_Swarm_2bit",
+      "character": "Swarm atlas (brood + retinue, composite)",
+      "family": "swarm-atlas",
+      "kind": "composite",
+      "required": true,
+      "source_request": "docs/data/art/requests/swarm-units.json",
+      "spec": "docs/art/npc-silhouette-brief.md",
+      "derived_from": ["request_output_block", "code_sheet_contract"],
+      "texture": "T_Swarm_2bit",
+      "content_path": "/Game/Spike1",
+      "disk_sheet": "RawArt/Sheets/T_Swarm_2bit.png",
+      "sheet": { "cell": 48, "grid": [8, 4], "frame_axes": ["direction", "walk_frame", "team"], "total_px": [384, 192] },
+      "required_frames": null,
+      "required_frame_count": 32,
+      "palette": { "ref": "demichrome-4", "value_dominance": "mixed", "pale_usage": "none" },
+      "wiring": {
+        "expected_consumer": "ELVTR/Source/ELVTR/UI/UnitCamProjector.cpp NativeTick: LoadObject<UTexture2D>(nullptr, TEXT(\"/Game/Spike1/T_Swarm_2bit.T_Swarm_2bit\")). Also the Niagara Sprite Renderer on NS_Swarm (not source-greppable -- see the audit skill doc for why this check can only prove the C++ side).",
+        "check": { "method": "grep_source", "patterns": ["T_Swarm_2bit"] }
+      },
+      "provenance_id": "swarm-units",
+      "open_questions": [
+        "The composite's brood source is explicitly a PLACEHOLDER pending enemy canon (swarm-units.json source note: 'PLACEHOLDER until the enemy has canon'). This matrix records the texture as required and wired, not as finished art."
+      ],
+      "notes": "Positive control entry: this is the one texture confirmed both present and actually LoadObject'd in ELVTR/Source. Included so the audit is shown finding a clean asset, not just failures."
+    },
+
+    {
+      "id": "T_Soldier_Archer",
+      "character": "Archer (typed-unit roster, proxy art)",
+      "family": "archer-typed-unit",
+      "kind": "retinue",
+      "required": true,
+      "source_request": null,
+      "spec": null,
+      "derived_from": ["code_sheet_contract", "task_brief"],
+      "texture": "T_Soldier_Archer",
+      "content_path": "/Game/Sprites/Units",
+      "disk_sheet": "RawArt/Sheets/T_Soldier_Archer.png",
+      "sheet": { "cell": 48, "grid": [4, 2], "frame_axes": ["direction"], "total_px": [192, 96] },
+      "required_frames": null,
+      "required_frame_count": 16,
+      "palette": { "ref": "demichrome-4", "value_dominance": null, "pale_usage": null },
+      "wiring": {
+        "expected_consumer": "docs/backlog/task-050 requires an archer proxy present and distinguishable in the Unit Cam panel. No source_request exists to name a code consumer precisely (unlike every other entry, this asset was built by direct file manipulation, not the /sprite request pipeline), so this check can only look for the texture name.",
+        "check": { "method": "grep_source", "patterns": ["T_Soldier_Archer"] }
+      },
+      "provenance_id": "archer-proxy",
+      "open_questions": [
+        "No sprite-request.schema.json request exists for this character at all -- unlike every other entry in this matrix, its geometry (cell/grid/palette) is DERIVED HERE BY ANALOGY to the soldier-01..06 pattern, not read from a validated request. If pixel-art-director ever specs a real archer, that request's output block should replace this entry's sheet block rather than the other way around.",
+        "required_frame_count (16 = 8 directions x {idle, walk1}) is matrix-invented, not from any filed contract -- it assumes an archer eventually needs the same idle+walk shape as the Bearer/Vanguard hero sheets. docs/backlog/task-050's own brief explicitly accepts a lesser proxy ('reusing a single rotation across the action cells is acceptable... say clearly the archer does not animate yet'), so measuring the proxy against 16 required frames is a DELIBERATE overstatement used to make the gap visible, not a claim that 16 is what task-050 promised to deliver. Read this entry's 'incomplete' finding as 'not yet a real archer', not as 'task-050 failed its own spec'.",
+        "palette.value_dominance / pale_usage are null because no spec states them -- do not treat null as 'off-ramp waiting to happen'; it means 'unspecified', and the off-ramp check below still runs against the four Demichrome hexes regardless."
+      ],
+      "notes": "As of 2026-07-27: RawArt/Sheets/T_Soldier_Archer.png exists (192x96, matches the assumed grid) and RawArt/Renders/archer-proxy/{raw,quantized}/ holds 8 direction PNGs (no walk-frame or animation subfolder), but NO .uasset exists yet under ELVTR/Content/Sprites/ -- confirmed by directory listing. task-050 is in-progress; re-run the audit before trusting this entry's status."
+      }
+  ],
+
+  "global_open_questions": [
+    "1. THE HERO CONTEST. Two textures (T_Hero_Bearer, T_Hero_Vanguard) both claim to be 'the hero the Unit Cam draws', and a third legacy asset (T_Unit_Retinue) is contested against the six-variant roster on the retinue side. This matrix deliberately does not resolve either contest -- see each entry's open_questions. The owner decision that would resolve it is flame-bearer.md canon proposal 2 (ratify or reject the single-bearer supersession of vanguard.md).",
+    "2. DIRECTION-ONLY VS. WALK-FRAME RETINUE SHEETS. Every soldier-roster-v1.md variant (T_Soldier_01..06) and the archer proxy are built as 8 static directional poses with NO walk-frame variation (frame_axes: [\"direction\"]), while the code's own SwarmSheet contract (SwarmFragments.h) and the Bearer/Vanguard hero sheets both use direction x walk_frame. If these six-plus-one textures are meant to be drawn per-soldier the way T_Swarm_2bit is today (one shared atlas, one SubUV index per unit), the current per-variant sheets cannot supply a walk animation without either a redesign of how the Unit Cam slices cells, or a second generation pass adding a walk1 pose to each variant. This is a real, load-bearing design question this matrix surfaces rather than answers.",
+    "3. NO GLOBAL PROVENANCE RECORD EXISTS YET. docs/data/art/provenance.json is named as the manifest location in docs/backlog/task-050 but does not exist anywhere in the repo as of 2026-07-27 -- the pipeline's actual per-generation record today is RawArt/Renders/<id>/r<rev>/manifest.json (Scripts/art/pixelpipe.py's own convention). Every entry in this matrix will therefore audit as 'unrecorded' until either provenance.json is created, or the 'unrecorded' check is pointed at the per-request manifests instead -- a decision for whoever owns that file next (task-050), not this matrix."
+  ]
+}
