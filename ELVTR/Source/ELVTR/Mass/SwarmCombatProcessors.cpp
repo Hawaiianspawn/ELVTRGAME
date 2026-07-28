@@ -111,6 +111,48 @@ namespace
 		TEXT("Swarm.KnockbackTime"), 0.10f,
 		TEXT("Seconds over which the shove is spent. Shorter = a sharper, more violent\n")
 		TEXT("pop for the same distance; longer = a slide."), ECVF_Default);
+
+	// --- typed units: Archers (docs/design/squad-group-system.md §1, §2, §4.1) ---------
+	// Spearmen ARE the CVars above (RetinueMaxHP/RetinueDPS/MeleeRange/RetinueTargetsPerHit) —
+	// unchanged names, unchanged shipped defaults, no churn on tuning the owner already set.
+	TAutoConsoleVariable<float> CVarArchersMaxHP(
+		TEXT("Swarm.ArchersMaxHP"), 70.f,
+		TEXT("Max HP of an archer. Lower than a spearman's 130 -- a ranged unit trades\n")
+		TEXT("durability for reach. UNMEASURED (docs/data/unit-types.json)."), ECVF_Default);
+	TAutoConsoleVariable<float> CVarArchersDPS(
+		TEXT("Swarm.ArchersDPS"), 18.f,
+		TEXT("Damage/sec one archer deals to whatever it's engaging. UNMEASURED."), ECVF_Default);
+	TAutoConsoleVariable<float> CVarArchersEngageRange(
+		TEXT("Swarm.ArchersEngageRange"), 750.f,
+		TEXT("How far an archer's blow reaches, uu -- the ranged-combat model, squad-group-\n")
+		TEXT("system.md §2.2: reuses the SAME grid/BlowsClaimed mechanism Spearmen/brood melee\n")
+		TEXT("already use, just a bigger radius. Capped in practice by the 3x3 grid reach\n")
+		TEXT("(750uu at USwarmSubsystem::GridCellSize 250, task-052) -- values beyond that read\n")
+		TEXT("the same, exactly like Swarm.BroodAggroRange. [0..750]"), ECVF_Default);
+	TAutoConsoleVariable<float> CVarArchersMinEngageRange(
+		TEXT("Swarm.ArchersMinEngageRange"), 150.f,
+		TEXT("An archer won't engage anything closer than this to ITSELF, uu -- the cheap,\n")
+		TEXT("local approximation of 'don't shoot into your own scrum' (§2.2). Not true line-\n")
+		TEXT("of-sight against a specific ally (Design Law 5 rules that out at horde scale);\n")
+		TEXT("just a band on the archer's own reach. Just past Swarm.MeleeRange (95). [0..750]"),
+		ECVF_Default);
+	TAutoConsoleVariable<int32> CVarArchersTargetsPerHit(
+		TEXT("Swarm.ArchersTargetsPerHit"), 1,
+		TEXT("How many enemies one archer blow lands on. 1 = precise single-target volleys,\n")
+		TEXT("not free cleave -- a mass archer line hasn't earned Swarm.RetinueTargetsPerHit's\n")
+		TEXT("cleave (8) through positioning the way Spearmen have. Clamped to 1-8."), ECVF_Default);
+	TAutoConsoleVariable<float> CVarArchersMoveSpeedScale(
+		TEXT("Swarm.ArchersMoveSpeedScale"), 0.9f,
+		TEXT("Archer march speed as a fraction of SwarmTuning::RetinueSpeed (450uu/s). Slightly\n")
+		TEXT("slower than Spearmen -- a firing line doesn't need to close distance. [0..2]"),
+		ECVF_Default);
+	TAutoConsoleVariable<float> CVarArcherGrowthWeight(
+		TEXT("Swarm.ArcherGrowthWeight"), 0.2f,
+		TEXT("Fraction of each new recruit rolled Archer rather than Spearman (docs/data/\n")
+		TEXT("unit-types.json growth_source_weight). Spearmen claim the rest (0.8 default) --\n")
+		TEXT("the class's primary identity, per CLASSES.md. v1 has no real growth-site system,\n")
+		TEXT("so this stands in for a generator-tagged site (§1.4): every recruit rolls\n")
+		TEXT("independently against this weight. [0..1]"), ECVF_Default);
 }
 
 namespace SwarmCombatTuning
@@ -136,6 +178,14 @@ namespace SwarmCombatTuning
 	float KnockbackTime()       { return FMath::Max(CVarKnockbackTime.GetValueOnAnyThread(), 0.01f); }
 	int32 RetinueTargetsPerHit() { return FMath::Clamp(CVarRetinueTargetsPerHit.GetValueOnAnyThread(), 1, 8); }
 	int32 BroodTargetsPerHit()   { return FMath::Clamp(CVarBroodTargetsPerHit.GetValueOnAnyThread(), 1, 8); }
+
+	float ArchersMaxHP()         { return CVarArchersMaxHP.GetValueOnAnyThread(); }
+	float ArchersDPS()           { return CVarArchersDPS.GetValueOnAnyThread(); }
+	float ArchersEngageRange()   { return FMath::Max(CVarArchersEngageRange.GetValueOnAnyThread(), 0.f); }
+	float ArchersMinEngageRange(){ return FMath::Max(CVarArchersMinEngageRange.GetValueOnAnyThread(), 0.f); }
+	int32 ArchersTargetsPerHit() { return FMath::Clamp(CVarArchersTargetsPerHit.GetValueOnAnyThread(), 1, 8); }
+	float ArchersMoveSpeedScale(){ return FMath::Max(CVarArchersMoveSpeedScale.GetValueOnAnyThread(), 0.f); }
+	float ArcherGrowthWeight()   { return FMath::Clamp(CVarArcherGrowthWeight.GetValueOnAnyThread(), 0.f, 1.f); }
 }
 
 //----------------------------------------------------------------------
@@ -179,19 +229,33 @@ void USwarmCombatProcessor::Execute(FMassEntityManager& EntityManager, FMassExec
 
 	// Snapshot the tunables once per pass so the per-entity loop reads plain
 	// locals, not CVars. Ranges are squared here, not inside the loop.
+	//
+	// Archers read their OWN candidate band instead of the shared MeleeRangeSq (docs/
+	// design/squad-group-system.md §2.2's minimum-viable ranged model — same grid, same
+	// BlowsClaimed mechanism, just a much bigger radius, plus a MinEngageRange floor so an
+	// archer won't count anything already in its own melee-range scrum as a target).
+	// Spearmen and brood are UNCHANGED — both still read the shared MeleeRangeSq exactly
+	// as before.
 	const float MeleeRangeSq = FMath::Square(SwarmCombatTuning::MeleeRange());
+	const float ArchersRangeSq = FMath::Square(SwarmCombatTuning::ArchersEngageRange());
+	const float ArchersMinRangeSq = FMath::Square(SwarmCombatTuning::ArchersMinEngageRange());
 	const float HeroMeleeRangeSq = FMath::Square(SwarmCombatTuning::HeroMeleeRange());
 	const int32 MaxAttackers = SwarmCombatTuning::MaxAttackersPerUnit();
-	const int32 RetinueTargets = SwarmCombatTuning::RetinueTargetsPerHit();
+	const int32 RetinueTargets = SwarmCombatTuning::RetinueTargetsPerHit(); // Spearmen's K
+	const int32 ArchersTargets = SwarmCombatTuning::ArchersTargetsPerHit();
 	const int32 BroodTargets = SwarmCombatTuning::BroodTargetsPerHit();
 
 	// Damage is now parcelled into blows: one blow removes a whole interval's worth
 	// of DPS at once. Average throughput over time is identical to the old per-tick
 	// bleed, which is what keeps the Gate 1 balance numbers meaningful — but the HP
 	// now comes off in steps you can see, and each step is something to react to.
+	//
+	// BroodBlow survives as a flat value (brood aren't typed — §11 Assumption 7) for the
+	// hero-exchange path below. The damage a RETINUE striker deals no longer has one flat
+	// per-team value — see FGridEntry::BlowDamage, published per-attacker at grid-build
+	// time from its own type, and accumulated per-claim in the loop below instead.
 	const float SwingInterval = SwarmCombatTuning::SwingInterval();
 	const float BroodBlow = SwarmCombatTuning::BroodDPS() * SwingInterval;
-	const float RetinueBlow = SwarmCombatTuning::RetinueDPS() * SwingInterval;
 	const float HeroBlow = SwarmCombatTuning::HeroDPS() * SwingInterval;
 
 	const float FlashTime = SwarmCombatTuning::HitFlashTime();
@@ -207,7 +271,7 @@ void USwarmCombatProcessor::Execute(FMassEntityManager& EntityManager, FMassExec
 	double DamageToRetinue = 0.0;
 	double DamageToBrood = 0.0;
 
-	EntityQuery.ForEachEntityChunk(Context, [Swarm, HeroLocation, bHeroAlive, bHeroStriking, MeleeRangeSq, HeroMeleeRangeSq, BroodBlow, RetinueBlow, HeroBlow, MaxAttackers, RetinueTargets, BroodTargets, FlashTime, KnockSpeed, &HeroDamage, &DamageToRetinue, &DamageToBrood](FMassExecutionContext& ChunkContext)
+	EntityQuery.ForEachEntityChunk(Context, [Swarm, HeroLocation, bHeroAlive, bHeroStriking, MeleeRangeSq, ArchersRangeSq, ArchersMinRangeSq, HeroMeleeRangeSq, BroodBlow, HeroBlow, MaxAttackers, RetinueTargets, ArchersTargets, BroodTargets, FlashTime, KnockSpeed, &HeroDamage, &DamageToRetinue, &DamageToBrood](FMassExecutionContext& ChunkContext)
 	{
 		const TConstArrayView<FTransformFragment> Transforms = ChunkContext.GetFragmentView<FTransformFragment>();
 		const TArrayView<FSwarmHealthFragment> Health = ChunkContext.GetMutableFragmentView<FSwarmHealthFragment>();
@@ -218,6 +282,13 @@ void USwarmCombatProcessor::Execute(FMassEntityManager& EntityManager, FMassExec
 		{
 			const FVector Location = Transforms[i].GetTransform().GetLocation();
 			const bool bRetinue = (Anim[i].Bits & SwarmAnim::TeamBit) != 0;
+			const bool bArcher = bRetinue && SwarmSquad::UnitType(Anim[i].SquadId) == EUnitType::Archers;
+
+			// MY OWN candidate band this frame — Archers reach much further (§2.2) and
+			// won't count anything already inside their own MinEngageRange as a candidate.
+			// Spearmen and brood keep the exact shared MeleeRangeSq, unchanged.
+			const float MyRangeSq = bArcher ? ArchersRangeSq : MeleeRangeSq;
+			const float MyMinRangeSq = bArcher ? ArchersMinRangeSq : 0.f;
 
 			// One walk of the neighbourhood does three jobs:
 			//   bContact  — is any enemy in reach at all? Gates whether this unit's own
@@ -242,8 +313,9 @@ void USwarmCombatProcessor::Execute(FMassEntityManager& EntityManager, FMassExec
 			// my blow uses this frame. Read it before it gets overwritten below.
 			const float MyReachSq = Strike[i].StrikeReachSq;
 
-			// Cleave is per team: soldiers hit several, brood commit to one.
-			const int32 MyTargets = bRetinue ? RetinueTargets : BroodTargets;
+			// Cleave is per team, and per type within retinue: Spearmen cleave, Archers hit
+			// one precise target, brood commit to one.
+			const int32 MyTargets = bRetinue ? (bArcher ? ArchersTargets : RetinueTargets) : BroodTargets;
 
 			float NearestSq[8];
 			for (int32 k = 0; k < MyTargets; ++k)
@@ -252,6 +324,12 @@ void USwarmCombatProcessor::Execute(FMassEntityManager& EntityManager, FMassExec
 			}
 			int32 InReach = 0;
 
+			// Accumulates each successful striker's OWN blow value (FGridEntry::BlowDamage)
+			// rather than counting strikers and multiplying by one shared team blow — see
+			// the doc comment above this pass's tunable snapshot for why: retinue strikers
+			// aren't all one type any more.
+			float Damage = 0.f;
+
 			Swarm->QueryNeighbors(Location, [&](const USwarmSubsystem::FGridEntry& Entry)
 			{
 				if (Entry.bRetinue == bRetinue)
@@ -259,7 +337,7 @@ void USwarmCombatProcessor::Execute(FMassEntityManager& EntityManager, FMassExec
 					return;
 				}
 				const float DistSq = (float)FVector::DistSquared2D(Entry.Location, Location);
-				if (DistSq >= MeleeRangeSq)
+				if (DistSq >= MyRangeSq || DistSq < MyMinRangeSq)
 				{
 					return;
 				}
@@ -297,6 +375,9 @@ void USwarmCombatProcessor::Execute(FMassEntityManager& EntityManager, FMassExec
 				{
 					++Entry.BlowsClaimed;
 					++Strikers;
+					// This striker's OWN blow value — a Spearman and an Archer striking the
+					// same victim this frame no longer deal the same damage (see above).
+					Damage += Entry.BlowDamage;
 					// Away from whoever hit you. Summed as unit vectors then normalised
 					// once, so being hit from two sides at once mostly cancels rather
 					// than launching the victim twice as far.
@@ -307,8 +388,6 @@ void USwarmCombatProcessor::Execute(FMassEntityManager& EntityManager, FMassExec
 				}
 			});
 
-			// Incoming: one blow per striking enemy, at the other team's blow weight.
-			float Damage = Strikers * (bRetinue ? BroodBlow : RetinueBlow);
 			bool bStruck = Strikers > 0;
 
 			// Brood also trade with the hero directly, on the hero's own cadence.

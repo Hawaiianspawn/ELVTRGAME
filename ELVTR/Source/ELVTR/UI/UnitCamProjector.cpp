@@ -344,16 +344,18 @@ namespace
 		TEXT("renamed, since it still means exactly the same thing: 'is retinue high-res or not'."),
 		ECVF_Default);
 
+	// RETIRED (task-046): retinue sprite choice now follows the real Spearmen/Archers type
+	// (FSwarmAnimFragment::SquadId, decoded via SwarmSquad::UnitType — see the sprite-
+	// selection block below), not a hash. This CVar is left registered, inert, only so an
+	// old exec file or saved preset that still names it doesn't error; it is no longer read
+	// anywhere in this file. PickSoldierLook, which used to compute the hash, is deleted —
+	// see its old doc comment (git history) for why SquadId/SlotIndex used to be the WRONG
+	// thing to key this on: both renumbered on any casualty anywhere before this task's
+	// sticky-SquadId fix (docs/design/squad-group-system.md §1.3) landed.
 	TAutoConsoleVariable<float> CVarProjArcherFraction(
 		TEXT("Emberkeep.UnitCamProj.ArcherFraction"), 0.35f,
-		TEXT("Fraction of retinue billboards drawn as the archer (T_Soldier_Archer) rather than\n")
-		TEXT("the knight (T_Soldier_Knight), picked by a stable per-entity hash (see\n")
-		TEXT("PickSoldierLook below) — so it is a consistent ~this-much of the panel, not a\n")
-		TEXT("random flicker frame to frame. 0.35 is a placeholder eyeballed for a visibly mixed\n")
-		TEXT("two-unit panel (a two-team retinue reads better with a real minority than a token\n")
-		TEXT("few); the previous six-variant era used 0.15 against a very different split. There\n")
-		TEXT("is no real archer/spearman unit type in the sim yet (task-046, unbuilt), so this\n")
-		TEXT("is cosmetic only."),
+		TEXT("RETIRED, inert — see the comment above this CVar's registration in\n")
+		TEXT("UnitCamProjector.cpp. Sprite choice now follows the real per-soldier type."),
 		ECVF_Default);
 
 	TAutoConsoleVariable<int32> CVarProjBroodTint(
@@ -475,34 +477,18 @@ namespace
 	const FColor BroodAlbedo(170, 44, 36);
 
 	/**
-	 * Deterministic, per-entity soldier look — knight or archer — WITHOUT touching SquadId or
-	 * FRetinueFollowFragment::SlotIndex.
-	 *
-	 * Both of those renumber on ANY casualty anywhere in the retinue: SquadId is derived from
-	 * the dense formation-repack slot index (SquadIdForSlot = Slot / SquadTargetSize,
-	 * SwarmSubsystem.h), and NeedsFormationRepack() fires whenever AliveRetinue !=
-	 * PackedRetinueCount — i.e. on every death, anywhere, not just this soldier's own.
-	 * Hanging the choice on either would flicker a surviving soldier's look every time a
-	 * squad-mate elsewhere died and the formation repacked (docs/design/squad-group-system.md
-	 * §1.3, a known, documented defect task-046 is meant to fix).
-	 *
-	 * What IS stable: SwarmRenderPack::SizeBucket, already carried in the render buffer for a
-	 * different reason (the per-body size roll). It is derived from FSwarmJitterFragment::Phase,
-	 * which SwarmProcessors.cpp fixes once at spawn and never touches again — "the only
-	 * per-entity random the swarm has" (SwarmFragments.h). Reusing it costs nothing extra to
-	 * reach and is provably immutable for exactly the reason the size roll doesn't shimmer.
-	 *
-	 * A second, different irrational multiplier re-hashes the 0-15 bucket before thresholding
-	 * it, so the archer/knight choice doesn't correlate with the size roll itself (two soldiers
-	 * rolled the same physical size shouldn't systematically share a look). Simplified from the
-	 * six-variant-era version (task-050 rev 1) now that there are only two looks to choose
-	 * between — a straight threshold, no sub-index math needed.
+	 * Real per-soldier look — knight or archer — decoded straight from the render buffer's
+	 * squad byte (SwarmRenderPack::Squad -> SwarmSquad::UnitType), now that task-046 made
+	 * SquadId+Type a permanent, sticky per-soldier tag (docs/design/squad-group-system.md
+	 * §1.3, §1.5) instead of something re-derived from a repackable formation slot index.
+	 * A soldier draws the knight because it IS a spearman, and the archer because it IS an
+	 * archer — retiring the old SizeBucket-hash workaround (PickSoldierLook, task-050 rev 2)
+	 * that existed only because SquadId used to be unsafe to key anything on.
 	 */
-	uint8 PickSoldierLook(int32 PackedAnimBits, float ArcherFraction)
+	uint8 SpriteSetForType(int32 PackedAnimBits)
 	{
-		const int32 Bucket = SwarmRenderPack::SizeBucket(PackedAnimBits); // 0-15, stable per soldier
-		const float U = FMath::Frac((float)Bucket * 1.41421356f); // sqrt(2) -- not the size roll's golden ratio
-		return U < ArcherFraction ? UnitCamSprite::Archer : UnitCamSprite::Knight;
+		const EUnitType Type = SwarmSquad::UnitType(SwarmRenderPack::Squad(PackedAnimBits));
+		return Type == EUnitType::Archers ? UnitCamSprite::Archer : UnitCamSprite::Knight;
 	}
 
 	/** Slice Tex into Columns x Rows cells of one FSlateBrush each, UV-mapped like the existing
@@ -811,8 +797,9 @@ TSharedRef<SWidget> UUnitCamProjector::RebuildWidget()
 
 void UUnitCamProjector::BuildArmyView(const USwarmSubsystem& Swarm)
 {
-	// See the class-header doc comment and CVarProjArmyRingRadius/ArmyBlockScale above for what's
-	// real (standing count, live label) versus placeholder (ring position, one shared stance tint).
+	// task-046: block position (SquadCentroidSum), per-block stance tint (UnitStance), and
+	// type (SquadType) are all real now — see the class-header doc comment for what's still
+	// a simplification (no yaw/camera-facing alignment on this fixed top-down layout yet).
 	TArray<FUnitCamBillboard> Out;
 
 	int32 LiveSquads = 0;
@@ -826,38 +813,53 @@ void UUnitCamProjector::BuildArmyView(const USwarmSubsystem& Swarm)
 		return;
 	}
 
-	// Value-only stance tint, on-ramp (Demichrome is grayscale by design — no new hue). Per-squad
-	// stance (SquadStance[8]) doesn't exist yet, so every block tints the same, off the ONE global
-	// stance the sim tracks today.
-	FLinearColor StanceTint = Demichrome::Steel();
-	switch (Swarm.GetStance())
+	// Value-only stance tint, on-ramp (Demichrome is grayscale by design — no new hue). Real
+	// per-unit stance now (task-046's UnitStance[8]) — each block tints by ITS OWN unit's
+	// order, not the one global stance every block used to share.
+	auto TintForStance = [](ESwarmStance Stance) -> FLinearColor
 	{
-	case ESwarmStance::Charge: StanceTint = FMath::Lerp(Demichrome::Steel(), Demichrome::Pale(), 0.6f); break;
-	case ESwarmStance::Hold:   StanceTint = FMath::Lerp(Demichrome::Steel(), Demichrome::Dark(), 0.5f); break;
-	default: break; // Follow, Rally — neutral Steel
-	}
+		switch (Stance)
+		{
+		case ESwarmStance::Charge: return FMath::Lerp(Demichrome::Steel(), Demichrome::Pale(), 0.6f);
+		case ESwarmStance::Hold:   return FMath::Lerp(Demichrome::Steel(), Demichrome::Dark(), 0.5f);
+		default:                   return Demichrome::Steel(); // Follow, Rally — neutral
+		}
+	};
 
-	const float RingFrac = 0.42f; // block ring radius as a fraction of the panel's half-size
+	const float RingFrac = 0.42f; // block layout radius as a fraction of the panel's half-size
 	const float BlockScale = FMath::Max(CVarProjArmyBlockScale.GetValueOnGameThread(), 0.05f);
 	const float RefSize = FMath::Max((float)USwarmSubsystem::SquadTargetSize, 1.f);
 
-	int32 RingSlot = 0; // NOT "Slot" — UWidget already declares a Slot member and shadows it (C4458)
+	// Real per-unit centroid (task-046's SquadCentroidSum), not a fake evenly-spaced ring —
+	// a fixed top-down layout around the bearer, world offset scaled so a unit sitting at the
+	// leash radius lands at the same visual radius the old placeholder ring drew at. No
+	// yaw/camera-facing alignment yet (this mode has no "up-screen is forward" convention of
+	// its own established) — flagged as a follow-up, not required for what this block needs
+	// to show (real position, real stance, real type).
+	const FVector HeroPos = Swarm.GetAttractor();
+	const float WorldToPanel = RingFrac / FMath::Max(SwarmLeash::Radius, 1.f);
+
 	for (int32 i = 0; i < USwarmSubsystem::MaxSquads; ++i)
 	{
 		const int32 Standing = Swarm.GetSquadStanding(i);
 		if (Standing <= 0) { continue; }
 
-		const float Angle = 2.f * PI * ((float)RingSlot / (float)LiveSquads);
-		++RingSlot;
+		const FVector Centroid = Swarm.GetSquadCentroid(i);
+		const FVector2f PanelOffset(
+			FMath::Clamp((float)(Centroid.X - HeroPos.X) * WorldToPanel, -RingFrac, RingFrac),
+			FMath::Clamp((float)(Centroid.Y - HeroPos.Y) * WorldToPanel, -RingFrac, RingFrac));
 
 		FUnitCamBillboard B;
-		B.Center = FVector2f(0.5f + RingFrac * FMath::Cos(Angle), 0.5f + RingFrac * FMath::Sin(Angle));
+		B.Center = FVector2f(0.5f + PanelOffset.X, 0.5f + PanelOffset.Y);
 		const float Fill = FMath::Clamp((float)Standing / RefSize, 0.f, 1.f); // understrength reads smaller
 		B.HalfSize = FMath::Lerp(0.05f, 0.16f, Fill) * BlockScale;
 		B.Depth = 0.f;
-		B.Color = StanceTint;
+		B.Color = TintForStance(Swarm.GetUnitStance(i));
 		B.Cell = INDEX_NONE; // flat block — no atlas sprite, this is an aggregate icon, not a soldier
-		B.Label = FString::Printf(TEXT("%d"), Standing);
+		// §5.4's block_type_marker: "S·34" / "A·12" — which blocks are Spearmen vs Archers is
+		// now a real question Army View has to answer (both types share the same 8-block budget).
+		const TCHAR* TypeLetter = (Swarm.GetSquadType(i) == EUnitType::Archers) ? TEXT("A") : TEXT("S");
+		B.Label = FString::Printf(TEXT("%s·%d"), TypeLetter, Standing);
 		Out.Add(MoveTemp(B));
 	}
 
@@ -1029,14 +1031,14 @@ void UUnitCamProjector::NativeTick(const FGeometry& MyGeometry, float DeltaTime)
 	// Protects cohesion by widening coverage, never by cropping — the bearer may drift off-centre
 	// first (Design Law 6 over Design Law 4, scoped to this one panel per the spec).
 	//
-	// Population is the selected squad's REAL standing count (GetSquadStanding) — but the units
-	// actually drawn below are still whatever's within range, NOT filtered to that squad's real
-	// members (see the SquadId comment in UnitCamDirector.cpp::Tick). So this gets the TARGET
-	// COUNT right and the pull-back distance right; it does not yet crop the frame to one squad.
+	// Population is the selected squad's REAL standing count (GetSquadStanding) AND, since
+	// task-046 piped a real squad byte into the render buffer, the units drawn below (and
+	// counted here) are now actually filtered to that squad's real members — retiring the
+	// "whole visible retinue" approximation this comment used to disclose.
 	float RequiredRadius = 0.f;
 	{
-		const int32 TargetCount = Swarm->GetSquadStanding(
-			FMath::Clamp(SelectedSquad, 0, USwarmSubsystem::MaxSquads - 1));
+		const int32 ClampedSquad = FMath::Clamp(SelectedSquad, 0, USwarmSubsystem::MaxSquads - 1);
+		const int32 TargetCount = Swarm->GetSquadStanding(ClampedSquad);
 		if (TargetCount > 0)
 		{
 			const int32 Floor = FMath::Max(CVarProjFrameFloor.GetValueOnGameThread(), 0);
@@ -1047,7 +1049,8 @@ void UUnitCamProjector::NativeTick(const FGeometry& MyGeometry, float DeltaTime)
 			RetinueDistSq.Reserve(TargetCount);
 			for (int32 i = 0; i < Num; ++i)
 			{
-				if ((AnimBits[i] & SwarmAnim::TeamBit) != 0)
+				if ((AnimBits[i] & SwarmAnim::TeamBit) != 0
+					&& SwarmSquad::UnitIndex(SwarmRenderPack::Squad(AnimBits[i])) == ClampedSquad)
 				{
 					RetinueDistSq.Add((float)FVector::DistSquaredXY(Positions[i], CamFocus));
 				}
@@ -1175,6 +1178,19 @@ void UUnitCamProjector::NativeTick(const FGeometry& MyGeometry, float DeltaTime)
 			continue; // not near the camera's focus — outside what this close-up frames
 		}
 
+		// Real per-unit membership filter (task-046): SelectedSquad is guaranteed >= 0 here
+		// (Army View already returned above), so a retinue body only draws in THIS panel if
+		// it's actually one of the selected unit's own soldiers — decoded straight from the
+		// squad byte task-046 finally piped into the render buffer (SwarmRenderPack::Squad).
+		// Retires the "framed toward the whole visible retinue, not filtered to one squad's
+		// real members" approximation this loop used to carry (see UnitCamDirector.cpp's
+		// own comment on the same gap). Brood are never filtered — the enemy read is unscoped.
+		if ((AnimBits[i] & SwarmAnim::TeamBit) != 0
+			&& SwarmSquad::UnitIndex(SwarmRenderPack::Squad(AnimBits[i])) != SelectedSquad)
+		{
+			continue;
+		}
+
 		const FVector V = P - CamPos;
 		const float CamFwd = (float)FVector::DotProduct(V, Forward);
 		if (CamFwd < NearPlane)
@@ -1280,12 +1296,13 @@ void UUnitCamProjector::NativeTick(const FGeometry& MyGeometry, float DeltaTime)
 
 		if (bFullColorRetinue)
 		{
-			// The knight or the archer, chosen by a hash of this soldier's own immutable spawn
-			// data — see PickSoldierLook's doc comment for why SquadId/SlotIndex are the wrong
-			// thing to key this on. DirCol IS the flat cell index into either sheet's 5x2 grid
-			// (RetinueSheetColumns divides 8 evenly for the direction cells), so no further row
-			// math is needed the way SwarmSheet::CellFor needs for the 8x4 atlas.
-			B.SpriteSet = PickSoldierLook(AnimBits[i], FMath::Clamp(CVarProjArcherFraction.GetValueOnGameThread(), 0.f, 1.f));
+			// The knight or the archer — a soldier draws whichever sheet its REAL, permanent
+			// type says (SpriteSetForType, decoded from the squad byte task-046 piped into
+			// the render buffer), not a hash standing in for a type that didn't exist yet.
+			// DirCol IS the flat cell index into either sheet's 5x2 grid (RetinueSheetColumns
+			// divides 8 evenly for the direction cells), so no further row math is needed the
+			// way SwarmSheet::CellFor needs for the 8x4 atlas.
+			B.SpriteSet = SpriteSetForType(AnimBits[i]);
 			// South-only walk toggle (RetinueSouthWalkCellA/B): the two high-res sheets carry a
 			// two-frame walk cycle ONLY for south (the knight's real generated walk frames 0
 			// and 2; the archer has no animation source, so its two cells are a duplicated idle

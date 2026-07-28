@@ -1,6 +1,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "SwarmCombat.h" // EUnitType
 
 /**
  * How your army arranges itself around the bearer.
@@ -61,6 +62,27 @@ namespace SwarmFormation
 	 * way "forward" is by construction.
 	 */
 	FParams ReadParams();
+
+	/**
+	 * Per-type formation params (docs/design/squad-group-system.md §1.7): Spearmen ARE
+	 * ReadParams() above, unchanged (same CVars, same shipped defaults — "mechanically
+	 * today's retinue, renamed and formalized as a type"). Archers read an independent
+	 * `Swarm.Formation.Archers.*` CVar set — a wide, shallow line sitting close behind the
+	 * bearer instead of pushed out ahead, per the spec's table. Mirrors the precedent
+	 * `Swarm.BroodFormation.*` already set (task-047): a formation is a live dial while the
+	 * game runs, not a spawn-time constant, so two types need two independently-tunable
+	 * FParams, not one shared global.
+	 *
+	 * Deviation from §1.7's literal mechanism, disclosed: ArcDegrees/ArcRadius/Yaw/
+	 * FaceCamera/Compact stay the SHARED `Swarm.Formation.*` CVars rather than duplicated
+	 * per type. unit-types.json's own formation block ships IDENTICAL arc_degrees/
+	 * arc_radius (140/700) for both types, so a duplicated dial there would be two numbers
+	 * that must always agree — not a real per-type difference like Shape/Columns/Spacing/
+	 * RankSpacing/Forward (which §1.7's table DOES differentiate and this DOES duplicate).
+	 * Bearing-tracking and the compact-shrink toggle are army-wide behaviors, not per-type
+	 * ones. Cuts CVar count without dropping anything the spec's own data currently varies.
+	 */
+	FParams ReadParamsForType(EUnitType Type);
 
 	/**
 	 * Ground-plane offset from the anchor for dense slot Index, already rotated into

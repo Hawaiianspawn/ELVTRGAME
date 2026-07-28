@@ -49,3 +49,6 @@ Rejected and parked tasks keep their files — this records why.
 - 2026-07-27 · `task-052` · proposed → **approved** · Widen the spatial grid so archers can actually reach 750uu, and measure what it costs
 - 2026-07-27 · `task-052` · approved → **in-progress** · Widen the spatial grid so archers can actually reach 750uu, and measure what it costs — dispatched to teammate `grid-reach`
 - 2026-07-27 · `task-052` · in-progress → **needs-review** · Widen the spatial grid so archers can actually reach 750uu, and measure what it costs
+- 2026-07-27 · `task-052` · needs-review → **done** · Widen the spatial grid so archers can actually reach 750uu, and measure what it costs
+- 2026-07-27 · `task-046` · proposed → **approved** · Build the typed-unit command layer in Mass — sticky type, per-type stance, per-type allocation, published centroids
+- 2026-07-27 · `task-046` · approved → **in-progress** · Build the typed-unit command layer in Mass — sticky type, per-type stance, per-type allocation, published centroids — dispatched to teammate `typed-unit-layer`

@@ -194,14 +194,11 @@ FUnitCamShot FUnitCamDirector::Tick(const TArray<FVector>& Positions, const TArr
 
 	// One pass over the buffers serves three jobs: pick the follow target (nearest retinue to
 	// where we were looking last frame), accumulate the pull toward nearby enemies for the
-	// auto-look, and — while a squad is selected — accumulate the visible retinue centroid.
+	// auto-look, and — while a squad is selected — accumulate the SELECTED unit's own centroid.
 	//
-	// That last one is a STAND-IN. USwarmSubsystem::PushRenderEntry receives a per-unit SquadId
-	// but drops it before it reaches RenderAnimBits (SwarmFragments.h bits 17-31 are free but
-	// nothing writes a squad id into them yet) — so there is no way to isolate ONE squad's
-	// members from these buffers. Framing on the whole visible retinue's centroid is the closest
-	// honest approximation until squad-group-system.md's SquadId piping lands (Mass/**, out of
-	// this task's scope). See the handback for what a follow-up needs to build.
+	// task-046 piped a real squad byte into the render buffer (SwarmRenderPack::Squad ->
+	// SwarmSquad::UnitIndex), so this is the selected unit's REAL members now, not the whole
+	// visible retinue's centroid — retiring the stand-in this comment used to disclose.
 	const FVector Anchor = bInitialized ? FocusPos : HeroPos;
 	const double ScanSq = FMath::Square((double)FMath::Max(CVarProjCombatScan.GetValueOnGameThread(), 1.f));
 	const bool bWantFollow = Mode == EUnitCamFocus::FollowSoldier;
@@ -221,7 +218,7 @@ FUnitCamShot FUnitCamDirector::Tick(const TArray<FVector>& Positions, const TArr
 				const double DSq = FVector::DistSquared(Positions[i], Anchor);
 				if (DSq < BestSq) { BestSq = DSq; Best = i; }
 			}
-			if (bSquadSelected)
+			if (bSquadSelected && SwarmSquad::UnitIndex(SwarmRenderPack::Squad(AnimBits[i])) == SelectedSquad)
 			{
 				RetinueSum += Positions[i];
 				++RetinueCount;
@@ -244,8 +241,8 @@ FUnitCamShot FUnitCamDirector::Tick(const TArray<FVector>& Positions, const TArr
 	{
 		// No selection: Hero mode holds the bearer dead centre, unchanged from today — no
 		// smoothing, because the hero IS the frame's subject and lag would slide him off the
-		// middle exactly when he moves. A selection retargets this to the visible-retinue
-		// centroid (see the comment above the loop) and travels there deliberately instead.
+		// middle exactly when he moves. A selection retargets this to the SELECTED unit's own
+		// real centroid (see the comment above the loop) and travels there deliberately instead.
 		const FVector HeroTarget = (bSquadSelected && RetinueCount > 0)
 			? (RetinueSum / (float)RetinueCount)
 			: HeroPos;

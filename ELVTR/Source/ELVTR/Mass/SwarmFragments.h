@@ -1,6 +1,7 @@
 #pragma once
 
 #include "MassEntityTypes.h"
+#include "SwarmCombat.h" // EUnitType
 #include "SwarmFragments.generated.h"
 
 // Anim byte layout (mirrored in NS_Swarm / M_Swarm):
@@ -142,6 +143,40 @@ namespace SwarmFacing
 }
 
 /**
+ * What FSwarmAnimFragment::SquadId actually packs (docs/design/squad-group-system.md §1.3,
+ * §8). A soldier's unit membership AND type are both assigned exactly once, at recruit
+ * time (USwarmSubsystem::AssignRecruit), and are permanent for that soldier's lifetime —
+ * neither is ever re-derived from a live, repackable quantity like a formation slot index.
+ *
+ * Packed into the SAME byte the field already was, rather than a new field, for the exact
+ * reason squad-group-system.md §8 gives for avoiding a class-layout change on a hot-path
+ * fragment: only 3 bits were ever live (0..MaxSquads-1 == 0..7), so a 4th bit for Type
+ * costs nothing new to store. §8's OWN proposal — deriving Type by comparing SquadId
+ * against a live-recomputed range boundary (Units(Spearmen), recomputed every repack from
+ * §4.1's ceil(pool/80) formula) — does not survive contact with §1.5's "type never changes
+ * through combat": that boundary is NOT monotonic (Spearmen casualties shrink
+ * Units(Spearmen)), so a soldier sitting near the boundary would flip type the instant
+ * enough of its own type-mates died. Tagging the bit directly at assignment time is the
+ * same "no new field" cost with none of that hazard — see the task-046 handback for the
+ * full reasoning; this is a deliberate, disclosed deviation from §8's literal mechanism,
+ * not a rejection of its goal. Declared here, ahead of SwarmRenderPack below, because that
+ * namespace's own squad bits reuse these same masks.
+ */
+namespace SwarmSquad
+{
+	constexpr uint8 IdMask = 0x07;   // bits 0-2: which of MaxSquads (8) unit slots
+	constexpr uint8 TypeShift = 3;
+	constexpr uint8 TypeBit = 1 << TypeShift; // bit 3: 0 = Spearmen, 1 = Archers
+
+	FORCEINLINE uint8 Pack(uint8 UnitIndex, EUnitType Type)
+	{
+		return (UnitIndex & IdMask) | (Type == EUnitType::Archers ? TypeBit : 0);
+	}
+	FORCEINLINE uint8 UnitIndex(uint8 Packed) { return Packed & IdMask; }
+	FORCEINLINE EUnitType UnitType(uint8 Packed) { return (Packed & TypeBit) ? EUnitType::Archers : EUnitType::Spearmen; }
+}
+
+/**
  * How the render buffer's int32 is laid out.
  *
  * USwarmSubsystem::RenderAnimBits has always been a TArray<int32> carrying a 7-bit anim
@@ -161,7 +196,8 @@ namespace SwarmFacing
  *   bits 0-7   anim byte (SwarmAnim)
  *   bits 8-11  size bucket: a per-entity uniform random, 0-15
  *   bits 12-16 world facing, 32 steps (SwarmFacing)
- *   bits 17-31 free
+ *   bits 17-20 squad byte (SwarmSquad) — unit index (0-2) + type (bit 3), retinue only
+ *   bits 21-31 free
  */
 namespace SwarmRenderPack
 {
@@ -177,16 +213,27 @@ namespace SwarmRenderPack
 	constexpr int32 FacingShift = 12;
 	constexpr int32 FacingIndexMask = SwarmFacing::StepMask;
 
-	FORCEINLINE int32 Pack(uint8 AnimBits, int32 SizeBucket, int32 FacingIndex = 0)
+	// Bits 17-20: the squad byte (SwarmSquad::Pack — unit index + type), so a consumer of
+	// the render buffer (the Unit Cam) can finally tell WHICH unit and WHICH type a body is
+	// without touching SquadStanding or re-deriving anything from the formation slot. Same
+	// "free bits in an already-existing TArray<int32>" reasoning as Size/Facing above — this
+	// was the exact gap docs/design/squad-group-system.md §1.3 and UnitCamDirector.cpp's own
+	// comment named ("bits 17-31 are free but nothing writes a squad id into them yet").
+	constexpr int32 SquadShift = 17;
+	constexpr int32 SquadMask = SwarmSquad::IdMask | SwarmSquad::TypeBit; // 4 bits, 0-15
+
+	FORCEINLINE int32 Pack(uint8 AnimBits, int32 SizeBucket, int32 FacingIndex = 0, uint8 SquadByte = 0)
 	{
 		return (int32)AnimBits
 			| ((SizeBucket & SizeIndexMask) << SizeShift)
-			| ((FacingIndex & FacingIndexMask) << FacingShift);
+			| ((FacingIndex & FacingIndexMask) << FacingShift)
+			| (((int32)SquadByte & SquadMask) << SquadShift);
 	}
 
 	FORCEINLINE uint8 Anim(int32 Packed) { return (uint8)(Packed & AnimMask); }
 	FORCEINLINE int32 SizeBucket(int32 Packed) { return (Packed >> SizeShift) & SizeIndexMask; }
 	FORCEINLINE int32 Facing(int32 Packed) { return (Packed >> FacingShift) & FacingIndexMask; }
+	FORCEINLINE uint8 Squad(int32 Packed) { return (uint8)((Packed >> SquadShift) & SquadMask); }
 
 	/**
 	 * Per-entity size multiplier, 1 +/- Amplitude.
@@ -224,8 +271,9 @@ struct FSwarmAnimFragment : public FMassFragment
 
 	uint8 Bits = 0;
 
-	// Retinue only: cosmetic squad grouping for the muster UI (assigned at spawn by formation
-	// slot). Not part of the anim byte sent to Niagara — the SubUV bridge reads Bits only.
+	// Retinue only: unit membership (bits 0-2) + type (bit 3) — see SwarmSquad above for the
+	// packing. Not part of the anim byte sent to Niagara — the SubUV bridge reads Bits only.
+	// Assigned once at recruit time and never rewritten (SwarmSquad's own doc comment).
 	uint8 SquadId = 0;
 
 	/**

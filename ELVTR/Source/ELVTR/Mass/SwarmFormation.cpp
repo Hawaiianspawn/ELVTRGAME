@@ -70,6 +70,36 @@ namespace
 		TEXT("0 = forward is world +X regardless of where the camera is looking."),
 		ECVF_Default);
 
+	// --- per-type formation (docs/design/squad-group-system.md §1.7) -------------------
+	// Spearmen keep the shared Swarm.Formation.* CVars above unchanged (they ARE today's
+	// retinue). Archers get their own independent set, mirroring the precedent Swarm.
+	// BroodFormation.* already set. Defaults match docs/data/unit-types.json's shipped
+	// values — UNMEASURED placeholder dials, same status as everything else in that file.
+	TAutoConsoleVariable<int32> CVarArchersShape(
+		TEXT("Swarm.Formation.Archers.Shape"), 1,
+		TEXT("Archer line shape. Same {0 Ring, 1 Block, 2 Wedge, 3 Arc} vocabulary as\n")
+		TEXT("Swarm.Formation.Shape. Default Block — reads as ranks, same as Spearmen."),
+		ECVF_Default);
+	TAutoConsoleVariable<int32> CVarArchersColumns(
+		TEXT("Swarm.Formation.Archers.Columns"), 20,
+		TEXT("Archer slots per rank. Wider than Spearmen's 12 — a wide, shallow firing line\n")
+		TEXT("reads as 'the line behind the wall' rather than a second block. [1..64]"),
+		ECVF_Default);
+	TAutoConsoleVariable<float> CVarArchersSpacing(
+		TEXT("Swarm.Formation.Archers.Spacing"), 55.f,
+		TEXT("Lateral gap within an archer rank, uu. Looser than Spearmen's 42.4 — a firing\n")
+		TEXT("line doesn't need shoulder-to-shoulder density. [40..400]"), ECVF_Default);
+	TAutoConsoleVariable<float> CVarArchersRankSpacing(
+		TEXT("Swarm.Formation.Archers.RankSpacing"), 70.f,
+		TEXT("Gap between archer ranks, uu. Shallower than Spearmen's 110 — an archer line is\n")
+		TEXT("1-2 ranks deep at v1 counts, not stacked. [40..400]"), ECVF_Default);
+	TAutoConsoleVariable<float> CVarArchersForward(
+		TEXT("Swarm.Formation.Archers.Forward"), 40.f,
+		TEXT("THE load-bearing number (spec §1.7): push archers only slightly away from the\n")
+		TEXT("bearer, well short of Spearmen's 250 — this is what makes 'archers behind\n")
+		TEXT("spearmen' true on the ground, since the spear block physically screens them.\n")
+		TEXT("[-2000..2000]"), ECVF_Default);
+
 	TAutoConsoleVariable<int32> CVarCompact(
 		TEXT("Swarm.Formation.Compact"), 1,
 		TEXT("1 = slots re-densify as people die, so the formation visibly SHRINKS and its\n")
@@ -184,6 +214,31 @@ namespace SwarmFormation
 		P.RankSpacing = FMath::Max(CVarRankSpacing.GetValueOnAnyThread(), 1.f);
 		P.Columns = FMath::Clamp(CVarColumns.GetValueOnAnyThread(), 1, 64);
 		P.Forward = CVarForward.GetValueOnAnyThread();
+		P.ArcDegrees = CVarArcDegrees.GetValueOnAnyThread();
+		P.ArcRadius = CVarArcRadius.GetValueOnAnyThread();
+		P.bCompact = CVarCompact.GetValueOnAnyThread() != 0;
+
+		const float Bearing = CVarYaw.GetValueOnAnyThread()
+			+ (CVarFaceCamera.GetValueOnAnyThread() != 0 ? CameraYawDegrees() : 0.f);
+		P.YawRadians = FMath::DegreesToRadians(Bearing);
+		return P;
+	}
+
+	FParams ReadParamsForType(EUnitType Type)
+	{
+		if (Type == EUnitType::Spearmen)
+		{
+			return ReadParams(); // Spearmen ARE today's retinue, unchanged.
+		}
+
+		FParams P;
+		P.Shape = (EShape)FMath::Clamp(CVarArchersShape.GetValueOnAnyThread(), 0, 3);
+		P.Spacing = FMath::Max(CVarArchersSpacing.GetValueOnAnyThread(), 1.f);
+		P.RankSpacing = FMath::Max(CVarArchersRankSpacing.GetValueOnAnyThread(), 1.f);
+		P.Columns = FMath::Clamp(CVarArchersColumns.GetValueOnAnyThread(), 1, 64);
+		P.Forward = CVarArchersForward.GetValueOnAnyThread();
+		// Shared across types on purpose — see ReadParamsForType's doc comment in
+		// SwarmFormation.h for why (unit-types.json ships identical arc dials for both).
 		P.ArcDegrees = CVarArcDegrees.GetValueOnAnyThread();
 		P.ArcRadius = CVarArcRadius.GetValueOnAnyThread();
 		P.bCompact = CVarCompact.GetValueOnAnyThread() != 0;

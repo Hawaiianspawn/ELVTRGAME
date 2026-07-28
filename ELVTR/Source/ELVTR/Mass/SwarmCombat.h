@@ -35,6 +35,27 @@ inline const TCHAR* LexToString(ESwarmStance Stance)
 	}
 }
 
+/**
+ * v1 typed-unit roster (docs/design/squad-group-system.md §1.1) — exactly two types,
+ * deliberately, per Design Law 5. Assigned once at recruit time (USwarmSubsystem::
+ * AssignRecruit) and permanent: never changed by combat, promotion, repacking or
+ * reinforcement (§1.5). Values match docs/data/unit-types.json's ordering (spearmen
+ * first) so a future third type is an additive enum entry, not a renumbering.
+ */
+UENUM()
+enum class EUnitType : uint8
+{
+	Spearmen	UMETA(DisplayName = "Spearmen"),
+	Archers		UMETA(DisplayName = "Archers"),
+};
+
+inline constexpr int32 NumUnitTypes = 2;
+
+inline const TCHAR* LexToString(EUnitType Type)
+{
+	return Type == EUnitType::Archers ? TEXT("ARCHERS") : TEXT("SPEARMEN");
+}
+
 USTRUCT()
 struct FSwarmHealthFragment : public FMassFragment
 {
@@ -86,6 +107,52 @@ namespace SwarmCombatTuning
 	 */
 	int32 RetinueTargetsPerHit();
 	int32 BroodTargetsPerHit();
+
+	// --- typed units (docs/design/squad-group-system.md §1, §2, §4.1) ------------------
+	// Spearmen ARE today's retinue (RetinueMaxHP/RetinueDPS/MeleeRange/RetinueTargetsPerHit
+	// above, unchanged names — no churn on the shipped, owner-tuned Gate 1 defaults).
+	// Archers are new: minimum-viable ranged combat, §2.2 — reuses the existing
+	// StrikeReachSq/BlowsClaimed grid mechanism with a larger EngageRange, no new pass.
+
+	/** Archer HP/DPS — docs/data/unit-types.json types.archers.combat, unmeasured (§7.5). */
+	float ArchersMaxHP();
+	float ArchersDPS();
+
+	/**
+	 * How far an archer's blow reaches, uu — the load-bearing ranged-combat number (§2.2).
+	 * Reaches through the SAME grid Spearmen/brood melee already uses; nothing about the
+	 * grid, the victim-pull rule, or BlowsClaimed's conservation-of-damage guarantee
+	 * assumes a small radius. Comfortably inside the 3x3 grid's 750uu reach at
+	 * USwarmSubsystem::GridCellSize 250 (task-052) — raising this past 750 would silently
+	 * behave as 750 regardless of what the CVar says, same caveat as Swarm.BroodAggroRange.
+	 */
+	float ArchersEngageRange();
+
+	/**
+	 * An archer will not engage anything closer than this to ITSELF, uu (§2.2's line-of-fire
+	 * mitigation: "won't visibly shoot into its own scrum"). Cheap, local approximation —
+	 * NOT true line-of-sight against a specific ally (Design Law 5 rules out per-pair
+	 * occlusion at horde scale) — just a band [MinEngageRange, EngageRange] on the archer's
+	 * own reach instead of [0, EngageRange]. Archers stand well behind the spear line
+	 * (Swarm.Formation.Archers.Forward), so in practice this only bites if the line breaks.
+	 */
+	float ArchersMinEngageRange();
+
+	/** Archer cleave — 1 by design (precise single-target volleys, not free cleave a mass
+	 *  archer line hasn't earned through positioning the way Spearmen's K=8 has). */
+	int32 ArchersTargetsPerHit();
+
+	/** Archer march speed, as a multiple of SwarmTuning::RetinueSpeed (SwarmProcessors.cpp). */
+	float ArchersMoveSpeedScale();
+
+	/**
+	 * Fraction of each new recruit rolled Archer rather than Spearman (docs/data/
+	 * unit-types.json growth_source_weight — 0.8/0.2). v1 recruitment has no real
+	 * "growth site" system yet (GDD §9's "flags, not simulation" — see §1.4), so this
+	 * stands in for a generator-tagged site: every new soldier rolls its type against
+	 * this weight at spawn, independent of any other soldier's roll.
+	 */
+	float ArcherGrowthWeight();
 
 	// --- swing cadence + hit reaction -----------------------------------
 	// The DPS values above are still the design currency; the cadence only decides

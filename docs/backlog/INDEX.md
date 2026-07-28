@@ -8,7 +8,7 @@ the total so a disagreement costs one sentence, not a re-read.
 
 | proposed | approved | in-progress | needs-review | done | rejected | parked |
 |---|---|---|---|---|---|---|
-| 41 | 0 | 1 | 2 | 9 | 0 | 1 |
+| 41 | 0 | 2 | 1 | 10 | 0 | 1 |
 
 ## Audit queue — top 7 awaiting your verdict
 
@@ -60,7 +60,6 @@ A fan is approved in one batch and dispatched one teammate per task. `⨝` joins
 | `038` | 2.0 | [Fold the settled design specs into SYSTEMS.md as decision records](task-038-fold-settled-specs-into-systems-md.md) | gameplay-director | `SYSTEMS.md` | `docs/GDD-TODO.md:85` |
 | `042` | 2.0 | [Trial rust-gold and eulbink as LUT rows against the locked demichrome](task-042-trial-candidate-palettes-as-lut-rows.md) | pixel-art-director | `docs/art/palette-trials.md` | `user` |
 | `041` | 1.5 | [Build Phase B — the index + palette-ID LUT pipeline](task-041-phase-b-index-lut-pipeline.md) | claude | `ELVTR/Content/PostProcess/**`, `ELVTR/Source/ELVTR/Rendering/**`, `ELVTR/Source/ELVTR/UI/EmberkeepPalette.h`, `docs/RENDERING-LIGHTING.md`, `Scripts/art/pixelpipe.py` | `docs/RENDERING-LIGHTING.md:21` |
-| `046` | 1.33 | [Build the squad command layer in Mass — sticky SquadId, per-squad stance, published centroids](task-046-squad-command-layer-in-mass.md) | claude | `ELVTR/Source/ELVTR/Mass/**`, `ELVTR/Source/ELVTR/UI/UnitCamDirector.cpp`, `ELVTR/Source/ELVTR/UI/UnitCamDirector.h`, `ELVTR/Source/ELVTR/UI/UnitCamProjector.cpp`, `ELVTR/Source/ELVTR/UI/UnitCamProjector.h` | `docs/design/squad-group-system.md` |
 | `013` | 1.0 | [Write the Lampbearer rework art spec (brief-006)](task-013-lampbearer-rework-art-spec.md) | pixel-art-director | `docs/art/noll.md`, `docs/briefs/brief-006-lampbearer-rework.md` | `docs/briefs/brief-006-lampbearer-rework.md` |
 | `016` | 1.0 | [Write GDD §12 Q6's resolution back into the table](task-016-gdd-q6-palette-strategy.md) | claude | `GDD.md` | `GDD.md:430` |
 | `019` | 1.0 | [Retire the stale "emitter draws zero particles" claims across the perf and camera docs](task-019-retire-stale-sprite-gpu-sim-claims.md) | performance-director | `docs/perf/niagara-sprite-refactor.md`, `docs/design/CAMERA-SCALE.md` | `docs/perf/niagara-sprite-refactor.md:94` |
@@ -69,6 +68,7 @@ A fan is approved in one batch and dispatched one teammate per task. `⨝` joins
 | `032` | 1.0 | [Final naming pass on the four classes (GDD Q11 / CLASSES C1)](task-032-final-class-naming-pass.md) | narrative-director | `docs/narrative/class-naming-pass.md` | `GDD.md:437` |
 | `035` | 1.0 | [Design the S8 "Silent Bell" world-flag effects](task-035-silent-bell-world-flag-effects.md) | gameplay-director | `docs/design/world-flag-s8.md` | `docs/GDD-TODO.md:114` |
 | `054` | 1.0 | [Build the feeding-distraction mechanic in Mass — corpses, kill attribution, and the three-slot feed](task-054-build-feeding-distraction-in-mass.md) | claude | `ELVTR/Source/ELVTR/Mass/SwarmCombat.h`, `ELVTR/Source/ELVTR/Mass/SwarmCombatProcessors.cpp`, `ELVTR/Source/ELVTR/Mass/SwarmCombatProcessors.h`, `ELVTR/Source/ELVTR/Mass/SwarmFragments.h`, `ELVTR/Saved/SwarmExecOnPlay.txt` | `user` |
+| `055` | 1.0 | [Pack every PixelLab character state per type, so a rank of spearmen has visual variety](task-055-pack-character-states-for-unit-variety.md) | claude | `ELVTR/Content/Sprites/Units/**`, `RawArt/Renders/knight/**`, `RawArt/Renders/archer-proxy/**`, `RawArt/Sheets/T_Soldier_Knight*.png`, `RawArt/Sheets/T_Soldier_Archer*.png`, `docs/data/art/provenance.json` | `user` |
 | `025` | 0.67 | [Spec the procgen room-graph generator over the prefab library](task-025-procgen-room-graph-generator.md) | gameplay-director | `docs/design/procgen-room-graph.md`, `docs/data/room-types.json`, `docs/data/room-types.schema.md` | `docs/RTS-VERTICAL-SLICE.md:102` |
 | `026` | 0.67 | [Produce the Highgates tileset](task-026-highgates-tileset.md) | pixel-art-director | `docs/art/highgates-tileset.md` | `docs/RTS-VERTICAL-SLICE.md:109` |
 | `036` | 0.67 | [Design the runtime pacing director (L4D-style intensity manager)](task-036-pacing-director-intensity-manager.md) | gameplay-director | `docs/design/pacing-director.md` | `docs/GDD-TODO.md:115` |
@@ -78,31 +78,32 @@ A fan is approved in one batch and dispatched one teammate per task. `⨝` joins
 | `033` | 0.33 | [Unwitnessed faction — final name, titan variety, horror level](task-033-unwitnessed-faction-revisit.md) | narrative-director | `docs/narrative/unwitnessed.md` | `docs/GDD-TODO.md:109` |
 | `034` | 0.25 | [Full loot & itemization system](task-034-full-loot-and-itemization-system.md) | gameplay-director | `docs/design/loot-full.md` | `docs/GDD-TODO.md:112` |
 
-## in-progress (1)
+## in-progress (2)
 
 | id | score | task | agent | owns | source |
 |---|---|---|---|---|---|
 | `039` | 9.0 | [Retire the dead Gatecamp hexes from six art specs, CLASSES.md, and the art-director definition](task-039-retire-dead-gatecamp-hexes.md) | pixel-art-director | `docs/art/hallam.md`, `docs/art/edda.md`, `docs/art/merle.md`, `docs/art/noll.md`, `docs/art/warden-captain-bree.md`, `docs/art/brees-stairwell.md`, `docs/art/aesthetic-direction.md`, `.claude/agents/pixel-art-director.md` | `docs/art/aesthetic-direction.md:556` |
+| `046` | 2.67 | [Build the typed-unit command layer in Mass — sticky type, per-type stance, per-type allocation, published centroids](task-046-squad-command-layer-in-mass.md) | claude | `ELVTR/Source/ELVTR/Mass/**`, `ELVTR/Source/ELVTR/UI/UnitCamProjector.cpp`, `ELVTR/Source/ELVTR/UI/UnitCamProjector.h`, `ELVTR/Source/ELVTR/UI/UnitCamDirector.cpp`, `ELVTR/Source/ELVTR/UI/UnitCamDirector.h` | `docs/design/squad-group-system.md` |
 
-## needs-review (2)
+## needs-review (1)
 
 | id | score | task | agent | owns | source |
 |---|---|---|---|---|---|
-| `052` | 2.0 | [Widen the spatial grid so archers can actually reach 750uu, and measure what it costs](task-052-widen-the-spatial-grid-for-archer-range.md) | claude | `ELVTR/Source/ELVTR/Mass/SwarmSubsystem.h`, `ELVTR/Source/ELVTR/Mass/SwarmProcessors.cpp`, `ELVTR/Source/ELVTR/Mass/SwarmProcessors.h`, `ELVTR/Source/ELVTR/Mass/SwarmCombatProcessors.cpp`, `docs/perf/grid-cell-size.md` | `user` |
 | `053` | 2.0 | [Spec the feeding-distraction mechanic — killers go null on the corpse, three per body, armor sets the chomp](task-053-feeding-distraction-mechanic-spec.md) | gameplay-director | `docs/design/feeding-distraction.md`, `docs/data/feeding.json`, `docs/data/feeding.schema.md` | `user` |
 
-## done (9)
+## done (10)
 
 | id | score | task | agent | owns | source |
 |---|---|---|---|---|---|
 | `043` | 6.0 | [Put a live palette-preset dial on the Breadboard](task-043-live-palette-dial-on-the-breadboard.md) | claude | `ELVTR/Content/PostProcess/M_PP_Demichrome**`, `ELVTR/Content/PostProcess/MPC_Flame**`, `ELVTR/Source/ELVTR/Rendering/SwarmRenderActor.cpp`, `.claude/skills/cvars/SKILL.md`, `docs/data/art/palette.json` | `user` |
-| `045` | 4.0 | [Frame the majority of the retinue in both centre-column panels and clamp the Unit Cam yaw](task-045-unit-cam-group-framing-and-yaw-clamp.md) | claude | `ELVTR/Source/ELVTR/UI/UnitCamDirector.cpp`, `ELVTR/Source/ELVTR/UI/UnitCamDirector.h`, `ELVTR/Source/ELVTR/UI/UnitCamProjector.cpp`, `ELVTR/Source/ELVTR/UI/UnitCamProjector.h`, `ELVTR/Source/ELVTR/UI/ViewCamCapture.cpp`, `ELVTR/Source/ELVTR/UI/ViewCamCapture.h` | `user` |
 | `050` | 3.0 | [Draw the real sprite set in the Unit Cam — six soldier variants, the hero, and an archer proxy](task-050-wire-real-sprites-into-the-unit-cam.md) | claude | `ELVTR/Source/ELVTR/UI/UnitCamProjector.cpp`, `ELVTR/Source/ELVTR/UI/UnitCamProjector.h`, `ELVTR/Content/Sprites/**`, `RawArt/Renders/archer-proxy/**`, `RawArt/Sheets/T_Soldier_Archer.png`, `docs/data/art/provenance.json` | `user` |
 | `021` | 2.0 | [Measure the per-entity cost and design the group-as-cost-boundary (squad aggregation)](task-021-mass-squad-aggregation.md) | performance-director | `docs/perf/squad-aggregation.md` | `docs/RTS-VERTICAL-SLICE.md:95` |
 | `044` | 2.0 | [Spec the squad group system and the Unit Cam group-framing target](task-044-squad-group-system-and-framing-target.md) | gameplay-director | `docs/design/squad-group-system.md`, `docs/data/squads.json`, `docs/data/squads.schema.md`, `ELVTR/Content/SwarmControls/**` | `user` |
+| `045` | 2.0 | [Frame the majority of the retinue in both centre-column panels and clamp the Unit Cam yaw](task-045-unit-cam-group-framing-and-yaw-clamp.md) | claude | `ELVTR/Source/ELVTR/UI/UnitCamDirector.cpp`, `ELVTR/Source/ELVTR/UI/UnitCamDirector.h`, `ELVTR/Source/ELVTR/UI/UnitCamProjector.cpp`, `ELVTR/Source/ELVTR/UI/UnitCamProjector.h`, `ELVTR/Source/ELVTR/UI/ViewCamCapture.cpp`, `ELVTR/Source/ELVTR/UI/ViewCamCapture.h` | `user` |
 | `047` | 2.0 | [Make the brood arrive as a front, in ranks, instead of surrounding the hero as a mob](task-047-brood-arrives-as-a-front-in-ranks.md) | claude | `ELVTR/Source/ELVTR/Mass/SwarmCommands.cpp`, `ELVTR/Source/ELVTR/Mass/SwarmFormation.cpp`, `ELVTR/Source/ELVTR/Mass/SwarmFormation.h`, `ELVTR/Source/ELVTR/Mass/SwarmProcessors.cpp`, `ELVTR/Source/ELVTR/Mass/SwarmProcessors.h`, `ELVTR/Source/ELVTR/Mass/SwarmFragments.h`, `ELVTR/Saved/SwarmExecOnPlay.txt` | `user` |
 | `048` | 2.0 | [Fix the visual-evidence capture path so agent-driven PIE can prove what it built](task-048-fix-the-visual-evidence-capture-path.md) | claude | `ELVTR/Source/ELVTR/Rendering/SwarmRenderActor.cpp`, `docs/AGENT-TEAMS.md` | `user` |
 | `049` | 2.0 | [Rework the squad system as typed Total War-style units, and settle the Unit Cam default view](task-049-typed-units-total-war-model.md) | gameplay-director | `docs/design/squad-group-system.md`, `docs/data/squads.json`, `docs/data/squads.schema.md`, `docs/data/unit-types.json`, `docs/data/unit-types.schema.md` | `user` |
+| `052` | 2.0 | [Widen the spatial grid so archers can actually reach 750uu, and measure what it costs](task-052-widen-the-spatial-grid-for-archer-range.md) | claude | `ELVTR/Source/ELVTR/Mass/SwarmSubsystem.h`, `ELVTR/Source/ELVTR/Mass/SwarmProcessors.cpp`, `ELVTR/Source/ELVTR/Mass/SwarmProcessors.h`, `ELVTR/Source/ELVTR/Mass/SwarmCombatProcessors.cpp`, `docs/perf/grid-cell-size.md` | `user` |
 | `051` | 1.0 | [Build the art asset matrix and a coverage audit that finds missing, unwired and off-ramp art](task-051-art-coverage-matrix-and-audit.md) | claude | `docs/data/art/asset-matrix.json`, `docs/data/art/asset-matrix.schema.md`, `.claude/skills/art-coverage/**`, `Scripts/art/coverage.py` | `user` |
 
 ## parked (1)
@@ -113,4 +114,4 @@ A fan is approved in one batch and dispatched one teammate per task. `⨝` joins
 
 ---
 
-*Regenerated 2026-07-27 · 54 task(s) · decisions in [LOG.md](LOG.md).*
+*Regenerated 2026-07-27 · 55 task(s) · decisions in [LOG.md](LOG.md).*

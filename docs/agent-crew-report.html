@@ -1,0 +1,338 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8">
+<title>Kindled — Encounter Design Crew · Assignment #3</title>
+<style>
+  @page { size: A4; margin: 16mm 15mm 14mm; }
+  :root {
+    --paper:#faf8f4; --ink:#1b1b21; --dim:#5d5c56; --rule:#ddd8cc;
+    --bone:#8a8a72; --ember:#b0601c; --deep:#2f3a4a; --ok:#4a6b45; --warn:#8a6a1f;
+    --serif:"Iowan Old Style","Palatino Linotype",Palatino,Georgia,serif;
+    --mono:ui-monospace,"Cascadia Mono",Consolas,Menlo,monospace;
+  }
+  * { box-sizing:border-box; }
+  body { background:var(--paper); color:var(--ink); font-family:var(--serif);
+         font-size:10.2pt; line-height:1.5; margin:0; }
+  h1,h2,h3 { text-wrap:balance; margin:0; font-weight:600; }
+  h1 { font-size:25pt; line-height:1.1; letter-spacing:-.01em; }
+  h2 { font-size:13.5pt; margin:0 0 .35rem; padding-bottom:.2rem; border-bottom:1.5px solid var(--bone); }
+  h3 { font-size:10.8pt; margin:.9rem 0 .2rem; }
+  p { margin:0 0 .55rem; max-width:66ch; }
+  section { margin-top:1.15rem; break-inside:avoid-page; }
+  .lead { font-size:11pt; color:var(--dim); }
+
+  .eyebrow { font-family:var(--mono); font-size:7.4pt; letter-spacing:.19em;
+             text-transform:uppercase; color:var(--ember); margin:0 0 .3rem; }
+  header { border-bottom:3px solid var(--ink); padding-bottom:.7rem; }
+  .byline { font-family:var(--mono); font-size:8.2pt; color:var(--dim); margin-top:.45rem;
+            display:flex; gap:1.1rem; flex-wrap:wrap; }
+  .byline b { color:var(--ink); font-weight:600; }
+
+  table { width:100%; border-collapse:collapse; margin:.45rem 0 .2rem; font-size:9pt; }
+  th { text-align:left; font-family:var(--mono); font-size:7.4pt; letter-spacing:.11em;
+       text-transform:uppercase; color:var(--dim); border-bottom:1px solid var(--bone);
+       padding:.3rem .45rem .25rem; vertical-align:bottom; }
+  td { padding:.34rem .45rem; border-bottom:1px solid var(--rule); vertical-align:top; }
+  tbody tr:last-child td { border-bottom:none; }
+  code { font-family:var(--mono); font-size:8.4pt; }
+  .num { font-family:var(--mono); font-variant-numeric:tabular-nums; white-space:nowrap; }
+
+  .rubric td:first-child { font-weight:600; width:8.4rem; }
+  .rubric .pts { font-family:var(--mono); text-align:right; white-space:nowrap; color:var(--ember); }
+
+  .facts { display:flex; gap:.5rem; margin:.6rem 0 .2rem; }
+  .fact { flex:1; border:1px solid var(--rule); border-top:2.5px solid var(--deep);
+          padding:.45rem .55rem; background:#fff; }
+  .fact dt { font-family:var(--mono); font-size:7pt; letter-spacing:.1em; text-transform:uppercase;
+             color:var(--dim); }
+  .fact dd { margin:.12rem 0 0; font-family:var(--mono); font-size:13pt;
+             font-variant-numeric:tabular-nums; }
+  .fact.pass { border-top-color:var(--ok); } .fact.pass dd { color:var(--ok); }
+  .fact.warn { border-top-color:var(--warn); } .fact.warn dd { color:var(--warn); }
+
+  figure { margin:.5rem 0 .3rem; break-inside:avoid-page; }
+  figure svg { width:100%; height:auto; }
+  figcaption { font-size:8.4pt; color:var(--dim); margin-top:.25rem; }
+  pre { font-family:var(--mono); font-size:7.8pt; line-height:1.4; background:#fff;
+        border:1px solid var(--rule); border-left:2.5px solid var(--bone);
+        padding:.5rem .6rem; overflow-x:auto; margin:.35rem 0; }
+  .kill { background:#fff; border:1px solid var(--rule); border-left:2.5px solid var(--ember);
+          padding:.45rem .6rem; margin:.3rem 0; font-size:9pt; }
+  .kill b { font-family:var(--mono); font-size:8.4pt; }
+  footer { margin-top:1.3rem; padding-top:.5rem; border-top:1px solid var(--rule);
+           font-size:8pt; color:var(--dim); }
+  .pb { break-before:page; }
+</style></head><body>
+
+<header>
+  <p class="eyebrow">Multi-Agent AI for Game Development · Assignment #3</p>
+  <h1>Kindled — Encounter Design Crew</h1>
+  <p class="lead">Six agents that turn measured project canon into a DataTable-ready encounter
+  specification, priced against a hard frame budget.</p>
+  <p class="byline"><span>Aaron Low</span><span><b>Game:</b> Kindled (Unreal Engine 5.8)</span>
+  <span><b>Crew:</b> <code>crew/kindled_crew.py</code></span><span>28 July 2026</span></p>
+</header>
+
+<section>
+  <h2>Where each criterion is answered</h2>
+  <table class="rubric">
+    <thead><tr><th>Criterion</th><th>Evidence in this submission</th><th class="pts">Pts</th></tr></thead>
+    <tbody>
+      <tr><td>Working Crew</td><td>Six agents run end to end with no crash. Latest run emitted
+        <b>7 DataTable rows</b> after <b>1 negotiation round</b> — §5, with the full agent transcript in
+        <code>crew/out/run-report.md</code>.</td><td class="pts">3.0</td></tr>
+      <tr><td>Game Connection</td><td>Built for <b>Kindled</b>, the capstone. Output is consumed by the
+        UE project in this same repository; the crew reads that project's own shipped design and
+        <i>measured</i> performance files — §1 and §6.</td><td class="pts">3.0</td></tr>
+      <tr><td>Role Clarity</td><td>Per-agent role, inputs and outputs — §4 — plus what breaks if each
+        is removed.</td><td class="pts">2.0</td></tr>
+      <tr><td>Architecture Diagram</td><td>Mermaid <code>flowchart TD</code> in
+        <code>crew/README.md</code>, rendered at §3.</td><td class="pts">1.0</td></tr>
+      <tr><td>ReadMe</td><td><code>crew/README.md</code> — names the game, states the crew's purpose,
+        describes what it produces.</td><td class="pts">1.0</td></tr>
+    </tbody>
+  </table>
+</section>
+
+<section>
+  <h2>1 · The game, and why encounters are a budget problem</h2>
+  <p><b>Kindled</b> is a top-down roguelike in Unreal Engine 5.8. You carry the only fire in a
+  pitch-dark world, and an army gathers in your light because outside it they die. You command that
+  army through four broad stances rather than unit selection — three to ten units early, hundreds by
+  late run.</p>
+  <p>That premise makes encounter design a <b>budget question, not a taste question</b>. Every enemy
+  on screen costs draw time, and the project has a measured cost curve for exactly that
+  (<code>docs/perf/BUDGETS.md</code>). The ceiling is hard: <b>16.6 ms per frame</b>. A wave that
+  reads well but cannot be drawn is not a design — which is why this crew contains an agent whose
+  only power is to reject the designer's work.</p>
+</section>
+
+<section>
+  <h2>2 · What the crew produces</h2>
+  <p>One run writes the wave composition for one floor of the vertical slice, priced against the real
+  frame budget and checked against the game's locked 4-value palette:</p>
+  <table>
+    <thead><tr><th>Artifact</th><th>What it is</th></tr></thead>
+    <tbody>
+      <tr><td><code>out/encounters.json</code></td><td>Flat DataTable-shaped rows, importable by the UE project</td></tr>
+      <tr><td><code>out/encounters.schema.md</code></td><td>Column contract — units, ranges, meaning</td></tr>
+      <tr><td><code>out/run-report.md</code></td><td>Verdicts, numbers, and the full inter-agent transcript</td></tr>
+    </tbody>
+  </table>
+</section>
+
+<section>
+  <h2>3 · Architecture</h2>
+  <figure><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 960 742" width="100%" font-family="Segoe UI, Helvetica, Arial, sans-serif">
+  <defs>
+    <marker id="arw" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M 0 0 L 10 5 L 0 10 z" fill="#5a5a66"/>
+    </marker>
+    <marker id="arwE" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M 0 0 L 10 5 L 0 10 z" fill="#b4531a"/>
+    </marker>
+  </defs>
+
+  <style>
+    .agent  { fill:#2b2b33; stroke:#b4531a; stroke-width:2; }
+    .src    { fill:#f4f4f6; stroke:#9a9aa4; stroke-width:1.5; }
+    .out    { fill:#fdf3ec; stroke:#b4531a; stroke-width:1.5; }
+    .an     { fill:#ffffff; font-size:17px; font-weight:700; }
+    .ar     { fill:#b9b9c4; font-size:12.5px; font-style:italic; }
+    .st     { fill:#22222a; font-size:13px; font-weight:700; }
+    .ss     { fill:#63636e; font-size:11.5px; }
+    .ot     { fill:#22222a; font-size:12.5px; font-weight:700; }
+    .edge   { stroke:#5a5a66; stroke-width:1.6; fill:none; marker-end:url(#arw); }
+    .edgeE  { stroke:#b4531a; stroke-width:2.2; fill:none; marker-end:url(#arwE); stroke-dasharray:7 5; }
+    .el     { fill:#6e6e78; font-size:11.5px; font-style:italic; }
+    .elE    { fill:#b4531a; font-size:12px; font-weight:700; }
+    .band   { fill:#8a8a94; font-size:11px; letter-spacing:.14em; font-weight:700; }
+  </style>
+
+  <!-- ── sources ───────────────────────────────────────────── -->
+  <text class="band" x="60" y="20">REPO CANON — REAL PROJECT FILES</text>
+  <rect class="src" x="60"  y="32" width="380" height="52" rx="6"/>
+  <text class="st" x="76" y="55">docs/GATE1-FUN-PROTOTYPE.md</text>
+  <text class="ss" x="76" y="72">shipped combat defaults, wave sizes, retinue cap</text>
+
+  <rect class="src" x="520" y="32" width="380" height="52" rx="6"/>
+  <text class="st" x="536" y="55">docs/perf/BUDGETS.md</text>
+  <text class="ss" x="536" y="72">measured draw-cost curve, 5 points</text>
+
+  <!-- ── canon-reader ──────────────────────────────────────── -->
+  <path class="edge" d="M250,84 L250,104 L462,104 L462,120"/>
+  <path class="edge" d="M710,84 L710,104 L498,104 L498,120"/>
+  <rect class="agent" x="270" y="122" width="420" height="54" rx="7"/>
+  <text class="an" x="290" y="147">canon-reader</text>
+  <text class="ar" x="290" y="165">grounds every downstream number in a measured source</text>
+
+  <!-- ── roster-architect ──────────────────────────────────── -->
+  <path class="edge" d="M480,176 L480,206"/>
+  <text class="el" x="490" y="196">canon</text>
+  <rect class="agent" x="270" y="208" width="420" height="54" rx="7"/>
+  <text class="an" x="290" y="233">roster-architect</text>
+  <text class="ar" x="290" y="251">fodder → soldier → elite → boss, as measured multipliers</text>
+
+  <!-- ── negotiation pair ──────────────────────────────────── -->
+  <text class="band" x="60" y="296">THE NEGOTIATION — THIS LOOP IS WHAT MAKES IT A CREW</text>
+  <path class="edge" d="M400,262 L400,300 L230,300 L230,318"/>
+  <text class="el" x="410" y="284">tiers</text>
+
+  <rect class="agent" x="60" y="320" width="360" height="58" rx="7"/>
+  <text class="an" x="80" y="345">encounter-architect</text>
+  <text class="ar" x="80" y="364">composes 3 waves; redesigns when rejected</text>
+
+  <rect class="agent" x="540" y="320" width="360" height="58" rx="7"/>
+  <text class="an" x="560" y="345">budget-auditor</text>
+  <text class="ar" x="560" y="364">prices peak entities on the measured curve</text>
+
+  <path class="edge" d="M420,338 L536,338"/>
+  <text class="el" x="440" y="332">plan</text>
+  <path class="edgeE" d="M540,366 L424,366"/>
+  <text class="elE" x="432" y="392">revision_directive — REVISE, over budget</text>
+
+  <!-- ── readability ───────────────────────────────────────── -->
+  <path class="edge" d="M170,378 L170,432"/>
+  <text class="el" x="180" y="410">plan</text>
+  <rect class="agent" x="60" y="434" width="360" height="58" rx="7"/>
+  <text class="an" x="80" y="459">readability-auditor</text>
+  <text class="ar" x="80" y="478">guards the locked 4-value palette</text>
+
+  <!-- ── emitter ───────────────────────────────────────────── -->
+  <path class="edge" d="M720,378 L720,520 L690,520"/>
+  <text class="el" x="730" y="450">budget_verdict</text>
+  <path class="edge" d="M240,492 L240,520 L268,520"/>
+  <text class="el" x="88" y="514">readability_verdict</text>
+
+  <rect class="agent" x="270" y="494" width="420" height="54" rx="7"/>
+  <text class="an" x="290" y="519">data-emitter</text>
+  <text class="ar" x="290" y="537">refuses to write an unaudited or over-budget encounter</text>
+
+  <!-- ── outputs ───────────────────────────────────────────── -->
+  <text class="band" x="60" y="572">GAME-READY OUTPUT</text>
+  <path class="edge" d="M370,548 L370,584 L200,584 L200,602"/>
+  <path class="edge" d="M480,548 L480,602"/>
+  <path class="edge" d="M590,548 L590,584 L760,584 L760,602"/>
+
+  <rect class="out" x="60"  y="604" width="280" height="62" rx="6"/>
+  <text class="ot" x="76" y="626">encounters.json</text>
+  <text class="ss" x="76" y="644">flat typed rows —</text>
+  <text class="ss" x="76" y="659">imports as an Unreal DataTable</text>
+
+  <rect class="out" x="360" y="604" width="240" height="62" rx="6"/>
+  <text class="ot" x="376" y="626">encounters.schema.md</text>
+  <text class="ss" x="376" y="644">column contract +</text>
+  <text class="ss" x="376" y="659">audit state at generation</text>
+
+  <rect class="out" x="620" y="604" width="280" height="62" rx="6"/>
+  <text class="ot" x="636" y="626">run-report.md</text>
+  <text class="ss" x="636" y="644">roles, encounter table,</text>
+  <text class="ss" x="636" y="659">full negotiation transcript</text>
+
+  <text class="ss" x="60" y="700">Every agent declares the blackboard keys it may read and write. The Blackboard enforces those declarations at runtime,</text>
+  <text class="ss" x="60" y="717">so removing any agent halts the run at the first consumer that needs its artifact — the graph above is executable, not drawn.</text>
+</svg>
+
+  <figcaption>Data flow between the six agents. Source: <code>flowchart TD</code> in
+  <code>crew/README.md</code>. Solid arrows carry named blackboard keys; the dashed return path is the
+  budget auditor sending a plan back for redesign.</figcaption></figure>
+</section>
+
+<section class="pb">
+  <h2>4 · The six agents</h2>
+  <p>Every agent reads a named key and writes a named key. Nothing is passed implicitly — an agent
+  cannot read a key it did not declare, which is what makes the ordering load-bearing rather than
+  incidental.</p>
+  <table>
+    <thead><tr><th>Agent</th><th>Role</th><th>Reads</th><th>Writes</th></tr></thead>
+    <tbody>
+      <tr><td><code>canon-reader</code></td><td>Parses the project's shipped design and measured
+        performance docs into one fact block, so no downstream agent invents a number.</td>
+        <td>—</td><td><code>canon</code></td></tr>
+      <tr><td><code>roster-architect</code></td><td>Derives the tier ladder (fodder → soldier → elite →
+        boss) as multipliers over the measured combat baseline, and prices each tier.</td>
+        <td><code>canon</code></td><td><code>tiers</code></td></tr>
+      <tr><td><code>encounter-architect</code></td><td>Composes the three escalating waves and the spawn
+        cadence — and redesigns when an auditor sends the plan back.</td>
+        <td><code>canon</code>, <code>tiers</code>, <code>revision_directive</code></td><td><code>plan</code></td></tr>
+      <tr><td><code>budget-auditor</code></td><td>Projects peak concurrent entities onto the measured
+        cost curve. Returns PASS, or REVISE with a scale directive the architect must obey.</td>
+        <td><code>canon</code>, <code>plan</code></td><td><code>budget_verdict</code>, <code>revision_directive</code></td></tr>
+      <tr><td><code>readability-auditor</code></td><td>Checks each wave's simultaneous distinct
+        silhouettes against the locked 4-value palette.</td>
+        <td><code>canon</code>, <code>plan</code></td><td><code>readability_verdict</code></td></tr>
+      <tr><td><code>data-emitter</code></td><td>Flattens the approved plan into DataTable rows, writes the
+        column schema, and refuses to emit anything that has not passed both audits.</td>
+        <td>all of the above</td><td><code>artifacts</code></td></tr>
+    </tbody>
+  </table>
+
+  <h3>Why no agent is removable</h3>
+  <div class="kill"><b>canon-reader</b> — every downstream number becomes invented. The crew would still
+  run and produce a plausible-looking encounter with no grounding in the game.</div>
+  <div class="kill"><b>roster-architect</b> — the encounter architect has bodies but no tiers to compose
+  from, and no per-tier cost to be audited against.</div>
+  <div class="kill"><b>encounter-architect</b> — nothing produces a <code>plan</code>; both auditors and
+  the emitter have no input.</div>
+  <div class="kill"><b>budget-auditor</b> — the crew emits encounters it cannot draw. This is the agent
+  that actually fired on the latest run, forcing a redesign.</div>
+  <div class="kill"><b>readability-auditor</b> — waves ship that are affordable but unparseable at speed,
+  which the 4-value palette makes a real failure mode rather than a hypothetical one.</div>
+  <div class="kill"><b>data-emitter</b> — verdicts exist but nothing reaches the game. No artifact is
+  produced at all.</div>
+</section>
+
+<section>
+  <h2>5 · Evidence it runs</h2>
+  <div class="facts">
+    <div class="fact"><dt>Agents</dt><dd>6</dd></div>
+    <div class="fact"><dt>Rows emitted</dt><dd>7</dd></div>
+    <div class="fact"><dt>Negotiation rounds</dt><dd>1</dd></div>
+    <div class="fact pass"><dt>Budget</dt><dd>PASS</dd></div>
+    <div class="fact warn"><dt>Readability</dt><dd>CROWDED</dd></div>
+  </div>
+  <p>The crew does not merely run in sequence — the auditors have power over the designer. On the
+  latest run the budget auditor rejected the first plan and issued a scale directive; the encounter
+  architect recomposed the waves and the second plan passed. That round trip is the pipeline working
+  as designed, and it is recorded in the transcript.</p>
+  <table>
+    <thead><tr><th>Wave</th><th class="num">Bodies</th><th>Composition</th><th class="num">Budget pts</th><th>Spawn</th></tr></thead>
+    <tbody>
+      <tr><td>1</td><td class="num">250</td><td>fodder ×250</td><td class="num">250</td><td><code>ring</code></td></tr>
+      <tr><td>2</td><td class="num">450</td><td>fodder ×338, soldier ×112</td><td class="num">674</td><td><code>ring</code></td></tr>
+      <tr><td>3</td><td class="num">701</td><td>fodder ×420, soldier ×238, elite ×42, boss ×1</td><td class="num">1698</td><td><code>arena_entrances</code></td></tr>
+    </tbody>
+  </table>
+  <p style="margin-top:.5rem"><b>Budget verdict.</b> Peak concurrent entities <span class="num">821</span>
+  (wave 3 plus the retinue cap of 120), projected at <span class="num">11.12 ms</span> against the
+  <span class="num">16.6 ms</span> budget — <span class="num">5.48 ms</span> of headroom, on the measured
+  draw curve for a single client.</p>
+  <p><b>Readability verdict: CROWDED.</b> Wave 3 puts four distinct enemy types on screen against two
+  free palette values. The crew reports this rather than suppressing it — an honest warning the designer
+  can act on is worth more than a silent pass.</p>
+<pre>canon-reader          -&gt; wrote  canon
+roster-architect      &lt;- read   canon
+roster-architect      -&gt; wrote  tiers
+encounter-architect   &lt;- read   canon, tiers
+encounter-architect   -&gt; wrote  plan
+budget-auditor        -&gt; REVISE (scale directive)
+encounter-architect   -&gt; wrote  plan        (round 2)
+budget-auditor        -&gt; PASS   11.12ms / 16.6ms
+readability-auditor   -&gt; CROWDED
+data-emitter          -&gt; 7 rows, schema, report</pre>
+</section>
+
+<section>
+  <h2>6 · How the output reaches the game</h2>
+  <p><code>encounters.json</code> is emitted flat and typed, with one unique row key per entry, so it
+  imports directly as an Unreal DataTable — the same shape the project's other design data uses. The
+  schema file states each column's units and valid range, so a designer changing a number by hand knows
+  what they are changing.</p>
+  <p>The connection runs both ways, and that is the point: the crew <i>reads</i> the game's real measured
+  files and <i>writes</i> data the game consumes. It is not a general-purpose encounter generator pointed
+  at a game — it is grounded in this project's own numbers, and its budget verdicts are only meaningful
+  because those numbers were measured rather than assumed.</p>
+</section>
+
+<footer>Kindled · Assignment #3, Build an Agent Crew · Aaron Low · 28 July 2026 ·
+Crew code, README and Mermaid source in <code>crew/</code>; generated artifacts in <code>crew/out/</code>.</footer>
+</body></html>

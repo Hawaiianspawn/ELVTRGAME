@@ -8,6 +8,7 @@
 
 #include "CoreMinimal.h"
 #include "Engine/World.h"
+#include "Engine/Engine.h"
 #include "HAL/IConsoleManager.h"
 #include "MassCommonFragments.h"
 #include "MassEntityManager.h"
@@ -18,6 +19,7 @@
 #include "SwarmFormation.h"
 #include "SwarmFragments.h"
 #include "SwarmSubsystem.h"
+#include "TimerManager.h"
 
 namespace
 {
@@ -126,6 +128,11 @@ namespace
 	{
 		bool bBrood = true;
 		int32 Count = 0;
+		// Vestigial for retinue as of task-046: formation slots are now TYPE-LOCAL, derived
+		// per-recruit from USwarmSubsystem::GetAliveByType (see the recruitment block in
+		// SpawnSwarm below), not from a flat cursor the caller has to track. Kept as a
+		// public parameter so SpawnRetinue's signature — and every existing call site
+		// (Spike1GameMode, the Swarm.SpawnRetinue console command) — doesn't have to churn.
 		int32 SlotBase = 0;
 	};
 
@@ -173,7 +180,10 @@ namespace
 		const FVector Center = Swarm->GetAttractor();
 		FRandomStream Rand(FPlatformTime::Cycles());
 
-		const SwarmFormation::FParams Formation = SwarmFormation::ReadParams();
+		// Spearmen's formation (== today's retinue). Archers read their own independent
+		// params (Swarm.Formation.Archers.*) — see SwarmFormation::ReadParamsForType.
+		const SwarmFormation::FParams Formation = SwarmFormation::ReadParamsForType(EUnitType::Spearmen);
+		const SwarmFormation::FParams ArchersFormation = SwarmFormation::ReadParamsForType(EUnitType::Archers);
 
 		// Brood formation: SwarmFormation::FParams/BroodSlotOffset again (SwarmFormation.h)
 		// — the retinue's own vocabulary, laid out on the brood's spawn arc instead of the
@@ -193,7 +203,7 @@ namespace
 			BroodFormation.YawRadians = FMath::DegreesToRadians(BroodBearingDeg);
 		}
 
-		const float MaxHP = Params.bBrood ? SwarmCombatTuning::BroodMaxHP() : SwarmCombatTuning::RetinueMaxHP();
+		const float BroodMaxHP = SwarmCombatTuning::BroodMaxHP();
 
 		// Retinue keeps the original fixed +/-15%: your line's raggedness isn't a dial
 		// anyone has asked to move, and the formation slots already stagger it.
@@ -202,11 +212,29 @@ namespace
 			? FMath::Clamp(CVarBroodSpeedJitter.GetValueOnGameThread(), 0.f, 0.95f)
 			: RetinueSpeedJitter;
 
+		// --- typed-unit recruitment (docs/design/squad-group-system.md §1.4) --------------
+		// Every new soldier rolls its type independently against Swarm.ArcherGrowthWeight
+		// (stand-in for a generator-tagged growth site — v1 has no real site system, §1.4).
+		// SlotIndex is now TYPE-LOCAL (0..Pool(type)-1, not 0..AliveRetinue-1): each type
+		// gets its own dense formation-slot space (§1.2/§8), so the cursor for each type
+		// starts from that type's OWN current live count, not the flat Params.SlotBase this
+		// used to share across both. AssignRecruit is also handed how many of that type
+		// THIS BATCH has already produced, so a big single batch (e.g. StartingRetinue)
+		// opens however many new units its own recruits justify, not just last frame's.
+		const float ArcherWeight = SwarmCombatTuning::ArcherGrowthWeight();
+		int32 SlotCursorByType[NumUnitTypes] = {
+			Swarm->GetAliveByType(EUnitType::Spearmen), Swarm->GetAliveByType(EUnitType::Archers)
+		};
+		int32 RecruitedThisBatch[NumUnitTypes] = {};
+
 		for (int32 Index = 0; Index < Entities.Num(); ++Index)
 		{
 			FMassEntityView View(EntityManager, Entities[Index]);
 
 			FVector SpawnLocation;
+			float MaxHP = BroodMaxHP;
+			float TypeSpeedScale = 1.f;
+
 			if (Params.bBrood)
 			{
 				// Rank/column slot on the spawn arc (SwarmFormation::BroodSlotOffset).
@@ -220,19 +248,31 @@ namespace
 			}
 			else
 			{
+				const EUnitType Type = (Rand.FRand() < ArcherWeight) ? EUnitType::Archers : EUnitType::Spearmen;
+				const int32 TypeIdx = (int32)Type;
+				const uint8 SquadByte = Swarm->AssignRecruit(Type, RecruitedThisBatch[TypeIdx]++);
+
+				MaxHP = (Type == EUnitType::Archers) ? SwarmCombatTuning::ArchersMaxHP() : SwarmCombatTuning::RetinueMaxHP();
+				TypeSpeedScale = (Type == EUnitType::Archers) ? SwarmCombatTuning::ArchersMoveSpeedScale() : 1.f;
+
 				// Only the index is stored — the offset below is just where to drop the
 				// unit on frame one. The steering pass re-derives its place every frame
-				// from the live formation dials (SwarmFormation.h).
-				const int32 Slot = Params.SlotBase + Index;
+				// from the live formation dials, per this soldier's own type (SwarmFormation.h).
+				const int32 Slot = SlotCursorByType[TypeIdx]++;
 				View.GetFragmentData<FRetinueFollowFragment>().SlotIndex = Slot;
-				const FVector2D Offset = SwarmFormation::SlotOffset(Slot, Formation);
+				const SwarmFormation::FParams& MyFormation = (Type == EUnitType::Archers) ? ArchersFormation : Formation;
+				const FVector2D Offset = SwarmFormation::SlotOffset(Slot, MyFormation);
 				SpawnLocation = Center + FVector(Offset.X, Offset.Y, 0.f);
+
+				FSwarmAnimFragment& AnimFragment = View.GetFragmentData<FSwarmAnimFragment>();
+				AnimFragment.Bits = SwarmAnim::TeamBit;
+				AnimFragment.SquadId = SquadByte;
 			}
 
 			View.GetFragmentData<FTransformFragment>().GetMutableTransform().SetTranslation(SpawnLocation);
 
 			FSwarmJitterFragment& JitterFragment = View.GetFragmentData<FSwarmJitterFragment>();
-			JitterFragment.SpeedScale = Rand.FRandRange(1.f - SpeedJitter, 1.f + SpeedJitter);
+			JitterFragment.SpeedScale = TypeSpeedScale * Rand.FRandRange(1.f - SpeedJitter, 1.f + SpeedJitter);
 			JitterFragment.Phase = Rand.FRandRange(0.f, 10.f);
 
 			FSwarmHealthFragment& HealthFragment = View.GetFragmentData<FSwarmHealthFragment>();
@@ -245,13 +285,6 @@ namespace
 			// reads as one pulsing organism rather than a mêlée.
 			View.GetFragmentData<FSwarmStrikeFragment>().SwingTime =
 				FMath::Fmod(JitterFragment.Phase, SwarmCombatTuning::SwingInterval());
-
-			if (!Params.bBrood)
-			{
-				FSwarmAnimFragment& AnimFragment = View.GetFragmentData<FSwarmAnimFragment>();
-				AnimFragment.Bits = SwarmAnim::TeamBit;
-				AnimFragment.SquadId = (uint8)USwarmSubsystem::SquadIdForSlot(Params.SlotBase + Index);
-			}
 		}
 
 		Swarm->TrackSpawned(Entities);
@@ -301,6 +334,45 @@ namespace
 				SwarmSpawn::ClearAll(World);
 			}));
 
+	// Evidence tool (task-046): a one-shot delayed console command, so an exec-on-play
+	// sequence (Saved/SwarmExecOnPlay.txt — the only scripted-scenario surface this repo
+	// has; MCP has no live console-command injection, see docs/AGENT-TEAMS.md's MCP CVar
+	// notes) can stage a SECOND action after combat has had time to produce casualties —
+	// e.g. re-running Swarm.LogSquadRoster to compare against a T=0 snapshot. Mirrors the
+	// timer pattern Swarm.DebugShotAfter already uses (ASwarmRenderActor, out of this
+	// task's owned files) instead of duplicating it there.
+	FAutoConsoleCommandWithWorldAndArgs GRunAfterCmd(
+		TEXT("Swarm.RunAfter"),
+		TEXT("Run a console command once, N seconds from now. Usage:\n")
+		TEXT("Swarm.RunAfter <seconds> <command> [args...]"),
+		FConsoleCommandWithWorldAndArgsDelegate::CreateStatic(
+			[](const TArray<FString>& Args, UWorld* World)
+			{
+				if (!World || Args.Num() < 2)
+				{
+					UE_LOG(LogTemp, Warning, TEXT("Swarm.RunAfter: usage <seconds> <command> [args...]"));
+					return;
+				}
+				const float Delay = FMath::Max(FCString::Atof(*Args[0]), 0.f);
+				FString Command = Args[1];
+				for (int32 i = 2; i < Args.Num(); ++i)
+				{
+					Command += TEXT(" ");
+					Command += Args[i];
+				}
+				TWeakObjectPtr<UWorld> WeakWorld(World);
+				FTimerHandle Handle;
+				World->GetTimerManager().SetTimer(Handle, FTimerDelegate::CreateLambda(
+					[WeakWorld, Command]()
+					{
+						if (UWorld* W = WeakWorld.Get())
+						{
+							GEngine->Exec(W, *Command);
+						}
+					}), Delay, false);
+				UE_LOG(LogTemp, Display, TEXT("Swarm.RunAfter: will run '%s' in %.1fs"), *Command, Delay);
+			}));
+
 	FAutoConsoleCommandWithWorldAndArgs GStanceCmd(
 		TEXT("Swarm.Stance"),
 		TEXT("Set the retinue stance. Usage: Swarm.Stance Follow|Charge|Hold|Rally"),
@@ -320,6 +392,84 @@ namespace
 
 				Swarm->SetStance(Stance, Swarm->GetAttractor());
 				UE_LOG(LogTemp, Display, TEXT("Swarm: stance = %s"), LexToString(Stance));
+			}));
+
+	// Addressed order (docs/design/squad-group-system.md §3): one named unit instead of
+	// "all". Stand-in input surface — the real driver is a muster-card click/hotkey, owned
+	// elsewhere (mirrors Emberkeep.UnitCamProj.SelectedSquad's own stand-in precedent,
+	// UnitCamDirector.cpp). Does NOT touch the global Stance/StanceAnchor or any other
+	// unit's order — see USwarmSubsystem::SetUnitStance.
+	FAutoConsoleCommandWithWorldAndArgs GUnitStanceCmd(
+		TEXT("Swarm.UnitStance"),
+		TEXT("Set ONE unit's stance, leaving every other unit (and the 'all units' order)\n")
+		TEXT("untouched. Usage: Swarm.UnitStance <0-7> Follow|Charge|Hold|Rally"),
+		FConsoleCommandWithWorldAndArgsDelegate::CreateStatic(
+			[](const TArray<FString>& Args, UWorld* World)
+			{
+				USwarmSubsystem* Swarm = World ? World->GetSubsystem<USwarmSubsystem>() : nullptr;
+				if (!Swarm || Args.Num() < 2)
+				{
+					UE_LOG(LogTemp, Warning, TEXT("Swarm.UnitStance: usage <0-7> Follow|Charge|Hold|Rally"));
+					return;
+				}
+				const int32 UnitIndex = FCString::Atoi(*Args[0]);
+				const FString& Name = Args[1];
+				ESwarmStance Stance = ESwarmStance::Follow;
+				if (Name.Equals(TEXT("Charge"), ESearchCase::IgnoreCase)) { Stance = ESwarmStance::Charge; }
+				else if (Name.Equals(TEXT("Hold"), ESearchCase::IgnoreCase)) { Stance = ESwarmStance::Hold; }
+				else if (Name.Equals(TEXT("Rally"), ESearchCase::IgnoreCase)) { Stance = ESwarmStance::Rally; }
+
+				Swarm->SetUnitStance(UnitIndex, Stance, Swarm->GetAttractor());
+				UE_LOG(LogTemp, Display, TEXT("Swarm: unit %d stance = %s (type %s)"),
+					UnitIndex, LexToString(Stance), LexToString(Swarm->GetSquadType(UnitIndex)));
+			}));
+
+	// Evidence tool (task-046): dump every tracked entity's PERMANENT (unit, type) pair —
+	// squad-group-system.md §1.3's sticky-SquadId fix should hold no matter how many
+	// casualties land elsewhere. Log this before and after a wave of casualties and the
+	// same entities must report the same unit + type both times; a repack may re-densify
+	// FRetinueFollowFragment::SlotIndex (their spot in the line) but never SquadId.
+	FAutoConsoleCommandWithWorldAndArgs GLogSquadRosterCmd(
+		TEXT("Swarm.LogSquadRoster"),
+		TEXT("Log every tracked retinue entity's (EntityIndex, unit, type). Usage:\n")
+		TEXT("Swarm.LogSquadRoster — logs everyone. Swarm.LogSquadRoster <0-7> — one unit only."),
+		FConsoleCommandWithWorldAndArgsDelegate::CreateStatic(
+			[](const TArray<FString>& Args, UWorld* World)
+			{
+				USwarmSubsystem* Swarm = World ? World->GetSubsystem<USwarmSubsystem>() : nullptr;
+				UMassEntitySubsystem* MassSubsystem = World ? World->GetSubsystem<UMassEntitySubsystem>() : nullptr;
+				if (!Swarm || !MassSubsystem)
+				{
+					return;
+				}
+				const bool bFilterUnit = Args.Num() > 0;
+				const int32 FilterUnit = bFilterUnit ? FCString::Atoi(*Args[0]) : 0;
+
+				const FMassEntityManager& EntityManager = MassSubsystem->GetEntityManager();
+				int32 Logged = 0;
+				for (const FMassEntityHandle& Handle : Swarm->GetTrackedEntities())
+				{
+					if (!EntityManager.IsEntityValid(Handle))
+					{
+						continue;
+					}
+					const FMassEntityView View(EntityManager, Handle);
+					const FSwarmAnimFragment* Anim = View.GetFragmentDataPtr<FSwarmAnimFragment>();
+					if (!Anim || (Anim->Bits & SwarmAnim::TeamBit) == 0)
+					{
+						continue; // brood carry no unit/type
+					}
+					const int32 UnitIdx = SwarmSquad::UnitIndex(Anim->SquadId);
+					if (bFilterUnit && UnitIdx != FilterUnit)
+					{
+						continue;
+					}
+					UE_LOG(LogTemp, Display, TEXT("  Entity[idx=%d,serial=%d]: unit=%d type=%s"),
+						Handle.Index, Handle.SerialNumber, UnitIdx, LexToString(SwarmSquad::UnitType(Anim->SquadId)));
+					++Logged;
+				}
+				UE_LOG(LogTemp, Display, TEXT("Swarm.LogSquadRoster: %d entit%s logged."),
+					Logged, Logged == 1 ? TEXT("y") : TEXT("ies"));
 			}));
 }
 

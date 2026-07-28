@@ -145,13 +145,15 @@ protected:
 	virtual void NativeTick(const FGeometry& MyGeometry, float DeltaTime) override;
 
 	/**
-	 * Army View (docs/design/squad-group-system.md §4.1) — the resting state (no squad
-	 * selected): <=8 per-squad aggregate blocks instead of individual billboards. Does not touch
+	 * Army View (docs/design/squad-group-system.md §5.4) — the resting state (no unit
+	 * selected): <=8 per-unit aggregate blocks instead of individual billboards. Does not touch
 	 * Director or the perspective camera at all; a fixed, bearer-centred top-down read, same as
-	 * an RTS group overview. FAKE, disclosed: block position is a placeholder ring around the
-	 * bearer (USwarmSubsystem has no real per-squad centroid yet); standing count and the live
-	 * label ARE real (GetSquadStanding); tint is the one global GetStance(), not a real
-	 * per-squad stance (also not built yet) — every block tints identically for now.
+	 * an RTS group overview. As of task-046, position (SquadCentroidSum), standing/label
+	 * (GetSquadStanding), per-unit stance tint (GetUnitStance), and type marker (GetSquadType,
+	 * "S·"/"A·" prefix per §5.4's block_type_marker) are all REAL. Still simplified: the world-
+	 * to-panel mapping has no yaw/camera-facing alignment (this mode has no established "up-
+	 * screen is forward" convention of its own yet) — a straight, unrotated offset scaled so a
+	 * unit at the leash radius lands at the block layout's outer edge.
 	 */
 	void BuildArmyView(const class USwarmSubsystem& Swarm);
 

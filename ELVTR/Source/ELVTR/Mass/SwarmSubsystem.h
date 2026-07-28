@@ -39,15 +39,28 @@ public:
 	 */
 	static constexpr float GridCellSize = 250.f;
 
-	// --- cosmetic squads (muster UI) -------------------------------------
-	static constexpr int32 MaxSquads = 8;        // hard cap; slots beyond fold into the last squad
-	static constexpr int32 SquadTargetSize = 20; // formation slots per squad
+	// --- typed units (muster UI + command layer) --------------------------
+	// docs/design/squad-group-system.md §1.0: "squad" and "unit" are the same thing from
+	// here on — SquadId/MaxSquads/squads.json all keep their existing names (a terminology
+	// merge, not a code rename) but now name a TYPED thing (§1.1: Spearmen, Archers).
+	static constexpr int32 MaxSquads = 8;        // hard cap; the shared command-handle budget
+	static constexpr int32 SquadTargetSize = 20; // legacy per-unit formation-slot reference size
 
-	/** Squad a formation slot belongs to — contiguous chunks, capped at MaxSquads-1. */
-	static int32 SquadIdForSlot(int32 Slot)
-	{
-		return FMath::Clamp(Slot / SquadTargetSize, 0, MaxSquads - 1);
-	}
+	/**
+	 * Per-type legibility ceiling (§4.1's `squad_size_legibility_ceiling`, docs/data/
+	 * squads.json). A type's derived unit COUNT is ceil(Pool(type) / this), recomputed at
+	 * every recruit and every formation repack — see AssignRecruit and §4.1's formula.
+	 */
+	static constexpr int32 TypeLegibilityCeiling = 80;
+
+	/**
+	 * SquadIdForSlot is GONE (docs/design/squad-group-system.md §1.3): deriving a unit id
+	 * from the dense, repackable formation slot index is exactly the defect this task
+	 * fixes — that index silently renumbers on any casualty anywhere, which used to be
+	 * cosmetic and would not stay cosmetic once a unit owns a stance or a type. SquadId
+	 * (now packed with type — see SwarmSquad in SwarmFragments.h) is assigned ONCE, at
+	 * recruit time, by AssignRecruit below, and never re-derived from anything that moves.
+	 */
 
 	// --- attractor -------------------------------------------------------
 	void SetAttractor(const FVector& InLocation) { Attractor = InLocation; }
@@ -123,7 +136,16 @@ public:
 	int64 GetTotalKilledRetinue() const { return TotalKilledRetinue; }
 	int64 GetTotalKilledBrood() const { return TotalKilledBrood; }
 
-	// --- stance ----------------------------------------------------------
+	// --- stance ------------------------------------------------------------
+	// docs/design/squad-group-system.md §3: an order now targets an ADDRESS — "all units"
+	// (default) or one named unit. GetStance/SetStance/GetStanceAnchor keep their EXACT
+	// existing meaning and every existing call site (SpikeHeroPawn's four stance hotkeys,
+	// EmberkeepHud, SwarmTelemetry, UnitCamProjector's Army View tint) is untouched — this
+	// is the main way this task could regress today's only behavior, so nothing about the
+	// "all units" path changed: SetStance still records the single last-commanded whole-
+	// retinue order AND (new) fans it out to every per-unit slot below, so a soldier's own
+	// per-unit lookup reads the identical value it would have read from the old single
+	// global Stance/StanceAnchor when no unit has ever been individually addressed.
 	ESwarmStance GetStance() const { return Stance; }
 
 	/**
@@ -135,8 +157,38 @@ public:
 	{
 		Stance = InStance;
 		StanceAnchor = WorldPoint;
+		// "All" writes every slot, both types — unchanged from today's only behavior (§3).
+		for (int32 i = 0; i < MaxSquads; ++i)
+		{
+			UnitStance[i] = InStance;
+			UnitStanceAnchor[i] = WorldPoint;
+		}
 	}
 	FVector GetStanceAnchor() const { return StanceAnchor; }
+
+	/**
+	 * Address ONE unit (0..MaxSquads-1) with an order, leaving every other unit's stance —
+	 * and the global "all units" Stance/StanceAnchor above — untouched. New in this task;
+	 * the real input surface (muster-card click / hotkey) is owned elsewhere (per
+	 * UnitCamDirector.cpp's own precedent for CVar-as-placeholder-surface) — Swarm.
+	 * UnitStance in SwarmCommands.cpp is the stand-in console command until that lands.
+	 */
+	void SetUnitStance(int32 UnitIndex, ESwarmStance InStance, const FVector& WorldPoint)
+	{
+		if (UnitIndex >= 0 && UnitIndex < MaxSquads)
+		{
+			UnitStance[UnitIndex] = InStance;
+			UnitStanceAnchor[UnitIndex] = WorldPoint;
+		}
+	}
+	ESwarmStance GetUnitStance(int32 UnitIndex) const
+	{
+		return (UnitIndex >= 0 && UnitIndex < MaxSquads) ? UnitStance[UnitIndex] : Stance;
+	}
+	FVector GetUnitStanceAnchor(int32 UnitIndex) const
+	{
+		return (UnitIndex >= 0 && UnitIndex < MaxSquads) ? UnitStanceAnchor[UnitIndex] : StanceAnchor;
+	}
 
 	// --- spatial grid (rebuilt by USwarmGridBuildProcessor) ---------------
 	struct FGridEntry
@@ -196,6 +248,16 @@ public:
 		 */
 		int32 TargetsPerHit = 0;
 		mutable int32 BlowsClaimed = 0;
+
+		/**
+		 * How much ONE blow from this entry deals, snapshotted at grid-build time from its
+		 * own team/type + DPS (SwarmCombatTuning). Replaces the old "one shared blow value
+		 * per TEAM" assumption (Strikers-count * flat TeamBlow) now that retinue strikers
+		 * aren't all one type — a Spearman and an Archer striking the same victim this frame
+		 * must not deal the same damage. Read by every victim that claims this entry's blow,
+		 * same as StrikeReachSq/TargetsPerHit above.
+		 */
+		float BlowDamage = 0.f;
 	};
 
 	void ResetGrid(int32 ExpectedCount)
@@ -205,10 +267,10 @@ public:
 	}
 
 	void AddToGrid(const FVector& Location, bool bRetinue, bool bStriking = false,
-		float StrikeReachSq = 0.f, int32 TargetsPerHit = 0)
+		float StrikeReachSq = 0.f, int32 TargetsPerHit = 0, float BlowDamage = 0.f)
 	{
 		const FIntPoint Cell = ToCell(Location);
-		Grid.FindOrAdd(Cell).Add(FGridEntry{ Location, bRetinue, bStriking, StrikeReachSq, TargetsPerHit });
+		Grid.FindOrAdd(Cell).Add(FGridEntry{ Location, bRetinue, bStriking, StrikeReachSq, TargetsPerHit, 0, BlowDamage });
 	}
 
 	static FIntPoint ToCell(const FVector& Location)
@@ -286,6 +348,8 @@ public:
 		AliveBrood = 0;
 		LeashBroken = 0;
 		for (int32& S : SquadStanding) { S = 0; }
+		for (FVector& C : SquadCentroidSum) { C = FVector::ZeroVector; }
+		for (int32& P : AlivePoolByType) { P = 0; }
 	}
 
 	/**
@@ -297,16 +361,25 @@ public:
 	 * sheet column. Which column that becomes depends on the yaw of whoever is looking
 	 * (main camera vs. Unit Cam), so the conversion belongs to each renderer and the
 	 * sim stays ignorant of the sheet — see SwarmFacing.
+	 *
+	 * SquadId is now the SwarmSquad-packed byte (unit index + type, see SwarmFragments.h).
+	 * It rides into the render int32 too (SwarmRenderPack::Squad) — the piece
+	 * docs/design/squad-group-system.md §1.3 and UnitCamDirector.cpp's own comment named
+	 * as missing: a render-buffer consumer (the Unit Cam) can now decode a body's real
+	 * unit AND type instead of approximating off the whole visible retinue.
 	 */
 	void PushRenderEntry(const FVector& Location, uint8 AnimBits, uint8 SquadId = 0, int32 SizeBucket = 0,
 		int32 FacingIndex = 0)
 	{
 		RenderPositions.Add(Location);
-		RenderAnimBits.Add(SwarmRenderPack::Pack(AnimBits, SizeBucket, FacingIndex));
+		RenderAnimBits.Add(SwarmRenderPack::Pack(AnimBits, SizeBucket, FacingIndex, SquadId));
 		if ((AnimBits & SwarmAnim::TeamBit) != 0)
 		{
 			++AliveRetinue;
-			SquadStanding[FMath::Min<int32>(SquadId, MaxSquads - 1)]++;
+			const int32 UnitIndex = FMath::Min<int32>(SwarmSquad::UnitIndex(SquadId), MaxSquads - 1);
+			SquadStanding[UnitIndex]++;
+			SquadCentroidSum[UnitIndex] += Location;
+			AlivePoolByType[(int32)SwarmSquad::UnitType(SquadId)]++;
 		}
 		else
 		{
@@ -323,11 +396,38 @@ public:
 		return (Index >= 0 && Index < MaxSquads) ? SquadStanding[Index] : 0;
 	}
 
+	/**
+	 * Real per-unit centroid (docs/design/squad-group-system.md §1.2's SquadCentroidSum),
+	 * accumulated on the SAME PushRenderEntry pass that already receives Location and
+	 * SquadId per unit — no second O(N) walk. Zero vector for an empty/unclaimed unit;
+	 * callers already gate on GetSquadStanding(Index) > 0 (BuildArmyView, UnitCamDirector).
+	 * Valid after integrate, same lifetime as GetSquadStanding.
+	 */
+	FVector GetSquadCentroid(int32 Index) const
+	{
+		if (Index < 0 || Index >= MaxSquads || SquadStanding[Index] <= 0) { return FVector::ZeroVector; }
+		return SquadCentroidSum[Index] / (float)SquadStanding[Index];
+	}
+
+	/** Which type unit Index (0..MaxSquads-1) is — valid only once AssignRecruit has claimed
+	 *  it (IsSquadClaimed). Sticky: set once by AssignRecruit, never rewritten. */
+	EUnitType GetSquadType(int32 Index) const
+	{
+		return (Index >= 0 && Index < MaxSquads) ? SquadType[Index] : EUnitType::Spearmen;
+	}
+	bool IsSquadClaimed(int32 Index) const
+	{
+		return (Index >= 0 && Index < MaxSquads) && SquadClaimed[Index];
+	}
+
 	// --- live counts (valid from the end of the integrate pass) -----------
 	int32 GetAliveRetinue() const { return AliveRetinue; }
 	int32 GetAliveBrood() const { return AliveBrood; }
 	int32 GetLeashBrokenCount() const { return LeashBroken; }
 	void AddLeashBroken(int32 Count) { LeashBroken += Count; }
+
+	/** Live standing pool of one type, valid after integrate (§4.1's Pool(type)). */
+	int32 GetAliveByType(EUnitType Type) const { return AlivePoolByType[(int32)Type]; }
 
 	// --- formation repack --------------------------------------------------
 	// The formation slot index has to stay DENSE for the shape to mean anything: with a
@@ -336,11 +436,95 @@ public:
 	// so it is gated on the standing count actually having moved rather than run per
 	// frame. AliveRetinue is last frame's count when the steering pass reads it, which is
 	// exactly right — one frame of lag on re-forming a line is invisible.
+	//
+	// TWO independent repacks, one per TYPE, not one retinue-wide sort and not eight
+	// per-unit-of-8 sorts (docs/design/squad-group-system.md §1.2, §8: "a type's units
+	// still share ONE dense index space that subdivides into unit-sized chunks... scoped
+	// to the type's own pool instead of the whole retinue" / "TWO independent dense
+	// repacks (one per type) instead of one retinue-wide repack"). A stable type skips its
+	// repack while the other type reforms — cheaper in aggregate than one big sort, and
+	// this is the actual unit of "cheaper" the spec asks for, not a per-unit-of-8 grain.
 
 	bool NeedsFormationRepack() const { return AliveRetinue != PackedRetinueCount; }
 	void MarkFormationPacked() { PackedRetinueCount = AliveRetinue; }
 	/** Force a repack next pass — for changes the count alone would not reveal. */
 	void MarkFormationDirty() { PackedRetinueCount = -1; }
+
+	bool NeedsFormationRepack(EUnitType Type) const
+	{
+		return AlivePoolByType[(int32)Type] != PackedPoolByType[(int32)Type];
+	}
+	void MarkFormationPacked(EUnitType Type) { PackedPoolByType[(int32)Type] = AlivePoolByType[(int32)Type]; }
+
+	// --- recruitment (docs/design/squad-group-system.md §1.4, §4.1) -------------------
+	/**
+	 * Assign a newly recruited soldier's permanent (unit, type) pair. Fill-lowest-first
+	 * into the least-full EXISTING unit of Type; opens a new unit — Spearmen claiming the
+	 * lowest free global id, Archers the highest (§4.1's "Spearmen claim first", made
+	 * concrete as a topology: the two types grow the shared 0..MaxSquads-1 budget from
+	 * opposite ends instead of needing to renumber to avoid colliding in the middle) —
+	 * once §4.1's derived want (ceil(Pool/TypeLegibilityCeiling)) exceeds the type's
+	 * current live unit count and a global slot remains. Falls back to folding into the
+	 * type's own existing units (or, if the type owns nothing yet and the whole 8-slot
+	 * budget is already claimed by the other type, unit 0) once the budget is exhausted —
+	 * §4.2's own honestly-flagged breaking point, not a crash.
+	 *
+	 * Reads last frame's SquadStanding (the same one-frame lag the formation repack
+	 * already tolerates) plus a caller-supplied count of how many of this type this same
+	 * spawn batch has already produced, so a big batch (e.g. StartingRetinue) opens
+	 * however many new units its own recruits actually justify instead of only ever
+	 * reacting to last frame's snapshot.
+	 */
+	uint8 AssignRecruit(EUnitType Type, int32 AlreadyRecruitedThisBatch = 0)
+	{
+		int32 BestUnit = INDEX_NONE;
+		int32 BestStanding = TNumericLimits<int32>::Max();
+		int32 TypeUnitCount = 0;
+		int32 TypePool = AlreadyRecruitedThisBatch;
+		for (int32 i = 0; i < MaxSquads; ++i)
+		{
+			if (!SquadClaimed[i] || SquadType[i] != Type) { continue; }
+			++TypeUnitCount;
+			TypePool += SquadStanding[i];
+			if (SquadStanding[i] < BestStanding) { BestStanding = SquadStanding[i]; BestUnit = i; }
+		}
+
+		// +1: as-if this recruit already counted, so the soldier that TIPS a unit over the
+		// ceiling starts the new one instead of being asked to join the one it just filled.
+		const int32 WantedUnits = FMath::Max(1, (TypePool + 1 + TypeLegibilityCeiling - 1) / TypeLegibilityCeiling);
+		const bool bWantNewUnit = (TypeUnitCount == 0) || (WantedUnits > TypeUnitCount);
+
+		if (bWantNewUnit)
+		{
+			int32 NewId = INDEX_NONE;
+			if (Type == EUnitType::Spearmen)
+			{
+				for (int32 i = 0; i < MaxSquads; ++i) { if (!SquadClaimed[i]) { NewId = i; break; } }
+			}
+			else
+			{
+				for (int32 i = MaxSquads - 1; i >= 0; --i) { if (!SquadClaimed[i]) { NewId = i; break; } }
+			}
+			if (NewId != INDEX_NONE)
+			{
+				SquadClaimed[NewId] = true;
+				SquadType[NewId] = Type;
+				return SwarmSquad::Pack((uint8)NewId, Type);
+			}
+			// No free global slot anywhere — §4.2's own named breaking point (the 8-handle
+			// budget is fully claimed by the two types combined). Fold into this type's own
+			// units below rather than crash.
+		}
+
+		if (BestUnit == INDEX_NONE)
+		{
+			// This type owns nothing yet AND no free slot exists (the other type claimed
+			// all 8) — degrade to unit 0 rather than lose the recruit. Same §4.2 edge.
+			BestUnit = 0;
+			if (!SquadClaimed[0]) { SquadClaimed[0] = true; SquadType[0] = Type; }
+		}
+		return SwarmSquad::Pack((uint8)BestUnit, Type);
+	}
 
 	// --- bookkeeping -------------------------------------------------------
 	void TrackSpawned(const TArray<FMassEntityHandle>& Handles) { AllEntities.Append(Handles); }
@@ -363,6 +547,14 @@ public:
 		bHeroStriking = false;
 		Stance = ESwarmStance::Follow;
 		StanceAnchor = FVector::ZeroVector;
+		for (int32 i = 0; i < MaxSquads; ++i)
+		{
+			UnitStance[i] = ESwarmStance::Follow;
+			UnitStanceAnchor[i] = FVector::ZeroVector;
+			SquadClaimed[i] = false;
+			SquadType[i] = EUnitType::Spearmen;
+		}
+		for (int32& P : PackedPoolByType) { P = -1; }
 		HeroContacts = 0;
 		HeroContactsThisFrame = 0;
 		TotalDamageToRetinue = 0.0;
@@ -390,8 +582,17 @@ private:
 	TMap<FIntPoint, TArray<FGridEntry>> Grid;
 	TArray<FVector> RenderPositions;
 	TArray<int32> RenderAnimBits;
-	int32 SquadStanding[MaxSquads] = {}; // live retinue count per cosmetic squad, refilled each frame
+	int32 SquadStanding[MaxSquads] = {}; // live retinue count per unit, refilled each frame
+	FVector SquadCentroidSum[MaxSquads] = {}; // sum of member locations per unit, refilled each frame
 	TArray<FMassEntityHandle> AllEntities;
+
+	// --- typed-unit command layer (docs/design/squad-group-system.md §1) --------------
+	bool SquadClaimed[MaxSquads] = {};                         // has AssignRecruit ever opened this unit id
+	EUnitType SquadType[MaxSquads] = {};                        // sticky — set once by AssignRecruit
+	ESwarmStance UnitStance[MaxSquads] = {};                    // per-unit order; "all" writes every slot
+	FVector UnitStanceAnchor[MaxSquads] = {};
+	int32 AlivePoolByType[NumUnitTypes] = {};                   // live standing per type, refilled each frame
+	int32 PackedPoolByType[NumUnitTypes] = { -1, -1 };          // pool as of each type's last formation repack
 
 	int32 AliveRetinue = 0;
 	int32 AliveBrood = 0;

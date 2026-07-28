@@ -124,8 +124,15 @@ task-044 · Flame flicker scales with army size          docs/backlog/task-044-�
   evidence    <the artifact that proves it done>
   won't touch GDD.md, SYSTEMS.md, NS_Swarm.uasset
   why now     <two sentences>
+  confidence  high — <the one thing that would drop it>
   open        <anything you assumed past — or omit the line>
 ```
+
+**`confidence` is required and it is about the plan, not the outcome.** High means the
+scope, the `owns:` set and the evidence bar all survived contact with the repo. Medium or
+low means name what is soft — an unverified canon claim, an `owns:` glob you guessed at, a
+teammate that may not have the tools. The owner is about to approve with one click, so the
+line that tells them when *not* to is the one carrying its weight.
 
 For a fan, show one such block per sibling under an `epic <slug>` heading, then one
 line naming the batch: which ids approve together, which is the join, and what the

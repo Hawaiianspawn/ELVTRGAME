@@ -1,150 +1,174 @@
 ---
 id: 046
-title: Build the squad command layer in Mass — sticky SquadId, per-squad stance, published centroids
-status: proposed
+title: Build the typed-unit command layer in Mass — sticky type, per-type stance, per-type allocation, published centroids
+status: in-progress
 agent: claude
-owns: ["ELVTR/Source/ELVTR/Mass/**", "ELVTR/Source/ELVTR/UI/UnitCamDirector.cpp", "ELVTR/Source/ELVTR/UI/UnitCamDirector.h", "ELVTR/Source/ELVTR/UI/UnitCamProjector.cpp", "ELVTR/Source/ELVTR/UI/UnitCamProjector.h"]
+owns: ["ELVTR/Source/ELVTR/Mass/**", "ELVTR/Source/ELVTR/UI/UnitCamProjector.cpp", "ELVTR/Source/ELVTR/UI/UnitCamProjector.h", "ELVTR/Source/ELVTR/UI/UnitCamDirector.cpp", "ELVTR/Source/ELVTR/UI/UnitCamDirector.h"]
 resources: ["unreal-editor", "mcp-9000"]
-depends-on: [45]
-evidence: A PIE screenshot where Army View blocks sit at their squads' real world positions and two squads holding different stances tint differently, plus a demonstration that a casualty in one squad does not move any soldier between squads.
+depends-on: []
+evidence: A PIE capture where a knight unit and an archer unit hold DIFFERENT stances visibly, plus proof that a casualty in one unit moves no soldier between units and changes nobody's type — the defect this task exists to fix.
 score: {gate: 2, risk: 2, cost: 3}
 source: docs/design/squad-group-system.md
-teammate: ""
-decided: ""
+teammate: typed-unit-layer
+decided: "2026-07-27 in-progress"
 ---
 
 ## Why now
-Two things converge here.
-
-**A real defect ships today.** `SquadIdForSlot(Slot) = Slot / SquadTargetSize` derives squad
-membership from the dense formation-repack slot index, and `NeedsFormationRepack()` is
-`AliveRetinue != PackedRetinueCount` — so *any* casualty anywhere renumbers slots and
+**A real defect ships in the build today.** `SquadIdForSlot(Slot) = Slot / SquadTargetSize`
+derives membership from the dense formation-repack slot index, and `NeedsFormationRepack()`
+is `AliveRetinue != PackedRetinueCount` — so *any* casualty anywhere renumbers slots and
 silently moves soldiers between squads. Harmless while squads are cosmetic. The moment a
 squad owns a stance, a soldier inherits an order it was never given. Verified in
-`SwarmSubsystem.h`; documented in `docs/design/squad-group-system.md` §1.3.
+`SwarmSubsystem.h`; documented at `docs/design/squad-group-system.md` §1.3.
 
-**And task-045 shipped a placeholder because this layer doesn't exist.** Army View arranges
-its blocks on a *fake ring* around the bearer, and tints every block with the single global
-`GetStance()`, because `USwarmSubsystem` exposes only `GetRenderPositions()` and
-`GetRenderAnimBits()` — `PushRenderEntry` takes a `SquadId` and throws it away after bumping
-`SquadStanding[]`. Block size and count are real; positions and tint are not. This task is
-what makes that view mean something.
+It already forces a workaround: task-050 had to derive the Unit Cam's per-soldier sprite
+choice from `SizeBucket`/`JitterFragment::Phase` precisely *because* `SquadId` was unstable.
+That was good engineering around a bug, and it should not have been necessary.
+
+**This task was drafted once and never started, deliberately** — task-049 replaced its whole
+premise. The old draft assumed one undifferentiated pool with
+`SquadTargetSize = ceil(AliveRetinue / MaxSquads)`, growth spread evenly across 8 squads.
+The current spec is typed units with per-type pools and a completely different allocation
+rule. This is a rewrite against what the spec actually says now.
+
+**Two measurements have since removed work from this task, not added it.** task-021 measured
+frame time flat from 120 to 814 entities and recommended **not** building an aggregation/LOD
+layer — so this builds the command layer only, no entity substitution. task-052 widened the
+grid so Archers' 750uu `EngageRange` genuinely reaches, at no measured cost.
 
 ## Done when
-- **`SquadId` is sticky.** Assigned once at recruit time and persistent for that soldier's
-  life, independent of formation repacking. A casualty in squad 5 must not move any soldier
-  into or out of squad 3.
-- **Formation repack becomes per-squad.** Each squad packs its own members densely; a squad
-  whose headcount hasn't changed skips its own repack while a neighbour reforms. Per §1.3
-  this is also cheaper in aggregate than today's one retinue-wide sort.
-- **Stance is per-squad.** The single global `Stance`/`StanceAnchor` becomes
-  `SquadStance[MaxSquads]`/`SquadStanceAnchor[MaxSquads]`. Orders carry an address — "all
-  squads" (the default, byte-for-byte today's behavior) or "squad N". Per-unit steering reads
-  `SquadStance[soldier.SquadId]` instead of the global.
-- **`SquadTargetSize` becomes `ceil(AliveRetinue / MaxSquads)`**, recomputed each repack,
-  replacing the fixed-20-with-overflow-into-the-last-squad rule that hard-breaks past
-  retinue 160 (§3.1).
-- **Per-squad centroids are published** — `SquadCentroidSum[]`/count accumulated on the
-  existing `PushRenderEntry` pass, with an accessor the UI can read. No second walk over the
-  soldier population.
-- **Army View is rewired onto the real data**: blocks at real centroids, tinted by real
-  per-squad stance. `Emberkeep.UnitCamProj.ArmyRingRadius` and its "FAKE positioning" comment
-  are retired.
+- **Type is a first-class, permanent property.** v1 is exactly Spearmen and Archers. Assigned
+  once at recruit time, never changed by combat, promotion, repacking or reinforcement.
+- **`SquadId` is sticky.** Assigned once at recruit time and stable for that soldier's life,
+  independent of formation repacking. A casualty in one unit must not move any soldier into
+  or out of another, and must not change anyone's type.
+- **Formation repack becomes per-unit** — each unit densely packs its own members; a unit
+  whose headcount has not changed skips its own repack while a neighbour reforms.
+- **Stance is per-unit.** The single global `Stance`/`StanceAnchor` becomes per-unit arrays.
+  Orders carry an address — "all units" (the default, byte-for-byte today's behaviour) or a
+  specific unit. Per-soldier steering reads its own unit's stance.
+- **Per-type allocation replaces the old even-split formula** (§4.1):
+  `WantedUnits(type) = ceil(Pool(type) / 80)`, Spearmen claim from `MaxSquads` first,
+  Archers clamp to the remainder, overflow folds into that type's own units. Recomputed each
+  repack. A wiped unit leaves **no ghost slot** — the derived count simply recomputes.
+- **Recruitment is fill-lowest-first within type** (§1.4), growth sites tagged by type.
+- **Per-type formation defaults** (§1.7) and Archers' 750uu `EngageRange` (§2.2).
+- **Per-unit centroids are published**, accumulated on the existing `PushRenderEntry` pass —
+  no second walk over the soldier population.
+- **The Unit Cam draws by TYPE, not by hash.** Retire task-050's `SizeBucket` workaround:
+  a spearman draws the knight sprite because it *is* a spearman. That is the visible proof
+  the typed layer works.
 - Evidence per `evidence:` above.
 
 ## Spawn prompt
 ```
 You are executing task-046 in Emberkeep (C:\Projects\ELVTRGAME), on the flame-spotlight
-branch. You are building the squad command layer in the Mass sim, then rewiring the Unit
-Cam's Army View onto it.
+branch. You are building the typed-unit command layer in the Mass sim, then paying it off in
+the Unit Cam.
 
-READ FIRST: docs/design/squad-group-system.md — the approved design (task-044, closed done).
-Sections 1.1 through 1.4 are your specification. Implement them; do not redesign them. If
-something in it is unimplementable as written, say so in your handback rather than silently
+READ FIRST: docs/design/squad-group-system.md — the approved design (task-049, done). It was
+REWRITTEN since this task was first drafted; do not work from memory or from any earlier
+description of it. Sections 1.0-1.8, 2.2, 3 and 4.1 are your specification. Implement them.
+If something is unimplementable as written, say so in your handback rather than silently
 substituting your own approach.
 
-THE DEFECT THAT MAKES THIS URGENT (spec section 1.3, verified in the code):
+THE DEFECT THAT MAKES THIS URGENT (spec §1.3, verified in the code):
 SwarmSubsystem.h has SquadIdForSlot(Slot) = FMath::Clamp(Slot / SquadTargetSize, 0,
 MaxSquads - 1), where Slot comes from the dense retinue-wide formation repack, and
 NeedsFormationRepack() is AliveRetinue != PackedRetinueCount. So ANY casualty ANYWHERE
 renumbers the dense slot index and silently reassigns soldiers between squads. Today that is
-cosmetic. The moment squads own stances — which this task builds — a soldier starts obeying
-orders that were issued to a different squad. Fixing the stickiness is a PREREQUISITE for
-per-squad stance, not an optional cleanup; do it first.
+cosmetic. The moment units own stances — which this task builds — a soldier starts obeying
+orders issued to a different unit. Fix the stickiness FIRST; everything else depends on it.
+Note task-050 had to route the Unit Cam's sprite choice through SizeBucket/JitterFragment::Phase
+specifically to dodge this instability. That workaround is retired at the end of this task.
 
-WHAT TO BUILD (spec sections 1.1-1.4, 3.1):
-1. Sticky SquadId — assigned once at recruit time (round-robin or fill-lowest-first across
-   live squads, your call, say which you picked and why), persisting for that soldier's life
+WHAT TO BUILD:
+1. TYPE AS A FIRST-CLASS PROPERTY. v1 is exactly Spearmen and Archers (spec §1.1). Assigned
+   once at recruit time, permanent — never changed by combat, promotion, repacking or
+   reinforcement (§1.5: "Type never changes through combat"). The spec §8 proposes encoding
+   type as a SquadId range partition rather than a new fragment field, specifically to avoid a
+   class-layout change on the hot path — evaluate that, and if you deviate say why.
+2. STICKY SquadId — assigned once at recruit time, persisting for that soldier's life
    regardless of repacking elsewhere.
-2. Per-squad formation repack — each squad densely packs its OWN members; a squad whose
-   headcount has not moved skips its repack while a neighbour reforms. Per the spec this is
-   cheaper in aggregate than today's single large sort (<=8 small sorts vs one big one).
-3. Per-squad stance — promote the single global Stance/StanceAnchor to
-   SquadStance[MaxSquads]/SquadStanceAnchor[MaxSquads]. Orders take an address: "all squads"
-   (default — must reproduce today's behavior exactly, this is the regression risk) or
-   "squad N". Per-unit steering reads SquadStance[soldier.SquadId].
-4. SquadTargetSize = ceil(AliveRetinue / MaxSquads), recomputed each repack. Today's fixed 20
-   with overflow folding into the last squad is a hard numeric break past retinue 160 and
-   violates Design Law 2 (soft caps only).
-5. Publish per-squad centroids — accumulate SquadCentroidSum[]/count on the EXISTING
-   PushRenderEntry pass (it already receives Location and SquadId per unit for
-   SquadStanding[]). Do NOT add a second O(N) walk. Expose an accessor for the UI.
+3. PER-UNIT FORMATION REPACK — each unit densely packs its OWN members; a unit whose headcount
+   has not moved skips its repack while a neighbour reforms. Cheaper in aggregate than one
+   large sort.
+4. PER-UNIT STANCE — promote the single global Stance/StanceAnchor to per-unit arrays. Orders
+   take an address: "all units" (default — MUST reproduce today's behaviour exactly, this is
+   the main regression risk) or one named unit. Per-soldier steering reads its own unit's stance.
+5. PER-TYPE ALLOCATION (§4.1), replacing the old ceil(AliveRetinue/MaxSquads) even split:
+     WantedUnits(type) = ceil(Pool(type) / 80)          [80 = legibility ceiling]
+     Units(Spearmen)   = max(1, Wanted) if Pool > 0 else 0
+     Units(Archers)    = clamp(max(1, Wanted), 0, MaxSquads - Units(Spearmen)) if Pool > 0 else 0
+   Spearmen claim first, deliberately (§4.1 explains why). Overflow folds into that type's own
+   units. Recomputed every repack. A wiped unit leaves NO ghost slot — the derived count just
+   recomputes smaller (§1.5). Do not add "is this slot empty" bookkeeping; the formula is the
+   mechanism.
+6. RECRUITMENT (§1.4): new soldiers join the least-full existing unit OF THEIR TYPE
+   (fill-lowest-first, scoped per type). Growth sites are tagged with which type they yield —
+   docs/data/unit-types.json growth_source_weight, Spearmen 0.8 / Archers 0.2.
+   REINFORCEMENT (§1.6): refills within a type's existing units first, and only grows that
+   type's unit count once its derived count rises.
+7. PER-TYPE FORMATION DEFAULTS (§1.7) and Archers' EngageRange (§2.2, 750uu with
+   MinEngageRange 150uu). NOTE: 750uu now genuinely reaches — task-052 widened GridCellSize
+   200->250 giving a 3x3 reach of exactly 750, measured to cost nothing. Before that change it
+   would have silently behaved as ~600.
+8. PUBLISH PER-UNIT CENTROIDS — accumulate on the EXISTING PushRenderEntry pass, which already
+   receives Location and SquadId per unit. Do NOT add a second O(N) walk.
 
-THEN REWIRE ARMY VIEW (this is the visible payoff):
-UnitCamProjector.cpp's Army View currently arranges its <=8 blocks on a FAKE ring around the
-bearer (Emberkeep.UnitCamProj.ArmyRingRadius) and tints every block with the single global
-GetStance(), because none of the above existed. Now it does. Put blocks at their real
-centroids, tint by real per-squad stance, and retire ArmyRingRadius and its "FAKE
-positioning" comment. Block size and count already read from GetSquadStanding() and are
-correct — leave that alone.
+THEN PAY IT OFF IN THE UNIT CAM — this is your visible evidence:
+UnitCamProjector.cpp currently picks each soldier's sprite by hashing SizeBucket (task-050's
+workaround for the unstable SquadId). Retire that: a soldier draws the knight sprite because
+it IS a spearman, and the archer sprite because it IS an archer. Keep everything else task-050
+built — the 56x60 cells, full-colour sheets, FullColorFloor/FullColorDimStrength lighting,
+SoldierAspect, load-by-content-path. You are changing WHICH sprite a body picks and WHY, not
+how it is drawn.
+
+DO NOT BUILD AN AGGREGATION OR LOD LAYER. task-021 measured frame time flat from 120 to 814
+entities (8.34 -> 8.71ms, draw calls pinned at 283) and recommended explicitly against it. See
+docs/perf/squad-aggregation.md. Cite it; do not re-litigate it.
 
 CONSTRAINTS:
-- "All squads" addressing must be byte-for-byte today's behavior. This is the main
-  regression risk in the task: the whole existing retinue must keep behaving exactly as it
-  does now when no squad is explicitly addressed.
-- Mass Entity constraints are design law (GDD section 10): no per-unit uniqueness, no
-  special-casing at horde scale. A soldier carries ONE small integer (the SquadId it already
-  carries) and gains no roster reference, no pointer, no new per-unit bookkeeping.
-- Everything new that is tunable gets a CVar with a prose doc-comment, matching the
-  TAutoConsoleVariable style already in these files.
-- ADDING A UPROPERTY VIA LIVE CODING REPORTS SUCCESS AND THEN CRASHES THE NEXT PIE. This
-  task changes class layout for certain. Use `pwsh Scripts/ue-relaunch.ps1` (close, build,
-  relaunch, wait for MCP). Scripts/ue-iterate.ps1 picks the right path automatically.
+- "All units" addressing must be byte-for-byte today's behaviour. The whole existing retinue
+  must keep behaving exactly as it does now when no unit is explicitly addressed. This is the
+  main way this task can break the game.
+- Mass Entity constraints are design law (GDD §10): no per-unit uniqueness, no special-casing
+  at horde scale. A soldier carries small integers, not a roster reference or a pointer.
+- Every new tunable gets a CVar with a prose doc-comment, matching the style already there.
+- ADDING A UPROPERTY VIA LIVE CODING REPORTS SUCCESS THEN CRASHES THE NEXT PIE. This changes
+  class layout for certain. Use `pwsh Scripts/ue-relaunch.ps1`.
 - unreal-mcp is on PORT 9000, not 8000. MCP asset edits are in-memory until save_assets([]).
-- If you change Saved/SwarmExecOnPlay.txt to drive a test, back it up and restore it.
+  MCP AssetTools delete/move are known-unreliable on existing asset paths; the working
+  fallback is a headless -run=pythonscript commandlet (see docs/data/art/provenance.json).
+- SAVED/SwarmExecOnPlay.txt IS GITIGNORED — "git diff is empty" proves NOTHING about it. If you
+  change it, verify with:  diff ELVTR/Config/SwarmExecOnPlay.canonical.txt ELVTR/Saved/SwarmExecOnPlay.txt
+  and update the canonical copy if the change is permanent. See docs/AGENT-TEAMS.md §8c.
+  Values marked (owner-tuned) are deliberate and must survive.
+- BEFORE ANY TIMED MEASUREMENT: EditorPerformanceSettings.bThrottleCPUWhenNotForeground
+  defaults true and caps unfocused PIE to ~3fps. docs/AGENT-TEAMS.md §8a. Disable, then restore.
 
-KNOWN TOOLING TRAP, budget for it: the PIE window driven over MCP freezes or near-freezes
-simulation while it lacks OS focus. task-045 could not capture a moving camera or a 0.6s
-hit-flash for exactly this reason. If you hit it, say so plainly and hand back what you could
-prove — do not substitute a description for a screenshot you did not take, and do not claim
-dynamic behavior you could not observe.
+EVIDENCE — on-screen proof, not a diff plus "it works". Read docs/AGENT-TEAMS.md §8 for the
+capture recipe (Swarm.DebugShotAfter, 1920x1080, works unfocused). Hand back:
+1. A capture where a knight unit and an archer unit visibly hold DIFFERENT stances — that is
+   the whole point of the command layer and it cannot be faked.
+2. Proof that a casualty in one unit moves NO soldier between units and changes nobody's type.
+   A logged before/after of per-soldier SquadId and type across a repack is acceptable.
+3. Confirmation that "all units" addressing is unchanged from today.
 
-YOU OWN: ELVTR/Source/ELVTR/Mass/** and these four UI files —
-UnitCamDirector.cpp/.h, UnitCamProjector.cpp/.h.
+YOU OWN: ELVTR/Source/ELVTR/Mass/** and UnitCamProjector.cpp/.h, UnitCamDirector.cpp/.h.
 
-DO NOT TOUCH: ELVTR/Source/ELVTR/UI/ViewCamCapture.* , ELVTR/Source/ELVTR/Rendering/**
-(task-041), ELVTR/Content/**, docs/design/squad-group-system.md (task-044 wrote it — if it
-is wrong, say so, do not edit it), docs/design/CAMERA-SCALE*.md (task-030), GDD.md,
-CLASSES.md, SYSTEMS.md, or any docs/backlog/ file.
+DO NOT TOUCH: ELVTR/Source/ELVTR/UI/ViewCamCapture.*, ELVTR/Source/ELVTR/Rendering/**,
+ELVTR/Content/**, docs/design/** (task-049's — if the spec is wrong, say so, do not edit it),
+docs/perf/** , GDD.md, CLASSES.md, SYSTEMS.md, or any docs/backlog/ file.
 
 CANON WARNINGS:
 - WORLD.md is superseded by the 2026-07-22 reset; current canon is
   docs/narrative/FLAME-FOUNDATION.md.
-- docs/perf/niagara-sprite-refactor.md sections 2 and 8.1 carry a RETRACTED claim that the
-  swarm emitter draws zero particles — the cause was GPUComputeSim vs CPUSim and it is fixed.
-- docs/UNIT-CAM-HANDOFF.md describes an older capture-based unit cam; the projector is the
-  current approach.
+- docs/perf/niagara-sprite-refactor.md §2 and §8.1 carry a RETRACTED claim that the swarm
+  emitter draws zero particles — the cause was GPUComputeSim vs CPUSim and it is fixed.
 
-EVIDENCE — on-screen proof, not a diff plus "it works":
-1. A PIE screenshot where Army View blocks sit at their squads' REAL world positions (move
-   one squad, show its block move with it).
-2. Two squads holding different stances, tinting differently in the panel.
-3. A demonstration that a casualty in one squad moves NO soldier between squads — the
-   defect this task exists to fix. A logged before/after of per-soldier SquadId across a
-   repack is acceptable here if a screenshot cannot show it.
-
-HAND BACK: what you changed, the recruit-time assignment strategy you chose and why, the
-CVars you added with defaults, your three pieces of evidence, confirmation that "all squads"
-addressing is unchanged from today, and anything in the spec that did not survive contact
-with the code.
+HAND BACK: how you encoded type and whether you followed §8's range-partition proposal, the
+recruit-time assignment strategy, your three pieces of evidence, confirmation "all units" is
+unchanged, what the Unit Cam looks like now that sprite choice follows type, and anything in
+the spec that did not survive contact with the code.
 ```

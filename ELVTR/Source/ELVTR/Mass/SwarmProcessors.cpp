@@ -292,10 +292,20 @@ void USwarmGridBuildProcessor::Execute(FMassEntityManager& EntityManager, FMassE
 	// Each entity's own K (how many blows it may hand out this swing) rides into the
 	// grid alongside its reach, so the combat pass can cap claims against it instead
 	// of trusting the radius alone — see FGridEntry::BlowsClaimed.
-	const int32 RetinueTargets = SwarmCombatTuning::RetinueTargetsPerHit();
+	const int32 RetinueTargets = SwarmCombatTuning::RetinueTargetsPerHit();  // Spearmen's K
+	const int32 ArchersTargets = SwarmCombatTuning::ArchersTargetsPerHit();
 	const int32 BroodTargets = SwarmCombatTuning::BroodTargetsPerHit();
 
-	EntityQuery.ForEachEntityChunk(Context, [Swarm, RetinueTargets, BroodTargets](FMassExecutionContext& ChunkContext)
+	// Per-blow damage also rides along now (FGridEntry::BlowDamage) — retinue strikers
+	// aren't all one type any more, so "one shared blow value per TEAM" (the old
+	// assumption) can't stand; a Spearman and an Archer striking the same victim this
+	// frame must not deal the same damage. Snapshotted once per pass, same as the K's.
+	const float SwingInterval = SwarmCombatTuning::SwingInterval();
+	const float SpearmenBlow = SwarmCombatTuning::RetinueDPS() * SwingInterval;
+	const float ArchersBlow = SwarmCombatTuning::ArchersDPS() * SwingInterval;
+	const float BroodBlow = SwarmCombatTuning::BroodDPS() * SwingInterval;
+
+	EntityQuery.ForEachEntityChunk(Context, [Swarm, RetinueTargets, ArchersTargets, BroodTargets, SpearmenBlow, ArchersBlow, BroodBlow](FMassExecutionContext& ChunkContext)
 	{
 		const TConstArrayView<FTransformFragment> Transforms = ChunkContext.GetFragmentView<FTransformFragment>();
 		const TConstArrayView<FSwarmAnimFragment> Anim = ChunkContext.GetFragmentView<FSwarmAnimFragment>();
@@ -307,12 +317,16 @@ void USwarmGridBuildProcessor::Execute(FMassEntityManager& EntityManager, FMassE
 			// at the top of the frame, because the swing clocks were advanced at the
 			// end of the last one — so what combat reads is current, not stale.
 			const bool bRetinue = (Anim[i].Bits & SwarmAnim::TeamBit) != 0;
+			const bool bArcher = bRetinue && SwarmSquad::UnitType(Anim[i].SquadId) == EUnitType::Archers;
+			const int32 MyTargets = bRetinue ? (bArcher ? ArchersTargets : RetinueTargets) : BroodTargets;
+			const float MyBlow = bRetinue ? (bArcher ? ArchersBlow : SpearmenBlow) : BroodBlow;
 			Swarm->AddToGrid(
 				Transforms[i].GetTransform().GetLocation(),
 				bRetinue,
 				Strike[i].bStrikeFrame,
 				Strike[i].StrikeReachSq,
-				bRetinue ? RetinueTargets : BroodTargets);
+				MyTargets,
+				MyBlow);
 		}
 	});
 
@@ -423,6 +437,9 @@ URetinueFormationProcessor::URetinueFormationProcessor()
 void URetinueFormationProcessor::ConfigureQueries(const TSharedRef<FMassEntityManager>& EntityManager)
 {
 	EntityQuery.AddRequirement<FRetinueFollowFragment>(EMassFragmentAccess::ReadWrite);
+	// Read-only: which of the two dense index spaces (§1.2/§8) this soldier's SlotIndex
+	// belongs to. Never written here — type is sticky, assigned once at recruit time.
+	EntityQuery.AddRequirement<FSwarmAnimFragment>(EMassFragmentAccess::ReadOnly);
 	EntityQuery.AddTagRequirement<FRetinueTag>(EMassFragmentPresence::All);
 }
 
@@ -431,48 +448,65 @@ void URetinueFormationProcessor::Execute(FMassEntityManager& EntityManager, FMas
 	SWARM_SCOPE(STAT_SwarmRetinueFormation, SwarmRetinueFormation);
 
 	USwarmSubsystem* Swarm = Context.GetWorld()->GetSubsystem<USwarmSubsystem>();
-	if (!Swarm || !Swarm->NeedsFormationRepack() || !SwarmFormation::ReadParams().bCompact)
+	if (!Swarm || !SwarmFormation::ReadParams().bCompact)
+	{
+		return;
+	}
+	const bool bNeedSpearmen = Swarm->NeedsFormationRepack(EUnitType::Spearmen);
+	const bool bNeedArchers = Swarm->NeedsFormationRepack(EUnitType::Archers);
+	if (!bNeedSpearmen && !bNeedArchers)
 	{
 		return;
 	}
 
-	// Compaction is a RANKING, not a reassignment: gather every live slot index, sort,
-	// and each unit's new index is where its old one lands in that order. Nobody swaps
-	// places with anybody — the survivors keep their relative positions and simply step
-	// inward over the gaps, which is what closing ranks looks like. Doing it any other
-	// way (say, handing out indices in chunk order) would reshuffle the whole army
-	// every time one soldier died.
-	TArray<int32> Live;
-	Live.Reserve(FMath::Max(Swarm->GetAliveRetinue(), 64));
+	// TWO independent dense repacks, one per TYPE (docs/design/squad-group-system.md §1.2,
+	// §8) — not one retinue-wide sort (the old single-pool behavior), and NOT a separate
+	// sort per each of the up to 8 command units: a type's units still share ONE dense
+	// index space that subdivides into unit-sized chunks, just scoped to that type's own
+	// pool instead of the whole retinue. A stable type skips its own repack while the
+	// other reforms — cheaper in aggregate than one big sort. Compaction itself is still a
+	// RANKING, not a reassignment, exactly as before: gather every live slot index (within
+	// this type), sort, and each unit's new index is where its old one lands in that order.
+	TArray<int32> LiveSpearmen, LiveArchers;
+	LiveSpearmen.Reserve(FMath::Max(Swarm->GetAliveByType(EUnitType::Spearmen), 64));
+	LiveArchers.Reserve(FMath::Max(Swarm->GetAliveByType(EUnitType::Archers), 64));
 
-	EntityQuery.ForEachEntityChunk(Context, [&Live](FMassExecutionContext& ChunkContext)
+	EntityQuery.ForEachEntityChunk(Context, [&LiveSpearmen, &LiveArchers](FMassExecutionContext& ChunkContext)
 	{
 		const TConstArrayView<FRetinueFollowFragment> Follow = ChunkContext.GetFragmentView<FRetinueFollowFragment>();
+		const TConstArrayView<FSwarmAnimFragment> Anim = ChunkContext.GetFragmentView<FSwarmAnimFragment>();
 		for (int32 i = 0; i < ChunkContext.GetNumEntities(); ++i)
 		{
-			Live.Add(Follow[i].SlotIndex);
+			TArray<int32>& Bucket = (SwarmSquad::UnitType(Anim[i].SquadId) == EUnitType::Archers) ? LiveArchers : LiveSpearmen;
+			Bucket.Add(Follow[i].SlotIndex);
 		}
 	});
 
-	if (Live.Num() == 0)
-	{
-		Swarm->MarkFormationPacked();
-		return;
-	}
-	Live.Sort();
+	if (bNeedSpearmen) { LiveSpearmen.Sort(); }
+	if (bNeedArchers) { LiveArchers.Sort(); }
 
-	EntityQuery.ForEachEntityChunk(Context, [&Live](FMassExecutionContext& ChunkContext)
+	EntityQuery.ForEachEntityChunk(Context, [&LiveSpearmen, &LiveArchers, bNeedSpearmen, bNeedArchers](FMassExecutionContext& ChunkContext)
 	{
 		const TArrayView<FRetinueFollowFragment> Follow = ChunkContext.GetMutableFragmentView<FRetinueFollowFragment>();
+		const TConstArrayView<FSwarmAnimFragment> Anim = ChunkContext.GetFragmentView<FSwarmAnimFragment>();
 		for (int32 i = 0; i < ChunkContext.GetNumEntities(); ++i)
 		{
-			Follow[i].SlotIndex = Algo::LowerBound(Live, Follow[i].SlotIndex);
+			const bool bArcher = SwarmSquad::UnitType(Anim[i].SquadId) == EUnitType::Archers;
+			if (bArcher && bNeedArchers)
+			{
+				Follow[i].SlotIndex = Algo::LowerBound(LiveArchers, Follow[i].SlotIndex);
+			}
+			else if (!bArcher && bNeedSpearmen)
+			{
+				Follow[i].SlotIndex = Algo::LowerBound(LiveSpearmen, Follow[i].SlotIndex);
+			}
 		}
 	});
 
-	// Mark against the count the repack was DERIVED from, not the one we just produced,
-	// so a death landing mid-pass is picked up next frame instead of being swallowed.
-	Swarm->MarkFormationPacked();
+	// Mark each type against the pool the repack was DERIVED from, not the one we just
+	// produced, so a death landing mid-pass is picked up next frame instead of swallowed.
+	if (bNeedSpearmen) { Swarm->MarkFormationPacked(EUnitType::Spearmen); }
+	if (bNeedArchers) { Swarm->MarkFormationPacked(EUnitType::Archers); }
 }
 
 //----------------------------------------------------------------------
@@ -497,6 +531,39 @@ void URetinueFollowProcessor::ConfigureQueries(const TSharedRef<FMassEntityManag
 	EntityQuery.AddTagRequirement<FRetinueTag>(EMassFragmentPresence::All);
 }
 
+namespace
+{
+	/**
+	 * Nearest LIVE Spearmen unit's centroid to Location, for Archers' Rally reflavor
+	 * ("Fall Back: collapses behind the nearest Spearmen unit if one exists" — §1.8).
+	 * O(MaxSquads) = O(8) per archer, the same fixed-small-constant class as Army View's
+	 * own per-unit walk — not a per-soldier cross-entity query, so it stays Design-Law-5
+	 * compliant. Falls back to the hero position (bFound=false) when no Spearmen stand.
+	 */
+	FVector NearestSpearmenCentroid(const USwarmSubsystem& Swarm, const FVector& Location, bool& bOutFound)
+	{
+		bOutFound = false;
+		float BestSq = TNumericLimits<float>::Max();
+		FVector Best = FVector::ZeroVector;
+		for (int32 i = 0; i < USwarmSubsystem::MaxSquads; ++i)
+		{
+			if (Swarm.GetSquadType(i) != EUnitType::Spearmen || Swarm.GetSquadStanding(i) <= 0)
+			{
+				continue;
+			}
+			const FVector Centroid = Swarm.GetSquadCentroid(i);
+			const float DistSq = FVector::DistSquared2D(Centroid, Location);
+			if (DistSq < BestSq)
+			{
+				BestSq = DistSq;
+				Best = Centroid;
+				bOutFound = true;
+			}
+		}
+		return Best;
+	}
+}
+
 void URetinueFollowProcessor::Execute(FMassEntityManager& EntityManager, FMassExecutionContext& Context)
 {
 	SWARM_SCOPE(STAT_SwarmRetinueFollow, SwarmRetinueFollow);
@@ -507,17 +574,22 @@ void URetinueFollowProcessor::Execute(FMassEntityManager& EntityManager, FMassEx
 		return;
 	}
 	const FVector Attractor = Swarm->GetAttractor();
-	const ESwarmStance GlobalStance = Swarm->GetStance();
-	const FVector StanceAnchor = Swarm->GetStanceAnchor();
 
-	// Shape, spacing and bearing, read once per pass rather than per unit. Resolved here
-	// rather than baked at spawn so every dial in SwarmFormation.h re-forms the standing
-	// army the instant it moves.
-	const SwarmFormation::FParams Formation = SwarmFormation::ReadParams();
+	// Shape, spacing and bearing, read once per pass rather than per unit — one FParams
+	// per TYPE now (docs/design/squad-group-system.md §1.7), resolved here rather than
+	// baked at spawn so every dial in SwarmFormation.h re-forms the standing army the
+	// instant it moves.
+	const SwarmFormation::FParams SpearmenFormation = SwarmFormation::ReadParamsForType(EUnitType::Spearmen);
+	const SwarmFormation::FParams ArchersFormation = SwarmFormation::ReadParamsForType(EUnitType::Archers);
+
+	// Archer combat dials, snapshotted once per pass — see SwarmCombat.h for why these
+	// exist (§2.2's minimum-viable ranged model) and §1.8 for the per-stance reflavor.
+	const float ArchersRange = SwarmCombatTuning::ArchersEngageRange();
+	const float ArchersMinRange = SwarmCombatTuning::ArchersMinEngageRange();
 
 	int32 BrokenThisFrame = 0;
 
-	EntityQuery.ForEachEntityChunk(Context, [Swarm, Attractor, GlobalStance, StanceAnchor, Formation, &BrokenThisFrame](FMassExecutionContext& ChunkContext)
+	EntityQuery.ForEachEntityChunk(Context, [Swarm, Attractor, SpearmenFormation, ArchersFormation, ArchersRange, ArchersMinRange, &BrokenThisFrame](FMassExecutionContext& ChunkContext)
 	{
 		const TConstArrayView<FTransformFragment> Transforms = ChunkContext.GetFragmentView<FTransformFragment>();
 		const TConstArrayView<FSwarmJitterFragment> Jitter = ChunkContext.GetFragmentView<FSwarmJitterFragment>();
@@ -527,6 +599,12 @@ void URetinueFollowProcessor::Execute(FMassEntityManager& EntityManager, FMassEx
 
 		for (int32 i = 0; i < ChunkContext.GetNumEntities(); ++i)
 		{
+			const uint8 SquadByte = Anim[i].SquadId;
+			const int32 UnitIndex = SwarmSquad::UnitIndex(SquadByte);
+			const EUnitType Type = SwarmSquad::UnitType(SquadByte);
+			const bool bArcher = Type == EUnitType::Archers;
+			const SwarmFormation::FParams& Formation = bArcher ? ArchersFormation : SpearmenFormation;
+
 			const FVector Location = Transforms[i].GetTransform().GetLocation();
 			const FVector2D Slot = SwarmFormation::SlotOffset(Follow[i].SlotIndex, Formation);
 			const float HeroDistSq = FVector::DistSquared2D(Location, Attractor);
@@ -546,8 +624,13 @@ void URetinueFollowProcessor::Execute(FMassEntityManager& EntityManager, FMassEx
 				Follow[i].bLeashBroken = true;
 			}
 
-			// A broken unit drops to Follow and paths back — it never detaches.
-			const ESwarmStance Stance = Follow[i].bLeashBroken ? ESwarmStance::Follow : GlobalStance;
+			// A broken unit drops to Follow and paths back — it never detaches. Reads its
+			// OWN unit's order otherwise: docs/design/squad-group-system.md §3 — an order
+			// now targets an address ("all units", the default, or one named unit); "all"
+			// writes every per-unit slot identically (USwarmSubsystem::SetStance), so this
+			// reproduces today's only behavior exactly until a unit is individually addressed.
+			const ESwarmStance Stance = Follow[i].bLeashBroken ? ESwarmStance::Follow : Swarm->GetUnitStance(UnitIndex);
+			const FVector StanceAnchor = Swarm->GetUnitStanceAnchor(UnitIndex);
 
 			if (Follow[i].bLeashBroken)
 			{
@@ -559,44 +642,84 @@ void URetinueFollowProcessor::Execute(FMassEntityManager& EntityManager, FMassEx
 			Anim[i].Bits = bWarn ? (Anim[i].Bits | SwarmAnim::LeashWarnBit)
 								 : (Anim[i].Bits & ~SwarmAnim::LeashWarnBit);
 
-			// --- where this stance wants the unit to stand ---------------
+			// --- where this stance wants the unit to stand (per-type reflavor, §1.8) -----
 			FVector Anchor;
 			float EngageRange;
+			float MinEngageRange = 0.f;
 			float SpeedMul = 1.f;
+			// Archers NEVER close distance to melee — the one invariant every §1.8 row for
+			// them shares ("hold formation... without closing distance"). Spearmen keep
+			// today's exact behavior: step off the anchor toward whatever they're engaging.
+			bool bMayCloseDistance = !bArcher;
 
-			switch (Stance)
+			if (!bArcher)
 			{
-			case ESwarmStance::Hold:
-				// Anchored to the world point where the order was issued.
-				Anchor = StanceAnchor + FVector(Slot.X, Slot.Y, 0.f);
-				EngageRange = SwarmTuning::LineEngageRange;
-				break;
-
-			case ESwarmStance::Charge:
-				Anchor = StanceAnchor;
-				EngageRange = SwarmTuning::ChargeEngageRange;
-				SpeedMul = SwarmTuning::ChargeSpeedMul;
-				break;
-
-			case ESwarmStance::Rally:
-				Anchor = Attractor + FVector(Slot.X, Slot.Y, 0.f) * SwarmTuning::RallySlotScale;
-				EngageRange = SwarmTuning::LineEngageRange;
-				break;
-
-			case ESwarmStance::Follow:
-			default:
-				Anchor = Attractor + FVector(Slot.X, Slot.Y, 0.f);
-				EngageRange = SwarmTuning::FollowEngageRange;
-				break;
+				switch (Stance)
+				{
+				case ESwarmStance::Hold:
+					// Shield Wall: anchored to the world point where the order was issued.
+					Anchor = StanceAnchor + FVector(Slot.X, Slot.Y, 0.f);
+					EngageRange = SwarmTuning::LineEngageRange;
+					break;
+				case ESwarmStance::Charge:
+					// Advance the Line.
+					Anchor = StanceAnchor;
+					EngageRange = SwarmTuning::ChargeEngageRange;
+					SpeedMul = SwarmTuning::ChargeSpeedMul;
+					break;
+				case ESwarmStance::Rally:
+					// To the Banner.
+					Anchor = Attractor + FVector(Slot.X, Slot.Y, 0.f) * SwarmTuning::RallySlotScale;
+					EngageRange = SwarmTuning::LineEngageRange;
+					break;
+				case ESwarmStance::Follow:
+				default:
+					Anchor = Attractor + FVector(Slot.X, Slot.Y, 0.f);
+					EngageRange = SwarmTuning::FollowEngageRange;
+					break;
+				}
+			}
+			else
+			{
+				EngageRange = ArchersRange;
+				MinEngageRange = ArchersMinRange;
+				switch (Stance)
+				{
+				case ESwarmStance::Hold:
+					// Loose from Cover: anchors IDENTICALLY to Follow — behaviorally almost
+					// indistinguishable (archers are already static shooters); the value is
+					// in ADDRESSING one unit to hold a firing position while others move.
+				case ESwarmStance::Follow:
+				default:
+					Anchor = Attractor + FVector(Slot.X, Slot.Y, 0.f);
+					break;
+				case ESwarmStance::Charge:
+					// Volley Advance: hold ground (never Charge's melee-advance), engaging at
+					// the same reach — the "aggressive" read without breaking never-melee.
+					Anchor = Attractor + FVector(Slot.X, Slot.Y, 0.f);
+					break;
+				case ESwarmStance::Rally:
+				{
+					// Fall Back: collapses behind the nearest Spearmen unit if one exists,
+					// the hero otherwise — archers retreating behind the shield wall.
+					bool bFoundSpearmen = false;
+					const FVector FallBackTo = NearestSpearmenCentroid(*Swarm, Location, bFoundSpearmen);
+					const FVector Base = bFoundSpearmen ? FallBackTo : Attractor;
+					Anchor = Base + FVector(Slot.X, Slot.Y, 0.f) * SwarmTuning::RallySlotScale;
+					break;
+				}
+				}
 			}
 
 			// --- auto-fight: step off the anchor for anything in reach ----
 			FVector EnemyLocation;
 			float EnemyDistSq = 0.f;
 			const bool bEnemyFound = FindNearestEnemy(*Swarm, Location, /*bWantRetinue=*/false, EnemyLocation, EnemyDistSq);
-			const bool bEngaging = bEnemyFound && EnemyDistSq < FMath::Square(EngageRange);
+			const bool bInBand = EnemyDistSq < FMath::Square(EngageRange)
+				&& (MinEngageRange <= 0.f || EnemyDistSq >= FMath::Square(MinEngageRange));
+			const bool bEngaging = bEnemyFound && bInBand;
 
-			const FVector Target = bEngaging ? EnemyLocation : Anchor;
+			const FVector Target = (bEngaging && bMayCloseDistance) ? EnemyLocation : Anchor;
 			const FVector ToTarget = Target - Location;
 			const float Dist = ToTarget.Size2D();
 
@@ -611,6 +734,9 @@ void URetinueFollowProcessor::Execute(FMassEntityManager& EntityManager, FMassEx
 			FVector Desired = ToTarget.GetSafeNormal2D() * Arrive + Push;
 			Desired.Z = 0.f;
 			const float Throttle = FMath::Min(Desired.Size2D(), 1.f);
+			// Jitter[i].SpeedScale already carries this soldier's TYPE speed multiplier
+			// (baked in at recruit time, SwarmCommands.cpp) on top of its random jitter, so
+			// Archers' slower march (Swarm.ArchersMoveSpeedScale) falls out here for free.
 			Velocities[i].Value = Desired.GetSafeNormal2D()
 				* SwarmTuning::RetinueSpeed * SpeedMul * Throttle * Jitter[i].SpeedScale;
 

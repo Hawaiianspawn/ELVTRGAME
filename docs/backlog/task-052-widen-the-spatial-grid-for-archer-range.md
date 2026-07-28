@@ -1,7 +1,7 @@
 ---
 id: 052
 title: Widen the spatial grid so archers can actually reach 750uu, and measure what it costs
-status: needs-review
+status: done
 agent: claude
 owns: ["ELVTR/Source/ELVTR/Mass/SwarmSubsystem.h", "ELVTR/Source/ELVTR/Mass/SwarmProcessors.cpp", "ELVTR/Source/ELVTR/Mass/SwarmProcessors.h", "ELVTR/Source/ELVTR/Mass/SwarmCombatProcessors.cpp", "docs/perf/grid-cell-size.md"]
 resources: ["unreal-editor", "mcp-9000"]
@@ -10,7 +10,7 @@ evidence: A measured before/after frame-cost comparison at matched entity counts
 score: {gate: 2, risk: 2, cost: 2}
 source: user
 teammate: grid-reach
-decided: "2026-07-27 needs-review"
+decided: "2026-07-27 done"
 ---
 
 ## Why now

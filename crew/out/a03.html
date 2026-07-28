@@ -59,7 +59,8 @@
              font-weight:700;color:var(--mute);margin-bottom:4pt}
 
   figure{margin:8pt 0 10pt;padding:0;break-inside:avoid;page-break-inside:avoid}
-  figure img{display:block;width:100%;height:auto}
+  figure img{display:block;width:100%;height:auto;image-rendering:-webkit-optimize-contrast}
+  figure.pixel img{image-rendering:pixelated}
   figcaption{font-size:7.7pt;line-height:1.42;color:var(--mute);margin-top:4pt}
   figcaption b{color:var(--soft)}
 
@@ -275,13 +276,38 @@ exit code 1</pre>
   DONE - 7 encounter rows, 1 negotiation round(s)
 ==========================================================================</pre>
 
-<figure>
-  <img src="img/units.png" alt="The shipping sprite atlas: a row of enemy sprites and a row of retinue soldiers">
-  <figcaption><b>What the rows become.</b> The shipping sprite atlas the encounter data drives.
-  <code>roster-architect</code>'s <em>fodder</em> and <em>soldier</em> tiers are the top row; the retinue
-  the player commands is the bottom. The <code>readability-auditor</code> exists because of this image:
-  at four palette values, once the lit floor and the retinue have taken theirs, only two are left to
-  keep enemy types apart.</figcaption>
+<figure class="pixel">
+  <img src="img/archer.png" alt="The new Archer unit in eight rotations, with the Knight below for silhouette contrast">
+  <figcaption><b>What a row becomes — and why two auditors are needed.</b> The <em>Archer</em> is the
+  newest unit in the roster, generated and quantised onto the locked ramp (three of the four values;
+  the brightest is reserved for honest light). A new unit type is a new <code>Tier</code> row in
+  <code>encounters.json</code> — but adding one is not free in either currency the crew tracks. It
+  costs <b>frame budget</b>, which <code>budget-auditor</code> prices, and it costs <b>a distinct
+  silhouette</b>, which <code>readability-auditor</code> guards: at these three values the Archer has to
+  be told apart from the Knight by <em>shape alone</em> — hood and bow against shield and spear.</figcaption>
+</figure>
+
+<figure class="pixel">
+  <img src="img/variants.png" alt="Knight in four animation states including two alternate attack takes, and the Archer in eight facings">
+  <figcaption><b>Why the tier ladder can move fast.</b> One character request returns a whole option set —
+  the Knight's walk, attack, an <em>alternate</em> attack, and hit; the Archer's eight facings from a single
+  anchor. <b>Two takes on the same swing cost minutes, not days</b>, so the choice gets made by looking at
+  both rather than arguing about one. That speed is what lets <code>roster-architect</code> treat a tier as
+  a cheap thing to add and <code>budget-auditor</code> as the expensive thing to check: art is no longer
+  the bottleneck on trying an encounter idea — frame budget is. Knight frames are shown raw, as generated,
+  before the palette pass; the Archer is post-quantise.</figcaption>
+</figure>
+
+<figure class="pixel">
+  <img src="img/states.png" alt="Eleven enemy state variants generated from one base character prompt">
+  <figcaption><b>The slate the roster actually gets chosen from.</b> Eleven <em>states</em> off a single
+  base character — one prompt, eleven readings of it, from black ooze to made-of-marble to wearing-armour.
+  This is the pool <code>roster-architect</code>'s <em>fodder</em> and <em>elite</em> tiers are cast from,
+  and it is precisely why <code>readability-auditor</code> is a separate agent with a veto rather than a
+  line in someone else's job: <b>having eleven good options is not the same as being able to ship four of
+  them at once.</b> At four palette values, two of which are already spent on the lit floor and the
+  retinue, most of this slate cancels itself out on screen. Choosing which survive is a design decision
+  the crew makes explicit instead of leaving to whoever draws last.</figcaption>
 </figure>
 
 <h3>What it wrote</h3>
