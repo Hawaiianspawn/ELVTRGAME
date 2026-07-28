@@ -40,13 +40,42 @@ namespace
 	// I only want my high resolution units for the retinue" — and named exactly two PixelLab
 	// characters (88-92px native) to replace it. The six variant textures still exist in
 	// Content/Sprites/Units and RawArt/Sheets; this file just no longer loads or draws them.
+	//
+	// task-046 revision: sprite choice is now TWO axes, not one. TYPE (Spearmen/Archers, from
+	// the sim's real per-soldier type) picks which of the two lists below a soldier draws
+	// from; STATE (a stable per-soldier hash — the same SizeBucket-derived hash task-050
+	// used, kept for exactly this) picks WHICH ENTRY within that list. Each entry is a
+	// PixelLab "state": the same character group re-rendered with a variation (a face
+	// shield, a different helmet) — the owner's own framing, "variants I mean states...
+	// variety of the character type." A rank of spearmen reads as visibly varied while every
+	// one of them is unambiguously a spearman, because state selection happens INSIDE the
+	// type, not instead of it. SpearmenStateBase is not a compile-time constant — how many
+	// Spearmen states are actually loaded is DATA (UUnitCamProjector::SpearmenStateTextures),
+	// so Archer states start wherever Spearmen's happen to end; see NativeTick.
 	namespace UnitCamSprite
 	{
-		constexpr uint8 SwarmAtlas = 0;  // T_Swarm_2bit — brood, and retinue when RetinueHighRes is off
-		constexpr uint8 Hero = 1;        // T_Hero_Vanguard
-		constexpr uint8 Knight = 2;      // T_Soldier_Knight
-		constexpr uint8 Archer = 3;      // T_Soldier_Archer
-		constexpr uint8 Count = 4;
+		constexpr uint8 SwarmAtlas = 0;      // T_Swarm_2bit — brood, and retinue when RetinueHighRes is off
+		constexpr uint8 Hero = 1;            // T_Hero_Vanguard
+		constexpr uint8 SpearmenStateBase = 2;
+	}
+
+	/**
+	 * Data-driven state lists — adding a state is adding a path here, nothing else. Element 0
+	 * is task-050's original texture for each type; this is intentionally the ONLY place that
+	 * needs to change to add a second state once its sheet is packed (a /sprite pass, not a
+	 * C++ change — see the doc comment on UUnitCamProjector::SpearmenStateTextures). Every
+	 * asset listed here MUST share the RetinueSheetColumns x RetinueSheetRows grid (5x2,
+	 * below) — the DirCol / south-walk-toggle logic reads every state through that one grid.
+	 */
+	const TArray<FString>& SpearmenStatePaths()
+	{
+		static const TArray<FString> Paths = { TEXT("/Game/Sprites/Units/T_Soldier_Knight.T_Soldier_Knight") };
+		return Paths;
+	}
+	const TArray<FString>& ArcherStatePaths()
+	{
+		static const TArray<FString> Paths = { TEXT("/Game/Sprites/Units/T_Soldier_Archer.T_Soldier_Archer") };
+		return Paths;
 	}
 
 	// docs/data/art/requests/hero-vanguard.json output.grid: 4x4, 16 cells, (idle, walk1) pairs
@@ -477,18 +506,37 @@ namespace
 	const FColor BroodAlbedo(170, 44, 36);
 
 	/**
-	 * Real per-soldier look — knight or archer — decoded straight from the render buffer's
-	 * squad byte (SwarmRenderPack::Squad -> SwarmSquad::UnitType), now that task-046 made
-	 * SquadId+Type a permanent, sticky per-soldier tag (docs/design/squad-group-system.md
-	 * §1.3, §1.5) instead of something re-derived from a repackable formation slot index.
-	 * A soldier draws the knight because it IS a spearman, and the archer because it IS an
-	 * archer — retiring the old SizeBucket-hash workaround (PickSoldierLook, task-050 rev 2)
-	 * that existed only because SquadId used to be unsafe to key anything on.
+	 * Real per-soldier look: TYPE decoded straight from the render buffer's squad byte
+	 * (SwarmRenderPack::Squad -> SwarmSquad::UnitType), now that task-046 made SquadId+Type a
+	 * permanent, sticky per-soldier tag (docs/design/squad-group-system.md §1.3, §1.5)
+	 * instead of something re-derived from a repackable formation slot index. A soldier
+	 * draws from the Spearmen list because it IS a spearman, and the Archer list because it
+	 * IS an archer — that part retires the old SizeBucket-hash-decides-EVERYTHING workaround
+	 * (PickSoldierLook, task-050 rev 2) that existed only because SquadId used to be unsafe
+	 * to key anything on.
+	 *
+	 * STATE is where that hash comes back, repurposed rather than deleted (owner: "variants
+	 * I mean states... variety of the character type"): SwarmRenderPack::SizeBucket, stable
+	 * per soldier for the same reason PickSoldierLook relied on it (fixed at spawn from
+	 * FSwarmJitterFragment::Phase, never touched again), re-hashed by a DIFFERENT irrational
+	 * than the size roll so state doesn't correlate with physical size, then folded into
+	 * however many states THIS soldier's type actually has loaded. With one state per type
+	 * (today), NumStates is always 1 and every hash maps to state 0 — the mechanism is live,
+	 * the variety just isn't authored yet. Adding a second state to SpearmenStatePaths above
+	 * is the entire cost of turning it on.
 	 */
-	uint8 SpriteSetForType(int32 PackedAnimBits)
+	uint8 SpriteSetForSoldier(int32 PackedAnimBits, int32 NumSpearmenStates, int32 NumArcherStates)
 	{
 		const EUnitType Type = SwarmSquad::UnitType(SwarmRenderPack::Squad(PackedAnimBits));
-		return Type == EUnitType::Archers ? UnitCamSprite::Archer : UnitCamSprite::Knight;
+		const int32 NumStates = FMath::Max(Type == EUnitType::Archers ? NumArcherStates : NumSpearmenStates, 1);
+
+		const int32 Bucket = SwarmRenderPack::SizeBucket(PackedAnimBits); // 0-15, stable per soldier
+		const float U = FMath::Frac((float)Bucket * 1.41421356f); // sqrt(2) -- not the size roll's golden ratio
+		const int32 StateIdx = FMath::Clamp((int32)(U * (float)NumStates), 0, NumStates - 1);
+
+		const uint8 SpearmenBase = UnitCamSprite::SpearmenStateBase;
+		const uint8 ArcherBase = SpearmenBase + (uint8)FMath::Max(NumSpearmenStates, 0);
+		return (Type == EUnitType::Archers ? ArcherBase : SpearmenBase) + (uint8)StateIdx;
 	}
 
 	/** Slice Tex into Columns x Rows cells of one FSlateBrush each, UV-mapped like the existing
@@ -894,18 +942,26 @@ void UUnitCamProjector::NativeTick(const FGeometry& MyGeometry, float DeltaTime)
 			UE_LOG(LogTemp, Warning,
 				TEXT("UnitCamProj: T_Hero_Vanguard not found in Content — hero falls back to a quad."));
 		}
-		KnightTexture = LoadObject<UTexture2D>(nullptr, TEXT("/Game/Sprites/Units/T_Soldier_Knight.T_Soldier_Knight"));
-		if (!KnightTexture)
+
+		// Type/state textures (task-046): every path in SpearmenStatePaths()/ArcherStatePaths()
+		// is loaded and held, in order — element 0 is task-050's original, later elements are
+		// additional PixelLab "states" of the same character group once packed. A missing path
+		// logs and is skipped rather than aborting the rest.
+		auto LoadStates = [](const TArray<FString>& Paths, TArray<TObjectPtr<UTexture2D>>& OutTextures, const TCHAR* TypeLabel)
 		{
-			UE_LOG(LogTemp, Warning,
-				TEXT("UnitCamProj: T_Soldier_Knight not found in Content — knight-hashed retinue fall back to the shared atlas cell."));
-		}
-		ArcherTexture = LoadObject<UTexture2D>(nullptr, TEXT("/Game/Sprites/Units/T_Soldier_Archer.T_Soldier_Archer"));
-		if (!ArcherTexture)
-		{
-			UE_LOG(LogTemp, Warning,
-				TEXT("UnitCamProj: T_Soldier_Archer not found in Content — archer-hashed retinue fall back to the shared atlas cell."));
-		}
+			for (const FString& Path : Paths)
+			{
+				UTexture2D* Tex = LoadObject<UTexture2D>(nullptr, *Path);
+				if (!Tex)
+				{
+					UE_LOG(LogTemp, Warning, TEXT("UnitCamProj: %s state '%s' not found in Content — skipped."), TypeLabel, *Path);
+					continue;
+				}
+				OutTextures.Add(Tex);
+			}
+		};
+		LoadStates(SpearmenStatePaths(), SpearmenStateTextures, TEXT("Spearmen"));
+		LoadStates(ArcherStatePaths(), ArcherStateTextures, TEXT("Archer"));
 	}
 	if (bAtlasLoadAttempted && !bBrushSetsPushed)
 	{
@@ -915,12 +971,22 @@ void UUnitCamProjector::NativeTick(const FGeometry& MyGeometry, float DeltaTime)
 		// never change — even if a texture is still missing, so a late-loading asset doesn't
 		// retry every frame; SUnitCamCanvas falls back to an untextured quad per-body regardless.
 		bBrushSetsPushed = true;
+		NumSpearmenStatesLoaded = SpearmenStateTextures.Num();
+		NumArcherStatesLoaded = ArcherStateTextures.Num();
+
 		TArray<TArray<FSlateBrush>> Sets;
-		Sets.SetNum(UnitCamSprite::Count);
+		Sets.SetNum(UnitCamSprite::SpearmenStateBase + NumSpearmenStatesLoaded + NumArcherStatesLoaded);
 		Sets[UnitCamSprite::SwarmAtlas] = BuildBrushSet(SwarmAtlas, SwarmSheet::Columns, SwarmSheet::Rows);
 		Sets[UnitCamSprite::Hero] = BuildBrushSet(HeroTexture, HeroSheetColumns, HeroSheetRows);
-		Sets[UnitCamSprite::Knight] = BuildBrushSet(KnightTexture, RetinueSheetColumns, RetinueSheetRows);
-		Sets[UnitCamSprite::Archer] = BuildBrushSet(ArcherTexture, RetinueSheetColumns, RetinueSheetRows);
+		for (int32 i = 0; i < NumSpearmenStatesLoaded; ++i)
+		{
+			Sets[UnitCamSprite::SpearmenStateBase + i] = BuildBrushSet(SpearmenStateTextures[i], RetinueSheetColumns, RetinueSheetRows);
+		}
+		const uint8 ArcherBase = UnitCamSprite::SpearmenStateBase + (uint8)NumSpearmenStatesLoaded;
+		for (int32 i = 0; i < NumArcherStatesLoaded; ++i)
+		{
+			Sets[ArcherBase + i] = BuildBrushSet(ArcherStateTextures[i], RetinueSheetColumns, RetinueSheetRows);
+		}
 		CanvasWidget->SetBrushSets(MoveTemp(Sets));
 	}
 	CanvasWidget->SetSoldierScale(CVarProjSoldierScale.GetValueOnGameThread());
@@ -1296,13 +1362,14 @@ void UUnitCamProjector::NativeTick(const FGeometry& MyGeometry, float DeltaTime)
 
 		if (bFullColorRetinue)
 		{
-			// The knight or the archer — a soldier draws whichever sheet its REAL, permanent
-			// type says (SpriteSetForType, decoded from the squad byte task-046 piped into
-			// the render buffer), not a hash standing in for a type that didn't exist yet.
-			// DirCol IS the flat cell index into either sheet's 5x2 grid (RetinueSheetColumns
-			// divides 8 evenly for the direction cells), so no further row math is needed the
-			// way SwarmSheet::CellFor needs for the 8x4 atlas.
-			B.SpriteSet = SpriteSetForType(AnimBits[i]);
+			// TYPE (which list) is the soldier's REAL, permanent type, decoded from the squad
+			// byte task-046 piped into the render buffer — not a hash standing in for a type
+			// that didn't exist yet. STATE (which entry in that list) is that same stable hash,
+			// repurposed rather than deleted — see SpriteSetForSoldier's doc comment. DirCol IS
+			// the flat cell index into any state's 5x2 grid (RetinueSheetColumns divides 8
+			// evenly for the direction cells), so no further row math is needed the way
+			// SwarmSheet::CellFor needs for the 8x4 atlas.
+			B.SpriteSet = SpriteSetForSoldier(AnimBits[i], NumSpearmenStatesLoaded, NumArcherStatesLoaded);
 			// South-only walk toggle (RetinueSouthWalkCellA/B): the two high-res sheets carry a
 			// two-frame walk cycle ONLY for south (the knight's real generated walk frames 0
 			// and 2; the archer has no animation source, so its two cells are a duplicated idle

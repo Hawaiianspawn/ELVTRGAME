@@ -12,8 +12,8 @@ owner *brings*: a goal in, a running teammate out, with one approval in the midd
       → clarify what would change the work
       → draft task-NNN, validated and lock-checked
         (or, if the goal is genuinely several — a fan of siblings sharing an epic, §3a)
-      → present the plan here, and stop
-      → owner approves
+      → present the plan here, ask the verdict as a question, and stop
+      → owner clicks a verdict
       → dispatch: approve → dispatch → spawn the named teammate
         (a fan: one batched approve, then one dispatch + spawn per sibling)
 
@@ -139,8 +139,9 @@ line naming the batch: which ids approve together, which is the join, and what t
 owner gets back at the end. The fan is approved or refused as a whole — a plan the
 owner can only half-approve was cut wrong.
 
-Then **stop**. Do not start work. Do not spawn. Do not read approval into enthusiasm.
-"Looks good" about the *shape* of a plan is not "go".
+Then ask for the verdict (§5) and **stop**. Do not start work. Do not spawn. Do not read
+approval into enthusiasm — "looks good" about the *shape* of a plan is not "go", and
+neither is anything short of the owner answering the question.
 
 If the honest recommendation is that this should not be built — already done, better
 waited on, needs a decision first — say that instead of presenting a plan. Recommending
@@ -148,10 +149,39 @@ work not happen is part of the job.
 
 ## 5 · The verdict
 
-The owner's "go" runs `py Scripts/backlog.py approve NNN`. That command raises a permission
-prompt from `Scripts/backlog_guard.py`, and **that prompt is the recorded verdict** — it is
-what writes the decision to `docs/backlog/LOG.md`. Never try to route around it and never
-suggest allowlisting it.
+**Ask for it with `AskUserQuestion`, in the same turn as the plan.** The owner should never
+have to type a verdict — one click in chat, immediately under the block they just read. One
+question, header `Verdict`, `multiSelect: false`, recommendation first:
+
+| Option | What it means | Then |
+|---|---|---|
+| `Approve & dispatch (Recommended)` | go | §6, all three steps |
+| `Approve, hold dispatch` | approved, but not spawning yet | run `approve`, then stop |
+| `Revise first` | the plan is wrong somewhere | ask what, redraft, re-present |
+| `Don't build this` | `reject` or `park`, with a reason | ask which and why |
+
+Put the reasoning in each option's `description`, and lead the recommended one with your
+confidence and the reason for it — `High confidence: locks are clean, evidence is a runnable
+build.` A medium or low confidence belongs in that description too, naming what is soft.
+That is the whole point of asking rather than announcing: the owner sees what you would do
+and how sure you are, and answers with one click.
+
+Only put `Approve & dispatch` first when you actually recommend it. If the honest read is
+`Revise first`, that goes first and carries the `(Recommended)` tag — a question whose first
+option is always "yes" is a rubber stamp with extra steps.
+
+For a **fan**, the question is about the batch, not the siblings: the fan is approved or
+refused whole (§4), so offer `Approve all N & dispatch`, not one option per task.
+
+The click is the owner's decision. **The record is still the hook.** `py
+Scripts/backlog.py approve NNN` raises a permission prompt from `Scripts/backlog_guard.py`,
+and **that prompt is what writes the verdict to `docs/backlog/LOG.md`**. `AskUserQuestion`
+sits in front of that gate and never replaces it — never try to route around the prompt,
+and never suggest allowlisting it. Two clicks for an approval is the correct cost; the
+first one is the decision, the second one is the signature.
+
+If the owner answers in prose instead of clicking — "approve 1,3, park 2" — take it. The
+question is there to make deciding cheap, not to insist on a format.
 
 A fan approves as one command — `approve 44,45,46,47`. That is one prompt, one dry-run of
 the whole set against the lock table, and one batched `LOG.md` write. Do not approve

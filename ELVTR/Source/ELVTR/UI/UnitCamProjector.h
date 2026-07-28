@@ -173,16 +173,30 @@ protected:
 	 *  the placeholder cell of SwarmAtlas his billboard used to draw (task-050). */
 	UPROPERTY(Transient) TObjectPtr<UTexture2D> HeroTexture = nullptr;
 
-	/** T_Soldier_Knight (Content/Sprites/Units) — the owner-chosen high-resolution melee
-	 *  retinue look (88x88 native, PixelLab character 1c935515-...). See provenance.json. */
-	UPROPERTY(Transient) TObjectPtr<UTexture2D> KnightTexture = nullptr;
-
-	/** T_Soldier_Archer — a temporary PixelLab proxy (RawArt/Renders/archer-proxy/), owner
-	 *  flagged for a later swap, now high-resolution (92x92 native). See provenance.json. */
-	UPROPERTY(Transient) TObjectPtr<UTexture2D> ArcherTexture = nullptr;
+	/**
+	 * Two independent axes (task-046, owner: "variants I mean states... variety of the
+	 * character type"): TYPE (Spearmen/Archers) picks which of these two arrays a soldier
+	 * draws from; STATE (a stable per-soldier hash — see SpriteSetForSoldier in the .cpp)
+	 * picks which entry within that array. Each entry is a PixelLab "state" — the SAME
+	 * character re-rendered with a variation (a face shield, a different helmet) — sharing
+	 * the silhouette family so every entry still unambiguously reads as its type. Element 0
+	 * is always T_Soldier_Knight / T_Soldier_Archer (task-050's originals); adding a state
+	 * is adding an asset path to the list this array loads from in NativeTick — no new code,
+	 * same principle task-050 established for swapping the archer proxy. Every entry MUST
+	 * share the same grid as the others (RetinueSheetColumns x RetinueSheetRows, 5x2 —
+	 * UnitCamProjector.cpp) since they're all read through the same DirCol/south-walk logic.
+	 */
+	UPROPERTY(Transient) TArray<TObjectPtr<UTexture2D>> SpearmenStateTextures;
+	UPROPERTY(Transient) TArray<TObjectPtr<UTexture2D>> ArcherStateTextures;
 
 	bool bAtlasLoadAttempted = false;  // load once, even on failure, so we don't retry every frame
 	bool bBrushSetsPushed = false;     // the slices never change; build them once, not per tick
+
+	/** How many states actually loaded per type, cached from the one-time brush-set build
+	 *  (bBrushSetsPushed) so SpriteSetForSoldier's per-body hash-mod stays consistent with
+	 *  what BuildBrushSet actually populated, without re-deriving it every body every tick. */
+	int32 NumSpearmenStatesLoaded = 0;
+	int32 NumArcherStatesLoaded = 0;
 
 	/** The camera manager seed — resolves which world point the virtual camera follows. */
 	FUnitCamDirector Director;

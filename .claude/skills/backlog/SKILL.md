@@ -22,7 +22,7 @@ or hand-write `INDEX.md`.
 
 | Invocation | Do this |
 |---|---|
-| `/backlog` | `py Scripts/backlog.py list --status proposed --top 7` and present the audit queue |
+| `/backlog` | `py Scripts/backlog.py list --status proposed --top 7`, present the audit queue, and ask for the verdicts as a question |
 | `/backlog sweep` | Full ingest pass — see below |
 | `/backlog approve 3,5` | `py Scripts/backlog.py approve 3,5` |
 | `/backlog reject 4 <reason>` | `py Scripts/backlog.py reject 4 -r "<reason>"` |
@@ -38,12 +38,34 @@ commands.
 ## Presenting the audit queue
 
 Show the top 7 and nothing else. For each: rank, score with its four inputs visible, title,
-agent, cost, and the evidence-on-done. The inputs are the point — the owner should be able
-to disagree in one sentence ("risk is 1, the swarm sim already proved that") instead of
-re-reading the task.
+agent, cost, the evidence-on-done, and **your one-word recommendation with confidence** —
+`approve · high`, `park · medium`, `needs a decision first`. The inputs are the point — the
+owner should be able to disagree in one sentence ("risk is 1, the swarm sim already proved
+that") instead of re-reading the task; the recommendation is what lets them agree without
+writing anything at all.
+
+**Then collect the verdict with `AskUserQuestion`, in the same turn.** The owner clicks;
+they should not have to type ids. Seven items do not fit one question, so split them,
+`multiSelect: true` on both:
+
+- Q1 `Ranks 1–4` — "Approve which of these?" One option per task, label = rank + short
+  title, description = your recommendation and the reason for it.
+- Q2 `Ranks 5–7` — same shape.
+
+Two questions, one dialog, one round trip. Then run the whole answer as a single
+`py Scripts/backlog.py approve 3,5,6` — one command, one prompt, one batched `LOG.md`
+write. Never approve them one at a time: four prompts for one decision trains the owner to
+wave the gate through, which is the one thing the gate cannot survive.
+
+Rejects and parks need a *reason*, so they do not fit a click. Leave them to the free-text
+answer the question already offers, or ask after. If the owner answers in prose instead —
+"approve 1,3,4; park 2" — take it; the question exists to make deciding cheap, not to
+insist on a format.
 
 Then stop and wait. Do not start work, do not spawn anyone, do not assume approval from
-enthusiasm. Batch verdicts are normal: "approve 1,3,4; park 2" is one round trip.
+enthusiasm. **`AskUserQuestion` is not the gate** — the permission prompt that
+`Scripts/backlog_guard.py` raises on `approve` is what records the verdict. The click is the
+decision, that prompt is the signature, and both happen.
 
 If the owner disagrees with a score, edit the task's `score:` inputs and re-run `reindex`.
 Score edits are not privileged — argue freely.

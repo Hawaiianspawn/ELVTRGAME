@@ -8,7 +8,7 @@ the total so a disagreement costs one sentence, not a re-read.
 
 | proposed | approved | in-progress | needs-review | done | rejected | parked |
 |---|---|---|---|---|---|---|
-| 41 | 0 | 2 | 1 | 10 | 0 | 1 |
+| 41 | 0 | 1 | 1 | 11 | 0 | 1 |
 
 ## Audit queue — top 7 awaiting your verdict
 
@@ -78,12 +78,11 @@ A fan is approved in one batch and dispatched one teammate per task. `⨝` joins
 | `033` | 0.33 | [Unwitnessed faction — final name, titan variety, horror level](task-033-unwitnessed-faction-revisit.md) | narrative-director | `docs/narrative/unwitnessed.md` | `docs/GDD-TODO.md:109` |
 | `034` | 0.25 | [Full loot & itemization system](task-034-full-loot-and-itemization-system.md) | gameplay-director | `docs/design/loot-full.md` | `docs/GDD-TODO.md:112` |
 
-## in-progress (2)
+## in-progress (1)
 
 | id | score | task | agent | owns | source |
 |---|---|---|---|---|---|
 | `039` | 9.0 | [Retire the dead Gatecamp hexes from six art specs, CLASSES.md, and the art-director definition](task-039-retire-dead-gatecamp-hexes.md) | pixel-art-director | `docs/art/hallam.md`, `docs/art/edda.md`, `docs/art/merle.md`, `docs/art/noll.md`, `docs/art/warden-captain-bree.md`, `docs/art/brees-stairwell.md`, `docs/art/aesthetic-direction.md`, `.claude/agents/pixel-art-director.md` | `docs/art/aesthetic-direction.md:556` |
-| `046` | 2.67 | [Build the typed-unit command layer in Mass — sticky type, per-type stance, per-type allocation, published centroids](task-046-squad-command-layer-in-mass.md) | claude | `ELVTR/Source/ELVTR/Mass/**`, `ELVTR/Source/ELVTR/UI/UnitCamProjector.cpp`, `ELVTR/Source/ELVTR/UI/UnitCamProjector.h`, `ELVTR/Source/ELVTR/UI/UnitCamDirector.cpp`, `ELVTR/Source/ELVTR/UI/UnitCamDirector.h` | `docs/design/squad-group-system.md` |
 
 ## needs-review (1)
 
@@ -91,12 +90,13 @@ A fan is approved in one batch and dispatched one teammate per task. `⨝` joins
 |---|---|---|---|---|---|
 | `053` | 2.0 | [Spec the feeding-distraction mechanic — killers go null on the corpse, three per body, armor sets the chomp](task-053-feeding-distraction-mechanic-spec.md) | gameplay-director | `docs/design/feeding-distraction.md`, `docs/data/feeding.json`, `docs/data/feeding.schema.md` | `user` |
 
-## done (10)
+## done (11)
 
 | id | score | task | agent | owns | source |
 |---|---|---|---|---|---|
 | `043` | 6.0 | [Put a live palette-preset dial on the Breadboard](task-043-live-palette-dial-on-the-breadboard.md) | claude | `ELVTR/Content/PostProcess/M_PP_Demichrome**`, `ELVTR/Content/PostProcess/MPC_Flame**`, `ELVTR/Source/ELVTR/Rendering/SwarmRenderActor.cpp`, `.claude/skills/cvars/SKILL.md`, `docs/data/art/palette.json` | `user` |
 | `050` | 3.0 | [Draw the real sprite set in the Unit Cam — six soldier variants, the hero, and an archer proxy](task-050-wire-real-sprites-into-the-unit-cam.md) | claude | `ELVTR/Source/ELVTR/UI/UnitCamProjector.cpp`, `ELVTR/Source/ELVTR/UI/UnitCamProjector.h`, `ELVTR/Content/Sprites/**`, `RawArt/Renders/archer-proxy/**`, `RawArt/Sheets/T_Soldier_Archer.png`, `docs/data/art/provenance.json` | `user` |
+| `046` | 2.67 | [Build the typed-unit command layer in Mass — sticky type, per-type stance, per-type allocation, published centroids](task-046-squad-command-layer-in-mass.md) | claude | `ELVTR/Source/ELVTR/Mass/**`, `ELVTR/Source/ELVTR/UI/UnitCamProjector.cpp`, `ELVTR/Source/ELVTR/UI/UnitCamProjector.h`, `ELVTR/Source/ELVTR/UI/UnitCamDirector.cpp`, `ELVTR/Source/ELVTR/UI/UnitCamDirector.h` | `docs/design/squad-group-system.md` |
 | `021` | 2.0 | [Measure the per-entity cost and design the group-as-cost-boundary (squad aggregation)](task-021-mass-squad-aggregation.md) | performance-director | `docs/perf/squad-aggregation.md` | `docs/RTS-VERTICAL-SLICE.md:95` |
 | `044` | 2.0 | [Spec the squad group system and the Unit Cam group-framing target](task-044-squad-group-system-and-framing-target.md) | gameplay-director | `docs/design/squad-group-system.md`, `docs/data/squads.json`, `docs/data/squads.schema.md`, `ELVTR/Content/SwarmControls/**` | `user` |
 | `045` | 2.0 | [Frame the majority of the retinue in both centre-column panels and clamp the Unit Cam yaw](task-045-unit-cam-group-framing-and-yaw-clamp.md) | claude | `ELVTR/Source/ELVTR/UI/UnitCamDirector.cpp`, `ELVTR/Source/ELVTR/UI/UnitCamDirector.h`, `ELVTR/Source/ELVTR/UI/UnitCamProjector.cpp`, `ELVTR/Source/ELVTR/UI/UnitCamProjector.h`, `ELVTR/Source/ELVTR/UI/ViewCamCapture.cpp`, `ELVTR/Source/ELVTR/UI/ViewCamCapture.h` | `user` |

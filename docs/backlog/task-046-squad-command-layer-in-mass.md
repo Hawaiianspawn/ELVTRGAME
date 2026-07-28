@@ -1,7 +1,7 @@
 ---
 id: 046
 title: Build the typed-unit command layer in Mass — sticky type, per-type stance, per-type allocation, published centroids
-status: in-progress
+status: done
 agent: claude
 owns: ["ELVTR/Source/ELVTR/Mass/**", "ELVTR/Source/ELVTR/UI/UnitCamProjector.cpp", "ELVTR/Source/ELVTR/UI/UnitCamProjector.h", "ELVTR/Source/ELVTR/UI/UnitCamDirector.cpp", "ELVTR/Source/ELVTR/UI/UnitCamDirector.h"]
 resources: ["unreal-editor", "mcp-9000"]
@@ -10,7 +10,7 @@ evidence: A PIE capture where a knight unit and an archer unit hold DIFFERENT st
 score: {gate: 2, risk: 2, cost: 3}
 source: docs/design/squad-group-system.md
 teammate: typed-unit-layer
-decided: "2026-07-27 in-progress"
+decided: "2026-07-27 done"
 ---
 
 ## Why now
