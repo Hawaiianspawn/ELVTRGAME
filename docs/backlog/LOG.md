@@ -154,3 +154,13 @@ Rejected and parked tasks keep their files — this records why.
 - 2026-07-29 · `task-072` · needs-review → **done** · Reconcile scaling-curve §4's scratch TTK table against entity-tiers' committed numbers
 - 2026-07-29 · `task-073` · in-progress → **needs-review** · Close the archer dead zone — brood inside 150uu that nothing can kill
 - 2026-07-29 · `task-073` · needs-review → **done** · Close the archer dead zone — brood inside 150uu that nothing can kill
+- 2026-07-29 · `task-079` · proposed → **approved** · Design the combinatorial hero-build variety layer — axes, weapon archetypes, and composition synergies
+- 2026-07-29 · `task-080` · proposed → **approved** · Roll hero builds in the harness and report metrics plus an ASCII top-10 performers table
+- 2026-07-29 · `task-059` · parked → **approved** · Give the brood nine looks on one draw call — variant axis in the atlas, chosen by a display-weight table — Owner asked for NPC variety off existing skins with a display-weight table (2026-07-29); task unparked and rescoped, dispatching on Opus
+- 2026-07-29 · `task-079` · approved → **in-progress** · Design the combinatorial hero-build variety layer — axes, weapon archetypes, and composition synergies — dispatched to teammate `hero-build-variety` at model `sonnet`
+- 2026-07-29 · `task-059` · approved → **in-progress** · Give the brood nine looks on one draw call — variant axis in the atlas, chosen by a display-weight table — dispatched to teammate `brood-variety` at model `opus`
+- 2026-07-29 · `task-079` · in-progress → **needs-review** · Design the combinatorial hero-build variety layer — axes, weapon archetypes, and composition synergies
+- 2026-07-29 · `task-079` · needs-review → **done** · Design the combinatorial hero-build variety layer — axes, weapon archetypes, and composition synergies
+- 2026-07-29 · `task-080` · approved → **in-progress** · Roll hero builds in the harness and report metrics plus an ASCII top-10 performers table — dispatched to teammate `variety-report` at model `sonnet`
+- 2026-07-29 · `task-080` · in-progress → **needs-review** · Roll hero builds in the harness and report metrics plus an ASCII top-10 performers table
+- 2026-07-29 · `task-080` · needs-review → **done** · Roll hero builds in the harness and report metrics plus an ASCII top-10 performers table

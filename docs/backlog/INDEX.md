@@ -10,7 +10,7 @@ not a re-read.
 
 | proposed | approved | in-progress | needs-review | done | rejected | parked |
 |---|---|---|---|---|---|---|
-| 39 | 0 | 0 | 0 | 34 | 0 | 5 |
+| 39 | 0 | 1 | 0 | 36 | 0 | 4 |
 
 ## Audit queue — top 7 awaiting your verdict
 
@@ -31,6 +31,7 @@ Approve with `py Scripts/backlog.py approve <ids>` (or `/backlog approve <ids>`)
 | epic | progress | tasks | joins | next move |
 |---|---|---|---|---|
 | `feeding-distraction` | 2/3 closed | [`053`](task-053-feeding-distraction-mechanic-spec.md), [`054`](task-054-build-feeding-distraction-in-mass.md), [`061`](task-061-persistent-corpses-and-walk-up-feeding.md) | `054`, `061` | approve `54` |
+| `hero-variety` | 2/2 closed | [`079`](task-079-hero-build-variety-table.md), [`080`](task-080-variety-roll-and-rank-report.md) | `080` | complete |
 | `scene-tightening` | 2/2 closed | [`057`](task-057-scene-look-rig-bypass-the-colour-gate.md), [`058`](task-058-hud-chrome-tightening.md) | `058` | complete |
 | `sim-pipeline` | 0/4 closed | [`075`](task-075-experiment-pipeline-persisted-runs.md), [`076`](task-076-seeded-variance-layer-distributions.md), [`077`](task-077-batch-driver-pool-and-trials.md), [`078`](task-078-experiment-watcher.md) | `077`, `078` | approve `75,76,77,78` |
 | `sim-tuning-loop` | 2/2 closed | [`069`](task-069-committed-sweep-runner.md), [`070`](task-070-tuning-question-scenario-library.md) | — | complete |
@@ -81,7 +82,13 @@ A fan is approved in one batch and dispatched one teammate per task. `⨝` joins
 | `020` | 0.5 | [Assemble the four-section GDD submission document and export to PDF](task-020-gdd-submission-assembly-and-pdf.md) | claude | `docs/ASSIGNMENT-01-GDD-FIRST-DRAFT.md` | `docs/GDD-TODO.md:77` |
 | `037` | 0.5 | [Sweep the remaining CLASSES C2-C11 open questions against current canon](task-037-sweep-remaining-classes-open-questions.md) | narrative-director | `docs/narrative/open-questions-audit.md` | `docs/GDD-TODO.md:116` |
 
-## done (34)
+## in-progress (1)
+
+| id | score | task | agent | owns | source |
+|---|---|---|---|---|---|
+| `059` | 2.0 | [Give the brood nine looks on one draw call — variant axis in the atlas, chosen by a display-weight table](task-059-niagara-sprite-path-state-axis-and-variety.md) | claude | `ELVTR/Source/ELVTR/Mass/SwarmFragments.h`, `ELVTR/Source/ELVTR/Mass/SwarmProcessors.cpp`, `ELVTR/Source/ELVTR/Rendering/SwarmRenderActor.cpp`, `ELVTR/Source/ELVTR/Rendering/SwarmRenderActor.h`, `ELVTR/Content/Spike1/**`, `ELVTR/Content/Swarm/**`, `ELVTR/Content/Sprites/Swarm/**`, `RawArt/Sheets/T_Swarm*.png`, `docs/data/art/requests/swarm-units.json`, `docs/data/art/brood-variants.json`, `docs/data/art/provenance.json`, `docs/perf/niagara-sprite-path.md` | `user` |
+
+## done (36)
 
 | id | score | task | agent | owns | source |
 |---|---|---|---|---|---|
@@ -92,9 +99,10 @@ A fan is approved in one batch and dispatched one teammate per task. `⨝` joins
 | `039` | 9.0 | [Retire the dead Gatecamp hexes from six art specs, CLASSES.md, and the art-director definition](task-039-retire-dead-gatecamp-hexes.md) | pixel-art-director | `docs/art/hallam.md`, `docs/art/edda.md`, `docs/art/merle.md`, `docs/art/noll.md`, `docs/art/warden-captain-bree.md`, `docs/art/brees-stairwell.md`, `docs/art/aesthetic-direction.md`, `.claude/agents/pixel-art-director.md` | `docs/art/aesthetic-direction.md:556` |
 | `003` | 6.0 | [Spec one scaling curve across the slice's three floors](task-003-systems-scaling-curve-three-floors.md) | gameplay-director | `docs/design/scaling-curve.md`, `docs/data/scaling-curve.json`, `docs/data/scaling-curve.schema.md` | `docs/GDD-TODO.md:87` |
 | `043` | 6.0 | [Put a live palette-preset dial on the Breadboard](task-043-live-palette-dial-on-the-breadboard.md) | claude | `ELVTR/Content/PostProcess/M_PP_Demichrome**`, `ELVTR/Content/PostProcess/MPC_Flame**`, `ELVTR/Source/ELVTR/Rendering/SwarmRenderActor.cpp`, `.claude/skills/cvars/SKILL.md`, `docs/data/art/palette.json` | `user` |
+| `057` | 6.0 | [Take the colour gate off — a bypass and an N-value quantizer, live on the Breadboard](task-057-scene-look-rig-bypass-the-colour-gate.md) | claude | `ELVTR/Content/PostProcess/**`, `ELVTR/Source/ELVTR/Rendering/SwarmRenderActor.cpp`, `ELVTR/Source/ELVTR/Rendering/SwarmRenderActor.h`, `ELVTR/Saved/SwarmExecOnPlay.txt`, `docs/RENDERING-LIGHTING.md`, `.claude/skills/cvars/SKILL.md`, `docs/data/art/palette.json` | `user` |
 | `029` | 3.0 | [Spec the minimal audio set — hits, deaths, stance confirmations](task-029-minimal-audio-readability-set.md) | gameplay-director | `docs/design/audio-minimal.md` | `docs/RTS-VERTICAL-SLICE.md:113` |
 | `050` | 3.0 | [Draw the real sprite set in the Unit Cam — six soldier variants, the hero, and an archer proxy](task-050-wire-real-sprites-into-the-unit-cam.md) | claude | `ELVTR/Source/ELVTR/UI/UnitCamProjector.cpp`, `ELVTR/Source/ELVTR/UI/UnitCamProjector.h`, `ELVTR/Content/Sprites/**`, `RawArt/Renders/archer-proxy/**`, `RawArt/Sheets/T_Soldier_Archer.png`, `docs/data/art/provenance.json` | `user` |
-| `057` | 3.0 | [Take the colour gate off — a bypass and an N-value quantizer, live on the Breadboard](task-057-scene-look-rig-bypass-the-colour-gate.md) | claude | `ELVTR/Content/PostProcess/**`, `ELVTR/Source/ELVTR/Rendering/SwarmRenderActor.cpp`, `ELVTR/Source/ELVTR/Rendering/SwarmRenderActor.h`, `ELVTR/Saved/SwarmExecOnPlay.txt`, `docs/RENDERING-LIGHTING.md`, `.claude/skills/cvars/SKILL.md`, `docs/data/art/palette.json` | `user` |
+| `079` | 3.0 | [Design the combinatorial hero-build variety layer — axes, weapon archetypes, and composition synergies](task-079-hero-build-variety-table.md) | gameplay-director | `docs/design/hero-build-variety.md`, `docs/data/hero-builds.json`, `docs/data/hero-builds.schema.md` | `user` |
 | `021` | 2.0 | [Measure the per-entity cost and design the group-as-cost-boundary (squad aggregation)](task-021-mass-squad-aggregation.md) | performance-director | `docs/perf/squad-aggregation.md` | `docs/RTS-VERTICAL-SLICE.md:95` |
 | `044` | 2.0 | [Spec the squad group system and the Unit Cam group-framing target](task-044-squad-group-system-and-framing-target.md) | gameplay-director | `docs/design/squad-group-system.md`, `docs/data/squads.json`, `docs/data/squads.schema.md`, `ELVTR/Content/SwarmControls/**` | `user` |
 | `045` | 2.0 | [Frame the majority of the retinue in both centre-column panels and clamp the Unit Cam yaw](task-045-unit-cam-group-framing-and-yaw-clamp.md) | claude | `ELVTR/Source/ELVTR/UI/UnitCamDirector.cpp`, `ELVTR/Source/ELVTR/UI/UnitCamDirector.h`, `ELVTR/Source/ELVTR/UI/UnitCamProjector.cpp`, `ELVTR/Source/ELVTR/UI/UnitCamProjector.h`, `ELVTR/Source/ELVTR/UI/ViewCamCapture.cpp`, `ELVTR/Source/ELVTR/UI/ViewCamCapture.h` | `user` |
@@ -118,18 +126,18 @@ A fan is approved in one batch and dispatched one teammate per task. `⨝` joins
 | `067` | 1.0 | [Retire the retracted parameter-sweep claim from the sim-director definition](task-067-sim-director-carries-retracted-claim.md) | claude | `.claude/agents/sim-director.md` | `user` |
 | `069` | 1.0 | [Build a committed sweep runner with machine-readable output](task-069-committed-sweep-runner.md) | sim-director | `Scripts/sim/**`, `docs/sim/**` | `user` |
 | `071` | 1.0 | [Close the loop — a committed balance baseline and a scheduled sweep that reports drift](task-071-scheduled-balance-regression-loop.md) | sim-director | `Scripts/sim/**`, `docs/sim/**` | `user` |
+| `080` | 1.0 | [Roll hero builds in the harness and report metrics plus an ASCII top-10 performers table](task-080-variety-roll-and-rank-report.md) | sim-director | `Scripts/sim/variety.py`, `Scripts/sim/data_loader.py`, `Scripts/sim/combat_model.py`, `docs/sim/VARIETY.md` | `user` |
 | `070` | 0.5 | [Build out the scenario library so the tuning questions have something to run against](task-070-tuning-question-scenario-library.md) | sim-director | `docs/data/scenarios/**` | `user` |
 
-## parked (5)
+## parked (4)
 
 | id | score | task | agent | owns | source |
 |---|---|---|---|---|---|
 | `015` | 18.0 | [Settle GDD Q5 — flipbooks vs. flat-shaded 3D — with an actual art test](task-015-gdd-q5-flipbooks-vs-3d-art-test.md) | pixel-art-director | `docs/art/flipbook-vs-3d-test.md` | `GDD.md:429` |
 | `040` | 2.0 | [Replace the literal white hit-flash in the Unit Cam panel with Demichrome Pale](task-040-unitcam-literal-white-violates-ramp.md) | claude | `ELVTR/Source/**/UnitCamProjector.cpp` | `docs/art/palette-exceptions.md:45` |
 | `056` | 2.0 | [Build a 6-variant silhouette family off the bright-palette sci-fi soldier and publish the contact sheet](task-056-scifi-soldier-silhouette-variant-family.md) | claude | `RawArt/Renders/soldier-scifi-variants/**`, `docs/art/soldier-scifi-variants.md` | `user` |
-| `059` | 1.5 | [Rework the Niagara sprite path so the horde has a state axis and per-unit size, without growing the atlas](task-059-niagara-sprite-path-state-axis-and-variety.md) | claude | `ELVTR/Source/ELVTR/Mass/SwarmFragments.h`, `ELVTR/Source/ELVTR/Rendering/SwarmRenderActor.cpp`, `ELVTR/Source/ELVTR/Rendering/SwarmRenderActor.h`, `ELVTR/Content/Spike1/**`, `ELVTR/Content/Swarm/**`, `ELVTR/Content/Sprites/Swarm/**`, `RawArt/Sheets/T_Swarm*.png`, `docs/perf/niagara-sprite-path.md` | `user` |
 | `058` | 1.0 | [Tighten the HUD chrome, and let UMG follow the live ramp instead of hardcoding four hexes](task-058-hud-chrome-tightening.md) | claude | `ELVTR/Source/ELVTR/UI/EmberkeepHud.cpp`, `ELVTR/Source/ELVTR/UI/EmberkeepHud.h`, `ELVTR/Source/ELVTR/UI/EmberkeepPalette.h`, `ELVTR/Source/ELVTR/UI/MusterPanel.cpp`, `ELVTR/Source/ELVTR/UI/MusterPanel.h`, `ELVTR/Source/ELVTR/UI/MusterGrid.cpp`, `ELVTR/Source/ELVTR/UI/MusterGrid.h`, `ELVTR/Source/ELVTR/UI/SquadCard.cpp`, `ELVTR/Source/ELVTR/UI/SquadCard.h`, `ELVTR/Source/ELVTR/UI/StitchMeter.cpp`, `ELVTR/Source/ELVTR/UI/StitchMeter.h`, `ELVTR/Source/ELVTR/UI/EmberkeepUITypes.h`, `docs/ui/hud-chrome.md` | `user` |
 
 ---
 
-*Regenerated 2026-07-29 · 78 task(s) · decisions in [LOG.md](LOG.md).*
+*Regenerated 2026-07-29 · 80 task(s) · decisions in [LOG.md](LOG.md).*

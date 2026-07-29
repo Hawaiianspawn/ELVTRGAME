@@ -187,6 +187,119 @@ def hero_fighter() -> dict:
 
 
 # ---------------------------------------------------------------------------
+# Hero-build variety layer — docs/data/hero-builds.json (task-079). The only
+# consumer targeted today is Scripts/sim/variety.py (task-080), which still
+# must not open this file itself — same exclusivity invariant as every other
+# docs/data/*.json this module owns.
+# ---------------------------------------------------------------------------
+
+def load_hero_builds() -> dict:
+    return _load_json(DATA_DIR / "hero-builds.json")
+
+
+def resolve_hero_build(
+    chassis_id: str,
+    weapon_id: str,
+    projectile_id: str,
+    modification_id: str | None = None,
+    ability_id: str | None = None,
+) -> dict:
+    """
+    Resolve one hero-builds.json axis-pick tuple (chassis/weapon/projectile,
+    plus an optional modification/ability) into an INTERMEDIATE component
+    dict, per hero-builds.schema.md's `build_stat_block` derivation —
+    stopping one step short of the final dps/swing_interval fold so a caller
+    (Scripts/sim/variety.py) can apply a synergy_rules multiplier to
+    rate_of_fire/accuracy FIRST: the schema states rate_of_fire is read
+    "pre-swing-interval-inversion" and accuracy "pre-dps-computation", i.e.
+    both must be adjusted before finalize_hero_build_fighter() folds them
+    into one steady-state dps number. `ability_id` isn't a stat input at all
+    (none of the six abilities write a build_stat_block field — see
+    hero-builds.json abilities.*.representable_note) — it's threaded through
+    only so a caller can still see which build picked it, for synergy-rule
+    evaluation and reporting. origin_world is likewise not a stat input
+    (schema: "NOT constrained by weapon/projectile choice") and isn't
+    accepted here at all; callers track it themselves alongside the roll.
+
+    `piercing_rounds`' `armor_penetration_flat` is carried through in the
+    returned dict but not consumed by anything downstream — see
+    docs/sim/VARIETY.md for why (Scripts/sim/combat_model.py's EffectiveBlow
+    has no term for it, and this task's combat_model.py change is scoped to
+    an additive damage-attribution key only, not a math change).
+    """
+    hb = load_hero_builds()
+    chassis = hb["chassis"][chassis_id]
+    weapon = hb["weapon_archetypes"][weapon_id]
+    projectile = hb["projectiles"][projectile_id]
+    mod = hb["modifications"][modification_id] if modification_id else None
+    effect = mod["effect"] if mod else {}
+
+    base = chassis["base_stats"]
+    # hero-builds.schema.md 'resolve_type -> targets_per_hit derivation':
+    targets_per_shot_effective = weapon["targets_per_shot"] + effect.get("targets_per_shot_add", 0)
+    if projectile["resolve_type"] == "area" and weapon["aoe_radius"] > 0:
+        targets_per_hit = max(targets_per_shot_effective, round(weapon["aoe_radius"] / 40))
+    else:
+        targets_per_hit = targets_per_shot_effective
+
+    return {
+        "chassis_id": chassis_id,
+        "weapon_id": weapon_id,
+        "projectile_id": projectile_id,
+        "modification_id": modification_id,
+        "ability_id": ability_id,
+        "max_hp": float(base["max_hp"]) * effect.get("max_hp_mult", 1.0),
+        "armor": float(base["armor"]),
+        "rate_of_fire": float(weapon["rate_of_fire"]) * effect.get("rate_of_fire_mult", 1.0),
+        "damage_per_shot": float(weapon["damage_per_shot"]) * effect.get("damage_per_shot_mult", 1.0),
+        "accuracy": max(0.0, min(1.0, float(weapon["accuracy"]) + float(projectile["accuracy_modifier"]))),
+        "engage_range": float(weapon["range"]) * effect.get("range_mult", 1.0),
+        "min_engage_range": float(weapon["min_range"]),
+        "targets_per_hit": int(targets_per_hit),
+        "move_speed_scale": float(base["move_speed_scale"]) * effect.get("move_speed_scale_mult", 1.0),
+        "armor_penetration_flat": float(effect.get("armor_penetration_flat", 0.0)),
+        "source": "docs/data/hero-builds.json",
+    }
+
+
+def finalize_hero_build_fighter(name: str, display_name: str, components: dict) -> dict:
+    """
+    Folds a (possibly synergy-modified) component dict from resolve_hero_build
+    into the flat fighter shape combat_model.py expects — the same shape
+    retinue_fighter()/enemy_fighter() already produce, so a rolled hero-build
+    drops into the existing sim harness with no translation layer.
+
+    `role` deliberately does NOT reuse retinue_fighter()/enemy_fighter()'s own
+    rule (`engage_range > 150 AND min_engage_range > 0`) — that rule happens
+    to work for the two existing hand-written types (Spearmen/Archers) only
+    because their data correlates min_engage_range with range. Several
+    reachable hero-builds weapon archetypes break that correlation (e.g.
+    beam_continuous 600uu range / 0 min-range, turret_autocannon 500uu / 0,
+    rapid_skirmish_blaster 350uu / 0) — under the old rule those would
+    misclassify as "melee" despite being clearly stand-off weapons. Every
+    reachable archetype's `range` cleanly separates on 150uu alone (melee:
+    90-95uu, ranged: 350uu+), so `engage_range > 150` on its own is the
+    correct discriminator for this axis space. See docs/sim/VARIETY.md.
+    """
+    rate_of_fire = components["rate_of_fire"]
+    dps = components["damage_per_shot"] * rate_of_fire * components["accuracy"]
+    role = "ranged" if components["engage_range"] > 150 else "melee"
+    return {
+        "name": name,
+        "display_name": display_name,
+        "max_hp": components["max_hp"],
+        "armor": components["armor"],
+        "dps": dps,
+        "swing_interval": (1.0 / rate_of_fire) if rate_of_fire > 0 else float("inf"),
+        "engage_range": components["engage_range"],
+        "min_engage_range": components["min_engage_range"],
+        "targets_per_hit": int(components["targets_per_hit"]),
+        "role": role,
+        "source": "docs/data/hero-builds.json",
+    }
+
+
+# ---------------------------------------------------------------------------
 # Scenario files — docs/data/scenarios/*.json (excluding this constants file)
 # ---------------------------------------------------------------------------
 

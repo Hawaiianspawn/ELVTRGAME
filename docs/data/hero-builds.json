@@ -1,0 +1,293 @@
+{
+  "$schema_note": "task-079. The friendly (\"hero-side\"/retinue) build-variety layer: chassis x weapon-archetype x projectile x modification x ability x origin-world, combinatorially producing hundreds of unit builds from a handful of axis tables — the generalization of docs/data/unit-types.json's two hand-written types (spearmen, archers) into a data-driven space. Decisions + rationale, the constraint reasoning, the worked examples and the open questions all live in docs/design/hero-build-variety.md — this file is the raw axis/constraint/rule data only. Columns/units/ranges: hero-builds.schema.md. Simulation-space only (owner, 2026-07-29): nothing here is UE-DataTable-imported or runtime-read yet. All values are PROTOTYPE DIALS (first pass, unmeasured) except where a field's note says CITED and names the source — same status as docs/data/unit-types.json and docs/data/economy.json.",
+  "version": "0.1-prototype",
+  "last_updated": "2026-07-29",
+
+  "reachable_build_count": {
+    "raw_product": 235200,
+    "raw_product_formula": "chassis(8) x weapon_archetypes(10) x projectiles(10) x (modifications(6)+none) x (abilities(6)+none) x origin_worlds(6) = 8x10x10x7x7x6",
+    "raw_product_note": "The full combinatorial space with NO chassis coherence constraint applied — every chassis could roll every weapon/projectile/mod/ability/origin. This is the number that would let an archer chassis legally roll a shield-wall ability, which the owner explicitly ruled out ('somewhat themed consistently to their character view').",
+    "legal_count": 999,
+    "legal_count_note": "The reachable space AFTER each chassis's own legal_weapons/legal_projectiles/legal_modifications/legal_abilities/legal_origin_worlds lists are applied (see `chassis.<id>` below) — computed by summing, per chassis, legal_weapons x legal_projectiles x (legal_modifications+1 for 'none') x (legal_abilities+1 for 'none') x legal_origin_worlds. Verified by a committed-nowhere scratch script (docs/design/hero-build-variety.md 'Simulation notes'), not hand-arithmetic. 999 is 0.42% of the raw product — the chassis coherence table is doing real, load-bearing work, not a token filter.",
+    "per_chassis": {
+      "archer": 243,
+      "gunner": 108,
+      "line_breaker": 108,
+      "skirmisher": 108,
+      "arcane_caster": 108,
+      "combat_engineer": 108,
+      "beastcaller": 108,
+      "siege_artillerist": 108
+    },
+    "per_chassis_note": "Archer is the one irregular row (3 legal weapons instead of 2, 3 legal projectiles instead of 2) — deliberately, because it's the owner's own named example (docs/design/hero-build-variety.md worked example: 'RPG archer' vs 'laser cannon' archer) and needed enough legal width to host both a calibration weapon (precision_longbow, reproducing unit-types.json's archers row exactly) AND the two flavor-divergent weapons in the same chassis. Every other chassis holds to the same 2x2x3x3xN(origins) shape; asymmetric per-chassis cardinality is allowed by design (chassis differ in how much variety they legally support, not just in flavor)."
+  },
+
+  "chassis": {
+    "archer": {
+      "display_name": "Archer",
+      "role": "ranged_precision",
+      "note": "CALIBRATION CHASSIS — base stats are an exact carry-over of unit-types.json's Archers row (hp/armor/move_speed_scale), so the existing type stays reachable as a point in this space (see calibration_builds.archers).",
+      "base_stats": { "max_hp": 70, "armor": 0, "move_speed_scale": 0.9 },
+      "legal_weapons": ["precision_longbow", "arcing_aoe_lobber", "beam_continuous"],
+      "legal_projectiles": ["fletched_arrow", "rocket", "energy_beam"],
+      "legal_modifications": ["focus_optic", "overcharge_core"],
+      "legal_abilities": ["rally_cry", "camouflage_strike"],
+      "legal_origin_worlds": ["iron_reach", "ashworks", "deep_static"]
+    },
+    "gunner": {
+      "display_name": "Gunner",
+      "role": "ranged_rapid_fire",
+      "note": "New chassis. High rate-of-fire, low per-shot damage skirmisher — the sustained-pressure counterpart to Archer's precision shot.",
+      "base_stats": { "max_hp": 65, "armor": 0, "move_speed_scale": 1.0 },
+      "legal_weapons": ["rapid_skirmish_blaster", "chain_bounce_shot"],
+      "legal_projectiles": ["slug_round", "chain_bolt"],
+      "legal_modifications": ["overcharge_core", "wide_choke"],
+      "legal_abilities": ["chain_reactor", "rally_cry"],
+      "legal_origin_worlds": ["deep_static", "ashworks", "glass_tide"]
+    },
+    "line_breaker": {
+      "display_name": "Line Breaker",
+      "role": "melee_line",
+      "note": "CALIBRATION CHASSIS — base stats are an exact carry-over of unit-types.json's Spearmen row, so the existing type stays reachable as a point in this space (see calibration_builds.spearmen). Generalizes 'the melee wall' role Spearmen already occupy.",
+      "base_stats": { "max_hp": 130, "armor": 0, "move_speed_scale": 1.0 },
+      "legal_weapons": ["cleave_melee_sweep", "dual_strike_melee"],
+      "legal_projectiles": ["melee_swing", "chain_bolt"],
+      "legal_modifications": ["reinforced_plating", "piercing_rounds"],
+      "legal_abilities": ["last_stand", "guardian_angel"],
+      "legal_origin_worlds": ["iron_reach", "verdant_wilds", "hollow_choir"]
+    },
+    "skirmisher": {
+      "display_name": "Skirmisher",
+      "role": "melee_light_fast",
+      "note": "New chassis. Fast, low-HP dual-wielder (blades or sidearms) — the mobility/flanking counterpart to Line Breaker's wall.",
+      "base_stats": { "max_hp": 90, "armor": 0, "move_speed_scale": 1.15 },
+      "legal_weapons": ["dual_strike_melee", "rapid_skirmish_blaster"],
+      "legal_projectiles": ["melee_swing", "slug_round"],
+      "legal_modifications": ["lightweight_frame", "overcharge_core"],
+      "legal_abilities": ["camouflage_strike", "chain_reactor"],
+      "legal_origin_worlds": ["verdant_wilds", "glass_tide", "iron_reach"]
+    },
+    "arcane_caster": {
+      "display_name": "Arcane Caster",
+      "role": "ranged_channel",
+      "note": "New chassis. Sustained-beam / chain-effect caster — fragile, high-uptime damage rather than burst.",
+      "base_stats": { "max_hp": 60, "armor": 0, "move_speed_scale": 0.85 },
+      "legal_weapons": ["beam_continuous", "chain_bounce_shot"],
+      "legal_projectiles": ["energy_beam", "chain_bolt"],
+      "legal_modifications": ["overcharge_core", "focus_optic"],
+      "legal_abilities": ["rally_cry", "shield_regen"],
+      "legal_origin_worlds": ["hollow_choir", "glass_tide", "deep_static"]
+    },
+    "combat_engineer": {
+      "display_name": "Combat Engineer",
+      "role": "support_sustained_fire",
+      "note": "New chassis. Sturdier, moderate-armor sustained-fire support line — the 'holds a position and keeps shooting' role.",
+      "base_stats": { "max_hp": 100, "armor": 2, "move_speed_scale": 0.9 },
+      "legal_weapons": ["turret_autocannon", "rapid_skirmish_blaster"],
+      "legal_projectiles": ["slug_round", "energy_beam"],
+      "legal_modifications": ["reinforced_plating", "wide_choke"],
+      "legal_abilities": ["rally_cry", "shield_regen"],
+      "legal_origin_worlds": ["ashworks", "deep_static", "iron_reach"]
+    },
+    "beastcaller": {
+      "display_name": "Beastcaller",
+      "role": "melee_hybrid_organic",
+      "note": "New chassis. Organic/summon-flavored melee-leaning hybrid, moderate HP and light armor.",
+      "base_stats": { "max_hp": 110, "armor": 1, "move_speed_scale": 1.0 },
+      "legal_weapons": ["cleave_melee_sweep", "chain_bounce_shot"],
+      "legal_projectiles": ["melee_swing", "shrapnel_spread"],
+      "legal_modifications": ["lightweight_frame", "piercing_rounds"],
+      "legal_abilities": ["guardian_angel", "last_stand"],
+      "legal_origin_worlds": ["verdant_wilds", "hollow_choir", "iron_reach"]
+    },
+    "siege_artillerist": {
+      "display_name": "Siege Artillerist",
+      "role": "ranged_backline_aoe",
+      "note": "New chassis. Slow, huge-hit, huge-min-range backline — cannot function at short range at all, the deliberate opposite of Line Breaker.",
+      "base_stats": { "max_hp": 80, "armor": 0, "move_speed_scale": 0.7 },
+      "legal_weapons": ["siege_artillery", "arcing_aoe_lobber"],
+      "legal_projectiles": ["rocket", "incendiary_pot"],
+      "legal_modifications": ["focus_optic", "reinforced_plating"],
+      "legal_abilities": ["last_stand", "chain_reactor"],
+      "legal_origin_worlds": ["iron_reach", "ashworks", "hollow_choir"]
+    }
+  },
+
+  "weapon_archetypes": {
+    "precision_longbow": {
+      "display_name": "Precision Longbow",
+      "note": "CALIBRATION ROW — CITED. rate_of_fire/damage_per_shot chosen so dps and swing_interval exactly reproduce unit-types.json's Archers (dps 18, swing_interval 0.9) and entity-tiers.md §2.2's own stated Archer blow value (16.2 = 16.2 damage_per_shot x 1/0.9 rate_of_fire).",
+      "rate_of_fire": 1.1111, "range": 750, "min_range": 150, "damage_per_shot": 16.2,
+      "targets_per_shot": 1, "aoe_radius": 0, "accuracy": 1.0,
+      "flavor_names": ["hunting longbow", "scoped hunting rifle", "charged rail dart"]
+    },
+    "cleave_melee_sweep": {
+      "display_name": "Cleave Melee Sweep",
+      "note": "CALIBRATION ROW — CITED. rate_of_fire/damage_per_shot chosen so dps and swing_interval exactly reproduce unit-types.json's Spearmen (dps 30, swing_interval 0.9) and entity-tiers.json design_constants.reference_blow_value (27.0 = Militia's blow, the system's own stated balance anchor).",
+      "rate_of_fire": 1.1111, "range": 95, "min_range": 0, "damage_per_shot": 27.0,
+      "targets_per_shot": 8, "aoe_radius": 0, "accuracy": 1.0,
+      "flavor_names": ["spear sweep", "serrated cane-cutter blade", "force-pike arc"]
+    },
+    "arcing_aoe_lobber": {
+      "display_name": "Arcing AoE Lobber",
+      "note": "PROTOTYPE DIAL. The owner's own named example ('RPG archer... shooting explosives that do damage in an area'). Slow, single heavy hit plus splash radius, deliberately un-usable at point-blank (min_range 120) — a lobbed weapon can't hit what's standing on it.",
+      "rate_of_fire": 0.4, "range": 650, "min_range": 120, "damage_per_shot": 55.0,
+      "targets_per_shot": 1, "aoe_radius": 180, "accuracy": 0.8,
+      "flavor_names": ["RPG launcher", "mortar shell", "greek fire pot", "seed-pod bomb"]
+    },
+    "beam_continuous": {
+      "display_name": "Continuous Beam",
+      "note": "PROTOTYPE DIAL. The owner's other named example ('the next a laser cannon'). Modeled as a very fast tick rate approximating a sustained channel — same steady-state dps class as Precision Longbow, but the opposite cadence shape (many small hits vs. one big one), so it reads as a genuinely different weapon, not a reskinned longbow.",
+      "rate_of_fire": 3.0, "range": 600, "min_range": 0, "damage_per_shot": 6.0,
+      "targets_per_shot": 1, "aoe_radius": 0, "accuracy": 1.0,
+      "flavor_names": ["laser cannon", "arc lightning beam", "resonant chant beam"]
+    },
+    "rapid_skirmish_blaster": {
+      "display_name": "Rapid Skirmish Blaster",
+      "note": "PROTOTYPE DIAL. Highest rate_of_fire in the roster, lowest damage_per_shot, short range — a close-pressure suppression weapon, not a sniping tool.",
+      "rate_of_fire": 4.0, "range": 350, "min_range": 0, "damage_per_shot": 5.0,
+      "targets_per_shot": 1, "aoe_radius": 0, "accuracy": 0.85,
+      "flavor_names": ["repeating crossbow", "submachine blaster", "dart-spitter gland"]
+    },
+    "chain_bounce_shot": {
+      "display_name": "Chain / Bounce Shot",
+      "note": "PROTOTYPE DIAL. Hits a primary target and chains to 2 more (targets_per_shot 3) without any aoe_radius — a genuinely different multi-target shape from an AoE weapon (discrete chain vs. area), meant to be paired with the 'pierce' projectile resolve_type.",
+      "rate_of_fire": 1.5, "range": 500, "min_range": 50, "damage_per_shot": 14.0,
+      "targets_per_shot": 3, "aoe_radius": 0, "accuracy": 0.85,
+      "flavor_names": ["chain lightning wand", "ricochet slug", "barbed boomerang"]
+    },
+    "dual_strike_melee": {
+      "display_name": "Dual Strike Melee",
+      "note": "PROTOTYPE DIAL. Fast dual-hit melee, no cleave beyond its own two strikes (targets_per_shot 2) — the mobility-focused counterpart to Cleave Melee Sweep's wide, slower cleave.",
+      "rate_of_fire": 1.8, "range": 90, "min_range": 0, "damage_per_shot": 9.0,
+      "targets_per_shot": 2, "aoe_radius": 0, "accuracy": 1.0,
+      "flavor_names": ["twin short-blades", "dual energy talons", "claw-and-fang combo"]
+    },
+    "shotgun_spread": {
+      "display_name": "Shotgun Spread",
+      "note": "PROTOTYPE DIAL. Short range, wide instantaneous cone (targets_per_shot 4, no aoe_radius — the cone is resolved as discrete simultaneous targets, not a lingering area) — a burst-alpha weapon for a unit that gets in close and unloads.",
+      "rate_of_fire": 1.2, "range": 140, "min_range": 0, "damage_per_shot": 10.0,
+      "targets_per_shot": 4, "aoe_radius": 0, "accuracy": 0.9,
+      "flavor_names": ["blunderbuss", "scatter-slug shotgun", "spore-burst gland"]
+    },
+    "siege_artillery": {
+      "display_name": "Siege Artillery",
+      "note": "PROTOTYPE DIAL. The largest single hit and largest aoe_radius in the roster, the slowest rate_of_fire (a shot every ~6.7s), and the only min_range that excludes most of the map's mid-range band (300uu) — cannot function as anything but a fixed backline piece.",
+      "rate_of_fire": 0.15, "range": 1100, "min_range": 300, "damage_per_shot": 220.0,
+      "targets_per_shot": 1, "aoe_radius": 260, "accuracy": 0.7,
+      "flavor_names": ["siege ballista", "howitzer battery", "choir bell of ruin"]
+    },
+    "turret_autocannon": {
+      "display_name": "Turret Autocannon",
+      "note": "PROTOTYPE DIAL. Sustained mid-rate fire hitting 2 targets_per_shot with no aoe_radius (small discrete cleave, not splash) — the 'holds a line and keeps two targets suppressed' support gun.",
+      "rate_of_fire": 2.5, "range": 500, "min_range": 0, "damage_per_shot": 8.0,
+      "targets_per_shot": 2, "aoe_radius": 0, "accuracy": 0.9,
+      "flavor_names": ["deployable autocannon turret", "tesla coil emplacement", "iron reach ballista nest"]
+    }
+  },
+
+  "projectiles": {
+    "fletched_arrow":  { "display_name": "Fletched Arrow",  "travel_type": "ballistic_arc",     "resolve_type": "point",  "travel_speed_uu_s": 900,     "accuracy_modifier": 0.0,  "flavor_names": ["fletched arrow", "tempered dart", "spore-thorn quill"] },
+    "crossbow_bolt":   { "display_name": "Crossbow Bolt",   "travel_type": "physical_straight",  "resolve_type": "point",  "travel_speed_uu_s": 1400,    "accuracy_modifier": 0.03, "flavor_names": ["crossbow bolt", "gyro-stabilized flechette"] },
+    "slug_round":      { "display_name": "Slug Round",      "travel_type": "hitscan",            "resolve_type": "point",  "travel_speed_uu_s": "instant","accuracy_modifier": 0.05, "flavor_names": ["lead slug", "rail-driven slug"] },
+    "energy_beam":     { "display_name": "Energy Beam",     "travel_type": "hitscan",            "resolve_type": "point",  "travel_speed_uu_s": "instant","accuracy_modifier": 0.05, "flavor_names": ["focused laser beam", "resonant light lance"] },
+    "rocket":          { "display_name": "Rocket",          "travel_type": "ballistic_arc",      "resolve_type": "area",   "travel_speed_uu_s": 650,     "accuracy_modifier": -0.05,"flavor_names": ["rocket-propelled grenade", "alchemical firebomb"] },
+    "incendiary_pot":  { "display_name": "Incendiary Pot",  "travel_type": "ballistic_arc",      "resolve_type": "area",   "travel_speed_uu_s": 500,     "accuracy_modifier": -0.08,"flavor_names": ["greek fire pot", "spore-bloat sac"] },
+    "chain_bolt":      { "display_name": "Chain Bolt",      "travel_type": "hitscan",            "resolve_type": "pierce", "travel_speed_uu_s": "instant","accuracy_modifier": 0.0,  "flavor_names": ["chained lightning arc", "ricochet barb"] },
+    "melee_swing":     { "display_name": "Melee Swing",     "travel_type": "melee_instant",      "resolve_type": "point",  "travel_speed_uu_s": "instant","accuracy_modifier": 0.0,  "flavor_names": ["blade swing", "claw rake", "force-pike thrust"] },
+    "homing_seeker":   { "display_name": "Homing Seeker",   "travel_type": "homing",             "resolve_type": "point",  "travel_speed_uu_s": 550,     "accuracy_modifier": 0.15, "flavor_names": ["homing dart", "seeker missile", "mind-guided shard"] },
+    "shrapnel_spread": { "display_name": "Shrapnel Spread", "travel_type": "physical_straight",  "resolve_type": "area",   "travel_speed_uu_s": 700,     "accuracy_modifier": -0.10,"flavor_names": ["shrapnel burst", "scatter-thorn cone"] }
+  },
+
+  "modifications": {
+    "focus_optic":        { "display_name": "Focus Optic",        "kind": "modification", "effect": { "range_mult": 1.4, "rate_of_fire_mult": 0.8 },  "note": "Trades rate of fire for range — the 'scope' archetype." },
+    "overcharge_core":    { "display_name": "Overcharge Core",    "kind": "modification", "effect": { "damage_per_shot_mult": 1.25, "rate_of_fire_mult": 0.85 }, "note": "Trades rate of fire for damage per shot — bigger, slower hits." },
+    "reinforced_plating": { "display_name": "Reinforced Plating", "kind": "modification", "effect": { "max_hp_mult": 1.25, "move_speed_scale_mult": 0.9 }, "note": "Trades mobility for survivability." },
+    "lightweight_frame":  { "display_name": "Lightweight Frame",  "kind": "modification", "effect": { "move_speed_scale_mult": 1.15, "max_hp_mult": 0.9 }, "note": "Trades survivability for mobility." },
+    "piercing_rounds":    { "display_name": "Piercing Rounds",    "kind": "modification", "effect": { "armor_penetration_flat": 4 }, "note": "Reduces the VICTIM's Armor (entity-tiers.md §2.2's EffectiveBlow formula) by a flat 4 before the ArmorChipFloor clamp is applied. NOT consumable by Scripts/sim/combat_model.py today — needs a one-line extension (EffectiveBlow = max(AttackerBlow - max(Victim.Armor - ArmorPenetrationFlat, 0), ArmorChipFloor)), see hero-build-variety.md's sim-consumability section." },
+    "wide_choke":         { "display_name": "Wide Choke",         "kind": "modification", "effect": { "targets_per_shot_add": 1, "range_mult": 0.9 }, "note": "Trades range for one more simultaneous target." }
+  },
+
+  "abilities": {
+    "rally_cry":         { "display_name": "Rally Cry",         "kind": "ability", "representable": "approximate", "representable_note": "Periodic aura, +12% dps to allies within 300uu for 4s every 12s (33% uptime). Approximable in the point-target model ONLY as a flat expected-value multiplier (1 + 0.12 x 4/12 = 1.04x) applied to nearby allies — not a per-tick positional effect, and not usable at all in the pooled wave-attrition model, which has no per-unit position." },
+    "camouflage_strike": { "display_name": "Camouflage Strike", "kind": "ability", "representable": "no",         "representable_note": "First shot from stealth deals +200% damage, then the bonus is gone for the rest of the fight. A one-shot burst event has no representation in a steady-state DPS number — encoding it as a number the sim would silently misuse (e.g. folding it into average dps) is exactly what the brief asked NOT to do." },
+    "shield_regen":      { "display_name": "Shield Regen",      "kind": "ability", "representable": "no",         "representable_note": "Regenerates 4% max_hp/sec after 3s out of combat. Neither combat model tracks in/out-of-combat state or time-varying HP outside the attrition tick itself — no field to attach this to without adding a new primitive." },
+    "last_stand":        { "display_name": "Last Stand",        "kind": "ability", "representable": "no",         "representable_note": "+50% dps while below 25% HP. State-dependent on an individual soldier's remaining HP; the point-target model tracks only the TARGET's HP, and the wave-attrition model tracks pooled HP per subgroup, not per-soldier — there is no per-soldier HP state to threshold against." },
+    "chain_reactor":     { "display_name": "Chain Reactor",     "kind": "ability", "representable": "partial",    "representable_note": "On kill, next attack's swing_interval is halved. Representable ONLY in the point-target model, where one attacker's kill rate against the target is a computable quantity (task-080 would derive it, not this file) — NOT representable in the wave-attrition model, where kills aren't attributed to individual attackers." },
+    "guardian_angel":    { "display_name": "Guardian Angel",    "kind": "ability", "representable": "partial",    "representable_note": "Once per fight, prevents one squadmate's death within 400uu. Not a stat-block field at all — representable ONLY as a flat +1 adjustment to the wave-attrition model's final survivor count per instance present in the roster, a post-hoc headcount correction, not a DPS/HP number." }
+  },
+
+  "origin_worlds": {
+    "iron_reach":    { "display_name": "Iron Reach",    "working_name_only": true, "flavor_note": "Medieval-martial — steel, siege engines, banners. The default/legacy world; Spearmen and Archers' native origin (calibration_builds both use this)." },
+    "ashworks":      { "display_name": "Ashworks",       "working_name_only": true, "flavor_note": "Industrial/gunpowder-forge — rifles, mortars, chemical fire." },
+    "deep_static":   { "display_name": "Deep Static",    "working_name_only": true, "flavor_note": "High-tech/energy — lasers, drones, beam weapons." },
+    "verdant_wilds": { "display_name": "Verdant Wilds",  "working_name_only": true, "flavor_note": "Organic/beast-adapted — living weapons, claws, spores." },
+    "hollow_choir":  { "display_name": "Hollow Choir",   "working_name_only": true, "flavor_note": "Ritual/arcane — chant-bound magic, resonant weapons." },
+    "glass_tide":    { "display_name": "Glass Tide",     "working_name_only": true, "flavor_note": "Crystal/psionic — refracted light weapons, mind-bent constructs." }
+  },
+  "origin_worlds_note": "WorkingNameOnly, same convention entity-tiers.json already uses for its brood_* rows — docs/narrative/FLAME-FOUNDATION.md names no worlds yet (WORLD.md is SUPERSEDED, not cited). These six exist so the origin-world axis and its synergy rules are checkable now; naming/fiction is a Narrative request (hero-build-variety.md).",
+
+  "synergy_rules": {
+    "note": "Machine-checkable roster-level rules. Each condition is evaluated against a ROLLED ROSTER (a list of resolved builds, each carrying its axis picks + its build_stat_block, see hero-builds.schema.md). `scope` says which units in the roster the effect applies to. Rule 4 is the required anti-synergy/cost — it directly opposes rule 1 (Kindred Ranks) so 'roll one of every world' is not simply strictly better than 'commit to a few worlds'.",
+    "rules": [
+      {
+        "id": "kindred_ranks",
+        "kind": "bonus",
+        "description": "A roster whose single most-common origin_world makes up at least half the roster reads as a disciplined, drilled-together force.",
+        "condition": { "type": "origin_world_share", "op": ">=", "threshold": 0.5 },
+        "scope": "units_matching_condition_origin",
+        "effect": { "stat": "dps", "op": "multiply", "value": 1.08 }
+      },
+      {
+        "id": "twin_world_resonance",
+        "kind": "bonus",
+        "description": "Ashworks gunsmiths and Deep Static coil-engineers cross-pollinate: forges learn to etch circuitry, coil-labs learn to cast barrels.",
+        "condition": { "type": "origin_world_pair_present", "worlds": ["ashworks", "deep_static"] },
+        "scope": "units_matching_origin_in_pair",
+        "effect": { "stat": "rate_of_fire", "op": "multiply", "value": 1.10 }
+      },
+      {
+        "id": "choirs_ward",
+        "kind": "bonus",
+        "description": "Two or more Rally Cry banners compound across the whole line, not just their own local radius.",
+        "condition": { "type": "ability_id_count", "ability_id": "rally_cry", "op": ">=", "threshold": 2 },
+        "scope": "whole_roster",
+        "effect": { "stat": "dps", "op": "multiply", "value": 1.05 }
+      },
+      {
+        "id": "babel_discord",
+        "kind": "anti_synergy",
+        "description": "ANTI-SYNERGY / COST. Five or more of the six origin-worlds present in one roster means too many mutually unfamiliar drill traditions standing shoulder to shoulder — coordination friction, not strength. Directly opposes kindred_ranks: maximizing world diversity is not simply better than committing to a concentrated or paired roster.",
+        "condition": { "type": "distinct_origin_world_count", "op": ">=", "threshold": 5 },
+        "scope": "whole_roster",
+        "effect": { "stat": "accuracy", "op": "multiply", "value": 0.94 }
+      }
+    ]
+  },
+
+  "calibration_builds": {
+    "note": "Verifies the current two shipped types (docs/data/unit-types.json) remain reachable, exactly, as points in this space (see hero-build-variety.md 'Simulation notes' for the script that checked this).",
+    "spearmen": {
+      "chassis": "line_breaker", "weapon": "cleave_melee_sweep", "projectile": "melee_swing", "modification": null, "ability": null, "origin_world": "iron_reach",
+      "build_stat_block": { "max_hp": 130, "armor": 0, "dps": 30.0, "swing_interval": 0.9, "engage_range": 95, "min_engage_range": 0, "targets_per_hit": 8, "move_speed_scale": 1.0 },
+      "matches": "docs/data/unit-types.json types.spearmen.combat — exact"
+    },
+    "archers": {
+      "chassis": "archer", "weapon": "precision_longbow", "projectile": "fletched_arrow", "modification": null, "ability": null, "origin_world": "iron_reach",
+      "build_stat_block": { "max_hp": 70, "armor": 0, "dps": 18.0, "swing_interval": 0.9, "engage_range": 750, "min_engage_range": 150, "targets_per_hit": 1, "move_speed_scale": 0.9 },
+      "matches": "docs/data/unit-types.json types.archers.combat — exact"
+    }
+  },
+
+  "worked_example_builds": {
+    "note": "Same chassis (Archer), same base HP/Armor/move, radically different fight shape — the owner's own paired example. See hero-build-variety.md for the side-by-side stat block table and read.",
+    "rpg_archer": {
+      "chassis": "archer", "weapon": "arcing_aoe_lobber", "projectile": "rocket", "modification": null, "ability": null, "origin_world": "ashworks",
+      "build_stat_block": { "max_hp": 70, "armor": 0, "dps": 16.5, "swing_interval": 2.5, "engage_range": 650, "min_engage_range": 120, "targets_per_hit": 4, "move_speed_scale": 0.9 }
+    },
+    "laser_archer": {
+      "chassis": "archer", "weapon": "beam_continuous", "projectile": "energy_beam", "modification": null, "ability": null, "origin_world": "deep_static",
+      "build_stat_block": { "max_hp": 70, "armor": 0, "dps": 18.0, "swing_interval": 0.3333, "engage_range": 600, "min_engage_range": 0, "targets_per_hit": 1, "move_speed_scale": 0.9 }
+    }
+  }
+}

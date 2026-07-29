@@ -295,6 +295,15 @@ def simulate_wave_attrition(
     log: list[WaveTickRecord] = []
     next_log_t = 0.0
 
+    # task-080 (Scripts/sim/variety.py): per-retinue-group damage attribution,
+    # ADDITIVE only — accumulates numbers the tick loop below already
+    # computes and previously discarded (group_output, and the ranged
+    # equivalent). Does not change dmg_to_retinue / dmg_to_enemy_melee /
+    # dmg_to_enemy_ranged / dmg_to_enemy or any existing return key.
+    group_damage_dealt: dict[str, float] = {}
+    total_dmg_to_retinue = 0.0
+    total_dmg_to_enemy = 0.0
+
     def total_alive(groups, role_filter=None):
         return sum(g.alive_count for g in groups if role_filter is None or g.fighter["role"] == role_filter)
 
@@ -355,6 +364,7 @@ def simulate_wave_attrition(
         if retinue_melee_alive > 0 and enemy_melee_alive > 0:
             raw_output = 0.0     # potential damage if every reachable cleave slot connects
             raw_slots = 0.0      # potential target-slots claimed, from LOCAL reach, not incoming-attacker count
+            raw_output_by_group: dict[str, float] = {}  # task-080 attribution, pre-contact_scale
             for g in retinue_melee_active:
                 share = g.alive_count / retinue_melee_alive
                 exposed_share = exposed_retinue * share
@@ -367,20 +377,31 @@ def simulate_wave_attrition(
                 group_output = group_slots * per_unit_dps * dt
                 raw_slots += group_slots
                 raw_output += group_output
+                raw_output_by_group[g.name] = raw_output_by_group.get(g.name, 0.0) + group_output
             # can't hit more enemies than have arrived, full stop — this is
             # the ONLY population-level cap left on the outgoing side,
             # independent of MaxAttackersPerUnit (and now also arrival-gated:
             # a not-yet-arrived enemy is not a reachable target either)
             contact_scale = 1.0 if raw_slots <= 0 else min(1.0, enemy_melee_alive / raw_slots)
             dmg_to_enemy_melee = raw_output * contact_scale
+            # task-080 attribution: same contact_scale applied per group as
+            # was applied to the pooled total above — additive record-keeping
+            # only, doesn't feed back into dmg_to_enemy_melee's own math.
+            for name, raw in raw_output_by_group.items():
+                group_damage_dealt[name] = group_damage_dealt.get(name, 0.0) + raw * contact_scale
 
         # --- damage INTO enemy (ranged, uncapped) ---
         dmg_to_enemy_ranged = 0.0
         for g in retinue_ranged_active:
             per_unit_dps = steady_state_dps(g.fighter, 0.0, chip_floor)
-            dmg_to_enemy_ranged += g.alive_count * per_unit_dps * dt
+            output = g.alive_count * per_unit_dps * dt
+            dmg_to_enemy_ranged += output
+            # task-080 attribution: uncapped, so no contact_scale to apply.
+            group_damage_dealt[g.name] = group_damage_dealt.get(g.name, 0.0) + output
 
         dmg_to_enemy = dmg_to_enemy_melee + dmg_to_enemy_ranged
+        total_dmg_to_retinue += dmg_to_retinue
+        total_dmg_to_enemy += dmg_to_enemy
 
         # --- apply, distributed proportional to current ARRIVED alive share
         # only — a not-yet-arrived group is off the field and takes none of
@@ -425,4 +446,17 @@ def simulate_wave_attrition(
             "timed_out"
         ),
         "log": log,
+        # task-080 (Scripts/sim/variety.py) additions, NEW keys only — nothing
+        # above this line changed. group_damage_dealt: total damage dealt
+        # OVER THE WHOLE FIGHT, keyed by retinue WaveGroup.name (one hero
+        # build = one WaveGroup, so this is per-build attribution "for
+        # free" — melee entries already have contact_scale applied, ranged
+        # entries are uncapped, matching how dmg_to_enemy itself is composed).
+        # total_damage_dealt: the same tick-by-tick dmg_to_retinue/dmg_to_enemy
+        # scalars this function already computed, summed rather than discarded.
+        "group_damage_dealt": {k: round(v, 2) for k, v in group_damage_dealt.items()},
+        "total_damage_dealt": {
+            "retinue": round(total_dmg_to_retinue, 2),
+            "enemy": round(total_dmg_to_enemy, 2),
+        },
     }
