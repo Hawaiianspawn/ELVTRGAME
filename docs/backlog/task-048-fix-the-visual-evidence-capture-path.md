@@ -7,7 +7,7 @@ owns: ["ELVTR/Source/ELVTR/Rendering/SwarmRenderActor.cpp", "docs/AGENT-TEAMS.md
 resources: ["unreal-editor", "mcp-9000"]
 depends-on: []
 evidence: A single documented command an agent can run that produces a sharp, game-camera screenshot of the swarm from an unfocused PIE session, demonstrated by capturing one.
-score: {gate: 2, risk: 2, cost: 2}
+score: {feel: 2, risk: 2, cost: 2}
 source: user
 teammate: evidence-capture
 decided: "2026-07-27 done"

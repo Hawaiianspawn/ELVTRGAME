@@ -7,7 +7,7 @@ owns: ["ELVTR/Content/UI/**", "docs/ui/UI-PROTOTYPE-PLAN.md"]
 resources: ["unreal-editor", "mcp-9000"]
 depends-on: []
 evidence: A runnable build showing the full flow — Sampler Frame main menu → Muster roster → combat HUD collapse — captured on screen, not described.
-score: {gate: 2, risk: 2, cost: 4}
+score: {feel: 2, risk: 2, cost: 4}
 source: docs/RTS-VERTICAL-SLICE.md:99
 decided: ""
 ---

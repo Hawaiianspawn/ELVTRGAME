@@ -1,15 +1,16 @@
 ---
 id: 003
 title: Spec one scaling curve across the slice's three floors
-status: proposed
+status: needs-review
 agent: gameplay-director
 owns: ["docs/design/scaling-curve.md", "docs/data/scaling-curve.json", "docs/data/scaling-curve.schema.md"]
 resources: []
 depends-on: [2]
 evidence: A plotted curve across floors 1-3 in the spec's Simulation notes, showing where TTK spikes or collapses.
-score: {gate: 3, risk: 2, cost: 2}
+score: {feel: 3, risk: 2, cost: 2}
 source: docs/GDD-TODO.md:87
-decided: ""
+decided: "2026-07-28 needs-review"
+teammate: scaling-curve
 ---
 
 ## Why now

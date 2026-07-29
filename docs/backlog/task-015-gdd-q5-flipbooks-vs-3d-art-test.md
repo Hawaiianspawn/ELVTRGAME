@@ -1,15 +1,15 @@
 ---
 id: 015
 title: Settle GDD Q5 — flipbooks vs. flat-shaded 3D — with an actual art test
-status: proposed
+status: parked
 agent: pixel-art-director
 owns: ["docs/art/flipbook-vs-3d-test.md"]
 resources: []
 depends-on: []
 evidence: A side-by-side comparison at gameplay zoom and horde density, with a recommendation and the cost/risk of each path stated.
-score: {gate: 3, risk: 3, cost: 2}
+score: {feel: 3, risk: 3, cost: 2}
 source: GDD.md:429
-decided: ""
+decided: "2026-07-28 parked"
 ---
 
 ## Why now

@@ -22,19 +22,39 @@ out of reach. One teammate per task. The `teammate:` stamp exists because in-pro
 teammates do not survive `/resume` (AGENT-TEAMS §5) — a resumed session reads the
 name, knows it is a ghost, and re-spawns instead of messaging it.
 
+**`model` is which model builds it, not which model planned it.** `/host` picks a
+model profile up front — a thinking model for intake and drafting, an implementation
+model for the teammate that executes — and stamps the implementation half here at
+`dispatch --model`. It is optional: an empty value means the teammate inherits the
+lead session's model, which is how every task filed before the profile existed reads.
+Nothing about scoring, locking or ranking depends on it; only the spawn reads it, and
+a resumed session reads it to re-spawn the same way.
+
 **Rejections keep their files.** A rejected or parked task stays here with its
 reason, the same way `GDD-TODO.md` kept the cut Base Camp Loot Manager entry as the
 historical record of the idea.
 
-**Scoring.** `total = (gate × risk × unblocks) ÷ cost`. `unblocks` is computed — it
+**Scoring.** `total = (feel × risk × unblocks) ÷ cost`. `unblocks` is computed — it
 is 1 plus the number of open tasks naming this one in `depends-on`, so do not write
 it. Score the other three honestly:
 
 | | 1 | 2 | 3 |
 |---|---|---|---|
-| `gate` | no gate impact | unblocks a gate item | blocks Gate 1 / Gate 2 directly |
+| `feel` | invisible in play — tooling, docs, refactor, a tracker correction | changes how something **reads or plays** — a tuning pass, a visual layer, a new readout | changes the **core feel or gameplay** — a mechanic, the combat loop, what the player does |
 | `risk` | known work | some unknown | retires a real technical unknown |
 | `cost` | under an hour | one session | multi-session (use 4 for spike-sized) |
+
+**`feel` is the primary axis** (owner, 2026-07-28). It replaced `gate`, which ranked
+by what blocked a milestone gate — that reliably floated plumbing above things the
+player would actually notice. Rank by the most significant change in feel or gameplay
+instead. Gate-blocking is not gone, it just moved: a task that unblocks a gate but
+never shows up in play is `feel: 1` with a *Why now* that says what it unblocks, and
+`unblocks` does the lifting. **An owner-brought feature is not automatically `feel: 3`**
+— tooling the owner asked for out loud is still tooling.
+
+Task files written before 2026-07-28 may still carry `score: {gate: …}`. `backlog.py`
+reads it as `feel` so nothing silently drops to 1, and `validate` warns until it is
+re-scored on the rubric above.
 
 **`owns` and `resources` are locks.** Two simultaneously-active tasks may not claim
 overlapping path globs (AGENT-TEAMS §3 — teammates editing the same file overwrite
@@ -60,12 +80,13 @@ id: 001
 title: <imperative phrase — "Fill SYSTEMS.md §1 entity tier stat blocks">
 status: proposed          # proposed|approved|in-progress|needs-review|done|rejected|parked
 agent: gameplay-director  # gameplay|narrative|performance|pixel-art|ui-director, or claude
+model: ""                 # optional — opus|sonnet|haiku|fable; "" inherits the lead's
 owns: []                  # path globs this task will write, e.g. ["docs/design/**"]
 resources: []             # unreal-editor | pixellab-credits | mcp-9000
 depends-on: []            # task ids that must close first, e.g. [4, 12]
 epic: ""                  # optional kebab-case slug grouping a fan of sibling tasks
 evidence: <the artifact that proves this is done>
-score: {gate: 1, risk: 1, cost: 2}
+score: {feel: 1, risk: 1, cost: 2}
 source: <file:line this was ingested from, or "user">
 teammate: ""              # written by backlog.py dispatch — the agent holding this
 decided: ""               # written by backlog.py on the owner's verdict

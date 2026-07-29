@@ -7,7 +7,7 @@ owns: ["docs/design/CAMERA-SCALE-HANDOFF.md"]
 resources: ["unreal-editor"]
 depends-on: []
 evidence: Each of the six questions answered from a PIE session with the value tried, especially the flame-pool ratio against OrthoWidth.
-score: {gate: 2, risk: 2, cost: 2}
+score: {feel: 3, risk: 2, cost: 2}
 source: docs/design/CAMERA-SCALE-HANDOFF.md:89
 decided: ""
 ---

@@ -7,7 +7,7 @@ owns: ["docs/art/flame-bearer-status.md"]
 resources: []
 depends-on: [15]
 evidence: Each of the three questions in flame-bearer-status.md §4 answered by the owner and recorded, with the downstream canon proposals it unblocks listed.
-score: {gate: 2, risk: 2, cost: 1}
+score: {feel: 1, risk: 2, cost: 1}
 source: docs/art/flame-bearer-status.md:85
 decided: ""
 ---

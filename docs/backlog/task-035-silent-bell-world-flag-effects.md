@@ -7,7 +7,7 @@ owns: ["docs/design/world-flag-s8.md"]
 resources: []
 depends-on: []
 evidence: Encounter-table effects for the S8 flag that change what the player meets without leaking power.
-score: {gate: 1, risk: 1, cost: 1}
+score: {feel: 1, risk: 1, cost: 1}
 source: docs/GDD-TODO.md:114
 decided: ""
 ---

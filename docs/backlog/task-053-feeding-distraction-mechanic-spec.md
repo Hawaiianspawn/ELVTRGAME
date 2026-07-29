@@ -1,17 +1,17 @@
 ---
 id: 053
 title: Spec the feeding-distraction mechanic — killers go null on the corpse, three per body, armor sets the chomp
-status: needs-review
+status: done
 agent: gameplay-director
 owns: ["docs/design/feeding-distraction.md", "docs/data/feeding.json", "docs/data/feeding.schema.md"]
 resources: []
 depends-on: []
 epic: feeding-distraction
 evidence: docs/design/feeding-distraction.md with the feed-duration curve, the per-corpse slot rules, and a simulated wave-3 walkthrough showing what fraction of each side is feeding at peak — plus docs/data/feeding.json importing cleanly as a UE DataTable.
-score: {gate: 1, risk: 2, cost: 2}
+score: {feel: 1, risk: 2, cost: 2}
 source: user
 teammate: feeding-distraction-spec
-decided: "2026-07-27 needs-review"
+decided: "2026-07-28 done"
 ---
 
 ## Why now

@@ -7,7 +7,7 @@ owns: ["ELVTR/Source/ELVTR/Mass/SwarmSubsystem.h", "ELVTR/Source/ELVTR/Mass/Swar
 resources: ["unreal-editor", "mcp-9000"]
 depends-on: []
 evidence: A measured before/after frame-cost comparison at matched entity counts showing what the wider grid costs, taken with bThrottleCPUWhenNotForeground disabled, plus proof that a 750uu engagement actually resolves where it previously could not.
-score: {gate: 2, risk: 2, cost: 2}
+score: {feel: 2, risk: 2, cost: 2}
 source: user
 teammate: grid-reach
 decided: "2026-07-27 done"

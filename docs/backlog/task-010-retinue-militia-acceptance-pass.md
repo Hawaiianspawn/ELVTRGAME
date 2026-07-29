@@ -7,7 +7,7 @@ owns: ["docs/art/retinue-militia.md"]
 resources: []
 depends-on: []
 evidence: All eleven checklist items at docs/art/retinue-militia.md:426-436 ticked or failed, each backed by a pixelpipe quantize report or a stated pixel measurement.
-score: {gate: 2, risk: 1, cost: 1}
+score: {feel: 1, risk: 1, cost: 1}
 source: docs/art/retinue-militia.md:426
 decided: ""
 ---

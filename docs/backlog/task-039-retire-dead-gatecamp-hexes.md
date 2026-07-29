@@ -1,15 +1,15 @@
 ---
 id: 039
 title: Retire the dead Gatecamp hexes from six art specs, CLASSES.md, and the art-director definition
-status: in-progress
+status: done
 agent: pixel-art-director
 owns: ["docs/art/hallam.md", "docs/art/edda.md", "docs/art/merle.md", "docs/art/noll.md", "docs/art/warden-captain-bree.md", "docs/art/brees-stairwell.md", "docs/art/aesthetic-direction.md", ".claude/agents/pixel-art-director.md"]
 resources: []
 depends-on: []
 evidence: A grep for every hex in palette.json's retired_hexes list returns hits only inside palette.json, palette-exceptions.md, and clearly-marked history sections.
-score: {gate: 3, risk: 2, cost: 2}
+score: {feel: 3, risk: 2, cost: 2}
 source: docs/art/aesthetic-direction.md:556
-decided: "2026-07-26 in-progress"
+decided: "2026-07-28 done"
 ---
 
 ## Why now
@@ -102,10 +102,28 @@ Reason: docs/RENDERING-LIGHTING.md §2.1 Phase B (task-041) turns the palette in
 data, and the point of that work is that changing a ramp never again means editing art
 specs. Re-hexing to literals today would re-open all six on the next palette decision.
 
-Critical: where a spec used the retired BRIGHT as class identity, hue is gone — there is
-one bright value now. Identity moves to the shape carriers in palette.json:
-rectangle-flip = Vanguard, dot-cluster = Relickeeper, thin-contour = Pathfinder,
-point+halo = Lampbearer. Do not invent a substitute hue.
+CORRECTION 2026-07-28 (lead session) — READ THIS, IT REVERSES PART OF THE ABOVE.
+This task was dispatched 2026-07-26. Two days later the owner reversed the colour gate.
+`docs/art/aesthetic-direction.md` now opens with an **AMENDMENT 2026-07-28: the strict
+4-value global palette is SUPERSEDED. Colour is back.** `Emberkeep.Quantize` is 0; the
+game ships full colour, full range. The 4-value table is explicitly kept as HISTORY:
+*"do not cite it as current, and do not delete it."*
+
+What that changes about your job:
+
+- **STILL DO** the key-citation work. Replace retired hex LITERALS with palette KEYS.
+  This is now MORE valuable, not less — it is exactly the decoupling that stops a palette
+  change from meaning a six-file edit, which just happened for the second time.
+- **DO NOT** write "hue is gone", "there is one bright value", or anything that treats the
+  4-value ramp as the current standard.
+- **DO NOT** force class identity onto the shape carriers as a *replacement* for hue. Hue
+  is available again. The shape carriers remain a legitimate identity channel — keep any
+  existing shape-carrier language — but do not strip colour identity out to satisfy a
+  constraint the owner has lifted.
+- **DO NOT invent** the new colour standard. There isn't one written down yet. Where a spec
+  needs a hue decision you cannot make from existing canon, FLAG it in a
+  `## Open — needs a colour decision` section at the end of your handback. Flagging is the
+  deliverable there, not resolving.
 
 Also correct the false all-clear at aesthetic-direction.md:556-563 — but KEEP the history
 sections. This repo keeps the record rather than deleting it (see docs/GDD-TODO.md:104).
@@ -115,4 +133,23 @@ replacement text for CLASSES.md:78, which currently reads "Roll-Gold #f0b84a".
 
 Note tasks 012 and 013 rework merle.md and noll.md for FICTION. If either has already
 landed, re-hex on top of their output rather than reverting it.
+
+STALE REFERENCES IN THIS PROMPT — verified by the lead 2026-07-28:
+- The line numbers "aesthetic-direction.md:556-563" are WRONG now. The 2026-07-28
+  amendment added ~35 lines at the top and pushed everything down. Find the false
+  all-clear by CONTENT ("Update 2026-07-12: all six redrawn"), not by line number.
+- `docs/data/art/palette.json` is dated 2026-07-25 and still encodes the superseded
+  4-value lock. Its own note says the markdown wins and that a disagreement means the
+  JSON is the bug — so it currently IS the bug. It is NOT in your owns list. Do not edit
+  it. Flag it in your handback.
+- `docs/art/hero-palettes.md` also contains all four retired hexes and is NOT in your
+  owns list. Do not edit it. Flag it.
+- Those six specs are ALSO flagged stale on a second axis — aesthetic-direction.md has an
+  unactioned note that they need a chibi-proportion revision pass. That is OUT OF SCOPE
+  here. Do not attempt it; just don't write anything that contradicts it.
+
+A prior teammate on this task did not survive its session and appears to have completed
+none of the work — all four retired hexes were still present in all six specs when the
+lead re-checked on 2026-07-28. Start from the current file contents, not from an
+assumption that some of it is already done.
 ```

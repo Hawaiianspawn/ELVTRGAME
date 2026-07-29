@@ -7,7 +7,7 @@ owns: ["docs/design/procgen-room-graph.md", "docs/data/room-types.json", "docs/d
 resources: []
 depends-on: [4, 24]
 evidence: A generator spec plus a room-type data file, with a worked example floor showing arena sizing that fits the encounter budget.
-score: {gate: 1, risk: 2, cost: 3}
+score: {feel: 2, risk: 2, cost: 3}
 source: docs/RTS-VERTICAL-SLICE.md:102
 decided: ""
 ---

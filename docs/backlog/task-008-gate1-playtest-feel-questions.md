@@ -7,7 +7,7 @@ owns: ["docs/GATE1-FUN-PROTOTYPE.md"]
 resources: ["unreal-editor"]
 depends-on: []
 evidence: The five questions in GATE1-FUN-PROTOTYPE.md §"open" answered from an actual play session, each with the tuning value tried and what it felt like.
-score: {gate: 3, risk: 2, cost: 1}
+score: {feel: 3, risk: 2, cost: 1}
 source: docs/GATE1-FUN-PROTOTYPE.md:377
 decided: ""
 ---

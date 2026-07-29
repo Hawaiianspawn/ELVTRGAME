@@ -7,7 +7,7 @@ owns: ["docs/narrative/open-questions-audit.md"]
 resources: []
 depends-on: [18]
 evidence: Each remaining open question marked still-open, answered-by-canon, or dissolved-by-the-reset, with the citation.
-score: {gate: 1, risk: 1, cost: 2}
+score: {feel: 1, risk: 1, cost: 2}
 source: docs/GDD-TODO.md:116
 decided: ""
 ---

@@ -3,12 +3,12 @@ id: 054
 title: Build the feeding-distraction mechanic in Mass — corpses, kill attribution, and the three-slot feed
 status: proposed
 agent: claude
-owns: ["ELVTR/Source/ELVTR/Mass/SwarmCombat.h", "ELVTR/Source/ELVTR/Mass/SwarmCombatProcessors.cpp", "ELVTR/Source/ELVTR/Mass/SwarmCombatProcessors.h", "ELVTR/Source/ELVTR/Mass/SwarmFragments.h", "ELVTR/Saved/SwarmExecOnPlay.txt"]
+owns: ["ELVTR/Source/ELVTR/Mass/SwarmCombat.h", "ELVTR/Source/ELVTR/Mass/SwarmCombatProcessors.cpp", "ELVTR/Source/ELVTR/Mass/SwarmCombatProcessors.h", "ELVTR/Source/ELVTR/Mass/SwarmFragments.h", "ELVTR/Source/ELVTR/Mass/SwarmSubsystem.h", "ELVTR/Config/SwarmExecOnPlay.canonical.txt", "ELVTR/Saved/SwarmExecOnPlay.txt"]
 resources: ["unreal-editor", "mcp-9000"]
-depends-on: [53]
+depends-on: [53, 61]
 epic: feeding-distraction
 evidence: A PIE capture showing a killer stopped on a corpse while the fight continues around it, a second showing three feeders on one body and a fourth attacker walking past it, and a measured before/after frame time at wave-3 density.
-score: {gate: 1, risk: 3, cost: 3}
+score: {feel: 3, risk: 3, cost: 3}
 source: user
 teammate: ""
 decided: ""
@@ -55,28 +55,60 @@ cross-entity write by nature. Finding a formulation that stays inside the model 
 ```
 You are executing task-054 in Emberkeep (C:\Projects\ELVTRGAME), on the flame-spotlight branch.
 
-READ docs/design/feeding-distraction.md FIRST. It is the spec for this feature, written by
-task-053, and it is your source of truth for every design decision. This prompt tells you the
-engineering constraints; that document tells you what to build. Where they disagree about
-DESIGN, the spec wins. Where they disagree about ENGINEERING, this prompt wins. If the spec is
-missing an answer you need, say so in your handback rather than inventing one silently.
+READ docs/design/feeding-distraction.md FIRST. It is the spec for this feature and your
+source of truth for every design decision. This prompt tells you the engineering
+constraints; that document tells you what to build. Where they disagree about DESIGN, the
+spec wins. Where they disagree about ENGINEERING, this prompt wins. If the spec is missing
+an answer you need, say so in your handback rather than inventing one silently.
+
+Read §5 and §8 with particular care — they were REWRITTEN on 2026-07-28 by task-061 after
+the owner overrode the original design. The superseded text is still in §5 as a labelled
+blockquote. Do not build the blockquote. Build what replaces it.
 
 GOAL, from the owner, in their words: "a monster eating feature that basically if they defeat
 a monster they become null and eat the body. Up to three can be distracted, or armor can play
-with how long one can be distracted (have to chomp through the damage)."
+with how long one can be distracted (have to chomp through the damage)." Then, later:
+"downed units persistent state until the round is over. Those can get eaten by the enemy."
 
-Settled by the owner already: both sides feed; the cap of three is PER CORPSE; feed duration
-proxies off the dead unit's MaxHP because no armor stat exists yet.
+SETTLED BY THE OWNER — both sides feed; the cap of three is PER CORPSE; and corpses PERSIST
+to the end of the round and can be claimed by any opposing unit that walks near them. That
+last one is an explicit override of the original spec, chosen with the cost shown.
+
+TWO THINGS CHANGED SINCE THIS TASK WAS FIRST WRITTEN. Both make your job easier:
+
+(a) ARMOR NOW EXISTS. task-002 shipped docs/design/entity-tiers.md and
+    docs/data/entity-tiers.json. The spec's MaxHP-as-armor-proxy note is superseded. Use:
+        EffectiveHP = MaxHP * RefBlow / max(RefBlow - Armor, ArmorChipFloor)
+    with RefBlow (27.0) and ArmorChipFloor (3.0) read from entity-tiers.json's
+    design_constants — that file is the single source of truth for both, do not re-declare
+    them. At Armor = 0 this reduces exactly to MaxHP, so nothing already shipped changes.
+    Substitute EffectiveHP for MaxHP at the FeedDuration() call site — that is the only
+    place it goes. In practice it changes exactly one tier's duration (Soldier-melee,
+    7.50s -> 8.00s); everything heavier is already pinned by the 8.0s MaxDuration clamp,
+    which bites at 160 MaxHP. Verified by the lead 2026-07-28.
+
+(b) THE SPEC NOW ANSWERS THE ARCHITECTURE QUESTIONS this prompt originally left open. See
+    the three hard problems below — problems 1 and 3 have specified solutions now.
 
 THE THREE HARD PROBLEMS — this feature needs three things the combat model does not have, and
 this is the actual work:
 
 1. THERE ARE NO CORPSES. ELVTR/Source/ELVTR/Mass/SwarmCombatProcessors.cpp:455 —
    USwarmDeathProcessor destroys the entity via ChunkContext.Defer().DestroyEntity() the frame
-   HP <= 0. You need a body that outlives that, for a bounded time, that can be found by
-   nearby units and cleaned up deterministically INCLUDING when nobody ever feeds on it.
-   Decide whether a corpse stays a Mass entity in a corpse archetype or becomes something
-   lighter, and justify it on cost — at wave 3 there are 700 brood and a lot of them die.
+   HP <= 0. You need a body that outlives that.
+
+   THE SPEC NOW DECIDES THIS FOR YOU (§5.1) and you should not re-litigate it: a corpse is
+   NOT a Mass entity. It is a 5-field record (Location, Team, MaxHP, SpawnTick, OpenSlots)
+   held in two per-team arrays on USwarmSubsystem, addressed by GENERATIONAL HANDLES rather
+   than raw indices. The handles are a correctness requirement, not a nicety — §10 spells
+   out that a raw index would misattribute a feeder's slot-release if a cull reused that
+   slot. Bound the population at MaxCorpsesPerTeam = 100 per team with an oldest-empty-first
+   cull that NEVER culls a corpse with an active feeder (it declines to create the new
+   corpse instead). Corpses clear at round end; a feeder caught mid-meal is interrupted and
+   gets no heal.
+
+   SwarmSubsystem.h IS YOURS for this task (see the owns list) — task-046 and task-052, which
+   previously claimed it, are both closed.
 
 2. THERE IS NO KILL ATTRIBUTION. SwarmCombat.h:10-14: combat is continuous attrition, each
    unit bleeds HP at DPS * EnemyCount * dt. Nobody "defeats" anybody. A swing cadence was
@@ -88,8 +120,24 @@ this is the actual work:
 3. SLOT CLAIMING IS A CROSS-ENTITY WRITE, and the model forbids exactly that: "no damage
    events, no random-access writes across entities, so every combat pass stays chunk-local and
    parallel-safe". Three-attackers-claim-one-corpse is arbitration between arbitrary entities
-   by nature. Find a formulation that stays inside the model — a deterministic slot derived
-   from spatial order, a claim resolved in one dedicated non-parallel pass over corpses only
+   by nature.
+
+   THE SPEC NOW SPECIFIES THE FORMULATION (§5.2) — it is CORPSE-CENTRIC, not unit-centric,
+   and that inversion is the whole trick. Units NEVER seek corpses (deliberately ruled out:
+   it would mean touching steering code this task does not own). Instead one dedicated pass
+   iterates corpses with OpenSlots > 0 — at most 2 x MaxCorpsesPerTeam = 200 of them — and
+   for each, queries the EXISTING spatial grid within ClaimRadius = 150uu. That radius is
+   chosen to sit just past MeleeRange (95uu) and inside GridCellSize (250uu) so it reuses
+   the neighbour scan already being done. The pass runs at ClaimTickHz = 10, NOT every frame.
+
+   Claims are a PER-SECOND HAZARD RATE (RetinueClaimRate / BroodClaimRate), not a one-shot
+   Bernoulli roll — a unit loitering in range for many seconds needs a rate, or the
+   probability converges to certainty. Killers still get a guaranteed FIRST claim (§2);
+   walk-up only fills slots the killer set left. Claiming is OPPOSING-TEAM-ONLY. The cap of
+   3 is a LIFETIME cap: slots do NOT reopen on natural completion, only when a feeder dies
+   mid-meal. Walk-up claims on a body older than StaleAge = 15s use a discounted duration
+   (StaleDurationScale = 0.5) — §8 shows that discount is what keeps the added load from
+   becoming a flat permanent tax, so it is load-bearing, not polish.
    (there are far fewer corpses than units), or a probabilistic bound that averages to three.
    The spec should flag which of its rules are expensive; follow that. IF YOU HAD TO WEAKEN
    "exactly three" TO KEEP IT CHEAP, SAY SO PLAINLY IN YOUR HANDBACK — a silent approximation
@@ -126,14 +174,22 @@ ENGINEERING CONSTRAINTS:
   BuildId matches) but it BLOCKS MCP until dismissed.
 
 YOU OWN, and may write only: ELVTR/Source/ELVTR/Mass/SwarmCombat.h,
-SwarmCombatProcessors.cpp, SwarmCombatProcessors.h, SwarmFragments.h, and
-ELVTR/Saved/SwarmExecOnPlay.txt.
+SwarmCombatProcessors.cpp, SwarmCombatProcessors.h, SwarmFragments.h, SwarmSubsystem.h,
+ELVTR/Config/SwarmExecOnPlay.canonical.txt, and ELVTR/Saved/SwarmExecOnPlay.txt.
 
-DO NOT TOUCH: SwarmProcessors.cpp/.h, SwarmSubsystem.h, SwarmCommands.cpp,
-SwarmFormation.cpp/.h (task-046 and task-052 claim these and will conflict);
-ELVTR/Source/ELVTR/UI/** ; ELVTR/Source/ELVTR/Rendering/** (task-041, task-043);
-ELVTR/Content/** ; GDD.md, CLASSES.md, SYSTEMS.md; docs/design/** — INCLUDING the spec you
-are reading, which is task-053's and read-only to you; or any docs/backlog/ file.
+Note on the CVar files: the CANONICAL file in Config/ is the source the /cvars skill
+regenerates Saved/SwarmExecOnPlay.txt from. Put your tuned defaults in the canonical file.
+A default set only in C++ will never take effect in the owner's play sessions.
+
+DO NOT TOUCH: SwarmProcessors.cpp/.h, SwarmCommands.cpp, SwarmFormation.cpp/.h;
+ELVTR/Source/ELVTR/UI/** ; ELVTR/Source/ELVTR/Rendering/** — that now includes
+BloodSubsystem.{h,cpp}, which is task-060's; ELVTR/Content/** ; GDD.md, CLASSES.md,
+SYSTEMS.md; docs/design/** and docs/data/** — INCLUDING the feeding spec and
+entity-tiers.json, both of which are read-only to you; or any docs/backlog/ file.
+
+(SwarmSubsystem.h was on this list when the task was written because task-046 and task-052
+claimed it. Both are now closed, and the amended spec requires writing it, so it moved to
+your owns list. This is deliberate.)
 If you need a dial that lives in a file you do not own, say so in the handback instead of
 reaching into it.
 
@@ -154,11 +210,22 @@ EVIDENCE — on-screen proof, not a diff plus "it works":
 1. A capture showing a killer stopped on a corpse while the fight continues around it.
 2. A capture showing three feeders on one body and a fourth attacker declining it and walking
    on. This is the rule most likely to be silently wrong.
-3. Frame time at wave-3 density, before and after.
+3. A capture showing a battlefield with bodies still lying around well after the units that
+   made them have moved on — the persistence the owner actually asked for.
+4. A capture of a walk-up claim: a unit that did NOT make the kill stopping at an older body.
+5. Frame time at wave-3 density, before and after. The 10Hz corpse pass and the corpse arrays
+   are the new cost; measure them, do not assert them.
+
+VERIFY THE MODEL, DO NOT JUST TRUST IT. §8's duty-cycle numbers are a Fermi model with a
+Monte Carlo cross-check, NOT an engine measurement, and the spec's own §11 tells you to
+reproduce the Enabled 0/1 A/B in-engine before anyone treats them as final. Report the
+fraction of each army actually feeding at wave-3 peak against the spec's predictions
+(retinue ~9-15% typical, worst case ~25-53%). If the real number is far off, that finding
+is the most valuable thing you hand back — say so loudly rather than burying it.
 
 HAND BACK: how you made corpses persist and what they cost, how you attributed the killing
 blow, how you solved slot claiming without breaking the parallel-safe model AND whether
 "exactly three" survived or became an approximation, the CVar list with defaults, your
-captures, the frame-time numbers, and anything in the spec that turned out to be unbuildable
-as written.
+captures, the measured duty cycles against §8's predictions, the frame-time numbers, and
+anything in the spec that turned out to be unbuildable as written.
 ```

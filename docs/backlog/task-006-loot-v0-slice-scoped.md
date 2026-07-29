@@ -7,7 +7,7 @@ owns: ["docs/design/loot-v0.md", "docs/data/loot-v0.json", "docs/data/loot-v0.sc
 resources: []
 depends-on: [2]
 evidence: Monte-Carlo of the drop table showing whether a median run sees an evolution by floor 3.
-score: {gate: 2, risk: 2, cost: 2}
+score: {feel: 3, risk: 2, cost: 2}
 source: docs/GDD-TODO.md:90
 decided: ""
 ---

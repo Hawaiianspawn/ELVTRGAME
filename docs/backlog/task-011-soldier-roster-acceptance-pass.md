@@ -7,7 +7,7 @@ owns: ["docs/art/soldier-roster-v1.md"]
 resources: []
 depends-on: []
 evidence: All ten checklist items at docs/art/soldier-roster-v1.md:1093-1104 ticked or failed across variants 01-06, with per-variant quantize reports.
-score: {gate: 2, risk: 1, cost: 2}
+score: {feel: 1, risk: 1, cost: 2}
 source: docs/art/soldier-roster-v1.md:1093
 decided: ""
 ---

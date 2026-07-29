@@ -7,7 +7,7 @@ owns: ["docs/perf/squad-aggregation.md"]
 resources: ["unreal-editor"]
 depends-on: []
 evidence: docs/perf/squad-aggregation.md carrying MEASURED per-entity render+sim cost at slice density (not estimated), the LOD swap threshold with the numbers behind it, and a recommendation that may be "don't build this".
-score: {gate: 2, risk: 3, cost: 3}
+score: {feel: 2, risk: 3, cost: 3}
 source: docs/RTS-VERTICAL-SLICE.md:95
 teammate: cost-boundary
 decided: "2026-07-27 done"

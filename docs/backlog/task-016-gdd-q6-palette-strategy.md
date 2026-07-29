@@ -7,7 +7,7 @@ owns: ["GDD.md"]
 resources: []
 depends-on: []
 evidence: GDD.md §12 Q6 reads as decided, citing aesthetic-direction.md's 2026-07-12 reset, and no doc still describes the palette question as open.
-score: {gate: 1, risk: 1, cost: 1}
+score: {feel: 1, risk: 1, cost: 1}
 source: GDD.md:430
 decided: ""
 ---

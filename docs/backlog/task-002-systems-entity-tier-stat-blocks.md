@@ -1,15 +1,16 @@
 ---
 id: 002
 title: Spec the entity tier stat blocks (fodder → soldier → elite → titan → boss)
-status: proposed
+status: done
 agent: gameplay-director
 owns: ["docs/design/entity-tiers.md", "docs/data/entity-tiers.json", "docs/data/entity-tiers.schema.md"]
 resources: []
 depends-on: []
 evidence: docs/data/entity-tiers.json imports cleanly as a UE DataTable, plus the spec's Simulation notes section showing TTK per tier at the slice's density.
-score: {gate: 3, risk: 2, cost: 2}
+score: {feel: 3, risk: 2, cost: 2}
 source: docs/GDD-TODO.md:86
-decided: ""
+decided: "2026-07-28 done"
+teammate: entity-tiers
 ---
 
 ## Why now

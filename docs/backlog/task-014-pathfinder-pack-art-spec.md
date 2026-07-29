@@ -7,7 +7,7 @@ owns: ["docs/art/pathfinder-pack.md", "docs/briefs/brief-007-pathfinder-pack-rew
 resources: []
 depends-on: [12]
 evidence: A new docs/art/pathfinder-pack.md covering hawk, hounds, and scouts, and brief-007 flipped to status done pointing at it.
-score: {gate: 1, risk: 1, cost: 2}
+score: {feel: 1, risk: 1, cost: 2}
 source: docs/briefs/brief-007-pathfinder-pack-rework.md
 decided: ""
 ---

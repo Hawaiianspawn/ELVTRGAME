@@ -7,7 +7,7 @@ owns: ["docs/art/merle.md", "docs/briefs/brief-005-pathfinder-rework.md"]
 resources: []
 depends-on: []
 evidence: "docs/art/merle.md rewritten against the new fiction, and brief-005 flipped to status done with its spec field pointing at it."
-score: {gate: 2, risk: 1, cost: 2}
+score: {feel: 1, risk: 1, cost: 2}
 source: docs/briefs/brief-005-pathfinder-rework.md
 decided: ""
 ---

@@ -7,7 +7,7 @@ owns: ["docs/design/audio-minimal.md"]
 resources: []
 depends-on: []
 evidence: An audio spec framed as readability tooling, naming each cue, what it disambiguates, and how it survives 700 simultaneous sources.
-score: {gate: 1, risk: 1, cost: 1}
+score: {feel: 3, risk: 1, cost: 1}
 source: docs/RTS-VERTICAL-SLICE.md:113
 decided: ""
 ---

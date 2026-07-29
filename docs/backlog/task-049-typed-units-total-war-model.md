@@ -7,7 +7,7 @@ owns: ["docs/design/squad-group-system.md", "docs/data/squads.json", "docs/data/
 resources: []
 depends-on: []
 evidence: A reworked docs/design/squad-group-system.md built on typed units, with a recommendation on ranged combat scope, a settled answer on the Unit Cam default view, and a spec task-046 can be rewritten against without further design questions.
-score: {gate: 3, risk: 2, cost: 3}
+score: {feel: 3, risk: 2, cost: 3}
 source: user
 teammate: typed-units-model
 decided: "2026-07-27 done"

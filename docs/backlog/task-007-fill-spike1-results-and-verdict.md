@@ -7,7 +7,7 @@ owns: ["docs/SPIKE1-RESULTS.md"]
 resources: ["unreal-editor", "mcp-9000"]
 depends-on: []
 evidence: SPIKE1-RESULTS.md with every table cell filled from a real -SwarmBench run, machine specs recorded, and exactly one of GO / ADJUST / KILL ticked.
-score: {gate: 3, risk: 3, cost: 2}
+score: {feel: 1, risk: 3, cost: 2}
 source: docs/SPIKE1-RESULTS.md:31
 decided: ""
 ---

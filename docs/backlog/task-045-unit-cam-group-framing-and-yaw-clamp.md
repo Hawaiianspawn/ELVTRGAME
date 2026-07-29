@@ -7,7 +7,7 @@ owns: ["ELVTR/Source/ELVTR/UI/UnitCamDirector.cpp", "ELVTR/Source/ELVTR/UI/UnitC
 resources: ["unreal-editor", "mcp-9000"]
 depends-on: [44]
 evidence: A PIE screenshot of the HUD command rectangle at a large retinue count showing both centre-column panels hitting task-044's framing fraction, plus a second screenshot after a hard heading change proving the yaw stays inside the clamped envelope.
-score: {gate: 2, risk: 2, cost: 2}
+score: {feel: 2, risk: 2, cost: 2}
 source: user
 teammate: unit-cam-framing
 decided: "2026-07-27 done"

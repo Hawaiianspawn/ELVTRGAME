@@ -7,7 +7,7 @@ owns: ["SYSTEMS.md"]
 resources: []
 depends-on: [2, 3, 4, 5, 6]
 evidence: SYSTEMS.md carrying one dated decision entry per landed spec, each pointing at its spec and data file, with no numbers duplicated.
-score: {gate: 2, risk: 1, cost: 1}
+score: {feel: 1, risk: 1, cost: 1}
 source: docs/GDD-TODO.md:85
 decided: ""
 ---

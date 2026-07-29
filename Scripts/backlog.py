@@ -11,6 +11,8 @@ why now). This script does everything mechanical, so two runs never disagree:
     py Scripts/backlog.py show 3          # one task, resolved score
     py Scripts/backlog.py epic            # every epic, with its fan's progress
     py Scripts/backlog.py epic hud-pass   # one epic: what can dispatch now, what waits
+    py Scripts/backlog.py waves           # every open task, packed into parallel waves
+    py Scripts/backlog.py waves 61,62,63  # just these: which run at once, what serialises
     py Scripts/backlog.py sweep-report    # raw ingest surface as JSON
 
 Status transitions:
@@ -24,7 +26,11 @@ Status transitions:
 
 Dispatch — `start` with the teammate recorded, for the /host flow:
 
-    py Scripts/backlog.py dispatch 3 --teammate flame-flicker
+    py Scripts/backlog.py dispatch 3 --teammate flame-flicker --model sonnet
+
+`--model` records which model the teammate was spawned at, so the frontmatter and
+the `Agent` call agree and a resumed session re-spawns the same way. It is optional:
+omitted means the teammate inherits the lead's model, which is the old behaviour.
 
 It refuses unless the task is already `approved` with every dependency closed, so
 "spawn a teammate on unapproved work" is not reachable by accident. It is not itself
@@ -84,10 +90,20 @@ AGENTS = {
     "claude",
 }
 RESOURCES = {"unreal-editor", "pixellab-credits", "mcp-9000"}
+# The models the `Agent` tool will accept for a spawned teammate. `model:` on a task
+# is the *implementation* model — what builds it — and is optional: an absent or empty
+# value means "inherit the lead's model", which is how every task filed before the
+# /host model config reads.
+MODELS = {"opus", "sonnet", "haiku", "fable"}
 
 REQUIRED = ["id", "title", "status", "agent", "owns", "resources",
             "depends-on", "evidence", "score", "source"]
-SCORE_KEYS = ["gate", "risk", "cost"]
+SCORE_KEYS = ["feel", "risk", "cost"]
+# `feel` was called `gate` until 2026-07-28, when the owner made "most significant
+# change in feel or gameplay" the primary axis instead of gate-blocking. Task files
+# written before the rename still say `gate:`; score_input falls back so they keep
+# scoring rather than silently reading as 1.
+SCORE_ALIASES = {"feel": "gate"}
 
 FM = re.compile(r"\A---\r?\n(.*?)\r?\n---\r?\n", re.DOTALL)
 # Mirrors the Agent tool's own `name` constraint, so a name recorded here is always
@@ -138,6 +154,16 @@ class Task:
         """
         return str(self.meta.get("epic", "") or "").strip()
 
+    @property
+    def model(self) -> str:
+        """The model the teammate is spawned at, or "" to inherit the lead's.
+
+        Optional on purpose. Only the /host flow sets it, and only the spawn reads
+        it — nothing about scoring, locking or ranking depends on which model builds
+        the task.
+        """
+        return str(self.meta.get("model", "") or "").strip()
+
     def listy(self, key: str) -> list:
         v = self.meta.get(key) or []
         if isinstance(v, str):
@@ -166,16 +192,17 @@ class Task:
         s = self.meta.get("score") or {}
         if not isinstance(s, dict):
             return default
+        raw = s.get(key, s.get(SCORE_ALIASES.get(key, key), default))
         try:
-            return int(s.get(key, default))
+            return int(raw)
         except (TypeError, ValueError):
             return default
 
     def total(self, unblocks: int) -> float:
         cost = max(1, self.score_input("cost", 1))
-        gate = self.score_input("gate", 1)
+        feel = self.score_input("feel", 1)
         risk = self.score_input("risk", 1)
-        return round((gate * risk * unblocks) / cost, 2)
+        return round((feel * risk * unblocks) / cost, 2)
 
 
 def load_all() -> list:
@@ -243,6 +270,24 @@ def overlaps(a: str, b: str) -> bool:
     return pa.startswith(pb) or pb.startswith(pa)
 
 
+def pair_conflict(a, b) -> str:
+    """Why these two may not run at the same time, or "" if they may.
+
+    The single definition of independence in this project: two tasks are independent
+    when they write disjoint paths and hold no resource in common. Everything that
+    schedules parallel work — `validate`, `approve`'s dry run, `waves` — asks here,
+    so there is one answer rather than three that drift.
+    """
+    for ga in a.owns:
+        for gb in b.owns:
+            if overlaps(ga, gb):
+                return f"overlapping paths ({ga!r} vs {gb!r})"
+    shared = sorted(set(a.resources) & set(b.resources))
+    if shared:
+        return f"both hold the {shared[0]!r} lock"
+    return ""
+
+
 def find_conflicts(tasks: list) -> list:
     """File-ownership and resource collisions between simultaneously active tasks.
 
@@ -252,18 +297,10 @@ def find_conflicts(tasks: list) -> list:
     problems = []
     for i, a in enumerate(live):
         for b in live[i + 1:]:
-            for ga in a.owns:
-                for gb in b.owns:
-                    if overlaps(ga, gb):
-                        problems.append(
-                            f"task-{a.id:03d} and task-{b.id:03d} are both active and both "
-                            f"claim overlapping paths ({ga!r} vs {gb!r})"
-                        )
-            for r in set(a.resources) & set(b.resources):
-                problems.append(
-                    f"task-{a.id:03d} and task-{b.id:03d} are both active and both "
-                    f"hold the {r!r} lock"
-                )
+            why = pair_conflict(a, b)
+            if why:
+                problems.append(f"task-{a.id:03d} and task-{b.id:03d} are both active "
+                                f"and {why}")
     return problems
 
 
@@ -333,6 +370,186 @@ def check_epics(tasks: list, warnings: list) -> list:
     return errors
 
 
+# ---------------------------------------------------------------- waves
+
+
+# AGENT-TEAMS.md §3: the lead carries every dispatch and every handback, and that
+# context is the real ceiling on parallelism — not the lock table.
+DEFAULT_WIDTH = 4
+
+
+def plan_waves(tasks: list, candidates: list, max_width: int = DEFAULT_WIDTH) -> dict:
+    """Partition candidates into waves of work that can run at the same time.
+
+    A wave is a set of tasks that are pairwise independent, whose dependencies have
+    all closed or landed in an earlier wave, and that fits under `max_width`. Wave 1
+    is dispatchable right now; wave 2 becomes dispatchable when wave 1 closes.
+
+    Tasks already in flight are seeded into wave 1 as occupants. They are not
+    dispatched again — they are there because their locks are real and a plan that
+    ignores them would hand the owner a wave that `approve` then refuses.
+
+    Greedy, in ranked order, and deliberately so: the highest-scoring task gets the
+    earliest wave it fits, and anything it displaces says which task displaced it.
+    That is the output the orchestrator has to explain to the owner.
+    """
+    max_width = max(1, int(max_width))
+    counts = unblock_counts(tasks)
+    closed_ids = {t.id for t in tasks if t.status in CLOSED}
+    in_flight = [t for t in tasks if t.status in {"in-progress", "needs-review"}]
+
+    cand_ids = {t.id for t in candidates}
+    flight_ids = {t.id for t in in_flight}
+    by_id = {t.id: t for t in tasks}
+    remaining = sorted(candidates, key=lambda t: (-t.total(counts[t.id]), t.id))
+
+    waves: list[list] = []
+    # Wave 1 starts already occupied by whatever teammates are live right now.
+    occupants: list[list] = [list(in_flight)] if in_flight else []
+    reasons: dict[int, str] = {}
+    landed: set = set()
+
+    while remaining:
+        idx = len(waves)
+        held = occupants[idx] if idx < len(occupants) else []
+        wave, deferred = [], []
+        for t in remaining:
+            why = ""
+            unmet = [d for d in t.deps if d not in closed_ids and d not in landed]
+            if unmet:
+                d = unmet[0]
+                if d in cand_ids:
+                    where = "in this batch"
+                elif d in flight_ids:
+                    mate = str(by_id[d].meta.get("teammate", "") or "").strip() or "?"
+                    where = f"in flight with {mate}"
+                else:
+                    where = f"{by_id[d].status}, outside this batch"
+                why = f"waits on task-{d:03d} ({where})"
+            if not why:
+                for other in held + wave:
+                    clash = pair_conflict(t, other)
+                    if clash:
+                        tag = "in flight" if other in in_flight else "this wave"
+                        why = f"{clash} with task-{other.id:03d} ({tag})"
+                        break
+            if not why and len(wave) >= max_width:
+                why = f"wave is full at {max_width} teammates"
+            if why:
+                deferred.append(t)
+                reasons[t.id] = why
+            else:
+                wave.append(t)
+
+        if not wave:
+            # Every remaining task is blocked by something that is not in a wave —
+            # a dependency on an open task outside the batch, or a cycle. Either way
+            # the schedule ends here rather than looping forever.
+            break
+
+        waves.append(wave)
+        landed |= {t.id for t in wave}
+        remaining = deferred
+
+    return {
+        "waves": waves,
+        "in_flight": in_flight,
+        "stranded": remaining,
+        "reasons": reasons,
+        "width": max_width,
+    }
+
+
+def cmd_waves(args) -> int:
+    """What can be built in parallel right now, and what each straggler waits on."""
+    tasks = load_all()
+    by_id = {t.id: t for t in tasks}
+
+    if args.ids:
+        candidates = []
+        for raw in args.ids.split(","):
+            raw = raw.strip()
+            if not raw:
+                continue
+            tid = int(raw)
+            if tid not in by_id:
+                print(f"error: task-{tid:03d} does not exist")
+                return 1
+            candidates.append(by_id[tid])
+    elif args.epic:
+        candidates = [t for t in epic_groups(tasks).get(args.epic.strip(), [])
+                      if t.status not in CLOSED and t.status not in
+                      {"in-progress", "needs-review"}]
+        if not candidates:
+            print(f"epic {args.epic!r}: nothing open to schedule")
+            return 0
+    else:
+        wanted = {"approved"} if args.approved_only else {"approved", "proposed"}
+        candidates = [t for t in tasks if t.status in wanted]
+
+    if not candidates:
+        print("nothing to schedule — no open tasks match.")
+        return 0
+
+    plan = plan_waves(tasks, candidates, args.max_width)
+    counts = unblock_counts(tasks)
+
+    if args.json:
+        print(json.dumps({
+            "width": plan["width"],
+            "in_flight": [{"id": t.id, "title": t.title,
+                           "teammate": str(t.meta.get("teammate", "") or "")}
+                          for t in plan["in_flight"]],
+            "waves": [[{"id": t.id, "title": t.title, "agent": t.agent,
+                        "status": t.status, "owns": t.owns,
+                        "resources": t.resources,
+                        "score": t.total(counts[t.id]),
+                        "waiting_on": plan["reasons"].get(t.id, "")}
+                       for t in w] for w in plan["waves"]],
+            "stranded": [{"id": t.id, "title": t.title,
+                          "waiting_on": plan["reasons"].get(t.id, "")}
+                         for t in plan["stranded"]],
+        }, indent=2))
+        return 0
+
+    if plan["in_flight"]:
+        print(f"\nalready in flight — their locks are held, wave 1 works around them:")
+        for t in plan["in_flight"]:
+            mate = str(t.meta.get("teammate", "") or "").strip() or "?"
+            print(f"  task-{t.id:03d}  {t.status:<13} {mate:<16} {t.title}")
+
+    for i, wave in enumerate(plan["waves"], 1):
+        when = ("dispatch now — in parallel" if i == 1
+                else f"after wave {i - 1} closes")
+        print(f"\n=== wave {i} · {len(wave)} teammate(s) · {when} ===")
+        for t in wave:
+            unapproved = "" if t.status == "approved" else f"  [{t.status}]"
+            print(f"  task-{t.id:03d}  score {t.total(counts[t.id]):<5} "
+                  f"{t.agent:<20} {t.title}{unapproved}")
+            print(f"            owns {', '.join(t.owns) or '(none)'}")
+            if t.resources:
+                print(f"            holds {', '.join(t.resources)}")
+            why = plan["reasons"].get(t.id)
+            if why and i > 1:
+                print(f"            held back by: {why}")
+
+    if plan["stranded"]:
+        print(f"\n=== not schedulable from this batch ===")
+        for t in plan["stranded"]:
+            print(f"  task-{t.id:03d}  {t.title}")
+            print(f"            {plan['reasons'].get(t.id, 'blocked')}")
+
+    first = plan["waves"][0] if plan["waves"] else []
+    unapproved = [t for t in first if t.status != "approved"]
+    print()
+    if unapproved:
+        ids = ",".join(str(t.id) for t in unapproved)
+        print(f"wave 1 needs approval first:  py Scripts/backlog.py approve {ids}")
+    for t in first:
+        print(f"  py Scripts/backlog.py dispatch {t.id} --teammate <name> --model <model>")
+    return 0
+
+
 # ---------------------------------------------------------------- validate
 
 
@@ -353,10 +570,22 @@ def cmd_validate(args) -> int:
         for r in t.resources:
             if r not in RESOURCES:
                 errors.append(f"{n}: unknown resource {r!r}")
+        if t.model and t.model not in MODELS:
+            errors.append(f"{n}: model {t.model!r} is not one of "
+                          f"{'|'.join(sorted(MODELS))} — the `Agent` tool would "
+                          f"reject it at spawn")
         for key in SCORE_KEYS:
             v = t.meta.get("score")
-            if not isinstance(v, dict) or key not in v:
+            if not isinstance(v, dict):
                 errors.append(f"{n}: score.{key} missing")
+            elif key not in v:
+                alias = SCORE_ALIASES.get(key)
+                if alias and alias in v:
+                    warnings.append(f"{n}: score.{alias} is the pre-2026-07-28 name "
+                                    f"for score.{key} — still counted, but re-score it "
+                                    f"on the feel rubric in TEMPLATE.md")
+                else:
+                    errors.append(f"{n}: score.{key} missing")
         if not str(t.meta.get("evidence", "")).strip():
             errors.append(f"{n}: evidence is empty — a task that cannot name its "
                           f"evidence is not ready to be approved")
@@ -423,12 +652,12 @@ def cmd_list(args) -> int:
     if not rows:
         print("(no matching tasks)")
         return 0
-    print(f"{'id':>4}  {'score':>5}  {'g':>1} {'r':>1} {'u':>1} {'c':>1}  "
+    print(f"{'id':>4}  {'score':>5}  {'f':>1} {'r':>1} {'u':>1} {'c':>1}  "
           f"{'status':<12} {'agent':<20} title")
     print("-" * 100)
     for total, unb, t in rows:
         print(f"{t.id:>4}  {total:>5}  "
-              f"{t.score_input('gate')} {t.score_input('risk')} {unb} "
+              f"{t.score_input('feel')} {t.score_input('risk')} {unb} "
               f"{t.score_input('cost')}  "
               f"{t.status:<12} {t.agent:<20} {t.title}")
     return 0
@@ -446,13 +675,14 @@ def cmd_show(args) -> int:
         print(f"\n=== task-{t.id:03d} · {t.title} ===")
         print(f"status    {t.status}")
         print(f"agent     {t.agent}")
+        print(f"model     {t.model or '(inherit lead)'}")
         if t.epic:
             fan = epic_groups(tasks).get(t.epic, [])
             closed = sum(1 for x in fan if x.status in CLOSED)
             print(f"epic      {t.epic}  ({closed}/{len(fan)} closed — "
                   f"`epic {t.epic}` for the fan)")
         print(f"score     {t.total(counts[t.id])}  "
-              f"(gate {t.score_input('gate')} × risk {t.score_input('risk')} "
+              f"(feel {t.score_input('feel')} × risk {t.score_input('risk')} "
               f"× unblocks {counts[t.id]} ÷ cost {t.score_input('cost')})")
         print(f"owns      {', '.join(t.owns) or '(none)'}")
         print(f"resources {', '.join(t.resources) or '(none)'}")
@@ -575,8 +805,10 @@ def cmd_reindex(args) -> int:
     out.append("<!-- GENERATED by Scripts/backlog.py reindex — DO NOT HAND-EDIT. -->")
     out.append("<!-- Edit the task-*.md files, then re-run reindex. -->")
     out.append("")
-    out.append("Score is `(gate × risk × unblocks) ÷ cost`. The inputs are printed beside")
-    out.append("the total so a disagreement costs one sentence, not a re-read.")
+    out.append("Score is `(feel × risk × unblocks) ÷ cost`, where **`feel` is how much this")
+    out.append("changes the moment-to-moment feel or gameplay** (owner, 2026-07-28). The")
+    out.append("inputs are printed beside the total so a disagreement costs one sentence,")
+    out.append("not a re-read.")
     out.append("")
     tally = {s: sum(1 for t in tasks if t.status == s) for s in STATUSES}
     out.append("| " + " | ".join(STATUSES) + " |")
@@ -590,12 +822,12 @@ def cmd_reindex(args) -> int:
     if not queue:
         out.append("*Nothing proposed. Run `/backlog sweep` to look for new work.*")
     else:
-        out.append("| # | score | g×r×u÷c | task | agent | cost | evidence on done |")
+        out.append("| # | score | f×r×u÷c | task | agent | cost | evidence on done |")
         out.append("|---|---|---|---|---|---|---|")
         for i, (total, unb, t) in enumerate(queue, 1):
             out.append(
                 f"| {i} | **{total}** | "
-                f"{t.score_input('gate')}×{t.score_input('risk')}×{unb}÷{t.score_input('cost')} | "
+                f"{t.score_input('feel')}×{t.score_input('risk')}×{unb}÷{t.score_input('cost')} | "
                 f"[{t.title}]({t.path.name}) `#{t.id:03d}` | {t.agent} | "
                 f"{t.score_input('cost')} | {t.meta.get('evidence')} |"
             )
@@ -779,6 +1011,12 @@ def cmd_dispatch(args) -> int:
               f"(letters, digits, - and _; must start alphanumeric; max 64)")
         return 1
 
+    model = (getattr(args, "model", "") or "").strip()
+    if model and model not in MODELS:
+        print(f"error: model {model!r} is not one of {'|'.join(sorted(MODELS))} — "
+              f"the `Agent` tool would reject it at spawn")
+        return 1
+
     tasks = load_all()
     by_id = {t.id: t for t in tasks}
     targets = []
@@ -820,14 +1058,22 @@ def cmd_dispatch(args) -> int:
     for t in targets:
         old = t.status
         stamp = f"{today} in-progress"
-        write_fields(t, [
+        fields = [
             ("status", "in-progress", True),
             ("teammate", name, False),
             ("decided", f'"{stamp}"', False),
-        ])
+        ]
+        # Only stamp `model:` when one was given. Writing an empty value on every
+        # dispatch would bury the "inherit the lead" default under a field that
+        # looks deliberate.
+        if model:
+            fields.insert(1, ("model", model, False))
+        write_fields(t, fields)
+        at = f" at model `{model}`" if model else ""
         entries.append(f"- {today} · `task-{t.id:03d}` · {old} → **in-progress** · "
-                       f"{t.title} — dispatched to teammate `{name}`")
-        print(f"task-{t.id:03d}  {old} → in-progress  (teammate: {name})  {t.title}")
+                       f"{t.title} — dispatched to teammate `{name}`{at}")
+        print(f"task-{t.id:03d}  {old} → in-progress  (teammate: {name}"
+              f"{', model: ' + model if model else ''})  {t.title}")
     log(entries)
     cmd_reindex(args)
     return 0
@@ -950,6 +1196,18 @@ def main() -> int:
     p.add_argument("slug", nargs="?", help="the epic to expand; omit to list all")
     p.set_defaults(fn=cmd_epic)
 
+    p = sub.add_parser("waves", help="what can be built in parallel, and what waits")
+    p.add_argument("ids", nargs="?", default="",
+                   help="comma-separated task ids to schedule; omit for every open task")
+    p.add_argument("--epic", help="schedule one epic's open siblings instead")
+    p.add_argument("--approved-only", action="store_true",
+                   help="ignore proposed tasks — plan only what the owner has approved")
+    p.add_argument("--max-width", type=int, default=DEFAULT_WIDTH,
+                   help=f"teammates per wave (default {DEFAULT_WIDTH}; the lead's "
+                        f"context is the ceiling, not the lock table)")
+    p.add_argument("--json", action="store_true")
+    p.set_defaults(fn=cmd_waves)
+
     p = sub.add_parser("sweep-report")
     p.add_argument("--json", action="store_true")
     p.set_defaults(fn=cmd_sweep)
@@ -957,6 +1215,8 @@ def main() -> int:
     p = sub.add_parser("dispatch")
     p.add_argument("ids", help="the one task id being handed to a teammate")
     p.add_argument("--teammate", required=True, help="name of the spawned teammate")
+    p.add_argument("--model", default="", choices=sorted(MODELS) + [""],
+                   help="model to spawn the teammate at; omit to inherit the lead's")
     p.set_defaults(fn=cmd_dispatch)
 
     for name, target in [("start", "in-progress"), ("review", "needs-review"),

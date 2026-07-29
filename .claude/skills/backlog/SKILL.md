@@ -13,6 +13,10 @@ goal the owner brings, clarifies it, drafts one task, and — after approval —
 teammate that builds it. Same task store, same scoring, same locks; `/host` is the only one
 of the two that dispatches. The `host` agent definition backs both.
 
+**`/backlog` presents the score; `/host` does not.** Ranking is what this skill is for —
+a queue of 40 needs an order. A feature the owner just brought is not competing with
+anything, so `/host` files the score and shows the plan instead.
+
 Judgment lives here. Everything mechanical lives in `Scripts/backlog.py` — id allocation,
 validation, score math, INDEX regeneration, lock conflicts, status transitions, LOG
 appends. Same split as `/sprite` ↔ `Scripts/art/pixelpipe.py`. Never hand-compute a score
@@ -113,8 +117,12 @@ Copy `docs/backlog/TEMPLATE.md` below its `═══` line. Get the id from
 - **`evidence:`** — the artifact that proves it is done. A task that cannot name one is not
   ready to be proposed. Big changes hand over as a runnable build or on-screen evidence,
   never a diff plus "it works".
-- **`score:`** — score honestly. A low score is information, not a failure; if nothing
-  breaks while a task stays undone, say so in *Why now*.
+- **`score:`** — `(feel × risk × unblocks) ÷ cost`, and **`feel` — how much this changes
+  the moment-to-moment feel or gameplay — is the primary axis** (owner, 2026-07-28; it
+  replaced `gate`). Rubric in `docs/backlog/TEMPLATE.md`. Tooling, docs and refactors are
+  `feel: 1` however necessary; what they unblock goes in *Why now*. A low score is
+  information, not a failure. Files predating the rename still say `gate:` — read as
+  `feel`, warned by `validate`, and due a re-score.
 - **Spawn prompt** — self-contained. Teammates load `CLAUDE.md` and the repo but **not**
   this session's history. Name what the task must not touch, and carry the canon warnings
   (superseded WORLD.md, stale `niagara-sprite-refactor.md` §2/§8.1) into the prompt itself.

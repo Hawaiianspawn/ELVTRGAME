@@ -7,7 +7,7 @@ owns: ["docs/art/highgates-tileset.md"]
 resources: []
 depends-on: [15, 39]
 evidence: A tileset spec that holds the locked value register, with tiles readable under a 700-unit swarm at gameplay zoom.
-score: {gate: 1, risk: 2, cost: 3}
+score: {feel: 2, risk: 2, cost: 3}
 source: docs/RTS-VERTICAL-SLICE.md:109
 decided: ""
 ---

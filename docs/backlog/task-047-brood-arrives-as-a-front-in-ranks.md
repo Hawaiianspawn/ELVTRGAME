@@ -7,7 +7,7 @@ owns: ["ELVTR/Source/ELVTR/Mass/SwarmCommands.cpp", "ELVTR/Source/ELVTR/Mass/Swa
 resources: ["unreal-editor", "mcp-9000"]
 depends-on: []
 evidence: A PIE screenshot showing the brood arriving as legible ranks from the front while the retinue faces them, and a second showing the spawn front stays in front after the camera/formation facing changes.
-score: {gate: 2, risk: 2, cost: 2}
+score: {feel: 2, risk: 2, cost: 2}
 source: user
 teammate: brood-front-ranks
 decided: "2026-07-27 done"

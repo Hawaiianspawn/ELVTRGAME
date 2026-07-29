@@ -7,7 +7,7 @@ owns: ["docs/design/loot-full.md"]
 resources: []
 depends-on: [6]
 evidence: A full itemization spec — rarity tiers, stacking, evolutions, hero/retinue split — but only after loot v0 has been played.
-score: {gate: 1, risk: 1, cost: 4}
+score: {feel: 3, risk: 1, cost: 4}
 source: docs/GDD-TODO.md:112
 decided: ""
 ---

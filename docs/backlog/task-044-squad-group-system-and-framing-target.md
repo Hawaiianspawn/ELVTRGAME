@@ -7,7 +7,7 @@ owns: ["docs/design/squad-group-system.md", "docs/data/squads.json", "docs/data/
 resources: ["unreal-editor"]
 depends-on: []
 evidence: docs/design/squad-group-system.md — squad-as-entity architecture, the squad manager's command surface, and a numeric "majority of soldiers in frame" target the implementer can code against, plus a Performance requests section.
-score: {gate: 2, risk: 2, cost: 2}
+score: {feel: 2, risk: 2, cost: 2}
 source: user
 teammate: squad-group-system
 decided: "2026-07-27 done"

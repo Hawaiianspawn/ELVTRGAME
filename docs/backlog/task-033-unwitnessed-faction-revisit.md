@@ -7,7 +7,7 @@ owns: ["docs/narrative/unwitnessed.md"]
 resources: []
 depends-on: []
 evidence: A faction doc resolving name, titan designs, and horror level — but only after the owner lifts the park.
-score: {gate: 1, risk: 1, cost: 3}
+score: {feel: 2, risk: 1, cost: 3}
 source: docs/GDD-TODO.md:109
 decided: ""
 ---

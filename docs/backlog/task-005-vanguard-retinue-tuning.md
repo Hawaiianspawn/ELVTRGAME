@@ -7,7 +7,7 @@ owns: ["docs/design/retinue-tuning-vanguard.md", "docs/data/retinue-vanguard.jso
 resources: []
 depends-on: [2]
 evidence: Simulation showing whether a Vanguard's retinue grows, holds, or starves per floor at the spec'd replenishment and death rates.
-score: {gate: 3, risk: 2, cost: 2}
+score: {feel: 3, risk: 2, cost: 2}
 source: docs/GDD-TODO.md:89
 decided: ""
 ---

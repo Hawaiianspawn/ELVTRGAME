@@ -7,7 +7,7 @@ owns: ["docs/data/art/asset-matrix.json", "docs/data/art/asset-matrix.schema.md"
 resources: []
 depends-on: []
 evidence: Running the audit prints a report that correctly identifies the known real state of the project's art — including at least one asset that is generated but not drawn, and one that is required but absent — verified line by line against the repo rather than asserted.
-score: {gate: 2, risk: 1, cost: 2}
+score: {feel: 2, risk: 1, cost: 2}
 source: user
 teammate: art-coverage
 decided: "2026-07-27 done"

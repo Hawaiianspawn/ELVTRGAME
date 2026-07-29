@@ -7,7 +7,7 @@ owns: ["ELVTR/Content/PostProcess/**", "ELVTR/Source/ELVTR/Rendering/**", "ELVTR
 resources: ["unreal-editor", "mcp-9000"]
 depends-on: []
 evidence: The whole game re-coloured by editing one LUT row — demichrome and a candidate ramp swapped live on screen, with no sprite regenerated and no shader recompiled.
-score: {gate: 2, risk: 3, cost: 4}
+score: {feel: 1, risk: 3, cost: 4}
 source: docs/RENDERING-LIGHTING.md:21
 decided: ""
 ---

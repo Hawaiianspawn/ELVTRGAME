@@ -7,7 +7,7 @@ owns: ["docs/design/encounter-budget.md", "docs/data/encounter-budget.json", "do
 resources: []
 depends-on: [2, 3]
 evidence: docs/data/encounter-budget.json with a spend-per-room-type table, plus a simulated floor walkthrough showing density staying inside the measured entity budget.
-score: {gate: 2, risk: 2, cost: 2}
+score: {feel: 3, risk: 2, cost: 2}
 source: docs/GDD-TODO.md:88
 decided: ""
 ---

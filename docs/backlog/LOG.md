@@ -54,3 +54,37 @@ Rejected and parked tasks keep their files — this records why.
 - 2026-07-27 · `task-046` · approved → **in-progress** · Build the typed-unit command layer in Mass — sticky type, per-type stance, per-type allocation, published centroids — dispatched to teammate `typed-unit-layer`
 - 2026-07-27 · `task-046` · in-progress → **needs-review** · Build the typed-unit command layer in Mass — sticky type, per-type stance, per-type allocation, published centroids
 - 2026-07-27 · `task-046` · needs-review → **done** · Build the typed-unit command layer in Mass — sticky type, per-type stance, per-type allocation, published centroids
+- 2026-07-27 · `task-055` · proposed → **approved** · Pack every PixelLab character state per type, so a rank of spearmen has visual variety
+- 2026-07-27 · `task-055` · approved → **in-progress** · Pack every PixelLab character state per type, so a rank of spearmen has visual variety — dispatched to teammate `character-states`
+- 2026-07-28 · `task-056` · proposed → **approved** · Build a 6-variant silhouette family off the bright-palette sci-fi soldier and publish the contact sheet
+- 2026-07-28 · `task-056` · approved → **in-progress** · Build a 6-variant silhouette family off the bright-palette sci-fi soldier and publish the contact sheet — dispatched to teammate `soldier-scifi-variants`
+- 2026-07-28 · `task-055` · in-progress → **needs-review** · Pack every PixelLab character state per type, so a rank of spearmen has visual variety
+- 2026-07-28 · `task-055` · needs-review → **done** · Pack every PixelLab character state per type, so a rank of spearmen has visual variety
+- 2026-07-28 · `task-057` · proposed → **approved** · Take the colour gate off — a bypass and an N-value quantizer, live on the Breadboard
+- 2026-07-28 · `task-057` · approved → **in-progress** · Take the colour gate off — a bypass and an N-value quantizer, live on the Breadboard — dispatched to teammate `colour-gate`
+- 2026-07-28 · `task-057` · in-progress → **needs-review** · Take the colour gate off — a bypass and an N-value quantizer, live on the Breadboard
+- 2026-07-28 · `task-059` · proposed → **in-progress** · Rework the Niagara sprite path so the horde has a state axis and per-unit size, without growing the atlas
+- 2026-07-28 · `task-057` · needs-review → **done** · Take the colour gate off — a bypass and an N-value quantizer, live on the Breadboard
+- 2026-07-28 · `task-058` · proposed → **parked** · Tighten the HUD chrome, and let UMG follow the live ramp instead of hardcoding four hexes — Superseded by the 2026-07-28 colour direction change. 058's premise (UMG follows the live 4-value ramp) is half-obsolete now the game ships in colour with Quantize 0 — redraft before approving, and not until the flame thresholds and light floors are retuned against the raw scene. 015 (flipbooks vs flat-shaded 3D) is the filed instance of the 3D route the owner shelved the same day: 'the 3d perception can be shelved for now but we will potentially come back to it.'
+- 2026-07-28 · `task-015` · proposed → **parked** · Settle GDD Q5 — flipbooks vs. flat-shaded 3D — with an actual art test — Superseded by the 2026-07-28 colour direction change. 058's premise (UMG follows the live 4-value ramp) is half-obsolete now the game ships in colour with Quantize 0 — redraft before approving, and not until the flame thresholds and light floors are retuned against the raw scene. 015 (flipbooks vs flat-shaded 3D) is the filed instance of the 3D route the owner shelved the same day: 'the 3d perception can be shelved for now but we will potentially come back to it.'
+- 2026-07-28 · `task-053` · needs-review → **done** · Spec the feeding-distraction mechanic — killers go null on the corpse, three per body, armor sets the chomp
+- 2026-07-28 · `task-061` · proposed → **approved** · Amend the feeding spec — corpses persist to end of round and any unit can walk up and eat
+- 2026-07-28 · `task-061` · approved → **in-progress** · Amend the feeding spec — corpses persist to end of round and any unit can walk up and eat — dispatched to teammate `persistent-corpses`
+- 2026-07-28 · `task-059` · in-progress → **parked** · Rework the Niagara sprite path so the horde has a state axis and per-unit size, without growing the atlas — Stalled with a blank teammate stamp and no live session driving it; owner reclaimed unreal-editor + mcp-9000 for task-060 (blood). Resume later — the sprite-path rework is still wanted, and will need to reconcile with the BloodSubsystem landed by 060.
+- 2026-07-28 · `task-060` · proposed → **approved** · Blood — short-lived red pixel spray on every landed blow, built as a decoupled subsystem
+- 2026-07-28 · `task-002` · proposed → **approved** · Spec the entity tier stat blocks (fodder → soldier → elite → titan → boss)
+- 2026-07-28 · `task-060` · approved → **in-progress** · Blood — short-lived red pixel spray on every landed blow, built as a decoupled subsystem — dispatched to teammate `blood-spray`
+- 2026-07-28 · `task-002` · approved → **in-progress** · Spec the entity tier stat blocks (fodder → soldier → elite → titan → boss) — dispatched to teammate `entity-tiers`
+- 2026-07-28 · `task-061` · in-progress → **needs-review** · Amend the feeding spec — corpses persist to end of round and any unit can walk up and eat
+- 2026-07-28 · `task-061` · needs-review → **done** · Amend the feeding spec — corpses persist to end of round and any unit can walk up and eat
+- 2026-07-28 · `task-002` · in-progress → **needs-review** · Spec the entity tier stat blocks (fodder → soldier → elite → titan → boss)
+- 2026-07-28 · `task-039` · in-progress → **needs-review** · Retire the dead Gatecamp hexes from six art specs, CLASSES.md, and the art-director definition
+- 2026-07-28 · `task-062` · proposed → **approved** · Bring the art tooling onto the full-colour reversal — palette.json still enforces a retired lock
+- 2026-07-28 · `task-062` · approved → **in-progress** · Bring the art tooling onto the full-colour reversal — palette.json still enforces a retired lock — dispatched to teammate `palette-tooling`
+- 2026-07-28 · `task-062` · in-progress → **needs-review** · Bring the art tooling onto the full-colour reversal — palette.json still enforces a retired lock
+- 2026-07-28 · `task-002` · needs-review → **done** · Spec the entity tier stat blocks (fodder → soldier → elite → titan → boss)
+- 2026-07-28 · `task-039` · needs-review → **done** · Retire the dead Gatecamp hexes from six art specs, CLASSES.md, and the art-director definition
+- 2026-07-28 · `task-062` · needs-review → **done** · Bring the art tooling onto the full-colour reversal — palette.json still enforces a retired lock
+- 2026-07-28 · `task-003` · proposed → **approved** · Spec one scaling curve across the slice's three floors
+- 2026-07-28 · `task-003` · approved → **in-progress** · Spec one scaling curve across the slice's three floors — dispatched to teammate `scaling-curve`
+- 2026-07-28 · `task-003` · in-progress → **needs-review** · Spec one scaling curve across the slice's three floors

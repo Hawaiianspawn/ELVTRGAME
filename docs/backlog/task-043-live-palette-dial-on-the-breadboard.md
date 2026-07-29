@@ -7,7 +7,7 @@ owns: ["ELVTR/Content/PostProcess/M_PP_Demichrome**", "ELVTR/Content/PostProcess
 resources: ["unreal-editor", "mcp-9000"]
 depends-on: []
 evidence: A PIE session where dragging one Breadboard row recolours the whole world and every unit between demichrome, eulbink and rust-gold, live, with no rebuild and no sprite regenerated.
-score: {gate: 3, risk: 2, cost: 2}
+score: {feel: 3, risk: 2, cost: 2}
 source: user
 decided: "2026-07-27 done"
 ---

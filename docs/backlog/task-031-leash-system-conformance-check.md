@@ -7,7 +7,7 @@ owns: ["docs/RTS-VERTICAL-SLICE.md"]
 resources: []
 depends-on: [8]
 evidence: A per-clause conformance table — radius, hysteresis, warning, break-to-Follow — each marked shipped, partial, or missing against the source.
-score: {gate: 2, risk: 1, cost: 1}
+score: {feel: 2, risk: 1, cost: 1}
 source: docs/RTS-VERTICAL-SLICE.md:97
 decided: ""
 ---

@@ -7,7 +7,7 @@ owns: ["docs/data/art/requests/**", "RawArt/Renders/**", "ELVTR/Content/Sprites/
 resources: ["pixellab-credits", "unreal-editor", "mcp-9000"]
 depends-on: [9, 11, 15, 39]
 evidence: Imported UE sprite sheets that pass the palette checker, plus the provenance manifest recording every generation UUID and its credit cost.
-score: {gate: 2, risk: 2, cost: 4}
+score: {feel: 3, risk: 2, cost: 4}
 source: docs/RTS-VERTICAL-SLICE.md:110
 decided: ""
 ---

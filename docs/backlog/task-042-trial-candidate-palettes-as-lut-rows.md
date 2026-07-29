@@ -7,7 +7,7 @@ owns: ["docs/art/palette-trials.md"]
 resources: ["unreal-editor"]
 depends-on: [43]
 evidence: Screen captures of the same 700-unit wave under each candidate ramp at gameplay zoom, with a recommendation and the readability cost of each stated.
-score: {gate: 2, risk: 2, cost: 2}
+score: {feel: 2, risk: 2, cost: 2}
 source: user
 decided: ""
 ---

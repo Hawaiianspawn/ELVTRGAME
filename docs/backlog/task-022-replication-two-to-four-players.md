@@ -7,7 +7,7 @@ owns: ["docs/perf/replication-spike2.md"]
 resources: []
 depends-on: [7]
 evidence: A replication design plus the measured bandwidth projection at 4 clients and slice density, with the go/no-go criterion stated before the test runs.
-score: {gate: 2, risk: 3, cost: 3}
+score: {feel: 1, risk: 3, cost: 3}
 source: docs/RTS-VERTICAL-SLICE.md:98
 decided: ""
 ---

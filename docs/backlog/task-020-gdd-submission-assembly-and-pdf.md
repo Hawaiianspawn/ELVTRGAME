@@ -7,7 +7,7 @@ owns: ["docs/ASSIGNMENT-01-GDD-FIRST-DRAFT.md"]
 resources: []
 depends-on: [1]
 evidence: A single PDF containing all four required sections, or a recorded finding that the assignment was already submitted and this task is obsolete.
-score: {gate: 1, risk: 1, cost: 2}
+score: {feel: 1, risk: 1, cost: 2}
 source: docs/GDD-TODO.md:77
 decided: ""
 ---

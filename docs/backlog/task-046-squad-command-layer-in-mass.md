@@ -7,7 +7,7 @@ owns: ["ELVTR/Source/ELVTR/Mass/**", "ELVTR/Source/ELVTR/UI/UnitCamProjector.cpp
 resources: ["unreal-editor", "mcp-9000"]
 depends-on: []
 evidence: A PIE capture where a knight unit and an archer unit hold DIFFERENT stances visibly, plus proof that a casualty in one unit moves no soldier between units and changes nobody's type — the defect this task exists to fix.
-score: {gate: 2, risk: 2, cost: 3}
+score: {feel: 2, risk: 2, cost: 3}
 source: docs/design/squad-group-system.md
 teammate: typed-unit-layer
 decided: "2026-07-27 done"

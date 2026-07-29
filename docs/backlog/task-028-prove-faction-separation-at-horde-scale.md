@@ -7,7 +7,7 @@ owns: ["docs/art/faction-separation-proof.md"]
 resources: ["unreal-editor"]
 depends-on: [27]
 evidence: Screen captures at 700 units showing a player can tell friend from foe at gameplay zoom, with the failure cases named.
-score: {gate: 3, risk: 3, cost: 2}
+score: {feel: 3, risk: 3, cost: 2}
 source: docs/RTS-VERTICAL-SLICE.md:111
 decided: ""
 ---

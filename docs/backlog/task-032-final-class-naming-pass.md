@@ -7,7 +7,7 @@ owns: ["docs/narrative/class-naming-pass.md"]
 resources: []
 depends-on: []
 evidence: A candidate set per class with the reasoning, presented for the owner to choose from — not a decision made on the owner's behalf.
-score: {gate: 1, risk: 1, cost: 1}
+score: {feel: 1, risk: 1, cost: 1}
 source: GDD.md:437
 decided: ""
 ---

@@ -7,7 +7,7 @@ owns: ["ELVTR/Source/ELVTR/UI/UnitCamProjector.cpp", "ELVTR/Source/ELVTR/UI/Unit
 resources: ["unreal-editor", "mcp-9000"]
 depends-on: []
 evidence: A PIE capture (docs/AGENT-TEAMS.md §8 recipe, 1920x1080) of the Unit Cam panel showing visibly DIFFERENT soldier sprites side by side, the bearer drawing T_Hero_Vanguard, and the archer proxy present and distinguishable from the melee variants.
-score: {gate: 3, risk: 2, cost: 2}
+score: {feel: 3, risk: 2, cost: 2}
 source: user
 teammate: unit-cam-assets
 decided: "2026-07-27 done"

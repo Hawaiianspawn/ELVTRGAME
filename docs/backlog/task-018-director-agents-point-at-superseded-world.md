@@ -7,7 +7,7 @@ owns: [".claude/agents/**"]
 resources: []
 depends-on: []
 evidence: Every .claude/agents/*.md canon list checked against what is actually current, and a grep for WORLD.md across the agent definitions returning only intentional references.
-score: {gate: 2, risk: 1, cost: 1}
+score: {feel: 1, risk: 1, cost: 1}
 source: .claude/agents/gameplay-director.md:17
 decided: ""
 ---
