@@ -25,13 +25,17 @@ Gameplay, revised 2026-07-11 on two axes at once:
    shared by every combat-scale sprite. Bare-headed chibi is the cheapest possible silhouette
    in the game — no helm, cap, or hood geometry to draw at any scale — which dovetails with her
    existing "cheapest hero to render richly" design goal (CLASSES.md §4).
-2. **Shape-only class ID, one-flame rule now trivial.** Her identity rides entirely on the
-   **point+halo** — the Lampbearer's reserved bright-carrier shape (`hero-palettes.md` §3). The
-   old "her lamp and the Warden-Captain's lamp share a hex on purpose" canon proposal used to be
-   a specific, arguable claim; under shape-only it is true **by construction** — every bright in
-   the game is the same hex now, so the point+halo *shape* is what's actually reserved to lamps,
-   not the hex (`hero-palettes.md` §4c). The diegetic "every honest flame descends from the
-   Foundling Lamp" reading is still nice to have in WORLD.md but no longer doing mechanical work.
+2. **Shape-only class ID, one-flame rule now trivial, precedent under review.** Her identity has
+   ridden entirely on the **point+halo** — the Lampbearer's reserved bright-carrier shape
+   (`hero-palettes.md` §3). The old "her lamp and the Warden-Captain's lamp share a hex on
+   purpose" canon proposal used to be a specific, arguable claim; under the shared-bright lock
+   it became true **by construction** — every bright in the game held one value-role, so the
+   point+halo *shape* was what was actually reserved to lamps, not a specific hex
+   (`hero-palettes.md` §4c). The diegetic "every honest flame descends from the Foundling Lamp"
+   reading is still nice to have in WORLD.md but was no longer doing mechanical work under that
+   lock. The 2026-07-28 colour-gate reversal (`aesthetic-direction.md`) lifts the lock and makes
+   hue available again — whether lamps keep a shared value-role or regain a dedicated hue is an
+   open colour decision, not yet made; the point+halo shape carries the class either way.
 
 She must still (a) read as the warm point that moves like a person, distinguishable at any
 zoom from the Warden-Captain (point locked in a marching rectangle) and from safe rooms (still
@@ -43,24 +47,30 @@ spending the shared bright on anything but flame, halo, and wisps.
 
 ## 2. Palette table
 
-4 values + transparent mask (mask = background, not a value). Per `hero-palettes.md` §2–§3.
+4 values + transparent mask (mask = background, not a value). Cited by
+`docs/data/art/palette.json` key, not by hex — the literal hexes this table used to carry are
+retired (see `docs/data/art/palette.json` `retired_hexes` for the exact list), and no
+replacement hex is locked; that is an open colour decision, not resolved here (see handback).
+Names and role-slots are kept as the working vocabulary for *which* value is which, decoupled
+from any specific hex, per `hero-palettes.md` §2–§3.
 
-| Hex | Name | Role |
+| Key | Name | Role |
 |---|---|---|
-| `#211210` | Vault Dark | outline/recess; hair; burn-speckles on hands/forearms; halo dither ground |
-| `#5e2d20` | Patched Steel | the Lantern-Staff, lamp housing, belt fittings |
-| `#c76b2a` | Kitchen Tin | face, hands, long coat, wick-bag — warm channel; she is the most Kitchen-Tin hero (least armor in the row) |
-| `#f0c260` | **Gatecamp Bright** | the ONE shared class bright — same literal hex as the other three classes. On her it is spent **only** on flame pixel(s), 1px halo dither, and Guided wisp points. Never coat, skin, or eyes. She is the one carrier allowed the flame-source exception: source pixels may render `#fff6dd` inside their own radius (`hero-palettes.md` §2 — a flapping rectangle, a glyph-dot cluster, and a contour reflect remembered light; she and honest-light fixtures are the only carriers that *emit* it) |
+| `dark` | Vault Dark | outline/recess; hair; burn-speckles on hands/forearms; halo dither ground |
+| `steel` | Patched Steel | the Lantern-Staff, lamp housing, belt fittings |
+| `bone` | Kitchen Tin | face, hands, long coat, wick-bag — warm channel; she is the most Kitchen-Tin hero (least armor in the row) |
+| `pale` | **Gatecamp Bright** | the ONE shared class bright, pending the open colour decision (§1). On her it is spent **only** on flame pixel(s), 1px halo dither, and Guided wisp points. Never coat, skin, or eyes. She is the one carrier allowed the sanctioned flame-core exception (`docs/art/palette-exceptions.md`): source pixels may render brighter than `pale` inside their own radius — a flapping rectangle, a glyph-dot cluster, and a contour reflect remembered light; she and honest-light fixtures are the only carriers that *emit* it |
 
 - **Shape protection (replaces the old hue-based "mark protection"):** no flapping rectangle,
   static dot-cluster, or moving contour may appear anywhere on her sprite or her wisps — only
-  point+halo. Every bright in the game is the same hex now; point+halo is the only shape
-  reserved to lamps and honest-light fixtures.
-- **Light-shifted variant:** she *is* the shift — the trio steps brighter per the family table
-  everywhere inside lamp radius, on her, her allies, and the room:
-  `#211210→#35211c`, `#5e2d20→#7c4630`, `#c76b2a→#e08c46` (proposed, `hero-palettes.md` §2). Her
-  own sprite is almost always rendered in the shifted trio; author both variants, the base is
-  for the Flare window (see §5) and doused states.
+  point+halo. While every bright shares one value-role, point+halo is the only shape reserved
+  to lamps and honest-light fixtures.
+- **Light-shifted variant:** she *is* the shift — the trio steps brighter per the value ladder
+  everywhere inside lamp radius, on her, her allies, and the room: `dark`→`steel`,
+  `steel`→`bone`, `bone`→`pale` (`docs/data/art/palette.json` `light_shift` rule) — no specific
+  hex is proposed here anymore; the previously-proposed shift hexes were derived from the now-
+  retired base trio. Her own sprite is almost always rendered in the shifted trio; author both
+  variants, the base is for the Flare window (see §5) and doused states.
 
 ---
 
@@ -104,13 +114,13 @@ lights around her and a room that believes her.*
 **Horde-scale check:** at 500 units the Lampbearer read is unmistakable: the palette-shift
 radius is visible before any sprite resolves. Vs. the Warden-Captain: her point is locked into
 a marching shield-rectangle and shifts a room only per the honest-light rule's small radius;
-this hero's point moves at hero cadence inside a drifting constellation — same hex, same
-point+halo shape, disambiguated entirely by motion and context, not hue (this was already true
-under the old system, since both shared the Watch-Lamp hex; shape-only just makes it official
-game-wide). Vs. safe rooms: their points are still and their rooms don't move. Vs. the other
-brights: a haloed point is neither rectangle, dot-cluster, nor contour. She is also the party's
-failure-state indicator: when the constellation collapses to a Huddle, everyone on screen can
-read *last stand* from the shape alone.
+this hero's point moves at hero cadence inside a drifting constellation — same value-role, same
+point+halo shape, disambiguated entirely by motion and context (this was already true when both
+shared the retired Watch-Lamp hex under the old per-class system; the shape argument does not
+depend on which colour answer is live). Vs. safe rooms: their points are still and their rooms
+don't move. Vs. the other brights: a haloed point is neither rectangle, dot-cluster, nor
+contour. She is also the party's failure-state indicator: when the constellation collapses to a
+Huddle, everyone on screen can read *last stand* from the shape alone.
 
 ---
 
@@ -166,8 +176,9 @@ corrected:
 ## 6. Portrait — medallion (per `portrait-register.md`, unaffected register)
 
 The portrait register stays non-chibi and higher-resolution by design. What changes here is
-only the palette hex and the pronoun — Watch-Lamp is retired in name (same role, now called
-Gatecamp Bright), and every "he/his" below is corrected to "she/her."
+only the palette citation and the pronoun — the old Watch-Lamp hex is retired (same role, the
+value-role now cited as `pale`/Gatecamp Bright pending the open colour decision, §1), and every
+"he/his" below is corrected to "she/her."
 
 - **Composition:** bust, near-frontal, head bare; the **lamp intrudes at the lower-left frame
   edge** — flame pixels + halo dither, lighting her **from below and beside**: lit planes

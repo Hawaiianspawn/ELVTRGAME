@@ -61,6 +61,49 @@ namespace
 		TEXT("Neighbours one brood will push against per frame. Also the cost dial for the\n")
 		TEXT("steering pass — this bounds its inner loop. [1..16]"), ECVF_Default);
 
+	// --- simulation LOD (docs/perf/one-camera-bench.md, 2026-07-28) --------------------
+	// Measured finding this exists to act on: with the Niagara sprite path, RENDERING IS FREE
+	// (within noise of a sim-only baseline at every count from 500 to 20,000). 100% of the frame
+	// cost is this sim on the game thread, ~0.75ms per 1,000 entities. So the only lever that
+	// moves the entity ceiling is doing less sim work — not drawing fewer things.
+	//
+	// What's expensive per brood per frame is TWO spatial grid queries (FindNearestEnemy and
+	// SeparationForce). What's cheap is integration, which stays at full rate for everyone.
+	// A brood far from the fight is marching in a near-straight line at constant velocity, so
+	// re-deriving that velocity 60 times a second buys nothing a player can see: it keeps
+	// gliding on its last velocity between steers and integration still moves it every frame.
+	TAutoConsoleVariable<int32> CVarSimLodStride(
+		// Defaults to 4 (measured 2026-07-28): −32% frame time at 20,000 entities, raising the
+		// 60fps ceiling from ~21,000 to ~34,000, for a change nothing on screen can see — at
+		// NearRadius 1600 every unit it touches is off-camera. Set 1 to disable.
+		TEXT("Swarm.SimLOD.Stride"), 4,
+		TEXT("Re-steer a FAR brood only once every N frames (near brood always steer every\n")
+		TEXT("frame). 1 = off, every unit steers every frame. 4 means a far brood does its two\n")
+		TEXT("grid queries on one frame in four, cutting the dominant sim pass roughly to\n")
+		TEXT("(near + far/N) of its cost.\n")
+		TEXT("\n")
+		TEXT("Skipped frames do NOT freeze the unit — velocity persists and integration still\n")
+		TEXT("runs at full rate, so movement stays smooth. What lags is the RESPONSE to a new\n")
+		TEXT("neighbour, by up to N frames (67ms at N=4, 60fps). That is invisible out in the\n")
+		TEXT("march and would be very visible in a melee, which is exactly what NearRadius\n")
+		TEXT("protects. [1..8]"), ECVF_Default);
+
+	TAutoConsoleVariable<float> CVarSimLodNearRadius(
+		// 2200 since 2026-07-28, was 1600. Emberkeep.Cam.ScalePitchFull went -90 -> -55 the same
+		// day; a tilted camera sees ~1650uu of ground rather than ~1350uu, which put the furthest
+		// visible corner within a hair of the old radius. Raised with margin rather than tuned to
+		// the edge, because the failure mode (units striding on screen) is worse than the cost.
+		TEXT("Swarm.SimLOD.NearRadius"), 2200.f,
+		TEXT("Distance from the bearer, uu, inside which a brood is 'near' and always steers at\n")
+		TEXT("full rate regardless of Stride. A CORRECTNESS boundary, not a taste dial:\n")
+		TEXT("everything the player can watch resolve — the front line, the pile against the\n")
+		TEXT("retinue, avoidance in the melee — has to sit inside it. The top-down view is at\n")
+		TEXT("most 2400uu wide, putting its furthest corner ~1470uu out, so at full army this\n")
+		TEXT("only strides brood that are off-screen walking in from the spawn ring. Exception:\n")
+		TEXT("below Emberkeep.Cam.ScaleSwapAt the camera goes shallow-perspective and sees\n")
+		TEXT("further down-field, so a late-run shot CAN have strided units in frame — raise\n")
+		TEXT("this if that shot ever becomes a moment the game cares about. [0..8000]"), ECVF_Default);
+
 	TAutoConsoleVariable<float> CVarBroodAggroRange(
 		TEXT("Swarm.BroodAggroRange"), 600.f,
 		TEXT("How far a brood will divert from the bearer to bite a soldier, uu. THE\n")
@@ -241,6 +284,81 @@ namespace
 		return bFound;
 	}
 
+	/**
+	 * Nearest entry of the opposing team inside the 3x3 grid neighbourhood, preferring one
+	 * within [MinRangeSq, MaxRangeSq) but falling back to the nearest inside [0, MinRangeSq)
+	 * if — and only if — no in-band candidate exists at all.
+	 *
+	 * task-073: Swarm.ArchersMinEngageRange (SwarmCombatProcessors.cpp) makes an Archer
+	 * PREFER not to engage anything closer than its own min range — the cheap approximation
+	 * of "don't shoot into your own scrum" (squad-group-system.md §2.2). But when nothing
+	 * else is standing between the archer and a brood that close, there is no scrum to
+	 * shoot into, and nothing else can kill it either: Swarm.MeleeRange (95uu) is short of
+	 * MinEngageRange's default (150uu), so a brood stuck there was permanently unkillable —
+	 * measured task-064, 7 brood held at an exact unchanged count for 135+s. Reaching into
+	 * the dead zone only when the normal band is completely EMPTY means a real scrum, which
+	 * still has in-band candidates, never loses the archer's preference for standing off;
+	 * this only fires when the archer would otherwise stand idle next to something nobody
+	 * else can reach.
+	 *
+	 * MinRangeSq == 0 (Spearmen, via URetinueFollowProcessor below) collapses this to
+	 * FindNearestEnemy's plain nearest-in-range search — the dead-zone branch below can
+	 * never contribute a closer candidate than the in-band one, so behaviour is unchanged.
+	 */
+	FORCEINLINE bool FindNearestEnemyBanded(const USwarmSubsystem& Swarm, const FVector& Location, bool bWantRetinue,
+		float MinRangeSq, float MaxRangeSq, FVector& OutLocation, float& OutDistSq)
+	{
+		bool bFoundInBand = false;
+		float BestInBandSq = TNumericLimits<float>::Max();
+		FVector BestInBand = FVector::ZeroVector;
+
+		bool bFoundDeadZone = false;
+		float BestDeadZoneSq = TNumericLimits<float>::Max();
+		FVector BestDeadZone = FVector::ZeroVector;
+
+		Swarm.QueryNeighbors(Location, [&](const USwarmSubsystem::FGridEntry& Entry)
+		{
+			if (Entry.bRetinue != bWantRetinue)
+			{
+				return;
+			}
+			const float DistSq = FVector::DistSquared2D(Entry.Location, Location);
+			if (DistSq >= MaxRangeSq)
+			{
+				return;
+			}
+			if (DistSq >= MinRangeSq)
+			{
+				if (DistSq < BestInBandSq)
+				{
+					BestInBandSq = DistSq;
+					BestInBand = Entry.Location;
+					bFoundInBand = true;
+				}
+			}
+			else if (MinRangeSq > 0.f && DistSq < BestDeadZoneSq)
+			{
+				BestDeadZoneSq = DistSq;
+				BestDeadZone = Entry.Location;
+				bFoundDeadZone = true;
+			}
+		});
+
+		if (bFoundInBand)
+		{
+			OutLocation = BestInBand;
+			OutDistSq = BestInBandSq;
+			return true;
+		}
+		if (bFoundDeadZone)
+		{
+			OutLocation = BestDeadZone;
+			OutDistSq = BestDeadZoneSq;
+			return true;
+		}
+		return false;
+	}
+
 	FORCEINLINE void UpdateAnimBits(uint8& Bits, const FVector& Velocity, float TimeSeconds, float Phase, bool bAttacking, float WalkHz)
 	{
 		const bool bMoving = Velocity.SizeSquared2D() > 100.f;
@@ -389,7 +507,14 @@ void UBroodSteeringProcessor::Execute(FMassEntityManager& EntityManager, FMassEx
 	const int32 SepCap = FMath::Clamp(CVarBroodSeparationCap.GetValueOnAnyThread(), 1, 16);
 	const float AggroSq = FMath::Square(FMath::Max(CVarBroodAggroRange.GetValueOnAnyThread(), 0.f));
 
-	EntityQuery.ForEachEntityChunk(Context, [Swarm, Attractor, Speed, SepRadius, SepWeight, SepCap, AggroSq](FMassExecutionContext& ChunkContext)
+	// Simulation LOD, snapshotted with everything else so the hot loop reads no CVars.
+	const int32 LodStride = FMath::Clamp(CVarSimLodStride.GetValueOnAnyThread(), 1, 8);
+	const float LodNearSq = FMath::Square(FMath::Max(CVarSimLodNearRadius.GetValueOnAnyThread(), 0.f));
+	// Which phase re-steers this frame. GFrameNumber (not a wall clock) so the split is exact
+	// and reproducible in a benchmark rather than drifting with frame time.
+	const uint32 LodPhase = LodStride > 1 ? (GFrameNumber % (uint32)LodStride) : 0;
+
+	EntityQuery.ForEachEntityChunk(Context, [Swarm, Attractor, Speed, SepRadius, SepWeight, SepCap, AggroSq, LodStride, LodNearSq, LodPhase](FMassExecutionContext& ChunkContext)
 	{
 		const TConstArrayView<FTransformFragment> Transforms = ChunkContext.GetFragmentView<FTransformFragment>();
 		const TConstArrayView<FSwarmJitterFragment> Jitter = ChunkContext.GetFragmentView<FSwarmJitterFragment>();
@@ -398,6 +523,22 @@ void UBroodSteeringProcessor::Execute(FMassEntityManager& EntityManager, FMassEx
 		for (int32 i = 0; i < ChunkContext.GetNumEntities(); ++i)
 		{
 			const FVector Location = Transforms[i].GetTransform().GetLocation();
+
+			// --- simulation LOD gate ---------------------------------------------------
+			// Cheap test first (one DistSquared2D) so the skip actually saves the two grid
+			// queries below rather than trading them for something comparable.
+			//
+			// Phase is the chunk-local index, which spreads the far population evenly across
+			// the N frames instead of re-steering all of them on the same one — a synchronised
+			// stride would show up as a periodic hitch, which is the failure this avoids. It
+			// reshuffles as entities die and chunks repack; that is harmless and mildly good,
+			// since no unit can get stuck permanently on an unlucky phase.
+			if (LodStride > 1
+				&& (uint32)(i % LodStride) != LodPhase
+				&& FVector::DistSquared2D(Location, Attractor) > LodNearSq)
+			{
+				continue; // keep last frame's velocity; integration still moves it
+			}
 
 			// Bite whatever is in front of you; otherwise keep marching on the hero.
 			// Whether a front line forms at all is decided here: a brood only diverts to
@@ -712,12 +853,17 @@ void URetinueFollowProcessor::Execute(FMassEntityManager& EntityManager, FMassEx
 			}
 
 			// --- auto-fight: step off the anchor for anything in reach ----
+			// task-073: banded so an Archer's own MinEngageRange dead zone doesn't hide a
+			// valid in-band target behind a closer dead-zone one (FindNearestEnemy only
+			// ever returns the single closest entry, so a naive nearest-then-filter here
+			// would reject engagement outright whenever the closest brood happened to be
+			// the dead-zone one) — see FindNearestEnemyBanded's own comment for the fuller
+			// escape-hatch rationale. Spearmen pass MinEngageRange == 0, which collapses
+			// this back to exactly today's plain nearest-in-range search.
 			FVector EnemyLocation;
 			float EnemyDistSq = 0.f;
-			const bool bEnemyFound = FindNearestEnemy(*Swarm, Location, /*bWantRetinue=*/false, EnemyLocation, EnemyDistSq);
-			const bool bInBand = EnemyDistSq < FMath::Square(EngageRange)
-				&& (MinEngageRange <= 0.f || EnemyDistSq >= FMath::Square(MinEngageRange));
-			const bool bEngaging = bEnemyFound && bInBand;
+			const bool bEngaging = FindNearestEnemyBanded(*Swarm, Location, /*bWantRetinue=*/false,
+				FMath::Square(MinEngageRange), FMath::Square(EngageRange), EnemyLocation, EnemyDistSq);
 
 			const FVector Target = (bEngaging && bMayCloseDistance) ? EnemyLocation : Anchor;
 			const FVector ToTarget = Target - Location;

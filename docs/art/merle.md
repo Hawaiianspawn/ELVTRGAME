@@ -24,16 +24,18 @@ Gameplay, revised 2026-07-11 on two axes at once:
    being the smallest, quickest silhouette in the row; chibi keeps that relationship while
    resetting what "small" looks like — the bow arc stays the one curve in an otherwise
    round-headed hero row.
-2. **Shape-only class ID, mark grammar re-derived.** Their identity rides entirely on the
-   **thin moving contour** — the Pathfinder's reserved bright-carrier shape (`hero-palettes.md`
-   §3). Because every hero bright is now the literal same hex, the quarry-mark's old
-   belt-and-suspenders insurance — a hue (`#d9f0b8`, pale green) deliberately separated from
-   the lamp's hue — is **gone** (`hero-palettes.md` §4a). What survives: the grammar argument
-   that a warm contour riding an enemy silhouette shares zero shape-signals with the
-   point+halo/stillness safety channel. That argument still holds; it just carries the whole
-   load alone now, with no hue backstop if a 1px read ever gets ambiguous. Flagging this here
-   per the doc's own instruction not to let a future artist rediscover the loss by shipping a
-   confusable asset.
+2. **Shape-only class ID, mark grammar re-derived, precedent under review.** Their identity has
+   ridden entirely on the **thin moving contour** — the Pathfinder's reserved bright-carrier
+   shape (`hero-palettes.md` §3) — since every hero bright shared one value-role. Under that
+   lock, the quarry-mark's old belt-and-suspenders insurance — a hue deliberately separated
+   from the lamp's hue — was **gone** (`hero-palettes.md` §4a): the grammar argument that a warm
+   contour riding an enemy silhouette shares zero shape-signals with the point+halo/stillness
+   safety channel had to carry the whole load alone, with no hue backstop if a 1px read ever
+   got ambiguous. The 2026-07-28 colour-gate reversal (`aesthetic-direction.md`) lifts that lock
+   and makes hue available again — whether the old hue-insurance (or some new one) comes back
+   for the quarry-mark specifically is an open colour decision, not yet made; flagging it here
+   rather than assuming either answer. The shape argument itself is unaffected either way and
+   still holds on its own.
 
 They must still (a) read as motion — the one friendly sprite that never marches in step, and
 (b) carry no bright of their own at rest — their light is spent entirely on others.
@@ -42,24 +44,32 @@ They must still (a) read as motion — the one friendly sprite that never marche
 
 ## 2. Palette table
 
-4 values + transparent mask (mask = background, not a value). Per `hero-palettes.md` §2–§3.
+4 values + transparent mask (mask = background, not a value). Cited by
+`docs/data/art/palette.json` key, not by hex — the literal hexes this table used to carry are
+retired (see `docs/data/art/palette.json` `retired_hexes` for the exact list), and no
+replacement hex is locked; that is an open colour decision, not resolved here (see handback).
+Names and role-slots are kept as the working vocabulary for *which* value is which, decoupled
+from any specific hex, per `hero-palettes.md` §2–§3.
 
-| Hex | Name | Role |
+| Key | Name | Role |
 |---|---|---|
-| `#211210` | Vault Dark | outline/recess; cropped hair; soot marks; the claw-scar; bowstring |
-| `#5e2d20` | Patched Steel | bow limbs, knife, arrowheads, buckles |
-| `#c76b2a` | Kitchen Tin | face, hands, hood (worn down), quiver leather, the token-cord — warm channel |
-| `#f0c260` | **Gatecamp Bright** | the ONE shared class bright — same literal hex as the other three classes, no longer a distinct pale-green Waylight. On them it is spent **only** as a contour and pip: 1px outline hugging a marked enemy's silhouette; snare-line anchor pips; the 2f marking-cast tip. Never a fill, never a halo'd point, **never on any friendly sprite — including this hero at rest** |
+| `dark` | Vault Dark | outline/recess; cropped hair; soot marks; the claw-scar; bowstring |
+| `steel` | Patched Steel | bow limbs, knife, arrowheads, buckles |
+| `bone` | Kitchen Tin | face, hands, hood (worn down), quiver leather, the token-cord — warm channel |
+| `pale` | **Gatecamp Bright** | the ONE shared class bright, pending the open colour decision (§1) — no longer a distinct pale-green Waylight. On them it is spent **only** as a contour and pip: 1px outline hugging a marked enemy's silhouette; snare-line anchor pips; the 2f marking-cast tip. Never a fill, never a halo'd point, **never on any friendly sprite — including this hero at rest** |
 
 - **Shape protection (replaces the old hue-based "mark protection"):** no flapping rectangle,
   static dot-cluster, or point+halo bright may appear anywhere in their kit — only the thin
-  moving contour and its anchor pips. This is now the *only* thing distinguishing a quarry-mark
+  moving contour and its anchor pips. This is the thing distinguishing a quarry-mark
   from a Lampbearer's point+halo at 1px: contour rides a silhouette and always moves with the
   target; point+halo is circular, haloed, and still-or-drifting independent of any enemy. See
-  §1 for what was lost when the hue insurance retired.
-- **Light-shifted variant:** `#211210→#35211c`, `#5e2d20→#7c4630`, `#c76b2a→#e08c46` (proposed,
-  `hero-palettes.md` §2). Gatecamp Bright does not shift — the mark is a claim, not emitted
-  light; the `#fff6dd` flame exception does not extend to it.
+  §1 for what was lost when the hue insurance retired, and for the open question of whether it
+  returns now that hue is available again.
+- **Light-shifted variant:** one step brighter along the value ladder — `dark`→`steel`,
+  `steel`→`bone`, `bone`→`pale` (`docs/data/art/palette.json` `light_shift` rule) — no specific
+  hex is proposed here anymore; the previously-proposed shift hexes were derived from the now-
+  retired base trio. Gatecamp Bright does not shift — the mark is a claim, not emitted light;
+  the sanctioned flame-core exception (`docs/art/palette-exceptions.md`) does not extend to it.
 
 ---
 
@@ -103,9 +113,10 @@ through the crowd because no other bright is a contour and no friendly is ever o
 bright. Counterfeit audit (per §1/§2 above): a charging marked elite shares zero *shape* signals
 with safety — safety is a point+halo that is still or drifts independently; the mark is a
 haloless contour that always tracks its target. Against the other brights: not a rectangle, not
-a dot-cluster, not a point+halo — shape carries the entire distinction now, since hue no longer
-does (the old "pale green-white, the only non-flame bright in the game" line is retired along
-with the hue system it described).
+a dot-cluster, not a point+halo — shape carries the distinction on its own, whether or not hue
+also backs it up (the old "pale green-white, the only non-flame bright in the game" line
+described a specific retired hue system and is not reasserted here; see §1 for the open colour
+question).
 
 ---
 
@@ -161,8 +172,8 @@ armies march.** Unaffected by the chibi/palette revision — restated for the re
 
 The portrait register stays non-chibi and higher-resolution by design. Nothing changes here
 except that there is no separate Waylight hex to omit — the medallion still carries **no**
-bright at all, which is now trivially consistent with the shared-hex system rather than a
-special case.
+bright at all, which is trivially consistent with the shared-bright precedent (§1) rather than
+a special case.
 
 - **Composition:** bust, slight turn, chin a touch down — **eyes-first**: the widest-open
   eyes in the hero row (4px events), gaze direct per the friendly register but reading like

@@ -131,10 +131,16 @@ namespace
 		TEXT("the same, exactly like Swarm.BroodAggroRange. [0..750]"), ECVF_Default);
 	TAutoConsoleVariable<float> CVarArchersMinEngageRange(
 		TEXT("Swarm.ArchersMinEngageRange"), 150.f,
-		TEXT("An archer won't engage anything closer than this to ITSELF, uu -- the cheap,\n")
-		TEXT("local approximation of 'don't shoot into your own scrum' (§2.2). Not true line-\n")
-		TEXT("of-sight against a specific ally (Design Law 5 rules that out at horde scale);\n")
-		TEXT("just a band on the archer's own reach. Just past Swarm.MeleeRange (95). [0..750]"),
+		TEXT("An archer PREFERS not to engage anything closer than this to ITSELF, uu -- the\n")
+		TEXT("cheap, local approximation of 'don't shoot into your own scrum' (§2.2). Not true\n")
+		TEXT("line-of-sight against a specific ally (Design Law 5 rules that out at horde\n")
+		TEXT("scale); just a band on the archer's own reach. Just past Swarm.MeleeRange (95).\n")
+		TEXT("\n")
+		TEXT("'Prefers', not refuses (task-073): this band sits past Swarm.MeleeRange, so a lone\n")
+		TEXT("brood inside it used to be unreachable by anyone and froze wave-clear outright\n")
+		TEXT("(measured: 7 brood held at an unchanged count for 135+s). The processor now falls\n")
+		TEXT("back to the nearest dead-zone target ONLY when the [this, EngageRange) band is\n")
+		TEXT("empty — see its escape-hatch comment. [0..750]"),
 		ECVF_Default);
 	TAutoConsoleVariable<int32> CVarArchersTargetsPerHit(
 		TEXT("Swarm.ArchersTargetsPerHit"), 1,
@@ -233,7 +239,9 @@ void USwarmCombatProcessor::Execute(FMassEntityManager& EntityManager, FMassExec
 	// Archers read their OWN candidate band instead of the shared MeleeRangeSq (docs/
 	// design/squad-group-system.md §2.2's minimum-viable ranged model — same grid, same
 	// BlowsClaimed mechanism, just a much bigger radius, plus a MinEngageRange floor so an
-	// archer won't count anything already in its own melee-range scrum as a target).
+	// archer PREFERS not to count anything already in its own melee-range scrum as a
+	// target — see the per-entity loop below for the task-073 escape hatch that lets an
+	// archer take a dead-zone target anyway when it is the ONLY target it can see).
 	// Spearmen and brood are UNCHANGED — both still read the shared MeleeRangeSq exactly
 	// as before.
 	const float MeleeRangeSq = FMath::Square(SwarmCombatTuning::MeleeRange());
@@ -330,6 +338,33 @@ void USwarmCombatProcessor::Execute(FMassEntityManager& EntityManager, FMassExec
 			// aren't all one type any more.
 			float Damage = 0.f;
 
+			// task-073 escape hatch. MyMinRangeSq is 0 for everyone except Archers, so this
+			// whole shadow scan is a no-op (bDeadZoneContact can never go true) for Spearmen
+			// and brood — nothing below changes their behaviour.
+			//
+			// For an Archer, MyMinRangeSq excludes anything closer than Swarm.
+			// ArchersMinEngageRange as "too close, don't shoot into your own scrum" (§2.2).
+			// But a brood standing that close is ALSO too close for anyone else to reach —
+			// Swarm.MeleeRange (95uu) is short of MinEngageRange's default (150uu) — so if
+			// it is this archer's ONLY candidate, refusing it forever freezes the wave
+			// (measured task-064: 7 brood held at an exact unchanged count for 135+s).
+			// Track dead-zone candidates in a separate shadow set and only promote them
+			// after the scan if the normal in-band set came up completely empty — a real
+			// scrum still has in-band candidates the archer keeps preferring over these, so
+			// this never overrides a live target; it only fires when the archer would
+			// otherwise stand idle next to something nobody else can reach. Deliberately
+			// NOT wired into the Strikers/Damage path below — this only ever widens what an
+			// Archer can hit, never what can hit an Archer, so nothing about incoming damage
+			// changes.
+			float DeadZoneNearestSq[8];
+			for (int32 k = 0; k < MyTargets; ++k)
+			{
+				DeadZoneNearestSq[k] = TNumericLimits<float>::Max();
+			}
+			int32 DeadZoneInReach = 0;
+			bool bDeadZoneContact = false;
+			FVector2f DeadZoneToward = FVector2f::ZeroVector;
+
 			Swarm->QueryNeighbors(Location, [&](const USwarmSubsystem::FGridEntry& Entry)
 			{
 				if (Entry.bRetinue == bRetinue)
@@ -337,8 +372,33 @@ void USwarmCombatProcessor::Execute(FMassEntityManager& EntityManager, FMassExec
 					return;
 				}
 				const float DistSq = (float)FVector::DistSquared2D(Entry.Location, Location);
-				if (DistSq >= MyRangeSq || DistSq < MyMinRangeSq)
+				if (DistSq >= MyRangeSq)
 				{
+					return;
+				}
+				if (DistSq < MyMinRangeSq)
+				{
+					// Dead zone — shadow-tracked only, see the escape-hatch comment above.
+					if (MyMinRangeSq > 0.f)
+					{
+						bDeadZoneContact = true;
+						++DeadZoneInReach;
+						DeadZoneToward += FVector2f(
+							(float)(Entry.Location.X - Location.X),
+							(float)(Entry.Location.Y - Location.Y)).GetSafeNormal();
+						for (int32 k = 0; k < MyTargets; ++k)
+						{
+							if (DistSq < DeadZoneNearestSq[k])
+							{
+								for (int32 s = MyTargets - 1; s > k; --s)
+								{
+									DeadZoneNearestSq[s] = DeadZoneNearestSq[s - 1];
+								}
+								DeadZoneNearestSq[k] = DistSq;
+								break;
+							}
+						}
+					}
 					return;
 				}
 				bContact = true;
@@ -387,6 +447,20 @@ void USwarmCombatProcessor::Execute(FMassEntityManager& EntityManager, FMassExec
 					Shove += Away.GetSafeNormal();
 				}
 			});
+
+			// Promote the dead-zone shadow set only if the in-band scan found nothing at
+			// all. This is the only place bDeadZoneContact is read — see the comment above
+			// the shadow scan for why this can't fire for anyone but an isolated Archer.
+			if (!bContact && bDeadZoneContact)
+			{
+				bContact = true;
+				InReach = DeadZoneInReach;
+				Toward = DeadZoneToward;
+				for (int32 k = 0; k < MyTargets; ++k)
+				{
+					NearestSq[k] = DeadZoneNearestSq[k];
+				}
+			}
 
 			bool bStruck = Strikers > 0;
 

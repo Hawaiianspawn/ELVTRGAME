@@ -92,17 +92,14 @@ Swarm.FlameShadowSoft 0.5     ; penumbra depth — softens the front/back shadow
 Swarm.FlameShadowRadius 45    ; caster radius uu — angular width each soldier occludes
 
 # ============================================================
-# BODY SIZE — the placeholder-geometry dials, both teams   @tab Unit
-# The brood's own size lives on the Horde tab; this is its counterpart plus the shared
-# height. All three go away the day the debug boxes become sprites.
+# BODY SIZE — per-unit size variation, both teams   @tab Unit
+# The brood's counterpart lives on the Horde tab. Base size is the Niagara sprite's own
+# Sprite Size now (the half-extent dials went with the debug-box renderer, 2026-07-29);
+# these vary it per unit and anchor it to the floor.
 # ============================================================
-Swarm.RetinueSize 60           ; [4..60] retinue half-extent uu, overriding the render actor's
-                               ; RetinueDebugPointSize. Formation spacing is ~86uu, so under ~40
 Swarm.RetinueSizeJitter 0.6    ; [0..0.6] per-soldier size variation. 0 on purpose: a drilled line
                                ; that is uniform against a tide that is not is a free read on which
                                ; team a body belongs to. Raise it for a conscripted look
-Swarm.BodyHeight 0.5           ; [0.1..3] body height as a multiple of half-extent, both teams.
-                               ; 0.5 = the shipped flat slab; ~1.5 stands them up into figures
 Swarm.SpriteGroundOffset -72   ; (owner-tuned 2026-07-28) uu, Niagara sprite path ONLY. NS_Swarm
                                ; centres each sprite on the pushed position instead of anchoring
                                ; its feet, so a unit floats above the floor without this. Negative
@@ -113,14 +110,8 @@ Swarm.SpriteGroundOffset -72   ; (owner-tuned 2026-07-28) uu, Niagara sprite pat
                                ; reasoning and what it implies about the live Sprite Size
 
 # ============================================================
-# PER-UNIT SHADING   @tab Unit
+# PER-UNIT SHADING — flame falloff applied per sprite in the Niagara push   @tab Unit
 # ============================================================
-Swarm.UnitShading 0        ; (owner-tuned, src 1) 0 = flat single box; 1 = front-lit/back-dark.
-                           ; Measured 2026-07-26 (-SwarmBench, clean A/B): the two-box split costs
-                           ; 2.21x draw at 2000 brood (40.66 -> 18.43ms frame, 25 -> 54 fps) and
-                           ; 2.58x at 10000. Interim dial until the Niagara sprite path lands —
-                           ; it also drops the rotated shading boundary that drives the dither
-                           ; artifact. Cost: loses the front/back directional read
 Swarm.UnitBackShade 0.32   ; darkness of the dark-facing half, fraction of the lit side
 Swarm.UnitLightFloor 0.28  ; [0..1] min brightness at the pool edge so the horde stays visible
                            ; (G5). RETINUE ONLY — brood use the two dials below
@@ -178,13 +169,6 @@ Emberkeep.UnitCamProj.FullColorDimStrength 0.5 ; how much of the shared flame-di
                                       ; near/far gradient while keeping the far end well short of
                                       ; crushed -- see docs/data/art/provenance.json
                                       ; in_panel_lighting_finding for the capture that drove this
-Emberkeep.UnitCamProj.FootAnchor 1    ; [0..1] 1 = bodies STAND ON their projected ground point;
-                                      ; 0 = centred on it (pre-2026-07-26), which draws every unit
-                                      ; half-buried and makes SoldierScale/HeroScale/BroodScale and
-                                      ; the size roll dig downward through the floor as much as up.
-                                      ; 1 lifts every body half its height up the panel, so re-check
-                                      ; Pitch/Height after changing it
-Emberkeep.UnitCamProj.BroodTint 0     ; 1 = wash the reserved red over brood sprites (pre-art threat read)
 Emberkeep.UnitCamProj.NearFade 150    ; near-plane fade-in band, uu; 0 = hard pop
 Emberkeep.UnitCamProj.NearPlane 10    ; near clip distance of the fake camera, uu
 Emberkeep.UnitCamProj.Fov 45.6        ; virtual-camera HORIZONTAL FOV, degrees (owner-tuned)
@@ -249,10 +233,6 @@ Emberkeep.UnitCamProj.LightSteps 5    ; [0..12] quantise the light into this man
                                       ; LIGHT, not the pixels — snapping sprites to palette entries
                                       ; is what collapsed the old SceneCapture close-up to one flat
                                       ; value. 0 or 1 = continuous; 4-6 reads as 2-bit
-Emberkeep.UnitCamProj.SoldierVariants 1 ; 1 = draw retinue from the high-res knight/archer sheets;
-                                      ; 0 = one shared T_Swarm_2bit cell for every soldier (the A/B,
-                                      ; and the fallback if a texture is missing). Retinue only
-
 # --- hero proxy (the bearer, drawn in the panel; he is a pawn, not a Mass entity) ---
 Emberkeep.UnitCamProj.Hero 1          ; draw the bearer in the Unit Cam; 0 = swarm only
 Emberkeep.UnitCamProj.HeroScale 1.6   ; hero billboard size as a multiple of a soldier's
@@ -290,24 +270,6 @@ Emberkeep.UI.BandHeight 190           ; [80..600] ONE-CAMERA MODE ONLY: height p
                                       ; UP — PublishHudOcclusion measures the real height and
                                       ; Emberkeep.Cam.HudBias re-centres the hero on what is left
 Emberkeep.UI.AutoShow 1               ; auto-show the combat HUD when a play session starts
-
-# --- split centre column (OFF: unit cam is primary, full height) ---
-# The minimap that lived in the top half was tried and rejected 2026-07-26 — pulled back far
-# enough to show the brood spawn ring, the lit pool became a dot in a black field. The split
-# machinery survives behind ViewCam because the SPLIT is fine; the minimap content wasn't.
-# Set ViewCam 1 to bring the second panel back for whatever goes there next.
-Emberkeep.UI.ViewCam 0                ; 0 = UNIT CAM ALONE full height (primary), 1 = split in two
-Emberkeep.UI.ViewCam.Enable 1         ; master switch for the second feed's SCENE RENDER. 0 stops
-                                      ; the whole world being rendered again from a second POV —
-                                      ; the single most expensive UI element in the game, and the
-                                      ; first dial to reach for when a heavy wave needs frame time
-Emberkeep.UI.Rect.Split 0.5           ; if split: fraction of column height to the TOP panel
-Emberkeep.UI.Rect.ViewOnTop 1         ; if split: 1 = second feed on top, 0 = swap the panels
-Emberkeep.UI.ViewCam.Res 640          ; if split: longest edge of the feed's render target, px
-Emberkeep.UI.ViewCam.Rate 1           ; if split: capture every N frames (the cost dial)
-Emberkeep.UI.ViewCam.Mode 1           ; if split: 1 = own top-down zoom, 0 = mirror the player camera
-Emberkeep.UI.ViewCam.MapWidth 4000    ; if split: top-down ortho width uu (9000 read as empty black)
-Emberkeep.UI.ViewCam.MapHeight 5000   ; if split: altitude uu (ortho: affects clipping, not framing)
 
 # ============================================================
 # GAME CAMERA — bias around the HUD so the hero stays in the visible strip   @tab Camera
@@ -366,23 +328,6 @@ Emberkeep.Cam.OffsetZ 54       ; [-500..500] (was 0) raises the point the camera
                                ; would tower over the frame. 54 lifts it to ~100uu, the projector's
                                ; Height. Raise for a taller vantage, lower to get down among them
 Emberkeep.Cam.Lerp 0           ; smoothing on camera moves; 0 = snap (honest while tuning)
-
-# ============================================================
-# PORTRAIT-STAGE CAM — the older SceneCapture close-up, behind-the-unit   @tab Camera
-# INERT UNLESS AUnitPortraitStage IS PLACED IN THE LEVEL — nothing spawns it, and the projector
-# above superseded it. Listed so the surface is complete and so these are re-framable without a
-# rebuild if that actor is ever dropped back into a map. The camera sits BEHIND the focused unit
-# looking forward into the dark, so friendlies read in the foreground and brood emerge from black.
-# ============================================================
-Emberkeep.UI.UnitCam.SubjectFwd 250 ; [0..1500] how far ahead of the unit, uu, the capture-only
-                                    ; stand-in sits — what the lens is actually aimed at
-Emberkeep.UI.UnitCam.Dist 320       ; [50..2000] how far BEHIND the stand-in the camera sits, uu.
-                                    ; Larger = more foreground unit in frame
-Emberkeep.UI.UnitCam.Height 150     ; [0..1000] camera height above the unit, uu
-Emberkeep.UI.UnitCam.Pitch -12      ; [-89..45] look-down pitch, degrees; negative looks down
-Emberkeep.UI.UnitCam.Side 0         ; [-500..500] over-the-shoulder side offset, uu. 0 = directly
-                                    ; behind the unit
-Emberkeep.UI.UnitCam.FOV 55         ; [10..140] capture field of view, degrees
 
 # ============================================================
 # BEARER COMBAT — what the hero himself does in a fight   @tab Player
@@ -459,15 +404,13 @@ Swarm.BroodTargetsPerHit 1     ; retinue hit per brood blow. 1 = numbers are a p
 # Size and spacing are one decision: grow a brood past Swarm.BroodSeparation (60) and
 # bodies interpenetrate, because separation holds them apart with no idea how big they are.
 # ============================================================
-Swarm.BroodSize 17.7333        ; [4..60] brood half-extent uu in the world view. Against
-                               ; RetinueSize 22 the size gap is how you tell the tide from
-                               ; your own line before either resolves into a sprite
 Swarm.BroodSizeJitter 0.4072   ; [0..0.6] PER-UNIT variation: each body draws at 1 +/- this
-                               ; fraction of BroodSize, fixed for its lifetime. The dial that
+                               ; fraction of its base size, fixed for its lifetime. The dial that
                                ; stops the tide reading as one repeated stamp. 0 = the old
-                               ; identical-boxes look. Quantised to 16 steps, so past ~0.5 the
-                               ; banding shows. IGNORED by the Niagara sprite path (needs a
-                               ; per-particle size array + graph edit) — boxes and cam only
+                               ; identical-bodies look. Quantised to 16 steps, so past ~0.5 the
+                               ; banding shows. LIVE IN THE UNIT CAM ONLY — NS_Swarm has no
+                               ; User.Sizes parameter, so the world-view push is discarded every
+                               ; frame (see SwarmRenderActor.cpp's ponytail: note). Asset fix
 Emberkeep.UnitCamProj.BroodScale 1 ; [0.2..4] the same call for the UNIT CAM panel, as a multiple
                                ; of a soldier's billboard. The panel is where the difference is
                                ; actually legible — the world view is boxes from above — so move
@@ -547,17 +490,28 @@ Swarm.KnockbackTime 0.1        ; seconds to spend that shove; shorter = sharper 
 # docs/perf/blood-particles.md for the measured cost and verdict at wave-3 density.   @tab Unit
 # ============================================================
 Blood.Enable 1                 ; master on/off; 0 skips the scan entirely (zero cost off)
-Blood.ParticlesPerHit 6        ; red pixels per burst, per struck unit found this frame
-Blood.MaxBurstsPerFrame 24     ; GLOBAL cap on bursts/frame — the cost-bounding dial;
-                               ; without it cost scales with how many units are mid-flash
-                               ; at once, which is unbounded at horde density
+Blood.ParticlesPerHit 3        ; red pixels per burst, per struck unit found this frame.
+                               ; DOWN from 6, 2026-07-28: at 6/24 (48 uu-6 particles per
+                               ; frame, worst case) the bursts merged into one continuous red
+                               ; smear across the fighting line at wave-1 density (370
+                               ; entities) in an actual screenshot — see
+                               ; docs/perf/blood-particles.md for the before/after images.
+                               ; 3/12 reads as distinct clusters per hit with visible gaps.
+Blood.MaxBurstsPerFrame 8     ; DOWN from 24, same wash fix. GLOBAL cap on bursts/frame —
+                               ; the cost-bounding dial; without it cost scales with how many
+                               ; units are mid-flash at once, which is unbounded at horde
+                               ; density
 Blood.Lifetime 0.3             ; seconds a particle lives — sub-second by design
-Blood.Size 6                   ; sprite half-size uu — pixel-scale, not an fx-scale splat
-Blood.SpeedScale 2.2            ; multiplier over NS_Blood's authored spray range; 0 = drops
-                               ; straight down at the hit point. Bumped from 1 (owner-tuned,
-                               ; 2026-07-28) — 1x read flat/floaty; this is the only pulse
-                               ; dial reachable without the Niagara graph (size-over-life
-                               ; curve, drag) — see docs/perf/blood-particles.md
+Blood.Size 2                   ; sprite half-size uu — pixel-scale, not an fx-scale splat
+Blood.SpeedScale 1.1            ; multiplier over NS_Blood's authored spray range; 0 = drops
+                               ; straight down at the hit point. DOWN from 2.2 (owner-tuned
+                               ; up from 1 for "punch" before the wash was found in a real
+                               ; screenshot) as part of the same 2026-07-28 wash fix — 2.2
+                               ; sprayed particles far enough to blur adjacent hits into each
+                               ; other, which compounded the ParticlesPerHit/MaxBurstsPerFrame
+                               ; smear. 1.1 keeps a little more life than the original 1
+                               ; ("read flat/floaty") while not spreading far enough to bridge
+                               ; gaps between hit points. See docs/perf/blood-particles.md.
 Blood.HeightOffset 15          ; Z lift uu above the published (ground-plane) position
 
 # ============================================================
@@ -565,11 +519,16 @@ Blood.HeightOffset 15          ; Z lift uu above the published (ground-plane) po
 # There is no distance culling on the renderer, so RadiusMin/Max are the only
 # "how far out do enemies appear" numbers.
 # ============================================================
-Swarm.BroodSpawnRadiusMin 2500       ; [0..8000] inner radius of the spawn ring, uu — ALSO the
-                                     ; radius of the FRONT rank in the formation below
-Swarm.BroodSpawnRadiusMax 4000       ; [0..8000] outer radius, uu — reference depth a typical wave
+Swarm.BroodSpawnRadiusMin 1200       ; [0..8000] inner radius of the spawn ring, uu — ALSO the
+                                     ; radius of the FRONT rank in the formation below. DOWN from
+                                     ; 2500 (iteration-speed tuning) — brood travel less distance
+                                     ; before reaching the line, so waves reach real combat sooner.
+                                     ; Still comfortably under Swarm.SimLOD.NearRadius (4500), so
+                                     ; nothing spawns already strided
+Swarm.BroodSpawnRadiusMax 2200       ; [0..8000] outer radius, uu — reference depth a typical wave
                                      ; is sized to fit within (BroodFormation.RankSpacing); not a
-                                     ; hard bound, a bigger wave just recedes further back
+                                     ; hard bound, a bigger wave just recedes further back. DOWN
+                                     ; from 4000, same iteration-speed reasoning as RadiusMin
 Swarm.BroodSpawnArc 120              ; [0..360] DEGREES of arrival, AND the sweep the brood rank
                                      ; formation fans its columns across. 360 = surrounded (used to
                                      ; be the default); ~90 = one flank; ~30 = a column down one
@@ -598,28 +557,32 @@ Swarm.BroodSpeedJitter 0.06          ; [0..0.8] per-brood speed variation, was 0
                                      ; staggering the wave off one rigid frame
 
 # ============================================================
+# RUN PACING — Spike1GameMode's wave-clear safety valve (task-064)   @tab Debug
+# GetAliveBrood()==0 alone has no way out of a genuine stall. MEASURED root cause: a
+# handful of brood can end up 18-38uu from their nearest retinue -- inside MeleeRange
+# (95uu) -- and never take a hit, because that retinue is an Archer whose own
+# ArchersMinEngageRange (150uu) refuses to shoot anything that close, and Archers never
+# close distance to melee. Confirmed live: 7 brood held at an EXACT unchanged count for
+# 135+ continuous seconds. This dial does not fix that (Mass-side steering/combat code,
+# out of Spike1GameMode's ownership); it stops the run from stalling on top of it.
+# ============================================================
+Swarm.WaveClearTimeoutSeconds 20 ; seconds the SAME nonzero brood count must hold past
+                                 ; WaveClearGraceSeconds before the wave force-clears
+                                 ; (stragglers logged, then destroyed). 0 disables --
+                                 ; reverts to the original no-timeout bug
+
+# ============================================================
 # DEBUG / RENDER / CAPTURE — outside the tuning surface, kept as configured   @tab Debug
 # ============================================================
-Swarm.DebugRender 0        ; 0 = Niagara sprites (the real path), 1 = debug boxes.
-                           ; RETRACTED, 2026-07-27: this line used to be 1, justified by "the
-                           ; NIAGARA path draws NOTHING" (verified 2026-07-25, zero sprites with
-                           ; DebugRender 0). That diagnosis was WRONG. The emitter graph was never
-                           ; at fault — NS_Swarm was set to GPUComputeSim; switching it to CPUSim
-                           ; fixed it, and sprites have drawn correctly since.
-                           ; Two further reasons 0 is now the right value:
-                           ;   - There was a SECOND, bare "Swarm.DebugRender 0" further down this
-                           ;     file. Exec lines apply in file order, so that one silently won and
-                           ;     the live value was already 0 — by accident of ordering, not intent.
-                           ;     That duplicate is removed; this line is now the single source.
-                           ;   - Debug boxes are INVISIBLE to any scene capture, so DebugRender 1
-                           ;     breaks Swarm.DebugShotAfter (see docs/AGENT-TEAMS.md §8) — the
-                           ;     shot succeeds but shows a flame pool with no units.
+Swarm.DebugRender 0        ; 0 = Niagara sprites (the only world renderer). 2 = draw NOTHING,
+                           ; the bench's isolation baseline. Mode 1 was the debug-box renderer,
+                           ; deleted 2026-07-29 — it cost 4x the frame time at the 1,000-unit gate
+                           ; and 22x at 20,000, and every "we can't hit the entity gate" claim in
+                           ; this repo was measured against it
 Swarm.DebugPlainView 0     ; 1 = disable post-process (drops the demichrome dither)
 Emberkeep.UnitCamProj.DebugFrustum 0 ; draw the Unit Cam's virtual camera in the MAIN world view —
                            ; position, FOV pyramid, aim line and the Range ring on the ground. The
                            ; way to SEE where that camera is before tuning its numbers
-Emberkeep.UI.UnitCamDebug 1 ; draw red markers for the PORTRAIT-STAGE cam: stand-in location,
-                           ; capture frustum, aim line. Inert unless that actor is placed
 Emberkeep.UnitCamProj.CountLog 0 ; log how many billboards the Unit Cam actually drew, every N
                            ; seconds; 0 = off. "The panel costs nothing" and "the panel drew
                            ; nothing" are the same number in a benchmark — a cost claimed for this

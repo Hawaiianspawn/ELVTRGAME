@@ -24,33 +24,42 @@ One rule carries all three, unchanged by either 2026-07-11 revision: **the brigh
 safety, and only the held state has it.** Held owns the floor's only warm glow; fallen has *zero*
 bright pixels and restored crowns; unheld is the held geometry with the light taken down.
 
-**What did change:** the anchor and bright hexes below now match the redrawn hero specs
-(`hero-palettes.md`'s Gatecamp Family), and the Legion accent value now matches the redrawn
-Still Legion family, so the whole floor — architecture and characters alike — reads off one
-consistent world palette. Nothing about the *mechanism* (bright = safety, scarcity = trust)
-changed; only the specific hex values did.
+**What did change:** the anchor and bright values below share the same value-roles as the
+redrawn hero specs (`hero-palettes.md`'s Gatecamp Family), and the Legion accent value shares
+the same value-role as the redrawn Still Legion family, so the whole floor — architecture and
+characters alike — reads off one consistent world palette. Nothing about the *mechanism*
+(bright = safety, scarcity = trust) changed; the hex literals this table used to cite are
+retired (task-039, 2026-07-28), and no replacement hex is locked — see §2.
 
 ---
 
 ## 2. Palette table
 
 Highgates biome environment palette. 4 values + transparent mask (mask backs the lamp/prop
-cells only; barricade cells are fully opaque — does **not** count as a value).
+cells only; barricade cells are fully opaque — does **not** count as a value). Cited by
+`docs/data/art/palette.json` key where the value maps onto that vocabulary (the anchor, the
+Legion accent, the bright); the environment-only Gate Stone value has no equivalent key and
+keeps its working name. The literal hexes this table used to carry are retired (see
+`docs/data/art/palette.json` `retired_hexes` for the exact list), and no replacement hex is
+locked; that is an open colour decision, not resolved here (see handback).
 
-| Hex | Name | Role |
+| Key | Name | Role |
 |---|---|---|
-| `#211210` | Vault Dark | outlines, stair shadow, shield recesses; also the dither ground for the lamp halo. Now the same literal hex as the Gatecamp hero family's anchor (was `#1a1c2c`) — the whole world shares one dark ground state |
-| `#3e4a5a` | Gate Stone | masonry / barricade body mid-tone — environment-only value, not part of either hero-scale family (Gatecamp or Legion); unchanged by this revision |
-| `#555568` | Legion Cold | edging, fittings — **the Legion faction-reserved value**: crown sigils render in this and nothing else. Re-hexed to match the redrawn Still Legion family's Legion Steel (was `#6a7b8c`), so a crown sigil here and a Legion unit's cold-mid elsewhere on the floor read as the same material |
-| `#f0c260` | Gatecamp Bright | bright — **held state only**: lamp pixel + 1px halo dither. Retired (unused) in unheld and fallen. Same literal hex as every hero-scale honest light in the game (was `#ffe9c2` Watch-Lamp under the retired system) |
+| `dark` | Vault Dark | outlines, stair shadow, shield recesses; also the dither ground for the lamp halo. Shares the same anchor value-role as the Gatecamp hero family — the whole world shares one dark ground state |
+| — | Gate Stone | masonry / barricade body mid-tone — environment-only value, not part of either hero-scale family (Gatecamp or Legion); no `palette.json` key equivalent; unchanged by this revision |
+| `steel` | Legion Cold | edging, fittings — **the Legion faction-reserved value**: crown sigils render in this and nothing else. Shares the same value-role as the redrawn Still Legion family's Legion Steel, so a crown sigil here and a Legion unit's cold-mid elsewhere on the floor read as the same material |
+| `pale` | Gatecamp Bright | bright, pending the open colour decision (§1) — **held state only**: lamp pixel + 1px halo dither. Retired (unused) in unheld and fallen. Same value-role as every hero-scale honest light in the game |
 
 - **Mark protection:** quarry-mark and rune-mark carrier shapes (contour, dot-cluster) are
   absent from this palette and unapproximated — the same shape-audit rule as the hero specs
   (`hero-palettes.md` §3) applies to set-pieces too: only point+halo may spend the bright here.
-- **Light-shifted variant** (held state, inside lamp radius — the honest-light rule): 
-  `#211210→#35211c`, `#3e4a5a→#566274`, `#555568→#75758a`, bright unchanged. The landing itself
-  sits one value brighter than the corridor feeding it — the safe read arrives before the
-  player can resolve a single tile, from any approach vector.
+- **Light-shifted variant** (held state, inside lamp radius — the honest-light rule): one step
+  brighter along the value ladder for `dark` and `steel` (`docs/data/art/palette.json`
+  `light_shift` rule), Gate Stone nudged brighter in kind since it has no ladder key of its own,
+  bright unchanged. No specific hex is proposed here anymore; the previously-proposed shift
+  hexes were derived from the now-retired base trio. The landing itself sits one value brighter
+  than the corridor feeding it — the safe read arrives before the player can resolve a single
+  tile, from any approach vector.
 
 ---
 

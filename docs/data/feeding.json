@@ -1,8 +1,8 @@
 {
   "$schema_note": "Flat, row-per-CVar table for the feeding/distraction mechanic (docs/design/feeding-distraction.md). Unlike unit-types.json/squads.json (nested config), this is deliberately a flat DataTable shape -- one row per tuning dial, single typed Value column -- per task-053's explicit 'must import cleanly as a UE DataTable' requirement. Bool/int dials are stored as float (0/1 or integer-valued) so every row shares one struct shape.",
-  "version": "0.1-prototype",
-  "last_updated": "2026-07-27",
-  "note": "All values are PROTOTYPE DIALS, unmeasured against the real Mass sim (spec's density check, §8, used a scratch Fermi model, not an engine run). Each row mirrors a Swarm.Feeding.* CVar task-054 should register.",
+  "version": "0.2-prototype",
+  "last_updated": "2026-07-28",
+  "note": "All values are PROTOTYPE DIALS, unmeasured against the real Mass sim (spec's density check, SS8, used scratch Fermi/birth-death models plus a Monte Carlo cross-check, not an engine run). Each row mirrors a Swarm.Feeding.* CVar task-054 should register. v0.2 (task-061): corpses are now persistent and walk-up-claimable (owner override, spec SS5) -- RetinueFeedChance/BroodFeedChance renamed to *KillerClaimChance and retuned, seven new rows added for the walk-up channel and corpse population bound.",
 
   "rows": [
     {
@@ -17,7 +17,7 @@
       "ValueType": "Int",
       "Value": 3,
       "Team": "Any",
-      "Description": "Hard cap on the killer set (spec section 2/4): at most this many simultaneous killers of one victim enter feeding. Owner-specified cap."
+      "Description": "Hard cap on a corpse's slots (spec section 2/4). As of task-061 this is a LIFETIME cap per corpse, not just a per-instant one: a slot decrements on any successful claim (killer or walk-up) and only reopens if that feeder dies mid-feed (spec section 4)."
     },
     {
       "Name": "Swarm.Feeding.ChompRate",
@@ -41,32 +41,81 @@
       "Description": "Ceiling on feed duration, seconds. Stops a future high-MaxHP titan/elite kill from freezing a unit absurdly long."
     },
     {
-      "Name": "Swarm.Feeding.RetinueFeedChance",
+      "Name": "Swarm.Feeding.RetinueKillerClaimChance",
       "ValueType": "Float",
-      "Value": 0.35,
+      "Value": 0.20,
       "Team": "Retinue",
-      "Description": "Per-killer-set-member chance a RETINUE killer actually enters feeding. Load-bearing anti-stall dial -- spec section 8 measures the unthrottled retinue duty cycle at ~31% of the whole army (scale-invariant, not just a wave-3 artifact) and this dial is what brings it down to ~11%."
+      "Description": "Renamed from RetinueFeedChance (task-053 default 0.35) and retuned down in task-061. Per-killer-set-member chance a RETINUE killer claims a slot the instant its kill resolves (spec section 2/8). Reduced from 0.35 to leave duty-cycle headroom for the new RetinueClaimRate walk-up channel below -- the two channels now share the same budget task-053's single dial used to own alone."
     },
     {
-      "Name": "Swarm.Feeding.BroodFeedChance",
+      "Name": "Swarm.Feeding.BroodKillerClaimChance",
       "ValueType": "Float",
       "Value": 0.85,
       "Team": "Brood",
-      "Description": "Per-killer-set-member chance a BROOD killer actually enters feeding. Kept high on purpose -- the 700-brood wave-3 pool absorbs it (spec section 8 measures under 17% of the pool feeding even in the worst case tested), and it should read often as the tone/horror beat (spec section 7)."
+      "Description": "Renamed from BroodFeedChance, value unchanged. Per-killer-set-member chance a BROOD killer claims a slot the instant its kill resolves. Left at 0.85 -- the added BroodClaimRate walk-up contribution still stays inside what the 700-unit pool absorbs (spec section 8), and this side is meant to read often as the tone/horror beat (spec section 7)."
+    },
+    {
+      "Name": "Swarm.Feeding.RetinueClaimRate",
+      "ValueType": "Float",
+      "Value": 0.0412,
+      "Team": "Retinue",
+      "Description": "NEW, task-061. Per-second hazard rate at which an eligible retinue unit (within ClaimRadius of a brood corpse with an open slot, not already feeding, off cooldown) claims a walk-up slot -- converted to a per-tick probability as 1-(1-Rate)^dt at Swarm.Feeding.ClaimTickHz. Calibrated to an ~11% equilibrium duty cycle at coverage C=1.0 (spec section 8), matching task-053's original retinue target so the killer and walk-up channels are on comparable footing."
+    },
+    {
+      "Name": "Swarm.Feeding.BroodClaimRate",
+      "ValueType": "Float",
+      "Value": 0.0272,
+      "Team": "Brood",
+      "Description": "NEW, task-061. Per-second hazard rate at which an eligible brood unit (within ClaimRadius of a retinue corpse with an open slot) claims a walk-up slot. Calibrated to an ~15% equilibrium duty cycle at coverage C=1.0 -- deliberately looser than the retinue rate, same asymmetric-by-design posture as the killer-claim chances (spec section 8)."
+    },
+    {
+      "Name": "Swarm.Feeding.ClaimRadius",
+      "ValueType": "Float",
+      "Value": 150.0,
+      "Team": "Any",
+      "Description": "NEW, task-061. World units. How close a unit must be to a corpse to be eligible for a walk-up claim (spec section 5.2). Just past Swarm.MeleeRange (95uu) so it reads as 'standing next to it,' and inside GridCellSize (250uu) so the claim pass reuses the existing 3x3-cell neighbor scan rather than a new query shape."
+    },
+    {
+      "Name": "Swarm.Feeding.ClaimTickHz",
+      "ValueType": "Float",
+      "Value": 10.0,
+      "Team": "Any",
+      "Description": "NEW, task-061. How often the corpse-centric walk-up claim pass runs, in Hz (spec section 5.2/10). Feed durations run 1.5-8s, so frame-perfect resolution isn't needed; running at 10Hz instead of full tick rate cuts the pass's cost roughly 6x with no measured loss of accuracy in the per-tick-probability conversion."
+    },
+    {
+      "Name": "Swarm.Feeding.MaxCorpsesPerTeam",
+      "ValueType": "Int",
+      "Value": 100,
+      "Team": "Any",
+      "Description": "NEW, task-061. Per-team cap on live corpse records (200 total: up to 100 brood-team corpses claimable by retinue, up to 100 retinue-team corpses claimable by brood -- spec section 5.4). At wave-3 kill rates this binds within 3.6-14.3s of brood-corpse creation, so 100/team is the practical peak corpse count for most of a fight, not the uncapped cumulative total (which the spec's section 5.4 shows would otherwise run into the hundreds-to-low-thousands over a full 3-wave run)."
+    },
+    {
+      "Name": "Swarm.Feeding.StaleAge",
+      "ValueType": "Float",
+      "Value": 15.0,
+      "Team": "Any",
+      "Description": "NEW, task-061. Seconds. A corpse older than this discounts the duration of any NEW walk-up claim (never a killer claim, which always happens at age zero) by StaleDurationScale (spec section 5.5). The load-bearing anti-flat-tax dial in the section 8 re-run -- without it the walk-up channel's cost never shrinks over the course of a fight."
+    },
+    {
+      "Name": "Swarm.Feeding.StaleDurationScale",
+      "ValueType": "Float",
+      "Value": 0.5,
+      "Team": "Any",
+      "Description": "NEW, task-061. Multiplier on FeedDuration() applied to walk-up claims (only) on a corpse older than StaleAge. Halves the walk-up channel's cost for the back half of any fight that runs longer than ~15s -- fictionally, an already-sealed or already-eaten body has less left to chomp through."
     },
     {
       "Name": "Swarm.Feeding.Cooldown",
       "ValueType": "Float",
       "Value": 4.0,
       "Team": "Any",
-      "Description": "Seconds after a completed feed before that unit can be selected into another killer set. Secondary valve against one high-kill-rate unit chain-feeding back to back at short feed durations."
+      "Description": "Seconds after a completed feed before that unit can be selected into another claim, killer or walk-up. Secondary valve against one high-kill-rate/high-exposure unit chain-feeding back to back -- the section 8 Monte Carlo check shows this has a second-order effect next to the three primary valves (killer-claim chance, walk-up claim rate, stale-duration discount)."
     },
     {
       "Name": "Swarm.Feeding.HealFraction",
       "ValueType": "Float",
       "Value": 0.20,
       "Team": "Any",
-      "Description": "Fraction of the feeder's own MaxHP restored on UNINTERRUPTED completion only (spec section 6). A feeder killed mid-feed gets nothing -- keeps the payoff incidental to the (involuntary) act rather than a chosen reward."
+      "Description": "Fraction of the feeder's own MaxHP restored on UNINTERRUPTED completion only (spec section 6). A feeder killed mid-feed, or still feeding when the round ends (spec section 5.6), gets nothing -- keeps the payoff incidental to the (involuntary) act rather than a chosen reward."
     },
     {
       "Name": "Swarm.Feeding.HeroExempt",

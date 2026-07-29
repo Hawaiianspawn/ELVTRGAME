@@ -84,20 +84,19 @@ namespace
 
 	TAutoConsoleVariable<int32> CVarSwarmDebugRender(
 		TEXT("Swarm.DebugRender"),
-		// 0 (Niagara) since 2026-07-28, was 1. The debug-box renderer cost 4x more frame time at
-		// the 1,000-unit gate and 22x more at 20,000, and every "we can't hit the entity gate"
-		// claim in this repo was measured against it. Niagara measured FREE — within noise of a
-		// sim-only baseline at every count. See docs/perf/one-camera-bench.md §1.
 		0,
 		TEXT("Which renderer draws the swarm into the WORLD.\n")
-		TEXT("  0 = Niagara sprites (the shipping path; repaired 2026-07-26, commit 33c44f7)\n")
-		TEXT("  1 = debug boxes (DrawDebugSolidBox per unit — the historical default)\n")
+		TEXT("  0 = Niagara sprites (the shipping path, and the only one)\n")
 		TEXT("  2 = NOTHING: sim runs, no world render, and the Niagara push loop is skipped\n")
-		TEXT("      entirely. Not a shipping mode — it exists so the Unit Cam projector's cost\n")
-		TEXT("      can be measured on its own, without a world renderer underneath it adding\n")
-		TEXT("      cost to the same frame. Mode 2 is the isolation baseline in the\n")
+		TEXT("      entirely. Not a shipping mode — it is the isolation baseline in the\n")
 		TEXT("      one-camera bench (docs/perf/one-camera-bench.md); subtract it from any\n")
-		TEXT("      other row to get that row's true renderer cost."),
+		TEXT("      other row to get that row's true renderer cost.\n")
+		TEXT("\n")
+		TEXT("1 was the DrawDebugSolidBox-per-unit renderer, deleted 2026-07-29. It cost 4x more\n")
+		TEXT("frame time at the 1,000-unit gate and 22x more at 20,000, and every 'we can't hit\n")
+		TEXT("the entity gate' claim in this repo was measured against it. Niagara measured FREE.\n")
+		TEXT("The value is left as a gap rather than renumbered so old bench strings and exec\n")
+		TEXT("files that say '2' still mean the isolation baseline."),
 		ECVF_Default);
 
 	TAutoConsoleVariable<int32> CVarSwarmUnitStencil(
@@ -126,28 +125,12 @@ namespace
 	TAutoConsoleVariable<float> CVarSwarmDebugShot(
 		TEXT("Swarm.DebugShotAfter"),
 		0.f,
-		TEXT("Take one screenshot this many seconds after BeginPlay. 0 disables.\n")
-		TEXT("Lets a headless/scripted run capture what the renderer is actually drawing.\n")
-		TEXT("\n")
-		TEXT("task-048: this is a SceneCaptureComponent2D capture (DebugCaptureComponent), NOT\n")
-		TEXT("the engine's FScreenshotRequest — that path is fulfilled inside the game viewport's\n")
-		TEXT("Slate Draw() call, which simply never runs on an unfocused/occluded PIE window, so\n")
-		TEXT("the request can sit queued through an entire run and nothing lands on disk (verified\n")
-		TEXT("empirically, task-047). The scene capture issues its own render command and needs no\n")
-		TEXT("window paint, so it works the same whether or not the PIE window has OS focus.\n")
-		TEXT("\n")
-		TEXT("If Swarm.DebugRender is 1 (debug-box mode) the shot will show the flame pool but NO\n")
-		TEXT("units: DrawDebugSolidBox primitives are not visible to a scene capture (verified,\n")
-		TEXT("see docs/AGENT-TEAMS.md capture recipe). Set Swarm.DebugRender 0 (Niagara) before\n")
-		TEXT("shooting if the swarm itself needs to be in frame. The log line this prints says\n")
-		TEXT("which mode was active so a blank-looking shot is diagnosable after the fact.\n")
-		TEXT("\n")
-		TEXT("NOT YET VALID FOR JUDGING ART: this capture came back RAW, not the styled game view —\n")
-		TEXT("the flame pool showed as blown-out flat facets, not the dithered 4-value demichrome\n")
-		TEXT("ramp, despite SCS_FinalColorLDR. Use it for geometry/formation/counts/framing only,\n")
-		TEXT("never for palette or dither judgement, until that gap is closed. See docs/AGENT-\n")
-		TEXT("TEAMS.md §8 for the two untested candidate causes (capture exposure convergence,\n")
-		TEXT("double-gamma on export) before assuming it's architectural."),
+		TEXT("Take one screenshot this many seconds after BeginPlay. 0 disables. Works on an\n")
+		TEXT("unfocused/occluded PIE window — SceneCapture2D, not FScreenshotRequest; see\n")
+		TEXT("DebugCaptureComponent's doc comment in the header for why that distinction matters.\n")
+		TEXT("Swarm.DebugRender 2 gives a shot with no units in it (no world renderer runs).\n")
+		TEXT("NOT VALID FOR JUDGING ART: the capture comes back raw, not the styled game view —\n")
+		TEXT("geometry/formation/counts/framing only. docs/AGENT-TEAMS.md §8."),
 		ECVF_Default);
 
 	TAutoConsoleVariable<int32> CVarSwarmDebugShotWidth(
@@ -310,7 +293,7 @@ namespace
 		TEXT("Swarm.FlameShadowRadius"),
 		45.f,
 		TEXT("Caster radius in uu — sets each soldier's angular shadow width. Bigger =\n")
-		TEXT("fatter wedges. A soldier's debug box is ~22uu; 45 casts a readable wedge."),
+		TEXT("fatter wedges. A soldier is ~22uu across; 45 casts a readable wedge."),
 		ECVF_Default);
 
 	TAutoConsoleVariable<int32> CVarSwarmFlameShadowCount(
@@ -343,22 +326,12 @@ namespace
 		TEXT("Swarm.DitherZoomCompensate"),
 		0.f,
 		TEXT("1 = derive WorldDitherScale from the LIVE view width each frame so a Bayer texel\n")
-		TEXT("keeps a constant size in PIXELS; 0 = off (default), WorldDitherScale is used as a\n")
-		TEXT("fixed world-unit value exactly as before.\n")
-		TEXT("\n")
-		TEXT("Why this exists: WorldDitherScale is calibrated in WORLD units against a FIXED\n")
-		TEXT("2400uu framing, but the constraint it encodes ('a texel must be at least 2 screen\n")
-		TEXT("pixels', aesthetic-direction.md §2.4) is a SCREEN-space one. The moment the camera\n")
-		TEXT("zooms — which is the whole point of Emberkeep.Cam.Scale — the two disagree: at a\n")
-		TEXT("700uu framing an 8uu texel becomes ~10px instead of ~3px and the ground reads as a\n")
-		TEXT("giant checkerboard. This keeps world ANCHORING (the anti-vignette mechanism, and\n")
-		TEXT("the thing that proves the world moves through the light) while removing the zoom\n")
-		TEXT("coupling.\n")
-		TEXT("\n")
-		TEXT("Cost, stated honestly: the pattern's world scale now breathes as the camera scales,\n")
-		TEXT("so it is no longer rigidly welded to the ground. Camera scale tracks attrition and\n")
-		TEXT("moves slowly, so this is invisible frame to frame — whereas the wrong texel size is\n")
-		TEXT("glaring. That trade is the reason to prefer it, not an oversight."),
+		TEXT("keeps a constant size in PIXELS; 0 = off (default), a fixed world-unit value.\n")
+		TEXT("Decouples the 'a texel must be at least 2 screen pixels' rule (aesthetic-\n")
+		TEXT("direction.md §2.4) from camera zoom — at a 700uu framing an 8uu texel otherwise\n")
+		TEXT("becomes ~10px instead of ~3px and the ground reads as a giant checkerboard.\n")
+		TEXT("Trade: the pattern's world scale breathes as the camera scales, so it is no longer\n")
+		TEXT("rigidly welded to the ground. Camera scale moves slowly, so this is invisible."),
 		ECVF_Default);
 
 	TAutoConsoleVariable<float> CVarSwarmDitherTexelPixels(
@@ -538,31 +511,14 @@ namespace
 
 	// --- per-unit flame shading (docs/RENDERING-LIGHTING.md §4a) -------------
 
-	TAutoConsoleVariable<int32> CVarSwarmUnitShading(
-		TEXT("Swarm.UnitShading"),
-		0,
-		TEXT("Light each unit from the flame: the hemisphere facing the flame draws\n")
-		TEXT("brighter, the hemisphere turned to the dark draws dimmer, and both dim with\n")
-		TEXT("distance from the flame. Grounds the units in the world as a point light\n")
-		TEXT("would. 0 = flat single box (one colour, no direction).\n")
-		TEXT("\n")
-		TEXT("DEFAULTS TO 0 since 2026-07-26. It draws TWO DrawDebugSolidBox calls per\n")
-		TEXT("unit per frame instead of one, on the path that is currently the whole\n")
-		TEXT("shipping picture. Measured (-SwarmBench, clean A/B, retinue=100):\n")
-		TEXT("  2000 brood  40.66 -> 18.43 ms frame  (25 -> 54 fps)  2.21x\n")
-		TEXT(" 10000 brood 350.02 -> 135.47 ms frame ( 2.9 -> 7.4)   2.58x\n")
-		TEXT("The ratio worsens with count as batching overhead compounds. It also\n")
-		TEXT("rotates each unit's shading boundary to face the flame, which is a\n")
-		TEXT("contributor to the 'offset overlapping grids' dither artifact against the\n")
-		TEXT("world-anchored dither. Set 1 to see the directional read; expect the cost.\n")
-		TEXT("Both go away with the Niagara sprite path (docs/perf/niagara-sprite-refactor.md)."),
-		ECVF_Default);
-
+	// Registered here, read only by UnitCamProjector (by name, via ReadCVarFloat) — the world
+	// renderer's own front/back split went with the debug-box path. Kept in this file so the
+	// Swarm.* shading dials stay in one place.
 	TAutoConsoleVariable<float> CVarSwarmUnitBackShade(
 		TEXT("Swarm.UnitBackShade"),
 		0.32f,
-		TEXT("How dark the dark-facing hemisphere is, as a fraction of the lit side.\n")
-		TEXT("0 = black back (hard shading), 1 = no front/back difference."),
+		TEXT("How dark a unit's flame-averted side draws, as a fraction of the lit side, in the\n")
+		TEXT("Unit Cam panel. 0 = black back (hard shading), 1 = no front/back difference."),
 		ECVF_Default);
 
 	TAutoConsoleVariable<float> CVarSwarmUnitLightFloor(
@@ -603,45 +559,18 @@ namespace
 		TEXT("soldier beside a brood always reads as the lit one."),
 		ECVF_Default);
 
-	// --- body size, per team (added 2026-07-26) ---------------------------
-	// Until now the only way to resize a unit was to select the placed ASwarmRenderActor
-	// and edit its BroodDebugPointSize/RetinueDebugPointSize UPROPERTY, which is not a
-	// thing you can do mid-fight. These override those at runtime.
-	//
-	// 0 deliberately means "don't override" rather than "zero-sized", so the level's
-	// placed actor stays the design-time default and these stay a live experiment on top
-	// of it. The exec file writes explicit positive values, so the breadboard row shows a
-	// real number rather than a sentinel.
-	//
-	// Size is only half a decision: a brood grown past Swarm.BroodSeparation (60uu) will
-	// visibly interpenetrate its neighbours, because separation is what actually holds
-	// bodies apart and it has no idea how big they are. Move the two together.
-	TAutoConsoleVariable<float> CVarSwarmBroodSize(
-		TEXT("Swarm.BroodSize"),
-		0.f,
-		TEXT("Brood body half-extent in uu, overriding the render actor's BroodDebugPointSize\n")
-		TEXT("(14). 0 = don't override. Read against RetinueSize: the size difference is how a\n")
-		TEXT("player tells the tide from their own line before either resolves into a sprite.\n")
-		TEXT("Grow it past Swarm.BroodSeparation and bodies interpenetrate — raise both."),
-		ECVF_Default);
-
-	TAutoConsoleVariable<float> CVarSwarmRetinueSize(
-		TEXT("Swarm.RetinueSize"),
-		0.f,
-		TEXT("Retinue body half-extent in uu, overriding RetinueDebugPointSize (22).\n")
-		TEXT("0 = don't override. Here because a size dial is only meaningful next to the\n")
-		TEXT("thing it is compared against. Formation spacing is ~86uu, so keep under ~40."),
-		ECVF_Default);
-
 	// --- per-unit size variation -----------------------------------------
-	// A horde whose every member is the exact same box reads as one texture, not as a
+	// A horde whose every member is the exact same body reads as one texture, not as a
 	// crowd. These are amplitudes on a per-entity roll the sim publishes in the spare
 	// high bits of the anim int32 (SwarmRenderPack), so they retune live with no respawn.
 	//
-	// NOT honoured by the Niagara sprite path, which would need its own per-particle size
-	// array and a graph edit. Only the debug-box renderer and the Unit Cam vary. That is
-	// currently the whole shipping picture (Swarm.DebugRender is 1 because the emitter
-	// draws nothing) but it is a trap waiting for the day it isn't.
+	// ponytail: LIVE ONLY IN THE UNIT CAM PANEL. The Niagara push writes SizeScratch to a
+	// User.Sizes array parameter that NS_Swarm.uasset does not have — the asset was last
+	// saved 2026-07-26, the push was added 2026-07-28, and the parameter was never added
+	// to the emitter. Niagara logs "OverrideParameter(Sizes) ... was not found" every
+	// frame and discards it. Same for User.Colors, which is why sprites do not dim with
+	// flame distance in the world view. Fix is in the ASSET, not here: add User.Colors
+	// (Array Color) and User.Sizes (Array Float) to NS_Swarm and bind them in the graph.
 	TAutoConsoleVariable<float> CVarSwarmBroodSizeJitter(
 		TEXT("Swarm.BroodSizeJitter"),
 		0.2f,
@@ -663,59 +592,14 @@ namespace
 		TEXT("Swarm.SpriteGroundOffset"),
 		-72.f,
 		TEXT("Z shift, uu, applied to every unit's position before it reaches NS_Swarm. The\n")
-		TEXT("Sprite Renderer centres each sprite on Particles.Position (Pivot Offset (0,0),\n")
-		TEXT("unchanged from its SETUP-EDITOR.md default) instead of anchoring the sprite's feet,\n")
-		TEXT("so a full-body sprite centred on the ground-plane position (the sim is 2D --\n")
-		TEXT("RenderPositions.Z is always 0) puts the character's FEET roughly half its own height\n")
-		TEXT("above the floor, not on it -- reads as floating. Same root cause as\n")
-		TEXT("Emberkeep.UnitCamProj.FootAnchor's old centre-anchor bug on that renderer; see its\n")
-		TEXT("comment in cvars SKILL.md ('scaling sinks/floats them' is what an unanchored centre\n")
-		TEXT("pivot always does). Negative moves the pushed position DOWN so the still-centred\n")
-		TEXT("sprite's feet land at true ground; 0 reproduces today's float for an A/B. Fixing this\n")
-		TEXT("in C++ rather than NS_Swarm's Pivot Offset keeps the Niagara asset untouched -- see\n")
-		TEXT("SwarmRenderActor.cpp's Niagara push loop for where it's applied. Owner-tuned 2026-07-28\n")
-		TEXT("by A/B screenshot at wave-1 density (-24 still floated, -100 sank feet below the\n")
-		TEXT("floor, -72 read as grounded) -- this is a measured value, not the half-Sprite-Size\n")
-		TEXT("estimate this comment used to carry. Actual Sprite Size on the live asset is\n")
-		TEXT("therefore closer to ~144uu, well past SETUP-EDITOR.md's stale 48uu figure."),
+		TEXT("Sprite Renderer centres each sprite on Particles.Position rather than anchoring\n")
+		TEXT("its feet, so a full-body sprite on the ground plane floats half its own height.\n")
+		TEXT("Negative pushes the position DOWN so the feet land at true ground; 0 reproduces\n")
+		TEXT("the float for an A/B. Owner-tuned 2026-07-28 by A/B screenshot at wave-1 density\n")
+		TEXT("(-24 still floated, -100 sank below the floor, -72 read as grounded) — a measured\n")
+		TEXT("value, which implies live Sprite Size is ~144uu, not SETUP-EDITOR.md's stale 48."),
 		ECVF_Default);
 
-	TAutoConsoleVariable<float> CVarSwarmBodyHeight(
-		TEXT("Swarm.BodyHeight"),
-		0.5f,
-		TEXT("Body height as a multiple of half-extent, both teams. 0.5 is the shipped flat\n")
-		TEXT("slab; ~1.5 stands the boxes up into figures. A placeholder-geometry dial — it\n")
-		TEXT("goes away the day the boxes become sprites."),
-		ECVF_Default);
-
-	// Base albedos for the shaded path — brought down from pure white/bright so the
-	// flame has room to modulate them; the light does the brightening, not the sprite.
-	const FColor RetinueBaseAlbedo(232, 232, 238);
-	const FColor BroodBaseAlbedo(170, 44, 36);
-
-	// Retinue pure white, brood dark red — the flat fallback when UnitShading is off.
-	const FColor RetinueDebugColor(255, 255, 255);
-	// Brood sit low in the value range on purpose (owner 2026-07-23): they read as
-	// the dark made flesh, and they are darkest at the edge of the pool where they
-	// enter — the flame lifts them only as they close on the hero. Was (190,45,35).
-	const FColor BroodDebugColor(130, 32, 26);
-
-	/**
-	 * Hit flash. Pure white, and deliberately NOT shaded by the flame.
-	 *
-	 * Two reasons it has to be light-exempt. A unit struck at the edge of the pool has
-	 * its brightness floored by Swarm.UnitLightFloor (0.28), which the demichrome pass
-	 * then quantises well below Threshold3 — so an attenuated "white" flash out there
-	 * would not even reach the brightest palette value and the hit would be invisible
-	 * exactly where the fighting starts. And retinue are *already* near-white, so a
-	 * tint alone does nothing for them; what makes a soldier's flash read is the
-	 * two-tone shading dropping away for an instant (see TickDebugRender).
-	 *
-	 * Same class of deliberate palette exception as the flame's white core.
-	 */
-	const FColor HitFlashColor(255, 255, 255);
-
-	constexpr float DebugPointZOffset = 30.f;
 }
 
 ASwarmRenderActor::ASwarmRenderActor()
@@ -992,7 +876,7 @@ void ASwarmRenderActor::TickSpacingLog(float DeltaSeconds)
 		SpacingLogTimer = 0.f;
 		SwarmDebug::LogSpacingReport(GetWorld());
 
-		UE_LOG(LogTemp, Display, TEXT("SwarmDebug: debugRender=%d niagaraVisible=%d"),
+		UE_LOG(LogTemp, Display, TEXT("SwarmDebug: renderMode=%d niagaraVisible=%d"),
 			CVarSwarmDebugRender.GetValueOnGameThread(),
 			NiagaraComponent ? (int32)NiagaraComponent->IsVisible() : -1);
 	}
@@ -1047,15 +931,11 @@ void ASwarmRenderActor::TakeDebugShot()
 	const FString FileName = FString::Printf(TEXT("SwarmDebugShot_%s.png"), *FDateTime::Now().ToString(TEXT("%Y%m%d_%H%M%S")));
 	UKismetRenderingLibrary::ExportRenderTarget(this, DebugCaptureRT, Dir, FileName);
 
-	// DrawDebugSolidBox primitives are not visible to a scene capture (verified, task-048 /
-	// docs/AGENT-TEAMS.md) — flag it plainly so a blank-looking shot is diagnosable without
-	// re-deriving this from scratch.
-	const bool bDebugBoxMode = CVarSwarmDebugRender.GetValueOnGameThread() != 0;
+	const bool bNoWorldRender = CVarSwarmDebugRender.GetValueOnGameThread() == 2;
 	UE_LOG(LogTemp, Display,
-		TEXT("SwarmDebug: capture written to %s (%dx%d, %s)%s"),
+		TEXT("SwarmDebug: capture written to %s (%dx%d)%s"),
 		*(Dir / FileName), Width, Height,
-		bDebugBoxMode ? TEXT("debug-box mode") : TEXT("Niagara sprite mode"),
-		bDebugBoxMode ? TEXT(" — WARNING: debug boxes do not render into scene captures; set Swarm.DebugRender 0 to see the swarm in this shot") : TEXT(""));
+		bNoWorldRender ? TEXT(" — WARNING: Swarm.DebugRender 2 draws no world renderer; the shot will have no units") : TEXT(""));
 }
 
 void ASwarmRenderActor::TickFlame(float DeltaSeconds)
@@ -1283,118 +1163,6 @@ void ASwarmRenderActor::TickFlame(float DeltaSeconds)
 	SetScalar(TEXT("FlameShadowSoft"), CVarSwarmFlameShadowSoft.GetValueOnGameThread());
 }
 
-void ASwarmRenderActor::TickDebugRender()
-{
-	SWARM_SCOPE(STAT_SwarmDebugDraw, SwarmDebugDraw);
-
-	UWorld* World = GetWorld();
-	const USwarmSubsystem* Swarm = World ? World->GetSubsystem<USwarmSubsystem>() : nullptr;
-	if (!Swarm)
-	{
-		return;
-	}
-
-	const TArray<FVector>& Positions = Swarm->GetRenderPositions();
-	const TArray<int32>& AnimBits = Swarm->GetRenderAnimBits();
-
-	const bool bShade = CVarSwarmUnitShading.GetValueOnGameThread() != 0;
-
-	// Shade from the same point the light springs to, so the units and the pool
-	// agree about where the flame is. Falls back to the true hero position if the
-	// flame writer is disabled and the smoothed value was never seeded.
-	const FVector FlamePos = bFlameInitialized ? SmoothedFlamePos : Swarm->GetAttractor();
-	const float Radius = FMath::Max(CVarSwarmFlameRadius.GetValueOnGameThread(), 1.f);
-	const float Falloff = FMath::Max(CVarSwarmFlameFalloff.GetValueOnGameThread(), 0.001f);
-	const float BackShade = FMath::Clamp(CVarSwarmUnitBackShade.GetValueOnGameThread(), 0.f, 1.f);
-	const float LightFloor = FMath::Clamp(CVarSwarmUnitLightFloor.GetValueOnGameThread(), 0.f, 1.f);
-	const float BroodFloor = FMath::Clamp(CVarSwarmBroodLightFloor.GetValueOnGameThread(), 0.f, 1.f);
-	const float BroodCeil = FMath::Clamp(CVarSwarmBroodLightCeil.GetValueOnGameThread(), BroodFloor, 1.f);
-
-	// Per-team size. A CVar of 0 falls back to the placed actor's UPROPERTY, so the level
-	// keeps its design-time default and these stay a live override on top of it.
-	const float BroodOverride = CVarSwarmBroodSize.GetValueOnGameThread();
-	const float RetinueOverride = CVarSwarmRetinueSize.GetValueOnGameThread();
-	const float BroodHalf = BroodOverride > 0.f ? BroodOverride : BroodDebugPointSize;
-	const float RetinueHalf = RetinueOverride > 0.f ? RetinueOverride : RetinueDebugPointSize;
-	const float HeightRatio = FMath::Max(CVarSwarmBodyHeight.GetValueOnGameThread(), 0.01f);
-	const float BroodJitter = FMath::Clamp(CVarSwarmBroodSizeJitter.GetValueOnGameThread(), 0.f, 0.95f);
-	const float RetinueJitter = FMath::Clamp(CVarSwarmRetinueSizeJitter.GetValueOnGameThread(), 0.f, 0.95f);
-
-	const auto Shade = [](const FColor& C, float M) -> FColor
-	{
-		return FColor(
-			(uint8)FMath::Clamp(FMath::RoundToInt(C.R * M), 0, 255),
-			(uint8)FMath::Clamp(FMath::RoundToInt(C.G * M), 0, 255),
-			(uint8)FMath::Clamp(FMath::RoundToInt(C.B * M), 0, 255));
-	};
-
-	const int32 Num = FMath::Min(Positions.Num(), AnimBits.Num());
-	for (int32 i = 0; i < Num; ++i)
-	{
-		const bool bRetinue = (AnimBits[i] & SwarmAnim::TeamBit) != 0;
-		const float HalfSize = (bRetinue ? RetinueHalf : BroodHalf)
-			* SwarmRenderPack::SizeScale(AnimBits[i], bRetinue ? RetinueJitter : BroodJitter);
-		const float HalfZ = HalfSize * HeightRatio;
-		// Lift the box off the floor by at least its own half-height, so a body can never
-		// sink through the ground plane as it scales. DebugPointZOffset (30) is the tuned
-		// resting lift and still wins at every default size (HalfZ is 7 brood / 11 retinue),
-		// so this changes nothing until a size dial makes a body taller than the lift —
-		// which is exactly the case it exists for.
-		const FVector Centre = Positions[i] + FVector(0.f, 0.f, FMath::Max(DebugPointZOffset, HalfZ));
-
-		// Struck this instant: one solid white box, full size, no directional split and
-		// no distance falloff. Collapsing the two half-boxes is what sells it — the dark
-		// half vanishing for a tenth of a second is a much louder change than a colour
-		// shift, and it works on retinue, who are already almost white.
-		if ((AnimBits[i] & SwarmAnim::HitFlashBit) != 0)
-		{
-			DrawDebugSolidBox(
-				World, Centre, FVector(HalfSize, HalfSize, HalfZ), HitFlashColor,
-				/*bPersistent=*/false, /*LifeTime=*/-1.f, /*DepthPriority=*/0);
-			continue;
-		}
-
-		if (!bShade)
-		{
-			DrawDebugSolidBox(
-				World, Centre, FVector(HalfSize, HalfSize, HalfZ),
-				bRetinue ? RetinueDebugColor : BroodDebugColor,
-				/*bPersistent=*/false, /*LifeTime=*/-1.f, /*DepthPriority=*/0);
-			continue;
-		}
-
-		// Direction to the flame in the ground plane. The lit hemisphere is the one
-		// this points at; the far hemisphere is turned to the outer dark.
-		const FVector2D ToFlame(FlamePos.X - Centre.X, FlamePos.Y - Centre.Y);
-		const float Dist = ToFlame.Size();
-		const FVector2D Dir = Dist > 1.f ? ToFlame / Dist : FVector2D(1.f, 0.f);
-
-		// Distance attenuation mapped into a per-team exposure window. Retinue keep the
-		// shared silhouette-rescue floor and the full range above it; brood ride their own
-		// narrower window, so they surface out of the dark on the approach instead of
-		// arriving already visible, and stop short of the top of the ramp when they get here.
-		const float T = FMath::Clamp(Dist / Radius, 0.f, 1.f);
-		const float Atten = 1.f - FMath::Pow(T, Falloff);
-		const float Floor = bRetinue ? LightFloor : BroodFloor;
-		const float Ceil = bRetinue ? 1.f : BroodCeil;
-		const float Lit = FMath::Lerp(Floor, Ceil, Atten);
-
-		const FColor& Base = bRetinue ? RetinueBaseAlbedo : BroodBaseAlbedo;
-		const FColor FrontCol = Shade(Base, Lit);
-		const FColor BackCol = Shade(Base, Lit * BackShade);
-
-		// Two half-boxes split along the flame direction: near half lit, far half dark.
-		const FQuat Rot(FRotator(0.f, FMath::RadiansToDegrees(FMath::Atan2(Dir.Y, Dir.X)), 0.f));
-		const FVector HalfExtent(HalfSize * 0.5f, HalfSize, HalfZ);
-		const FVector Offset = Rot.RotateVector(FVector(HalfSize * 0.5f, 0.f, 0.f));
-
-		DrawDebugSolidBox(World, Centre - Offset, HalfExtent, Rot, BackCol,
-			/*bPersistent=*/false, /*LifeTime=*/-1.f, /*DepthPriority=*/0);
-		DrawDebugSolidBox(World, Centre + Offset, HalfExtent, Rot, FrontCol,
-			/*bPersistent=*/false, /*LifeTime=*/-1.f, /*DepthPriority=*/0);
-	}
-}
-
 void ASwarmRenderActor::Tick(float DeltaSeconds)
 {
 	Super::Tick(DeltaSeconds);
@@ -1411,12 +1179,8 @@ void ASwarmRenderActor::Tick(float DeltaSeconds)
 		return;
 	}
 
-	// One renderer at a time, so a broken sprite setup can't be mistaken for a
-	// broken sim (or vice versa).
-	const int32 RenderMode = CVarSwarmDebugRender.GetValueOnGameThread();
-	const bool bDebugRender = RenderMode == 1;
-	const bool bNoWorldRender = RenderMode == 2;
-	NiagaraComponent->SetVisibility(!bDebugRender && !bNoWorldRender);
+	const bool bNoWorldRender = CVarSwarmDebugRender.GetValueOnGameThread() == 2;
+	NiagaraComponent->SetVisibility(!bNoWorldRender);
 
 	// Stamp the unit stencil so the demichrome pass can exempt sprites from the flame's
 	// screen-space lift (Swarm.UnitStencil). Driven on change rather than every tick — both
@@ -1431,22 +1195,15 @@ void ASwarmRenderActor::Tick(float DeltaSeconds)
 		}
 	}
 
-	// The demichrome post-process stays on by default — the debug points are
-	// bright enough to read straight through the dither, and the whole point of
-	// judging the game is judging it as it actually looks. Only an explicit
-	// opt-in drops it. Driven on change so toggling either way self-heals.
+	// The demichrome post-process stays on by default — the whole point of judging the
+	// game is judging it as it actually looks. Only an explicit opt-in drops it. Driven
+	// on change so toggling either way self-heals.
 	const int32 PlainView = CVarSwarmDebugPlainView.GetValueOnGameThread();
 	if (LastPlainViewState != PlainView)
 	{
 		LastPlainViewState = PlainView;
 		BenchExec(PlainView != 0 ? TEXT("r.PostProcessing.DisableMaterials 1")
 								 : TEXT("r.PostProcessing.DisableMaterials 0"));
-	}
-
-	if (bDebugRender)
-	{
-		TickDebugRender();
-		return;
 	}
 
 	if (bNoWorldRender)
@@ -1477,12 +1234,16 @@ void ASwarmRenderActor::Tick(float DeltaSeconds)
 	SizeScratch.Reset(AnimBits.Num());
 	PositionScratch.Reset(AnimBits.Num());
 
-	// The same light model the debug-box renderer uses, applied to sprites for the first time.
-	// Until now the Niagara path pushed Positions/SubImages/Count and nothing else, so every
-	// sprite drew at flat full brightness regardless of distance and the hit flash could not be
-	// shown at all (SwarmFragments.h records the loss). These three reads are what make
-	// Swarm.UnitLightFloor / BroodLightFloor / BroodLightCeil mean something on the shipping
-	// path — before this they were debug-box-only dials that looked live and were not.
+	// The flame light model, applied per sprite. Until 2026-07-28 the Niagara path pushed
+	// Positions/SubImages/Count and nothing else, so every sprite drew at flat full brightness
+	// regardless of distance and the hit flash could not be shown at all (SwarmFragments.h
+	// records the loss).
+	//
+	// STILL TRUE AT RUNTIME as of 2026-07-29: this computes correctly but lands nowhere,
+	// because NS_Swarm has no User.Colors parameter to receive it (see the ponytail: note on
+	// the size-jitter CVars above). Swarm.UnitLightFloor / BroodLightFloor / BroodLightCeil
+	// are inert in the world view until that asset gains the parameter; they are live in the
+	// Unit Cam panel, which shades in Slate and needs no Niagara binding.
 	const FVector FlameP = bFlameInitialized ? SmoothedFlamePos : Swarm->GetAttractor();
 	const float FlameR = FMath::Max(CVarSwarmFlameRadius.GetValueOnGameThread(), 1.f);
 	const float FlameFall = FMath::Max(CVarSwarmFlameFalloff.GetValueOnGameThread(), 0.001f);
@@ -1517,8 +1278,8 @@ void ASwarmRenderActor::Tick(float DeltaSeconds)
 			// Distance attenuation into a per-team exposure window. Retinue keep the shared
 			// silhouette-rescue floor and the full range above it; brood ride their own
 			// narrower window so they surface out of the dark on approach rather than
-			// arriving already visible. Identical maths to the debug-box path on purpose —
-			// if these two ever disagree, the horde changes appearance when DebugRender flips.
+			// arriving already visible. The Unit Cam panel runs the same maths on purpose —
+			// if the two disagree, the horde changes appearance between the world and the panel.
 			const float D = RenderPos.IsValidIndex(PackIndex)
 				? (float)FVector2D(FlameP.X - RenderPos[PackIndex].X,
 								   FlameP.Y - RenderPos[PackIndex].Y).Size()

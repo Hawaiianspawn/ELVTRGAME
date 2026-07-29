@@ -60,10 +60,10 @@ public:
 	int32 RetinueCap = 120;
 
 	UPROPERTY(EditDefaultsOnly, Category = "Run")
-	float DeploySeconds = 3.f;
+	float DeploySeconds = 1.f;
 
 	UPROPERTY(EditDefaultsOnly, Category = "Run")
-	float BreatherSeconds = 6.f;
+	float BreatherSeconds = 2.f;
 
 	/**
 	 * Grace period after a wave spawns before "no brood left" counts as a clear.

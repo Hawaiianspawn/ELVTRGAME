@@ -1,7 +1,7 @@
 ---
 id: 056
 title: Build a 6-variant silhouette family off the bright-palette sci-fi soldier and publish the contact sheet
-status: in-progress
+status: parked
 agent: claude
 owns: ["RawArt/Renders/soldier-scifi-variants/**", "docs/art/soldier-scifi-variants.md"]
 resources: ["pixellab-credits"]
@@ -10,8 +10,9 @@ epic: ""
 evidence: A published Artifact contact sheet showing 6 variants beside their flat outlines, with the silhouette_report.py table (aspect / solidity / asymmetry / holes), the measured aspect spread stated as a number, and a named keep-or-reroll verdict per variant.
 score: {feel: 2, risk: 2, cost: 2}
 source: user
-teammate: soldier-scifi-variants
-decided: "2026-07-28 in-progress"
+teammate: variants-rev2b-run
+decided: "2026-07-29 parked"
+model: sonnet
 ---
 
 ## Why now

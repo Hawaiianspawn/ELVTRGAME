@@ -59,9 +59,12 @@ namespace SwarmAnim
  *
  *      col:    0      1      2      3      4      5      6      7
  *              S     SE      E     NE      N     NW      W     SW
- *   row 0:  brood walk0, all eight columns (the brood has no rotations yet — every
- *   row 1:  brood walk1,  column packs the same south frame, so the decode below is
- *                         already correct when it gains real ones)
+ *   row 0:  brood walk0, eight real facings (since 2026-07-28 — the brood used to have
+ *   row 1:  brood walk1,  no rotations at all, so every column packed the same south
+ *                         frame and the tide read identically from every angle. The
+ *                         decode was written to be correct when that changed, and it
+ *                         was: swapping in an 8-rotation ooze character needed only a
+ *                         frame_map repoint in swarm-units.json, no code change)
  *   row 2:  retinue walk0, eight real facings
  *   row 3:  retinue walk1
  *

@@ -1,93 +1,109 @@
 {
- "$schema": "../sprite-request.schema.json",
- "id": "swarm-units",
- "revision": 2,
- "subject": {
-  "title": "Swarm unit atlas (retinue + brood), 8-direction - composite, generates nothing",
-  "kind": "retinue",
-  "faction": "none",
-  "class_tie": "none",
-  "brief": "../../../art/npc-silhouette-brief.md",
-  "spec": "../../../art/npc-silhouette-brief.md"
- },
- "composite": {
-  "sources": [
-   {
-    "prefix": "brood",
-    "frames": {
-     "south.walk0": "RawArt/Renders/brood-ooze/derived/south.walk0.png",
-     "south.walk1": "RawArt/Renders/brood-ooze/derived/south.walk1.png"
-    },
-    "quantize": true,
-    "note": "PLACEHOLDER until the enemy has canon. Owner-supplied art: PixelLab character 4a75b4ac-7732-499a-84f4-d3a06937a6c2 'Black ooze with teeth'. LIGHT-SHIFTED derivations, not the raw frames -- the raw body is 94% Demichrome Dark, invisible against the Dark floor in the sprite path (M_Swarm is Unlit+Masked and samples the texture directly, so it has no equivalent of the debug renderer's Swarm.UnitLightFloor). Shifted once (Dark->Steel). r2: the brood has NO rotations, so it stays direction-agnostic -- all 8 direction columns reference this same south pair, and the decode in SwarmSheet still indexes it by direction so the brood upgrades to real facings later without a layout change. attack/hit frames dropped at r2 with the rest of the anim axis."
-   },
-   {
-    "prefix": "retinue",
-    "frames": {
-     "south.walk0": "RawArt/Renders/unit-knight/raw/animations/walk/south/frame_000.png",
-     "south.walk1": "RawArt/Renders/unit-knight/raw/animations/walk/south/frame_002.png",
-     "south-east.walk0": "RawArt/Renders/unit-knight/raw/rotations/south-east.png",
-     "south-east.walk1": "RawArt/Renders/unit-knight/raw/rotations/south-east.png",
-     "east.walk0": "RawArt/Renders/unit-knight/raw/rotations/east.png",
-     "east.walk1": "RawArt/Renders/unit-knight/raw/rotations/east.png",
-     "north-east.walk0": "RawArt/Renders/unit-knight/raw/rotations/north-east.png",
-     "north-east.walk1": "RawArt/Renders/unit-knight/raw/rotations/north-east.png",
-     "north.walk0": "RawArt/Renders/unit-knight/raw/rotations/north.png",
-     "north.walk1": "RawArt/Renders/unit-knight/raw/rotations/north.png",
-     "north-west.walk0": "RawArt/Renders/unit-knight/raw/rotations/north-west.png",
-     "north-west.walk1": "RawArt/Renders/unit-knight/raw/rotations/north-west.png",
-     "west.walk0": "RawArt/Renders/unit-knight/raw/rotations/west.png",
-     "west.walk1": "RawArt/Renders/unit-knight/raw/rotations/west.png",
-     "south-west.walk0": "RawArt/Renders/unit-knight/raw/rotations/south-west.png",
-     "south-west.walk1": "RawArt/Renders/unit-knight/raw/rotations/south-west.png"
-    },
-    "quantize": true,
-    "note": "OWNER-SUPPLIED, replaces the managed 'unit-retinue' militia 2026-07-25 at the owner's direction: PixelLab character 1c935515-0ea3-459b-8c63-e7f8cf368272 'Hallam (Vanguard)', a uniform armoured knight with closed helm, kite shield and spear. Kept as an unmanaged path map because the character was authored in the web Character Creator, so no prompt/anchor of ours reproduces it. Straight quantize, NO light-shift: measured 38% Dark / 37% Steel / 21% Bone / 3% Pale, close to the ideal 4-value spread. r2 (2026-07-26): the eight rotations under raw/rotations/ were sitting UNUSED -- r1 packed south only. They are now the direction axis. south keeps its real walk pair (frame_000/002); the other seven duplicate their idle rotation into both walk columns, so a unit walking south bobs and one walking north is static. That is additive, not a regression (r1 had no facing at all), and it resolves with one 8-direction template walk (~8 generations) that drops straight into the walk1 row with NO layout, decode or Sub UV change."
-   }
-  ]
- },
- "output": {
-  "cell": 48,
-  "grid": [
-   8,
-   4
-  ],
-  "frame_map": {
-   "0": "brood:south.walk0",
-   "1": "brood:south.walk0",
-   "2": "brood:south.walk0",
-   "3": "brood:south.walk0",
-   "4": "brood:south.walk0",
-   "5": "brood:south.walk0",
-   "6": "brood:south.walk0",
-   "7": "brood:south.walk0",
-   "8": "brood:south.walk1",
-   "9": "brood:south.walk1",
-   "10": "brood:south.walk1",
-   "11": "brood:south.walk1",
-   "12": "brood:south.walk1",
-   "13": "brood:south.walk1",
-   "14": "brood:south.walk1",
-   "15": "brood:south.walk1",
-   "16": "retinue:south.walk0",
-   "17": "retinue:south-east.walk0",
-   "18": "retinue:east.walk0",
-   "19": "retinue:north-east.walk0",
-   "20": "retinue:north.walk0",
-   "21": "retinue:north-west.walk0",
-   "22": "retinue:west.walk0",
-   "23": "retinue:south-west.walk0",
-   "24": "retinue:south.walk1",
-   "25": "retinue:south-east.walk1",
-   "26": "retinue:east.walk1",
-   "27": "retinue:north-east.walk1",
-   "28": "retinue:north.walk1",
-   "29": "retinue:north-west.walk1",
-   "30": "retinue:west.walk1",
-   "31": "retinue:south-west.walk1"
+  "$schema": "../sprite-request.schema.json",
+  "id": "swarm-units",
+  "revision": 4,
+  "subject": {
+    "title": "Swarm unit atlas (retinue + brood), 8-direction - composite, generates nothing",
+    "kind": "retinue",
+    "faction": "none",
+    "class_tie": "none",
+    "brief": "../../../art/npc-silhouette-brief.md",
+    "spec": "../../../art/npc-silhouette-brief.md"
   },
-  "texture": "T_Swarm_2bit",
-  "content_path": "/Game/Spike1",
-  "sheet_srgb": true
- }
+  "composite": {
+    "sources": [
+      {
+        "prefix": "brood",
+        "frames": {
+          "south.walk0": "RawArt/Renders/brood-ooze-colour/raw/rotations/south.png",
+          "south.walk1": "RawArt/Renders/brood-ooze-colour/raw/rotations/south.png",
+          "south-east.walk0": "RawArt/Renders/brood-ooze-colour/raw/rotations/south-east.png",
+          "south-east.walk1": "RawArt/Renders/brood-ooze-colour/raw/rotations/south-east.png",
+          "east.walk0": "RawArt/Renders/brood-ooze-colour/raw/rotations/east.png",
+          "east.walk1": "RawArt/Renders/brood-ooze-colour/raw/rotations/east.png",
+          "north-east.walk0": "RawArt/Renders/brood-ooze-colour/raw/rotations/north-east.png",
+          "north-east.walk1": "RawArt/Renders/brood-ooze-colour/raw/rotations/north-east.png",
+          "north.walk0": "RawArt/Renders/brood-ooze-colour/raw/rotations/north.png",
+          "north.walk1": "RawArt/Renders/brood-ooze-colour/raw/rotations/north.png",
+          "north-west.walk0": "RawArt/Renders/brood-ooze-colour/raw/rotations/north-west.png",
+          "north-west.walk1": "RawArt/Renders/brood-ooze-colour/raw/rotations/north-west.png",
+          "west.walk0": "RawArt/Renders/brood-ooze-colour/raw/rotations/west.png",
+          "west.walk1": "RawArt/Renders/brood-ooze-colour/raw/rotations/west.png",
+          "south-west.walk0": "RawArt/Renders/brood-ooze-colour/raw/rotations/south-west.png",
+          "south-west.walk1": "RawArt/Renders/brood-ooze-colour/raw/rotations/south-west.png"
+        },
+        "quantize": false,
+        "note": "OWNER-SUPPLIED, replaces the 2026-07-26 light-shifted placeholder 2026-07-28: PixelLab character e259a87d-767a-466a-9b6c-c73ab7acbea1, one of 37 states in group 8b4b9811-dcf3-4e9d-baa6-2cb3f8901d0b. THE BROOD HAS REAL FACINGS FOR THE FIRST TIME. The previous source had no rotations at all, so r2 pointed all eight direction columns at a single south frame and the tide read the same from every angle; SwarmFragments.h:60 still records that as the state of things. This character ships 8 rotations, so each column is now its own view and the decode in SwarmSheet finally means what it says. quantize is FALSE: the 4-value lock was superseded the same day (docs/art/aesthetic-direction.md AMENDMENT 2026-07-28, Emberkeep.Quantize 0). That also RETIRES THE REASON THE OLD FRAMES WERE LIGHT-SHIFTED -- they were lifted Dark->Steel because a 94%-Demichrome-Dark body was invisible against a Demichrome-Dark floor. The floor is no longer that colour, so the raw black body is used unshifted. If the brood ever reads as invisible again, that history is why, and the fix is the per-unit distance/light layer, not another manual shift. NO WALK ANIMATION: walk0/walk1 both point at the static rotation per direction, same as the retinue source. Packing cost 0 credits. NOT the nine-variant family -- state00_base..state08_slug still need the atlas rework filed as task-059."
+      },
+      {
+        "prefix": "retinue",
+        "frames": {
+          "south.walk0": "RawArt/Renders/unit-retinue-colour/raw/rotations/south.png",
+          "south.walk1": "RawArt/Renders/unit-retinue-colour/raw/rotations/south.png",
+          "south-east.walk0": "RawArt/Renders/unit-retinue-colour/raw/rotations/south-east.png",
+          "south-east.walk1": "RawArt/Renders/unit-retinue-colour/raw/rotations/south-east.png",
+          "east.walk0": "RawArt/Renders/unit-retinue-colour/raw/rotations/east.png",
+          "east.walk1": "RawArt/Renders/unit-retinue-colour/raw/rotations/east.png",
+          "north-east.walk0": "RawArt/Renders/unit-retinue-colour/raw/rotations/north-east.png",
+          "north-east.walk1": "RawArt/Renders/unit-retinue-colour/raw/rotations/north-east.png",
+          "north.walk0": "RawArt/Renders/unit-retinue-colour/raw/rotations/north.png",
+          "north.walk1": "RawArt/Renders/unit-retinue-colour/raw/rotations/north.png",
+          "north-west.walk0": "RawArt/Renders/unit-retinue-colour/raw/rotations/north-west.png",
+          "north-west.walk1": "RawArt/Renders/unit-retinue-colour/raw/rotations/north-west.png",
+          "west.walk0": "RawArt/Renders/unit-retinue-colour/raw/rotations/west.png",
+          "west.walk1": "RawArt/Renders/unit-retinue-colour/raw/rotations/west.png",
+          "south-west.walk0": "RawArt/Renders/unit-retinue-colour/raw/rotations/south-west.png",
+          "south-west.walk1": "RawArt/Renders/unit-retinue-colour/raw/rotations/south-west.png"
+        },
+        "quantize": false,
+        "note": "OWNER-SUPPLIED, replaces the 'unit-knight' Hallam sheet 2026-07-28 at the owner's direction ('lets reintroduce the color'): PixelLab character 243c7684-552a-4a73-9be7-046a8c5a9221, 8 rotations, 88x88, low top-down, one of 28 states in group 2cc3ab61-4230-4786-98fa-b94da9e99218. Authored in the web Character Creator, so like its predecessor this is an unmanaged path map -- no prompt or anchor of ours reproduces it. quantize is FALSE, unlike every retinue source before it: the 4-value lock was superseded the same day (docs/art/aesthetic-direction.md AMENDMENT 2026-07-28, Emberkeep.Quantize 0), so this sheet ships in full colour and the post-process no longer collapses it. NO WALK ANIMATION: this character has none generated, so south.walk0 and south.walk1 both point at the static south rotation. The other 7 directions already worked that way, but the outgoing knight DID have a real 2-frame south walk -- so the facing-the-camera view loses its leg motion until an animate_character walk is run and frames are mapped back in here. Deliberate: packing this cost 0 credits."
+      }
+    ]
+  },
+  "output": {
+    "cell": 56,
+    "grid": [
+      8,
+      4
+    ],
+    "frame_map": {
+      "0": "brood:south.walk0",
+      "1": "brood:south-east.walk0",
+      "2": "brood:east.walk0",
+      "3": "brood:north-east.walk0",
+      "4": "brood:north.walk0",
+      "5": "brood:north-west.walk0",
+      "6": "brood:west.walk0",
+      "7": "brood:south-west.walk0",
+      "8": "brood:south.walk1",
+      "9": "brood:south-east.walk1",
+      "10": "brood:east.walk1",
+      "11": "brood:north-east.walk1",
+      "12": "brood:north.walk1",
+      "13": "brood:north-west.walk1",
+      "14": "brood:west.walk1",
+      "15": "brood:south-west.walk1",
+      "16": "retinue:south.walk0",
+      "17": "retinue:south-east.walk0",
+      "18": "retinue:east.walk0",
+      "19": "retinue:north-east.walk0",
+      "20": "retinue:north.walk0",
+      "21": "retinue:north-west.walk0",
+      "22": "retinue:west.walk0",
+      "23": "retinue:south-west.walk0",
+      "24": "retinue:south.walk1",
+      "25": "retinue:south-east.walk1",
+      "26": "retinue:east.walk1",
+      "27": "retinue:north-east.walk1",
+      "28": "retinue:north.walk1",
+      "29": "retinue:north-west.walk1",
+      "30": "retinue:west.walk1",
+      "31": "retinue:south-west.walk1"
+    },
+    "texture": "T_Swarm_2bit",
+    "content_path": "/Game/Spike1",
+    "sheet_srgb": true,
+    "cell_note": "48 -> 56 on 2026-07-28. FORCED, not a preference: the incoming retinue character's content measures 41x49, one pixel taller than a 48px cell, and pixelpipe refuses to scale pixel art (correctly). The other two ways out were worse -- scaling destroys the art, and regenerating cannot reproduce a character authored in the web Character Creator. Safe because NOTHING IN C++ READS THIS: SwarmSheet knows Columns/Rows only (Mass/SwarmFragments.h), the material's SubUV split is the 8x4 grid and is ratio-based, and each request owns its own texture -- so this moves T_Swarm_2bit (now 448x224) and nothing else. Visible consequence: a 49px sprite in a 56px cell fills 87% of the quad where a 46px sprite in a 48px cell filled 96%, so units draw ~9% smaller on screen. Answer that with Swarm.RetinueSize / BroodSize, not by scaling the art back up. ELVTR/SETUP-EDITOR.md:32 still documents the old 384x192 -- updated alongside this.",
+    "frame_map_note": "Brood cells 0-15 were EIGHT COPIES of brood:south.walk0/walk1 until 2026-07-28, because the old placeholder had no rotations. Repointed per-direction when the brood got a real 8-rotation character. If a future brood source lacks rotations again, collapse these back rather than leaving them pointing at frames that do not exist."
+  }
 }

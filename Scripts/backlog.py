@@ -86,6 +86,7 @@ AGENTS = {
     "narrative-director",
     "performance-director",
     "pixel-art-director",
+    "sim-director",
     "ui-director",
     "claude",
 }

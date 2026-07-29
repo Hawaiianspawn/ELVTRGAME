@@ -88,3 +88,69 @@ Rejected and parked tasks keep their files — this records why.
 - 2026-07-28 · `task-003` · proposed → **approved** · Spec one scaling curve across the slice's three floors
 - 2026-07-28 · `task-003` · approved → **in-progress** · Spec one scaling curve across the slice's three floors — dispatched to teammate `scaling-curve`
 - 2026-07-28 · `task-003` · in-progress → **needs-review** · Spec one scaling curve across the slice's three floors
+- 2026-07-28 · `task-006` · proposed → **approved** · Design loot v0 — unit orbs, healing, 4-6 stacking items
+- 2026-07-28 · `task-063` · proposed → **approved** · Build a committed JSON simulation harness and the agent that drives it
+- 2026-07-28 · `task-056` · in-progress → **approved** · Build a 6-variant silhouette family off the bright-palette sci-fi soldier and publish the contact sheet
+- 2026-07-28 · `task-060` · in-progress → **approved** · Blood — short-lived red pixel spray on every landed blow, built as a decoupled subsystem
+- 2026-07-28 · `task-006` · approved → **in-progress** · Design loot v0 — unit orbs, healing, 4-6 stacking items — dispatched to teammate `loot-v0` at model `sonnet`
+- 2026-07-28 · `task-063` · approved → **in-progress** · Build a committed JSON simulation harness and the agent that drives it — dispatched to teammate `sim-harness` at model `sonnet`
+- 2026-07-28 · `task-056` · approved → **in-progress** · Build a 6-variant silhouette family off the bright-palette sci-fi soldier and publish the contact sheet — dispatched to teammate `scifi-variants-rev2b` at model `sonnet`
+- 2026-07-28 · `task-060` · approved → **in-progress** · Blood — short-lived red pixel spray on every landed blow, built as a decoupled subsystem — dispatched to teammate `blood-evidence` at model `sonnet`
+- 2026-07-28 · `task-056` · in-progress → **approved** · Build a 6-variant silhouette family off the bright-palette sci-fi soldier and publish the contact sheet
+- 2026-07-28 · `task-056` · approved → **in-progress** · Build a 6-variant silhouette family off the bright-palette sci-fi soldier and publish the contact sheet — dispatched to teammate `variants-rev2b-run` at model `sonnet`
+- 2026-07-28 · `task-006` · in-progress → **needs-review** · Design loot v0 — unit orbs, healing, 4-6 stacking items
+- 2026-07-28 · `task-063` · in-progress → **needs-review** · Build a committed JSON simulation harness and the agent that drives it
+- 2026-07-28 · `task-003` · needs-review → **done** · Spec one scaling curve across the slice's three floors
+- 2026-07-28 · `task-006` · needs-review → **done** · Design loot v0 — unit orbs, healing, 4-6 stacking items
+- 2026-07-28 · `task-029` · proposed → **approved** · Spec the minimal audio set — hits, deaths, stance confirmations
+- 2026-07-28 · `task-029` · approved → **in-progress** · Spec the minimal audio set — hits, deaths, stance confirmations — dispatched to teammate `audio-minimal` at model `sonnet`
+- 2026-07-29 · `task-029` · in-progress → **needs-review** · Spec the minimal audio set — hits, deaths, stance confirmations
+- 2026-07-29 · `task-060` · in-progress → **needs-review** · Blood — short-lived red pixel spray on every landed blow, built as a decoupled subsystem
+- 2026-07-29 · `task-029` · needs-review → **done** · Spec the minimal audio set — hits, deaths, stance confirmations
+- 2026-07-29 · `task-060` · needs-review → **done** · Blood — short-lived red pixel spray on every landed blow, built as a decoupled subsystem
+- 2026-07-29 · `task-063` · needs-review → **done** · Build a committed JSON simulation harness and the agent that drives it
+- 2026-07-29 · `task-056` · in-progress → **parked** · Build a 6-variant silhouette family off the bright-palette sci-fi soldier and publish the contact sheet — Stalled three times across three teammates: first spawned with no PixelLab MCP tools, second stalled mid-test, third took a direct instruction and did nothing for ~10 hours (balance unchanged at 7165, no files written). NOT a design or diagnosis problem - the work is further along than the status suggests. PROVEN AND RECORDED: rev2's aspect spread was suppressed by edit_image never receiving an output canvas larger than its input; the fix (width=92, height=92) is CONFIRMED WORKING - rev2b/_test_flattened/wide-level_flattened_TEST.png measures 92x92, up from the 46px pin, and reads as a correct wide-by-extension soldier with real headroom. That was the go/no-go gate and it passed. Remaining work is fully specified in the task file: redo the wide-level edit_image with alpha preserved (omit no_background), verify palette carryover from the base, generate the other five, measure --all-directions, publish the contact sheet, and replace the doc's 'Rev 2b - not generated' section with real results. ~126 generations against 7165 remaining. Resume in a FRESH session - this one is carrying five teammates' build detail.
+- 2026-07-29 · `task-004` · proposed → **approved** · Spec the per-floor encounter budget table
+- 2026-07-29 · `task-064` · proposed → **approved** · Fix the wave-clear stalemate — stray brood that never die stop the run advancing
+- 2026-07-29 · `task-004` · approved → **in-progress** · Spec the per-floor encounter budget table — dispatched to teammate `encounter-budget` at model `sonnet`
+- 2026-07-29 · `task-064` · approved → **in-progress** · Fix the wave-clear stalemate — stray brood that never die stop the run advancing — dispatched to teammate `wave-clear-stalemate` at model `sonnet`
+- 2026-07-29 · `task-066` · proposed → **approved** · Route gameplay-validation work to the sim harness instead of PIE by default
+- 2026-07-29 · `task-066` · approved → **in-progress** · Route gameplay-validation work to the sim harness instead of PIE by default — dispatched to teammate `sim-routing` at model `sonnet`
+- 2026-07-29 · `task-066` · in-progress → **needs-review** · Route gameplay-validation work to the sim harness instead of PIE by default
+- 2026-07-29 · `task-004` · in-progress → **needs-review** · Spec the per-floor encounter budget table
+- 2026-07-29 · `task-067` · proposed → **approved** · Retire the retracted parameter-sweep claim from the sim-director definition
+- 2026-07-29 · `task-068` · proposed → **approved** · Teach the wave-attrition model arrival timing, and re-run the GATE1 calibration check
+- 2026-07-29 · `task-067` · approved → **in-progress** · Retire the retracted parameter-sweep claim from the sim-director definition — dispatched to teammate `simdir-claim-fix` at model `sonnet`
+- 2026-07-29 · `task-004` · needs-review → **done** · Spec the per-floor encounter budget table
+- 2026-07-29 · `task-066` · needs-review → **done** · Route gameplay-validation work to the sim harness instead of PIE by default
+- 2026-07-29 · `task-068` · approved → **in-progress** · Teach the wave-attrition model arrival timing, and re-run the GATE1 calibration check — dispatched to teammate `wave-arrival-timing` at model `sonnet`
+- 2026-07-29 · `task-067` · in-progress → **needs-review** · Retire the retracted parameter-sweep claim from the sim-director definition
+- 2026-07-29 · `task-068` · in-progress → **needs-review** · Teach the wave-attrition model arrival timing, and re-run the GATE1 calibration check
+- 2026-07-29 · `task-067` · needs-review → **done** · Retire the retracted parameter-sweep claim from the sim-director definition
+- 2026-07-29 · `task-068` · needs-review → **done** · Teach the wave-attrition model arrival timing, and re-run the GATE1 calibration check
+- 2026-07-29 · `task-069` · proposed → **approved** · Build a committed sweep runner with machine-readable output
+- 2026-07-29 · `task-070` · proposed → **approved** · Build out the scenario library so the tuning questions have something to run against
+- 2026-07-29 · `task-069` · approved → **in-progress** · Build a committed sweep runner with machine-readable output — dispatched to teammate `sweep-runner` at model `sonnet`
+- 2026-07-29 · `task-070` · approved → **in-progress** · Build out the scenario library so the tuning questions have something to run against — dispatched to teammate `scenario-library` at model `sonnet`
+- 2026-07-29 · `task-069` · in-progress → **needs-review** · Build a committed sweep runner with machine-readable output
+- 2026-07-29 · `task-070` · in-progress → **needs-review** · Build out the scenario library so the tuning questions have something to run against
+- 2026-07-29 · `task-069` · needs-review → **done** · Build a committed sweep runner with machine-readable output
+- 2026-07-29 · `task-070` · needs-review → **done** · Build out the scenario library so the tuning questions have something to run against
+- 2026-07-29 · `task-071` · proposed → **approved** · Close the loop — a committed balance baseline and a scheduled sweep that reports drift
+- 2026-07-29 · `task-071` · approved → **in-progress** · Close the loop — a committed balance baseline and a scheduled sweep that reports drift — dispatched to teammate `baseline-drift` at model `sonnet`
+- 2026-07-29 · `task-064` · in-progress → **needs-review** · Fix the wave-clear stalemate — stray brood that never die stop the run advancing
+- 2026-07-29 · `task-064` · needs-review → **done** · Fix the wave-clear stalemate — stray brood that never die stop the run advancing
+- 2026-07-29 · `task-024` · proposed → **approved** · Extend the run structure from waves to three floors plus a boss
+- 2026-07-29 · `task-072` · proposed → **approved** · Reconcile scaling-curve §4's scratch TTK table against entity-tiers' committed numbers
+- 2026-07-29 · `task-024` · approved → **in-progress** · Extend the run structure from waves to three floors plus a boss — dispatched to teammate `run-structure` at model `sonnet`
+- 2026-07-29 · `task-072` · approved → **in-progress** · Reconcile scaling-curve §4's scratch TTK table against entity-tiers' committed numbers — dispatched to teammate `curve-reconcile` at model `sonnet`
+- 2026-07-29 · `task-071` · in-progress → **needs-review** · Close the loop — a committed balance baseline and a scheduled sweep that reports drift
+- 2026-07-29 · `task-071` · needs-review → **done** · Close the loop — a committed balance baseline and a scheduled sweep that reports drift
+- 2026-07-29 · `task-073` · proposed → **approved** · Close the archer dead zone — brood inside 150uu that nothing can kill
+- 2026-07-29 · `task-073` · approved → **in-progress** · Close the archer dead zone — brood inside 150uu that nothing can kill — dispatched to teammate `archer-dead-zone` at model `sonnet`
+- 2026-07-29 · `task-024` · in-progress → **needs-review** · Extend the run structure from waves to three floors plus a boss
+- 2026-07-29 · `task-072` · in-progress → **needs-review** · Reconcile scaling-curve §4's scratch TTK table against entity-tiers' committed numbers
+- 2026-07-29 · `task-024` · needs-review → **done** · Extend the run structure from waves to three floors plus a boss
+- 2026-07-29 · `task-072` · needs-review → **done** · Reconcile scaling-curve §4's scratch TTK table against entity-tiers' committed numbers
+- 2026-07-29 · `task-073` · in-progress → **needs-review** · Close the archer dead zone — brood inside 150uu that nothing can kill
+- 2026-07-29 · `task-073` · needs-review → **done** · Close the archer dead zone — brood inside 150uu that nothing can kill

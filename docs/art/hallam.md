@@ -23,19 +23,26 @@ Gameplay, revised 2026-07-11 on two axes at once:
    alike (`aesthetic-direction.md` §4 decision 6, revised). This is load-bearing, not cosmetic:
    the mirror-fight comparison against the Legion only works if both sides speak the same
    proportion language.
-2. **Shape-only class ID.** His identity now rides **entirely** on the flapping-rectangle
-   banner — the Vanguard's reserved bright-carrier shape (`hero-palettes.md` §3). There is no
-   hue backstop anymore: every hero class renders the exact same bright hex, `#f0c260`
-   Gatecamp Bright. A gold rectangle means *Vanguard, and only Vanguard*, purely because
-   nothing else in the game is shaped that way.
+2. **Shape-only class ID, precedent under review.** His identity has ridden **entirely** on
+   the flapping-rectangle banner — the Vanguard's reserved bright-carrier shape
+   (`hero-palettes.md` §3) — since every hero class shared one bright value, Gatecamp Bright
+   (`pale` in `docs/data/art/palette.json`'s key vocabulary; the literal hex that name pointed
+   to is retired, see §2). That shared-bright premise was locked under the demichrome
+   global-palette gate; the 2026-07-28 colour-gate reversal (`aesthetic-direction.md`) lifts
+   the gate and makes hue available again, so whether classes keep one shared bright or regain
+   individual hues is an open colour decision, not yet made — flagged, not resolved, at
+   handback. The shape-carrier grammar is unaffected either way and stays load-bearing: a gold
+   rectangle still means *Vanguard, and only Vanguard*, because nothing else in the game is
+   shaped that way.
 
 He must still (a) be findable as the corner-stone of the biggest army on screen, and
 (b) refuse a Legion-officer read before targeting resolves.
 
 **What this costs, said loudly:** the old "Bree test" — a deliberately cold Patched Steel that
 kept him literally inside the Legion's cold value family — is retired; Patched Steel is warm
-now. The mirror-fight read is re-derived on **near-anchor-parity** (Vault Dark `#211210` sits
-close enough in *value*, not hue, to Legion Dark `#211e20`) plus **matching chibi proportion**
+now. The mirror-fight read is re-derived on **near-anchor-parity** (Vault Dark, the `dark`
+value-role, sits close enough in *value*, not hue, to the Legion's own dark anchor) plus
+**matching chibi proportion**
 doing the work the shared cold hue used to do (`hero-palettes.md` §4b). This holds at horde
 scale and at distance, where the mirror sequence needs it most; it is weaker than the old system
 at close, static zoom. Not an oversight — the replacement mechanism, not a repair of the old one.
@@ -44,23 +51,30 @@ at close, static zoom. Not an oversight — the replacement mechanism, not a rep
 
 ## 2. Palette table
 
-4 values + transparent mask (mask = background, not a value). Per `hero-palettes.md` §2–§3.
+4 values + transparent mask (mask = background, not a value). Cited by
+`docs/data/art/palette.json` key, not by hex — the literal hexes this table used to carry are
+retired (see `docs/data/art/palette.json` `retired_hexes` for the exact list), and no
+replacement hex is locked; that is an open colour decision, not resolved here (see handback).
+Names and role-slots are kept as the working vocabulary for *which* value is which, decoupled
+from any specific hex, per `hero-palettes.md` §2–§3.
 
-| Hex | Name | Role |
+| Key | Name | Role |
 |---|---|---|
-| `#211210` | Vault Dark | outline/recess; helm interior shadow; the chain-gall scar ring; hair/beard mass. Shared anchor across the whole world — this is the value doing the mirror-fight's near-anchor-parity job against Legion Dark `#211e20` |
-| `#5e2d20` | Patched Steel | armor, tower shield, gorget. **No longer cold** — warm-family now, same as the other two body values. No longer part of the mirror-fight mechanism (see §1) |
-| `#c76b2a` | Kitchen Tin | face, straps, tin patches — the friend/foe warm channel (Legion fills this role-slot with cold Legion Steel `#555568`) |
-| `#f0c260` | **Gatecamp Bright** | the ONE shared class bright — identical hex on all four hero classes. On him it is spent **only** on banner cloth, thread, and Bannerman mini-flags: the flapping rectangle, per `hero-palettes.md` §3. Never armor, weapon, or skin. At rest: ≤2px knot on his furled banner |
+| `dark` | Vault Dark | outline/recess; helm interior shadow; the chain-gall scar ring; hair/beard mass. Shared anchor across the whole world — this is the value doing the mirror-fight's near-anchor-parity job against the Legion's own dark anchor |
+| `steel` | Patched Steel | armor, tower shield, gorget. **No longer cold** — warm-family now, same as the other two body values. No longer part of the mirror-fight mechanism (see §1) |
+| `bone` | Kitchen Tin | face, straps, tin patches — the friend/foe warm channel (Legion fills this role-slot with its own cold mid value) |
+| `pale` | **Gatecamp Bright** | the ONE shared class bright, pending the open colour decision (§1) — on him it is spent **only** on banner cloth, thread, and Bannerman mini-flags: the flapping rectangle, per `hero-palettes.md` §3. Never armor, weapon, or skin. At rest: ≤2px knot on his furled banner |
 
 - **Shape protection (replaces the old hue-based "mark protection"):** no dot-cluster, contour,
   or point+halo bright may appear anywhere on his sprite — only the flapping-rectangle carrier.
-  Since every bright is the same hex now, shape is the *entire* audit (`hero-palettes.md` §3's
-  registry). As a friendly he also carries no quarry-mark or rune-mark shapes.
-- **Light-shifted variant:** `#211210→#35211c`, `#5e2d20→#7c4630`, `#c76b2a→#e08c46` (proposed
-  values, `hero-palettes.md` §2 — not yet separately owner-locked). Gatecamp Bright does not
-  shift — he carries no flame-source pixels, so the `#fff6dd` flame exception does not apply to
-  him at all; his banner is remembered light, not emitted light.
+  While every bright shares one value-role, shape is the *entire* audit (`hero-palettes.md`
+  §3's registry). As a friendly he also carries no quarry-mark or rune-mark shapes.
+- **Light-shifted variant:** one step brighter along the value ladder — `dark`→`steel`,
+  `steel`→`bone`, `bone`→`pale` (`docs/data/art/palette.json` `light_shift` rule) — no specific
+  hex is proposed here anymore; the previously-proposed shift hexes were derived from the now-
+  retired base trio. Gatecamp Bright does not shift — he carries no flame-source pixels, so the
+  sanctioned flame-core exception (`docs/art/palette-exceptions.md`) does not apply to him at
+  all; his banner is remembered light, not emitted light.
 
 ---
 
@@ -110,8 +124,9 @@ figures; he is the wide rectangle at their center with the one off-axis pole. Pl
 banner is the only flapping rectangle on screen — nothing else in the game spends the bright on
 that shape. He cannot be confused with the Relickeeper's static glyph-dot clusters, the
 Pathfinder's thin moving contour, or the Lampbearer's point+halo — four disjoint shape classes,
-zero hue backstop needed. Against the Legion mirror: same chibi proportion, near-anchor-parity
-dark value, warm vs. cold mid — no shared hex anywhere, and that is by design (§1).
+carried by shape whether or not hue also backs them up (§1). Against the Legion mirror: same
+chibi proportion, near-anchor-parity dark value, warm vs. cold mid — no shared value-role
+anywhere, and that is by design (§1).
 
 ---
 
@@ -163,9 +178,10 @@ the banner.** Unaffected by the chibi/palette revision — restated for the redr
 ## 6. Portrait — medallion (per `portrait-register.md`, unaffected register)
 
 The portrait register stays non-chibi and higher-resolution by design (`aesthetic-direction.md`
-§4 decision 6: chibi is the combat register only). What changes here is only the palette hex —
-Roll-Gold is retired, the medallion now spends the shared Gatecamp Bright the same way his
-sprite does.
+§4 decision 6: chibi is the combat register only). What changes here is only the palette
+citation — the old Roll-Gold hex is retired (CLASSES.md's own line still citing it is flagged
+for an owner fix, see this task's handback), the medallion spends the shared `pale`/Gatecamp
+Bright value-role the same way his sprite does.
 
 - **Composition:** bust, three-quarter turn; open Legion helm framing a heavy-boned face —
   broken nose set crooked (Vault Dark cut off-axis), short beard greying at the jaw (beard

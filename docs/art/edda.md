@@ -23,11 +23,17 @@ Gameplay, revised 2026-07-11 on two axes at once:
    Legion. She is *already* the smallest hero in the row under the old proportion system —
    chibi keeps that relative relationship (small figure, big blocks around her) while changing
    what "small" means in absolute silhouette terms.
-2. **Shape-only class ID.** Her identity now rides entirely on the **static glyph-dot
-   cluster** — the Relickeeper's reserved bright-carrier shape (`hero-palettes.md` §3). Rune
-   marks read as *discrete dots forming marks*, never a contour, never a fill — that is the
-   only thing separating her ember-glyphs from a Vanguard banner, a Pathfinder quarry-mark, or
-   a Lampbearer's point+halo, now that all four hero classes render the identical bright hex.
+2. **Shape-only class ID, precedent under review.** Her identity has ridden entirely on the
+   **static glyph-dot cluster** — the Relickeeper's reserved bright-carrier shape
+   (`hero-palettes.md` §3) — since all four hero classes shared one bright value-role
+   (`pale` in `docs/data/art/palette.json`'s key vocabulary; the literal hex that name pointed
+   to is retired, see §2). That shared-bright premise was locked under the demichrome
+   global-palette gate; the 2026-07-28 colour-gate reversal (`aesthetic-direction.md`) lifts
+   the gate and makes hue available again, so whether classes keep one shared bright or regain
+   individual hues is an open colour decision, not yet made — flagged, not resolved, at
+   handback. Rune marks read as *discrete dots forming marks*, never a contour, never a fill —
+   that shape distinction is unaffected either way and stays the thing separating her
+   ember-glyphs from a Vanguard banner, a Pathfinder quarry-mark, or a Lampbearer's point+halo.
 
 She must still (a) read as the small deliberate unit among big blocks, (b) make her glyphs
 readable through crowds via the reserved-shape rule (not a reserved hue anymore), and (c) keep
@@ -38,23 +44,30 @@ geometry, a value-role and shape distinction now, not a hue one.
 
 ## 2. Palette table
 
-4 values + transparent mask (mask = background, not a value). Per `hero-palettes.md` §2–§3.
+4 values + transparent mask (mask = background, not a value). Cited by
+`docs/data/art/palette.json` key, not by hex — the literal hexes this table used to carry are
+retired (see `docs/data/art/palette.json` `retired_hexes` for the exact list), and no
+replacement hex is locked; that is an open colour decision, not resolved here (see handback).
+Names and role-slots are kept as the working vocabulary for *which* value is which, decoupled
+from any specific hex, per `hero-palettes.md` §2–§3.
 
-| Hex | Name | Role |
+| Key | Name | Role |
 |---|---|---|
-| `#211210` | Vault Dark | outline/recess; cap shadow; face lines; crack-dither on the Awakened |
-| `#5e2d20` | Patched Steel | the Graver, spectacle rims, apron fittings — **and her white hair** (the warm-family mid now doing double duty as "white," register-style — no longer a cold-grey trick, since Patched Steel is warm across the whole family). Hair reads as *lighter than the anchor, distinct from skin* by adjacency, not by a cold hue anymore |
-| `#c76b2a` | Kitchen Tin | face, hands, apron, strap, the sealed ink jar — warm channel |
-| `#f0c260` | **Gatecamp Bright** | the ONE shared class bright. On her it is spent **only** on glyph and seam pixels: runes on terrain/enemies, the Graver's tip while inscribing, gilded seams on over-mended Awakened. Never a fill, never a halo'd point, **never at rest on her** — the ink stays in the jar |
+| `dark` | Vault Dark | outline/recess; cap shadow; face lines; crack-dither on the Awakened |
+| `steel` | Patched Steel | the Graver, spectacle rims, apron fittings — **and her white hair** (the warm-family mid now doing double duty as "white," register-style — no longer a cold-grey trick, since Patched Steel is warm across the whole family). Hair reads as *lighter than the anchor, distinct from skin* by adjacency, not by a cold hue anymore |
+| `bone` | Kitchen Tin | face, hands, apron, strap, the sealed ink jar — warm channel |
+| `pale` | **Gatecamp Bright** | the ONE shared class bright, pending the open colour decision (§1). On her it is spent **only** on glyph and seam pixels: runes on terrain/enemies, the Graver's tip while inscribing, gilded seams on over-mended Awakened. Never a fill, never a halo'd point, **never at rest on her** — the ink stays in the jar |
 
 - **Shape protection (replaces the old hue-based "mark protection"):** no flapping rectangle,
   moving contour, or point+halo bright may appear on her sprite or her marks — only the
-  static dot-cluster carrier. Every bright in the game is the same hex now; the dot-cluster
+  static dot-cluster carrier. While every bright shares one value-role, the dot-cluster
   *shape* is the entire signal that a mark is hers to make (`hero-palettes.md` §3).
-- **Light-shifted variant:** `#211210→#35211c`, `#5e2d20→#7c4630`, `#c76b2a→#e08c46` (proposed,
-  `hero-palettes.md` §2). Gatecamp Bright does not shift — her glyphs are inscribed, not
-  emitted; the `#fff6dd` flame exception applies only to lamp/honest-light carriers and does
-  not extend to her.
+- **Light-shifted variant:** one step brighter along the value ladder — `dark`→`steel`,
+  `steel`→`bone`, `bone`→`pale` (`docs/data/art/palette.json` `light_shift` rule) — no specific
+  hex is proposed here anymore; the previously-proposed shift hexes were derived from the now-
+  retired base trio. Gatecamp Bright does not shift — her glyphs are inscribed, not emitted;
+  the sanctioned flame-core exception (`docs/art/palette-exceptions.md`) applies only to
+  lamp/honest-light carriers and does not extend to her.
 
 ---
 
@@ -100,8 +113,9 @@ crowd as **static glyph clusters** — dots that do not move with any unit (terr
 seams that crack across a block (gilded state) — never confusable with the Vanguard's
 flapping rectangle, the Pathfinder's moving contour, or the Lampbearer's point+halo, because no
 two carriers share a shape (`hero-palettes.md` §3). Against the Crown: her glyphs are
-hand-shaped dot-clusters; Legion sigils are cold geometric marks in Legion Steel `#555568` —
-value-role and shape both refuse the confusion; hue no longer needs to carry any of that job.
+hand-shaped dot-clusters; Legion sigils are cold geometric marks in the Legion's own cold-mid
+value — value-role and shape both refuse the confusion, whether or not hue is also carrying
+part of that job (§1).
 
 ---
 
@@ -152,8 +166,9 @@ flourish.** Unaffected by the chibi/palette revision — restated for the redraw
 ## 6. Portrait — medallion (per `portrait-register.md`, unaffected register)
 
 The portrait register stays non-chibi and higher-resolution by design. What changes here is
-only the palette hex — Waking Ember is retired, the medallion spends the shared Gatecamp
-Bright the same way her sprite does (which, per her scarcity rule, is: not at all, at rest).
+only the palette citation — the old Waking Ember hex is retired, the medallion spends the
+shared `pale`/Gatecamp Bright value-role the same way her sprite does (which, per her
+scarcity rule, is: not at all, at rest).
 
 - **Composition:** bust, near-frontal, straight-backed — the smallest face in the hero row
   and the most upright posture. Tender's cap; white hair cropped practical (Patched Steel

@@ -2,10 +2,8 @@
 #include "UI/MusterPanel.h"
 #include "UI/EmberkeepUITypes.h"
 #include "UI/UnitCamProjector.h"
-#include "UI/EmberkeepCamFeed.h"
 #include "UI/EmberkeepPalette.h"
 #include "UI/StitchMeter.h"
-#include "UI/ViewCamCapture.h"
 #include "Blueprint/WidgetTree.h"
 #include "Components/Border.h"
 #include "Components/Overlay.h"
@@ -31,31 +29,21 @@ namespace
 		TEXT("command rectangle twice the cam's width."),
 		ECVF_Default);
 
-	// --- the split centre column (view camera over unit cam) ----------------
-	TAutoConsoleVariable<int32> CVarViewCam(
-		TEXT("Emberkeep.UI.ViewCam"), 0,
-		TEXT("Split the rectangle's centre column into two stacked panels: a second camera feed\n")
-		TEXT("above the Unit Cam. 0 = UNIT CAM ALONE, full height — the primary layout (default).\n")
+	TAutoConsoleVariable<float> CVarBandHeight(
+		TEXT("Emberkeep.UI.BandHeight"), 190.f,
+		TEXT("ONE-CAMERA MODE ONLY (Emberkeep.UI.Cams 0): height in px of the single muster\n")
+		TEXT("shelf along the bottom.\n")
 		TEXT("\n")
-		TEXT("1 revives the split. The minimap that lived up there was tried and rejected\n")
-		TEXT("(2026-07-26): a top-down capture wide enough to show the brood spawn ring left the\n")
-		TEXT("lit pool a dot in a black field, so it read as empty. The machinery is kept because\n")
-		TEXT("the split itself is sound — it is the minimap CONTENT that failed. Anything worth\n")
-		TEXT("putting in a second panel can reuse it via Emberkeep.UI.ViewCam.Mode.\n")
-		TEXT("Note the feed is a real second render of the scene — see Emberkeep.UI.ViewCam.Rate."),
+		TEXT("This exists because the shelf has nothing else to size it. In the two-wing layout\n")
+		TEXT("each muster panel is scaled to fit the Unit Cam standing beside it; take the cam\n")
+		TEXT("away and the cards render at natural size, which is roughly 40%% of the screen —\n")
+		TEXT("the tallest squad card is as tall as its member count makes it.\n")
+		TEXT("\n")
+		TEXT("Scaling is DOWN-ONLY, so a small roster sits at natural size and only a big one is\n")
+		TEXT("shrunk to fit. The camera compensates automatically: PublishHudOcclusion measures\n")
+		TEXT("the band's real height, so raising this pushes the view up to match. [80..600]"),
 		ECVF_Default);
 
-	TAutoConsoleVariable<float> CVarRectSplit(
-		TEXT("Emberkeep.UI.Rect.Split"), 0.5f,
-		TEXT("Fraction of the centre column's height given to the TOP panel. 0.5 = even halves.\n")
-		TEXT("Applied live every tick — drag it while playing to re-balance the two views."),
-		ECVF_Default);
-
-	TAutoConsoleVariable<int32> CVarRectViewOnTop(
-		TEXT("Emberkeep.UI.Rect.ViewOnTop"), 1,
-		TEXT("1 = view camera on top, Unit Cam below. 0 = swap them. Rebuilds the band when\n")
-		TEXT("changed, so it takes effect immediately."),
-		ECVF_Default);
 }
 
 void UEmberkeepHud::Setup(bool bWithCams)
@@ -130,11 +118,25 @@ void UEmberkeepHud::NativeTick(const FGeometry& MyGeometry, float InDeltaTime)
 
 	// Layout-shape dials can't be applied in place — they change which widgets exist and in
 	// what order — so watch them and rebuild the band only when one actually flips.
-	const bool bWantSplit = bShowCams && CVarViewCam.GetValueOnGameThread() != 0;
-	const bool bWantViewOnTop = CVarRectViewOnTop.GetValueOnGameThread() != 0;
-	if (bShowCams && (bWantSplit != bSplitColumn || (bWantSplit && bWantViewOnTop != bLastViewOnTop)))
+
+	// Emberkeep.UI.Cams is the biggest of those shapes: cams or no cams. Watched here rather
+	// than only read at spawn because the auto-show runs on a next-tick timer, which -ExecCmds
+	// and most startup paths lose the race against — set at launch it would appear to do
+	// nothing. Looked up by name (it is registered over in EmberkeepUIDebug.cpp) and cached,
+	// since a second CVar of the same name cannot be declared here.
+	static IConsoleVariable* CVarCams = IConsoleManager::Get().FindConsoleVariable(TEXT("Emberkeep.UI.Cams"));
+	if (CVarCams)
 	{
-		RebuildBand();
+		const bool bWantCams = CVarCams->GetInt() != 0;
+		if (bWantCams != bShowCams)
+		{
+			bShowCams = bWantCams;
+			RebuildBand();
+			// The roster is split across two panels with cams and pooled into one without, so
+			// the cards are stale for the moment after a flip. NativeTick's own refresh below
+			// re-pushes them within ~0.15s; forcing it here would need a squad snapshot this
+			// function doesn't hold.
+		}
 	}
 
 	// The cam resizes itself every frame from the body count; the wings follow it every frame so
@@ -253,17 +255,12 @@ void UEmberkeepHud::RebuildBand()
 	Band->ClearChildren();
 	WingLeftBox = nullptr;
 	WingRightBox = nullptr;
+	ShelfBox = nullptr;
 	UnitCam = nullptr;
 	CompanyBox = nullptr;
 	CompanyMeter = nullptr;
 	CompanyLabel = nullptr;
 	CentreColumn = nullptr;
-	CentreBox = nullptr;
-	ViewFeed = nullptr;
-	ViewFeedTarget = nullptr;
-	TopSlot = nullptr;
-	BottomSlot = nullptr;
-	bSplitColumn = false;
 
 	// THE rectangle: one Steel frame over one Dark ground, holding wing | cam | wing. Everything
 	// inside drops its own chrome so this is the only visible edge — the motif surround will
@@ -317,7 +314,12 @@ void UEmberkeepHud::RebuildBand()
 		return Box;
 	};
 
-	// Muster-only preview (no cam): one centred shelf, the original row layout.
+	// No cam: one centred shelf carrying the whole roster. This is ONE-CAMERA MODE
+	// (Emberkeep.UI.Cams 0, the default since 2026-07-28) as well as the old muster-only
+	// preview — the player's viewport is the only camera, so the band is just the muster.
+	//
+	// SetSquads already routes the FULL roster into this single panel when bShowCams is false
+	// rather than splitting it across two wings, so nothing is hidden by taking the cam out.
 	if (!bShowCams)
 	{
 		if (Muster)
@@ -325,8 +327,24 @@ void UEmberkeepHud::RebuildBand()
 			Muster->SetChrome(false);
 			Muster->SetFlow(EEmberkeepMusterFlow::Row);
 			Muster->SetContentAlignment(HAlign_Left);
-			Muster->SetShowCompany(false); // the strip above carries it
-			Row->AddChildToHorizontalBox(Muster);
+			// The panel carries its own company readout here. The centre column's company strip
+			// (BuildCompanyStrip) is built further down, INSIDE the cam branch, so it does not
+			// exist on this path — leaving this false would drop "Vanguard Company N/M · S squads"
+			// off the HUD entirely rather than relocating it.
+			Muster->SetShowCompany(true);
+
+			// Same scale-to-fit rig the wings use, but bounded by Emberkeep.UI.BandHeight
+			// instead of by the cam that isn't there. DownOnly so a thin roster keeps its
+			// natural size and only a full company gets shrunk.
+			UScaleBox* Scale = WidgetTree->ConstructWidget<UScaleBox>(UScaleBox::StaticClass());
+			Scale->SetStretch(EStretch::ScaleToFit);
+			Scale->SetStretchDirection(EStretchDirection::DownOnly);
+			Scale->SetContent(Muster);
+
+			ShelfBox = WidgetTree->ConstructWidget<USizeBox>(USizeBox::StaticClass(), TEXT("ShelfBox"));
+			ShelfBox->SetHeightOverride(FMath::Clamp(CVarBandHeight.GetValueOnGameThread(), 80.f, 600.f));
+			ShelfBox->SetContent(Scale);
+			Row->AddChildToHorizontalBox(ShelfBox);
 		}
 		if (MusterRight)
 		{
@@ -360,50 +378,9 @@ void UEmberkeepHud::RebuildBand()
 		CentreSlot->SetVerticalAlignment(VAlign_Top);
 	}
 
-	bSplitColumn = CVarViewCam.GetValueOnGameThread() != 0;
-	if (!bSplitColumn)
-	{
-		// Unit Cam alone, sizing itself from the body count as it always did.
-		UnitCam->SetHostSized(false);
-		CentreColumn->AddChildToVerticalBox(UnitCam);
-	}
-	else
-	{
-		// Two panels in one VerticalBox, splitting the column's height by Rect.Split. Both are
-		// host-sized: the column's SizeBox carries the body-count size, the Fill slots divide it.
-		UnitCam->SetHostSized(true);
-
-		ViewFeed = WidgetTree->ConstructWidget<UEmberkeepCamFeed>(
-			UEmberkeepCamFeed::StaticClass(), TEXT("ViewFeed"));
-		ViewFeed->SetHostSized(true);
-		ViewFeed->Setup(nullptr, AViewCamCapture::ModeLabel(), true); // target arrives in tick
-
-		UVerticalBox* Column = WidgetTree->ConstructWidget<UVerticalBox>(
-			UVerticalBox::StaticClass(), TEXT("CentreColumn"));
-
-		const bool bViewOnTop = CVarRectViewOnTop.GetValueOnGameThread() != 0;
-		UWidget* TopWidget = bViewOnTop ? (UWidget*)ViewFeed : (UWidget*)UnitCam;
-		UWidget* BottomWidget = bViewOnTop ? (UWidget*)UnitCam : (UWidget*)ViewFeed;
-		TopSlot = Cast<UVerticalBoxSlot>(Column->AddChild(TopWidget));
-		BottomSlot = Cast<UVerticalBoxSlot>(Column->AddChild(BottomWidget));
-		for (UVerticalBoxSlot* ColSlot : { TopSlot.Get(), BottomSlot.Get() })
-		{
-			if (ColSlot)
-			{
-				ColSlot->SetHorizontalAlignment(HAlign_Fill);
-				ColSlot->SetVerticalAlignment(VAlign_Fill);
-			}
-		}
-		if (BottomSlot)
-		{
-			BottomSlot->SetPadding(FMargin(0.f, 3.f, 0.f, 0.f)); // hairline gutter between the two
-		}
-
-		CentreBox = WidgetTree->ConstructWidget<USizeBox>(USizeBox::StaticClass(), TEXT("CentreBox"));
-		CentreBox->SetContent(Column);
-		CentreColumn->AddChildToVerticalBox(CentreBox);
-	}
-	bLastViewOnTop = CVarRectViewOnTop.GetValueOnGameThread() != 0;
+	// Unit Cam alone, sizing itself from the body count.
+	UnitCam->SetHostSized(false);
+	CentreColumn->AddChildToVerticalBox(UnitCam);
 
 	// The squad-size bar, directly under the cam and only as wide as it — SyncWingsToCam matches
 	// its width to the cam every tick, so the two read as one stacked unit.
@@ -488,6 +465,25 @@ UBorder* UEmberkeepHud::BuildCompanyStrip()
 
 void UEmberkeepHud::SyncWingsToCam()
 {
+	// One-camera mode: no cam to sync to, but the shelf's height is a live dial, so drive it
+	// here before the early-out rather than only at build time.
+	//
+	// Both axes are overridden, and that matters: a UScaleBox reports its child's UNSCALED
+	// desired size, so a box given only a height reserves the full-size panel's WIDTH while
+	// painting shrunk content — leaving dead ground inside the band's frame. So measure the
+	// panel, work out the scale the height forces, and size the box to the result.
+	if (ShelfBox && Muster)
+	{
+		const float Want = FMath::Clamp(CVarBandHeight.GetValueOnGameThread(), 80.f, 600.f);
+		const FVector2D Natural = Muster->GetDesiredSize();
+		if (Natural.Y > 1.0 && Natural.X > 1.0)
+		{
+			const float S = FMath::Min(1.f, Want / (float)Natural.Y); // DownOnly, matching the ScaleBox
+			ShelfBox->SetHeightOverride((float)Natural.Y * S);
+			ShelfBox->SetWidthOverride((float)Natural.X * S);
+		}
+	}
+
 	if (!UnitCam)
 	{
 		return;
@@ -503,46 +499,6 @@ void UEmberkeepHud::SyncWingsToCam()
 	if (CompanyBox)
 	{
 		CompanyBox->SetWidthOverride((float)Cam.X);
-	}
-
-	// Split column: the column carries the body-count size, the two Fill slots divide its
-	// height by Rect.Split. Both applied every tick so the dials are live.
-	if (bSplitColumn && CentreBox)
-	{
-		CentreBox->SetWidthOverride((float)Cam.X);
-		CentreBox->SetHeightOverride((float)Cam.Y);
-
-		const float Split = FMath::Clamp(CVarRectSplit.GetValueOnGameThread(), 0.05f, 0.95f);
-		if (TopSlot)
-		{
-			FSlateChildSize S(ESlateSizeRule::Fill);
-			S.Value = Split;
-			TopSlot->SetSize(S);
-		}
-		if (BottomSlot)
-		{
-			FSlateChildSize S(ESlateSizeRule::Fill);
-			S.Value = 1.f - Split;
-			BottomSlot->SetSize(S);
-		}
-
-		// Point the feed at the live capture, spawning it on first use. Push the panel's real
-		// aspect so the mirrored view is letterboxed to match instead of stretched.
-		if (ViewFeed)
-		{
-			if (AViewCamCapture* Capture = AViewCamCapture::FindOrSpawn(GetWorld()))
-			{
-				const float ViewHeight = (float)Cam.Y * (CVarRectViewOnTop.GetValueOnGameThread() != 0 ? Split : 1.f - Split);
-				Capture->SetPanelAspect(ViewHeight > 1.f ? (float)Cam.X / ViewHeight : 2.f);
-				const bool bMinimap = AViewCamCapture::IsMinimapMode();
-				if (Capture->GetRenderTarget() != ViewFeedTarget || bMinimap != bLastMinimap)
-				{
-					ViewFeedTarget = Capture->GetRenderTarget();
-					bLastMinimap = bMinimap;
-					ViewFeed->Setup(ViewFeedTarget, AViewCamCapture::ModeLabel(), true);
-				}
-			}
-		}
 	}
 
 	if (!WingLeftBox && !WingRightBox)

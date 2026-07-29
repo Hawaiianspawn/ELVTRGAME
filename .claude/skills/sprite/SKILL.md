@@ -1,13 +1,25 @@
 ---
 name: sprite
-description: Generate ELVTR sprites through PixelLab and land them in Unreal on the locked 4-value Demichrome ramp. Drives the chain from a schema-validated request in docs/data/art/requests/ through anchor generation, palette enforcement, rotation, animation, SubUV sheet packing and UE import, recording every generation in a provenance manifest. Use when the user runs /sprite or asks to generate, regenerate, quantize, pack or import a character sprite, sprite sheet or portrait.
+description: Generate ELVTR sprites through PixelLab and land them in Unreal on whichever palette the request names. Drives the chain from a schema-validated request in docs/data/art/requests/ through anchor generation, palette enforcement, rotation, animation, SubUV sheet packing and UE import, recording every generation in a provenance manifest. Use when the user runs /sprite or asks to generate, regenerate, quantize, pack or import a character sprite, sprite sheet or portrait.
 ---
 
 # sprite — spec to imported texture
 
-Turns one JSON request into an imported UE sprite sheet that provably holds the
-Demichrome ramp. Generation calls are made here via `mcp__pixellab__*`; every local
-step is `Scripts/art/pixelpipe.py`.
+Turns one JSON request into an imported UE sprite sheet that provably holds
+whichever palette its `canon.palette` names. Generation calls are made here via
+`mcp__pixellab__*`; every local step is `Scripts/art/pixelpipe.py`.
+
+**2026-07-28: the strict global 4-value Demichrome lock is superseded** (see
+`docs/art/aesthetic-direction.md`'s AMENDMENT and `docs/data/art/palette.json`'s
+`palettes.demichrome-4.superseded`). The game ships full colour by default now.
+`demichrome-4` is kept in full and remains available — every request below still
+works exactly as documented, because every request in the repo already names its
+palette explicitly (`canon.palette` is schema-required) — but `pixelpipe.py` no
+longer *assumes* demichrome-4 for anything that omits it: a missing/malformed
+`canon.palette` now fails loudly instead of silently quantizing to a ramp nobody
+asked for. This doesn't tell you what a full-colour request should look like —
+that's an open owner decision, not something this skill or `pixelpipe.py` decides —
+it only stops the tooling from forcing the retired ramp by default.
 
 ## Hard constraints (learned 2026-07-25 — do not re-discover)
 

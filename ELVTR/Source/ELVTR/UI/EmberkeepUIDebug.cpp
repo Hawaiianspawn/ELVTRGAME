@@ -18,7 +18,21 @@
 
 static TAutoConsoleVariable<int32> CVarUIAutoShow(
 	TEXT("Emberkeep.UI.AutoShow"), 1,
-	TEXT("Auto-show the combat HUD (with cams) when a play session starts. 1=on (default), 0=off."),
+	TEXT("Auto-show the combat HUD when a play session starts. 1=on (default), 0=off.\n")
+	TEXT("Whether that HUD carries cam panels is Emberkeep.UI.Cams, below."),
+	ECVF_Default);
+
+static TAutoConsoleVariable<int32> CVarUICams(
+	TEXT("Emberkeep.UI.Cams"), 0,
+	TEXT("Does the auto-shown combat HUD carry CAMERA PANELS at all?\n")
+	TEXT("  0 = ONE-CAMERA MODE (default, owner call 2026-07-28): the viewport is the only\n")
+	TEXT("      camera and the band is one centred muster shelf holding the whole roster.\n")
+	TEXT("      The Unit Cam is never built, not merely hidden.\n")
+	TEXT("  1 = the three-column rectangle: muster wing | Unit Cam | muster wing.\n")
+	TEXT("Why 0: the projector draws billboards on the game thread (100% of frame cost) while\n")
+	TEXT("the viewport's Niagara path draws on an idle GPU, and it caps ~24%% lower on entity\n")
+	TEXT("count before LOD, ~53%% after — docs/perf/one-camera-bench.md section 6.\n")
+	TEXT("`Emberkeep.UI.Hud` forces it on for a one-off look without changing this default."),
 	ECVF_Default);
 
 namespace
@@ -112,7 +126,7 @@ void EmberkeepUI::AutoShowIfEnabled(UWorld* World)
 {
 	if (CVarUIAutoShow.GetValueOnGameThread() != 0)
 	{
-		ShowCombatHud(World, /*bWithCams*/ true);
+		ShowCombatHud(World, /*bWithCams*/ CVarUICams.GetValueOnGameThread() != 0);
 	}
 }
 

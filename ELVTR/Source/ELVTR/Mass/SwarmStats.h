@@ -27,7 +27,6 @@ DECLARE_CYCLE_STAT_EXTERN(TEXT("Contact"), STAT_SwarmContact, STATGROUP_Swarm, )
 
 // Render bridge, split so "the sim is slow" and "the bridge is slow" can't be confused.
 DECLARE_CYCLE_STAT_EXTERN(TEXT("Render bridge"), STAT_SwarmRenderBridge, STATGROUP_Swarm, );
-DECLARE_CYCLE_STAT_EXTERN(TEXT("Render bridge - debug draw"), STAT_SwarmDebugDraw, STATGROUP_Swarm, );
 DECLARE_CYCLE_STAT_EXTERN(TEXT("Render bridge - Niagara push"), STAT_SwarmNiagaraPush, STATGROUP_Swarm, );
 
 // Counters: a ms number means nothing without the N it was measured at.

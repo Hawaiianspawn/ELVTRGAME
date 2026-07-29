@@ -9,6 +9,18 @@ table** — one row per tuning dial, a single typed `Value` column per row — p
 **v0.1 (2026-07-27):** new file, introduced alongside the feeding/distraction
 mechanic spec.
 
+**v0.2 (2026-07-28, task-061):** the owner overrode the spec's original
+no-persistent-corpse decision (`docs/design/feeding-distraction.md` §5) —
+corpses now persist to round end and any unit that walks up to one can claim
+an open slot, not just the killers. `RetinueFeedChance`/`BroodFeedChance` were
+renamed to `RetinueKillerClaimChance`/`BroodKillerClaimChance` (same
+mechanic — a per-kill-event roll for the killer set only — new name because
+there are now two distinct claim channels) and the retinue value was retuned
+down (0.35 → 0.20) to share its duty-cycle budget with the new channel. Seven
+new rows were added for the walk-up channel and the corpse population bound:
+`ClaimRadius`, `RetinueClaimRate`, `BroodClaimRate`, `ClaimTickHz`,
+`MaxCorpsesPerTeam`, `StaleAge`, `StaleDurationScale`. No rows were removed.
+
 ## Row shape (`rows[]`)
 
 One row per `Swarm.Feeding.*` CVar. Every row shares the same struct shape so
@@ -30,3 +42,9 @@ work or `unit-types.json`'s typed-unit model) are **not duplicated here** —
 they're read live from the existing combat CVars/data files at the point
 `FeedDuration()` is evaluated, so there is exactly one source of truth for each
 number. This table only owns the feeding-specific dials layered on top.
+
+The corpse record itself (`docs/design/feeding-distraction.md` §5.1 —
+`Location`, `Team`, `MaxHP`, `SpawnTick`, `OpenSlots`) is **runtime state, not
+a tuning dial**, and has no row here for the same reason `FGridEntry` doesn't:
+it's per-instance data task-054 owns in `USwarmSubsystem`, not a designer-set
+default.

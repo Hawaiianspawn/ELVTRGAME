@@ -9,15 +9,32 @@
 # Five categories, one per matrix entry:
 #   missing      required by the matrix, absent from disk and/or Content
 #   unwired      exists on disk/Content but nothing in ELVTR/Source loads it
-#   off-ramp     the packed sheet has pixels off the locked 4-value Demichrome ramp
+#   off-ramp     the packed sheet has pixels off a named palette ramp (INFORMATIONAL by
+#                default -- see below; opt in with --enforce-palette to make it a finding)
 #   unrecorded   no entry for it in docs/data/art/provenance.json
 #   incomplete   present but short of the matrix's required frames/frame count
+#
+# off-ramp and the 2026-07-28 colour reversal: docs/art/aesthetic-direction.md's AMENDMENT
+# 2026-07-28 supersedes the strict global 4-value Demichrome lock this check used to
+# enforce unconditionally -- the game now ships full colour by default. Comparing every
+# sheet against demichrome-4 and calling the difference a defect would report deliberate
+# full-colour art (the knight/archer rosters, the retinue character, the brood-ooze family)
+# as broken. So the palette check still RUNS and its numbers are always in the report and
+# in --json output, but it no longer counts as a finding unless you opt in with
+# --enforce-palette (checks each matrix entry's own palette.ref, e.g. demichrome-4, falling
+# back to --palette, default demichrome-4, for entries with none). That keeps the check
+# usable for anything that has actually opted into a ramp, without making full colour read
+# as an error. This does NOT invent a new colour standard -- there isn't one written down
+# yet (docs/art/aesthetic-direction.md AMENDMENT, "consequences to expect, not yet
+# resolved") -- it only stops assuming demichrome-4 by default.
 #
 # Usage:
 #     py Scripts/art/coverage.py                 human-readable report, all entries
 #     py Scripts/art/coverage.py --id T_Soldier_01   one entry only
 #     py Scripts/art/coverage.py --json           machine-readable report on stdout
 #     py Scripts/art/coverage.py --category unwired   only entries with that finding
+#     py Scripts/art/coverage.py --enforce-palette    off-ramp becomes a finding again
+#     py Scripts/art/coverage.py --enforce-palette --palette demichrome-4   (the default)
 #
 # What would fool this tool -- read before trusting a clean report:
 #   - The 'unwired' check is a literal grep for the texture name (and, for the
@@ -33,6 +50,11 @@
 #     texture's raw pixels from outside the editor. If Content and RawArt/Sheets
 #     have drifted (someone re-imported a different PNG by hand), this check is
 #     blind to that drift.
+#   - The check is INFORMATIONAL by default (see the module-level note above) -- a
+#     sheet that is off a palette will still show its off-ramp pixel counts in the
+#     detail block, but a clean run (no --enforce-palette) proves nothing about
+#     colour conformance either way. It is not a silent pass; it is a check that
+#     did not run as a gate.
 #   - The palette check is exact-hex membership on opaque pixels (plus alpha
 #     strictly 0/255), not pixelpipe.py's fuller quantize pass -- it does NOT run
 #     the caged-light (pale_uncaged) audit, dither-block-size check, or
@@ -167,6 +189,7 @@ def check_offramp(entry, pal):
     stats = pal.offramp_stats(rgba)
     stats["checked"] = True
     stats["off_ramp"] = stats["off_ramp_px"] > 0 or stats["partial_alpha_px"] > 0
+    stats["palette"] = pal.key
     return stats
 
 
@@ -261,7 +284,7 @@ def check_incomplete(entry, disk_status):
 
 # ---------------------------------------------------------------- audit
 
-def audit_entry(entry, pal, provenance):
+def audit_entry(entry, pal, provenance, enforce_palette=False):
     findings = []
 
     disk_status = check_disk_and_content(entry)
@@ -277,12 +300,17 @@ def audit_entry(entry, pal, provenance):
                           + ", ".join(entry["wiring"]["check"].get("patterns", []))
                           + " anywhere in ELVTR/Source"))
 
+    # off-ramp always RUNS -- the stats land in detail.off_ramp either way -- but only
+    # becomes a finding (and counts toward the summary) when the caller opted in with
+    # --enforce-palette. Un-opted-in, a full-colour sheet is not a defect; see the
+    # module docstring and docs/art/aesthetic-direction.md's 2026-07-28 AMENDMENT.
     offramp_status = check_offramp(entry, pal)
-    if offramp_status.get("checked") and offramp_status.get("off_ramp"):
+    if enforce_palette and offramp_status.get("checked") and offramp_status.get("off_ramp"):
         findings.append(("off-ramp",
-                          "%d off-ramp px (%.2f%% of opaque), %d partial-alpha px"
+                          "%d off-ramp px (%.2f%% of opaque), %d partial-alpha px, "
+                          "against '%s'"
                           % (offramp_status["off_ramp_px"], offramp_status["off_ramp_pct"],
-                             offramp_status["partial_alpha_px"])))
+                             offramp_status["partial_alpha_px"], pal.key)))
 
     unrecorded_status = check_unrecorded(entry, provenance)
     if unrecorded_status.get("checked") and not unrecorded_status.get("recorded"):
@@ -320,15 +348,25 @@ def audit_entry(entry, pal, provenance):
     }
 
 
-def run(matrix, only_id=None, only_category=None):
-    pal = Palette()
+def run(matrix, only_id=None, only_category=None, enforce_palette=False, palette_key="demichrome-4"):
+    # Palette objects are cheap but not free (they load + parse palette.json each time),
+    # and most matrices will resolve to one key -- cache by key rather than reload per entry.
+    pal_cache = {}
+
+    def resolve_palette(entry):
+        key = ((entry.get("palette") or {}).get("ref")) or palette_key
+        if key not in pal_cache:
+            pal_cache[key] = Palette(key)
+        return pal_cache[key]
+
     provenance = load_json(PROVENANCE_FILE) if PROVENANCE_FILE.exists() else None
 
     results = []
     for entry in matrix["characters"]:
         if only_id and entry["id"] != only_id:
             continue
-        result = audit_entry(entry, pal, provenance)
+        pal = resolve_palette(entry)
+        result = audit_entry(entry, pal, provenance, enforce_palette)
         if only_category and not any(cat == only_category for cat, _ in result["findings"]):
             continue
         results.append(result)
@@ -340,8 +378,12 @@ def run(matrix, only_id=None, only_category=None):
 CATEGORY_ORDER = ["missing", "unwired", "off-ramp", "unrecorded", "incomplete"]
 
 
-def print_report(results, matrix):
+def print_report(results, matrix, enforce_palette=False):
     print("art coverage audit -- %s" % matrix.get("updated", "?"))
+    print("palette enforcement: %s"
+          % ("ON (--enforce-palette)" if enforce_palette else
+             "OFF -- off-ramp is informational only, see 'i off-ramp' lines below "
+             "(pass --enforce-palette to turn it into a finding)"))
     print("%d character(s) audited\n" % len(results))
 
     for r in results:
@@ -351,6 +393,12 @@ def print_report(results, matrix):
             print("  clean -- no findings")
         for cat, detail in r["findings"]:
             print("  ! %-11s %s" % (cat, detail))
+        off = r["detail"]["off_ramp"]
+        if not enforce_palette and off.get("checked") and off.get("off_ramp"):
+            print("  i off-ramp    %d px off the '%s' ramp (%.2f%% of opaque), %d "
+                  "partial-alpha px -- informational only, not counted as a finding"
+                  % (off["off_ramp_px"], off.get("palette", "?"), off["off_ramp_pct"],
+                     off["partial_alpha_px"]))
         if r["open_questions"]:
             print("  open questions:")
             for q in r["open_questions"]:
@@ -365,6 +413,18 @@ def print_report(results, matrix):
     for c in CATEGORY_ORDER:
         print("  %-11s %d" % (c, counts[c]))
     untested = [c for c in CATEGORY_ORDER if counts[c] == 0]
+    if "off-ramp" in untested and not enforce_palette:
+        # off-ramp reads as 0 whenever it isn't enforced -- that is not the same claim
+        # as "untested", so say which one is actually true.
+        untested.remove("off-ramp")
+        info_hits = sum(1 for r in results if r["detail"]["off_ramp"].get("checked")
+                        and r["detail"]["off_ramp"].get("off_ramp"))
+        if info_hits:
+            print("  off-ramp not enforced this run (--enforce-palette unset) -- %d "
+                  "entries reported off-ramp pixels informationally, see 'i off-ramp' "
+                  "lines above" % info_hits)
+        else:
+            print("  off-ramp not enforced this run (--enforce-palette unset)")
     if untested:
         print("  untested categories (no matrix entry currently exercises them): %s" % ", ".join(untested))
 
@@ -381,16 +441,25 @@ def main():
     ap.add_argument("--id", help="audit only this matrix entry id (e.g. T_Soldier_01)")
     ap.add_argument("--category", choices=CATEGORY_ORDER, help="show only entries with this finding")
     ap.add_argument("--json", action="store_true", help="machine-readable output")
+    ap.add_argument("--enforce-palette", action="store_true",
+                    help="turn the off-ramp check back into a finding (opt-in; default is "
+                         "informational-only since the 2026-07-28 colour reversal)")
+    ap.add_argument("--palette", default="demichrome-4",
+                    help="palette key to check against when an entry names none of its "
+                         "own (matrix entries can set palette.ref; this is the fallback). "
+                         "Only affects anything when --enforce-palette is also set.")
     args = ap.parse_args()
 
     matrix = load_json(MATRIX_FILE)
-    results = run(matrix, only_id=args.id, only_category=args.category)
+    results = run(matrix, only_id=args.id, only_category=args.category,
+                 enforce_palette=args.enforce_palette, palette_key=args.palette)
 
     if args.json:
-        json.dump({"updated": matrix.get("updated"), "results": results}, sys.stdout, indent=2)
+        json.dump({"updated": matrix.get("updated"), "enforce_palette": args.enforce_palette,
+                   "palette": args.palette, "results": results}, sys.stdout, indent=2)
         print()
     else:
-        print_report(results, matrix)
+        print_report(results, matrix, enforce_palette=args.enforce_palette)
 
     return 0
 

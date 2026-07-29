@@ -107,9 +107,10 @@ Dedupe against `existing_sources` in the report before writing anything.
 Copy `docs/backlog/TEMPLATE.md` below its `═══` line. Get the id from
 `py Scripts/backlog.py next-id`. Then:
 
-- **`agent:`** — one of the five directors, or `claude`. Match the definition's actual
+- **`agent:`** — one of the six directors, or `claude`. Match the definition's actual
   scope: `pixel-art-director` writes specs and never image files; `ui-director` has no
-  shell and cannot drive the editor; only `claude` should hold source or content edits.
+  shell and cannot drive the editor; `sim-director` runs `Scripts/sim/` and never touches
+  `SYSTEMS.md` or `docs/design/`; only `claude` should hold source or content edits.
 - **`owns:`** — every path glob the task will write. Under-declaring causes silent
   overwrites between concurrent teammates; over-declaring blocks work needlessly.
 - **`resources:`** — `unreal-editor` for anything that PIEs or builds, `mcp-9000` for
@@ -117,6 +118,15 @@ Copy `docs/backlog/TEMPLATE.md` below its `═══` line. Get the id from
 - **`evidence:`** — the artifact that proves it is done. A task that cannot name one is not
   ready to be proposed. Big changes hand over as a runnable build or on-screen evidence,
   never a diff plus "it works".
+- **A numeric gameplay claim routes by question shape, not by default.** Point-target
+  (army/hero vs one Elite/Titan/Boss — TTK, breakpoints) is validated: `sim-director`
+  reproduces `entity-tiers.md` §7's own table exactly (`task-003`'s TTK tabulation is the
+  case that proved it out). Wave-attrition (swarm-vs-swarm survivor counts) is a scaffold
+  only — `docs/sim/LIMITATIONS.md` §1 says plainly the harness doesn't yet reproduce the
+  one measured baseline it's checked against — never file that as a standalone evidence
+  bar. Stances, leash, supply/degrade, items, positioning, and feel or readability
+  (`task-008` is the pattern) stay PIE; `LIMITATIONS.md` §4 lists what the harness doesn't
+  model at all. Full rule: `TEMPLATE.md`'s "Evidence bar: sim vs PIE".
 - **`score:`** — `(feel × risk × unblocks) ÷ cost`, and **`feel` — how much this changes
   the moment-to-moment feel or gameplay — is the primary axis** (owner, 2026-07-28; it
   replaced `gate`). Rubric in `docs/backlog/TEMPLATE.md`. Tooling, docs and refactors are

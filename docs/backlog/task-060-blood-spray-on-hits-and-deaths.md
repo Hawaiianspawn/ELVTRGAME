@@ -1,7 +1,7 @@
 ---
 id: 060
 title: Blood — short-lived red pixel spray on every landed blow, built as a decoupled subsystem
-status: in-progress
+status: done
 agent: claude
 owns: ["ELVTR/Source/ELVTR/Rendering/BloodSubsystem.h", "ELVTR/Source/ELVTR/Rendering/BloodSubsystem.cpp", "ELVTR/Content/Gore/**", "ELVTR/Config/SwarmExecOnPlay.canonical.txt", "docs/perf/blood-particles.md"]
 resources: ["unreal-editor", "mcp-9000"]
@@ -10,8 +10,9 @@ epic: ""
 evidence: A PIE capture of a wave-3 fight with blood on, showing red spray tracking the fighting line, plus a second capture with `Gore.Blood 0` for comparison — and a measured before/after frame time at wave-3 density in docs/perf/blood-particles.md, since spray-on-every-hit is the cost risk this task exists to retire.
 score: {feel: 2, risk: 2, cost: 2}
 source: user
-teammate: blood-spray
-decided: "2026-07-28 in-progress"
+teammate: blood-evidence
+decided: "2026-07-29 done"
+model: sonnet
 ---
 
 ## Why now

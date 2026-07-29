@@ -1,13 +1,165 @@
 #include "Spike1GameMode.h"
 
 #include "Kismet/GameplayStatics.h"
+#include "Mass/SwarmFragments.h"
 #include "Mass/SwarmSpawn.h"
 #include "Mass/SwarmSubsystem.h"
+#include "MassEntityManager.h"
+#include "MassEntitySubsystem.h"
+#include "MassEntityView.h"
 #include "Misc/CommandLine.h"
 #include "Misc/Parse.h"
 #include "SpikeHeroPawn.h"
 #include "UI/EmberkeepUIDebug.h"
 #include "TimerManager.h"
+
+namespace
+{
+	/**
+	 * Safety valve for task-064: GetAliveBrood()==0 alone has no way out of a genuine
+	 * stall. MEASURED ROOT CAUSE (2026-07-29, live PIE, not guessed): a handful of brood
+	 * end up standing 18-38uu from their nearest retinue — well inside Swarm.MeleeRange
+	 * (95uu) — yet never take a hit. That retinue has to be an Archer: Swarm.
+	 * ArchersMinEngageRange (150uu, SwarmCombatProcessors.cpp) refuses to target anything
+	 * closer than that to ITSELF ("won't shoot into its own scrum"), and Archers never
+	 * close distance to melee (squad-group-system.md §1.8's "hold formation... without
+	 * closing distance"), so a brood that ends up inside that dead zone with no Spearman
+	 * near enough to finish it off in MeleeRange just sits there. Confirmed for 135+
+	 * continuous seconds at an EXACT unchanged count of 7 in one capture — not slow
+	 * combat, a permanent stall. That is Mass-side steering/combat code
+	 * (ELVTR/Source/ELVTR/Mass/SwarmProcessors.cpp's URetinueFollowProcessor and
+	 * SwarmCombatProcessors.cpp's USwarmCombatProcessor), out of this file's ownership —
+	 * see the task-064 handback for the precise fix recommendation. This CVar is the
+	 * valve on top of that diagnosis, not a replacement for fixing it.
+	 */
+	TAutoConsoleVariable<float> CVarWaveClearTimeoutSeconds(
+		TEXT("Swarm.WaveClearTimeoutSeconds"), 20.f,
+		TEXT("Once the SAME nonzero brood count has held for this many seconds past\n")
+		TEXT("WaveClearGraceSeconds, the wave is force-cleared: the stragglers are logged\n")
+		TEXT("(position + distance to hero/nearest retinue) then destroyed outright, so they\n")
+		TEXT("do not carry over and repeat the stall on every later wave too. 20s is a wide\n")
+		TEXT("margin over normal tail-end combat -- measured normal wave clears finish a run\n")
+		TEXT("of 5-10 remaining brood in a few seconds once the SwingInterval cadence (0.9s)\n")
+		TEXT("is landing hits, so 20s of the identical count not moving at all is already a\n")
+		TEXT("strong stall signal, not variance. 0 disables the timeout entirely -- the gate\n")
+		TEXT("reverts to GetAliveBrood()==0 with no way out, task-064's original bug."),
+		ECVF_Default);
+
+	/**
+	 * task-064 diagnostics: this state is FILE-STATIC, not GameMode members, on purpose:
+	 * adding a member changes the class layout, which Live Coding cannot apply (reports
+	 * success, then crashes the next PIE) — see ASpikeHeroPawn's GCamArmyScale for the
+	 * same trick, same reason. Reset from RestartRun() so a stalled count from a previous
+	 * PIE session in the same editor process can't be mistaken for one in the next.
+	 */
+	int32 GStallLastBroodCount = -1;
+	float GStallUnchangedSeconds = 0.f;
+	bool GStallLogged = false;
+
+	void ResetStallTracking()
+	{
+		GStallLastBroodCount = -1;
+		GStallUnchangedSeconds = 0.f;
+		GStallLogged = false;
+	}
+
+	/**
+	 * Dumps every surviving brood's position and how far it is from the two things that
+	 * are supposed to kill it: the hero (Swarm.HeroMeleeRange) and its nearest retinue
+	 * unit (Swarm.MeleeRange / Swarm.ArchersEngageRange). Reads only USwarmSubsystem's
+	 * public render buffers (GetRenderPositions/GetRenderAnimBits) — no Mass API, so this
+	 * stays inside Spike1GameMode's ownership. O(N*M) against the tiny stall-time
+	 * population (a handful of brood against ~100+ retinue), which is fine for a
+	 * once-per-stall diagnostic dump, not a hot path.
+	 */
+	void LogStalledBrood(const USwarmSubsystem& Swarm, int32 WaveIndex)
+	{
+		const FVector Attractor = Swarm.GetAttractor();
+		const TArray<FVector>& Positions = Swarm.GetRenderPositions();
+		const TArray<int32>& AnimBits = Swarm.GetRenderAnimBits();
+
+		int32 BroodCount = 0;
+		for (int32 i = 0; i < Positions.Num(); ++i)
+		{
+			if ((SwarmRenderPack::Anim(AnimBits[i]) & SwarmAnim::TeamBit) == 0)
+			{
+				++BroodCount;
+			}
+		}
+		UE_LOG(LogTemp, Warning, TEXT("Run: wave %d STALL — %d brood alive, positions follow"),
+			WaveIndex + 1, BroodCount);
+
+		for (int32 i = 0; i < Positions.Num(); ++i)
+		{
+			if ((SwarmRenderPack::Anim(AnimBits[i]) & SwarmAnim::TeamBit) != 0)
+			{
+				continue; // retinue, not what we're hunting for
+			}
+
+			const FVector& Loc = Positions[i];
+			const float DistToHero = FVector::Dist2D(Loc, Attractor);
+
+			float NearestRetinueDist = -1.f;
+			for (int32 j = 0; j < Positions.Num(); ++j)
+			{
+				if ((SwarmRenderPack::Anim(AnimBits[j]) & SwarmAnim::TeamBit) == 0)
+				{
+					continue;
+				}
+				const float D = FVector::Dist2D(Loc, Positions[j]);
+				if (NearestRetinueDist < 0.f || D < NearestRetinueDist)
+				{
+					NearestRetinueDist = D;
+				}
+			}
+
+			UE_LOG(LogTemp, Warning,
+				TEXT("Run:   straggler (%.0f, %.0f) — %.0fuu from hero, %.0fuu from nearest retinue"),
+				Loc.X, Loc.Y, DistToHero, NearestRetinueDist);
+		}
+	}
+
+	/**
+	 * task-064 timeout fix: destroys every currently-tracked BROOD entity outright, via
+	 * the same UMassEntitySubsystem / FMassEntityManager pattern SwarmSpawn::ClearAll
+	 * already uses (SwarmCommands.cpp) — public Mass engine API, not a write into
+	 * ELVTR/Source/ELVTR/Mass/. Retinue entities are left untouched, filtered the same
+	 * "brood carry no team bit" way SwarmCommands.cpp's LogSquadRoster already does.
+	 *
+	 * Needed because just advancing WaveIndex without this would carry the same
+	 * unkillable stragglers into the NEXT wave's brood count, which would then also never
+	 * reach zero — the timeout would refire every subsequent wave forever instead of
+	 * once, and the field would slowly accumulate permanently-stuck bodies nobody can see
+	 * a reason for. Returns how many were actually destroyed, for the log line.
+	 */
+	int32 DestroyRemainingBrood(UWorld* World)
+	{
+		UMassEntitySubsystem* MassSubsystem = World ? World->GetSubsystem<UMassEntitySubsystem>() : nullptr;
+		USwarmSubsystem* Swarm = World ? World->GetSubsystem<USwarmSubsystem>() : nullptr;
+		if (!MassSubsystem || !Swarm)
+		{
+			return 0;
+		}
+
+		FMassEntityManager& EntityManager = MassSubsystem->GetMutableEntityManager();
+		int32 Destroyed = 0;
+		for (const FMassEntityHandle& Handle : Swarm->GetTrackedEntities())
+		{
+			if (!EntityManager.IsEntityValid(Handle))
+			{
+				continue;
+			}
+			const FMassEntityView View(EntityManager, Handle);
+			const FSwarmAnimFragment* Anim = View.GetFragmentDataPtr<FSwarmAnimFragment>();
+			if (Anim && (Anim->Bits & SwarmAnim::TeamBit) == 0)
+			{
+				EntityManager.DestroyEntity(Handle);
+				++Destroyed;
+			}
+		}
+		return Destroyed;
+	}
+}
 
 namespace
 {
@@ -74,6 +226,7 @@ void ASpike1GameMode::RestartRun()
 
 	WaveIndex = 0;
 	RetinueSlotCursor = 0;
+	ResetStallTracking();
 
 	SwarmSpawn::SpawnRetinue(GetWorld(), StartingRetinue, RetinueSlotCursor);
 	RetinueSlotCursor += StartingRetinue;
@@ -135,10 +288,56 @@ void ASpike1GameMode::Tick(float DeltaSeconds)
 		break;
 
 	case ERunPhase::WaveActive:
+	{
 		// Grace period: live counts come from the render pass, which reads zero
 		// for a frame or two right after the batch spawn.
-		if (PhaseTimer >= WaveClearGraceSeconds && Swarm->GetAliveBrood() == 0)
+		const int32 CurrentBrood = PhaseTimer >= WaveClearGraceSeconds ? Swarm->GetAliveBrood() : -1;
+
+		// --- task-064: stall tracking + timeout safety valve -------------------
+		// Track how long the SAME nonzero count has held past the grace period.
+		// A wave that is genuinely still grinding down resets this every time a
+		// brood actually dies, so this only accumulates during real stalls (see
+		// CVarWaveClearTimeoutSeconds's doc-comment for the measured root cause).
+		bool bTimedOut = false;
+		if (CurrentBrood > 0)
 		{
+			if (CurrentBrood != GStallLastBroodCount)
+			{
+				GStallLastBroodCount = CurrentBrood;
+				GStallUnchangedSeconds = 0.f;
+				GStallLogged = false;
+			}
+			else
+			{
+				GStallUnchangedSeconds += DeltaSeconds;
+
+				const float Timeout = FMath::Max(CVarWaveClearTimeoutSeconds.GetValueOnGameThread(), 0.f);
+				if (Timeout > 0.f && GStallUnchangedSeconds >= Timeout)
+				{
+					bTimedOut = true;
+				}
+				// Early warning well before the timeout could fire, so a wave that's
+				// merely SLOW (not stuck) still gets its stragglers on record.
+				else if (!GStallLogged && GStallUnchangedSeconds >= 6.f)
+				{
+					LogStalledBrood(*Swarm, WaveIndex);
+					GStallLogged = true;
+				}
+			}
+		}
+
+		if (bTimedOut)
+		{
+			LogStalledBrood(*Swarm, WaveIndex);
+			const int32 Destroyed = DestroyRemainingBrood(GetWorld());
+			UE_LOG(LogTemp, Warning,
+				TEXT("Run: wave %d TIMED OUT after %.0fs stuck at %d brood — force-cleared (destroyed %d entit%s). See Swarm.WaveClearTimeoutSeconds."),
+				WaveIndex + 1, GStallUnchangedSeconds, CurrentBrood, Destroyed, Destroyed == 1 ? TEXT("y") : TEXT("ies"));
+		}
+
+		if (CurrentBrood == 0 || bTimedOut)
+		{
+			ResetStallTracking();
 			SwarmSpawn::CompactTracked(GetWorld());
 			++WaveIndex;
 
@@ -164,6 +363,7 @@ void ASpike1GameMode::Tick(float DeltaSeconds)
 			}
 		}
 		break;
+	}
 
 	case ERunPhase::Breather:
 		if (PhaseTimer >= BreatherSeconds)

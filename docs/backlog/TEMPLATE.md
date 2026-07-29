@@ -34,6 +34,20 @@ a resumed session reads it to re-spawn the same way.
 reason, the same way `GDD-TODO.md` kept the cut Base Camp Loot Manager entry as the
 historical record of the idea.
 
+**Evidence bar: sim vs PIE.** A numeric gameplay-balance claim doesn't default to a PIE
+session. **Point-target** questions — army or hero DPS vs one Elite/Titan/Boss, TTK,
+breakpoints — go to `sim-director`: `Scripts/sim/`'s point-target model is validated,
+reproducing `entity-tiers.md` §7's own table exactly (`docs/sim/README.md`; `task-003`'s
+TTK tabulation is the case that later proved it out). **Wave-attrition** questions —
+swarm-vs-swarm survivor or casualty counts — are the opposite case: `docs/sim/LIMITATIONS.md`
+§1 states the harness does not currently reproduce the one measured baseline it's checked
+against (GATE1's 110-of-120). A wave-attrition run is a scaffold, never a standalone
+evidence bar, without that caveat attached. Stances, leash, supply/degrade, items,
+knockback, positioning, and multi-wave carryover aren't modelled at all (§4) — those stay
+PIE, same as anything about feel or readability (`task-008` is the pattern). The
+dependency runs both ways: `task-004`'s encounter-budget table is data the wave model is
+*waiting on* (§2), not something the harness supplies to it.
+
 **Scoring.** `total = (feel × risk × unblocks) ÷ cost`. `unblocks` is computed — it
 is 1 plus the number of open tasks naming this one in `depends-on`, so do not write
 it. Score the other three honestly:
@@ -79,7 +93,7 @@ them hold the same resource, because that fan cannot be batch-approved at all.
 id: 001
 title: <imperative phrase — "Fill SYSTEMS.md §1 entity tier stat blocks">
 status: proposed          # proposed|approved|in-progress|needs-review|done|rejected|parked
-agent: gameplay-director  # gameplay|narrative|performance|pixel-art|ui-director, or claude
+agent: gameplay-director  # <gameplay|narrative|performance|pixel-art|sim|ui>-director, or claude
 model: ""                 # optional — opus|sonnet|haiku|fable; "" inherits the lead's
 owns: []                  # path globs this task will write, e.g. ["docs/design/**"]
 resources: []             # unreal-editor | pixellab-credits | mcp-9000

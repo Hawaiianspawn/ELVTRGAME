@@ -85,7 +85,6 @@ public:
 	 * body centred on it at 0. The projected point is ground contact, so anything below 1
 	 * draws units partly buried and makes every size dial dig downward.
 	 */
-	void SetFootAnchor(float InAnchor);
 
 	/** The reticle marks the perspective virtual camera's aim point — meaningless in Army View's
 	 *  fixed top-down block layout (there is no perspective camera in that mode), so it's hidden
@@ -204,4 +203,6 @@ protected:
 	FVector2D PanelSizePx = FVector2D::ZeroVector;
 	float FrameThickness = 4.f;
 	bool bHostSized = false;
+	/** Seconds since the last billboard-count log — see Emberkeep.UnitCamProj.CountLog. */
+	float CountLogTimer = 0.f;
 };

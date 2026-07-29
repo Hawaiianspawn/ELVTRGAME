@@ -1,7 +1,7 @@
 ---
 id: 024
 title: Extend the run structure from waves to three floors plus a boss
-status: proposed
+status: done
 agent: gameplay-director
 owns: ["docs/design/run-structure.md"]
 resources: []
@@ -9,7 +9,9 @@ depends-on: [3, 4]
 evidence: A run-structure spec covering floor transitions, boss gating, and victory/death screens, reconciled against what Gate 1 already ships.
 score: {feel: 3, risk: 2, cost: 2}
 source: docs/RTS-VERTICAL-SLICE.md:101
-decided: ""
+decided: "2026-07-29 done"
+model: sonnet
+teammate: run-structure
 ---
 
 ## Why now

@@ -1,5 +1,25 @@
 # Swarm frame budget — scoreboard
 
+> **SUPERSEDED IN PART, 2026-07-28 — read [one-camera-bench.md](one-camera-bench.md) first.**
+>
+> A standalone `-game` sweep across all renderers landed that day and changes the headline
+> conclusions below:
+>
+> - **The gate is PASSED, not failing.** Niagara sprites hold **2.31ms (433fps)** at the
+>   1,000-unit gate — a 7.2x margin. The "over budget before anything else in the frame runs"
+>   framing below is true *of the debug-box renderer only*, which is no longer the default.
+> - **Rendering is free.** Niagara's frame time sits on a sim-only baseline within noise at
+>   every count from 500 to 20,000. **100% of the frame cost is the Mass sim on the game
+>   thread**, ~0.75ms per 1,000 entities.
+> - The debug-box table below is still accurate and still reproducible (136.8ms measured
+>   standalone vs 135.5ms in-editor at 10,000) — it is simply no longer measuring the
+>   shipping path.
+> - `Swarm.SimLOD.Stride 4` (new, same day) raises the 60fps ceiling from ~21,000 to ~34,000.
+>
+> The per-pass and multiplayer gaps listed at the bottom of this file remain open and correct.
+> The multiplayer one is now moot — GDD §10 went single-player 2026-07-27.
+
+
 Owned by the performance-director. Updated whenever a new measurement lands. States what
 we're holding today against what the design needs, not what we hope to hold eventually.
 
@@ -35,6 +55,24 @@ submission on immediate-mode `DrawDebugSolidBox` calls, not a shading or hardwar
 costs 14.6ms on draw alone — over budget before anything else in the frame runs. **The
 debug-box renderer cannot hold the Spike 1 bar, let alone the 4-player gate**, regardless
 of `UnitShading`. Full writeup and what follows from it: [niagara-sprite-refactor.md](niagara-sprite-refactor.md).
+
+## Niagara sprite path — measured 2026-07-28 (standalone `-game`, `-SwarmBench` config sweep)
+
+The baseline this file said did not exist. Retinue 100, brood swept. Full detail and the
+Unit Cam / LOD comparisons: [one-camera-bench.md](one-camera-bench.md).
+
+| brood | sim only | Niagara | debug box (flat) | Niagara vs box |
+|---|---|---|---|---|
+| 500 | 1.67 | 1.75 | 3.40 | 1.9x |
+| 1,000 | 2.25 | **2.31** | 9.44 | **4.1x** |
+| 2,000 | 3.07 | 3.06 | 21.19 | 6.9x |
+| 5,000 | 5.00 | 5.02 | 59.93 | 11.9x |
+| 10,000 | 8.53 | 8.32 | 136.84 | 16.4x |
+| 20,000 | 15.24 | 15.90 | 355.07 | 22.3x |
+
+**Reading it:** Niagara costs 0.036 µs per unit drawn, on the GPU, which never exceeds 4.2ms
+across the whole sweep. The debug renderer's cost is CPU draw submission and scales with count.
+`Swarm.DebugRender` now defaults to 0.
 
 **Not yet measured / owned by other tasks:**
 - Per-pass `STAT_Swarm*` breakdown (grid build / steering / combat / integrate) — the

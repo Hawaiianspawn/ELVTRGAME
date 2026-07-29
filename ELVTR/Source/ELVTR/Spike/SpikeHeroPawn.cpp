@@ -163,8 +163,23 @@ namespace
 		ECVF_Default);
 
 	TAutoConsoleVariable<float> CVarCamScalePitchFull(
-		TEXT("Emberkeep.Cam.ScalePitchFull"), -90.f,
-		TEXT("Camera pitch at full army. -90 = straight down, the battlefield map."),
+		// -55 since 2026-07-28 (owner call), was -90. One-camera mode made this the only shot
+		// the game has, and a straight-down map cannot show the arena you are fighting across —
+		// it also shows every sprite from directly above, which is the one angle the 8-direction
+		// sheet has nothing authored for. -55 keeps the RTS read while letting the horde arrive
+		// out of depth rather than slide in from a screen edge.
+		//
+		// TIED TO Swarm.SimLOD.NearRadius. Tilting the camera stretches how far down-field you
+		// can see: ortho height is OrthoWidth/aspect on SCREEN, but that maps to
+		// (OrthoWidth/aspect)/sin(pitch) of GROUND. At -90 that is ~1350uu, at -55 it is ~1650uu.
+		// Lower this further without raising NearRadius and the sim LOD starts striding units the
+		// player can watch. The pairing is the constraint, not either value alone.
+		TEXT("Emberkeep.Cam.ScalePitchFull"), -55.f,
+		TEXT("Camera pitch at full army. -90 = straight down (the old battlefield map), -55 =\n")
+		TEXT("tilted so the arena reads as ground you look ACROSS rather than down at.\n")
+		TEXT("Shallower sees further down-field — raise Swarm.SimLOD.NearRadius to match, or the\n")
+		TEXT("LOD will begin striding units that are on screen. Ground depth is roughly\n")
+		TEXT("(OrthoWidth / aspect) / sin(pitch)."),
 		ECVF_Default);
 
 	TAutoConsoleVariable<float> CVarCamScalePitchAlone(
@@ -237,6 +252,28 @@ namespace
 		TEXT("visibly rebounds past the framing and comes back, which reads as a mistake rather\n")
 		TEXT("than as weight. Below 1 overshoots and oscillates; above 1 is sluggish but always\n")
 		TEXT("monotonic. Try 0.7 only if the descent wants to feel like it lurches."),
+		ECVF_Default);
+
+	// --- the bearer's placeholder body --------------------------------------
+	// BodyMesh is a 0.6 x 0.6 x 1.2 engine cube standing in for the hero until he has art.
+	// It was invisible in practice from 1200uu straight down — a few pixels under the flame.
+	// The pinned eye-level shot puts the lens 323uu behind him at -8.2 deg, which stands that
+	// white block squarely between the camera and the line it exists to show.
+	TAutoConsoleVariable<int32> CVarHeroProxy(
+		// DEFAULT 0 since 2026-07-28 (owner: "get rid of the hero white block we dont need it").
+		// Was 1 for the few hours between this dial existing and that call. Defaulting it off
+		// rather than deleting BodyMesh, because BodyMesh is the pawn's RootComponent — removing
+		// the component would take the actor's transform with it, and every system that reads the
+		// bearer (flame position, retinue attractor, camera focus) hangs off that transform.
+		// Hiding is the correct way to "get rid of" this; deleting is not.
+		TEXT("Swarm.HeroProxy"), 0,
+		TEXT("Draw the bearer's placeholder cube body. 0 hides it: the pawn still moves, still\n")
+		TEXT("attracts the retinue, still fights and still carries the flame — only the mesh\n")
+		TEXT("stops rendering. Safe to hide because nothing reads the mesh: the camera hangs off\n")
+		TEXT("the PAWN (TickCamera builds its transform from the actor location), the flame is\n")
+		TEXT("published from GetActorLocation, and the mesh has collision off already.\n")
+		TEXT("Set 0 whenever the camera is low enough that the proxy blocks the shot; set 1 to\n")
+		TEXT("confirm where he actually is standing."),
 		ECVF_Default);
 }
 
@@ -456,6 +493,17 @@ void ASpikeHeroPawn::Tick(float DeltaSeconds)
 	if (Swarm)
 	{
 		Swarm->SetAttractor(GetActorLocation());
+	}
+
+	// Live, not BeginPlay-only, so the dial can be dragged against the running shot — the
+	// whole point of it is judging whether the proxy is in the way at a given camera angle.
+	if (BodyMesh)
+	{
+		const bool bShowProxy = CVarHeroProxy.GetValueOnGameThread() != 0;
+		if (BodyMesh->IsVisible() != bShowProxy)
+		{
+			BodyMesh->SetVisibility(bShowProxy);
+		}
 	}
 
 	TickCamera(DeltaSeconds, Swarm);

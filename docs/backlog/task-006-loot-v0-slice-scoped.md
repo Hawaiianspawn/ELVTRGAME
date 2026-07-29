@@ -1,7 +1,7 @@
 ---
 id: 006
 title: Design loot v0 — unit orbs, healing, 4-6 stacking items
-status: proposed
+status: done
 agent: gameplay-director
 owns: ["docs/design/loot-v0.md", "docs/data/loot-v0.json", "docs/data/loot-v0.schema.md"]
 resources: []
@@ -9,7 +9,9 @@ depends-on: [2]
 evidence: Monte-Carlo of the drop table showing whether a median run sees an evolution by floor 3.
 score: {feel: 3, risk: 2, cost: 2}
 source: docs/GDD-TODO.md:90
-decided: ""
+decided: "2026-07-28 done"
+model: sonnet
+teammate: loot-v0
 ---
 
 ## Why now

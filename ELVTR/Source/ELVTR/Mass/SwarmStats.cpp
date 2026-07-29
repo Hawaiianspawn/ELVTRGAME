@@ -10,7 +10,6 @@ DEFINE_STAT(STAT_SwarmDeath);
 DEFINE_STAT(STAT_SwarmContact);
 
 DEFINE_STAT(STAT_SwarmRenderBridge);
-DEFINE_STAT(STAT_SwarmDebugDraw);
 DEFINE_STAT(STAT_SwarmNiagaraPush);
 
 DEFINE_STAT(STAT_SwarmAliveRetinue);

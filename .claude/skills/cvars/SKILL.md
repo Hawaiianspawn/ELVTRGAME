@@ -52,6 +52,19 @@ add one here only if the owner asks.)
   `docs/data/art/palette.json` under `trial_palettes`; the index there must match the
   `GSwarmPalettePresets` table in the .cpp. Adding a candidate is one row in each.
   This is a **judging dial, not a canon change** — Direction A stays locked
+- **Colour gate toggle:** `Emberkeep.Quantize` (`[0..1]`, default `1`) and
+  `Emberkeep.PaletteSteps` (`[2..8]`, default `4`) — added 2026-07-28 by task-057, same file.
+  `Quantize 0` bypasses the demichrome posterise **entirely** and shows the raw lit scene
+  instead of more values (the flame's additive lift and the world-anchored Bayer dither both
+  stay in the picture — only the value-collapse goes); values between 0 and 1 cross-fade the
+  two. `PaletteSteps` changes how many values the posterise collapses onto; at the locked
+  default of 4 both CVars are byte-identical to before task-057 — `Threshold1/2/3` and
+  `Palette0..3` are pushed completely unchanged, and only away from 4 does `TickFlame` derive
+  fresh evenly-spaced thresholds (`GetEvenThreshold`) and resample the active preset's 4
+  control points across the new count (`ResamplePaletteColor`) rather than reusing the tuned
+  N=4 numbers. `MPC_Flame` gained matching `Threshold4..7` and `Palette4..7` parameters and
+  `M_PP_Demichrome`'s Custom node loops over them instead of unrolling three comparisons —
+  same **judging dial, not canon** status as `Emberkeep.Palette`, and UMG still does not follow
 - **Unit shading:** `Swarm.UnitShading`, `Swarm.UnitBackShade`, `Swarm.UnitLightFloor`
 - **Body size:** `Swarm.BroodSize`, `Swarm.RetinueSize`, `Swarm.BodyHeight` — defined in
   `Rendering/SwarmRenderActor.cpp`, added 2026-07-26. These **override** the placed
@@ -140,18 +153,30 @@ add one here only if the owner asks.)
   no longer moves the in-game shot and `Dist` replaces it. Defaults reproduce the old
   hard-coded constructor shot exactly (ortho, pitch -90, 1200uu). **`YawInput` is load-bearing
   for `Yaw`**: movement is world-axis WASD, so without it a yawed camera leaves W pushing
-  sideways relative to the screen. Added 2026-07-25
-- **HUD command rectangle:** `Emberkeep.UI.Muster.WingRatio`, `Emberkeep.UI.ViewCam`,
-  `Emberkeep.UI.Rect.Split`, `Emberkeep.UI.Rect.ViewOnTop` — defined in `UI/EmberkeepHud.cpp`;
-  `Emberkeep.UI.ViewCam.Res`, `Emberkeep.UI.ViewCam.Rate` in `UI/ViewCamCapture.cpp`.
-  WingRatio sizes the retinue wings flanking the cam; the rest drive the optional split centre
-  column. All pair with the `SizeMax`/`SizeMin`/`Aspect` framing dials above, since the whole
-  rectangle scales off the cam. **The split ships OFF (`ViewCam 0`) — the Unit Cam alone at full
-  height is the primary layout.** The minimap that occupied the top half was tried and rejected
-  2026-07-26 (pulled back far enough to show the brood spawn ring, the lit pool became a dot in
-  a black field). Keep the dials on the surface: the split machinery is sound and cheap when
-  off, so a future second panel reuses it. **`ViewCam.Rate` is a perf dial, not a look dial** —
-  that feed is a real second render of the scene (added 2026-07-25)
+  sideways relative to the screen. Added 2026-07-25.
+  **These five — `Ortho`, `OrthoWidth`, `Fov`, `Dist`, `Pitch` — are INERT while
+  `Emberkeep.Cam.Scale` is 1**, which is how the exec file ships: `TickCamera`'s `bScale`
+  branch overwrites all five from the army-scale pair dials every frame. Any row that a
+  `Scale`-on run cannot move must say so in its help text, or the breadboard is a panel of
+  dials that quietly do nothing. `Yaw`, `YawInput`, `OffsetX/Y/Z`, `Lerp` and the HUD bias
+  apply in both modes
+- **Army-scale camera (WHERE THE CAMERA ACTUALLY IS while `Cam.Scale` 1):** `Emberkeep.Cam.Scale`,
+  `ScaleWidthFull`, `ScaleWidthAlone`, `ScalePitchFull`, `ScalePitchAlone`, `ScaleDistFull`,
+  `ScaleDistAlone`, `ScaleSwapAt`, `ScaleRetinueWeight`, `ScaleBroodWeight`, `ScaleBodies`,
+  `ScaleCurve`, `ScaleStiffness`, `ScaleDamping`, `ScaleLerp`, `ScaleStages`, `ScaleRatchet`
+  — all in `Spike/SpikeHeroPawn.cpp`, design in `docs/design/CAMERA-SCALE.md`. One scalar (how
+  much army is left, 1 = full, 0 = alone) lerps width/pitch/distance between a FULL and an ALONE
+  end and hard-swaps the projection at `SwapAt`. **So every framing dial is a pair** — set both
+  ends equal to pin the shot regardless of army size. Ten of these were registered but absent
+  from the exec file until 2026-07-28, which meant the breadboard exposed only the four dials
+  the shipped config had already switched off, and nothing that moved the live camera
+- **HUD command rectangle:** `Emberkeep.UI.Muster.WingRatio` — defined in `UI/EmberkeepHud.cpp`.
+  Sizes the retinue wings flanking the cam, and pairs with the `SizeMax`/`SizeMin`/`Aspect`
+  framing dials above since the whole rectangle scales off the cam. The Unit Cam alone at full
+  height is the layout; the split centre column and its second scene render were removed
+  2026-07-29 (the minimap content had already been rejected 2026-07-26 — pulled back far enough
+  to show the brood spawn ring, the lit pool became a dot in a black field). Recoverable from
+  git history if a second panel is ever wanted
 
 To add/remove a CVar from the tuning surface, edit the lists above — that is the whole
 point of this file being the single source of truth.
@@ -180,6 +205,16 @@ point of this file being the single source of truth.
    already deviates from source, that is a deliberate look/balance choice — keep the file's
    value and mark it `; (owner-tuned, src <default>)`. As of 2026-07-25 those are
    `WorldDitherScale 8`, `DitherBandWidth 0.5`, `FlameShadows 1`, `FlameShadowStrength 0.4`.
+
+   **The pinned eye-level camera (owner call 2026-07-28) is owner-tuned as a SET, and source
+   defaults would silently undo it:** `Cam.Scale 0`, `Cam.Ortho 0`, `Cam.Fov 45.6`,
+   `Cam.Pitch -8.2`, `Cam.Dist 323`, `Cam.OffsetZ 54`, `UI.Cams 1`,
+   `Swarm.SimLOD.NearRadius 4500`. Every one differs from its source default, and writing any
+   of them back to source restores the top-down ortho map. They are one shot, not eight dials —
+   `Pitch` without `OffsetZ` puts the lens 46uu off the ground; `Ortho 1` flattens the
+   convergence the angle exists for; `Scale 1` makes four of them inert again; and
+   `NearRadius 2200` leaves the whole 2500-4000uu brood spawn ring visibly striding at this
+   pitch. Derivation and the pitch/NearRadius pairing are written into the file's own comments.
    Sections outside the canonical set that the file already carries (flame shadows, debug
    /render/capture) are kept as configured — `Swarm.DebugRender 1` in particular is load-
    bearing for the current renderer. Only take the source default when the *code* default
@@ -207,6 +242,22 @@ point of this file being the single source of truth.
 
    To move a section between tabs, edit the marker. Nothing in C++ names these tabs, so no
    rebuild is involved and the tab bar picks up whatever the file declares.
+
+   **Section prose goes INSIDE the banner pair, never after the closing banner.** The parser
+   cannot tell an opening banner from a closing one — both set `bAfterBanner`
+   (`BreadboardModel.cpp` `Load`) — so the first `#` comment line *after* the closing banner is
+   read as a **new section title** with no `@tab`, and every dial below it up to the next banner
+   silently lands on the catch-all "Other" tab. This had already happened to the PALETTE
+   section (`Emberkeep.Palette` was on "Other", not "Debug"); fixed 2026-07-28 by moving the
+   closing banner below the prose. Correct shape:
+
+   ```
+   # ============================================================
+   # SECTION TITLE   @tab Camera
+   # any explanatory prose belongs here, above the closing banner
+   # ============================================================
+   Some.CVar 1   ; help
+   ```
 
    **Preserve the `# @tabs Player, Unit, Horde, Camera, Debug` line in the file header.** It
    fixes the left-to-right order of the tab bar. Without it the bar falls back to whichever

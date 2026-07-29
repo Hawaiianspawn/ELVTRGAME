@@ -1,7 +1,7 @@
 ---
 id: 004
 title: Spec the per-floor encounter budget table
-status: proposed
+status: done
 agent: gameplay-director
 owns: ["docs/design/encounter-budget.md", "docs/data/encounter-budget.json", "docs/data/encounter-budget.schema.md"]
 resources: []
@@ -9,7 +9,9 @@ depends-on: [2, 3]
 evidence: docs/data/encounter-budget.json with a spend-per-room-type table, plus a simulated floor walkthrough showing density staying inside the measured entity budget.
 score: {feel: 3, risk: 2, cost: 2}
 source: docs/GDD-TODO.md:88
-decided: ""
+decided: "2026-07-29 done"
+model: sonnet
+teammate: encounter-budget
 ---
 
 ## Why now

@@ -29,7 +29,11 @@ It sets Filter = **Nearest**, NoMipmaps, UserInterface2D, sRGB on, then verifies
 and logs `SPRITE import ... [OK]` or `[VERIFY FAILED]`. If you do import by hand
 instead, set those four yourself — Nearest is the one that silently ruins pixel art.
 
-**Sheet layout (changed 2026-07-26: was 4×2, now 8×4).** 384 × 192, 48px cells.
+**Sheet layout (grid changed 2026-07-26: was 4×2, now 8×4. Cell changed 2026-07-28: was
+48px, now 56px).** 448 × 224, 56px cells. The cell grew because the retinue character that
+replaced the knight measures 41×49 and `pixelpipe pack` refuses to scale pixel art — see
+`docs/data/art/requests/swarm-units.json` `output.cell_note`. Only `T_Swarm_2bit` moved;
+every other request still packs at 48px, and nothing in C++ reads the cell size.
 **The column axis is now FACING, not animation state:**
 
 ```

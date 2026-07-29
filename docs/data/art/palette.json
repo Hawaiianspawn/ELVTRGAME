@@ -1,7 +1,7 @@
 {
-  "version": "1.0",
-  "updated": "2026-07-25",
-  "note": "Machine-readable form of the palette locked by the 2026-07-12 reset in docs/art/aesthetic-direction.md. That document is the source of truth; this file exists so the pipeline can ENFORCE it. If they disagree, the markdown wins and this file is the bug.",
+  "version": "1.1",
+  "updated": "2026-07-28",
+  "note": "Machine-readable form of the palette(s) the pipeline knows how to resolve by key. docs/art/aesthetic-direction.md is the source of truth for what's canon; this file exists so a named palette can be ENFORCED on request. If they disagree, the markdown wins and this file is the bug. AMENDMENT 2026-07-28 (see that document's top banner): the strict global demichrome-4 lock recorded below is SUPERSEDED -- the game ships full colour by default (Emberkeep.Quantize=0) and demichrome-4 is now an explicit OPT-IN palette, not a default the pipeline forces. Nothing here invents what full colour's own rules are; there isn't a written standard yet (see aesthetic-direction.md AMENDMENT, 'consequences to expect, not yet resolved'). This file only stops assuming demichrome-4 by default -- it does not replace it with anything.",
 
   "luma_model": {
     "space": "gamma sRGB (no linearization)",
@@ -13,8 +13,13 @@
     "demichrome-4": {
       "name": "2-bit Demichrome",
       "locked": "2026-07-12",
-      "authority": "docs/art/aesthetic-direction.md (RESET banner, lines 8-46)",
-      "scope": "Every sprite in the game — heroes, retinue, Still Legion, the Quiet, the Unwitnessed, UI, portraits, vignettes. No sprite may introduce a fifth value or a palette-swapped variant without an explicit owner exception.",
+      "superseded": {
+        "date": "2026-07-28",
+        "by": "docs/art/aesthetic-direction.md AMENDMENT 2026-07-28",
+        "what_changed": "No longer the enforced game-wide default. Full colour ships (Emberkeep.Quantize=0). This palette is kept in full, unchanged, and remains available as an explicit opt-in: name it in a request's canon.palette, pass it to pixelpipe.py's --palette, or pass --enforce-palette to Scripts/art/coverage.py. It is history the repo keeps, not a dead definition -- see docs/GDD-TODO.md and the pattern already used for Direction B in aesthetic-direction.md."
+      },
+      "authority": "docs/art/aesthetic-direction.md (RESET banner, lines 8-46; see AMENDMENT 2026-07-28 at the top of that document for current status)",
+      "scope": "FORMER scope while locked (2026-07-12 to 2026-07-28): every sprite in the game — heroes, retinue, Still Legion, the Quiet, the Unwitnessed, UI, portraits, vignettes, no exceptions. CURRENT scope: opt-in only -- whatever explicitly names 'demichrome-4' (a request's canon.palette, a coverage/pixelpipe --palette flag). No sprite that opts into this ramp may introduce a fifth value or a palette-swapped variant without an explicit owner exception; that constraint is about this ramp specifically, not a claim about the whole game's colour policy anymore.",
       "values": [
         {
           "key": "dark",
@@ -75,13 +80,19 @@
   },
 
   "trial_palettes": {
-    "note": "Candidate ramps for the Emberkeep.Palette dial (task-043) — NOT canon. demichrome-4 above remains the locked direction; these exist so a candidate can be judged in PIE at horde density instead of on a swatch. The index here is the CVar value and must match the GSwarmPalettePresets table in Rendering/SwarmRenderActor.cpp. TO ADD ONE: append an entry here and one row there.",
+    "note": "Candidate ramps for the Emberkeep.Palette dial (task-043) — NOT canon. demichrome-4 above is the historical / opt-in ramp (see its 'superseded' field), not the enforced direction anymore as of the 2026-07-28 colour reversal; these trial entries exist so a candidate can still be judged in PIE at horde density instead of on a swatch, same as before. The index here is the CVar value and must match the GSwarmPalettePresets table in Rendering/SwarmRenderActor.cpp. TO ADD ONE: append an entry here and one row there — every entry is still just 4 hexes, even though task-057 generalized the live dial to 2-8 steps (see palette_steps_generalization below); ResamplePaletteColor stretches these 4 control points to whatever step count is live, so a candidate's cost never changes.",
+    "palette_steps_generalization": {
+      "task": "057",
+      "owner_call": "2026-07-28 — 'explore options without the color gate'; when asked what that meant, chose BYPASS QUANTIZATION ENTIRELY over just more values.",
+      "Emberkeep.Quantize": "[0..1], default 1. 0 shows the raw lit scene (flame lift + world-anchored dither survive, only the posterise value-collapse goes). Locked default is byte-identical to pre-task-057 output.",
+      "Emberkeep.PaletteSteps": "[2..8], default 4. How many values the posterise collapses onto. At 4 (the locked default), Threshold1/2/3 and Palette0..3 above are pushed completely unchanged — this file's 4-hex entries are not reinterpreted at all. Away from 4, SwarmRenderActor.cpp derives fresh evenly-spaced thresholds and resamples each entry's 4 hexes across the new count, so no palette here needs an 8-hex variant to support the full step range."
+    },
     "how_to_judge": "min_luma_gap is the number that matters. It is the tightest step on the ramp, and it is what carries friend/foe readability at 700 units — demichrome's 0.218 is the bar. A palette that photographs better and reads worse in a wave has lost.",
     "entries": [
       {
         "index": 0,
         "key": "demichrome-4",
-        "name": "2-bit Demichrome (LOCKED — the incumbent)",
+        "name": "2-bit Demichrome (historical / opt-in — no longer the enforced default, see palettes.demichrome-4.superseded)",
         "hexes": ["#211e20", "#555568", "#a0a08b", "#e9efec"],
         "min_luma_gap": 0.218,
         "source": "docs/art/aesthetic-direction.md reset banner, 2026-07-12"

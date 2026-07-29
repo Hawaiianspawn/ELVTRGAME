@@ -10,19 +10,19 @@ not a re-read.
 
 | proposed | approved | in-progress | needs-review | done | rejected | parked |
 |---|---|---|---|---|---|---|
-| 37 | 0 | 2 | 1 | 18 | 0 | 4 |
+| 39 | 0 | 0 | 0 | 34 | 0 | 5 |
 
 ## Audit queue — top 7 awaiting your verdict
 
 | # | score | f×r×u÷c | task | agent | cost | evidence on done |
 |---|---|---|---|---|---|---|
-| 1 | **15.0** | 3×2×5÷2 | [Spec the per-floor encounter budget table](task-004-systems-encounter-budget-table.md) `#004` | gameplay-director | 2 | docs/data/encounter-budget.json with a spend-per-room-type table, plus a simulated floor walkthrough showing density staying inside the measured entity budget. |
-| 2 | **12.0** | 3×2×2÷1 | [Play Gate 1 and answer its five open feel questions](task-008-gate1-playtest-feel-questions.md) `#008` | claude | 1 | The five questions in GATE1-FUN-PROTOTYPE.md §"open" answered from an actual play session, each with the tuning value tried and what it felt like. |
-| 3 | **9.0** | 3×2×3÷2 | [Design loot v0 — unit orbs, healing, 4-6 stacking items](task-006-loot-v0-slice-scoped.md) `#006` | gameplay-director | 2 | Monte-Carlo of the drop table showing whether a median run sees an evolution by floor 3. |
-| 4 | **9.0** | 3×2×3÷2 | [Extend the run structure from waves to three floors plus a boss](task-024-run-structure-three-floors-and-boss.md) `#024` | gameplay-director | 2 | A run-structure spec covering floor transitions, boss gating, and victory/death screens, reconciled against what Gate 1 already ships. |
-| 5 | **6.0** | 3×2×2÷2 | [Tune the Vanguard retinue — growth, attrition, per-floor cap](task-005-vanguard-retinue-tuning.md) `#005` | gameplay-director | 2 | Simulation showing whether a Vanguard's retinue grows, holds, or starves per floor at the spec'd replenishment and death rates. |
-| 6 | **4.5** | 3×3×1÷2 | [Prove faction separation at horde scale](task-028-prove-faction-separation-at-horde-scale.md) `#028` | claude | 2 | Screen captures at 700 units showing a player can tell friend from foe at gameplay zoom, with the failure cases named. |
-| 7 | **3.0** | 1×3×2÷2 | [Run Spike 1 and fill SPIKE1-RESULTS.md with measured numbers and a verdict](task-007-fill-spike1-results-and-verdict.md) `#007` | performance-director | 2 | SPIKE1-RESULTS.md with every table cell filled from a real -SwarmBench run, machine specs recorded, and exactly one of GO / ADJUST / KILL ticked. |
+| 1 | **12.0** | 3×2×2÷1 | [Play Gate 1 and answer its five open feel questions](task-008-gate1-playtest-feel-questions.md) `#008` | claude | 1 | The five questions in GATE1-FUN-PROTOTYPE.md §"open" answered from an actual play session, each with the tuning value tried and what it felt like. |
+| 2 | **6.0** | 3×2×2÷2 | [Tune the Vanguard retinue — growth, attrition, per-floor cap](task-005-vanguard-retinue-tuning.md) `#005` | gameplay-director | 2 | Simulation showing whether a Vanguard's retinue grows, holds, or starves per floor at the spec'd replenishment and death rates. |
+| 3 | **4.5** | 3×3×1÷2 | [Prove faction separation at horde scale](task-028-prove-faction-separation-at-horde-scale.md) `#028` | claude | 2 | Screen captures at 700 units showing a player can tell friend from foe at gameplay zoom, with the failure cases named. |
+| 4 | **3.0** | 1×3×2÷2 | [Run Spike 1 and fill SPIKE1-RESULTS.md with measured numbers and a verdict](task-007-fill-spike1-results-and-verdict.md) `#007` | performance-director | 2 | SPIKE1-RESULTS.md with every table cell filled from a real -SwarmBench run, machine specs recorded, and exactly one of GO / ADJUST / KILL ticked. |
+| 5 | **3.0** | 3×2×2÷4 | [Produce the slice sprite set — Vanguard, retinue, 5 enemies, walk/attack/death each](task-027-slice-sprite-animation-production.md) `#027` | claude | 4 | Imported UE sprite sheets that pass the palette checker, plus the provenance manifest recording every generation UUID and its credit cost. |
+| 6 | **3.0** | 3×2×1÷2 | [Answer CAMERA-SCALE §4's six open questions](task-030-camera-scale-six-open-questions.md) `#030` | claude | 2 | Each of the six questions answered from a PIE session with the value tried, especially the flame-pool ratio against OrthoWidth. |
+| 7 | **3.0** | 3×3×1÷3 | [Build the feeding-distraction mechanic in Mass — corpses, kill attribution, and the three-slot feed](task-054-build-feeding-distraction-in-mass.md) `#054` | claude | 3 | A PIE capture showing a killer stopped on a corpse while the fight continues around it, a second showing three feeders on one body and a fourth attacker walking past it, and a measured before/after frame time at wave-3 density. |
 
 Approve with `py Scripts/backlog.py approve <ids>` (or `/backlog approve <ids>`).
 
@@ -32,24 +32,23 @@ Approve with `py Scripts/backlog.py approve <ids>` (or `/backlog approve <ids>`)
 |---|---|---|---|---|
 | `feeding-distraction` | 2/3 closed | [`053`](task-053-feeding-distraction-mechanic-spec.md), [`054`](task-054-build-feeding-distraction-in-mass.md), [`061`](task-061-persistent-corpses-and-walk-up-feeding.md) | `054`, `061` | approve `54` |
 | `scene-tightening` | 2/2 closed | [`057`](task-057-scene-look-rig-bypass-the-colour-gate.md), [`058`](task-058-hud-chrome-tightening.md) | `058` | complete |
+| `sim-pipeline` | 0/4 closed | [`075`](task-075-experiment-pipeline-persisted-runs.md), [`076`](task-076-seeded-variance-layer-distributions.md), [`077`](task-077-batch-driver-pool-and-trials.md), [`078`](task-078-experiment-watcher.md) | `077`, `078` | approve `75,76,77,78` |
+| `sim-tuning-loop` | 2/2 closed | [`069`](task-069-committed-sweep-runner.md), [`070`](task-070-tuning-question-scenario-library.md) | — | complete |
 
 A fan is approved in one batch and dispatched one teammate per task. `⨝` joins own the shared writes and wait on their siblings — see `py Scripts/backlog.py epic <slug>`.
 
-## proposed (37)
+## proposed (39)
 
 | id | score | task | agent | owns | source |
 |---|---|---|---|---|---|
-| `004` | 15.0 | [Spec the per-floor encounter budget table](task-004-systems-encounter-budget-table.md) | gameplay-director | `docs/design/encounter-budget.md`, `docs/data/encounter-budget.json`, `docs/data/encounter-budget.schema.md` | `docs/GDD-TODO.md:88` |
 | `008` | 12.0 | [Play Gate 1 and answer its five open feel questions](task-008-gate1-playtest-feel-questions.md) | claude | `docs/GATE1-FUN-PROTOTYPE.md` | `docs/GATE1-FUN-PROTOTYPE.md:377` |
-| `006` | 9.0 | [Design loot v0 — unit orbs, healing, 4-6 stacking items](task-006-loot-v0-slice-scoped.md) | gameplay-director | `docs/design/loot-v0.md`, `docs/data/loot-v0.json`, `docs/data/loot-v0.schema.md` | `docs/GDD-TODO.md:90` |
-| `024` | 9.0 | [Extend the run structure from waves to three floors plus a boss](task-024-run-structure-three-floors-and-boss.md) | gameplay-director | `docs/design/run-structure.md` | `docs/RTS-VERTICAL-SLICE.md:101` |
 | `005` | 6.0 | [Tune the Vanguard retinue — growth, attrition, per-floor cap](task-005-vanguard-retinue-tuning.md) | gameplay-director | `docs/design/retinue-tuning-vanguard.md`, `docs/data/retinue-vanguard.json`, `docs/data/retinue-vanguard.schema.md` | `docs/GDD-TODO.md:89` |
 | `028` | 4.5 | [Prove faction separation at horde scale](task-028-prove-faction-separation-at-horde-scale.md) | claude | `docs/art/faction-separation-proof.md` | `docs/RTS-VERTICAL-SLICE.md:111` |
 | `007` | 3.0 | [Run Spike 1 and fill SPIKE1-RESULTS.md with measured numbers and a verdict](task-007-fill-spike1-results-and-verdict.md) | performance-director | `docs/SPIKE1-RESULTS.md` | `docs/SPIKE1-RESULTS.md:31` |
 | `027` | 3.0 | [Produce the slice sprite set — Vanguard, retinue, 5 enemies, walk/attack/death each](task-027-slice-sprite-animation-production.md) | claude | `docs/data/art/requests/**`, `RawArt/Renders/**`, `ELVTR/Content/Sprites/**` | `docs/RTS-VERTICAL-SLICE.md:110` |
-| `029` | 3.0 | [Spec the minimal audio set — hits, deaths, stance confirmations](task-029-minimal-audio-readability-set.md) | gameplay-director | `docs/design/audio-minimal.md` | `docs/RTS-VERTICAL-SLICE.md:113` |
 | `030` | 3.0 | [Answer CAMERA-SCALE §4's six open questions](task-030-camera-scale-six-open-questions.md) | claude | `docs/design/CAMERA-SCALE-HANDOFF.md` | `docs/design/CAMERA-SCALE-HANDOFF.md:89` |
 | `054` | 3.0 | [Build the feeding-distraction mechanic in Mass — corpses, kill attribution, and the three-slot feed](task-054-build-feeding-distraction-in-mass.md) | claude | `ELVTR/Source/ELVTR/Mass/SwarmCombat.h`, `ELVTR/Source/ELVTR/Mass/SwarmCombatProcessors.cpp`, `ELVTR/Source/ELVTR/Mass/SwarmCombatProcessors.h`, `ELVTR/Source/ELVTR/Mass/SwarmFragments.h`, `ELVTR/Source/ELVTR/Mass/SwarmSubsystem.h`, `ELVTR/Config/SwarmExecOnPlay.canonical.txt`, `ELVTR/Saved/SwarmExecOnPlay.txt` | `user` |
+| `076` | 3.0 | [Add a seeded variance layer to the combat model so a config yields a distribution, not a single point estimate](task-076-seeded-variance-layer-distributions.md) | sim-director | `Scripts/sim/combat_model.py`, `Scripts/sim/scenario_runner.py`, `Scripts/sim/validate.py`, `docs/sim/MODEL.md`, `docs/sim/VALIDATION.md`, `docs/sim/LIMITATIONS.md`, `docs/data/scenarios/combat-model-constants.json` | `user` |
 | `001` | 2.0 | [Correct the stale blockers in GDD-TODO.md and point it at the backlog](task-001-correct-stale-gdd-todo-tracker.md) | claude | `docs/GDD-TODO.md` | `docs/GDD-TODO.md:46` |
 | `009` | 2.0 | [Run the Vanguard sprite acceptance checklist against the packed sheet](task-009-vanguard-sheet-acceptance-pass.md) | pixel-art-director | `docs/art/vanguard.md` | `docs/art/vanguard.md:351` |
 | `017` | 2.0 | [Bring the three consolidated flame-bearer questions to a decision](task-017-flame-bearer-protagonist-decision.md) | claude | `docs/art/flame-bearer-status.md` | `docs/art/flame-bearer-status.md:85` |
@@ -57,6 +56,10 @@ A fan is approved in one batch and dispatched one teammate per task. `⨝` joins
 | `031` | 2.0 | [Check the shipped leash system against RTS-VERTICAL-SLICE §2's spec](task-031-leash-system-conformance-check.md) | claude | `docs/RTS-VERTICAL-SLICE.md` | `docs/RTS-VERTICAL-SLICE.md:97` |
 | `036` | 2.0 | [Design the runtime pacing director (L4D-style intensity manager)](task-036-pacing-director-intensity-manager.md) | gameplay-director | `docs/design/pacing-director.md` | `docs/GDD-TODO.md:115` |
 | `042` | 2.0 | [Trial rust-gold and eulbink as LUT rows against the locked demichrome](task-042-trial-candidate-palettes-as-lut-rows.md) | pixel-art-director | `docs/art/palette-trials.md` | `user` |
+| `065` | 2.0 | [Land the hit flash, retire the stale header, and fix the black late-session capture](task-065-sprite-path-evidence-trio.md) | claude | `ELVTR/Source/ELVTR/Mass/SwarmFragments.h`, `ELVTR/Source/ELVTR/Rendering/SwarmRenderActor.cpp`, `ELVTR/Source/ELVTR/Rendering/SwarmRenderActor.h`, `ELVTR/Content/Spike1/**` | `user` |
+| `074` | 2.0 | [Scope the archer dead-zone hatch per-brood, not per-archer](task-074-per-brood-dead-zone-hatch.md) | claude | `ELVTR/Source/ELVTR/Mass/SwarmCombatProcessors.cpp`, `ELVTR/Source/ELVTR/Mass/SwarmProcessors.cpp` | `user` |
+| `075` | 2.0 | [Make simulation results durable — a declarative experiment format, a versioned run-artifact store, and an artifact comparison tool](task-075-experiment-pipeline-persisted-runs.md) | sim-director | `Scripts/sim/runstore.py`, `Scripts/sim/report.py`, `docs/data/experiments/**`, `docs/sim/RUNSTORE.md`, `.gitignore` | `user` |
+| `077` | 2.0 | [Build the parallel batch driver — wire trials into the pipeline and measure where the process pool actually pays](task-077-batch-driver-pool-and-trials.md) | sim-director | `Scripts/sim/batch.py`, `docs/sim/PIPELINE.md` | `user` |
 | `025` | 1.33 | [Spec the procgen room-graph generator over the prefab library](task-025-procgen-room-graph-generator.md) | gameplay-director | `docs/design/procgen-room-graph.md`, `docs/data/room-types.json`, `docs/data/room-types.schema.md` | `docs/RTS-VERTICAL-SLICE.md:102` |
 | `026` | 1.33 | [Produce the Highgates tileset](task-026-highgates-tileset.md) | pixel-art-director | `docs/art/highgates-tileset.md` | `docs/RTS-VERTICAL-SLICE.md:109` |
 | `010` | 1.0 | [Run the retinue militia acceptance checklist against the packed sheet](task-010-retinue-militia-acceptance-pass.md) | pixel-art-director | `docs/art/retinue-militia.md` | `docs/art/retinue-militia.md:426` |
@@ -69,6 +72,7 @@ A fan is approved in one batch and dispatched one teammate per task. `⨝` joins
 | `032` | 1.0 | [Final naming pass on the four classes (GDD Q11 / CLASSES C1)](task-032-final-class-naming-pass.md) | narrative-director | `docs/narrative/class-naming-pass.md` | `GDD.md:437` |
 | `035` | 1.0 | [Design the S8 "Silent Bell" world-flag effects](task-035-silent-bell-world-flag-effects.md) | gameplay-director | `docs/design/world-flag-s8.md` | `docs/GDD-TODO.md:114` |
 | `038` | 1.0 | [Fold the settled design specs into SYSTEMS.md as decision records](task-038-fold-settled-specs-into-systems-md.md) | gameplay-director | `SYSTEMS.md` | `docs/GDD-TODO.md:85` |
+| `078` | 1.0 | [Add the long-running watcher that keeps experiment results current, and fold the pipeline into the harness README](task-078-experiment-watcher.md) | sim-director | `Scripts/sim/watcher.py`, `docs/sim/WATCHER.md`, `docs/sim/README.md`, `.claude/agents/sim-director.md` | `user` |
 | `034` | 0.75 | [Full loot & itemization system](task-034-full-loot-and-itemization-system.md) | gameplay-director | `docs/design/loot-full.md` | `docs/GDD-TODO.md:112` |
 | `041` | 0.75 | [Build Phase B — the index + palette-ID LUT pipeline](task-041-phase-b-index-lut-pipeline.md) | claude | `ELVTR/Content/PostProcess/**`, `ELVTR/Source/ELVTR/Rendering/**`, `ELVTR/Source/ELVTR/UI/EmberkeepPalette.h`, `docs/RENDERING-LIGHTING.md`, `Scripts/art/pixelpipe.py` | `docs/RENDERING-LIGHTING.md:21` |
 | `033` | 0.67 | [Unwitnessed faction — final name, titan variety, horror level](task-033-unwitnessed-faction-revisit.md) | narrative-director | `docs/narrative/unwitnessed.md` | `docs/GDD-TODO.md:109` |
@@ -77,26 +81,18 @@ A fan is approved in one batch and dispatched one teammate per task. `⨝` joins
 | `020` | 0.5 | [Assemble the four-section GDD submission document and export to PDF](task-020-gdd-submission-assembly-and-pdf.md) | claude | `docs/ASSIGNMENT-01-GDD-FIRST-DRAFT.md` | `docs/GDD-TODO.md:77` |
 | `037` | 0.5 | [Sweep the remaining CLASSES C2-C11 open questions against current canon](task-037-sweep-remaining-classes-open-questions.md) | narrative-director | `docs/narrative/open-questions-audit.md` | `docs/GDD-TODO.md:116` |
 
-## in-progress (2)
+## done (34)
 
 | id | score | task | agent | owns | source |
 |---|---|---|---|---|---|
-| `056` | 2.0 | [Build a 6-variant silhouette family off the bright-palette sci-fi soldier and publish the contact sheet](task-056-scifi-soldier-silhouette-variant-family.md) | claude | `RawArt/Renders/soldier-scifi-variants/**`, `docs/art/soldier-scifi-variants.md` | `user` |
-| `060` | 2.0 | [Blood — short-lived red pixel spray on every landed blow, built as a decoupled subsystem](task-060-blood-spray-on-hits-and-deaths.md) | claude | `ELVTR/Source/ELVTR/Rendering/BloodSubsystem.h`, `ELVTR/Source/ELVTR/Rendering/BloodSubsystem.cpp`, `ELVTR/Content/Gore/**`, `ELVTR/Config/SwarmExecOnPlay.canonical.txt`, `docs/perf/blood-particles.md` | `user` |
-
-## needs-review (1)
-
-| id | score | task | agent | owns | source |
-|---|---|---|---|---|---|
-| `003` | 12.0 | [Spec one scaling curve across the slice's three floors](task-003-systems-scaling-curve-three-floors.md) | gameplay-director | `docs/design/scaling-curve.md`, `docs/data/scaling-curve.json`, `docs/data/scaling-curve.schema.md` | `docs/GDD-TODO.md:87` |
-
-## done (18)
-
-| id | score | task | agent | owns | source |
-|---|---|---|---|---|---|
-| `002` | 18.0 | [Spec the entity tier stat blocks (fodder → soldier → elite → titan → boss)](task-002-systems-entity-tier-stat-blocks.md) | gameplay-director | `docs/design/entity-tiers.md`, `docs/data/entity-tiers.json`, `docs/data/entity-tiers.schema.md` | `docs/GDD-TODO.md:86` |
+| `004` | 12.0 | [Spec the per-floor encounter budget table](task-004-systems-encounter-budget-table.md) | gameplay-director | `docs/design/encounter-budget.md`, `docs/data/encounter-budget.json`, `docs/data/encounter-budget.schema.md` | `docs/GDD-TODO.md:88` |
+| `002` | 9.0 | [Spec the entity tier stat blocks (fodder → soldier → elite → titan → boss)](task-002-systems-entity-tier-stat-blocks.md) | gameplay-director | `docs/design/entity-tiers.md`, `docs/data/entity-tiers.json`, `docs/data/entity-tiers.schema.md` | `docs/GDD-TODO.md:86` |
+| `006` | 9.0 | [Design loot v0 — unit orbs, healing, 4-6 stacking items](task-006-loot-v0-slice-scoped.md) | gameplay-director | `docs/design/loot-v0.md`, `docs/data/loot-v0.json`, `docs/data/loot-v0.schema.md` | `docs/GDD-TODO.md:90` |
+| `024` | 9.0 | [Extend the run structure from waves to three floors plus a boss](task-024-run-structure-three-floors-and-boss.md) | gameplay-director | `docs/design/run-structure.md` | `docs/RTS-VERTICAL-SLICE.md:101` |
 | `039` | 9.0 | [Retire the dead Gatecamp hexes from six art specs, CLASSES.md, and the art-director definition](task-039-retire-dead-gatecamp-hexes.md) | pixel-art-director | `docs/art/hallam.md`, `docs/art/edda.md`, `docs/art/merle.md`, `docs/art/noll.md`, `docs/art/warden-captain-bree.md`, `docs/art/brees-stairwell.md`, `docs/art/aesthetic-direction.md`, `.claude/agents/pixel-art-director.md` | `docs/art/aesthetic-direction.md:556` |
+| `003` | 6.0 | [Spec one scaling curve across the slice's three floors](task-003-systems-scaling-curve-three-floors.md) | gameplay-director | `docs/design/scaling-curve.md`, `docs/data/scaling-curve.json`, `docs/data/scaling-curve.schema.md` | `docs/GDD-TODO.md:87` |
 | `043` | 6.0 | [Put a live palette-preset dial on the Breadboard](task-043-live-palette-dial-on-the-breadboard.md) | claude | `ELVTR/Content/PostProcess/M_PP_Demichrome**`, `ELVTR/Content/PostProcess/MPC_Flame**`, `ELVTR/Source/ELVTR/Rendering/SwarmRenderActor.cpp`, `.claude/skills/cvars/SKILL.md`, `docs/data/art/palette.json` | `user` |
+| `029` | 3.0 | [Spec the minimal audio set — hits, deaths, stance confirmations](task-029-minimal-audio-readability-set.md) | gameplay-director | `docs/design/audio-minimal.md` | `docs/RTS-VERTICAL-SLICE.md:113` |
 | `050` | 3.0 | [Draw the real sprite set in the Unit Cam — six soldier variants, the hero, and an archer proxy](task-050-wire-real-sprites-into-the-unit-cam.md) | claude | `ELVTR/Source/ELVTR/UI/UnitCamProjector.cpp`, `ELVTR/Source/ELVTR/UI/UnitCamProjector.h`, `ELVTR/Content/Sprites/**`, `RawArt/Renders/archer-proxy/**`, `RawArt/Sheets/T_Soldier_Archer.png`, `docs/data/art/provenance.json` | `user` |
 | `057` | 3.0 | [Take the colour gate off — a bypass and an N-value quantizer, live on the Breadboard](task-057-scene-look-rig-bypass-the-colour-gate.md) | claude | `ELVTR/Content/PostProcess/**`, `ELVTR/Source/ELVTR/Rendering/SwarmRenderActor.cpp`, `ELVTR/Source/ELVTR/Rendering/SwarmRenderActor.h`, `ELVTR/Saved/SwarmExecOnPlay.txt`, `docs/RENDERING-LIGHTING.md`, `.claude/skills/cvars/SKILL.md`, `docs/data/art/palette.json` | `user` |
 | `021` | 2.0 | [Measure the per-entity cost and design the group-as-cost-boundary (squad aggregation)](task-021-mass-squad-aggregation.md) | performance-director | `docs/perf/squad-aggregation.md` | `docs/RTS-VERTICAL-SLICE.md:95` |
@@ -107,21 +103,33 @@ A fan is approved in one batch and dispatched one teammate per task. `⨝` joins
 | `049` | 2.0 | [Rework the squad system as typed Total War-style units, and settle the Unit Cam default view](task-049-typed-units-total-war-model.md) | gameplay-director | `docs/design/squad-group-system.md`, `docs/data/squads.json`, `docs/data/squads.schema.md`, `docs/data/unit-types.json`, `docs/data/unit-types.schema.md` | `user` |
 | `052` | 2.0 | [Widen the spatial grid so archers can actually reach 750uu, and measure what it costs](task-052-widen-the-spatial-grid-for-archer-range.md) | claude | `ELVTR/Source/ELVTR/Mass/SwarmSubsystem.h`, `ELVTR/Source/ELVTR/Mass/SwarmProcessors.cpp`, `ELVTR/Source/ELVTR/Mass/SwarmProcessors.h`, `ELVTR/Source/ELVTR/Mass/SwarmCombatProcessors.cpp`, `docs/perf/grid-cell-size.md` | `user` |
 | `053` | 2.0 | [Spec the feeding-distraction mechanic — killers go null on the corpse, three per body, armor sets the chomp](task-053-feeding-distraction-mechanic-spec.md) | gameplay-director | `docs/design/feeding-distraction.md`, `docs/data/feeding.json`, `docs/data/feeding.schema.md` | `user` |
+| `060` | 2.0 | [Blood — short-lived red pixel spray on every landed blow, built as a decoupled subsystem](task-060-blood-spray-on-hits-and-deaths.md) | claude | `ELVTR/Source/ELVTR/Rendering/BloodSubsystem.h`, `ELVTR/Source/ELVTR/Rendering/BloodSubsystem.cpp`, `ELVTR/Content/Gore/**`, `ELVTR/Config/SwarmExecOnPlay.canonical.txt`, `docs/perf/blood-particles.md` | `user` |
 | `061` | 2.0 | [Amend the feeding spec — corpses persist to end of round and any unit can walk up and eat](task-061-persistent-corpses-and-walk-up-feeding.md) | gameplay-director | `docs/design/feeding-distraction.md`, `docs/data/feeding.json`, `docs/data/feeding.schema.md` | `user` |
+| `064` | 2.0 | [Fix the wave-clear stalemate — stray brood that never die stop the run advancing](task-064-wave-clear-stalemate.md) | claude | `ELVTR/Source/ELVTR/Spike/Spike1GameMode.cpp`, `ELVTR/Source/ELVTR/Spike/Spike1GameMode.h`, `ELVTR/Config/SwarmExecOnPlay.canonical.txt` | `user` |
+| `072` | 2.0 | [Reconcile scaling-curve §4's scratch TTK table against entity-tiers' committed numbers](task-072-reconcile-scaling-curve-scratch-table.md) | gameplay-director | `docs/design/scaling-curve.md` | `user` |
+| `073` | 2.0 | [Close the archer dead zone — brood inside 150uu that nothing can kill](task-073-archer-dead-zone-unkillable-brood.md) | claude | `ELVTR/Source/ELVTR/Mass/SwarmCombatProcessors.cpp`, `ELVTR/Source/ELVTR/Mass/SwarmProcessors.cpp` | `user` |
+| `068` | 1.5 | [Teach the wave-attrition model arrival timing, and re-run the GATE1 calibration check](task-068-teach-the-wave-model-arrival-timing.md) | sim-director | `Scripts/sim/**`, `docs/sim/**`, `docs/data/scenarios/**` | `user` |
 | `046` | 1.33 | [Build the typed-unit command layer in Mass — sticky type, per-type stance, per-type allocation, published centroids](task-046-squad-command-layer-in-mass.md) | claude | `ELVTR/Source/ELVTR/Mass/**`, `ELVTR/Source/ELVTR/UI/UnitCamProjector.cpp`, `ELVTR/Source/ELVTR/UI/UnitCamProjector.h`, `ELVTR/Source/ELVTR/UI/UnitCamDirector.cpp`, `ELVTR/Source/ELVTR/UI/UnitCamDirector.h` | `docs/design/squad-group-system.md` |
 | `051` | 1.0 | [Build the art asset matrix and a coverage audit that finds missing, unwired and off-ramp art](task-051-art-coverage-matrix-and-audit.md) | claude | `docs/data/art/asset-matrix.json`, `docs/data/art/asset-matrix.schema.md`, `.claude/skills/art-coverage/**`, `Scripts/art/coverage.py` | `user` |
 | `055` | 1.0 | [Pack every PixelLab character state per type, so a rank of spearmen has visual variety](task-055-pack-character-states-for-unit-variety.md) | claude | `ELVTR/Content/Sprites/Units/**`, `RawArt/Renders/knight/**`, `RawArt/Renders/archer-proxy/**`, `RawArt/Sheets/T_Soldier_Knight*.png`, `RawArt/Sheets/T_Soldier_Archer*.png`, `docs/data/art/provenance.json`, `ELVTR/Source/ELVTR/UI/UnitCamProjector.cpp` | `user` |
 | `062` | 1.0 | [Bring the art tooling onto the full-colour reversal — palette.json still enforces a retired lock](task-062-bring-art-tooling-onto-the-full-colour-reversal.md) | claude | `docs/data/art/palette.json`, `Scripts/art/coverage.py`, `Scripts/art/pixelpipe.py`, `Scripts/art/authored_states.py`, `Scripts/art/silhouette_report.py`, `.claude/skills/art-coverage/SKILL.md`, `.claude/skills/sprite/SKILL.md` | `user` |
+| `063` | 1.0 | [Build a committed JSON simulation harness and the agent that drives it](task-063-game-simulation-harness-and-agent.md) | claude | `Scripts/sim/**`, `docs/sim/**`, `docs/data/scenarios/**`, `.claude/agents/sim-director.md` | `user` |
+| `066` | 1.0 | [Route gameplay-validation work to the sim harness instead of PIE by default](task-066-route-planning-to-the-sim-harness.md) | claude | `.claude/skills/host/SKILL.md`, `.claude/skills/backlog/SKILL.md`, `docs/backlog/TEMPLATE.md` | `user` |
+| `067` | 1.0 | [Retire the retracted parameter-sweep claim from the sim-director definition](task-067-sim-director-carries-retracted-claim.md) | claude | `.claude/agents/sim-director.md` | `user` |
+| `069` | 1.0 | [Build a committed sweep runner with machine-readable output](task-069-committed-sweep-runner.md) | sim-director | `Scripts/sim/**`, `docs/sim/**` | `user` |
+| `071` | 1.0 | [Close the loop — a committed balance baseline and a scheduled sweep that reports drift](task-071-scheduled-balance-regression-loop.md) | sim-director | `Scripts/sim/**`, `docs/sim/**` | `user` |
+| `070` | 0.5 | [Build out the scenario library so the tuning questions have something to run against](task-070-tuning-question-scenario-library.md) | sim-director | `docs/data/scenarios/**` | `user` |
 
-## parked (4)
+## parked (5)
 
 | id | score | task | agent | owns | source |
 |---|---|---|---|---|---|
 | `015` | 18.0 | [Settle GDD Q5 — flipbooks vs. flat-shaded 3D — with an actual art test](task-015-gdd-q5-flipbooks-vs-3d-art-test.md) | pixel-art-director | `docs/art/flipbook-vs-3d-test.md` | `GDD.md:429` |
-| `059` | 3.0 | [Rework the Niagara sprite path so the horde has a state axis and per-unit size, without growing the atlas](task-059-niagara-sprite-path-state-axis-and-variety.md) | claude | `ELVTR/Source/ELVTR/Mass/SwarmFragments.h`, `ELVTR/Source/ELVTR/Rendering/SwarmRenderActor.cpp`, `ELVTR/Source/ELVTR/Rendering/SwarmRenderActor.h`, `ELVTR/Content/Spike1/**`, `ELVTR/Content/Swarm/**`, `ELVTR/Content/Sprites/Swarm/**`, `RawArt/Sheets/T_Swarm*.png`, `docs/perf/niagara-sprite-path.md` | `user` |
 | `040` | 2.0 | [Replace the literal white hit-flash in the Unit Cam panel with Demichrome Pale](task-040-unitcam-literal-white-violates-ramp.md) | claude | `ELVTR/Source/**/UnitCamProjector.cpp` | `docs/art/palette-exceptions.md:45` |
+| `056` | 2.0 | [Build a 6-variant silhouette family off the bright-palette sci-fi soldier and publish the contact sheet](task-056-scifi-soldier-silhouette-variant-family.md) | claude | `RawArt/Renders/soldier-scifi-variants/**`, `docs/art/soldier-scifi-variants.md` | `user` |
+| `059` | 1.5 | [Rework the Niagara sprite path so the horde has a state axis and per-unit size, without growing the atlas](task-059-niagara-sprite-path-state-axis-and-variety.md) | claude | `ELVTR/Source/ELVTR/Mass/SwarmFragments.h`, `ELVTR/Source/ELVTR/Rendering/SwarmRenderActor.cpp`, `ELVTR/Source/ELVTR/Rendering/SwarmRenderActor.h`, `ELVTR/Content/Spike1/**`, `ELVTR/Content/Swarm/**`, `ELVTR/Content/Sprites/Swarm/**`, `RawArt/Sheets/T_Swarm*.png`, `docs/perf/niagara-sprite-path.md` | `user` |
 | `058` | 1.0 | [Tighten the HUD chrome, and let UMG follow the live ramp instead of hardcoding four hexes](task-058-hud-chrome-tightening.md) | claude | `ELVTR/Source/ELVTR/UI/EmberkeepHud.cpp`, `ELVTR/Source/ELVTR/UI/EmberkeepHud.h`, `ELVTR/Source/ELVTR/UI/EmberkeepPalette.h`, `ELVTR/Source/ELVTR/UI/MusterPanel.cpp`, `ELVTR/Source/ELVTR/UI/MusterPanel.h`, `ELVTR/Source/ELVTR/UI/MusterGrid.cpp`, `ELVTR/Source/ELVTR/UI/MusterGrid.h`, `ELVTR/Source/ELVTR/UI/SquadCard.cpp`, `ELVTR/Source/ELVTR/UI/SquadCard.h`, `ELVTR/Source/ELVTR/UI/StitchMeter.cpp`, `ELVTR/Source/ELVTR/UI/StitchMeter.h`, `ELVTR/Source/ELVTR/UI/EmberkeepUITypes.h`, `docs/ui/hud-chrome.md` | `user` |
 
 ---
 
-*Regenerated 2026-07-28 · 62 task(s) · decisions in [LOG.md](LOG.md).*
+*Regenerated 2026-07-29 · 78 task(s) · decisions in [LOG.md](LOG.md).*

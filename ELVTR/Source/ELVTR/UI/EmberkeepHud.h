@@ -6,16 +6,13 @@
 #include "EmberkeepHud.generated.h"
 
 class UBorder;
-class UEmberkeepCamFeed;
 class UMusterPanel;
 class UOverlay;
 class USizeBox;
 class UVerticalBox;
 class UStitchMeter;
 class UTextBlock;
-class UTextureRenderTarget2D;
 class UUnitCamProjector;
-class UVerticalBoxSlot;
 
 /**
  * The combat-HUD bottom command band: ONE rectangle — the retinue muster split into a left and
@@ -71,6 +68,9 @@ protected:
 	UPROPERTY(Transient) TObjectPtr<UMusterPanel> MusterRight = nullptr; // right wing
 	UPROPERTY(Transient) TObjectPtr<USizeBox> WingLeftBox = nullptr;
 	UPROPERTY(Transient) TObjectPtr<USizeBox> WingRightBox = nullptr;
+	/** One-camera mode (Emberkeep.UI.Cams 0) only: the single muster shelf's height box. The
+	 *  wings get their height from the cam beside them; with no cam this is what bounds it. */
+	UPROPERTY(Transient) TObjectPtr<USizeBox> ShelfBox = nullptr;
 	UPROPERTY(Transient) TObjectPtr<UUnitCamProjector> UnitCam = nullptr;
 
 	// The company strip: its own compartment above the cam, hoisted out of the wings so its
@@ -79,18 +79,7 @@ protected:
 	UPROPERTY(Transient) TObjectPtr<UStitchMeter> CompanyMeter = nullptr;
 	UPROPERTY(Transient) TObjectPtr<UTextBlock> CompanyLabel = nullptr;
 
-	// The split centre column: the mirrored game view stacked with the Unit Cam in one
-	// VerticalBox, dividing the column's height by Emberkeep.UI.Rect.Split.
 	UPROPERTY(Transient) TObjectPtr<UVerticalBox> CentreColumn = nullptr; // cam + squad-size bar
-	UPROPERTY(Transient) TObjectPtr<USizeBox> CentreBox = nullptr;
-	UPROPERTY(Transient) TObjectPtr<UEmberkeepCamFeed> ViewFeed = nullptr;
-	UPROPERTY(Transient) TObjectPtr<UTextureRenderTarget2D> ViewFeedTarget = nullptr;
-	UPROPERTY(Transient) TObjectPtr<UVerticalBoxSlot> TopSlot = nullptr;
-	UPROPERTY(Transient) TObjectPtr<UVerticalBoxSlot> BottomSlot = nullptr;
-
-	bool bSplitColumn = false;   // the column is currently built as two panels
-	bool bLastViewOnTop = true;  // watched so a flip of the CVar triggers one rebuild
-	bool bLastMinimap = true;    // watched so the panel's caption follows the capture mode
 
 	bool bShowCams = false; // show the Unit Cam (false = muster-only preview)
 

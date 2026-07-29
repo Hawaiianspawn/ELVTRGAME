@@ -1,8 +1,10 @@
 # pixelpipe.py -- the local half of the ELVTR sprite pipeline.
 #
 # Everything here is deterministic, offline work: validate a request, compose a
-# prompt, fetch already-generated assets, enforce the Demichrome ramp, pack a
-# SubUV sheet, report QC. It NEVER calls the PixelLab API -- PixelLab's own docs
+# prompt, fetch already-generated assets, enforce whichever palette ramp a request
+# opts into (demichrome-4 remains available; nothing is assumed by default -- see
+# docs/art/aesthetic-direction.md's 2026-07-28 AMENDMENT and request_palette() below),
+# pack a SubUV sheet, report QC. It NEVER calls the PixelLab API -- PixelLab's own docs
 # say these are MCP tools, not REST endpoints, so all generation calls are made
 # by Claude via mcp__pixellab__*. This script only touches files and the public,
 # auth-free download URLs those tools hand back.
@@ -152,7 +154,11 @@ def load_manifest(req):
 # ---------------------------------------------------------------- palette
 
 class Palette:
-    def __init__(self, key="demichrome-4"):
+    def __init__(self, key):
+        # No default key. Silently falling back to demichrome-4 is exactly the
+        # "enforce a retired rule by default" bug task-062 exists to remove -- see
+        # request_palette() below, which is how every request-driven call site
+        # resolves a key. A caller that truly wants demichrome-4 says so.
         raw = load_json(PALETTE_FILE)
         if key not in raw["palettes"]:
             raise Fail("palette '%s' is not defined in %s" % (key, PALETTE_FILE))
@@ -175,6 +181,39 @@ class Palette:
     def luma_of(self, rgb):
         """rgb: (...,3) float 0-255 -> luma 0-1, Rec.709 in gamma space."""
         return (rgb * self.weights).sum(axis=-1) / 255.0
+
+
+def load_retired_hexes():
+    """The retired-hex list, independent of which palette (if any) a request names.
+
+    retired_hexes lives at the top of palette.json, not inside any one palette entry --
+    it is voided-forever history, not a property of demichrome-4 specifically. Callers
+    that need to check for retired hexes (cmd_validate) but may not have a resolved
+    Palette (canon.palette missing) use this instead of pal.retired.
+    """
+    raw = load_json(PALETTE_FILE)
+    return {e["hex"].lower(): e for e in raw["retired_hexes"]["entries"]}
+
+
+def request_palette(req):
+    """Resolve the palette a request's canon block names. No silent default.
+
+    sprite-request.schema.json marks canon.palette required, so a schema-valid
+    request always names one -- this only trips for a malformed/unvalidated request,
+    and it should say so rather than quietly quantizing to demichrome-4, which is
+    exactly the "enforce a retired rule by default" bug task-062 exists to remove
+    (docs/art/aesthetic-direction.md AMENDMENT 2026-07-28). Anything that actually
+    wants demichrome-4 still gets it -- it just has to say so, same as it always did
+    in every request file that exists today.
+    """
+    canon = req.get("canon") or {}
+    key = canon.get("palette")
+    if not key:
+        raise Fail("request '%s' has no canon.palette set -- palette enforcement is "
+                   "opt-in, not a silent default (see docs/art/aesthetic-direction.md "
+                   "AMENDMENT 2026-07-28). Name a palette key explicitly in the request, "
+                   "e.g. \"palette\": \"demichrome-4\", to opt into that ramp." % req.get("id", "?"))
+    return Palette(key)
 
 
 # ---------------------------------------------------------------- validate
@@ -203,7 +242,26 @@ def cmd_validate(args):
         errors.append("id field '%s' does not match filename '%s.json'"
                       % (req.get("id"), args.id))
 
-    pal = Palette(req.get("canon", {}).get("palette", "demichrome-4"))
+    # No silent demichrome-4 fallback -- see request_palette()'s docstring for why.
+    # Schema requires canon.palette, so absence here means either a malformed request
+    # (already caught above as a schema error) or an unrecognised key (a Fail from
+    # Palette() itself, folded into errors rather than crashing validate outright so
+    # the rest of the report still prints).
+    canon_palette_key = req.get("canon", {}).get("palette")
+    pal = None
+    if not canon_palette_key:
+        warnings.append("canon.palette is not set -- the composed-prompt-length and "
+                        "on-palette-hex checks below are skipped. Schema validation "
+                        "above should already flag this as a required field.")
+    else:
+        try:
+            pal = Palette(canon_palette_key)
+        except Fail as e:
+            errors.append(str(e))
+
+    # Retired hexes are voided game-wide, independent of which palette (if any) this
+    # request names -- check them regardless of whether pal resolved.
+    retired = load_retired_hexes()
 
     # -- structural: the COMPOSED prompt must fit PixelLab's own cap.
     # prompt.description is capped at 600 by the schema, but the composer then appends
@@ -211,7 +269,7 @@ def cmd_validate(args):
     # rejects the result over 2000 chars. Measured 2026-07-25: soldier-01/06 passed
     # validate at 582-char descriptions and were refused at 2413/2458 composed. Without
     # this check the only way to find out is a failed call.
-    if not req.get("composite"):
+    if pal is not None and not req.get("composite"):
         try:
             for stage in ("anchor", "rotation"):
                 n = len(compose_prompt(req, pal, stage))
@@ -229,11 +287,11 @@ def cmd_validate(args):
     # -- canon: no retired hexes anywhere in the request or its linked spec
     blob = json.dumps(req)
     for h in hexes_in(blob):
-        if h in pal.retired:
-            e = pal.retired[h]
+        if h in retired:
+            e = retired[h]
             errors.append("retired hex %s (%s) appears in the request -- voided by %s"
                           % (h, e["was"], e["retired_by"]))
-        elif h not in pal.hexes:
+        elif pal is not None and h not in pal.hexes:
             warnings.append("hex %s in the request is neither a palette value nor a "
                             "known retired hex -- the composer adds palette hexes for "
                             "you, so this is probably a mistake" % h)
@@ -246,7 +304,7 @@ def cmd_validate(args):
             errors.append("subject.spec does not resolve to a file: %s" % spec_path)
         else:
             text = spec_path.read_text(encoding="utf-8", errors="replace")
-            stale = [h for h in hexes_in(text) if h in pal.retired]
+            stale = [h for h in hexes_in(text) if h in retired]
             if stale:
                 errors.append(
                     "linked spec %s cites retired hex(es) %s -- respec it before "
@@ -431,7 +489,7 @@ def compose_prompt(req, pal, stage="anchor"):
 def cmd_prompt(args):
     req = load_request(args.id)
     require_subject_request(req, "prompt")
-    pal = Palette(req["canon"].get("palette", "demichrome-4"))
+    pal = request_palette(req)
     px = dict(req["pixellab"])
     description = compose_prompt(req, pal, args.stage)
 
@@ -512,7 +570,7 @@ def render_pixel_block(lines, pal):
 def cmd_authored(args):
     req = load_request(args.id)
     require_subject_request(req, "authored")
-    pal = Palette(req["canon"].get("palette", "demichrome-4"))
+    pal = request_palette(req)
     if not pal.legend:
         raise Fail("palette '%s' defines no ascii_legend" % pal.key)
 
@@ -819,6 +877,11 @@ def cmd_quantize(args):
     if args.in_dir:
         src = Path(args.in_dir)
         dst = Path(args.out_dir) if args.out_dir else src.parent / (src.name + "-quantized")
+        if not args.palette:
+            raise Fail("standalone quantize (--in/--out) needs --palette -- there is no "
+                       "silent default; name the ramp explicitly, e.g. --palette "
+                       "demichrome-4 (see docs/art/aesthetic-direction.md AMENDMENT "
+                       "2026-07-28)")
         pal = Palette(args.palette)
         moving = args.moving
         label = str(src)
@@ -828,7 +891,7 @@ def cmd_quantize(args):
             raise Fail("give a request id, or use --in/--out for standalone mode")
         req = load_request(args.id)
         require_subject_request(req, "quantize")
-        pal = Palette(req["canon"].get("palette", "demichrome-4"))
+        pal = request_palette(req)
         src = raw_dir(req, args.stage)
         dst = quantized_dir(req, args.stage)
         moving = req["canon"]["moving"] and req["subject"]["kind"] != "ui"
@@ -1059,12 +1122,17 @@ def cmd_pack(args):
         raise Fail("output.frame_map is empty -- nothing to pack")
 
     composite = is_composite(req)
-    pal = Palette(req.get("canon", {}).get("palette", "demichrome-4"))
     provenance = {}
     if composite:
-        frames, provenance = collect_composite_frames(req, pal)
+        # A composite has no canon block at all (schema if/then excludes it), so it has
+        # no palette to resolve up front -- and doesn't need one unless a source is
+        # actually unmanaged AND asks to be repaired (source.quantize, default true).
+        # collect_composite_frames doesn't use the pal argument; pass None.
+        frames, provenance = collect_composite_frames(req, None)
+        pal = None
     else:
         frames = collect_frames(req)
+        pal = request_palette(req)
 
     missing = [v for v in fm.values() if v not in frames]
     if missing:
@@ -1083,6 +1151,19 @@ def cmd_pack(args):
         pfx = _bbox_group_of(k, composite)
         if composite and not provenance.get(pfx, {}).get("quantize", True):
             continue
+        if pal is None:
+            # Only reachable for a composite source with quantize:true -- i.e. it wants
+            # repair, but a composite has nowhere to declare which ramp to repair onto.
+            # The old code silently defaulted this to demichrome-4; failing loudly here
+            # is the fix, not a new restriction -- every composite source in the repo
+            # today sets quantize:false explicitly (see swarm-units.json, both sources,
+            # 2026-07-28) so this does not fire for anything that currently packs.
+            raise Fail("composite source '%s' has quantize:true (or unset, default "
+                       "true) but composite requests have no canon.palette to repair "
+                       "onto. Set \"quantize\": false if '%s' is already on-ramp or is "
+                       "deliberately unmanaged full-colour art, or pack it through a "
+                       "subject request (which does declare canon.palette) instead."
+                       % (pfx, pfx))
         moving = bool(req.get("canon", {}).get("moving", True))
         arr, stats = quantize_array(np.array(im), pal, moving)
         if stats.get("empty"):
@@ -1176,7 +1257,7 @@ def cmd_report(args):
     if not qc:
         raise Fail("no QC data yet -- run quantize first")
 
-    pal = Palette(req["canon"].get("palette", "demichrome-4"))
+    pal = request_palette(req)
     total_frames = off = stipple = alpha = low = 0
     for stage, frames in qc.items():
         for st in frames.values():
@@ -1336,14 +1417,20 @@ def main():
                                   "needed for animation frames, which are all named 0.png")
     p.set_defaults(fn=cmd_fetch)
 
-    p = sub.add_parser("quantize", help="enforce the 4-value ramp")
+    p = sub.add_parser("quantize", help="enforce a named palette ramp (opt-in; "
+                                        "request mode reads canon.palette, "
+                                        "standalone mode requires --palette)")
     p.add_argument("id", nargs="?")
     p.add_argument("--stage", default="anchor")
     p.add_argument("--in", dest="in_dir", help="standalone: quantize any directory")
     p.add_argument("--out", dest="out_dir")
     p.add_argument("--moving", action="store_true",
                    help="standalone: enforce the 2x2 dither rule")
-    p.add_argument("--palette", default="demichrome-4")
+    p.add_argument("--palette", default=None,
+                   help="required in standalone (--in/--out) mode -- e.g. "
+                        "demichrome-4. No default: palette enforcement is opt-in, "
+                        "not assumed (see docs/art/aesthetic-direction.md AMENDMENT "
+                        "2026-07-28)")
     p.add_argument("--normalize", choices=["auto", "always", "never"], default="auto")
     p.add_argument("--light-shift", action="store_true",
                    help="emit the one-value-brighter lamp-radius variant")

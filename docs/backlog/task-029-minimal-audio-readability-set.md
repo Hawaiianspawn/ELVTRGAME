@@ -1,7 +1,7 @@
 ---
 id: 029
 title: Spec the minimal audio set — hits, deaths, stance confirmations
-status: proposed
+status: done
 agent: gameplay-director
 owns: ["docs/design/audio-minimal.md"]
 resources: []
@@ -9,7 +9,9 @@ depends-on: []
 evidence: An audio spec framed as readability tooling, naming each cue, what it disambiguates, and how it survives 700 simultaneous sources.
 score: {feel: 3, risk: 1, cost: 1}
 source: docs/RTS-VERTICAL-SLICE.md:113
-decided: ""
+decided: "2026-07-29 done"
+model: sonnet
+teammate: audio-minimal
 ---
 
 ## Why now

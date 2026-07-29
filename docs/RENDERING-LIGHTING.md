@@ -515,6 +515,33 @@ driven live by the `Swarm.DitherThreshold1/2/3` and `Swarm.DitherBandWidth` CVar
 exposed. The material reads all four via `CollectionParameter` nodes into the demichrome
 Custom node.
 
+#### 4b.10 The colour gate as a toggle — task-057 (owner 2026-07-28)
+
+Owner goal: *"tighten up the UI and visuals in the scene. We can explore options without
+the color gate for now."* Asked what "without the color gate" meant, the owner chose
+**bypass quantization entirely**, not just more palette values. Two new CVars, same
+per-tick push as everything else in this section:
+
+- `Emberkeep.Quantize` `[0..1]`, default 1. 0 bypasses the posterise inside the Custom
+  node (a `lerp` at the very end, not a disabled post-process volume) and shows the raw
+  lit scene instead — the flame's additive lift and the world-anchored Bayer dither both
+  survive, only the value-collapse goes. `lerp(litCol, outCol, 1) == outCol` exactly, so
+  the default is byte-identical to before this task.
+- `Emberkeep.PaletteSteps` `[2..8]`, default 4. How many values the posterise collapses
+  onto. **At 4, `Threshold1/2/3` and `Palette0..3` are pushed completely unchanged** —
+  this is the non-negotiable regression guard task-057 was built under. Away from 4,
+  `SwarmRenderActor.cpp` derives `Steps-1` fresh evenly-spaced thresholds
+  (`GetEvenThreshold`, never reusing the tuned N=4 numbers at a different count) and
+  resamples the active `Emberkeep.Palette` preset's 4 authored colours across the new
+  step count (`ResamplePaletteColor`, linear interpolation along the ramp), so no preset
+  needs an 8-colour variant to support the full range.
+
+`MPC_Flame` gained matching `Threshold4..7` and `Palette4..7` parameters (16 → 26
+`CollectionParameter` nodes on `M_PP_Demichrome`), and the Custom node's fixed
+three-comparison unroll became a loop over `Steps`. Same **judging dial, not canon**
+status as `Emberkeep.Palette` (task-043) — Direction A stays locked, and UMG still does
+not follow (`EmberkeepPalette.h` draws after post; that gap is task-058's).
+
 #### Two engine gotchas worth remembering
 
 - **Live Coding cannot add a `UPROPERTY`.** Adding `FlameCollection` to

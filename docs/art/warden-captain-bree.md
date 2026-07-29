@@ -22,20 +22,26 @@ Gameplay, revised 2026-07-11 on two axes at once:
    is load-bearing for her, not incidental: her entire silhouette argument is a **mirror-fight
    comparison**, and a mirror only works if both sides speak the same proportion language
    (`aesthetic-direction.md` §4 decision 6, revised).
-2. **Shape-only class ID, mechanism replaced.** Her identity still rides on the reserved
-   point+halo bright (`hero-palettes.md` §3), but the trick that used to protect her Legion-
-   mirror read is gone: **Patched Steel is no longer cold.** The old mechanism — a deliberately
-   cold armor mid-value that kept her literally inside the Legion's cold value family — is
-   retired (`hero-palettes.md` §4b). She still must (a) read **friendly at gameplay zoom** while
-   wearing the Legion silhouette family, (b) stay **findable inside a dense friendly formation**
-   as the wall the line forms on, and (c) **never read as a Legion officer.**
+2. **Shape-only class ID, mechanism replaced, precedent under review.** Her identity still rides
+   on the reserved point+halo bright (`hero-palettes.md` §3), but the trick that used to protect
+   her Legion-mirror read is gone: **Patched Steel is no longer cold.** The old mechanism — a
+   deliberately cold armor mid-value that kept her literally inside the Legion's cold value
+   family — is retired (`hero-palettes.md` §4b). That retirement, and the single-shared-bright
+   premise generally, was locked under the demichrome global-palette gate; the 2026-07-28
+   colour-gate reversal (`aesthetic-direction.md`) lifts the gate and makes hue available again,
+   so whether a warm/cold split returns is an open colour decision, not yet made — flagged, not
+   resolved, at handback (this spec is the strongest argument in the family for bringing it
+   back, per §7). She still must (a) read **friendly at gameplay zoom** while wearing the Legion
+   silhouette family, (b) stay **findable inside a dense friendly formation** as the wall the
+   line forms on, and (c) **never read as a Legion officer.**
 
 **The mirror-fight read, re-derived (not repaired):** with no shared hex or shared cold value
 left between the Gatecamp and Legion families, her "a Legion shield with the crown scoured off"
 argument now rests on two weaker, non-hex signals instead, per `hero-palettes.md` §4b:
 
-1. **Near-anchor-parity** — Vault Dark `#211210` and Legion Dark `#211e20` sit close enough in
-   *value* (not hue) that both sides still read as "one dark world," not a lit-vs-unlit split.
+1. **Near-anchor-parity** — Vault Dark (the `dark` value-role) and the Legion's own dark anchor
+   sit close enough in *value* (not hue) that both sides still read as "one dark world," not a
+   lit-vs-unlit split.
 2. **Matching chibi proportion** — she and the Legion she mirrors both render at identical
    chibi proportions, so silhouette-family match does the work the shared cold hue used to do.
 
@@ -52,22 +58,30 @@ hue system or not.
 ## 2. Palette table
 
 4 values + transparent mask (the mask is used for background and does **not** count as a value).
+Cited by `docs/data/art/palette.json` key, not by hex — the literal hexes this table used to
+carry are retired (see `docs/data/art/palette.json` `retired_hexes` for the exact list), and no
+replacement hex is locked; that is an open colour decision, not resolved here (see handback).
+Names and role-slots are kept as the working vocabulary for *which* value is which, decoupled
+from any specific hex, per `hero-palettes.md` §2–§3.
 
-| Hex | Name | Role |
+| Key | Name | Role |
 |---|---|---|
-| `#211210` | Vault Dark | outline / recess / underside — shared darkest value across the whole world, and the value doing the mirror-fight's near-anchor-parity job against Legion Dark `#211e20` |
-| `#5e2d20` | Patched Steel | armor mid-tone. **No longer cold** (was `#4e5a66`, deliberately cold under the retired system) — warm-family now, same as every Gatecamp sprite. No longer part of the mirror-fight mechanism; see §1 |
-| `#c76b2a` | Kitchen Tin | warm mid-light: tin patches, straps, face, scarf. **The friendly-reserved value-role** — the Still Legion fills this same role-slot with cold Legion Steel `#555568`; warm-vs-cold in the third slot is the friend/foe channel for all Legion-family sprites, unaffected by this revision |
-| `#f0c260` | **Gatecamp Bright** | bright. Same literal hex as every other honest lamp in the game (retiring the old separately-named "Watch-Lamp," which is now a role description, not a distinct hex). **Lamp pixel + halo dither only — never on armor, cloth, or skin.** Scarcity is what makes the lamp read; spend it anywhere else and she loses her beacon |
+| `dark` | Vault Dark | outline / recess / underside — shared darkest value across the whole world, and the value doing the mirror-fight's near-anchor-parity job against the Legion's own dark anchor |
+| `steel` | Patched Steel | armor mid-tone. **No longer cold** under the retired per-class system — warm-family now, same as every Gatecamp sprite. No longer part of the mirror-fight mechanism; see §1 |
+| `bone` | Kitchen Tin | warm mid-light: tin patches, straps, face, scarf. **The friendly-reserved value-role** — the Still Legion fills this same role-slot with its own cold mid value; warm-vs-cold in the third slot is the friend/foe channel for all Legion-family sprites, unaffected by this revision |
+| `pale` | **Gatecamp Bright** | bright, pending the open colour decision (§1) — same value-role as every other honest lamp in the game (retiring the old separately-named "Watch-Lamp," which is a role description, not a distinct hex). **Lamp pixel + halo dither only — never on armor, cloth, or skin.** Scarcity is what makes the lamp read; spend it anywhere else and she loses her beacon |
 
 - **Shape protection (replaces the old hue-based "mark protection"):** no flapping rectangle,
   static dot-cluster, or moving contour may appear on her sprite — only the point+halo carrier.
   As a friendly she also carries no quarry-mark or rune-mark shapes.
-- **Light-shifted variant** (inside lamp radius — her own, or the Lampbearer's):
-  `#211210→#35211c`, `#5e2d20→#7c4630`, `#c76b2a→#e08c46` (proposed values, `hero-palettes.md`
-  §2). Gatecamp Bright does not shift on her either, **except** her lamp's own source pixel may
-  render `#fff6dd` inside its own radius — she is a genuine flame-source carrier, same exception
-  granted to the Lampbearer and honest-light fixtures (`hero-palettes.md` §2).
+- **Light-shifted variant** (inside lamp radius — her own, or the Lampbearer's): one step
+  brighter along the value ladder — `dark`→`steel`, `steel`→`bone`, `bone`→`pale`
+  (`docs/data/art/palette.json` `light_shift` rule) — no specific hex is proposed here anymore;
+  the previously-proposed shift hexes were derived from the now-retired base trio. Gatecamp
+  Bright does not shift on her either, **except** her lamp's own source pixel may render
+  brighter than `pale` inside its own radius, per the sanctioned flame-core exception
+  (`docs/art/palette-exceptions.md`) — she is a genuine flame-source carrier, same exception
+  granted to the Lampbearer and honest-light fixtures.
 
 ---
 
@@ -114,7 +128,8 @@ round-headed figures, and Bree is **the single steady bright point inside the fr
 geometry** — the corner-stone the wall visibly forms on. She cannot be confused with a
 Bannerman (flag = 2-value *flip animation*, motion-coded rectangle; her lamp is a static point)
 nor with Lampbearer wisps (a drifting constellation of many points; she is one point locked into
-a marching rectangle) — shape and motion carry the whole distinction now that hue does not.
+a marching rectangle) — shape and motion carry the whole distinction, whether or not hue is
+also backing it up (§1).
 
 ---
 

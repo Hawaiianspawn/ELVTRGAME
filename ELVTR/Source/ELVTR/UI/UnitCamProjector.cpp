@@ -14,6 +14,7 @@
 #include "Components/TextBlock.h"
 #include "DrawDebugHelpers.h"
 #include "Engine/Engine.h"
+#include "Engine/GameViewportClient.h"
 #include "Engine/Texture2D.h"
 #include "Engine/World.h"
 #include "GameFramework/PlayerController.h"
@@ -69,12 +70,30 @@ namespace
 	 */
 	const TArray<FString>& SpearmenStatePaths()
 	{
-		static const TArray<FString> Paths = { TEXT("/Game/Sprites/Units/T_Soldier_Knight.T_Soldier_Knight") };
+		// task-055: 5 of the knight group's 6 states go live here (owner's call, docs/data/art/
+		// provenance.json). The 6th ("chibi helm (copy)") is packed but withheld — verified
+		// byte-identical to the 5th across all 8 source rotations, so it cannot contribute variety.
+		static const TArray<FString> Paths = {
+			TEXT("/Game/Sprites/Units/T_Soldier_Knight.T_Soldier_Knight"),
+			TEXT("/Game/Sprites/Units/T_Soldier_Knight_02.T_Soldier_Knight_02"),
+			TEXT("/Game/Sprites/Units/T_Soldier_Knight_03.T_Soldier_Knight_03"),
+			TEXT("/Game/Sprites/Units/T_Soldier_Knight_04.T_Soldier_Knight_04"),
+			TEXT("/Game/Sprites/Units/T_Soldier_Knight_05.T_Soldier_Knight_05"),
+		};
 		return Paths;
 	}
 	const TArray<FString>& ArcherStatePaths()
 	{
-		static const TArray<FString> Paths = { TEXT("/Game/Sprites/Units/T_Soldier_Archer.T_Soldier_Archer") };
+		// task-055: 3 of the archer group's 5 states go live here (owner's call, docs/data/art/
+		// provenance.json). The other 2 are packed but withheld — neither carries a bow (one holds
+		// a rocket-launcher-style weapon, the other a mage staff), so wiring them would read as a
+		// different archetype rather than archer variety, which is the one failure mode this
+		// mechanism exists to avoid.
+		static const TArray<FString> Paths = {
+			TEXT("/Game/Sprites/Units/T_Soldier_Archer.T_Soldier_Archer"),
+			TEXT("/Game/Sprites/Units/T_Soldier_Archer_02.T_Soldier_Archer_02"),
+			TEXT("/Game/Sprites/Units/T_Soldier_Archer_03.T_Soldier_Archer_03"),
+		};
 		return Paths;
 	}
 
@@ -159,7 +178,7 @@ namespace
 		TEXT("Minimum fraction of the framed population (the selected squad's standing, or the\n")
 		TEXT("whole retinue with nothing selected) that must fit in Unit/Squad View before the\n")
 		TEXT("camera is allowed to widen no further. Spec default 60% (squad-group-system.md §4.2's\n")
-		TEXT("UnitCamProjector row; ViewFeed's 80% is a different panel, not this one)."),
+		TEXT("UnitCamProjector row)."),
 		ECVF_Default);
 
 	TAutoConsoleVariable<int32> CVarProjFrameFloor(
@@ -187,6 +206,34 @@ namespace
 		ECVF_Default);
 
 	// --- dynamic panel size by total bodies (individual <-> mass) -----------
+	TAutoConsoleVariable<float> CVarProjCountLog(
+		TEXT("Emberkeep.UnitCamProj.CountLog"), 0.f,
+		TEXT("Log how many billboards this panel actually drew, every N seconds. 0 = off.\n")
+		TEXT("\n")
+		TEXT("Exists because 'the Unit Cam costs nothing' and 'the Unit Cam drew nothing' are\n")
+		TEXT("the same number in a benchmark, and telling them apart by eye on a windowed run\n")
+		TEXT("is not evidence. Turn this on for any measurement run that claims a cost for this\n")
+		TEXT("panel — a row with no accompanying non-zero count is not a measurement."),
+		ECVF_Default);
+
+	TAutoConsoleVariable<int32> CVarProjEnable(
+		TEXT("Emberkeep.UnitCamProj.Enable"), 1,
+		TEXT("Master switch for the Unit Cam projector. 0 collapses the panel and skips its\n")
+		TEXT("per-frame projection entirely — the honest 'this camera costs nothing' state,\n")
+		TEXT("used by the bench to measure the world renderers without the panel underneath\n")
+		TEXT("them. Not a framing dial; for that see Fullscreen below."),
+		ECVF_Default);
+
+	TAutoConsoleVariable<int32> CVarProjFullscreen(
+		TEXT("Emberkeep.UnitCamProj.Fullscreen"), 0,
+		TEXT("Blow the Unit Cam up to fill the viewport, so the projector can be evaluated as\n")
+		TEXT("the game's ONE camera rather than a corner panel (docs/perf/one-camera-bench.md).\n")
+		TEXT("A real perf variable, not just framing: cost scales with what survives the cull,\n")
+		TEXT("so a panel-sized cam draws a fraction of what a full-screen one does — measuring\n")
+		TEXT("the panel and calling it the full-screen number understates it badly.\n")
+		TEXT("Overrides SizeMin/SizeMax while set and drops the frame border. 0 = panel mode."),
+		ECVF_Default);
+
 	TAutoConsoleVariable<float> CVarProjSizeMax(
 		TEXT("Emberkeep.UnitCamProj.SizeMax"), 620.f,
 		TEXT("Unit Cam panel HEIGHT (px) when the field is nearly empty — the individual is big\n")
@@ -301,24 +348,6 @@ namespace
 		TEXT("your soldiers. Set alongside Swarm.BroodSize so the world and the panel agree."),
 		ECVF_Default);
 
-	// The projected point for a body is its GROUND position — the sim is 2D, every entity's
-	// transform sits on the floor plane. So a sprite centred on that point is drawn half
-	// buried, and every size multiplier (SoldierScale, HeroScale, BroodScale, the size roll)
-	// grows it downward through the floor exactly as much as upward. Anchoring by the feet
-	// is what makes size a one-directional thing: a bigger unit is TALLER, not deeper.
-	//
-	// A dial rather than a hard switch because 1.0 re-frames the whole panel upward by half
-	// a body — the Pitch/Height/Dist shot was composed against the old half-sunk look, and
-	// 0 reproduces it exactly for an A/B.
-	TAutoConsoleVariable<float> CVarProjFootAnchor(
-		TEXT("Emberkeep.UnitCamProj.FootAnchor"), 1.f,
-		TEXT("Where a body's sprite sits relative to its projected ground point.\n")
-		TEXT("1 = standing ON it (feet planted, grows upward only) — the correct read.\n")
-		TEXT("0 = centred on it, the pre-2026-07-26 look, where scaling sinks a unit through\n")
-		TEXT("the floor. Values between slide the anchor. Raising this lifts every body half\n")
-		TEXT("its height up the panel, so expect to re-check Pitch/Height after."),
-		ECVF_Default);
-
 	TAutoConsoleVariable<float> CVarProjNearFade(
 		TEXT("Emberkeep.UnitCamProj.NearFade"), 150.f,
 		TEXT("Depth band (uu) just in front of the near plane over which a unit fades in\n")
@@ -360,39 +389,6 @@ namespace
 		TEXT("for. Odd cells are each direction's walk1 frame; see the doc comment on\n")
 		TEXT("HeroSheetColumns/Rows in the anonymous namespace above for the direction order\n")
 		TEXT("and why this does not yet resolve per-view like the retinue variants do."),
-		ECVF_Default);
-
-	// --- high-resolution retinue: knight + archer (task-050) ------------------
-	TAutoConsoleVariable<int32> CVarProjSoldierVariants(
-		TEXT("Emberkeep.UnitCamProj.SoldierVariants"), 1,
-		TEXT("Draw retinue billboards from the two owner-chosen high-resolution units\n")
-		TEXT("(T_Soldier_Knight, T_Soldier_Archer) instead of one shared cell of T_Swarm_2bit\n")
-		TEXT("for every soldier. 0 = old behaviour (A/B against this change, or a fallback if a\n")
-		TEXT("texture is missing from Content). Brood are unaffected either way — this dial is\n")
-		TEXT("retinue-only. Name kept from the six-variant era (task-050 rev 1) rather than\n")
-		TEXT("renamed, since it still means exactly the same thing: 'is retinue high-res or not'."),
-		ECVF_Default);
-
-	// RETIRED (task-046): retinue sprite choice now follows the real Spearmen/Archers type
-	// (FSwarmAnimFragment::SquadId, decoded via SwarmSquad::UnitType — see the sprite-
-	// selection block below), not a hash. This CVar is left registered, inert, only so an
-	// old exec file or saved preset that still names it doesn't error; it is no longer read
-	// anywhere in this file. PickSoldierLook, which used to compute the hash, is deleted —
-	// see its old doc comment (git history) for why SquadId/SlotIndex used to be the WRONG
-	// thing to key this on: both renumbered on any casualty anywhere before this task's
-	// sticky-SquadId fix (docs/design/squad-group-system.md §1.3) landed.
-	TAutoConsoleVariable<float> CVarProjArcherFraction(
-		TEXT("Emberkeep.UnitCamProj.ArcherFraction"), 0.35f,
-		TEXT("RETIRED, inert — see the comment above this CVar's registration in\n")
-		TEXT("UnitCamProjector.cpp. Sprite choice now follows the real per-soldier type."),
-		ECVF_Default);
-
-	TAutoConsoleVariable<int32> CVarProjBroodTint(
-		TEXT("Emberkeep.UnitCamProj.BroodTint"), 0,
-		TEXT("Multiply the reserved red through the brood sprites in the Unit Cam. Before they\n")
-		TEXT("had art the brood WERE that red — it was the only thing telling them from the\n")
-		TEXT("retinue. Now the silhouette does that job and the panel matches the world view,\n")
-		TEXT("so this defaults OFF; set 1 to get the old high-contrast threat read back."),
 		ECVF_Default);
 
 	// --- panel lighting (see the block comment in the projection loop) -------
@@ -596,8 +592,6 @@ public:
 
 	void SetSoldierAspect(float InAspect) { SoldierAspect = InAspect; }
 
-	void SetFootAnchor(float InAnchor) { FootAnchor = InAnchor; }
-
 	void SetShowReticle(bool bInShow) { bShowReticle = bInShow; }
 
 	virtual int32 OnPaint(const FPaintArgs& Args, const FGeometry& AllottedGeometry,
@@ -607,10 +601,9 @@ public:
 		const FSlateColorBrush Brush(FLinearColor::White); // tinted per element below
 		const FVector2f Size = FVector2f(AllottedGeometry.GetLocalSize());
 
-		// Fraction of a body's drawn height that sits ABOVE its projected point: 0.5 centres
-		// the sprite on it, 1.0 stands the sprite on it. Computed once, applied to every body
-		// including the bearer, so nothing can be anchored differently from its neighbours.
-		const float AnchorY = 0.5f + 0.5f * FMath::Clamp(FootAnchor, 0.f, 1.f);
+		// Every body, the bearer included, stands ON its projected point — that point is the
+		// unit's ground contact, so a sprite centred on it would be drawn half buried and every
+		// size multiplier would grow it downward through the floor as much as upward.
 
 		// The dark world behind the units — heavy midnight, never pure black.
 		FSlateDrawElement::MakeBox(OutDrawElements, LayerId,
@@ -643,7 +636,7 @@ public:
 				FSlateDrawElement::MakeBox(OutDrawElements, LayerId + (B.bHero ? 2 : 1),
 					AllottedGeometry.ToPaintGeometry(
 						FVector2f(DrawW, DrawH),
-						FSlateLayoutTransform(FVector2f(Centre.X - DrawW * 0.5f, Centre.Y - DrawH * AnchorY))),
+						FSlateLayoutTransform(FVector2f(Centre.X - DrawW * 0.5f, Centre.Y - DrawH))),
 					&CellBrush, ESlateDrawEffect::None, B.Color);
 				continue;
 			}
@@ -653,7 +646,7 @@ public:
 			FSlateDrawElement::MakeBox(OutDrawElements, LayerId + 1,
 				AllottedGeometry.ToPaintGeometry(
 					FVector2f(2.f * Half, 2.f * Half),
-					FSlateLayoutTransform(FVector2f(Centre.X - Half, Centre.Y - 2.f * Half * AnchorY))),
+					FSlateLayoutTransform(FVector2f(Centre.X - Half, Centre.Y - 2.f * Half))),
 				&Brush, ESlateDrawEffect::None, B.Color);
 
 			// Army View blocks carry a live-count label; nothing else sets one.
@@ -697,7 +690,6 @@ private:
 	float SoldierScale = SoldierHeightScale;
 	float HeroScale = 1.6f;
 	float SoldierAspect = 1.f; // live width-only stretch on top of the cell's own aspect
-	float FootAnchor = 1.f;   // 1 = bodies stand on their projected ground point
 	bool bShowReticle = true; // off in Army View — see SetShowReticle
 };
 
@@ -741,14 +733,6 @@ void UUnitCamCanvasWidget::SetSoldierAspect(float InAspect)
 	if (Canvas.IsValid())
 	{
 		Canvas->SetSoldierAspect(InAspect);
-	}
-}
-
-void UUnitCamCanvasWidget::SetFootAnchor(float InAnchor)
-{
-	if (Canvas.IsValid())
-	{
-		Canvas->SetFootAnchor(InAnchor);
 	}
 }
 
@@ -923,6 +907,27 @@ void UUnitCamProjector::NativeTick(const FGeometry& MyGeometry, float DeltaTime)
 		return;
 	}
 
+	// Hard off switch. The combat HUD auto-shows this panel even during a -SwarmBench run, so
+	// without this the "viewport only" bench rows would silently carry a panel-sized projector's
+	// cost and every renderer comparison would be contaminated by the thing it's compared against.
+	//
+	// Zero-sized rather than Collapsed, and that distinction is load-bearing: a COLLAPSED widget
+	// is dropped from Slate's tick, so NativeTick would stop running and nothing could ever turn
+	// the panel back ON. The first version of this switch did collapse, and it made a later bench
+	// config that re-enabled the cam silently measure a dead widget. Zero-sized keeps the widget
+	// ticking (so it can come back) while giving Slate nothing to lay out or paint, and the
+	// cleared billboard array means the canvas has no elements to submit either.
+	if (CVarProjEnable.GetValueOnGameThread() == 0)
+	{
+		CanvasWidget->SetBillboards({});
+		if (RootBox)
+		{
+			RootBox->SetWidthOverride(0.f);
+			RootBox->SetHeightOverride(0.f);
+		}
+		return;
+	}
+
 	// Unit sprites: the shared brood atlas plus, since task-050, one dedicated texture each for
 	// the bearer, the knight and the archer. All loaded once from Content on first tick;
 	// SwarmAtlas stays the source for brood (and for retinue if SoldierVariants is switched
@@ -992,7 +997,6 @@ void UUnitCamProjector::NativeTick(const FGeometry& MyGeometry, float DeltaTime)
 	CanvasWidget->SetSoldierScale(CVarProjSoldierScale.GetValueOnGameThread());
 	CanvasWidget->SetHeroScale(FMath::Max(CVarProjHeroScale.GetValueOnGameThread(), 0.f));
 	CanvasWidget->SetSoldierAspect(FMath::Max(CVarProjSoldierAspect.GetValueOnGameThread(), 0.1f));
-	CanvasWidget->SetFootAnchor(CVarProjFootAnchor.GetValueOnGameThread());
 
 	const UWorld* World = GetWorld();
 	const USwarmSubsystem* Swarm = World ? World->GetSubsystem<USwarmSubsystem>() : nullptr;
@@ -1004,7 +1008,31 @@ void UUnitCamProjector::NativeTick(const FGeometry& MyGeometry, float DeltaTime)
 
 	// Dynamic panel size + threat tint: the more bodies on the field, the smaller the
 	// individual view; the more the brood outnumber the host, the redder the frame.
-	if (RootBox)
+	const bool bFullscreen = CVarProjFullscreen.GetValueOnGameThread() != 0;
+	if (RootBox && bFullscreen)
+	{
+		// Full-screen mode: take the viewport's real pixel size rather than the body-count
+		// curve below, which exists to shrink a corner panel and would fight this.
+		FVector2D Viewport(1920.0, 1080.0);
+		if (const UWorld* W = GetWorld())
+		{
+			if (const UGameViewportClient* VP = W->GetGameViewport())
+			{
+				VP->GetViewportSize(Viewport);
+			}
+		}
+		if (Viewport.X > 0.0 && Viewport.Y > 0.0)
+		{
+			RootBox->SetWidthOverride((float)Viewport.X);
+			RootBox->SetHeightOverride((float)Viewport.Y);
+			PanelSizePx = Viewport;
+		}
+		if (FrameBorder)
+		{
+			FrameBorder->SetPadding(FMargin(0.f)); // a border on a full-screen cam is just a crop
+		}
+	}
+	else if (RootBox)
 	{
 		const int32 Retinue = Swarm->GetAliveRetinue();
 		const int32 Brood = Swarm->GetAliveBrood();
@@ -1232,7 +1260,6 @@ void UUnitCamProjector::NativeTick(const FGeometry& MyGeometry, float DeltaTime)
 	const int32 LightSteps = CVarProjLightSteps.GetValueOnGameThread();
 	const float FullColorFloor = FMath::Clamp(CVarProjFullColorFloor.GetValueOnGameThread(), 0.f, 1.f);
 	const float FullColorDimStrength = FMath::Clamp(CVarProjFullColorDimStrength.GetValueOnGameThread(), 0.f, 1.f);
-	const bool bSoldierVariants = CVarProjSoldierVariants.GetValueOnGameThread() != 0; // read once, not per-body
 
 	TArray<FUnitCamBillboard> Out;
 	Out.Reserve(Num);
@@ -1274,9 +1301,9 @@ void UUnitCamProjector::NativeTick(const FGeometry& MyGeometry, float DeltaTime)
 		}
 
 		const bool bRetinue = (AnimBits[i] & SwarmAnim::TeamBit) != 0;
-		// Decided once, up front, and reused both for lighting (below) and sprite selection
-		// (further down) so the two can never disagree about which bodies are full-colour.
-		const bool bFullColorRetinue = bRetinue && bSoldierVariants;
+		// Retinue always draw from the high-resolution knight/archer sheets; the alias names
+		// what that means for lighting and sprite selection below, so the two cannot disagree.
+		const bool bFullColorRetinue = bRetinue;
 
 		FUnitCamBillboard B;
 		B.Center = FVector2f(0.5f + 0.5f * NX, 0.5f - 0.5f * NY); // NDC -> panel, y down
@@ -1411,14 +1438,8 @@ void UUnitCamProjector::NativeTick(const FGeometry& MyGeometry, float DeltaTime)
 		else if (bSprite)
 		{
 			// Light-only tint: colour comes from the atlas, so the panel reads the same as the
-			// world. Brood may optionally keep the reserved red they had as flat quads — the
-			// team read used to come entirely from that colour, and now it comes from the art.
+			// world. The team read comes from the art, not from a tint.
 			B.Color = FLinearColor(Lit, Lit, Lit, FadeAlpha);
-			if (!bRetinue && CVarProjBroodTint.GetValueOnGameThread() != 0)
-			{
-				B.Color *= FLinearColor(BroodAlbedo);
-				B.Color.A = FadeAlpha;
-			}
 		}
 		else
 		{
@@ -1476,6 +1497,21 @@ void UUnitCamProjector::NativeTick(const FGeometry& MyGeometry, float DeltaTime)
 		if (A.bHero != B.bHero) { return B.bHero; }
 		return A.Depth > B.Depth;
 	});
+
+	// Proof-of-life for measurement runs — see CVarProjCountLog. Counted before the move,
+	// since Out is empty afterwards.
+	const float CountLogEvery = CVarProjCountLog.GetValueOnGameThread();
+	if (CountLogEvery > 0.f)
+	{
+		CountLogTimer += DeltaTime;
+		if (CountLogTimer >= CountLogEvery)
+		{
+			CountLogTimer = 0.f;
+			UE_LOG(LogTemp, Display,
+				TEXT("UnitCamProj: drew %d billboards of %d bodies (fullscreen=%d, panel=%.0fx%.0f)"),
+				Out.Num(), Num, bFullscreen ? 1 : 0, PanelSizePx.X, PanelSizePx.Y);
+		}
+	}
 
 	CanvasWidget->SetBillboards(MoveTemp(Out));
 }

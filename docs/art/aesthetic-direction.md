@@ -5,6 +5,37 @@
 This is an analysis + direction document, not a sprite spec. It exists to narrow the board
 into one buildable style before more per-asset specs are written.
 
+> **AMENDMENT 2026-07-28: the strict 4-value global palette is SUPERSEDED. Colour is
+> back.** Owner call, made live in-editor against a running build. `Emberkeep.Quantize`
+> is now **0** in `SwarmExecOnPlay.txt`: the demichrome pass no longer collapses the
+> scene onto four values, and the raw lit scene — full colour, full range — is what
+> ships. This reverses the 2026-07-12 reset below on the one point that reset was
+> about, the *value collapse*. It does **not** delete the rest of Direction A.
+>
+> **What survives, and this matters:** the flame's additive lift and the
+> world-anchored Bayer dither are both still in the picture — only the posterise
+> goes. So the game keeps its light model and its dither texture; it stops being
+> 2-bit. `Emberkeep.PaletteSteps` (2..8) and a `Quantize` between 0 and 1 remain as a
+> cross-fade, so a middle ground — colour, but banded — is one dial away and does not
+> need this document changed again.
+>
+> **Why it changed:** the roster moved to full-colour PixelLab renders (knight,
+> archer, and now the retinue character `243c7684` and the brood-ooze family). Those
+> sheets carry their own baked shadows and material reads, and the 4-value collapse
+> was throwing that work away — the same compounding that already forced
+> `UnitCamProj.FullColorFloor`/`FullColorDimStrength` into existence as patches in the
+> Unit Cam. Rather than keep patching the crush per-surface, the crush is off.
+>
+> **Consequences to expect, not yet resolved:** the flame thresholds
+> (`DitherThreshold1/2/3`), `FlameIntensity` and the per-team light floors/ceilings
+> were all tuned *against the posterised output*, so they are now tuning an image they
+> were never fitted to — the first raw-scene capture shows the lit pool reading dark
+> against a warm floor, which is that mismatch and not a bug in the pass. Retune them
+> before treating any raw-scene screenshot as the look. Direction A's palette table
+> below stays as the historical lock; do not cite it as current, and do not delete it.
+> This is a direction change recorded as a decision, per the owner: *"reintroduce the
+> color."*
+
 > **RESET 2026-07-12: Direction B ("Lamplit Ledger") is SUPERSEDED. Direction A
 > ("The Sampler Kingdom") is now LOCKED, hex-locked to 2-bit Demichrome.** Owner
 > directive, verbatim: *"I want to use the 2bit Demichrome as the entire color
@@ -561,6 +592,27 @@ canon territory, not this doc's to edit).
 > (four hero files stayed role-only in prose per CLASSES.md's 2026-07-11
 > reversal; the two Bree files kept her name since she is a named NPC, not a
 > playable class).
+>
+> **CORRECTION 2026-07-28 (task-039 audit) — the paragraph above is a false
+> all-clear, on two independent counts, and is superseded by this note. Kept
+> for history like everything else in this document, not deleted.** First, the
+> redraw pass did not actually retire the hexes it certified: a 2026-07-28
+> audit found `docs/art/hallam.md`, `docs/art/edda.md`, `docs/art/merle.md`,
+> `docs/art/noll.md`, `docs/art/warden-captain-bree.md`, and
+> `docs/art/brees-stairwell.md` still citing the retired Gatecamp trio and
+> bright as bare hex literals (`#211210` / `#5e2d20` / `#c76b2a` / `#f0c260`),
+> and `.claude/agents/pixel-art-director.md` still citing the older
+> `#1a1c2c` Vault Dark, years after this note certified all of it clean. Now
+> fixed: those six specs, plus the agent file, cite `docs/data/art/palette.json`
+> **keys** (`dark` / `steel` / `bone` / `pale`) instead of bare hex literals,
+> so a future palette change does not mean another six-file edit
+> (`docs/RENDERING-LIGHTING.md` §2.1 Phase B / task-041 is the project this
+> protects). Second, this note predates the **AMENDMENT 2026-07-28** at the
+> very top of this document: the strict 4-value lock these six specs were
+> redrawn *for* is itself now superseded — colour is back — so there is no
+> current locked hex for any of them to cite even where the literals would
+> have been correct. **Do not read the 2026-07-12 paragraph above as
+> certifying current palette usage, on either count.**
 
 ---
 

@@ -129,7 +129,11 @@ good case, and it means the owner sees exactly one question all run.
 - **`agent:`** must match what the definition can actually do. `pixel-art-director` writes
   specs, never image files. `ui-director`, `pixel-art-director` and `narrative-director`
   have **no shell** — they cannot build, PIE, or run a script. Source and content edits go
-  to `claude`.
+  to `claude`. `sim-director` does have a shell and runs `Scripts/sim/` — a point-target
+  claim (army/hero vs one Elite/Titan/Boss) routes there, not to a PIE evidence bar; a
+  wave-attrition survivor count from the same agent is a scaffold, never a standalone
+  evidence bar, per `docs/sim/LIMITATIONS.md` §1 (`TEMPLATE.md`'s "Evidence bar: sim vs
+  PIE" has the full rule).
 - **`owns:`** every path the teammate will write, and nothing more. **This field decides
   the schedule.** Under-declaring causes silent overwrites; over-declaring falsely
   serialises work that could have run in parallel. `docs/**` on a task that writes one file

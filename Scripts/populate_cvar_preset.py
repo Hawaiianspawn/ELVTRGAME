@@ -45,7 +45,6 @@ VALUES = {
     "Swarm.DitherThreshold2": "0.5",
     "Swarm.DitherThreshold3": "0.75",
     # Per-unit shading
-    "Swarm.UnitShading": "1",
     "Swarm.UnitBackShade": "0.32",
     "Swarm.UnitLightFloor": "0.28",
     # Enemy / combat
@@ -69,9 +68,6 @@ VALUES = {
     "Swarm.KnockbackDistance": "35",
     "Swarm.KnockbackTime": "0.1",
     # Body size — per team, overriding the render actor's UPROPERTYs (added 2026-07-26)
-    "Swarm.BroodSize": "14",
-    "Swarm.RetinueSize": "22",
-    "Swarm.BodyHeight": "0.5",
     # Per-unit variation. Rides in the spare high bits of the render buffer's anim int32,
     # so the amplitude retunes live with no respawn. Niagara ignores it; boxes + cam only.
     "Swarm.BroodSizeJitter": "0.2",
@@ -96,10 +92,8 @@ VALUES = {
     "Emberkeep.UnitCamProj.BroodScale": "1",
     # 1 = bodies stand on their projected ground point. Below 1 they draw half-buried and
     # every size multiplier digs downward as much as upward.
-    "Emberkeep.UnitCamProj.FootAnchor": "1",
     # Units now pick their own cell of the 4x2 T_Swarm_2bit grid per body (SpriteCell is
     # gone); this is the one remaining override — the reserved-red wash over brood sprites.
-    "Emberkeep.UnitCamProj.BroodTint": "0",
     "Emberkeep.UnitCamProj.NearFade": "150",
     "Emberkeep.UnitCamProj.NearPlane": "10",
     "Emberkeep.UnitCamProj.Fov": "40",
@@ -129,18 +123,6 @@ VALUES = {
     "Emberkeep.UnitCamProj.Aspect": "1.35",
     "Emberkeep.UnitCamProj.ThreatTint": "1",
     "Emberkeep.UI.Muster.WingRatio": "0.5",
-    # Split centre column — the mirrored game view stacked with the unit cam. ViewCam.Rate is
-    # the cost dial: the view cam is a real second scene render, not a fake projection.
-    # Split is OFF: the unit cam is primary at full height. The minimap content was rejected
-    # 2026-07-26; the split machinery stays behind ViewCam for whatever replaces it.
-    "Emberkeep.UI.ViewCam": "0",
-    "Emberkeep.UI.Rect.Split": "0.5",
-    "Emberkeep.UI.Rect.ViewOnTop": "1",
-    "Emberkeep.UI.ViewCam.Res": "640",
-    "Emberkeep.UI.ViewCam.Rate": "1",
-    "Emberkeep.UI.ViewCam.Mode": "1",
-    "Emberkeep.UI.ViewCam.MapWidth": "4000",
-    "Emberkeep.UI.ViewCam.MapHeight": "5000",
     # Game camera — slides to keep the hero centred in the strip the HUD doesn't cover
     "Emberkeep.Cam.HudBias": "1",
     "Emberkeep.Cam.HudBiasLerp": "6",
@@ -162,10 +144,9 @@ COMBAT = COMBAT + HITREACTION
 # and arrives, plus the brood stat block it is judged by. Deliberately overlaps COMBAT on
 # the brood stats — you cannot tell whether BroodSpeed is right without BroodDPS in reach.
 HORDE = ["Swarm.BroodMaxHP", "Swarm.BroodDPS", "Swarm.BroodTargetsPerHit",
-         # Size carries its own comparison points: RetinueSize is what BroodSize is read
-         # against, and BroodScale is the same call in the panel, where it is legible.
-         "Swarm.BroodSize", "Swarm.BroodSizeJitter", "Swarm.RetinueSize",
-         "Swarm.RetinueSizeJitter", "Emberkeep.UnitCamProj.BroodScale",
+         # BroodScale is the same size call in the panel, where the difference is legible.
+         "Swarm.BroodSizeJitter", "Swarm.RetinueSizeJitter",
+         "Emberkeep.UnitCamProj.BroodScale",
          "Swarm.BroodSpeed", "Swarm.BroodAggroRange", "Swarm.BroodSeparation",
          "Swarm.BroodSeparationWeight", "Swarm.BroodSeparationCap", "Swarm.BroodWalkHz",
          "Swarm.BroodSpawnRadiusMin", "Swarm.BroodSpawnRadiusMax", "Swarm.BroodSpawnArc",
@@ -173,10 +154,7 @@ HORDE = ["Swarm.BroodMaxHP", "Swarm.BroodDPS", "Swarm.BroodTargetsPerHit",
 # The wing ratio lives under a different prefix but frames the same rectangle, so it
 # belongs on the Unit Cam preset with the panel-size dials it pairs with.
 UNITCAM = ([k for k in VALUES if k.startswith("Emberkeep.UnitCamProj.")]
-           + ["Emberkeep.UI.Muster.WingRatio", "Emberkeep.UI.ViewCam", "Emberkeep.UI.Rect.Split",
-              "Emberkeep.UI.Rect.ViewOnTop", "Emberkeep.UI.ViewCam.Res", "Emberkeep.UI.ViewCam.Rate",
-              "Emberkeep.UI.ViewCam.Mode", "Emberkeep.UI.ViewCam.MapWidth",
-              "Emberkeep.UI.ViewCam.MapHeight",
+           + ["Emberkeep.UI.Muster.WingRatio",
               # The camera bias is driven BY the HUD's size, so it is tuned in the same sitting.
               "Emberkeep.Cam.HudBias", "Emberkeep.Cam.HudBiasLerp"])
 EVERYTHING = list(VALUES.keys())

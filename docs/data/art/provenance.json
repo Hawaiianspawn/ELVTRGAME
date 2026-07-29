@@ -6,7 +6,8 @@
     "task-050 rev 2 (2026-07-27): fixed the archer's Dark-dominance via a shadow lift (still ramp-quantized, still 48px).",
     "task-050 rev 3 (2026-07-27/28): owner rejected the 48px approach on sight -- 'we degraded with the units again. I only want my high resolution units for the retinue. So the archer model and the knight model we had.' The six variants were dropped from the panel (files kept, unreferenced by UnitCamProjector.cpp) and replaced with exactly two high-resolution units, still ramp-quantized: this archer repacked at native resolution with the same shadow lift, and a new knight.",
     "task-050 rev 4 (2026-07-28): owner reviewed the rev-3 capture and diagnosed it as still reading mushy/soft-edged. Direction: 'use the full color models we have on pixel lab' -- drop quantization entirely for these two units. This revision removes the shadow lift, pixelpipe.quantize_array, and the pale-to-bone safety clamp from both; the sheets are now the raw PixelLab rotations with only a crop/centre/pack step, no recolouring at all. See ramp_departure above and each entry's conversion/qc sections below.",
-    "task-050 rev 5 (2026-07-28): owner, on the rev-4 capture: 'the units they are a little scaled oddly. Can they be more broad?' Root cause found in the PACKING, not the draw code: every rotation's real alpha content measures only ~23-46px per side (max 43x46 across both characters, all directions), inside an 88-92px source canvas that PixelLab renders with a large, roughly-symmetric transparent margin on all sides -- the rev 3/4 cell (96x96, sized to the source canvas) therefore left real content filling only ~45-48% of the cell, drawn at the same on-screen box size as the blank padding around it. Fixed by shrinking the cell to 56x60 (fits the measured max content with >=10px margin on every side) -- a crop, not a resize: no content pixel is scaled or resampled, only the amount of surrounding blank canvas kept in the packed sheet changes. Also added a new live CVar, Emberkeep.UnitCamProj.SoldierAspect (width-only multiplier, default 1, in Saved/SwarmExecOnPlay.txt), for further taste-tuning on top of the fix -- left at 1 because the packing fix alone already reads broad and crisp in a capture; the dial exists for the owner to keep adjusting without a rebuild, not because 1 was a guess."
+    "task-050 rev 5 (2026-07-28): owner, on the rev-4 capture: 'the units they are a little scaled oddly. Can they be more broad?' Root cause found in the PACKING, not the draw code: every rotation's real alpha content measures only ~23-46px per side (max 43x46 across both characters, all directions), inside an 88-92px source canvas that PixelLab renders with a large, roughly-symmetric transparent margin on all sides -- the rev 3/4 cell (96x96, sized to the source canvas) therefore left real content filling only ~45-48% of the cell, drawn at the same on-screen box size as the blank padding around it. Fixed by shrinking the cell to 56x60 (fits the measured max content with >=10px margin on every side) -- a crop, not a resize: no content pixel is scaled or resampled, only the amount of surrounding blank canvas kept in the packed sheet changes. Also added a new live CVar, Emberkeep.UnitCamProj.SoldierAspect (width-only multiplier, default 1, in Saved/SwarmExecOnPlay.txt), for further taste-tuning on top of the fix -- left at 1 because the packing fix alone already reads broad and crisp in a capture; the dial exists for the owner to keep adjusting without a rebuild, not because 1 was a guess.",
+    "task-055 (2026-07-27/28): owner, on task-046's new type/state selection mechanism -- 'sorry variants I mean states. This gives us variety of the character type.' Downloaded (get_character, read-only, 0 generations spent) and packed EVERY remaining state in both PixelLab groups: 5 additional knight states (group 2cc3ab61-4230-4786-98fa-b94da9e99218, 6 states total, state 1 = the existing T_Soldier_Knight/'Hallam (Vanguard)') and 4 additional archer states (group e2702eb6-248d-4b6b-b8dc-fedc1290e059, 5 states total, state 1 = the existing T_Soldier_Archer/'Merle (Pathfinder)'). Each new state packed to the SAME 56x60-cell, 5x2, 280x120 grid task-050 rev 5 established (measured max content across every new state: 40x45 knight, 43x46 archer -- both still comfortably inside the rev-5 cell, no repack needed) and imported as its own fresh texture asset, named by role+index per the owner's retired-hero-names decision (never the PixelLab prompt-fragment name), e.g. T_Soldier_Knight_02..06, T_Soldier_Archer_02..05. See the new entries below for what each one visually is. Two findings surfaced and are disclosed rather than silently fixed: (1) knight states 5 and 6 ('chibi helm' and its '(copy)') are BYTE-IDENTICAL across all 8 source rotations (max pixel diff 0) -- state 6 contributes zero visual variety, it is a true duplicate, not just a similar design; (2) archer states 4 and 5 ('RPG launcher' and 'Convert to Mage') do not carry a bow at all -- state 4 holds a rocket-launcher-style weapon, state 5 holds a glowing mage staff/orb -- so on their own they would read as a different unit archetype, not as an archer variant, if a rank of archers rolled onto them. Packed anyway per the owner's 'pack them all' direction; flagged here for a keep/drop call. WIRING: initially withheld -- this task's brief listed ELVTR/Source/** DO-NOT-TOUCH (task-046 owned it), so packing stopped short of the array edit and escalated instead. Superseded same day: task-046 had closed `done` on 2026-07-27, releasing its lock, and the owner made the explicit keep/drop call. task-055's owns: was widened (scoped to exactly the two function bodies, SpearmenStatePaths()/ArcherStatePaths()) and the arrays now hold 5 of the knight's 6 states + 3 of the archer's 5 states, live. Withheld: knight state 6 (byte-identical duplicate of state 5) and archer states 4-5 (neither carries a bow -- one holds a rocket launcher, one a mage staff). All three stay packed and documented, just excluded from the live arrays -- see their own entries."
   ],
   "entries": [
     {
@@ -97,6 +98,143 @@
       },
       "swap_path": "Same shape as the archer: UnitCamProjector.cpp loads /Game/Sprites/Units/T_Soldier_Knight.T_Soldier_Knight by content path and slices it as a 5x2, 8-direction+2-walk sheet -- the code reads cell aspect from the texture itself, not a hardcoded size, so any replacement authored to that same grid, direction order and alpha discipline drops in with zero C++ changes regardless of its own cell pixel dimensions.",
       "animation_status": "8-direction idle is real. South-facing walk toggles between two real generated walk frames. All other directions are a static idle -- no walk when not facing south, no attack/hit animation at all (see what_was_not_assembled)."
+    },
+    {
+      "texture_family": "T_Soldier_Knight_02..06 -- task-046 STATE variants of T_Soldier_Knight",
+      "status": "PACKED, IMPORTED AND WIRED (5 of 6 states -- see swap_path for which one is withheld and why), task-055. Full colour, no quantize (ramp_departure applies to this whole family, same as T_Soldier_Knight).",
+      "created": "2026-07-28",
+      "why_not_the_normal_pipeline": "Same reason as T_Soldier_Knight above: existing, already-completed PixelLab renders (the owner's own PixelLab 'states' of the same character group, 2cc3ab61-4230-4786-98fa-b94da9e99218), downloaded and packed, nothing generated. get_character(1c935515) resolved the group id; get_character(37636e11) confirmed a sibling; the group's download endpoint (https://api.pixellab.ai/mcp/characters/1c935515.../download) returned a zip bundling all 6 states plus metadata.json (the source of every character_id recorded below), one call, no per-state fetch needed.",
+      "generations_spent": 0,
+      "calls_made": ["get_character (read-only) x2, on 1c935515 and 37636e11", "one group-download fetch (bundles all 6 states + metadata.json)"],
+      "calls_explicitly_NOT_made": ["create_character", "animate_character", "create_character_state"],
+      "raw_download_dir": "RawArt/Renders/knight/raw/state0N_<descriptor>/rotations/ -- retained permanently per the PixelLab-retention rule, one folder per new state; state 1 (Hallam/Vanguard) keeps its pre-existing raw/rotations/ location, untouched",
+      "states": [
+        {
+          "content_path": "/Game/Sprites/Units/T_Soldier_Knight_02",
+          "pixellab_character_id": "37636e11-bdcf-4e82-a205-328fd653f4ca",
+          "pixellab_state_name": "Add a face shield th -- NAME RETIRED, not carried into assets/code/docs",
+          "raw_dir": "RawArt/Renders/knight/raw/state02_faceshield/rotations/",
+          "visual": "Same knight silhouette (shield + polearm), closed-visor helmet replacing state 1's open-faced helm -- no face showing.",
+          "disposition": "keeper -- clearly distinct from state 1 at panel scale"
+        },
+        {
+          "content_path": "/Game/Sprites/Units/T_Soldier_Knight_03",
+          "pixellab_character_id": "3b498716-8375-4794-8bc0-90224301c658",
+          "pixellab_state_name": "Can the helmet be 60 -- NAME RETIRED",
+          "raw_dir": "RawArt/Renders/knight/raw/state03_roundhelm/rotations/",
+          "visual": "Larger, fully-rounded closed helmet, slightly bigger head-to-body proportion than states 1-2.",
+          "disposition": "keeper -- similar theme to state 4 (both big rounded helms) but pixel-diffs distinctly (~13% of the south frame differs), not a duplicate"
+        },
+        {
+          "content_path": "/Game/Sprites/Units/T_Soldier_Knight_04",
+          "pixellab_character_id": "a3b21ad8-f8e4-4afa-9ab5-4132c60cee05",
+          "pixellab_state_name": "I need the body to b -- NAME RETIRED",
+          "raw_dir": "RawArt/Renders/knight/raw/state04_bulkyhelm/rotations/",
+          "visual": "Also a big rounded closed helm, bulkier body/shoulder read than state 3.",
+          "disposition": "keeper -- distinct from state 3 by pixel diff, though the two are the closest-themed pair in the set (both 'bigger helmet' iterations)"
+        },
+        {
+          "content_path": "/Game/Sprites/Units/T_Soldier_Knight_05",
+          "pixellab_character_id": "904eb4ba-9cad-4852-8f72-25bc43028bd8",
+          "pixellab_state_name": "Make more chibi helm -- NAME RETIRED",
+          "raw_dir": "RawArt/Renders/knight/raw/state05_chibihelm/rotations/",
+          "visual": "Oversized 'chibi' helmet-to-body ratio, distinct read from states 1-4.",
+          "disposition": "keeper"
+        },
+        {
+          "content_path": "/Game/Sprites/Units/T_Soldier_Knight_06",
+          "pixellab_character_id": "4a4f106a-bd2c-4ed4-934b-227e6884592a",
+          "pixellab_state_name": "Make more chibi helm (copy) -- NAME RETIRED",
+          "raw_dir": "RawArt/Renders/knight/raw/state06_chibihelm_dup/rotations/",
+          "visual": "Identical to state 5.",
+          "disposition": "DUPLICATE, not just similar -- verified byte-for-byte: every one of the 8 source rotation PNGs diffs at 0 max pixel delta against state 5's corresponding rotation (checked programmatically, not eyeballed). Packed anyway per the owner's 'pack them all' instruction, but this state contributes ZERO visual variety on top of state 5 -- flagged for the owner to drop rather than silently omitted. OWNER DECISION (2026-07-28): packed but deliberately NOT wired into SpearmenStatePaths() (UnitCamProjector.cpp) -- it cannot contribute variety, so it does not go in the live array. Asset, raw download and this entry all stay on disk/in the repo per the retention rule; only excluded from the array a soldier actually draws from."
+        }
+      ],
+      "resolution_change": "No downscaling. Measured max content across all 5 new states, all directions: 40w x 46h -- inside the existing 56x60 cell (task-050 rev 5) with real margin, so the established cell size did not need to change.",
+      "conversion": {
+        "script": "one-off, session scratchpad, not committed -- same crop-to-alpha-bbox / centre-on-transparent-56x60-canvas / no-resize steps as task-050 rev 5, reused rather than re-derived",
+        "steps": [
+          "crop each rotation to its alpha bbox, centre on a transparent 56x60 canvas, no resize",
+          "verify alpha strictly binary (0/255) in the raw source before packing -- CHECKED: 0 partial-alpha pixels found across all 5 new states, all 8 directions each",
+          "pack cells 0-7 (8 rotations, S,SE,E,NE,N,NW,W,SW) + cells 8-9 (south walk toggle) into the same 280x120, 5x2, 56x60px grid as T_Soldier_Knight",
+          "cells 8-9: none of the 5 new states have an animation source (only state 1/Hallam had a generated walk cycle) -- both cells duplicate the south idle, a frozen toggle exactly like T_Soldier_Archer's existing convention, disclosed rather than presented as real animation"
+        ]
+      },
+      "qc": {
+        "alpha": "verified strictly binary (0/255) across all 5 new states x 8 directions, copied through unchanged",
+        "palette": "N/A -- full PixelLab colour, no quantize. See ramp_departure.",
+        "content_bbox": "measured max 40w x 46h across the 5 new states' 8 directions; cell remains 56x60, unchanged from task-050 rev 5"
+      },
+      "import": {
+        "route": "MCP TextureTools.import_file -- all 5 fresh asset paths, no existing-asset collision, so the AssetTools delete/move unreliability noted for T_Soldier_Knight/Archer's own overwrite history did not apply here",
+        "settings": "Filter=TF_Nearest MipGenSettings=TMGS_NoMipmaps CompressionSettings=TC_EditorIcon SRGB=true -- set via ObjectTools.set_properties and verified by read-back (not just trusting the true return value) against every asset, matching T_Soldier_Knight/Archer/T_Hero_Vanguard",
+        "saved": true
+      },
+      "swap_path": "WIRED, 2026-07-28. task-046 had closed as done the day before, releasing its lock on ELVTR/Source/**, and the owner made the keep/drop call -- task-055's owns: was widened (scoped to these two function bodies only) to add states 2-5 to SpearmenStatePaths() in UnitCamProjector.cpp. State 6 (the byte-identical duplicate) stays out of the array; see its own entry above."
+    },
+    {
+      "texture_family": "T_Soldier_Archer_02..05 -- task-046 STATE variants of T_Soldier_Archer",
+      "status": "PACKED, IMPORTED AND WIRED (3 of 5 states -- see swap_path for which two are withheld and why), task-055. Full colour, no quantize (ramp_departure applies to this whole family, same as T_Soldier_Archer).",
+      "created": "2026-07-28",
+      "why_not_the_normal_pipeline": "Same reason as T_Soldier_Archer above: existing, already-completed PixelLab renders (states of group e2702eb6-248d-4b6b-b8dc-fedc1290e059), downloaded and packed, nothing generated.",
+      "generations_spent": 0,
+      "calls_made": ["get_character (read-only) on b3163cdf, plus the group download URL"],
+      "calls_explicitly_NOT_made": ["create_character", "animate_character", "create_character_state"],
+      "raw_download_dir": "RawArt/Renders/archer-proxy/raw/state0N_<descriptor>/ -- retained permanently per the PixelLab-retention rule, one folder per new state, flat (matching T_Soldier_Archer's own flat raw/ layout rather than knight's raw/rotations/ subfolder); state 1 (Merle/Pathfinder) keeps its pre-existing raw/ location, untouched",
+      "states": [
+        {
+          "content_path": "/Game/Sprites/Units/T_Soldier_Archer_02",
+          "pixellab_character_id": "021462fb-4d5a-4838-ba63-6c653781917e",
+          "pixellab_state_name": "One with Hollow blac[k] -- NAME RETIRED",
+          "raw_dir": "RawArt/Renders/archer-proxy/raw/state02_hollowmask/",
+          "visual": "Same hooded archer silhouette and bow as state 1, with a pale hollow-eyed mask/face swap instead of state 1's visible face.",
+          "disposition": "keeper -- reads unmistakably as the archer type (bow held the same way as state 1), variety is in the face only"
+        },
+        {
+          "content_path": "/Game/Sprites/Units/T_Soldier_Archer_03",
+          "pixellab_character_id": "ea1d8c8e-5fe1-4dbb-abd9-ff5ed9f81e4c",
+          "pixellab_state_name": "Cyborg with Crossbow -- NAME RETIRED",
+          "raw_dir": "RawArt/Renders/archer-proxy/raw/state03_crossbow/",
+          "visual": "Same hooded silhouette, holds a glowing teal crossbow raised and aimed forward (a held ranged weapon, but a different pose from states 1-2's slung bow).",
+          "disposition": "keeper, with a caveat -- still unmistakably a ranged fighter, but the sci-fi glow and forward-aimed pose is a bigger visual jump than states 1-2's face-only variation; worth an owner glance"
+        },
+        {
+          "content_path": "/Game/Sprites/Units/T_Soldier_Archer_04",
+          "pixellab_character_id": "2ea3e998-7d06-4341-ba0b-f70f84f36348",
+          "pixellab_state_name": "RPG launcher -- NAME RETIRED",
+          "raw_dir": "RawArt/Renders/archer-proxy/raw/state04_blade/",
+          "visual": "Same hooded silhouette, but holds a green rocket-launcher/bazooka-style tube weapon over the shoulder, gripped two-handed -- no bow at all.",
+          "disposition": "FLAGGED -- does not read as an archer on its own. Verified at 6x zoom: it is a launcher tube, not a bladed weapon and not a bow. If a rank of archers rolls onto this state it will show a soldier holding a rocket launcher standing among bow-wielders. Packed per the owner's 'pack them all' direction. OWNER DECISION (2026-07-28): packed but deliberately NOT wired into ArcherStatePaths() (UnitCamProjector.cpp) -- confirmed as breaking the type read (rocket launcher, not a bow), which is the one failure mode this mechanism exists to prevent. Asset, raw download and this entry all stay on disk/in the repo per the retention rule."
+        },
+        {
+          "content_path": "/Game/Sprites/Units/T_Soldier_Archer_05",
+          "pixellab_character_id": "43a4c25c-3ea0-444b-89bf-b2f27234c079",
+          "pixellab_state_name": "Convert to Mage -- NAME RETIRED",
+          "raw_dir": "RawArt/Renders/archer-proxy/raw/state05_mage/",
+          "visual": "Same hooded silhouette, holds a staff topped with a glowing purple orb -- a mage's implement, no bow.",
+          "disposition": "FLAGGED -- same issue as state 4: reads as a spellcaster, not an archer, if it lands in a rank on its own. Packed per the owner's direction. OWNER DECISION (2026-07-28): packed but deliberately NOT wired into ArcherStatePaths() (UnitCamProjector.cpp) -- confirmed as breaking the type read (mage staff, not a bow). Asset, raw download and this entry all stay on disk/in the repo per the retention rule."
+        }
+      ],
+      "resolution_change": "No downscaling. Measured max content across all 4 new states, all directions: 43w x 46h -- identical to the original T_Soldier_Archer's own measured max, still inside the existing 56x60 cell with real margin.",
+      "conversion": {
+        "script": "same one-off script as the knight states above, same steps",
+        "steps": [
+          "crop each rotation to its alpha bbox, centre on a transparent 56x60 canvas, no resize",
+          "verify alpha strictly binary (0/255) in the raw source before packing -- CHECKED: 0 partial-alpha pixels found across all 4 new states, all 8 directions each",
+          "pack cells 0-7 (8 rotations) + cells 8-9 (south walk toggle, duplicated south idle -- none of these states have an animation source, matching T_Soldier_Archer's own frozen-toggle precedent) into the same 280x120, 5x2, 56x60px grid"
+        ]
+      },
+      "qc": {
+        "alpha": "verified strictly binary (0/255) across all 4 new states x 8 directions, copied through unchanged",
+        "palette": "N/A -- full PixelLab colour, no quantize. See ramp_departure.",
+        "content_bbox": "measured max 43w x 46h across the 4 new states' 8 directions; cell remains 56x60, unchanged from task-050 rev 5"
+      },
+      "import": {
+        "route": "MCP TextureTools.import_file -- all 4 fresh asset paths, no existing-asset collision",
+        "settings": "Filter=TF_Nearest MipGenSettings=TMGS_NoMipmaps CompressionSettings=TC_EditorIcon SRGB=true -- set via ObjectTools.set_properties and verified by read-back against every asset, matching T_Soldier_Knight/Archer/T_Hero_Vanguard",
+        "saved": true
+      },
+      "swap_path": "PARTIALLY WIRED, 2026-07-28. States 2 and 3 added to ArcherStatePaths() in UnitCamProjector.cpp (task-055's owns: widened once task-046 released its lock, per the owner's keep/drop call). States 4 and 5 stay OUT of the array -- see their own entries above for why (neither carries a bow)."
     }
   ]
 }
