@@ -7,6 +7,7 @@
 #include "Engine/GameViewportClient.h"
 #include "Engine/TextureRenderTarget2D.h"
 #include "GameFramework/PlayerController.h"
+#include "HAL/FileManager.h"
 #include "HAL/IConsoleManager.h"
 #include "Kismet/KismetMaterialLibrary.h"
 #include "Kismet/KismetRenderingLibrary.h"
@@ -83,9 +84,36 @@ namespace
 
 	TAutoConsoleVariable<int32> CVarSwarmDebugRender(
 		TEXT("Swarm.DebugRender"),
+		// 0 (Niagara) since 2026-07-28, was 1. The debug-box renderer cost 4x more frame time at
+		// the 1,000-unit gate and 22x more at 20,000, and every "we can't hit the entity gate"
+		// claim in this repo was measured against it. Niagara measured FREE — within noise of a
+		// sim-only baseline at every count. See docs/perf/one-camera-bench.md §1.
+		0,
+		TEXT("Which renderer draws the swarm into the WORLD.\n")
+		TEXT("  0 = Niagara sprites (the shipping path; repaired 2026-07-26, commit 33c44f7)\n")
+		TEXT("  1 = debug boxes (DrawDebugSolidBox per unit — the historical default)\n")
+		TEXT("  2 = NOTHING: sim runs, no world render, and the Niagara push loop is skipped\n")
+		TEXT("      entirely. Not a shipping mode — it exists so the Unit Cam projector's cost\n")
+		TEXT("      can be measured on its own, without a world renderer underneath it adding\n")
+		TEXT("      cost to the same frame. Mode 2 is the isolation baseline in the\n")
+		TEXT("      one-camera bench (docs/perf/one-camera-bench.md); subtract it from any\n")
+		TEXT("      other row to get that row's true renderer cost."),
+		ECVF_Default);
+
+	TAutoConsoleVariable<int32> CVarSwarmUnitStencil(
+		TEXT("Swarm.UnitStencil"),
 		1,
-		TEXT("Render the swarm as mesh instances instead of Niagara sprites.\n")
-		TEXT("1 = debug meshes (default while the sprite pipeline is unverified), 0 = Niagara."),
+		TEXT("CustomStencil value stamped on the Niagara swarm so the demichrome post-process can\n")
+		TEXT("tell a UNIT pixel from ground. 0 disables the stamp entirely.\n")
+		TEXT("\n")
+		TEXT("This is what makes 'the spotlight does not touch the units' work (owner call\n")
+		TEXT("2026-07-28). M_PP_Demichrome samples CustomStencil into its UnitStencil input and\n")
+		TEXT("skips BOTH the flame's additive lift and the white core wherever this is non-zero,\n")
+		TEXT("so sprites draw at the palette value the artist authored instead of clipping to\n")
+		TEXT("Pale near the flame.\n")
+		TEXT("\n")
+		TEXT("Needs r.CustomDepth=3 (Enabled with Stencil) in DefaultEngine.ini. Set 0 to get the\n")
+		TEXT("old washed-out behaviour back for an A/B."),
 		ECVF_Default);
 
 	TAutoConsoleVariable<int32> CVarSwarmDebugPlainView(
@@ -388,6 +416,40 @@ namespace
 		TEXT("Keep 1 < 2 < 3 ordered."),
 		ECVF_Default);
 
+	// --- colour gate toggle (task-057, owner 2026-07-28) ---------------------
+	// "resolving the palette swap choices" (task-043) assumed the value-collapse itself was
+	// staying; this is the follow-up where the owner asked to explore the scene WITHOUT it.
+	// Two independent dials, both routed through MPC_Flame into M_PP_Demichrome exactly like
+	// the thresholds above:
+	//   Emberkeep.Quantize     - 1 = today's look, 0 = raw lit scene, no posterisation at all
+	//   Emberkeep.PaletteSteps - how many values the posterise collapses onto, 2-8
+
+	TAutoConsoleVariable<float> CVarSwarmQuantize(
+		TEXT("Emberkeep.Quantize"),
+		1.f,
+		TEXT("1 = the locked posterised demichrome look (default, byte-identical to before this\n")
+		TEXT("CVar existed). 0 = BYPASS QUANTIZATION ENTIRELY and see the raw lit scene instead\n")
+		TEXT("of more values - the owner's answer (2026-07-28) to what 'explore without the\n")
+		TEXT("color gate' means. The flame's additive lift and the world-anchored Bayer dither\n")
+		TEXT("both stay in the picture (M_PP_Demichrome's Custom node builds a lit-but-unquantized\n")
+		TEXT("litCol from the same atten/BandWidth terms outCol uses); only the palette\n")
+		TEXT("value-collapse goes away. Values between 0 and 1 cross-fade the two for an A/B,\n")
+		TEXT("but the two ends are the point, not a taste gradient anyone ships on."),
+		ECVF_Default);
+
+	TAutoConsoleVariable<int32> CVarSwarmPaletteSteps(
+		TEXT("Emberkeep.PaletteSteps"),
+		4,
+		TEXT("How many discrete values the demichrome pass posterises luminance into, 2-8.\n")
+		TEXT("Threshold1/2/3 and Palette0-3 stay the LOCKED, owner-tuned N=4 numbers - at the\n")
+		TEXT("default 4 this CVar changes nothing (see TickFlame). Away from 4 it derives a\n")
+		TEXT("fresh set of evenly spaced thresholds (GetEvenThreshold) rather than reusing the\n")
+		TEXT("tuned N=4 numbers at a different count, and resamples the active Emberkeep.Palette\n")
+		TEXT("preset's control points across the new step count (ResamplePaletteColor) so a\n")
+		TEXT("4-colour preset still serves 2-8 without a new authored row. Out-of-range clamps\n")
+		TEXT("to [2,8]."),
+		ECVF_Default);
+
 	// --- palette presets (docs/art/palette.json, task-043) -------------------
 	//
 	// The four output colours of the demichrome pass, driven live so a candidate
@@ -405,21 +467,62 @@ namespace
 	// TO ADD A CANDIDATE: one row here, darkest to brightest, plus the matching
 	// entry in docs/data/art/palette.json. That is the whole cost, by design —
 	// palettes are meant to be shopped.
+	// task-057: Values[] grew from a fixed 4 to a padded 8 so a preset can serve
+	// Emberkeep.PaletteSteps 2-8. NumValues is how many of those 8 are actually AUTHORED
+	// (every existing preset is still just 4) - ResamplePaletteColor below stretches or
+	// compresses that many control points across whatever step count is live, so adding a
+	// candidate is still exactly one row here (task-043's cheapness requirement, preserved).
 	struct FSwarmPalettePreset
 	{
 		const TCHAR* Name;
-		FColor Values[4];   // sRGB bytes, darkest -> brightest
+		int32 NumValues;    // authored control points in Values[], darkest -> brightest
+		FColor Values[8];   // sRGB bytes; only the first NumValues entries are authored
 	};
 
 	const FSwarmPalettePreset GSwarmPalettePresets[] =
 	{
-		// name            dark                    steel/low-mid           bone/high-mid           pale/bright
-		{ TEXT("demichrome"),  { FColor(0x21,0x1E,0x20), FColor(0x55,0x55,0x68), FColor(0xA0,0xA0,0x8B), FColor(0xE9,0xEF,0xEC) } },
-		{ TEXT("eulbink-4"),   { FColor(0x25,0x24,0x46), FColor(0x00,0x98,0xDB), FColor(0x0C,0xE6,0xF2), FColor(0xFF,0xFF,0xFF) } },
-		{ TEXT("rust-gold-4"), { FColor(0x33,0x1C,0x17), FColor(0x72,0x59,0x56), FColor(0xBB,0x7F,0x57), FColor(0xF6,0xCD,0x26) } },
+		// name            values  dark                    steel/low-mid           bone/high-mid           pale/bright
+		{ TEXT("demichrome"),  4, { FColor(0x21,0x1E,0x20), FColor(0x55,0x55,0x68), FColor(0xA0,0xA0,0x8B), FColor(0xE9,0xEF,0xEC) } },
+		{ TEXT("eulbink-4"),   4, { FColor(0x25,0x24,0x46), FColor(0x00,0x98,0xDB), FColor(0x0C,0xE6,0xF2), FColor(0xFF,0xFF,0xFF) } },
+		{ TEXT("rust-gold-4"), 4, { FColor(0x33,0x1C,0x17), FColor(0x72,0x59,0x56), FColor(0xBB,0x7F,0x57), FColor(0xF6,0xCD,0x26) } },
 	};
 
 	const int32 GSwarmPaletteCount = UE_ARRAY_COUNT(GSwarmPalettePresets);
+
+	/**
+	 * Resamples a sorted (darkest -> brightest) control-point ramp of SrcCount colours into
+	 * exactly the colour at position DstIndex of DstCount, by linear interpolation along the
+	 * ramp. This is the "pad or clamp gracefully" task-057 asks for: a preset authored with
+	 * only 4 control points (every preset today) still answers PaletteSteps 2-8 without a new
+	 * row, because a step count that isn't 4 just samples the same ramp at different points.
+	 */
+	FColor ResamplePaletteColor(const FColor* Src, int32 SrcCount, int32 DstIndex, int32 DstCount)
+	{
+		if (SrcCount <= 1 || DstCount <= 1)
+		{
+			return Src[0];
+		}
+		const float T = (float)DstIndex / (float)(DstCount - 1); // 0..1, darkest -> brightest
+		const float SrcPos = T * (float)(SrcCount - 1);
+		const int32 Lo = FMath::Clamp(FMath::FloorToInt(SrcPos), 0, SrcCount - 1);
+		const int32 Hi = FMath::Clamp(Lo + 1, 0, SrcCount - 1);
+		const float Frac = SrcPos - (float)Lo;
+		return FColor(
+			(uint8)FMath::RoundToInt(FMath::Lerp((float)Src[Lo].R, (float)Src[Hi].R, Frac)),
+			(uint8)FMath::RoundToInt(FMath::Lerp((float)Src[Lo].G, (float)Src[Hi].G, Frac)),
+			(uint8)FMath::RoundToInt(FMath::Lerp((float)Src[Lo].B, (float)Src[Hi].B, Frac)));
+	}
+
+	/**
+	 * The Nth of Steps-1 evenly spaced thresholds across (0,1), used whenever
+	 * Emberkeep.PaletteSteps asks for something other than the locked N=4 default.
+	 * N=4 never calls this - Threshold1/2/3 stay the owner-tuned 0.40/0.50/0.75 exactly,
+	 * per task-057's regression guard. Index is 0-based (0 -> the first/darkest step).
+	 */
+	float GetEvenThreshold(int32 Index, int32 Steps)
+	{
+		return (float)(Index + 1) / (float)Steps;
+	}
 
 	TAutoConsoleVariable<int32> CVarSwarmPalette(
 		TEXT("Emberkeep.Palette"),
@@ -556,6 +659,27 @@ namespace
 		TEXT("Raise it if the retinue should look conscripted rather than trained."),
 		ECVF_Default);
 
+	TAutoConsoleVariable<float> CVarSwarmSpriteGroundOffset(
+		TEXT("Swarm.SpriteGroundOffset"),
+		-72.f,
+		TEXT("Z shift, uu, applied to every unit's position before it reaches NS_Swarm. The\n")
+		TEXT("Sprite Renderer centres each sprite on Particles.Position (Pivot Offset (0,0),\n")
+		TEXT("unchanged from its SETUP-EDITOR.md default) instead of anchoring the sprite's feet,\n")
+		TEXT("so a full-body sprite centred on the ground-plane position (the sim is 2D --\n")
+		TEXT("RenderPositions.Z is always 0) puts the character's FEET roughly half its own height\n")
+		TEXT("above the floor, not on it -- reads as floating. Same root cause as\n")
+		TEXT("Emberkeep.UnitCamProj.FootAnchor's old centre-anchor bug on that renderer; see its\n")
+		TEXT("comment in cvars SKILL.md ('scaling sinks/floats them' is what an unanchored centre\n")
+		TEXT("pivot always does). Negative moves the pushed position DOWN so the still-centred\n")
+		TEXT("sprite's feet land at true ground; 0 reproduces today's float for an A/B. Fixing this\n")
+		TEXT("in C++ rather than NS_Swarm's Pivot Offset keeps the Niagara asset untouched -- see\n")
+		TEXT("SwarmRenderActor.cpp's Niagara push loop for where it's applied. Owner-tuned 2026-07-28\n")
+		TEXT("by A/B screenshot at wave-1 density (-24 still floated, -100 sank feet below the\n")
+		TEXT("floor, -72 read as grounded) -- this is a measured value, not the half-Sprite-Size\n")
+		TEXT("estimate this comment used to carry. Actual Sprite Size on the live asset is\n")
+		TEXT("therefore closer to ~144uu, well past SETUP-EDITOR.md's stale 48uu figure."),
+		ECVF_Default);
+
 	TAutoConsoleVariable<float> CVarSwarmBodyHeight(
 		TEXT("Swarm.BodyHeight"),
 		0.5f,
@@ -669,9 +793,96 @@ void ASwarmRenderActor::BeginPlay()
 		}
 		BenchExec(TEXT("t.MaxFPS 0"));
 		BenchExec(TEXT("r.VSync 0"));
-		BenchStep = 0;
-		BenchStartStep();
+		// Optional override file, so a measurement run can be re-aimed without a rebuild.
+		// Same "Name|cmd;cmd" format as the BenchmarkConfigs default, one per line, # comments.
+		//
+		// This is what isolated runs use. Some things genuinely cannot be A/B'd inside one
+		// session — the Unit Cam widget is the known case: any switch that stops Slate laying
+		// it out also stops its tick, so it can never turn itself back on, and a config that
+		// re-enables it silently measures a dead widget (docs/perf/one-camera-bench.md §4).
+		// The fix is one config per launch, which this file makes cheap.
+		FString ConfigFileContents;
+		if (FFileHelper::LoadFileToString(ConfigFileContents,
+			*(FPaths::ProjectSavedDir() / TEXT("SwarmBenchConfigs.txt"))))
+		{
+			TArray<FString> Lines;
+			ConfigFileContents.ParseIntoArrayLines(Lines);
+			TArray<FString> Parsed;
+			for (FString& Line : Lines)
+			{
+				Line.TrimStartAndEndInline();
+				if (!Line.IsEmpty() && !Line.StartsWith(TEXT("#")))
+				{
+					Parsed.Add(Line);
+				}
+			}
+			if (Parsed.Num() > 0)
+			{
+				BenchmarkConfigs = MoveTemp(Parsed);
+				UE_LOG(LogTemp, Display,
+					TEXT("SwarmBench: using %d config(s) from Saved/SwarmBenchConfigs.txt"),
+					BenchmarkConfigs.Num());
+			}
+		}
+
+		BenchConfigIndex = 0;
+		BenchStartConfig();
 	}
+}
+
+FString ASwarmRenderActor::BenchConfigName() const
+{
+	if (!BenchmarkConfigs.IsValidIndex(BenchConfigIndex))
+	{
+		return TEXT("default");
+	}
+	const FString& Entry = BenchmarkConfigs[BenchConfigIndex];
+	FString Name, Commands;
+	return Entry.Split(TEXT("|"), &Name, &Commands) ? Name.TrimStartAndEnd() : Entry.TrimStartAndEnd();
+}
+
+void ASwarmRenderActor::BenchStartConfig()
+{
+	// An empty config list still runs one pass, so the harness keeps working exactly as it
+	// did before configs existed — the command line / exec file supplies the CVars instead.
+	if (BenchmarkConfigs.IsValidIndex(BenchConfigIndex))
+	{
+		const FString& Entry = BenchmarkConfigs[BenchConfigIndex];
+		FString Name, Commands;
+		if (Entry.Split(TEXT("|"), &Name, &Commands))
+		{
+			TArray<FString> Cmds;
+			Commands.ParseIntoArray(Cmds, TEXT(";"), true);
+			for (FString& Cmd : Cmds)
+			{
+				Cmd.TrimStartAndEndInline();
+				if (!Cmd.IsEmpty())
+				{
+					BenchExec(Cmd);
+				}
+			}
+		}
+		UE_LOG(LogTemp, Display, TEXT("SwarmBench: === config %d/%d: %s ==="),
+			BenchConfigIndex + 1, BenchmarkConfigs.Num(), *BenchConfigName());
+	}
+
+	BenchStep = 0;
+	BenchStartStep();
+}
+
+void ASwarmRenderActor::BenchWriteCsvRow(const FString& Row)
+{
+	const FString CsvPath = FPaths::ProjectSavedDir() / TEXT("SwarmBench.csv");
+	if (!bBenchCsvStarted)
+	{
+		bBenchCsvStarted = true;
+		// Overwrite rather than append: a run's CSV should describe THAT run, not accumulate
+		// silently across runs until nobody can tell which rows came from which build.
+		FFileHelper::SaveStringToFile(
+			TEXT("config,brood,retinue,frame_ms,game_ms,draw_ms,gpu_ms,fps\n"), *CsvPath);
+	}
+	FFileHelper::SaveStringToFile(Row + TEXT("\n"), *CsvPath,
+		FFileHelper::EEncodingOptions::AutoDetect, &IFileManager::Get(), EFileWrite::FILEWRITE_Append);
 }
 
 void ASwarmRenderActor::BenchExec(const FString& Cmd)
@@ -686,9 +897,19 @@ void ASwarmRenderActor::BenchStartStep()
 {
 	if (BenchStep >= BenchmarkBroodCounts.Num())
 	{
+		// This config is finished — advance to the next one rather than ending the run, so a
+		// single launch produces the whole comparison matrix instead of one renderer's column.
+		++BenchConfigIndex;
+		if (BenchConfigIndex < BenchmarkConfigs.Num())
+		{
+			BenchStartConfig();
+			return;
+		}
+
 		BenchExec(TEXT("Swarm.Clear"));
 		BenchPhase = EBenchPhase::Off;
-		UE_LOG(LogTemp, Display, TEXT("SwarmBench: DONE"));
+		UE_LOG(LogTemp, Display, TEXT("SwarmBench: DONE — %s"),
+			*(FPaths::ProjectSavedDir() / TEXT("SwarmBench.csv")));
 		return;
 	}
 
@@ -731,11 +952,17 @@ void ASwarmRenderActor::BenchTick(float DeltaSeconds)
 	if (BenchTimer >= BenchmarkSampleSeconds && BenchFrames > 0)
 	{
 		const double Inv = 1.0 / BenchFrames;
+		const FString Config = BenchConfigName();
+		const double FrameMs = BenchFrameMs * Inv;
 		UE_LOG(LogTemp, Display,
-			TEXT("SwarmBench: brood=%d retinue=%d frame=%.2fms game=%.2fms draw=%.2fms gpu=%.2fms fps=%.1f"),
-			BenchmarkBroodCounts[BenchStep], BenchmarkRetinueCount,
-			BenchFrameMs * Inv, BenchGameMs * Inv, BenchRenderMs * Inv, BenchGpuMs * Inv,
-			1000.0 / (BenchFrameMs * Inv));
+			TEXT("SwarmBench: config=%s brood=%d retinue=%d frame=%.2fms game=%.2fms draw=%.2fms gpu=%.2fms fps=%.1f"),
+			*Config, BenchmarkBroodCounts[BenchStep], BenchmarkRetinueCount,
+			FrameMs, BenchGameMs * Inv, BenchRenderMs * Inv, BenchGpuMs * Inv,
+			1000.0 / FrameMs);
+		BenchWriteCsvRow(FString::Printf(TEXT("%s,%d,%d,%.3f,%.3f,%.3f,%.3f,%.2f"),
+			*Config, BenchmarkBroodCounts[BenchStep], BenchmarkRetinueCount,
+			FrameMs, BenchGameMs * Inv, BenchRenderMs * Inv, BenchGpuMs * Inv,
+			1000.0 / FrameMs));
 		++BenchStep;
 		BenchStartStep();
 	}
@@ -927,12 +1154,47 @@ void ASwarmRenderActor::TickFlame(float DeltaSeconds)
 	}
 	SetScalar(TEXT("WorldDitherScale"), WorldDitherScale);
 	SetScalar(TEXT("DitherBandWidth"), CVarSwarmDitherBandWidth.GetValueOnGameThread());
-	SetScalar(TEXT("Threshold1"), CVarSwarmDitherThreshold1.GetValueOnGameThread());
-	SetScalar(TEXT("Threshold2"), CVarSwarmDitherThreshold2.GetValueOnGameThread());
-	SetScalar(TEXT("Threshold3"), CVarSwarmDitherThreshold3.GetValueOnGameThread());
 
-	// Palette: push the selected preset's four colours to MPC_Flame every tick, so
-	// dragging Emberkeep.Palette in the Breadboard recolours the world immediately.
+	// task-057: the colour gate. Quantize 0 bypasses the whole posterise (M_PP_Demichrome
+	// blends to the raw lit scene); PaletteSteps 2-8 changes how many values it collapses
+	// onto. At the locked default (Steps==4) Threshold1/2/3 are pushed completely unchanged
+	// from before this task - byte-identical regression, per the task's non-negotiable guard.
+	const int32 Steps = FMath::Clamp(CVarSwarmPaletteSteps.GetValueOnGameThread(), 2, 8);
+	SetScalar(TEXT("Quantize"), FMath::Clamp(CVarSwarmQuantize.GetValueOnGameThread(), 0.f, 1.f));
+	SetScalar(TEXT("PaletteSteps"), (float)Steps);
+
+	if (Steps == 4)
+	{
+		SetScalar(TEXT("Threshold1"), CVarSwarmDitherThreshold1.GetValueOnGameThread());
+		SetScalar(TEXT("Threshold2"), CVarSwarmDitherThreshold2.GetValueOnGameThread());
+		SetScalar(TEXT("Threshold3"), CVarSwarmDitherThreshold3.GetValueOnGameThread());
+		// Threshold4-7 are dead at Steps==4 (the shader's loop bound is Steps-1 == 3, so it
+		// never reads them) but are still given a valid, monotonically-increasing value so
+		// a mid-drag frame that reads stale data from a previous Steps!=4 session can't leave
+		// them below Threshold3.
+		SetScalar(TEXT("Threshold4"), 0.8f);
+		SetScalar(TEXT("Threshold5"), 0.85f);
+		SetScalar(TEXT("Threshold6"), 0.9f);
+		SetScalar(TEXT("Threshold7"), 0.95f);
+	}
+	else
+	{
+		// Away from the locked default, don't reuse the tuned N=4 numbers at a different
+		// count - derive Steps-1 fresh, evenly spaced thresholds instead (task-057 guard).
+		SetScalar(TEXT("Threshold1"), GetEvenThreshold(0, Steps));
+		SetScalar(TEXT("Threshold2"), GetEvenThreshold(1, Steps));
+		SetScalar(TEXT("Threshold3"), GetEvenThreshold(2, Steps));
+		SetScalar(TEXT("Threshold4"), GetEvenThreshold(3, Steps));
+		SetScalar(TEXT("Threshold5"), GetEvenThreshold(4, Steps));
+		SetScalar(TEXT("Threshold6"), GetEvenThreshold(5, Steps));
+		SetScalar(TEXT("Threshold7"), GetEvenThreshold(6, Steps));
+	}
+
+	// Palette: push the selected preset's colours to MPC_Flame every tick, so dragging
+	// Emberkeep.Palette (or Emberkeep.PaletteSteps) in the Breadboard recolours the world
+	// immediately. Presets are authored with 4 control points; ResamplePaletteColor stretches
+	// or compresses that ramp to whatever Steps is live, so this is never a hard error even
+	// when Steps != the preset's NumValues (task-057's "pad or clamp gracefully" requirement).
 	//
 	// Deliberately NOT FLinearColor::FromSRGBColor. palette.json's luma_model is
 	// "gamma sRGB (no linearization)" and the material's existing Color_* defaults
@@ -942,9 +1204,16 @@ void ASwarmRenderActor::TickFlame(float DeltaSeconds)
 		const int32 Index = FMath::Clamp(
 			CVarSwarmPalette.GetValueOnGameThread(), 0, GSwarmPaletteCount - 1);
 		const FSwarmPalettePreset& Preset = GSwarmPalettePresets[Index];
-		for (int32 v = 0; v < 4; ++v)
+		const int32 SrcCount = FMath::Clamp(Preset.NumValues, 1, 8);
+		for (int32 v = 0; v < 8; ++v)
 		{
-			const FColor& C = Preset.Values[v];
+			// Beyond the active step count, hold the brightest resampled value rather than
+			// leaving a stale/garbage colour on an unused Palette slot - harmless today since
+			// the shader's loop bound is Steps, but cheap insurance against a mid-drag frame.
+			const int32 SampleIndex = FMath::Min(v, Steps - 1);
+			const FColor C = (Steps == 4 && SrcCount == 4)
+				? Preset.Values[SampleIndex] // byte-identical to pre-task-057 behaviour
+				: ResamplePaletteColor(Preset.Values, SrcCount, SampleIndex, Steps);
 			UKismetMaterialLibrary::SetVectorParameterValue(
 				World, FlameCollection,
 				FName(*FString::Printf(TEXT("Palette%d"), v)),
@@ -1144,8 +1413,23 @@ void ASwarmRenderActor::Tick(float DeltaSeconds)
 
 	// One renderer at a time, so a broken sprite setup can't be mistaken for a
 	// broken sim (or vice versa).
-	const bool bDebugRender = CVarSwarmDebugRender.GetValueOnGameThread() != 0;
-	NiagaraComponent->SetVisibility(!bDebugRender);
+	const int32 RenderMode = CVarSwarmDebugRender.GetValueOnGameThread();
+	const bool bDebugRender = RenderMode == 1;
+	const bool bNoWorldRender = RenderMode == 2;
+	NiagaraComponent->SetVisibility(!bDebugRender && !bNoWorldRender);
+
+	// Stamp the unit stencil so the demichrome pass can exempt sprites from the flame's
+	// screen-space lift (Swarm.UnitStencil). Driven on change rather than every tick — both
+	// setters dirty render state, and this only moves when someone touches the CVar.
+	{
+		const int32 StencilValue = CVarSwarmUnitStencil.GetValueOnGameThread();
+		if (StencilValue != LastUnitStencil)
+		{
+			LastUnitStencil = StencilValue;
+			NiagaraComponent->SetRenderCustomDepth(StencilValue != 0);
+			NiagaraComponent->SetCustomDepthStencilValue(StencilValue);
+		}
+	}
 
 	// The demichrome post-process stays on by default — the debug points are
 	// bright enough to read straight through the dither, and the whole point of
@@ -1165,10 +1449,50 @@ void ASwarmRenderActor::Tick(float DeltaSeconds)
 		return;
 	}
 
+	if (bNoWorldRender)
+	{
+		// Deliberately BEFORE the Niagara push: mode 2 has to cost nothing on the render
+		// bridge, or it isn't an isolation baseline. Hiding the component alone would still
+		// pay for the per-entity SubImage decode and three array uploads every tick.
+		return;
+	}
+
 	SWARM_SCOPE(STAT_SwarmNiagaraPush, SwarmNiagaraPush);
 
 	const TArray<int32>& AnimBits = Swarm->GetRenderAnimBits();
 	SubImageScratch.Reset(AnimBits.Num());
+
+	// Per-particle colour and size scratch.
+	//
+	// FILE-STATIC, not members, and deliberately: adding a UPROPERTY (or any member) changes
+	// the class layout, which Live Coding cannot apply — it reports success and then crashes
+	// the next PIE. Keeping these out of the header means this whole feature stays a
+	// function-body change and remains hot-reloadable while it is being tuned. Same reasoning
+	// and same caveat as GCamArmyScale in SpikeHeroPawn.cpp: one render actor exists in the
+	// prototype so a single static is sound, and it becomes wrong the moment there are two.
+	static TArray<FLinearColor> ColorScratch;
+	static TArray<float> SizeScratch;
+	static TArray<FVector> PositionScratch;
+	ColorScratch.Reset(AnimBits.Num());
+	SizeScratch.Reset(AnimBits.Num());
+	PositionScratch.Reset(AnimBits.Num());
+
+	// The same light model the debug-box renderer uses, applied to sprites for the first time.
+	// Until now the Niagara path pushed Positions/SubImages/Count and nothing else, so every
+	// sprite drew at flat full brightness regardless of distance and the hit flash could not be
+	// shown at all (SwarmFragments.h records the loss). These three reads are what make
+	// Swarm.UnitLightFloor / BroodLightFloor / BroodLightCeil mean something on the shipping
+	// path — before this they were debug-box-only dials that looked live and were not.
+	const FVector FlameP = bFlameInitialized ? SmoothedFlamePos : Swarm->GetAttractor();
+	const float FlameR = FMath::Max(CVarSwarmFlameRadius.GetValueOnGameThread(), 1.f);
+	const float FlameFall = FMath::Max(CVarSwarmFlameFalloff.GetValueOnGameThread(), 0.001f);
+	const float RetFloor = FMath::Clamp(CVarSwarmUnitLightFloor.GetValueOnGameThread(), 0.f, 1.f);
+	const float BrdFloor = FMath::Clamp(CVarSwarmBroodLightFloor.GetValueOnGameThread(), 0.f, 1.f);
+	const float BrdCeil = FMath::Clamp(CVarSwarmBroodLightCeil.GetValueOnGameThread(), BrdFloor, 1.f);
+	const float BrdJit = FMath::Clamp(CVarSwarmBroodSizeJitter.GetValueOnGameThread(), 0.f, 0.95f);
+	const float RetJit = FMath::Clamp(CVarSwarmRetinueSizeJitter.GetValueOnGameThread(), 0.f, 0.95f);
+	const float GroundOffset = CVarSwarmSpriteGroundOffset.GetValueOnGameThread();
+	const TArray<FVector>& RenderPos = Swarm->GetRenderPositions();
 
 	// The sim stores a WORLD facing; this camera turns it into a column. Reading the
 	// live orbit CVar here rather than baking a column in the sim is what keeps sprites
@@ -1176,8 +1500,48 @@ void ASwarmRenderActor::Tick(float DeltaSeconds)
 	// facing its old screen direction as the view rotated under it.
 	const float ViewYaw = GetCameraYawDegrees();
 
+	int32 PackIndex = 0;
 	for (const int32 Bits : AnimBits)
 	{
+		// --- per-particle colour: hit flash, then distance falloff ------------------
+		const bool bRet = (Bits & SwarmAnim::TeamBit) != 0;
+		if ((Bits & SwarmAnim::HitFlashBit) != 0)
+		{
+			// Struck this instant: full white, no falloff — the same "collapse everything and
+			// go bright" rule the debug renderer uses, so the two paths agree on what a hit
+			// looks like. This is the tell that was lost when the sheet dropped its hit cell.
+			ColorScratch.Add(FLinearColor::White);
+		}
+		else
+		{
+			// Distance attenuation into a per-team exposure window. Retinue keep the shared
+			// silhouette-rescue floor and the full range above it; brood ride their own
+			// narrower window so they surface out of the dark on approach rather than
+			// arriving already visible. Identical maths to the debug-box path on purpose —
+			// if these two ever disagree, the horde changes appearance when DebugRender flips.
+			const float D = RenderPos.IsValidIndex(PackIndex)
+				? (float)FVector2D(FlameP.X - RenderPos[PackIndex].X,
+								   FlameP.Y - RenderPos[PackIndex].Y).Size()
+				: FlameR;
+			const float T = FMath::Clamp(D / FlameR, 0.f, 1.f);
+			const float Atten = 1.f - FMath::Pow(T, FlameFall);
+			const float Lit = FMath::Lerp(bRet ? RetFloor : BrdFloor, bRet ? 1.f : BrdCeil, Atten);
+			// A multiplier on the sprite, not a replacement: the art is full colour now, so
+			// grey here dims it toward black and white leaves it exactly as authored.
+			ColorScratch.Add(FLinearColor(Lit, Lit, Lit, 1.f));
+		}
+
+		// --- per-particle size: the roll that was computed and thrown away ----------
+		SizeScratch.Add(SwarmRenderPack::SizeScale((int32)Bits, bRet ? RetJit : BrdJit));
+
+		// --- per-particle position: ground-offset compensation for the centred pivot -
+		// See Swarm.SpriteGroundOffset's doc comment -- NS_Swarm centres each sprite on
+		// this position rather than anchoring the sprite's feet to it, so without this
+		// shift every unit floats roughly half its own height above the floor.
+		PositionScratch.Add((PackIndex < RenderPos.Num() ? RenderPos[PackIndex] : FVector::ZeroVector)
+			+ FVector(0.f, 0.f, GroundOffset));
+		++PackIndex;
+
 		// One shared decode (SwarmSheet::CellFor) rather than the old inline
 		// `frame + 2*team`, so the Unit Cam and this bridge cannot drift apart on what
 		// cell a given anim byte means.
@@ -1194,8 +1558,15 @@ void ASwarmRenderActor::Tick(float DeltaSeconds)
 	}
 
 	UNiagaraDataInterfaceArrayFunctionLibrary::SetNiagaraArrayPosition(
-		NiagaraComponent, FName(TEXT("Positions")), Swarm->GetRenderPositions());
+		NiagaraComponent, FName(TEXT("Positions")), PositionScratch);
 	UNiagaraDataInterfaceArrayFunctionLibrary::SetNiagaraArrayFloat(
 		NiagaraComponent, FName(TEXT("SubImages")), SubImageScratch);
-	NiagaraComponent->SetVariableInt(FName(TEXT("Count")), Swarm->GetRenderPositions().Num());
+	// Colors and Sizes are new as of task-059. Pushing them is harmless before the emitter
+	// reads them — an unbound User array is simply ignored — so the C++ half can land and be
+	// verified independently of the graph edit.
+	UNiagaraDataInterfaceArrayFunctionLibrary::SetNiagaraArrayColor(
+		NiagaraComponent, FName(TEXT("Colors")), ColorScratch);
+	UNiagaraDataInterfaceArrayFunctionLibrary::SetNiagaraArrayFloat(
+		NiagaraComponent, FName(TEXT("Sizes")), SizeScratch);
+	NiagaraComponent->SetVariableInt(FName(TEXT("Count")), PositionScratch.Num());
 }
