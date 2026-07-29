@@ -1,0 +1,30 @@
+{
+  "$schema_note": "task-063. The handful of combat-model dials the simulation harness (Scripts/sim/) needs that no gameplay-owned docs/data/*.json file has a row for. Everything else the harness uses (entity stat blocks, retinue tier HP/DPS, unit-type combat/formation dials, ArmorChipFloor, shared SwingInterval) is read live from entity-tiers.json / upgrades.json / unit-types.json — this file exists ONLY for the gap, not as a second source of truth for anything already owned elsewhere. Owned by task-063 (Scripts/sim/**, docs/sim/**, docs/data/scenarios/**), not by the gameplay director's docs/data/*.json set.",
+  "version": "0.1-sim",
+  "last_updated": "2026-07-28",
+
+  "hero": {
+    "MaxHP": 500,
+    "DPS": 55,
+    "SwingInterval": 0.9,
+    "Note": "No docs/data/*.json file owns Hero combat stats (upgrades.json is the FRIENDLY RETINUE tier ladder, not the hero; entity-tiers.json is enemy tiers). These three numbers are read straight out of GATE1-FUN-PROTOTYPE.md §3's tuning history ('Hero at 120 DPS... soloed the tail of wave 3... Cut to 55 DPS. The hero is tanky (500 HP, max 8 attackers) but cannot replace the line.') and entity-tiers.md §7's own simulation notes, which used the identical figures for its Hero-solo-TTK table. SwingInterval assumed shared (GATE1 §3b: 'The hero runs the same cadence from SpikeHeroPawn... lands like everyone else's'). If upgrades.json or a future hero.json ever adds a real Hero row, this block should be deleted and the harness pointed there instead."
+  },
+
+  "wave_attrition_model": {
+    "MaxAttackersPerUnit": 4,
+    "MaxAttackersPerUnit_note": "Swarm.MaxAttackersPerUnit shipped default (GATE1-FUN-PROTOTYPE.md §3b). Survives in the real sim only as a per-frame safety clamp on simultaneous strikers against one victim, not the primary damage-rate control anymore (geometric TargetsPerHit targeting is) — but it is exactly the 'how many bodies can pile onto one exposed victim' number this harness's frontage model needs, and the doc states it as a design default, not a per-instance dial, so one shared value is correct here.",
+
+    "FormationSpacingUU": 86,
+    "FormationSpacingUU_note": "GATE1-FUN-PROTOTYPE.md §3a MEASURED (Swarm.SpacingReport): retinue ring formation at rest, median 86uu, min/max both 86uu (near-zero variance — it's an exact ring-slot geometry: '8r slots at radius 110r' gives arc spacing 2*pi*110/8=86uu). This is the ONE spacing number in this file that is measured, not estimated.",
+
+    "EngagedSpacingUU": 45,
+    "EngagedSpacingUU_range": [25, 51],
+    "EngagedSpacingUU_note": "GATE1-FUN-PROTOTYPE.md §3a MEASURED mid-combat compressed spacing: min 25-39uu, median 43-51uu, max 343uu (outliers from units mid-knockback/mid-chase, excluded). 45uu is a round midpoint of the measured median band, used as the harness default. The frontage estimate this feeds (combat_model.exposed_frontage) is NOT itself measured — it is a Fermi circle-packing estimate that CONSUMES this measured spacing, same relationship entity-tiers.json's SurroundCapEstimate has to the same §3a data. Run docs/sim's scripts with EngagedSpacingUU set to 25 and 51 to see the model's sensitivity band before trusting a single number from it.",
+
+    "MeleeContactFacingFraction": 0.5,
+    "MeleeContactFacingFraction_range": [0.25, 0.5, 1.0],
+    "MeleeContactFacingFraction_note": "ADDED after review caught a structural bug: cleave (TargetsPerHit) capacity was originally bounded by reusing engaging_enemy_melee (the MaxAttackersPerUnit-capped INCOMING bound), which made the frontage term cancel algebraically and collapsed cleave's effect to a constant max_attackers_per_unit/targets_per_hit ratio regardless of any other dial (see docs/sim/VALIDATION.md). Fixed by deriving cleave capacity independently, off EngageRange, via combat_model.melee_reach_per_exposed_unit(). This fraction is that new function's one Fermi input: the share of the EngageRange circle around one exposed unit that is enemy-occupied territory rather than the unit's own formation's interior. 0.5 (an exposed perimeter unit's outward-facing half) is the harness default; 0.25/1.0 bracket it for sensitivity. NOT measured — same epistemic status as EngagedSpacingUU.",
+
+    "model_status": "This is the harness's own addition, not a value transplanted from a design doc. It generalizes entity-tiers.json's SurroundCapEstimate (built for a single point-target Elite/Titan/Boss) to a distributed retinue-vs-swarm formation. See docs/sim/MODEL.md for the full derivation, docs/sim/VALIDATION.md for the coupling bug this replaced, and docs/sim/LIMITATIONS.md for what it still can't capture (arrival/spawn-pacing timing)."
+  }
+}

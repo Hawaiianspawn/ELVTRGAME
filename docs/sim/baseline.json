@@ -1,0 +1,813 @@
+{
+  "$schema_note": "task-071. Committed expected results for the 7 sweep.py commands in Scripts/sim/drift_check.py's SWEEP_DEFINITIONS. Regenerated ONLY by `py Scripts/sim/drift_check.py --refresh --yes` \u2014 a deliberate, explicit act (see docs/sim/DRIFT-CHECK.md). Never hand-edited.",
+  "tolerance": {
+    "abs": 0.02,
+    "note": "2x the harness's own round(x, 2) output precision. The model is fully deterministic (no RNG anywhere in combat_model.py), so any nonzero delta against unchanged data is impossible \u2014 this tolerance separates real-but-tiny changes from rounding dust, not run-to-run noise. See drift_check.py's ABS_TOLERANCE docstring for the full justification.",
+    "categorical_result_field": "wave_attrition cells' `result` field (retinue_wiped / enemy_wiped / timed_out) is flagged on ANY change, regardless of ABS_TOLERANCE \u2014 a qualitative win/loss flip is the headline signal this harness exists to catch."
+  },
+  "entries": [
+    {
+      "id": "A-floor1-militia-hp-breakpoint",
+      "scenario": "floor1-swarm-wave",
+      "command": "py Scripts/sim/sweep.py floor1-swarm-wave --axis \"upgrades:tier_ladder.tiers[id=militia].hp=130,200,300,400,600,900\"",
+      "axes": [
+        {
+          "file": "upgrades",
+          "path": "tier_ladder.tiers[id=militia].hp",
+          "values": [
+            130,
+            200,
+            300,
+            400,
+            600,
+            900
+          ]
+        }
+      ],
+      "trust": "wave_attrition \u2014 DRIFT-ONLY signal, not a correctness claim. docs/sim/LIMITATIONS.md \u00a71: this model does not reproduce its one measured baseline (GATE1 109-111 of 120); at committed defaults it predicts a full retinue wipe. This entry exists to catch CHANGE in upgrades.json's Militia HP row, never to assert these survivor counts are right. Exact reproduction of docs/sim/SWEEPS.md Demonstration 1 \u2014 same command, same 6 cells.",
+      "diagnostic_family_3": false,
+      "cells": [
+        {
+          "overrides": {
+            "upgrades:tier_ladder.tiers[id=militia].hp": 130
+          },
+          "metrics": {
+            "retinue_survivors": 0.0,
+            "enemy_survivors": 138.62,
+            "elapsed_seconds": 1.8,
+            "result": "retinue_wiped"
+          }
+        },
+        {
+          "overrides": {
+            "upgrades:tier_ladder.tiers[id=militia].hp": 200
+          },
+          "metrics": {
+            "retinue_survivors": 0.0,
+            "enemy_survivors": 92.21,
+            "elapsed_seconds": 4.5,
+            "result": "retinue_wiped"
+          }
+        },
+        {
+          "overrides": {
+            "upgrades:tier_ladder.tiers[id=militia].hp": 300
+          },
+          "metrics": {
+            "retinue_survivors": 0.0,
+            "enemy_survivors": 30.41,
+            "elapsed_seconds": 8.1,
+            "result": "retinue_wiped"
+          }
+        },
+        {
+          "overrides": {
+            "upgrades:tier_ladder.tiers[id=militia].hp": 400
+          },
+          "metrics": {
+            "retinue_survivors": 0.0,
+            "enemy_survivors": 3.96,
+            "elapsed_seconds": 10.8,
+            "result": "retinue_wiped"
+          }
+        },
+        {
+          "overrides": {
+            "upgrades:tier_ladder.tiers[id=militia].hp": 600
+          },
+          "metrics": {
+            "retinue_survivors": 4.23,
+            "enemy_survivors": 0.0,
+            "elapsed_seconds": 300.6,
+            "result": "enemy_wiped"
+          }
+        },
+        {
+          "overrides": {
+            "upgrades:tier_ladder.tiers[id=militia].hp": 900
+          },
+          "metrics": {
+            "retinue_survivors": 12.78,
+            "enemy_survivors": 0.0,
+            "elapsed_seconds": 300.6,
+            "result": "enemy_wiped"
+          }
+        }
+      ]
+    },
+    {
+      "id": "B-floor1-spearmen-count-breakpoint",
+      "scenario": "floor1-swarm-wave",
+      "command": "py Scripts/sim/sweep.py floor1-swarm-wave --axis \"scenario:Retinue.Composition[UnitType=spearmen].Count=32,64,96,128,160,200,250\"",
+      "axes": [
+        {
+          "file": "scenario",
+          "path": "Retinue.Composition[UnitType=spearmen].Count",
+          "values": [
+            32,
+            64,
+            96,
+            128,
+            160,
+            200,
+            250
+          ]
+        }
+      ],
+      "trust": "wave_attrition \u2014 DRIFT-ONLY, same caveat as A. Catches drift in floor1-swarm-wave.json's own composition numbers and in the enemy population's stat block (brood_fodder / brood_soldier_melee), neither of which A's axis touches. Exact reproduction of docs/sim/SWEEPS.md Demonstration 2 \u2014 same command, same 7 cells.",
+      "diagnostic_family_3": false,
+      "cells": [
+        {
+          "overrides": {
+            "scenario:Retinue.Composition[UnitType=spearmen].Count": 32
+          },
+          "metrics": {
+            "retinue_survivors": 0.0,
+            "enemy_survivors": 138.62,
+            "elapsed_seconds": 1.8,
+            "result": "retinue_wiped"
+          }
+        },
+        {
+          "overrides": {
+            "scenario:Retinue.Composition[UnitType=spearmen].Count": 64
+          },
+          "metrics": {
+            "retinue_survivors": 0.0,
+            "enemy_survivors": 102.14,
+            "elapsed_seconds": 1.8,
+            "result": "retinue_wiped"
+          }
+        },
+        {
+          "overrides": {
+            "scenario:Retinue.Composition[UnitType=spearmen].Count": 96
+          },
+          "metrics": {
+            "retinue_survivors": 0.0,
+            "enemy_survivors": 84.52,
+            "elapsed_seconds": 2.7,
+            "result": "retinue_wiped"
+          }
+        },
+        {
+          "overrides": {
+            "scenario:Retinue.Composition[UnitType=spearmen].Count": 128
+          },
+          "metrics": {
+            "retinue_survivors": 0.0,
+            "enemy_survivors": 36.1,
+            "elapsed_seconds": 3.6,
+            "result": "retinue_wiped"
+          }
+        },
+        {
+          "overrides": {
+            "scenario:Retinue.Composition[UnitType=spearmen].Count": 160
+          },
+          "metrics": {
+            "retinue_survivors": 0.0,
+            "enemy_survivors": 5.69,
+            "elapsed_seconds": 9.0,
+            "result": "retinue_wiped"
+          }
+        },
+        {
+          "overrides": {
+            "scenario:Retinue.Composition[UnitType=spearmen].Count": 200
+          },
+          "metrics": {
+            "retinue_survivors": 32.18,
+            "enemy_survivors": 0.0,
+            "elapsed_seconds": 27.0,
+            "result": "enemy_wiped"
+          }
+        },
+        {
+          "overrides": {
+            "scenario:Retinue.Composition[UnitType=spearmen].Count": 250
+          },
+          "metrics": {
+            "retinue_survivors": 84.94,
+            "enemy_survivors": 0.0,
+            "elapsed_seconds": 19.8,
+            "result": "enemy_wiped"
+          }
+        }
+      ]
+    },
+    {
+      "id": "C-floor2-ranged-dps-band",
+      "scenario": "floor2-ranged-wave",
+      "command": "py Scripts/sim/sweep.py floor2-ranged-wave --axis \"entity-tiers:tiers[Name=brood_soldier_ranged].DPS=20,26,32,40\"",
+      "axes": [
+        {
+          "file": "entity-tiers",
+          "path": "tiers[Name=brood_soldier_ranged].DPS",
+          "values": [
+            20,
+            26,
+            32,
+            40
+          ]
+        }
+      ],
+      "trust": "wave_attrition \u2014 DRIFT-ONLY, same caveat as A. Only entry covering the ranged-enemy path (uncapped-by-frontage damage on both sides). 20-40 brackets the shipped default (26).",
+      "diagnostic_family_3": false,
+      "cells": [
+        {
+          "overrides": {
+            "entity-tiers:tiers[Name=brood_soldier_ranged].DPS": 20
+          },
+          "metrics": {
+            "retinue_survivors": 0.0,
+            "enemy_survivors": 348.08,
+            "elapsed_seconds": 0.9,
+            "result": "retinue_wiped"
+          }
+        },
+        {
+          "overrides": {
+            "entity-tiers:tiers[Name=brood_soldier_ranged].DPS": 26
+          },
+          "metrics": {
+            "retinue_survivors": 0.0,
+            "enemy_survivors": 348.08,
+            "elapsed_seconds": 0.9,
+            "result": "retinue_wiped"
+          }
+        },
+        {
+          "overrides": {
+            "entity-tiers:tiers[Name=brood_soldier_ranged].DPS": 32
+          },
+          "metrics": {
+            "retinue_survivors": 0.0,
+            "enemy_survivors": 348.08,
+            "elapsed_seconds": 0.9,
+            "result": "retinue_wiped"
+          }
+        },
+        {
+          "overrides": {
+            "entity-tiers:tiers[Name=brood_soldier_ranged].DPS": 40
+          },
+          "metrics": {
+            "retinue_survivors": 0.0,
+            "enemy_survivors": 348.08,
+            "elapsed_seconds": 0.9,
+            "result": "retinue_wiped"
+          }
+        }
+      ]
+    },
+    {
+      "id": "D-gate1-frontage-model-sensitivity",
+      "scenario": "gate1-calibration-wave1",
+      "command": "py Scripts/sim/sweep.py gate1-calibration-wave1 --axis \"constants:wave_attrition_model.EngagedSpacingUU=25,45,51\" --axis \"constants:wave_attrition_model.MaxAttackersPerUnit=1,2,4\" --axis \"constants:wave_attrition_model.MeleeContactFacingFraction=0.25,0.5,1.0\"",
+      "axes": [
+        {
+          "file": "constants",
+          "path": "wave_attrition_model.EngagedSpacingUU",
+          "values": [
+            25,
+            45,
+            51
+          ]
+        },
+        {
+          "file": "constants",
+          "path": "wave_attrition_model.MaxAttackersPerUnit",
+          "values": [
+            1,
+            2,
+            4
+          ]
+        },
+        {
+          "file": "constants",
+          "path": "wave_attrition_model.MeleeContactFacingFraction",
+          "values": [
+            0.25,
+            0.5,
+            1.0
+          ]
+        }
+      ],
+      "trust": "wave_attrition \u2014 DIAGNOSTIC (family 3, harness constants), DRIFT-ONLY. Deliberately run against the CURRENT gate1-calibration-wave1.json fixture (real per-rank ArrivalSeconds, task-068), not the historical zeroed-arrival reconstruction docs/sim/SWEEPS.md uses to reproduce the old 27-cell table byte-for-byte \u2014 that reconstruction is a one-time apples-to-apples check against a retired table, not something worth re-baselining forever. This entry instead tracks the harness's REAL current sensitivity band across combat-model-constants.json's own documented ranges (EngagedSpacingUU_range, MaxAttackersPerUnit shipped-vs-strict, MeleeContactFacingFraction_range) \u2014 the most load-bearing 27 numbers this repo currently has an opinion about.",
+      "diagnostic_family_3": true,
+      "cells": [
+        {
+          "overrides": {
+            "constants:wave_attrition_model.EngagedSpacingUU": 25,
+            "constants:wave_attrition_model.MaxAttackersPerUnit": 1,
+            "constants:wave_attrition_model.MeleeContactFacingFraction": 0.25
+          },
+          "metrics": {
+            "retinue_survivors": 21.26,
+            "enemy_survivors": 0.0,
+            "elapsed_seconds": 300.6,
+            "result": "enemy_wiped"
+          }
+        },
+        {
+          "overrides": {
+            "constants:wave_attrition_model.EngagedSpacingUU": 25,
+            "constants:wave_attrition_model.MaxAttackersPerUnit": 1,
+            "constants:wave_attrition_model.MeleeContactFacingFraction": 0.5
+          },
+          "metrics": {
+            "retinue_survivors": 21.26,
+            "enemy_survivors": 0.0,
+            "elapsed_seconds": 300.6,
+            "result": "enemy_wiped"
+          }
+        },
+        {
+          "overrides": {
+            "constants:wave_attrition_model.EngagedSpacingUU": 25,
+            "constants:wave_attrition_model.MaxAttackersPerUnit": 1,
+            "constants:wave_attrition_model.MeleeContactFacingFraction": 1.0
+          },
+          "metrics": {
+            "retinue_survivors": 21.26,
+            "enemy_survivors": 0.0,
+            "elapsed_seconds": 300.6,
+            "result": "enemy_wiped"
+          }
+        },
+        {
+          "overrides": {
+            "constants:wave_attrition_model.EngagedSpacingUU": 25,
+            "constants:wave_attrition_model.MaxAttackersPerUnit": 2,
+            "constants:wave_attrition_model.MeleeContactFacingFraction": 0.25
+          },
+          "metrics": {
+            "retinue_survivors": 0.0,
+            "enemy_survivors": 0.94,
+            "elapsed_seconds": 15.3,
+            "result": "retinue_wiped"
+          }
+        },
+        {
+          "overrides": {
+            "constants:wave_attrition_model.EngagedSpacingUU": 25,
+            "constants:wave_attrition_model.MaxAttackersPerUnit": 2,
+            "constants:wave_attrition_model.MeleeContactFacingFraction": 0.5
+          },
+          "metrics": {
+            "retinue_survivors": 0.0,
+            "enemy_survivors": 0.94,
+            "elapsed_seconds": 15.3,
+            "result": "retinue_wiped"
+          }
+        },
+        {
+          "overrides": {
+            "constants:wave_attrition_model.EngagedSpacingUU": 25,
+            "constants:wave_attrition_model.MaxAttackersPerUnit": 2,
+            "constants:wave_attrition_model.MeleeContactFacingFraction": 1.0
+          },
+          "metrics": {
+            "retinue_survivors": 0.0,
+            "enemy_survivors": 0.94,
+            "elapsed_seconds": 15.3,
+            "result": "retinue_wiped"
+          }
+        },
+        {
+          "overrides": {
+            "constants:wave_attrition_model.EngagedSpacingUU": 25,
+            "constants:wave_attrition_model.MaxAttackersPerUnit": 4,
+            "constants:wave_attrition_model.MeleeContactFacingFraction": 0.25
+          },
+          "metrics": {
+            "retinue_survivors": 0.0,
+            "enemy_survivors": 17.14,
+            "elapsed_seconds": 11.7,
+            "result": "retinue_wiped"
+          }
+        },
+        {
+          "overrides": {
+            "constants:wave_attrition_model.EngagedSpacingUU": 25,
+            "constants:wave_attrition_model.MaxAttackersPerUnit": 4,
+            "constants:wave_attrition_model.MeleeContactFacingFraction": 0.5
+          },
+          "metrics": {
+            "retinue_survivors": 0.0,
+            "enemy_survivors": 17.14,
+            "elapsed_seconds": 11.7,
+            "result": "retinue_wiped"
+          }
+        },
+        {
+          "overrides": {
+            "constants:wave_attrition_model.EngagedSpacingUU": 25,
+            "constants:wave_attrition_model.MaxAttackersPerUnit": 4,
+            "constants:wave_attrition_model.MeleeContactFacingFraction": 1.0
+          },
+          "metrics": {
+            "retinue_survivors": 0.0,
+            "enemy_survivors": 17.14,
+            "elapsed_seconds": 11.7,
+            "result": "retinue_wiped"
+          }
+        },
+        {
+          "overrides": {
+            "constants:wave_attrition_model.EngagedSpacingUU": 45,
+            "constants:wave_attrition_model.MaxAttackersPerUnit": 1,
+            "constants:wave_attrition_model.MeleeContactFacingFraction": 0.25
+          },
+          "metrics": {
+            "retinue_survivors": 38.21,
+            "enemy_survivors": 0.0,
+            "elapsed_seconds": 300.6,
+            "result": "enemy_wiped"
+          }
+        },
+        {
+          "overrides": {
+            "constants:wave_attrition_model.EngagedSpacingUU": 45,
+            "constants:wave_attrition_model.MaxAttackersPerUnit": 1,
+            "constants:wave_attrition_model.MeleeContactFacingFraction": 0.5
+          },
+          "metrics": {
+            "retinue_survivors": 38.21,
+            "enemy_survivors": 0.0,
+            "elapsed_seconds": 300.6,
+            "result": "enemy_wiped"
+          }
+        },
+        {
+          "overrides": {
+            "constants:wave_attrition_model.EngagedSpacingUU": 45,
+            "constants:wave_attrition_model.MaxAttackersPerUnit": 1,
+            "constants:wave_attrition_model.MeleeContactFacingFraction": 1.0
+          },
+          "metrics": {
+            "retinue_survivors": 38.21,
+            "enemy_survivors": 0.0,
+            "elapsed_seconds": 300.6,
+            "result": "enemy_wiped"
+          }
+        },
+        {
+          "overrides": {
+            "constants:wave_attrition_model.EngagedSpacingUU": 45,
+            "constants:wave_attrition_model.MaxAttackersPerUnit": 2,
+            "constants:wave_attrition_model.MeleeContactFacingFraction": 0.25
+          },
+          "metrics": {
+            "retinue_survivors": 1.01,
+            "enemy_survivors": 0.0,
+            "elapsed_seconds": 300.6,
+            "result": "enemy_wiped"
+          }
+        },
+        {
+          "overrides": {
+            "constants:wave_attrition_model.EngagedSpacingUU": 45,
+            "constants:wave_attrition_model.MaxAttackersPerUnit": 2,
+            "constants:wave_attrition_model.MeleeContactFacingFraction": 0.5
+          },
+          "metrics": {
+            "retinue_survivors": 1.01,
+            "enemy_survivors": 0.0,
+            "elapsed_seconds": 300.6,
+            "result": "enemy_wiped"
+          }
+        },
+        {
+          "overrides": {
+            "constants:wave_attrition_model.EngagedSpacingUU": 45,
+            "constants:wave_attrition_model.MaxAttackersPerUnit": 2,
+            "constants:wave_attrition_model.MeleeContactFacingFraction": 1.0
+          },
+          "metrics": {
+            "retinue_survivors": 1.01,
+            "enemy_survivors": 0.0,
+            "elapsed_seconds": 300.6,
+            "result": "enemy_wiped"
+          }
+        },
+        {
+          "overrides": {
+            "constants:wave_attrition_model.EngagedSpacingUU": 45,
+            "constants:wave_attrition_model.MaxAttackersPerUnit": 4,
+            "constants:wave_attrition_model.MeleeContactFacingFraction": 0.25
+          },
+          "metrics": {
+            "retinue_survivors": 0.0,
+            "enemy_survivors": 26.6,
+            "elapsed_seconds": 11.7,
+            "result": "retinue_wiped"
+          }
+        },
+        {
+          "overrides": {
+            "constants:wave_attrition_model.EngagedSpacingUU": 45,
+            "constants:wave_attrition_model.MaxAttackersPerUnit": 4,
+            "constants:wave_attrition_model.MeleeContactFacingFraction": 0.5
+          },
+          "metrics": {
+            "retinue_survivors": 0.0,
+            "enemy_survivors": 19.24,
+            "elapsed_seconds": 11.7,
+            "result": "retinue_wiped"
+          }
+        },
+        {
+          "overrides": {
+            "constants:wave_attrition_model.EngagedSpacingUU": 45,
+            "constants:wave_attrition_model.MaxAttackersPerUnit": 4,
+            "constants:wave_attrition_model.MeleeContactFacingFraction": 1.0
+          },
+          "metrics": {
+            "retinue_survivors": 0.0,
+            "enemy_survivors": 17.14,
+            "elapsed_seconds": 11.7,
+            "result": "retinue_wiped"
+          }
+        },
+        {
+          "overrides": {
+            "constants:wave_attrition_model.EngagedSpacingUU": 51,
+            "constants:wave_attrition_model.MaxAttackersPerUnit": 1,
+            "constants:wave_attrition_model.MeleeContactFacingFraction": 0.25
+          },
+          "metrics": {
+            "retinue_survivors": 43.32,
+            "enemy_survivors": 0.0,
+            "elapsed_seconds": 300.6,
+            "result": "enemy_wiped"
+          }
+        },
+        {
+          "overrides": {
+            "constants:wave_attrition_model.EngagedSpacingUU": 51,
+            "constants:wave_attrition_model.MaxAttackersPerUnit": 1,
+            "constants:wave_attrition_model.MeleeContactFacingFraction": 0.5
+          },
+          "metrics": {
+            "retinue_survivors": 44.77,
+            "enemy_survivors": 0.0,
+            "elapsed_seconds": 300.6,
+            "result": "enemy_wiped"
+          }
+        },
+        {
+          "overrides": {
+            "constants:wave_attrition_model.EngagedSpacingUU": 51,
+            "constants:wave_attrition_model.MaxAttackersPerUnit": 1,
+            "constants:wave_attrition_model.MeleeContactFacingFraction": 1.0
+          },
+          "metrics": {
+            "retinue_survivors": 44.77,
+            "enemy_survivors": 0.0,
+            "elapsed_seconds": 300.6,
+            "result": "enemy_wiped"
+          }
+        },
+        {
+          "overrides": {
+            "constants:wave_attrition_model.EngagedSpacingUU": 51,
+            "constants:wave_attrition_model.MaxAttackersPerUnit": 2,
+            "constants:wave_attrition_model.MeleeContactFacingFraction": 0.25
+          },
+          "metrics": {
+            "retinue_survivors": 2.91,
+            "enemy_survivors": 0.0,
+            "elapsed_seconds": 300.6,
+            "result": "enemy_wiped"
+          }
+        },
+        {
+          "overrides": {
+            "constants:wave_attrition_model.EngagedSpacingUU": 51,
+            "constants:wave_attrition_model.MaxAttackersPerUnit": 2,
+            "constants:wave_attrition_model.MeleeContactFacingFraction": 0.5
+          },
+          "metrics": {
+            "retinue_survivors": 6.99,
+            "enemy_survivors": 0.0,
+            "elapsed_seconds": 300.6,
+            "result": "enemy_wiped"
+          }
+        },
+        {
+          "overrides": {
+            "constants:wave_attrition_model.EngagedSpacingUU": 51,
+            "constants:wave_attrition_model.MaxAttackersPerUnit": 2,
+            "constants:wave_attrition_model.MeleeContactFacingFraction": 1.0
+          },
+          "metrics": {
+            "retinue_survivors": 6.99,
+            "enemy_survivors": 0.0,
+            "elapsed_seconds": 300.6,
+            "result": "enemy_wiped"
+          }
+        },
+        {
+          "overrides": {
+            "constants:wave_attrition_model.EngagedSpacingUU": 51,
+            "constants:wave_attrition_model.MaxAttackersPerUnit": 4,
+            "constants:wave_attrition_model.MeleeContactFacingFraction": 0.25
+          },
+          "metrics": {
+            "retinue_survivors": 0.0,
+            "enemy_survivors": 56.47,
+            "elapsed_seconds": 10.8,
+            "result": "retinue_wiped"
+          }
+        },
+        {
+          "overrides": {
+            "constants:wave_attrition_model.EngagedSpacingUU": 51,
+            "constants:wave_attrition_model.MaxAttackersPerUnit": 4,
+            "constants:wave_attrition_model.MeleeContactFacingFraction": 0.5
+          },
+          "metrics": {
+            "retinue_survivors": 0.0,
+            "enemy_survivors": 22.5,
+            "elapsed_seconds": 11.7,
+            "result": "retinue_wiped"
+          }
+        },
+        {
+          "overrides": {
+            "constants:wave_attrition_model.EngagedSpacingUU": 51,
+            "constants:wave_attrition_model.MaxAttackersPerUnit": 4,
+            "constants:wave_attrition_model.MeleeContactFacingFraction": 1.0
+          },
+          "metrics": {
+            "retinue_survivors": 0.0,
+            "enemy_survivors": 17.14,
+            "elapsed_seconds": 11.7,
+            "result": "retinue_wiped"
+          }
+        }
+      ]
+    },
+    {
+      "id": "E-floor2-elite-armor-band",
+      "scenario": "floor2-elite-point-target",
+      "command": "py Scripts/sim/sweep.py floor2-elite-point-target --axis \"entity-tiers:tiers[Name=brood_elite].Armor=8,12,16,20\"",
+      "axes": [
+        {
+          "file": "entity-tiers",
+          "path": "tiers[Name=brood_elite].Armor",
+          "values": [
+            8,
+            12,
+            16,
+            20
+          ]
+        }
+      ],
+      "trust": "point_target \u2014 TRUSTWORTHY model path (docs/sim/LIMITATIONS.md \u00a73: reproduces entity-tiers.md \u00a77's own table exactly), still a lower-bound / clean-fight assumption per that same section. 8-20 brackets the shipped default (12).",
+      "diagnostic_family_3": false,
+      "cells": [
+        {
+          "overrides": {
+            "entity-tiers:tiers[Name=brood_elite].Armor": 8
+          },
+          "metrics": {
+            "ttk_seconds": 1.61
+          }
+        },
+        {
+          "overrides": {
+            "entity-tiers:tiers[Name=brood_elite].Armor": 12
+          },
+          "metrics": {
+            "ttk_seconds": 2.13
+          }
+        },
+        {
+          "overrides": {
+            "entity-tiers:tiers[Name=brood_elite].Armor": 16
+          },
+          "metrics": {
+            "ttk_seconds": 2.86
+          }
+        },
+        {
+          "overrides": {
+            "entity-tiers:tiers[Name=brood_elite].Armor": 20
+          },
+          "metrics": {
+            "ttk_seconds": 4.06
+          }
+        }
+      ]
+    },
+    {
+      "id": "F-floor3-boss-militia-dps-band",
+      "scenario": "floor3-boss-point-target",
+      "command": "py Scripts/sim/sweep.py floor3-boss-point-target --axis \"upgrades:tier_ladder.tiers[id=militia].dps=24,30,36,42\"",
+      "axes": [
+        {
+          "file": "upgrades",
+          "path": "tier_ladder.tiers[id=militia].dps",
+          "values": [
+            24,
+            30,
+            36,
+            42
+          ]
+        }
+      ],
+      "trust": "point_target \u2014 TRUSTWORTHY model path, same caveat as E. Catches upgrades.json drift on the trustworthy path (A/B/G below only cover upgrades.json on the illustrative-only wave path). 24-42 brackets the shipped default (30).",
+      "diagnostic_family_3": false,
+      "cells": [
+        {
+          "overrides": {
+            "upgrades:tier_ladder.tiers[id=militia].dps": 24
+          },
+          "metrics": {
+            "ttk_seconds": 13.06
+          }
+        },
+        {
+          "overrides": {
+            "upgrades:tier_ladder.tiers[id=militia].dps": 30
+          },
+          "metrics": {
+            "ttk_seconds": 8.23
+          }
+        },
+        {
+          "overrides": {
+            "upgrades:tier_ladder.tiers[id=militia].dps": 36
+          },
+          "metrics": {
+            "ttk_seconds": 6.0
+          }
+        },
+        {
+          "overrides": {
+            "upgrades:tier_ladder.tiers[id=militia].dps": 42
+          },
+          "metrics": {
+            "ttk_seconds": 4.73
+          }
+        }
+      ]
+    },
+    {
+      "id": "G-floor1-spearmen-cleave-band",
+      "scenario": "floor1-swarm-wave",
+      "command": "py Scripts/sim/sweep.py floor1-swarm-wave --axis \"unit-types:types.spearmen.combat.targets_per_hit=4,8,12\"",
+      "axes": [
+        {
+          "file": "unit-types",
+          "path": "types.spearmen.combat.targets_per_hit",
+          "values": [
+            4,
+            8,
+            12
+          ]
+        }
+      ],
+      "trust": "wave_attrition \u2014 DRIFT-ONLY, same caveat as A. Only entry covering unit-types.json. 4-12 brackets the shipped default (8) \u2014 the same TargetsPerHit dial validate.py's own cleave-sensitivity regression guard exists to keep meaningful (docs/sim/VALIDATION.md).",
+      "diagnostic_family_3": false,
+      "cells": [
+        {
+          "overrides": {
+            "unit-types:types.spearmen.combat.targets_per_hit": 4
+          },
+          "metrics": {
+            "retinue_survivors": 0.0,
+            "enemy_survivors": 185.33,
+            "elapsed_seconds": 1.8,
+            "result": "retinue_wiped"
+          }
+        },
+        {
+          "overrides": {
+            "unit-types:types.spearmen.combat.targets_per_hit": 8
+          },
+          "metrics": {
+            "retinue_survivors": 0.0,
+            "enemy_survivors": 138.62,
+            "elapsed_seconds": 1.8,
+            "result": "retinue_wiped"
+          }
+        },
+        {
+          "overrides": {
+            "unit-types:types.spearmen.combat.targets_per_hit": 12
+          },
+          "metrics": {
+            "retinue_survivors": 0.0,
+            "enemy_survivors": 138.62,
+            "elapsed_seconds": 1.8,
+            "result": "retinue_wiped"
+          }
+        }
+      ]
+    }
+  ]
+}

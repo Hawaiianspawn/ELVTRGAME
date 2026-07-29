@@ -1,0 +1,20 @@
+{
+  "Name": "floor3-boss-point-target-recruitmax",
+  "DisplayName": "Floor 3 — Boss point-target fight (recruit-max-path retinue)",
+  "Kind": "point_target",
+  "Description": "The SAME Boss fight as floor3-boss-point-target.json, but with the recruit-max growth path's retinue (90 units, 20% Archers, DegradeMultiplier 0.944) instead of balanced's 60 -- companion pair to test scaling-curve.md §4's triangle-validation claim through the committed harness: recruit-max has 50% more total bodies but is claimed to lose this matchup badly (TTK ~13.7s vs balanced's ~7.8s in that doc's scratch script) because the Boss's SurroundCapEstimate (45) caps melee regardless of headcount AND recruit-max's over-recruit past Supply degrades its DPS (economy.json degrade mechanic) on top of that.",
+  "SourceRefs": [
+    "docs/design/scaling-curve.md §2 'Recruit-max' table, Floor 3 start row (90 units, 18 Archers/20%)",
+    "docs/data/scaling-curve.json retinue_growth_curve recruit_max_floor3 (DegradeMultiplier 0.944 -- Supply capacity 85 vs demand 90)",
+    "docs/data/entity-tiers.json brood_boss row (MaxHP 6000, Armor 14, SurroundCapEstimate 45)"
+  ],
+  "HeroPresent": true,
+  "Target": { "EntityTier": "brood_boss" },
+  "Retinue": {
+    "Composition": [
+      { "UnitType": "spearmen", "Tier": "militia", "Count": 72 },
+      { "UnitType": "archers", "Tier": "militia", "Count": 18 }
+    ]
+  },
+  "Notes": "SIMPLIFICATION, load-bearing for how to read this scenario's result: the harness has no first-class 'degrade' input (economy.json's DPS-multiplier penalty for over-recruiting past Supply capacity is explicitly listed as un-modeled, docs/sim/LIMITATIONS.md §4). Rather than invent a headcount or DPS adjustment to approximate scaling-curve.json's recruit_max_floor3 DegradeMultiplier (0.944) -- which would mean putting a number in Composition that traces to this director's own arithmetic, not a design doc -- this scenario uses the real, undegraded 90-unit recruit-max headcount (72 Spearmen / 18 Archers, 80/20 split) as-is. That means this scenario's TTK is an OPTIMISTIC bound for real recruit-max play: the true, degraded recruit-max army would do somewhat worse than whatever this run shows, strengthening rather than weakening the comparison if balanced still wins here. HeroPresent true. Same clean-1-on-1 lower-bound caveat as floor3-boss-point-target.json."
+}

@@ -1,0 +1,24 @@
+{
+  "Name": "gate1-calibration-wave3",
+  "DisplayName": "GATE1 calibration — wave 3 (density-scaling companion to wave1/wave2)",
+  "Kind": "wave_attrition",
+  "Description": "Third and final point on the fixed-retinue density axis: the SAME zero-input methodology (fresh 120-retinue, single undifferentiated unit type, no Hero) against GATE1-FUN-PROTOTYPE.md's wave-3 population of 700 -- reproducing the doc's own measured wave-3 result (retinue fully wiped, 131-145 of 700 brood survive, shipped-defaults row) as the collapse-point checkpoint. Together with gate1-calibration-wave1 (250 vs 120, 109-111 survive) and wave2 (450 vs 120, 16-24 survive), this gives the harness a real 3-point measured curve to check the model's density-sensitivity direction against, not just its endpoint values.",
+  "SourceRefs": [
+    "docs/GATE1-FUN-PROTOTYPE.md §1 (run structure: breather refills retinue to 120 before wave 3 begins -- each wave is fought by a FRESH 120, not a depleted carryover)",
+    "docs/GATE1-FUN-PROTOTYPE.md §3b (shipped defaults, measured: 'lost wave 3, 131-145 brood' -- retinue wiped, enemy survivors in that range)",
+    "docs/data/scaling-curve.json design_constants.gate1_calibration (population 700, retinue_n 120, survivors_est 0, survival_rate 0.0)"
+  ],
+  "HeroPresent": false,
+  "TimeLimitSeconds": 300,
+  "Retinue": {
+    "Composition": [
+      { "UnitType": "spearmen", "Tier": "militia", "Count": 120 }
+    ]
+  },
+  "Enemy": {
+    "Composition": [
+      { "EntityTier": "brood_fodder", "Count": 700 }
+    ]
+  },
+  "Notes": "SIMPLIFICATION: same as gate1-calibration-wave2.json -- no ArrivalSeconds gating (encounter-budget.json's rank_arrival_timing[] has no rows for a hypothetical N=700-vs-120 context; would require this director to invent new derived ranks, which the schema forbids), no Archers, no Hero, all 700 enemies in contact from t=0. This is the harness's own committed floor-3-population-scale equivalent of the calibration fixture, and the point where GATE1's own measured baseline itself already fully wipes the retinue -- useful specifically as the far end of the density curve, where the model's LIMITATIONS.md §1 gap (predicting a wipe where the wave1 fixture measures ~92% survival) is expected to matter least, since the measured ground truth here is ALSO a wipe. See the handback for whether the harness's enemy-survivor count (the part GATE1 actually measured at this population) lands in the 131-145 band."
+}

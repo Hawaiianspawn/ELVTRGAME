@@ -1,0 +1,27 @@
+{
+  "Name": "gate1-calibration-wave1",
+  "DisplayName": "GATE1 calibration — wave 1 (validation fixture, not a design scenario)",
+  "Kind": "wave_attrition",
+  "Description": "Reproduces docs/GATE1-FUN-PROTOTYPE.md's own zero-input wave-1 measurement exactly: 120 retinue (flat-refilled, all Militia, no tier mix) vs a pure-Fodder population of 250. This is the validation fixture Scripts/sim/validate.py checks against the doc's measured 'shipped defaults' result (109-111 of 120 survive, §3b) before ANY scenario in this directory is trusted as a predictor. It is deliberately NOT one of the 'three named wave scenarios' the task asks for — those use the real economy-fed retinue counts and floor compositions (see floor1-swarm-wave.json, floor2-ranged-wave.json) precisely because this fixture's 120-strong flat refill is a gate-1-only prototype convention, not what any floor of the actual game hands the player.",
+  "SourceRefs": [
+    "docs/GATE1-FUN-PROTOTYPE.md §1 (run structure: wave 1 = 250 brood, retinue refilled to 120)",
+    "docs/GATE1-FUN-PROTOTYPE.md §3b (shipped defaults, measured, 4 zero-input runs: wave 1 survivors 109-111 of 120)"
+  ],
+  "HeroPresent": false,
+  "TimeLimitSeconds": 300,
+  "Retinue": {
+    "Composition": [
+      { "UnitType": "spearmen", "Tier": "militia", "Count": 120 }
+    ]
+  },
+  "Enemy": {
+    "Composition": [
+      { "Name": "brood_fodder_rank0", "EntityTier": "brood_fodder", "Count": 60, "ArrivalSeconds": 5.85 },
+      { "Name": "brood_fodder_rank1", "EntityTier": "brood_fodder", "Count": 60, "ArrivalSeconds": 6.29 },
+      { "Name": "brood_fodder_rank2", "EntityTier": "brood_fodder", "Count": 60, "ArrivalSeconds": 6.73 },
+      { "Name": "brood_fodder_rank3", "EntityTier": "brood_fodder", "Count": 60, "ArrivalSeconds": 7.17 },
+      { "Name": "brood_fodder_rank4", "EntityTier": "brood_fodder", "Count": 10, "ArrivalSeconds": 7.60 }
+    ]
+  },
+  "Notes": "Zero-input calibration means no Archers (the real gate-1 prototype has one undifferentiated retinue type, pre-dating unit-types.json's Spearmen/Archer split) and no Hero contribution (§3: 'hero never moved and never issued a stance'). If this scenario's survivor count lands outside 109-111, the harness's wave-attrition model is not yet trustworthy for ANY of the floor scenarios in this directory — see docs/sim/VALIDATION.md for the actual run result. task-068: the single 250-count brood_fodder row is now split into 5 per-rank rows carrying ArrivalSeconds (Nominal, no jitter), taken verbatim from docs/data/encounter-budget.json rank_arrival_timing[] rows gate1_calibration_wave1_rank0..4 — same 250 total, same single EntityTier, only the arrival timing is new. Before rank0's ArrivalSeconds (~5.85s), no enemy is in contact range at all; see docs/sim/LIMITATIONS.md §1 and docs/sim/VALIDATION.md for what this changed and what it didn't."
+}

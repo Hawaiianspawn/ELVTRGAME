@@ -1,0 +1,20 @@
+{
+  "Name": "floor3-elite-point-target",
+  "DisplayName": "Floor 3 — Elite point-target fight (balanced-path retinue, single instance)",
+  "Kind": "point_target",
+  "Description": "Floor 3's balanced-path retinue (60 units, 20% Archers) fighting ONE of the floor's two embedded Elite instances clean -- the harness models a single point-target only, so this reproduces one instance of scaling-curve.md §4's floor-3 Elite row, not the sequential-pair fight that doc's own scratch script also computed. Continues the archer-value / melee-saturation question (floor2-elite-point-target.json) at floor 3's larger army size.",
+  "SourceRefs": [
+    "docs/design/scaling-curve.md §2 'Balanced' table, Floor 3 start row (60 units, 12 Archers/20%)",
+    "docs/data/scaling-curve.json elite_boss_schedule (floor3_elite_01/02, both EncounterMode embedded_in_swarm)",
+    "docs/data/entity-tiers.json brood_elite row (MaxHP 900, Armor 12, SurroundCapEstimate 20)"
+  ],
+  "HeroPresent": true,
+  "Target": { "EntityTier": "brood_elite" },
+  "Retinue": {
+    "Composition": [
+      { "UnitType": "spearmen", "Tier": "militia", "Count": 48 },
+      { "UnitType": "archers", "Tier": "militia", "Count": 12 }
+    ]
+  },
+  "Notes": "SIMPLIFICATION: scaling-curve.md §4's own 'balanced_floor3_elite' row computes TTKSecondsForTwo (3.97s) by simply doubling the single-instance TTK (1.98s) -- that doc's own scratch-script approximation for fighting the SAME target sequentially, not a distinct mechanic. Kind: point_target has no concurrent- or sequential-multi-target mode (a genuine harness capability gap, flagged forward rather than approximated here); this scenario reproduces only the single-instance number. HeroPresent is true here (unlike that doc's row, which left HeroDPS null) -- this director could not determine from the doc why the hero was omitted from its floor-3 Elite rows specifically (floor2's own Elite row DOES include a HeroDPS value), so this scenario states the harness's own default convention (point-target fights include the Hero, per floor3-boss-point-target.json's precedent) plainly rather than guessing at an unstated design reason. Same clean-1-on-1 lower-bound caveat as floor2-elite-point-target.json: both floor-3 Elites are embedded_in_swarm (elite_boss_schedule), never fought this cleanly in a real run."
+}

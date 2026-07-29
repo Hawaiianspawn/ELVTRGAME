@@ -1,0 +1,19 @@
+{
+  "Name": "floor3-boss-point-target",
+  "DisplayName": "Floor 3 — Boss point-target fight",
+  "Kind": "point_target",
+  "Description": "Floor 3's balanced-path retinue (60 units, 20% Archers) fighting the slice Boss clean (no swarm around it) — the same closed-form surround-cap method docs/design/entity-tiers.md §4/§7 already used for its own Elite/Boss TTK table, run here as a committed, re-runnable scenario instead of a discarded scratch script.",
+  "SourceRefs": [
+    "docs/design/scaling-curve.md §2 'Balanced' table, Floor 3 start row (60 units, 12 Archers/20%)",
+    "docs/data/entity-tiers.json brood_boss row (MaxHP 6000, Armor 14, SurroundCapEstimate 45)"
+  ],
+  "HeroPresent": true,
+  "Target": { "EntityTier": "brood_boss" },
+  "Retinue": {
+    "Composition": [
+      { "UnitType": "spearmen", "Tier": "militia", "Count": 48 },
+      { "UnitType": "archers", "Tier": "militia", "Count": 12 }
+    ]
+  },
+  "Notes": "SIMPLIFICATION: scaling-curve.md §2's balanced path actually reaches floor 3 with 10 of the 48 Spearmen promoted to Veteran (Site B: 'Promote 20 (10 Freed->Militia, 10 Militia->Veteran)'). This scenario uses an all-Militia approximation instead of reconstructing the exact mixed-tier roster, so its TTK reads SLOWER (worse) than scaling-curve.md §4's own mixed-tier Boss row (8.23s here vs that doc's 7.82s, run through Scripts/sim/scenario_runner.py) -- the gap is explained by the missing Veteran contribution, not a model disagreement (Veterans deal more effective DPS per capped melee slot, so a partially-Veteran army clears faster). Flagged rather than silently reconciled: this scenario is a clean re-run of the SAME closed-form surround-cap method on a DIFFERENT (simplified) roster, not a reproduction of that exact row. This is also the only scenario in this directory with HeroPresent true, since a point-target fight (unlike the zero-input wave scenarios) is exactly where entity-tiers.md's own method already includes the hero by default."
+}

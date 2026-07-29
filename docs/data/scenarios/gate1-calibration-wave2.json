@@ -1,0 +1,24 @@
+{
+  "Name": "gate1-calibration-wave2",
+  "DisplayName": "GATE1 calibration — wave 2 (density-scaling companion to wave1)",
+  "Kind": "wave_attrition",
+  "Description": "Extends gate1-calibration-wave1.json's density axis with a second measured point: the SAME zero-input methodology (fresh 120-retinue, single undifferentiated unit type, no Hero) against GATE1-FUN-PROTOTYPE.md's wave-2 population of 450 -- reproducing the doc's own measured wave-2 result (16-24 of 120 survive, from the run's 'breather... refills to 120' rule between waves) as the second of three fixed-retinue population checkpoints. Answers 'does the retinue hold as fodder density scales' with a real measured target at each point, not just a ratio heuristic.",
+  "SourceRefs": [
+    "docs/GATE1-FUN-PROTOTYPE.md §1 (run structure: breather refills retinue to 120 before wave 2 begins -- each wave is fought by a FRESH 120, not a depleted carryover)",
+    "docs/GATE1-FUN-PROTOTYPE.md §3b (shipped defaults, measured, 4 zero-input runs: wave 2 survivors 16-24 of 120)",
+    "docs/data/scaling-curve.json design_constants.gate1_calibration (population 450, retinue_n 120, survivors_est 20, survival_rate 0.17 -- the same measured point restated as this repo's own calibration table)"
+  ],
+  "HeroPresent": false,
+  "TimeLimitSeconds": 300,
+  "Retinue": {
+    "Composition": [
+      { "UnitType": "spearmen", "Tier": "militia", "Count": 120 }
+    ]
+  },
+  "Enemy": {
+    "Composition": [
+      { "EntityTier": "brood_fodder", "Count": 450 }
+    ]
+  },
+  "Notes": "SIMPLIFICATION: unlike gate1-calibration-wave1.json, this fixture does NOT carry per-rank ArrivalSeconds gating. docs/data/encounter-budget.json's rank_arrival_timing[] only computes rank rows for the 'gate1_calibration_wave1' context (5 ranks, N=250) -- extending that formula to this fixture's N=450 (8 ranks) would mean this director computing NEW derived numbers that are not present in any committed docs/data/*.json file, which scenarios.schema.md's own ArrivalSeconds section says must trace to rank_arrival_timing[], not be invented per-scenario. Flagged as a real gap for whoever next extends encounter-budget.json (the first 5 ranks would be numerically identical to wave1's, since retinue_radius depends only on the fixed retinue_N=120 -- only the extra tail ranks are missing), not fixed here. All 450 enemies are therefore treated as in contact from t=0, the same convention every scenario in this directory besides gate1-calibration-wave1 already uses. Zero-input calibration also means no Archers (unit-types.json's Spearmen/Archer split postdates this single-brood-type prototype) and no Hero (GATE1 §3: 'hero never moved and never issued a stance'), matching wave1's convention exactly. If this scenario's survivor count lands far outside the measured 16-24 band while wave1 lands inside 109-111, that gap is itself informative about how much arrival gating (present in wave1, absent here) actually matters at this population scale -- see the handback for the run comparison."
+}

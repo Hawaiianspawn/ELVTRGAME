@@ -1,0 +1,132 @@
+{
+  "$schema_note": "Per-floor encounter budget (task-004), closing the 'Encounter budget table per floor' item in RTS-VERTICAL-SLICE.md §4 / SYSTEMS.md §4. Population totals and composition are LOCKED from SYSTEMS.md §2 / economy.json (250/450/700) and scaling-curve.json (task-003, floor_roster / elite_boss_schedule) and are NOT re-declared as new numbers here. This file adds (a) procgen room-type budget spend, (b) main-arena arrival pacing (spike/lull), (c) an optional risk-room bonus pocket, (d) the entity-ceiling proof against docs/perf/BUDGETS.md, and (e) per-rank arrival-TIMING data derived from shipped Swarm.BroodSpawn*/BroodFormation.*/BroodSpeed CVar defaults -- the arrival/spawn-pacing data docs/sim/LIMITATIONS.md §1-§2 names as missing from every committed file and needed to test its wave-attrition model's candidate #1 gap. Decisions + rationale: docs/design/encounter-budget.md. Columns/units/ranges: encounter-budget.schema.md. rank_arrival_timing values are DERIVED FROM SHIPPED CODE DEFAULTS (cited exactly, not invented); every other table's values are PROTOTYPE DIALS, this doc's own judgment calls, unmeasured in-engine -- see design_constants notes for which is which, per row.",
+  "version": "0.2-vslice",
+  "last_updated": "2026-07-29",
+
+  "design_constants": {
+    "entity_ceiling_niagara_measured": 20000,
+    "entity_ceiling_60fps_simlod4": 34000,
+
+    "pulse_lull_seconds": 3.0,
+    "pulse_lull_seconds_status": "JUDGMENT CALL, this doc's own first-pass dial",
+    "pulse_lull_seconds_note": "Proposed Swarm.PulseLullSeconds. Gap between arrival pulses WITHIN a floor's Arena room -- a finer grain than the existing between-floor growth-site breather (SYSTEMS.md SS4/SS7, unchanged). Named Lull, not Breather, to avoid colliding with ERunPhase::Breather in Spike1GameMode.h, which already means something else (between waves, growth site). NOT derived from any shipped default -- a readability number to be judged by feel once pulses exist on screen.",
+
+    "elite_lead_seconds": 1.5,
+    "elite_lead_seconds_status": "JUDGMENT CALL, this doc's own first-pass dial",
+    "elite_lead_seconds_note": "Proposed Swarm.EliteLeadSeconds. An embedded Elite spawns this many seconds before the rest of its pulse's swarm bodies, so its 1.8s swing telegraph (entity-tiers.json) has a moment to read clearly before it's buried in fodder (Design Law 6). NOT derived from any shipped default.",
+
+    "risk_room_access_note": "Risk Room is reachable only via a side corridor branching off the entrance-to-Arena corridor, and only before the Arena's first pulse triggers -- a 'scout the side room before committing to the fight' framing. This sidesteps any question of whether the Arena's pulse clock pauses while the player is elsewhere; it simply isn't running yet.",
+
+    "rank_arrival_status": "DERIVED FROM SHIPPED CODE, cited exactly -- see rank_arrival_source_cvars. This is the one block in this file that is NOT this doc's judgment call.",
+    "rank_arrival_source_cvars": {
+      "Swarm.BroodSpawnRadiusMin": { "value": 2500.0, "unit": "uu", "file": "ELVTR/Source/ELVTR/Mass/SwarmCommands.cpp", "role": "Radius of the front rank -- the rank that leads the wave and arrives first." },
+      "Swarm.BroodFormation.RankSpacing": { "value": 140.0, "unit": "uu", "file": "ELVTR/Source/ELVTR/Mass/SwarmCommands.cpp", "role": "Radial gap between successive ranks; ranks step OUTWARD from RadiusMin." },
+      "Swarm.BroodFormation.Columns": { "value": 60, "unit": "brood per rank", "file": "ELVTR/Source/ELVTR/Mass/SwarmCommands.cpp", "role": "How many brood share one rank (one arrival wavefront)." },
+      "Swarm.BroodSpeed": { "value": 320.0, "unit": "uu/s", "file": "ELVTR/Source/ELVTR/Mass/SwarmProcessors.cpp", "role": "Straight-line closing speed used for the travel-time estimate." },
+      "Swarm.BroodSpeedJitter": { "value": 0.06, "unit": "fraction, +/-", "file": "ELVTR/Source/ELVTR/Mass/SwarmCommands.cpp", "role": "Per-brood speed variation at spawn; brackets the nominal arrival time (ArrivalSecondsFast/Slow)." }
+    },
+    "rank_arrival_other_inputs": {
+      "fodder_engage_range": { "value": 95.0, "unit": "uu", "source": "entity-tiers.json brood_fodder.EngageRange" },
+      "retinue_formation_spacing_at_rest": { "value": 86.0, "unit": "uu", "source": "GATE1-FUN-PROTOTYPE.md §3a MEASURED (Swarm.SpacingReport); same constant combat-model-constants.json's FormationSpacingUU already uses" }
+    },
+    "rank_arrival_formula": "retinue_radius(N) = FormationSpacingUU * sqrt(N / pi)  [disk-packing footprint, same method combat_model.exposed_frontage() already uses in Scripts/sim/]. rank_radius(k) = BroodSpawnRadiusMin + k * RankSpacing. travel(k, retinue_N) = max(0, rank_radius(k) - retinue_radius(retinue_N) - FodderEngageRange). ArrivalSeconds = travel / (BroodSpeed * (1 +/- BroodSpeedJitter)).",
+    "rank_arrival_caveats": [
+      "This is a closed-form Fermi estimate from shipped CVar DEFAULTS, not an in-engine measurement -- same epistemic status as SurroundCapEstimate/exposed_frontage() elsewhere in this repo, cited per-field rather than asserted as fact.",
+      "Treats the retinue as a point-plus-radius at the world attractor (Swarm->GetAttractor()), neglecting that the hero/retinue can itself be moving during the approach -- a static-formation snapshot, consistent with how the wave-attrition harness already treats both sides as pooled quantities.",
+      "Straight-line travel time only -- no steering/obstacle slowdown, no BroodSpawnArc/BroodSpawnFaceCamera bearing effects (irrelevant to radial distance, only to which direction the front rank appears from).",
+      "Assumes CVars stay at their shipped defaults; if any of the five is retuned, every ArrivalSeconds value here goes stale and needs recomputing from the formula above, not hand-edited."
+    ]
+  },
+
+  "room_types": [
+    { "Name": "floor1_arena",        "Floor": 1, "RoomType": "Arena",       "Count": 1, "PopulationSource": "locked", "PopulationCount": 250, "Notes": "Hosts the floor's full locked population in 1 pulse (unchanged from GATE1-FUN-PROTOTYPE.md's shipped wave 1 -- floor 1 preserves the measured calibration baseline exactly)." },
+    { "Name": "floor1_corridor",     "Floor": 1, "RoomType": "Corridor",    "Count": 2, "PopulationSource": "none",   "PopulationCount": null, "Notes": "Entrance->DecisionSite->Arena, Arena->RiskRoom branch. Traversal only; count is a procgen layout concern, not a population-budget one." },
+    { "Name": "floor1_decision_site","Floor": 1, "RoomType": "DecisionSite","Count": 1, "PopulationSource": "none",   "PopulationCount": null, "Notes": "The slice's first of 2 authored decision events (fork). No combat -- see spec §3 for placement rationale." },
+    { "Name": "floor1_risk_room",    "Floor": 1, "RoomType": "RiskRoom",    "Count": 1, "PopulationSource": "bonus",  "PopulationCount": 20,   "Notes": "GDD §9's required >=1 optional risk room. Bonus pocket, not sliced from the locked 250 -- see risk_room_budget." },
+
+    { "Name": "floor2_arena",        "Floor": 2, "RoomType": "Arena",       "Count": 1, "PopulationSource": "locked", "PopulationCount": 450, "Notes": "2 pulses; embeds the floor's 1 Elite instance (elite_boss_schedule floor2_elite_01) mid-pulse-2, never a clean 1-on-1 -- see pulse_schedule." },
+    { "Name": "floor2_corridor",     "Floor": 2, "RoomType": "Corridor",    "Count": 2, "PopulationSource": "none",   "PopulationCount": null, "Notes": "Entrance->Arena, Arena->RiskRoom branch. No decision site this floor -- see spec §3." },
+    { "Name": "floor2_risk_room",    "Floor": 2, "RoomType": "RiskRoom",    "Count": 1, "PopulationSource": "bonus",  "PopulationCount": 35,   "Notes": "See risk_room_budget." },
+
+    { "Name": "floor3_arena",        "Floor": 3, "RoomType": "Arena",       "Count": 1, "PopulationSource": "locked", "PopulationCount": 700, "Notes": "3 pulses; embeds both floor-3 Elite instances (floor3_elite_01 at pulse 2, floor3_elite_02 at pulse 3) -- see pulse_schedule." },
+    { "Name": "floor3_corridor",     "Floor": 3, "RoomType": "Corridor",    "Count": 3, "PopulationSource": "none",   "PopulationCount": null, "Notes": "Entrance->DecisionSite->Arena, Arena->RiskRoom branch, Arena->BossRoom." },
+    { "Name": "floor3_decision_site","Floor": 3, "RoomType": "DecisionSite","Count": 1, "PopulationSource": "none",   "PopulationCount": null, "Notes": "The slice's second authored decision event (sacrifice), placed before the Arena as the penultimate-stakes beat ahead of the boss -- see spec §3." },
+    { "Name": "floor3_risk_room",    "Floor": 3, "RoomType": "RiskRoom",    "Count": 1, "PopulationSource": "bonus",  "PopulationCount": 55,   "Notes": "See risk_room_budget." },
+    { "Name": "floor3_boss_room",    "Floor": 3, "RoomType": "BossRoom",    "Count": 1, "PopulationSource": "none",   "PopulationCount": null, "Notes": "The Boss itself (floor3_boss_01, elite_boss_schedule) is a PromotedActor, not Mass Entity population -- isolated_arena, 0 concurrent swarm, per scaling-curve.json." }
+  ],
+
+  "pulse_schedule": [
+    { "Name": "floor1_pulse1", "Floor": 1, "PulseIndex": 1, "PulseTotal": 250, "PctOfFloorPopulation": 100.0, "Fodder": 212, "SoldierMelee": 38, "SoldierRanged": 0, "EliteTrigger": 0, "EliteLeadSeconds": null, "LullAfterSeconds": 0.0 },
+
+    { "Name": "floor2_pulse1", "Floor": 2, "PulseIndex": 1, "PulseTotal": 270, "PctOfFloorPopulation": 60.0, "Fodder": 148, "SoldierMelee": 68, "SoldierRanged": 54, "EliteTrigger": 0, "EliteLeadSeconds": null, "LullAfterSeconds": 3.0 },
+    { "Name": "floor2_pulse2", "Floor": 2, "PulseIndex": 2, "PulseTotal": 180, "PctOfFloorPopulation": 40.0, "Fodder": 99,  "SoldierMelee": 45, "SoldierRanged": 36, "EliteTrigger": 1, "EliteLeadSeconds": 1.5, "LullAfterSeconds": 0.0 },
+
+    { "Name": "floor3_pulse1", "Floor": 3, "PulseIndex": 1, "PulseTotal": 210, "PctOfFloorPopulation": 30.0, "Fodder": 94,  "SoldierMelee": 52, "SoldierRanged": 64, "EliteTrigger": 0, "EliteLeadSeconds": null, "LullAfterSeconds": 3.0 },
+    { "Name": "floor3_pulse2", "Floor": 3, "PulseIndex": 2, "PulseTotal": 245, "PctOfFloorPopulation": 35.0, "Fodder": 110, "SoldierMelee": 61, "SoldierRanged": 74, "EliteTrigger": 1, "EliteLeadSeconds": 1.5, "LullAfterSeconds": 3.0 },
+    { "Name": "floor3_pulse3", "Floor": 3, "PulseIndex": 3, "PulseTotal": 245, "PctOfFloorPopulation": 35.0, "Fodder": 110, "SoldierMelee": 61, "SoldierRanged": 74, "EliteTrigger": 1, "EliteLeadSeconds": 1.5, "LullAfterSeconds": 0.0 }
+  ],
+
+  "risk_room_budget": [
+    { "Name": "floor1_risk_room", "Floor": 1, "BonusFodderCount": 20, "PctOfLockedPopulation": 8.0, "RewardNote": "Guaranteed bonus loot-v0 roll (docs/data/loot-v0.json) + standard per-kill Ember rate (economy.json, 0.1/kill = +2 Embers). Pure Fodder, no Soldier/Elite surprise -- ROI legible before entering (spec §4)." },
+    { "Name": "floor2_risk_room", "Floor": 2, "BonusFodderCount": 35, "PctOfLockedPopulation": 7.8, "RewardNote": "Guaranteed bonus loot-v0 roll + per-kill Embers (+3.5). Pure Fodder." },
+    { "Name": "floor3_risk_room", "Floor": 3, "BonusFodderCount": 55, "PctOfLockedPopulation": 7.9, "RewardNote": "Guaranteed bonus loot-v0 roll + per-kill Embers (+5.5). Pure Fodder." }
+  ],
+
+  "peak_concurrency_check": [
+    { "Name": "floor1_peak", "Floor": 1, "SwarmPeak": 250, "RetinuePeak": 40, "EliteCount": 0, "BossCount": 0, "RiskRoomBonusWorstCase": 20, "TotalPeak": 310, "PctOf20kMeasured": 1.55, "PctOf34kSimLOD4Ceiling": 0.91 },
+    { "Name": "floor2_peak", "Floor": 2, "SwarmPeak": 450, "RetinuePeak": 60, "EliteCount": 1, "BossCount": 0, "RiskRoomBonusWorstCase": 35, "TotalPeak": 546, "PctOf20kMeasured": 2.73, "PctOf34kSimLOD4Ceiling": 1.61 },
+    { "Name": "floor3_peak", "Floor": 3, "SwarmPeak": 700, "RetinuePeak": 90, "EliteCount": 2, "BossCount": 0, "RiskRoomBonusWorstCase": 55, "TotalPeak": 847, "PctOf20kMeasured": 4.24, "PctOf34kSimLOD4Ceiling": 2.49 },
+    { "Name": "floor3_boss_room_peak", "Floor": 3, "SwarmPeak": 0, "RetinuePeak": 90, "EliteCount": 0, "BossCount": 1, "RiskRoomBonusWorstCase": 0, "TotalPeak": 91, "PctOf20kMeasured": 0.455, "PctOf34kSimLOD4Ceiling": 0.268 }
+  ],
+
+  "rank_arrival_context": [
+    { "Name": "gate1_calibration_wave1", "Floor": null, "PulseIndex": null, "PopulationN": 250, "RetinueN": 120, "RankCount": 5, "FrontRankArrivalSeconds": 5.85, "BackRankArrivalSeconds": 7.60, "SpreadSeconds": 1.75, "SourceRefs": "docs/data/scenarios/gate1-calibration-wave1.json (the harness's own committed validation fixture, unedited by this doc); GATE1-FUN-PROTOTYPE.md §1 (wave 1 = 250 vs retinue refilled to 120)" },
+    { "Name": "floor1_pulse1", "Floor": 1, "PulseIndex": 1, "PopulationN": 250, "RetinueN": 40, "RankCount": 5, "FrontRankArrivalSeconds": 6.56, "BackRankArrivalSeconds": 8.31, "SpreadSeconds": 1.75, "SourceRefs": "This doc's own floor-1 retinue count (scaling-curve.json, floor 1 start)" },
+    { "Name": "floor2_pulse1", "Floor": 2, "PulseIndex": 1, "PopulationN": 270, "RetinueN": 60, "RankCount": 5, "FrontRankArrivalSeconds": 6.34, "BackRankArrivalSeconds": 8.09, "SpreadSeconds": 1.75, "SourceRefs": "scaling-curve.json recruit_max floor2 (worst-of-both-scenarios retinue count, this doc's own choice for a pessimistic bound)" },
+    { "Name": "floor2_pulse2", "Floor": 2, "PulseIndex": 2, "PopulationN": 180, "RetinueN": 60, "RankCount": 3, "FrontRankArrivalSeconds": 6.34, "BackRankArrivalSeconds": 7.22, "SpreadSeconds": 0.88, "SourceRefs": "same as floor2_pulse1" },
+    { "Name": "floor3_pulse1", "Floor": 3, "PulseIndex": 1, "PopulationN": 210, "RetinueN": 90, "RankCount": 4, "FrontRankArrivalSeconds": 6.08, "BackRankArrivalSeconds": 7.39, "SpreadSeconds": 1.31, "SourceRefs": "scaling-curve.json recruit_max floor3" },
+    { "Name": "floor3_pulse2", "Floor": 3, "PulseIndex": 2, "PopulationN": 245, "RetinueN": 90, "RankCount": 5, "FrontRankArrivalSeconds": 6.08, "BackRankArrivalSeconds": 7.83, "SpreadSeconds": 1.75, "SourceRefs": "same as floor3_pulse1" },
+    { "Name": "floor3_pulse3", "Floor": 3, "PulseIndex": 3, "PopulationN": 245, "RetinueN": 90, "RankCount": 5, "FrontRankArrivalSeconds": 6.08, "BackRankArrivalSeconds": 7.83, "SpreadSeconds": 1.75, "SourceRefs": "same as floor3_pulse1" }
+  ],
+
+  "rank_arrival_timing": [
+    { "Name": "gate1_calibration_wave1_rank0", "Context": "gate1_calibration_wave1", "RankIndex": 0, "RankCount": 60, "ArrivalSecondsNominal": 5.85, "ArrivalSecondsFast": 5.52, "ArrivalSecondsSlow": 6.23, "Pattern": "rank_staggered" },
+    { "Name": "gate1_calibration_wave1_rank1", "Context": "gate1_calibration_wave1", "RankIndex": 1, "RankCount": 60, "ArrivalSecondsNominal": 6.29, "ArrivalSecondsFast": 5.94, "ArrivalSecondsSlow": 6.69, "Pattern": "rank_staggered" },
+    { "Name": "gate1_calibration_wave1_rank2", "Context": "gate1_calibration_wave1", "RankIndex": 2, "RankCount": 60, "ArrivalSecondsNominal": 6.73, "ArrivalSecondsFast": 6.35, "ArrivalSecondsSlow": 7.16, "Pattern": "rank_staggered" },
+    { "Name": "gate1_calibration_wave1_rank3", "Context": "gate1_calibration_wave1", "RankIndex": 3, "RankCount": 60, "ArrivalSecondsNominal": 7.17, "ArrivalSecondsFast": 6.76, "ArrivalSecondsSlow": 7.62, "Pattern": "rank_staggered" },
+    { "Name": "gate1_calibration_wave1_rank4", "Context": "gate1_calibration_wave1", "RankIndex": 4, "RankCount": 10, "ArrivalSecondsNominal": 7.60, "ArrivalSecondsFast": 7.17, "ArrivalSecondsSlow": 8.09, "Pattern": "rank_staggered" },
+
+    { "Name": "floor1_pulse1_rank0", "Context": "floor1_pulse1", "RankIndex": 0, "RankCount": 60, "ArrivalSecondsNominal": 6.56, "ArrivalSecondsFast": 6.19, "ArrivalSecondsSlow": 6.98, "Pattern": "rank_staggered" },
+    { "Name": "floor1_pulse1_rank1", "Context": "floor1_pulse1", "RankIndex": 1, "RankCount": 60, "ArrivalSecondsNominal": 6.99, "ArrivalSecondsFast": 6.60, "ArrivalSecondsSlow": 7.44, "Pattern": "rank_staggered" },
+    { "Name": "floor1_pulse1_rank2", "Context": "floor1_pulse1", "RankIndex": 2, "RankCount": 60, "ArrivalSecondsNominal": 7.43, "ArrivalSecondsFast": 7.01, "ArrivalSecondsSlow": 7.91, "Pattern": "rank_staggered" },
+    { "Name": "floor1_pulse1_rank3", "Context": "floor1_pulse1", "RankIndex": 3, "RankCount": 60, "ArrivalSecondsNominal": 7.87, "ArrivalSecondsFast": 7.42, "ArrivalSecondsSlow": 8.37, "Pattern": "rank_staggered" },
+    { "Name": "floor1_pulse1_rank4", "Context": "floor1_pulse1", "RankIndex": 4, "RankCount": 10, "ArrivalSecondsNominal": 8.31, "ArrivalSecondsFast": 7.84, "ArrivalSecondsSlow": 8.84, "Pattern": "rank_staggered" },
+
+    { "Name": "floor2_pulse1_rank0", "Context": "floor2_pulse1", "RankIndex": 0, "RankCount": 60, "ArrivalSecondsNominal": 6.34, "ArrivalSecondsFast": 5.98, "ArrivalSecondsSlow": 6.75, "Pattern": "rank_staggered" },
+    { "Name": "floor2_pulse1_rank1", "Context": "floor2_pulse1", "RankIndex": 1, "RankCount": 60, "ArrivalSecondsNominal": 6.78, "ArrivalSecondsFast": 6.39, "ArrivalSecondsSlow": 7.21, "Pattern": "rank_staggered" },
+    { "Name": "floor2_pulse1_rank2", "Context": "floor2_pulse1", "RankIndex": 2, "RankCount": 60, "ArrivalSecondsNominal": 7.22, "ArrivalSecondsFast": 6.81, "ArrivalSecondsSlow": 7.68, "Pattern": "rank_staggered" },
+    { "Name": "floor2_pulse1_rank3", "Context": "floor2_pulse1", "RankIndex": 3, "RankCount": 60, "ArrivalSecondsNominal": 7.65, "ArrivalSecondsFast": 7.22, "ArrivalSecondsSlow": 8.14, "Pattern": "rank_staggered" },
+    { "Name": "floor2_pulse1_rank4", "Context": "floor2_pulse1", "RankIndex": 4, "RankCount": 30, "ArrivalSecondsNominal": 8.09, "ArrivalSecondsFast": 7.63, "ArrivalSecondsSlow": 8.61, "Pattern": "rank_staggered" },
+
+    { "Name": "floor2_pulse2_rank0", "Context": "floor2_pulse2", "RankIndex": 0, "RankCount": 60, "ArrivalSecondsNominal": 6.34, "ArrivalSecondsFast": 5.98, "ArrivalSecondsSlow": 6.75, "Pattern": "rank_staggered" },
+    { "Name": "floor2_pulse2_rank1", "Context": "floor2_pulse2", "RankIndex": 1, "RankCount": 60, "ArrivalSecondsNominal": 6.78, "ArrivalSecondsFast": 6.39, "ArrivalSecondsSlow": 7.21, "Pattern": "rank_staggered" },
+    { "Name": "floor2_pulse2_rank2", "Context": "floor2_pulse2", "RankIndex": 2, "RankCount": 60, "ArrivalSecondsNominal": 7.22, "ArrivalSecondsFast": 6.81, "ArrivalSecondsSlow": 7.68, "Pattern": "rank_staggered" },
+
+    { "Name": "floor3_pulse1_rank0", "Context": "floor3_pulse1", "RankIndex": 0, "RankCount": 60, "ArrivalSecondsNominal": 6.08, "ArrivalSecondsFast": 5.73, "ArrivalSecondsSlow": 6.47, "Pattern": "rank_staggered" },
+    { "Name": "floor3_pulse1_rank1", "Context": "floor3_pulse1", "RankIndex": 1, "RankCount": 60, "ArrivalSecondsNominal": 6.51, "ArrivalSecondsFast": 6.15, "ArrivalSecondsSlow": 6.93, "Pattern": "rank_staggered" },
+    { "Name": "floor3_pulse1_rank2", "Context": "floor3_pulse1", "RankIndex": 2, "RankCount": 60, "ArrivalSecondsNominal": 6.95, "ArrivalSecondsFast": 6.56, "ArrivalSecondsSlow": 7.40, "Pattern": "rank_staggered" },
+    { "Name": "floor3_pulse1_rank3", "Context": "floor3_pulse1", "RankIndex": 3, "RankCount": 30, "ArrivalSecondsNominal": 7.39, "ArrivalSecondsFast": 6.97, "ArrivalSecondsSlow": 7.86, "Pattern": "rank_staggered" },
+
+    { "Name": "floor3_pulse2_rank0", "Context": "floor3_pulse2", "RankIndex": 0, "RankCount": 60, "ArrivalSecondsNominal": 6.08, "ArrivalSecondsFast": 5.73, "ArrivalSecondsSlow": 6.47, "Pattern": "rank_staggered" },
+    { "Name": "floor3_pulse2_rank1", "Context": "floor3_pulse2", "RankIndex": 1, "RankCount": 60, "ArrivalSecondsNominal": 6.51, "ArrivalSecondsFast": 6.15, "ArrivalSecondsSlow": 6.93, "Pattern": "rank_staggered" },
+    { "Name": "floor3_pulse2_rank2", "Context": "floor3_pulse2", "RankIndex": 2, "RankCount": 60, "ArrivalSecondsNominal": 6.95, "ArrivalSecondsFast": 6.56, "ArrivalSecondsSlow": 7.40, "Pattern": "rank_staggered" },
+    { "Name": "floor3_pulse2_rank3", "Context": "floor3_pulse2", "RankIndex": 3, "RankCount": 60, "ArrivalSecondsNominal": 7.39, "ArrivalSecondsFast": 6.97, "ArrivalSecondsSlow": 7.86, "Pattern": "rank_staggered" },
+    { "Name": "floor3_pulse2_rank4", "Context": "floor3_pulse2", "RankIndex": 4, "RankCount": 5,  "ArrivalSecondsNominal": 7.83, "ArrivalSecondsFast": 7.38, "ArrivalSecondsSlow": 8.33, "Pattern": "rank_staggered" },
+
+    { "Name": "floor3_pulse3_rank0", "Context": "floor3_pulse3", "RankIndex": 0, "RankCount": 60, "ArrivalSecondsNominal": 6.08, "ArrivalSecondsFast": 5.73, "ArrivalSecondsSlow": 6.47, "Pattern": "rank_staggered" },
+    { "Name": "floor3_pulse3_rank1", "Context": "floor3_pulse3", "RankIndex": 1, "RankCount": 60, "ArrivalSecondsNominal": 6.51, "ArrivalSecondsFast": 6.15, "ArrivalSecondsSlow": 6.93, "Pattern": "rank_staggered" },
+    { "Name": "floor3_pulse3_rank2", "Context": "floor3_pulse3", "RankIndex": 2, "RankCount": 60, "ArrivalSecondsNominal": 6.95, "ArrivalSecondsFast": 6.56, "ArrivalSecondsSlow": 7.40, "Pattern": "rank_staggered" },
+    { "Name": "floor3_pulse3_rank3", "Context": "floor3_pulse3", "RankIndex": 3, "RankCount": 60, "ArrivalSecondsNominal": 7.39, "ArrivalSecondsFast": 6.97, "ArrivalSecondsSlow": 7.86, "Pattern": "rank_staggered" },
+    { "Name": "floor3_pulse3_rank4", "Context": "floor3_pulse3", "RankIndex": 4, "RankCount": 5,  "ArrivalSecondsNominal": 7.83, "ArrivalSecondsFast": 7.38, "ArrivalSecondsSlow": 8.33, "Pattern": "rank_staggered" }
+  ]
+}

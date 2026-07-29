@@ -1,0 +1,20 @@
+{
+  "Name": "floor2-elite-point-target",
+  "DisplayName": "Floor 2 — Elite point-target fight (balanced-path retinue)",
+  "Kind": "point_target",
+  "Description": "Floor 2's balanced-path retinue (50 units, 20% Archers) fighting the floor's single embedded Elite clean (no swarm around it, no time axis) -- the first COMMITTED harness run of entity-tiers.md §4 / scaling-curve.md §4's own scratch-script finding that melee DPS against a single point-target saturates at the Elite's SurroundCapEstimate (20) well below this army's 40 Spearmen, so only the Archer contribution keeps scaling with army size past that point. Directly answers 'where does the archer tier stop earning its cost' by making the saturation visible in the per-group breakdown (engaged count vs total count).",
+  "SourceRefs": [
+    "docs/design/scaling-curve.md §2 'Balanced' table, Floor 2 start row (50 units, 10 Archers/20%)",
+    "docs/data/entity-tiers.json brood_elite row (MaxHP 900, Armor 12, SurroundCapEstimate 20)",
+    "docs/data/scaling-curve.json elite_boss_schedule (floor2_elite_01, EncounterMode embedded_in_swarm)"
+  ],
+  "HeroPresent": true,
+  "Target": { "EntityTier": "brood_elite" },
+  "Retinue": {
+    "Composition": [
+      { "UnitType": "spearmen", "Tier": "militia", "Count": 40 },
+      { "UnitType": "archers", "Tier": "militia", "Count": 10 }
+    ]
+  },
+  "Notes": "Reproduces (not necessarily exactly, since this run goes through the committed harness rather than a discarded scratch script) docs/design/scaling-curve.md §4's own 'balanced_floor2_elite' row (TTK 2.43s, MeleeDPS 293.3 from 20-of-50 capped Spearmen, ArcherDPS 34.7, HeroDPS 41.7) using the SAME closed-form surround-cap method -- see the handback for the actual reproduction. scaling-curve.md §4 point 1 already flags this table as a clean 1-on-1 LOWER BOUND, not a prediction: floor 2's Elite is always embedded in the live 450-strong swarm (elite_boss_schedule floor2_elite_01, EncounterMode embedded_in_swarm) and never fought this cleanly in a real run -- the real in-context TTK is longer, plausibly by a lot (docs/sim/LIMITATIONS.md §3 states the same caveat for the point-target model generally: 'assumes the target is fought clean... a lower bound')."
+}

@@ -1,0 +1,26 @@
+{
+  "Name": "floor2-ranged-wave",
+  "DisplayName": "Floor 2 — swarm wave with ranged threat introduced",
+  "Kind": "wave_attrition",
+  "Description": "Floor 2's balanced-path retinue (50 units, 20% Archers, per scaling-curve.md's growth curve) against the locked floor-2 population of 450, which for the first time includes Soldier-ranged (20% of the population) alongside Fodder and Soldier-melee. Exercises the wave-attrition model's ranged path (uncapped by frontage on both sides) for the first time.",
+  "SourceRefs": [
+    "docs/design/scaling-curve.md §2 'Balanced' table, Floor 2 start row (50 units, 10 Archers/20%)",
+    "docs/design/scaling-curve.md §1 floor-2 composition table (450 population: 55% Fodder / 25% Soldier-melee / 20% Soldier-ranged)"
+  ],
+  "HeroPresent": false,
+  "TimeLimitSeconds": 300,
+  "Retinue": {
+    "Composition": [
+      { "UnitType": "spearmen", "Tier": "militia", "Count": 40 },
+      { "UnitType": "archers", "Tier": "militia", "Count": 10 }
+    ]
+  },
+  "Enemy": {
+    "Composition": [
+      { "EntityTier": "brood_fodder", "Count": 248 },
+      { "EntityTier": "brood_soldier_melee", "Count": 112 },
+      { "EntityTier": "brood_soldier_ranged", "Count": 90 }
+    ]
+  },
+  "Notes": "SIMPLIFICATION: scaling-curve.md §2's balanced path reaches floor 2 with 50 units still all at Militia tier (Site A only spent Recruit + Provision, no Promote) — this scenario uses that literal reading, all-Militia, rather than reconstructing a partial Freed-tier admixture from the +10 recruited units. That simplification is conservative (Freed is weaker than Militia, so the real mix would do slightly worse than this scenario shows, not better). HeroPresent false for the same zero-input reason as floor1-swarm-wave.json."
+}

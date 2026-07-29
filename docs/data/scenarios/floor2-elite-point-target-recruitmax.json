@@ -1,0 +1,20 @@
+{
+  "Name": "floor2-elite-point-target-recruitmax",
+  "DisplayName": "Floor 2 — Elite point-target fight (recruit-max-path retinue)",
+  "Kind": "point_target",
+  "Description": "The SAME floor-2 Elite fight as floor2-elite-point-target.json, but with the recruit-max growth path's retinue (60 units, 20% Archers) instead of balanced's 50 -- run as a companion pair specifically to test scaling-curve.md §4's headline finding through the committed harness instead of trusting its scratch-script table alone: recruit-max has MORE total bodies but is claimed to lose this point-target matchup to balanced, because melee is capped at the Elite's SurroundCapEstimate (20) regardless of army size, so recruit-max's extra headcount above that cap should be worth zero here.",
+  "SourceRefs": [
+    "docs/design/scaling-curve.md §2 'Recruit-max' table, Floor 2 start row (60 units, 12 Archers/20%)",
+    "docs/data/entity-tiers.json brood_elite row (MaxHP 900, Armor 12, SurroundCapEstimate 20)",
+    "docs/data/scaling-curve.json elite_boss_schedule (floor2_elite_01, EncounterMode embedded_in_swarm)"
+  ],
+  "HeroPresent": true,
+  "Target": { "EntityTier": "brood_elite" },
+  "Retinue": {
+    "Composition": [
+      { "UnitType": "spearmen", "Tier": "militia", "Count": 48 },
+      { "UnitType": "archers", "Tier": "militia", "Count": 12 }
+    ]
+  },
+  "Notes": "Companion to floor2-elite-point-target.json (balanced path) -- run both and compare TTK directly rather than trust the design doc's scratch numbers. Reproduces (not necessarily exactly) scaling-curve.md §4's 'recruit_max_floor2_elite' row (TTK 2.58s, MeleeDPS 266.7 from 20-of-48 capped Spearmen, ArcherDPS 40.0, HeroDPS 41.7). Same clean-1-on-1 lower-bound caveat as the balanced scenario -- see its Notes. This scenario deliberately does NOT apply the recruit-max path's floor-3 degrade multiplier (0.944, scaling-curve.json retinue_growth_curve) because that multiplier is a FLOOR-3 number (recruit-max only crosses the degrade threshold on floor 3, per that table's DegradeMultiplier column) -- floor 2's recruit-max row is still at DegradeMultiplier 1.0, so no adjustment is needed here; this is stated explicitly so the omission doesn't read as an oversight."
+}

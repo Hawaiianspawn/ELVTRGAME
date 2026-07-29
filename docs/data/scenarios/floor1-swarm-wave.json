@@ -1,0 +1,26 @@
+{
+  "Name": "floor1-swarm-wave",
+  "DisplayName": "Floor 1 — swarm wave (economy-fed retinue vs locked population)",
+  "Kind": "wave_attrition",
+  "Description": "The real floor-1 fight the growth-site economy actually produces: 40 units (the slice's start_units, all Militia, 80/20 Spearmen/Archer split) against the locked floor-1 population of 250 (85% Fodder / 15% Soldier-melee). Directly tests the headcount-vs-population tension docs/design/scaling-curve.md §3 raised by ratio comparison alone — this scenario runs an actual mechanistic combat model against the same numbers instead.",
+  "SourceRefs": [
+    "docs/data/economy.json slice_targets (start_units: 40, start_tier: militia)",
+    "docs/data/unit-types.json growth_source_weight (spearmen 0.8 / archers 0.2)",
+    "docs/design/scaling-curve.md §1 floor-1 composition table (250 population: 85% Fodder / 15% Soldier-melee)"
+  ],
+  "HeroPresent": false,
+  "TimeLimitSeconds": 300,
+  "Retinue": {
+    "Composition": [
+      { "UnitType": "spearmen", "Tier": "militia", "Count": 32 },
+      { "UnitType": "archers", "Tier": "militia", "Count": 8 }
+    ]
+  },
+  "Enemy": {
+    "Composition": [
+      { "EntityTier": "brood_fodder", "Count": 212 },
+      { "EntityTier": "brood_soldier_melee", "Count": 38 }
+    ]
+  },
+  "Notes": "HeroPresent is false to match the same zero-input convention as the GATE1 calibration fixture, keeping this scenario a fair like-for-like extension rather than mixing in an unmodelled variable. A played run would also have hero DPS and stance play on top of this floor — see docs/sim/LIMITATIONS.md. 40 vs 250 is scaling-curve.md §3's own worst ratio point (6.25, vs the GATE1 calibration ratio of 2.08 at which 110/120 survive) — this scenario is the harness's answer to whether that ratio gap actually produces a wipe under a real combat model, not just a heuristic."
+}
