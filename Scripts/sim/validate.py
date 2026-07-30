@@ -39,11 +39,28 @@ Check 4 DOES gate the exit code: unlike check 3 (an open design question),
 a model where TargetsPerHit provably does nothing is not a "the data says
 no" result, it's a bug, and should block trusting anything downstream same
 as checks 1-2.
+
+task-076 adds three more GATING checks (5, 6, 7) protecting the new variance
+layer (Scripts/sim/combat_model.py's jitter_*, scenario_runner.py's
+compute_trial/run_trials):
+  5. IDENTITY — variance OFF reproduces a set of literal expected numbers
+     captured from the committed scenarios before the variance layer existed
+     (docs/sim/VALIDATION.md's task-076 section has the exact before/after
+     transcript this protects).
+  6. REPRODUCIBILITY — run_trials(name, 8, root_seed=1234) called twice
+     returns identical per-trial results.
+  7. ORDER-INDEPENDENCE — the same 8 trials computed serially, in shuffled
+     order, and via a 4-worker ProcessPoolExecutor all agree. Proves
+     seed_for()'s derived (not streamed) seeding actually delivers the
+     order-independence task-076 section 2 requires.
+Exit code is now 0 iff checks 1, 2, 4, 5, 6, and 7 all pass. Check 3 remains
+the sole non-gating check, unchanged.
 """
 
 from __future__ import annotations
 
 import sys
+from concurrent.futures import ProcessPoolExecutor
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
@@ -168,6 +185,120 @@ def smoke_check_cleave_wired() -> tuple[bool, str]:
     )
 
 
+# ---------------------------------------------------------------------------
+# task-076 — variance layer regression checks (5, 6, 7). All three GATE the
+# exit code, same as check 4 — a variance-layer regression is a bug, not an
+# open design question like check 3.
+# ---------------------------------------------------------------------------
+
+# Literal expected numbers captured from `py Scripts/sim/scenario_runner.py
+# <name> --json` run BEFORE the variance layer existed (task-076's required
+# "before" baseline — full transcript in docs/sim/VALIDATION.md's task-076
+# section). `retinue-subtypes.json` is excluded: data_loader.list_scenarios()
+# picks it up but it has no 'Kind' field and was never a runnable scenario —
+# a pre-existing, unrelated condition (confirmed: `py Scripts/sim/
+# scenario_runner.py --all --json` errors on it identically before and after
+# this task's changes, same KeyError, same cause).
+_IDENTITY_EXPECTED = {
+    "floor1-swarm-wave": {"retinue_survivors": 0.0, "enemy_survivors": 142.59, "elapsed_seconds": 1.8},
+    "floor2-ranged-wave": {"retinue_survivors": 0.0, "enemy_survivors": 353.8, "elapsed_seconds": 0.9},
+    "gate1-calibration-wave1": {"retinue_survivors": 0.0, "enemy_survivors": 19.24, "elapsed_seconds": 11.7},
+    "gate1-calibration-wave2": {"retinue_survivors": 0.0, "enemy_survivors": 124.96, "elapsed_seconds": 3.6},
+    "gate1-calibration-wave3": {"retinue_survivors": 0.0, "enemy_survivors": 307.06, "elapsed_seconds": 3.6},
+    "floor2-elite-point-target": {"ttk_seconds": 2.13},
+    "floor2-elite-point-target-recruitmax": {"ttk_seconds": 2.09},
+    "floor3-boss-point-target": {"ttk_seconds": 8.23},
+    "floor3-boss-point-target-recruitmax": {"ttk_seconds": 8.01},
+    "floor3-elite-point-target": {"ttk_seconds": 2.09},
+}
+
+
+def check_variance_identity() -> tuple[bool, str]:
+    """
+    Check 5. With variance OFF (`sr.run(name)`, no seed — the exact call
+    every pre-task-076 caller already made), every committed scenario above
+    must still reproduce the literal numbers captured before the variance
+    layer existed. This is the regression wall protecting every already-
+    validated/trusted scenario (including the point-target model check 3
+    can't touch) from the variance layer's own existence — task-076's
+    section 1 safety property, made a permanent gating check rather than a
+    one-time before/after diff.
+    """
+    import scenario_runner as sr
+    mismatches = []
+    for name, expected in _IDENTITY_EXPECTED.items():
+        result = sr.run(name)
+        for field_name, expected_value in expected.items():
+            actual = result[field_name]
+            if abs(actual - expected_value) > 0.005:
+                mismatches.append(f"{name}.{field_name}: expected {expected_value}, got {actual}")
+    ok = not mismatches
+    msg = (
+        f"Variance-off identity ({len(_IDENTITY_EXPECTED)} scenarios, {sum(len(v) for v in _IDENTITY_EXPECTED.values())} fields) -> "
+        f"{'PASS' if ok else 'FAIL — ' + '; '.join(mismatches)}"
+    )
+    return ok, msg
+
+
+def check_variance_reproducibility() -> tuple[bool, str]:
+    """
+    Check 6. `run_trials(name, 8, root_seed=1234)` called twice must return
+    identical per-trial results — proves the seed derivation alone (not
+    incidental process/module state, not the `random` module's global
+    stream) determines every trial's outcome.
+    """
+    import scenario_runner as sr
+    first = sr.run_trials("gate1-calibration-wave1", 8, root_seed=1234)
+    second = sr.run_trials("gate1-calibration-wave1", 8, root_seed=1234)
+    ok = first["results"] == second["results"]
+    return ok, f"Variance reproducibility (same root_seed, two independent run_trials calls, 8 trials each) -> {'PASS' if ok else 'FAIL'}"
+
+
+def _order_independence_trial_sets() -> tuple[list, list, list]:
+    """
+    Computes the same 8 trials three ways and returns all three lists for
+    comparison: serial (in-order), reversed-order (a different, still
+    deterministic execution order), and via a 4-worker ProcessPoolExecutor.
+    `sr.compute_trial` is the target — a module-level, picklable function
+    that re-reads its own scenario/constants data per call, exactly so it's
+    safe to hand to a worker process with no shared state (see its
+    docstring). This machine is Windows/spawn, so the pool is only ever
+    constructed from inside check_order_independence(), which is only ever
+    called from main(), which only runs under this file's own
+    `if __name__ == "__main__":` guard at the bottom — the same guard
+    task-076's brief asked for, already satisfied by this script's existing
+    structure rather than a second, redundant one.
+    """
+    import scenario_runner as sr
+    name, root_seed, n = "gate1-calibration-wave1", 4321, 8
+
+    serial = [sr.compute_trial(name, i, root_seed) for i in range(n)]
+
+    reversed_order = list(range(n))[::-1]
+    reversed_map = {i: sr.compute_trial(name, i, root_seed) for i in reversed_order}
+    reversed_list = [reversed_map[i] for i in range(n)]
+
+    with ProcessPoolExecutor(max_workers=4) as ex:
+        futures = {i: ex.submit(sr.compute_trial, name, i, root_seed, None) for i in range(n)}
+        pooled_list = [futures[i].result() for i in range(n)]
+
+    return serial, reversed_list, pooled_list
+
+
+def check_order_independence() -> tuple[bool, str]:
+    """Check 7. The same 8 trials, computed serially, in reversed order, and
+    via a 4-worker process pool, must produce identical per-trial results —
+    proves seed_for()'s derived (not streamed) seeding actually delivers
+    execution-order independence, both within one process and across a
+    process pool (the shape task-075's planned batch runner uses)."""
+    serial, reversed_list, pooled_list = _order_independence_trial_sets()
+    ok = (reversed_list == serial) and (pooled_list == serial)
+    return ok, (
+        f"Variance order-independence (serial vs reversed vs 4-worker process pool, 8 trials): "
+        f"reversed match={reversed_list == serial}, pool match={pooled_list == serial} -> {'PASS' if ok else 'FAIL'}"
+    )
+
+
 def bonus_check_elite_n120() -> tuple[bool, str]:
     """entity-tiers.md §7's own table: Elite (cap 20), N=120, 80/20 split -> TTK 1.85s."""
     elite = dl.enemy_fighter("brood_elite")
@@ -205,6 +336,15 @@ def main() -> int:
     ok_bonus, msg_bonus = bonus_check_elite_n120()
     print(msg_bonus)
 
+    ok5, msg5 = check_variance_identity()
+    print(msg5)
+
+    ok6, msg6 = check_variance_reproducibility()
+    print(msg6)
+
+    ok7, msg7 = check_order_independence()
+    print(msg7)
+
     print()
     if ok1 and ok2:
         print("REQUIRED closed-form checks (1, 2): PASS")
@@ -226,9 +366,18 @@ def main() -> int:
               "reported honestly, not fudged. See docs/sim/VALIDATION.md and docs/sim/LIMITATIONS.md "
               "for the numbers and the read on why. Wave-attrition scenario OUTPUT (floor1/floor2) should "
               "be read as illustrative of the MECHANISM (frontage concurrency limits), not as a trusted "
-              "survivor-count prediction, until this closes.")
+              "survivor-count prediction, until this closes. A variance layer (task-076) does not change "
+              "this verdict — see docs/sim/LIMITATIONS.md's variance-layer section: a spread can never be "
+              "used to declare this check passing 'within variance.'")
 
-    return 0 if (ok1 and ok2 and ok4) else 1
+    if ok5 and ok6 and ok7:
+        print("Variance-layer regression checks (5, 6, 7): PASS — variance-off output is identity-locked, "
+              "and seeded trials are reproducible and order-independent.")
+    else:
+        print("Variance-layer regression checks (5, 6, 7): FAIL — do not trust any --trials/--seed output "
+              "until this is fixed (see individual check lines above for which one failed).")
+
+    return 0 if (ok1 and ok2 and ok4 and ok5 and ok6 and ok7) else 1
 
 
 if __name__ == "__main__":

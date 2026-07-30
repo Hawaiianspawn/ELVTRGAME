@@ -189,3 +189,65 @@ of the tick loop rather than a parameter change.
 Practical read: trust armor's *direction and rough magnitude* in wave results,
 not its precise value in a mixed-tier fight. Point-target results are unaffected
 — that model always applied a single named target's armor and still does.
+
+## 6. The variance layer (task-076) — what a spread may and may not be used to argue
+
+Added 2026-07-29 alongside `Scripts/sim/scenario_runner.py`'s
+`run_trials()`/`compute_trial()` and `combat_model.py`'s `jitter_arrival_seconds`/
+`jitter_fighter_dps`. Read this before citing ANY spread this layer produces
+in a design conversation. Plain statements, same register as every other
+section in this file.
+
+**A distribution from this layer is not a confidence interval on the real
+game.** It is the spread of THIS pooled model's output under THIS harness's
+own named perturbations to THIS model's inputs — nothing more. It inherits
+every limitation §1-§5 above already state for the point estimate underneath
+it: a wave-attrition distribution is still built on the frontage-cap
+approximation §1 describes as unvalidated at the harness's own defaults; a
+point-target distribution still inherits §3's Fermi `SurroundCapEstimate`
+and clean-fight assumption. Widening a number into a range does not close
+any of those gaps — it just shows how THIS model's own output moves under
+THIS model's own stated sources of variation.
+
+**It especially does not touch §1's check-3 gap, and must never be
+described as doing so.** `docs/sim/VALIDATION.md`'s task-076 section
+records the actual observation, stated once and precisely so it cannot be
+mistaken for more than it is: at `--trials 200` with both variance sources
+enabled (a manual, temporary edit for that one demonstration — see that
+section), `gate1-calibration-wave1`'s `retinue_survivors` distribution has
+mean 0.024, median 0.0, and p95 0.0 against GATE1's measured 109-111 — the
+overwhelming majority of trials still fully wipe the retinue, with a thin
+tail (max observed 2.34 of 120) nowhere near the measured range. **This is
+not "passing within variance"** — it is the same failure §1 already
+describes, now shown to be robust across the harness's own stated
+perturbations rather than a single unlucky point estimate. Per task-076's
+own explicit instruction: no variance magnitude in this layer was chosen,
+tuned, or would ever be chosen, by proximity to making check 3's verdict
+change — `combat-model-constants.json`'s `variance_model` block's two
+magnitudes are the shipped `Swarm.BroodSpeedJitter` CVar and an explicitly
+invented, explicitly diagnostic guess, in that order, for the same reason
+§1's closing paragraph gives for `EngagedSpacingUU`/`MaxAttackersPerUnit`/
+`MeleeContactFacingFraction`: a passing check with no citation behind the
+value that produced it is worse than the current honest failure. §1's
+account of the check-3 gap stands exactly as written above; this section
+adds to it, not around it.
+
+**What a spread from this layer IS useful for:** the same "illustrating the
+mechanism" and "relative comparison within itself" uses §2 above already
+names for the point estimate, extended to "how much does THIS specific,
+named, cited-or-flagged perturbation move THIS specific outcome" — a
+narrower and more defensible question than "what does the real game's
+outcome vary by."
+
+**`diagnostic_invented_variance` is not a hedge to skip past.** Any run
+where it is `true` (i.e. `damage_roll_jitter` — or any future invented
+source — is enabled) is diagnostic BY DEFINITION, per the same
+measured-vs-estimated register `combat-model-constants.json` already uses
+for its other fields and the treatment `sweep.py` gives its family-3
+axes: illustrative of "does the model respond to this kind of input noise
+at all," never a design finding, never something to quote a magnitude from
+in a balance conversation. `arrival_jitter` being cited does not launder
+`damage_roll_jitter`'s presence in the same combined run into something
+citable — `run_trials()`'s `variance_sources_enabled` list and the CLI's
+DIAGNOSTIC banner exist specifically so a reader can tell, per run, whether
+any invented source contributed to the spread they're looking at.

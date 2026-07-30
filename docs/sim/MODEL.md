@@ -230,3 +230,148 @@ all, across its full measured jitter range. Candidate (2)
 (`MaxAttackersPerUnit`'s pooled-vs-per-entity transfer) is untouched by this
 change and remains the more promising open explanation — see
 `docs/sim/LIMITATIONS.md` §1 for the current state of both.
+
+## 4. The variance layer (task-076) — turning a point estimate into a distribution
+
+Everything above this section is, and remains, fully deterministic:
+`combat_model.py` has no randomness anywhere in `ttk_1v1`,
+`army_ttk_vs_point_target`, or `simulate_wave_attrition` — those three
+functions were not touched by task-076 and do not take an `rng` parameter.
+Running the same configuration twice gives byte-identical output, same as
+before this section existed. What task-076 adds is a small, OPTIONAL layer
+that perturbs a trial's *inputs* before handing them to that unchanged core,
+so a caller can run one configuration N times and get a distribution instead
+of one number — never by adding noise inside the validated math itself.
+
+### Why perturb inputs, not the core
+
+`combat_model.jitter_arrival_seconds()` and `combat_model.jitter_fighter_dps()`
+are pure sampling helpers: given an explicit `random.Random` and a magnitude,
+they return a perturbed COPY of one input value (an `ArrivalSeconds` float,
+or a fighter dict's `dps`), never mutate anything, and are only ever called
+by `scenario_runner.py`'s trial-construction code — `simulate_wave_attrition`
+and `army_ttk_vs_point_target` never see an `rng` at all. This means the
+"no seed -> bit-identical" safety property (`docs/sim/LIMITATIONS.md`'s new
+variance-layer section states the stakes) holds **by construction**: an
+unseeded call never constructs a `random.Random` in the first place, so
+there is nothing for the jitter helpers to be called with, regardless of
+what `combat-model-constants.json`'s `variance_model` block says.
+
+### The two variance sources, and their citation status
+
+Both live in `docs/data/scenarios/combat-model-constants.json`'s
+`variance_model` block, each with an `enabled` flag (both `false` in the
+committed file — see that block's own `$schema_note` for why, and
+task-076's brief §1/§3 for the requirement), a `magnitude`, and a `status`
+of `"cited"` or `"invented"`:
+
+1. **`arrival_jitter` — CITED.** `Swarm.BroodSpeedJitter`
+   (`docs/data/encounter-budget.json`'s `rank_arrival_source_cvars`) is a
+   real shipped +/-6% per-brood speed jitter at spawn, already the source of
+   that file's own `ArrivalSecondsFast`/`ArrivalSecondsSlow` columns and
+   referenced in this doc's §3 arrival-gating account above. That file's own
+   `rank_arrival_formula` divides travel time by `BroodSpeed * (1 +/-
+   jitter)`, i.e. `ArrivalSeconds` scales by `1 / (1 + jitter)` —
+   `combat_model.jitter_arrival_seconds()` reproduces that exactly (not a
+   linear +/- approximation), confirmed against the file's own precomputed
+   numbers to rounding (see that function's docstring). Only applies to
+   `wave_attrition` scenarios (`point_target` has no arrival/time axis —
+   it's a closed-form snapshot, §1 above) and only to groups whose
+   `ArrivalSeconds > 0` (a group already at t=0 has nothing to jitter).
+2. **`damage_roll_jitter` — INVENTED, no citation.** No shipped CVar or
+   committed data file describes swing-to-swing damage-roll variance for
+   this game. `combat_model.jitter_fighter_dps()` samples one multiplicative
+   DPS factor per fighter GROUP for the whole trial (not per-swing — the
+   discrete-swing model has no per-hit event loop to attach a finer-grained
+   roll to), magnitude +/-10%, this harness's own unmeasured guess. Applies
+   to both scenario kinds. Any trial that enables it is flagged
+   `diagnostic_invented_variance: true` in `run_trials()`'s output and
+   prints a DIAGNOSTIC banner on the CLI — see
+   `docs/sim/LIMITATIONS.md`'s variance-layer section for what that flag
+   means and doesn't mean.
+
+Per task-076 §3: an invented source's `enabled` flag must default to
+`false`. A cited source isn't required to (it isn't a fitted number), but
+this harness keeps both `false` in the committed file anyway — the
+strictest reading of "variance defaults OFF, globally and per-source."
+Turning a source on is a deliberate edit to that committed file (same
+convention every other dial in it already uses), not a CLI flag.
+
+### Seed derivation — derived, never streamed
+
+```
+seed_for(root_seed, scenario_name, overrides, trial_index)
+  = int.from_bytes(
+      sha256(canonical_json(
+          [root_seed, scenario_name, sorted(overrides.items()), trial_index]
+      )).digest()[:8],
+      "big",
+    )
+```
+
+`canonical_json` is `json.dumps(obj, sort_keys=True, separators=(",", ":"))`
+— sorted keys, no incidental whitespace, so the same logical payload always
+hashes to the same bytes regardless of dict insertion order.
+`scenario_runner.compute_trial(name, trial_index, root_seed, overrides)`
+constructs a FRESH `random.Random(seed)` from this per trial and threads it
+explicitly down into `_run_wave_attrition_trial`/`_run_point_target_trial`
+— never a module-global `random` instance, never the `random` module's own
+global state.
+
+**Why derived, not a shared stream advanced across trials:** a shared,
+advancing RNG makes trial *i*'s result depend on every trial computed before
+it in THIS run, in THIS process, in THIS order — which is fine for a single
+serial loop but breaks the moment trials are computed out of order or on
+separate workers (a `ProcessPoolExecutor`, which task-075's planned batch
+runner uses). Deriving each trial's seed purely from its own identity
+(`root_seed`, scenario, overrides, trial index) makes `compute_trial` a pure
+function of those four inputs — safe to call from any process, in any
+order, and guaranteed to agree with every other process's answer for the
+same inputs. `validate.py`'s order-independence check (check 7) proves this
+directly: the same 8 trials computed serially, in reversed order, and via a
+4-worker process pool all produce identical per-trial results.
+
+### Percentile method
+
+`run_trials()`'s summary reports `p5`/`p95` via
+`statistics.quantiles(values, n=100, method="inclusive")`, taking index 4
+(p5) and index 94 (p95) of the 99 returned cut points. `"inclusive"` is
+stdlib's name for the conventional linear-interpolation percentile
+definition (numpy's default, Excel's `PERCENTILE.INC`) — stated explicitly
+because percentile choice is method-sensitive at the small trial counts this
+harness's own checks use (e.g. n=8), and a reader comparing two runs needs
+to know which convention produced the numbers, not just that "a percentile"
+was computed.
+
+### The trials API
+
+```
+run(name, seed=None) -> dict
+    seed=None: identical to every pre-task-076 call. seed given: constructs
+    ONE random.Random(seed) directly (no seed_for derivation needed for a
+    single explicit seed) and applies whichever sources are enabled.
+
+run_trials(name, trials, root_seed=None, overrides=None) -> dict
+    {
+      "scenario", "kind", "trials", "root_seed",
+      "variance_sources_enabled": [...],       # enabled AND applicable to this kind
+      "diagnostic_invented_variance": bool,    # true if any enabled source is "invented"
+      "results": [<per-trial result dict>, ...],
+      "summary": {"<field>": {"n","mean","median","p5","p95","min","max","stdev"}},
+    }
+```
+
+`overrides` (optional) is a flat `{"<dot.path>": value}` dict applied to a
+deep copy of the loaded scenario JSON before any trial runs — the same
+dot/`[field=value]` filter path language `sweep.py`'s `scenario:` axis
+family uses, reimplemented independently in `scenario_runner.py` (this task
+doesn't own `sweep.py`, and the two are meant to stay decoupled). It only
+ever targets the scenario file, not `combat-model-constants.json` — turning
+a variance source on/off is a committed-file edit, not something a caller
+threads through `overrides` at call time.
+
+CLI: `py Scripts/sim/scenario_runner.py <name> --trials N --seed S`. `N`
+absent or `1` with no `--seed` is unchanged from before this task existed.
+`--seed` alone (no `--trials`, or `--trials 1`) runs one seeded `run()` call
+in the normal single-result format. `--trials > 1` prints the distribution
+summary instead, plus a DIAGNOSTIC banner if any enabled source is invented.

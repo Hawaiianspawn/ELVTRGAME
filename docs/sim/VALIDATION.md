@@ -367,3 +367,140 @@ data changing, not a harness regression. Zeroing all five reconstructs the
 exact pre-task-068 configuration this table was originally run against. Full
 account and both demonstration sweeps (game-balance data, encounter
 composition): `docs/sim/SWEEPS.md`.
+
+## task-076 — the variance layer, its safety-property proof, and its validate.py checks
+
+Adds `Scripts/sim/scenario_runner.py`'s `run_trials()`/`compute_trial()` and
+`Scripts/sim/combat_model.py`'s `jitter_arrival_seconds`/`jitter_fighter_dps`
+— see `docs/sim/MODEL.md` §4 for the design and `docs/sim/LIMITATIONS.md` §6
+for what a resulting spread may and may not be used to argue. This section
+records the actual before/after safety-property proof and the full
+`validate.py` output with the three new checks, per that task's own evidence
+bar.
+
+### The before/after identity proof
+
+Before any code changed, `py Scripts/sim/scenario_runner.py <name> --json`
+was captured for all 10 runnable committed scenarios (`retinue-subtypes.json`
+is picked up by `data_loader.list_scenarios()` but has no `Kind` field and
+was never runnable — `py Scripts/sim/scenario_runner.py --all --json`
+errors on it with the same `KeyError: 'Kind'` both before and after this
+task's changes, confirmed byte-for-byte identical traceback content, just
+different line numbers because the file grew — a pre-existing, unrelated
+condition, not touched or caused by this task). After landing the variance
+layer, all 10 were re-run and diffed against the "before" capture:
+
+```
+floor1-swarm-wave: IDENTICAL
+floor2-elite-point-target: IDENTICAL
+floor2-elite-point-target-recruitmax: IDENTICAL
+floor2-ranged-wave: IDENTICAL
+floor3-boss-point-target: IDENTICAL
+floor3-boss-point-target-recruitmax: IDENTICAL
+floor3-elite-point-target: IDENTICAL
+gate1-calibration-wave1: IDENTICAL
+gate1-calibration-wave2: IDENTICAL
+gate1-calibration-wave3: IDENTICAL
+```
+
+**Byte-identical, all 10.** `py Scripts/sim/drift_check.py` was also re-run
+against the UNCHANGED `docs/sim/baseline.json` (not refreshed — refreshing
+is explicitly not this task's call, see `docs/sim/DRIFT-CHECK.md`) and
+diffed against its own pre-task capture: also byte-identical, `RESULT:
+CLEAN`, exit 0. This proof was repeated a second time after a formatting
+accident (a Python `json.dump` revert pass round-tripped the constants file
+through `ensure_ascii=True`, corrupting its unicode punctuation into
+`\uXXXX` escapes) was caught and fixed by hand — the identity/drift proof
+above is the FINAL state, confirmed clean after that fix, not the
+pre-fix state.
+
+### `py Scripts/sim/validate.py` — full output, checks 5/6/7 added
+
+```
+=== task-063 validation suite ===
+
+Militia vs Fodder TTK = 2.0000s (expected 2.0s) -> PASS
+Hero(55dps) vs Elite TTK = 21.6000s (expected 21.6s) -> PASS
+GATE1 calibration: retinue survivors = 0.00 of 120 (measured range 109-111) -> FAIL (see docs/sim/VALIDATION.md for the read)
+Cleave sensitivity guard (K=MaxAttackersPerUnit=4 vs K=2xMaxAttackersPerUnit=8): 25.8 vs 19.7 enemy survivors, delta=6.1 (threshold 2.0) -> PASS
+[smoke, not the regression guard] TargetsPerHit=1 -> 188.7, TargetsPerHit=8 -> 19.7 enemy survivors, delta=169.0 -> PASS
+[bonus] Army(N=120, 80/20) vs Elite TTK = 1.848s (entity-tiers.md §7 table: 1.85s) -> PASS
+Variance-off identity (10 scenarios, 20 fields) -> PASS
+Variance reproducibility (same root_seed, two independent run_trials calls, 8 trials each) -> PASS
+Variance order-independence (serial vs reversed vs 4-worker process pool, 8 trials): reversed match=True, pool match=True -> PASS
+
+REQUIRED closed-form checks (1, 2): PASS
+Cleave-sensitivity regression guard (4): PASS — TargetsPerHit still has real effect.
+GATE1 wave-attrition reproduction (3): FAIL — per task-063's own instructions, this is reported honestly, not fudged. See docs/sim/VALIDATION.md and docs/sim/LIMITATIONS.md for the numbers and the read on why. Wave-attrition scenario OUTPUT (floor1/floor2) should be read as illustrative of the MECHANISM (frontage concurrency limits), not as a trusted survivor-count prediction, until this closes. A variance layer (task-076) does not change this verdict — see docs/sim/LIMITATIONS.md's variance-layer section: a spread can never be used to declare this check passing 'within variance.'
+Variance-layer regression checks (5, 6, 7): PASS — variance-off output is identity-locked, and seeded trials are reproducible and order-independent.
+```
+
+Exit code 0. Checks 5 (identity), 6 (reproducibility), and 7
+(order-independence — serial vs reversed-order vs a 4-worker
+`ProcessPoolExecutor`, all three agree) all pass and all gate the exit code,
+same as check 4. Check 3 is unaffected and remains non-gating, unchanged.
+
+### Two distributions at `--trials 200`, and what they do NOT show
+
+Both committed variance sources default `"enabled": false`
+(`combat-model-constants.json`'s `variance_model` block). The runs below
+required a temporary, manual edit of that committed file to `true` for the
+duration of one demonstration, following the same "flip -> demonstrate ->
+revert -> confirm clean" method `docs/sim/DRIFT-CHECK.md`'s own
+demonstration already uses — reverted immediately after, confirmed by the
+identity/drift proof above (the FINAL one, post-revert). No `--trials`/
+`--seed` flag can turn a source on; it is a committed-file edit, by design
+(`docs/sim/MODEL.md` §4).
+
+**wave_attrition** — `py Scripts/sim/scenario_runner.py
+gate1-calibration-wave1 --trials 200 --seed 1` (both sources temporarily
+enabled):
+
+```
+=== GATE1 calibration - wave 1 (validation fixture, not a design scenario) (gate1-calibration-wave1) - 200 trials, root_seed=1 ===
+  kind: wave_attrition
+  variance sources enabled: arrival_jitter, damage_roll_jitter
+  ====================================================================
+  DIAGNOSTIC: an enabled variance source is HARNESS-INVENTED (no shipped
+  CVar or committed data backs its magnitude). Treat this spread as
+  illustrative only, not a measured confidence band.
+  ====================================================================
+   retinue_survivors: n=200  mean=    0.024 median=    0.000 p5=    0.000 p95=    0.000 min=    0.000 max=    2.340 stdev=   0.221
+     enemy_survivors: n=200  mean=   22.062 median=   21.100 p5=    2.075 p95=   43.788 min=    0.000 max=   53.070 stdev=  13.892
+     elapsed_seconds: n=200  mean=   16.146 median=   11.700 p5=   10.800 p95=   13.500 min=    9.900 max=  300.600 stdev=  35.203
+```
+
+**Reading it, precisely and no further:** `retinue_survivors` mean 0.024,
+median 0.0, p95 0.0, max observed 2.34 of 120 across 200 trials — the
+retinue is wiped in the overwhelming majority of trials, with a thin tail
+that never approaches GATE1's measured 109-111. **This is the check-3
+failure shown to be robust under this layer's own cited-plus-invented
+perturbations, not a different result.** Per task-076's explicit
+instruction and `docs/sim/LIMITATIONS.md` §6: this is reported as that
+observation, with both sources' citation status stated plainly above (one
+cited, one flagged diagnostic) — not reframed as check 3 passing, not used
+to argue anything about the real game's actual variance, and no magnitude
+in `variance_model` was chosen or would be chosen to move this number.
+
+**point_target** — `py Scripts/sim/scenario_runner.py
+floor2-elite-point-target --trials 200 --seed 1` (`damage_roll_jitter`
+applicable and enabled; `arrival_jitter` doesn't apply to this model kind):
+
+```
+=== Floor 2 - Elite point-target fight (balanced-path retinue) (floor2-elite-point-target) - 200 trials, root_seed=1 ===
+  kind: point_target
+  variance sources enabled: damage_roll_jitter
+  ====================================================================
+  DIAGNOSTIC: an enabled variance source is HARNESS-INVENTED (no shipped
+  CVar or committed data backs its magnitude). Treat this spread as
+  illustrative only, not a measured confidence band.
+  ====================================================================
+         ttk_seconds: n=200  mean=    2.167 median=    2.155 p5=    1.890 p95=    2.480 min=    1.840 max=    2.610 stdev=   0.192
+```
+
+This one is entirely diagnostic — its only enabled source is the invented
+`damage_roll_jitter` — and is shown only to demonstrate the point-target
+model kind also produces a distribution, not as any kind of finding. The
+underlying point estimate (2.13s, this file's own bonus check and
+`docs/sim/LIMITATIONS.md` §3) remains the trustworthy number; this spread
+is not.

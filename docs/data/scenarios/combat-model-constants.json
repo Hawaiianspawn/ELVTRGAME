@@ -26,5 +26,27 @@
     "MeleeContactFacingFraction_note": "ADDED after review caught a structural bug: cleave (TargetsPerHit) capacity was originally bounded by reusing engaging_enemy_melee (the MaxAttackersPerUnit-capped INCOMING bound), which made the frontage term cancel algebraically and collapsed cleave's effect to a constant max_attackers_per_unit/targets_per_hit ratio regardless of any other dial (see docs/sim/VALIDATION.md). Fixed by deriving cleave capacity independently, off EngageRange, via combat_model.melee_reach_per_exposed_unit(). This fraction is that new function's one Fermi input: the share of the EngageRange circle around one exposed unit that is enemy-occupied territory rather than the unit's own formation's interior. 0.5 (an exposed perimeter unit's outward-facing half) is the harness default; 0.25/1.0 bracket it for sensitivity. NOT measured — same epistemic status as EngagedSpacingUU.",
 
     "model_status": "This is the harness's own addition, not a value transplanted from a design doc. It generalizes entity-tiers.json's SurroundCapEstimate (built for a single point-target Elite/Titan/Boss) to a distributed retinue-vs-swarm formation. See docs/sim/MODEL.md for the full derivation, docs/sim/VALIDATION.md for the coupling bug this replaced, and docs/sim/LIMITATIONS.md for what it still can't capture (arrival/spawn-pacing timing)."
+  },
+
+  "variance_model": {
+    "$schema_note": "task-076. Optional, seeded, per-source-toggleable variance for Scripts/sim/scenario_runner.py's run_trials()/compute_trial() -- see docs/sim/MODEL.md's variance-layer section for the seed derivation and docs/sim/LIMITATIONS.md's new section for what a spread produced from these may NOT be used to argue (most importantly: it cannot be used to declare validate.py check 3 passing 'within variance'). Each source below is either CITED (its magnitude traces to a shipped CVar default or a committed data file) or INVENTED (no citation exists, magnitude is this harness's own guess). Per task-076 section 3: an INVENTED source must default 'enabled': false. A CITED source is not required to, because it isn't a fitted number -- but nothing here is enabled by default anyway (kept false for both, the strictest reading of task-076 section 1's 'variance defaults OFF, globally and per-source'), and flipping either flag has ZERO effect on any call that doesn't pass a seed (combat_model.jitter_arrival_seconds/jitter_fighter_dps are only ever invoked when a caller supplies a random.Random instance).",
+
+    "arrival_jitter": {
+      "enabled": false,
+      "magnitude": 0.06,
+      "status": "cited",
+      "citation": "Swarm.BroodSpeedJitter shipped CVar default (docs/data/encounter-budget.json rank_arrival_source_cvars), a real +/-6% per-brood speed jitter at spawn. Already referenced in docs/sim/LIMITATIONS.md's task-068 account and behind encounter-budget.json's rank_arrival_timing[]'s own ArrivalSecondsFast/Slow columns.",
+      "applies_to": ["wave_attrition"],
+      "note": "Jitters each WaveGroup's ArrivalSeconds via combat_model.jitter_arrival_seconds() -- ArrivalSeconds scales by 1/(1+jitter), jitter ~ Uniform(-0.06, +0.06), exactly encounter-budget.json's own rank_arrival_formula. Groups with ArrivalSeconds == 0.0 (already-arrived, the default for every scenario that doesn't opt into per-rank arrival timing) are unaffected -- there is nothing to jitter about arriving at t=0. Does not apply to point_target scenarios (that model has no arrival/time axis at all)."
+    },
+
+    "damage_roll_jitter": {
+      "enabled": false,
+      "magnitude": 0.10,
+      "status": "invented",
+      "citation": null,
+      "applies_to": ["wave_attrition", "point_target"],
+      "note": "HARNESS-INVENTED. No shipped CVar or committed data file describes swing-to-swing damage-roll variance for this game -- this magnitude (+/-10%) is this harness's own guess, not measured or cited anywhere, and exists only to give the variance layer a second source demonstrating the (b) category from task-076 section 3. Samples ONE multiplicative DPS factor per fighter group per trial via combat_model.jitter_fighter_dps() (not per-swing -- the discrete-swing model has no per-hit event to attach a roll to). Any run that enables this MUST be treated as diagnostic, never a design finding -- scenario_runner.run_trials() sets diagnostic_invented_variance=true whenever this source is enabled, and the CLI prints a DIAGNOSTIC banner."
+    }
   }
 }

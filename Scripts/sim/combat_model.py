@@ -30,6 +30,7 @@ DPS x SwingInterval; EffectiveBlow = max(blow - Armor, ArmorChipFloor)).
 from __future__ import annotations
 
 import math
+import random
 from dataclasses import dataclass, field
 
 
@@ -529,3 +530,64 @@ def simulate_wave_attrition(
             "enemy": round(total_dmg_to_enemy, 2),
         },
     }
+
+
+# ---------------------------------------------------------------------------
+# Variance layer (task-076) — OPTIONAL. Nothing above this line changed, and
+# neither simulate_wave_attrition() nor army_ttk_vs_point_target() takes an
+# rng parameter or gets one added: variance is applied to their INPUTS by the
+# caller (scenario_runner.py's compute_trial/run_trials), never woven into
+# the validated deterministic core. Every function below is a pure sampling
+# helper — takes an explicit `random.Random` instance, returns a perturbed
+# COPY, never mutates its input, and is never called unless a variance
+# source is both (a) enabled in docs/data/scenarios/combat-model-
+# constants.json's `variance_model` block and (b) an rng was actually
+# supplied (i.e. a caller asked for a seeded/trial run). See
+# docs/sim/MODEL.md's variance-layer section for the derivation and citation
+# status of each source's magnitude, and docs/sim/LIMITATIONS.md for what a
+# spread produced by these may NOT be used to argue.
+# ---------------------------------------------------------------------------
+
+def jitter_arrival_seconds(arrival_seconds: float, rng: random.Random, magnitude: float) -> float:
+    """
+    CITED. `Swarm.BroodSpeedJitter` (docs/data/encounter-budget.json's
+    `rank_arrival_source_cvars`) is a real shipped +/-6% per-brood speed
+    jitter at spawn. That file's own `rank_arrival_formula` divides travel
+    time by `BroodSpeed * (1 +/- jitter)`, i.e. ArrivalSeconds scales by
+    `1 / (1 + jitter)` — reproduced here exactly rather than approximated as
+    a linear +/- on arrival_seconds itself. Confirmed against that file's own
+    committed numbers: `gate1_calibration_wave1_rank0`'s nominal 5.85s with
+    jitter=+0.06 -> 5.85/1.06=5.518s (file's ArrivalSecondsFast: 5.52),
+    jitter=-0.06 -> 5.85/0.94=6.223s (file's ArrivalSecondsSlow: 6.23) — both
+    match that file's own precomputed Fast/Slow brackets to rounding.
+
+    A group with arrival_seconds <= 0.0 (already-arrived — the default for
+    every scenario that doesn't opt into per-rank arrival timing) is left
+    untouched: there is no shipped meaning to jittering "arrives at t=0."
+    """
+    if arrival_seconds <= 0:
+        return arrival_seconds
+    jitter = rng.uniform(-magnitude, magnitude)
+    return arrival_seconds / (1.0 + jitter)
+
+
+def jitter_fighter_dps(fighter: dict, rng: random.Random, magnitude: float) -> dict:
+    """
+    HARNESS-INVENTED — no citation. No shipped CVar or committed data file
+    describes swing-to-swing damage-roll variance for this game; this exists
+    only so the variance layer has a second, uncited source alongside the
+    cited `jitter_arrival_seconds`, flagged as diagnostic wherever it's
+    enabled (see combat-model-constants.json's `variance_model.
+    damage_roll_jitter` block and scenario_runner.py's `diagnostic_
+    invented_variance`). Samples ONE multiplicative DPS factor per fighter
+    GROUP for the whole trial (not per-swing, not per-body) — a coarse
+    "some groups roll hot, some roll cold this fight" approximation, which is
+    the finest grain this pooled/discrete-swing model has a seam for; there
+    is no per-swing event loop to attach a per-hit roll to. Returns a
+    shallow copy; never mutates the input fighter dict (the same dict object
+    is reused across every trial by scenario_runner.py's data loading, so
+    mutating it in place would leak jitter from one trial into the next).
+    """
+    jittered = dict(fighter)
+    jittered["dps"] = fighter["dps"] * (1.0 + rng.uniform(-magnitude, magnitude))
+    return jittered
