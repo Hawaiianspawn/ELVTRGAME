@@ -295,6 +295,10 @@ def finalize_hero_build_fighter(name: str, display_name: str, components: dict) 
         "min_engage_range": components["min_engage_range"],
         "targets_per_hit": int(components["targets_per_hit"]),
         "role": role,
+        # piercing_rounds' penetration term. combat_model.steady_state_dps()
+        # reads this off the attacker dict, so it now actually applies — see
+        # combat_model.effective_blow()'s docstring for the formula.
+        "armor_penetration_flat": float(components.get("armor_penetration_flat", 0.0)),
         "source": "docs/data/hero-builds.json",
     }
 

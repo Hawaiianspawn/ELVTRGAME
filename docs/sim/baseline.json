@@ -33,7 +33,7 @@
           },
           "metrics": {
             "retinue_survivors": 0.0,
-            "enemy_survivors": 138.62,
+            "enemy_survivors": 142.59,
             "elapsed_seconds": 1.8,
             "result": "retinue_wiped"
           }
@@ -44,7 +44,7 @@
           },
           "metrics": {
             "retinue_survivors": 0.0,
-            "enemy_survivors": 92.21,
+            "enemy_survivors": 98.27,
             "elapsed_seconds": 4.5,
             "result": "retinue_wiped"
           }
@@ -55,7 +55,7 @@
           },
           "metrics": {
             "retinue_survivors": 0.0,
-            "enemy_survivors": 30.41,
+            "enemy_survivors": 39.51,
             "elapsed_seconds": 8.1,
             "result": "retinue_wiped"
           }
@@ -66,7 +66,7 @@
           },
           "metrics": {
             "retinue_survivors": 0.0,
-            "enemy_survivors": 3.96,
+            "enemy_survivors": 7.16,
             "elapsed_seconds": 10.8,
             "result": "retinue_wiped"
           }
@@ -76,7 +76,7 @@
             "upgrades:tier_ladder.tiers[id=militia].hp": 600
           },
           "metrics": {
-            "retinue_survivors": 4.23,
+            "retinue_survivors": 1.63,
             "enemy_survivors": 0.0,
             "elapsed_seconds": 300.6,
             "result": "enemy_wiped"
@@ -87,7 +87,7 @@
             "upgrades:tier_ladder.tiers[id=militia].hp": 900
           },
           "metrics": {
-            "retinue_survivors": 12.78,
+            "retinue_survivors": 10.97,
             "enemy_survivors": 0.0,
             "elapsed_seconds": 300.6,
             "result": "enemy_wiped"
@@ -123,7 +123,7 @@
           },
           "metrics": {
             "retinue_survivors": 0.0,
-            "enemy_survivors": 138.62,
+            "enemy_survivors": 142.59,
             "elapsed_seconds": 1.8,
             "result": "retinue_wiped"
           }
@@ -134,7 +134,7 @@
           },
           "metrics": {
             "retinue_survivors": 0.0,
-            "enemy_survivors": 102.14,
+            "enemy_survivors": 107.63,
             "elapsed_seconds": 1.8,
             "result": "retinue_wiped"
           }
@@ -145,7 +145,7 @@
           },
           "metrics": {
             "retinue_survivors": 0.0,
-            "enemy_survivors": 84.52,
+            "enemy_survivors": 90.86,
             "elapsed_seconds": 2.7,
             "result": "retinue_wiped"
           }
@@ -156,7 +156,7 @@
           },
           "metrics": {
             "retinue_survivors": 0.0,
-            "enemy_survivors": 36.1,
+            "enemy_survivors": 41.22,
             "elapsed_seconds": 3.6,
             "result": "retinue_wiped"
           }
@@ -167,8 +167,8 @@
           },
           "metrics": {
             "retinue_survivors": 0.0,
-            "enemy_survivors": 5.69,
-            "elapsed_seconds": 9.0,
+            "enemy_survivors": 14.0,
+            "elapsed_seconds": 7.2,
             "result": "retinue_wiped"
           }
         },
@@ -177,9 +177,9 @@
             "scenario:Retinue.Composition[UnitType=spearmen].Count": 200
           },
           "metrics": {
-            "retinue_survivors": 32.18,
+            "retinue_survivors": 17.63,
             "enemy_survivors": 0.0,
-            "elapsed_seconds": 27.0,
+            "elapsed_seconds": 42.3,
             "result": "enemy_wiped"
           }
         },
@@ -188,9 +188,9 @@
             "scenario:Retinue.Composition[UnitType=spearmen].Count": 250
           },
           "metrics": {
-            "retinue_survivors": 84.94,
+            "retinue_survivors": 70.54,
             "enemy_survivors": 0.0,
-            "elapsed_seconds": 19.8,
+            "elapsed_seconds": 27.9,
             "result": "enemy_wiped"
           }
         }
@@ -221,7 +221,7 @@
           },
           "metrics": {
             "retinue_survivors": 0.0,
-            "enemy_survivors": 348.08,
+            "enemy_survivors": 353.8,
             "elapsed_seconds": 0.9,
             "result": "retinue_wiped"
           }
@@ -232,7 +232,7 @@
           },
           "metrics": {
             "retinue_survivors": 0.0,
-            "enemy_survivors": 348.08,
+            "enemy_survivors": 353.8,
             "elapsed_seconds": 0.9,
             "result": "retinue_wiped"
           }
@@ -243,7 +243,7 @@
           },
           "metrics": {
             "retinue_survivors": 0.0,
-            "enemy_survivors": 348.08,
+            "enemy_survivors": 353.8,
             "elapsed_seconds": 0.9,
             "result": "retinue_wiped"
           }
@@ -254,7 +254,7 @@
           },
           "metrics": {
             "retinue_survivors": 0.0,
-            "enemy_survivors": 348.08,
+            "enemy_survivors": 353.8,
             "elapsed_seconds": 0.9,
             "result": "retinue_wiped"
           }
@@ -780,7 +780,7 @@
           },
           "metrics": {
             "retinue_survivors": 0.0,
-            "enemy_survivors": 185.33,
+            "enemy_survivors": 187.6,
             "elapsed_seconds": 1.8,
             "result": "retinue_wiped"
           }
@@ -791,7 +791,7 @@
           },
           "metrics": {
             "retinue_survivors": 0.0,
-            "enemy_survivors": 138.62,
+            "enemy_survivors": 142.59,
             "elapsed_seconds": 1.8,
             "result": "retinue_wiped"
           }
@@ -802,7 +802,7 @@
           },
           "metrics": {
             "retinue_survivors": 0.0,
-            "enemy_survivors": 138.62,
+            "enemy_survivors": 142.59,
             "elapsed_seconds": 1.8,
             "result": "retinue_wiped"
           }

@@ -77,23 +77,25 @@ matching `retinue_fighter()`/`enemy_fighter()` exactly) — per
   `resolve_type == "area"` — folded into `targets_per_hit` via the schema's
   `aoe_radius / 40` circle-packing conversion. It has no separate life in the
   fighter dict.
-- **`armor_penetration_flat`** (the `piercing_rounds` modification) is
-  **carried through `resolve_hero_build()`'s returned dict but NOT applied
-  anywhere.** `hero-builds.json` itself flags this as needing a one-line
-  `EffectiveBlow` extension (`EffectiveBlow = max(AttackerBlow -
-  max(Victim.Armor - ArmorPenetrationFlat, 0), ArmorChipFloor)`) that
-  `Scripts/sim/combat_model.py` doesn't have. This task's combat_model.py
-  change is scoped to an additive damage-attribution key only (see below) —
-  extending `effective_blow()`'s signature to accept a per-attacker
-  penetration term touches every call site that computes `steady_state_dps`
-  (both combat models, both sides, four call sites in
-  `simulate_wave_attrition` alone), which is a real math change, not the
-  "tiny and additive" change this task was scoped to. **A build that rolls
-  `piercing_rounds` fights in this harness exactly as if it hadn't** — its
-  `damage_per_shot`, `dps`, everything else, is unaffected; only the armor-
-  penetration effect specifically is inert. This is a real, open gap for
-  whoever next touches `combat_model.py`'s `effective_blow()`, not something
-  fixed here.
+- **`armor_penetration_flat`** (the `piercing_rounds` modification) **IS now
+  applied** — fixed 2026-07-29; the rest of this bullet is the superseded
+  account of when it was not, kept because it explains the shape of the fix.
+  `combat_model.effective_blow()` takes an optional `armor_penetration`
+  argument (default 0.0, so every pre-existing caller is bit-identical), and
+  `steady_state_dps()` reads `armor_penetration_flat` off the **attacker's own
+  fighter dict** rather than taking it as a parameter — which is why no call
+  site needed changing. `finalize_hero_build_fighter()` puts the key on the
+  dict; fighters built by `enemy_fighter()`/`retinue_fighter()`/`hero_fighter()`
+  don't carry it and behave exactly as before. Measured effect on a Line
+  Breaker / Cleave Melee Sweep build (base dps 30.00, unchanged): +0.0% vs an
+  unarmored victim, +19.0% vs Armor 6, +26.7% vs Armor 12, +57.1% vs Armor 20.
+  Penetration reduces armor floored at 0, so it is never a bonus against an
+  unarmored target — `piercing_rounds` is now an anti-armor specialisation
+  rather than a strict upgrade. The formula is the one `hero-builds.json`
+  itself specified: `EffectiveBlow = max(AttackerBlow - max(Victim.Armor -
+  ArmorPenetrationFlat, 0), ArmorChipFloor)`. Until 2026-07-29 this bullet
+  read "carried through but NOT applied anywhere", and a build that rolled
+  `piercing_rounds` fought exactly as if it hadn't; that is no longer the case.
 - **`move_speed_scale`** is computed and carried in the intermediate
   component dict for completeness (it's part of the schema's
   `build_stat_block`) but is never read by either combat model — no
@@ -118,24 +120,44 @@ in. Every reachable archetype's `range` cleanly separates on 150uu alone
 old rule would have silently broken the intent of several new weapon rows,
 not a retune of any `hero-builds.json` number.
 
-### Armor is a dead field for hero-builds in the wave-attrition model (a pre-existing harness characteristic, not new)
+### Armor IS applied in the wave-attrition model (fixed 2026-07-29 — this section previously said the opposite)
 
-Every `steady_state_dps(...)` call inside `simulate_wave_attrition()` — on
-BOTH the incoming (enemy-into-retinue) and outgoing (retinue-into-enemy)
-paths — passes `victim_armor=0.0` unconditionally. This was a correct
-simplification for the existing retinue types (`upgrades.json` has no Armor
-column for Freed/Militia/Veteran/Bannerman — see
-`data_loader.retinue_fighter()`'s own comment) but it means a hero-build
-chassis's `armor` field (`combat_engineer`=2, `beastcaller`=1) has **no
-effect whatsoever** on wave-attrition survivability in this harness today —
-carried into the fighter dict, never read by the model. It also means the
-ENEMY's own `Armor` (`entity-tiers.json`: `brood_soldier_melee`=6) is never
-subtracted from a hero-build's outgoing damage either — this predates
-task-080 entirely (every existing `floor1`/`floor2`/`gate1-calibration`
-scenario already runs this way) but is worth surfacing here because
-`hero-builds.json` is the first data file to give the RETINUE side a
-nonzero Armor value, making the gap newly visible. Not fixed here — same
-"tiny and additive only" scoping reason as `armor_penetration_flat` above.
+**Superseded.** This section used to state that every `steady_state_dps(...)`
+call inside `simulate_wave_attrition()` passed `victim_armor=0.0`
+unconditionally, on both the incoming and outgoing paths, and that a
+hero-build chassis's `armor` field therefore had no effect. That was an
+accurate description of the harness at the time and it is no longer true.
+
+Armor now applies on all four call sites. Each side's victim armor is the
+alive-count-weighted mean over exactly the pool that absorbs that side's
+damage in the apply step — `combat_model.mixed_victim_armor()`, which reuses
+the well-mixed-target assumption the tick loop already makes when it
+distributes damage proportional to alive-count share. So:
+
+- A chassis's own `armor` (`combat_engineer`=2, `beastcaller`=1) now reduces
+  incoming damage.
+- The ENEMY's `Armor` (`entity-tiers.json`: `brood_soldier_melee`=6,
+  `brood_elite`=12, `brood_titan`=20, `brood_boss`=14) is now subtracted from
+  a hero-build's outgoing damage. Previously the harness gave enemy armor away
+  for free in every wave fight, which systematically **overstated** the
+  retinue's damage output.
+
+**This changed committed numbers**, which is why `docs/sim/baseline.json` was
+deliberately refreshed (`drift_check.py --refresh --yes`) at the same time.
+Four of the seven baselined sweeps moved, all in the same direction — enemies
+survive more now: `floor1-swarm-wave` enemy survivors 138.62 -> 142.59 at the
+shipped defaults, `floor2-ranged-wave` 348.08 -> 353.80. The three that did
+NOT move are the correct ones to be unmoved: `D-gate1-frontage-model-sensitivity`
+(that scenario is `brood_fodder`-only, Armor 0) and the two point-target
+entries `E`/`F` (the point-target model already applied armor, and still does,
+identically). `validate.py`'s closed-form checks 1 and 2 are unchanged to the
+digit for the same reason.
+
+The remaining approximation is named in `mixed_victim_armor()`'s own docstring
+and in `docs/sim/LIMITATIONS.md`: averaging a mixed pool's armor is not
+identical to applying armor per victim subgroup, because `effective_blow()`
+floors each blow at `chip_floor`. It is close where armor values are similar
+and diverges where one subgroup is far tougher than the rest.
 
 ## Abilities: what's inert in this tool, and the one that isn't
 
@@ -246,75 +268,69 @@ across the whole fight, into two NEW return keys:
 - `total_damage_dealt: {"retinue": ..., "enemy": ...}` — the same per-tick
   `dmg_to_retinue`/`dmg_to_enemy` scalars, summed instead of discarded.
 
-No existing return key was renamed, reordered, or changed in value; no
-math changed. `py Scripts/sim/drift_check.py` against the UNCHANGED
-`docs/sim/baseline.json` is the proof — see "Evidence" below.
+No existing return key was renamed, reordered, or changed in value, and the
+attribution keys themselves changed no math. That claim was originally proved
+by `drift_check.py` passing against an UNCHANGED `docs/sim/baseline.json`.
+
+**The armor fix of 2026-07-29 is a separate, deliberate math change** and it
+did move committed numbers — see "Armor IS applied" above. `baseline.json` was
+refreshed explicitly (`--refresh --yes`) at that point, so the current clean
+`drift_check` run is measured against the post-armor-fix baseline, not the
+original one.
 
 ## Which axes actually move the ranking at these defaults (and which don't)
 
-Not every axis pick changes a build's rank. At `--roster 20
---count-per-build 2`, ranked builds routinely tie EXACTLY on both `dps` and
-`damage_dealt` despite different `modification` picks — e.g.
-`floor2-ranged-wave --seed 1` ranks 3/4/5 (Beastcaller, Cleave Melee Sweep,
-Shrapnel Spread, origin Hollow Choir/Hollow Choir/Iron Reach) all read dps
-25.38, damage dealt 319.8, across `piercing_rounds`, `lightweight_frame`, and
-`none` respectively. Same run, ranks 6/7 and 8/9 tie the same way. This is
-not a bug — it is two modifications whose effect this harness cannot see:
+Not every axis pick changes a build's rank, and knowing which ones don't is
+the point of this section — a tie means "indistinguishable to the model",
+never "equally good in the game".
 
-- **`piercing_rounds`** (`armor_penetration_flat`) is unapplied — see "Fields
-  that don't map" above. Rolling it is, in this harness, identical to
-  rolling no modification at all.
-- **`lightweight_frame`** touches only `move_speed_scale_mult` (plus
-  `max_hp_mult`, which IS read — but its `max_hp_mult` is 0.9, the same
-  value `reinforced_plating`'s and no-modification's HP paths would need to
-  differ by for the ranking to move, and at these builds' HP levels the
-  survivor-count/damage-output difference from a 10% HP change doesn't show
-  up before the whole roster is wiped in ~2s anyway). `move_speed_scale`
-  itself is never read by either combat model — no movement-speed primitive
-  exists in this harness at all (`docs/sim/LIMITATIONS.md` §4: positioning/
-  movement isn't modeled).
+**Measured, before and after the 2026-07-29 armor/penetration fix.** Method:
+`--roster 20 --count-per-build 2`, seeds 1-10 on both `floor2-ranged-wave` and
+`floor1-swarm-wave` (20 rolls), comparing every same-chassis/weapon/projectile/
+origin_world pair in each roster that differs in modification and/or ability.
+36 such pairs exist across the 20 rolls, both times.
 
-**Measured, independently re-run and confirmed exact** (`--roster 20
---count-per-build 2`, seeds 1-10 on both `floor2-ranged-wave` and
-`floor1-swarm-wave` — 20 rolls total, reproducible via `variety.run()`
-called in-process per seed, comparing every same-chassis/weapon/projectile/
-origin_world pair in each roster that differs in modification and/or
-ability): **36 such pairs total across all 20 rolls, 30 (83.3%) came out
-byte-identical on `per_unit_dps`.** Of those 30 ties, 18 involve a
-modification difference (4 mod-only + 14 differing-in-both) and 26 involve
-an ability difference (12 ability-only + 14 differing-in-both) — so the
-**ability axis is the larger dead weight of the two** for this specific
-column. On the modification side, `per_unit_dps` itself only ever moves for
-`focus_optic`/`overcharge_core` (the only two modifications touching
-`rate_of_fire_mult`/`damage_per_shot_mult`); `reinforced_plating`,
-`lightweight_frame`, `piercing_rounds`, and `wide_choke` all leave
-`per_unit_dps` unchanged by construction (they touch `max_hp_mult`/
-`move_speed_scale_mult`/`armor_penetration_flat`/`targets_per_shot_add`
-instead) — `wide_choke`'s cleave bump and `reinforced_plating`/
-`lightweight_frame`'s HP swing can still move the fuller `damage_dealt`
-ranking over a longer fight even when `per_unit_dps` ties, unlike
-`piercing_rounds`, which is unapplied end to end (see "Fields that don't
-map" above) and never moves anything. Treat 83.3% as the honest headline on
-`per_unit_dps` specifically: on any given roll, most mod/ability variation
-on that one column is not something this harness can see, so a tie in it
-means "indistinguishable to the model", never "equally good in the game".
+| | pairs tied | share |
+|---|---|---|
+| before the fix (`per_unit_dps`) | 30 of 36 | 83% |
+| after the fix (`damage_dealt`) | 17 of 36 | 47% |
 
-Axes that DO move the ranking, confirmed by the runs in "Evidence" below:
-`chassis` (base_stats + which weapons are legal), `weapon_archetype`
-(rate_of_fire/damage_per_shot/range/targets_per_shot — the dominant driver:
-every top-3 build across all four evidence runs is a `cleave_melee_sweep` or
-`turret_autocannon`/`siege_artillery` pick), `origin_world` (via
-`twin_world_resonance`'s `rate_of_fire` bonus, visible whenever an
-ashworks+deep_static pair is both present in a build's own world AND that
-build rolled one of those two worlds), `overcharge_core`/`focus_optic`/
-`reinforced_plating`/`wide_choke` (all read via `damage_per_shot_mult`/
-`rate_of_fire_mult`/`range_mult`/`targets_per_shot_add`), and
-`ability=guardian_angel` (the only ability that moves anything, via the
-post-hoc survivor adjustment, not the ranking itself). `piercing_rounds` and
-`lightweight_frame` do not move the ranking today, for the reasons above —
-this is the single most decision-relevant fact this tool has produced about
-the current axis data, since it means two of task-079's modification rows
-are currently invisible to any comparison run through this harness.
+The modification axis went from mostly invisible to mostly visible, because
+`piercing_rounds` is now applied and because enemy armor now varies what a
+build's damage is worth. Concretely, on `floor2-ranged-wave --seed 1`, ranks
+3/4/5 (Beastcaller / Cleave Melee Sweep / Shrapnel Spread, all dps 25.38) used
+to read an identical 319.8 damage across `piercing_rounds`,
+`lightweight_frame` and `none`. They now read **319.8 / 298.9 / 298.9** — the
+piercing build pulls ~7% ahead against that scenario's 112 `brood_soldier_melee`
+at Armor 6.
+
+**What still ties, and why.** The residual 47% is dominated by the ability
+axis, not modifications:
+
+- **Abilities** — 5 of 6 are inert in this model (see the ability table
+  above). Burst, regen, stealth and positioning effects have nothing to attach
+  to in a pooled attrition model. This is a model-primitive gap, not a data
+  problem, and it is the largest remaining source of ties.
+- **`lightweight_frame`** — its `max_hp_mult` 0.9 IS read, but a 10% HP swing
+  usually doesn't change the outcome before the roster is wiped, so it
+  frequently still ties in practice. Its `move_speed_scale_mult` is never read:
+  no movement primitive exists (`LIMITATIONS.md` §4).
+
+**Axes that DO move the ranking:** `chassis`, `weapon_archetype` (the dominant
+driver — every top-3 build across the evidence runs is a `cleave_melee_sweep`,
+`turret_autocannon` or `siege_artillery` pick), `origin_world` (via the synergy
+rules), and **all six modifications** now have at least one live path —
+`focus_optic`/`overcharge_core` through dps, `wide_choke` through cleave,
+`reinforced_plating`/`lightweight_frame` through HP, and `piercing_rounds`
+through armor penetration. `guardian_angel` is the one ability that moves
+anything, via the post-hoc survivor adjustment rather than the ranking.
+
+**The decision-relevant read for design:** weapons and chassis carry the
+variety; modifications now contribute real differentiation; abilities are
+currently invisible to any comparison run through this harness. If abilities
+are meant to be a load-bearing part of hero variety, the model needs
+primitives it does not have — that is a scoping decision about the harness,
+not a flaw in `hero-builds.json`.
 
 ## Evidence
 
@@ -341,15 +357,16 @@ py Scripts/sim/variety.py --scenario floor2-ranged-wave --seed 1   # re-run
 Byte-identical `--json` output on both runs (diffed clean). Top of the
 `--seed 1` table: `Line Breaker (Cleave Melee Sweep)` / Chain Bolt /
 Reinforced Plating / Guardian Angel / Verdant Wilds, dps 28.20, damage dealt
-463.9, share 19.7%, est. kills 5.31, WIPED. Fired: `twin_world_resonance`,
-`babel_discord`.
+440.1, share 20.2%, WIPED. Fired: `twin_world_resonance`, `babel_discord`.
+(Pre-armor-fix this row read 463.9 damage / 19.7% share — the drop is enemy
+armor now being subtracted.)
 
 ```
 py Scripts/sim/variety.py --scenario floor1-swarm-wave --seed 2
 ```
 Different roll, different table (confirms seed-dependence): top build
 `Line Breaker (Cleave Melee Sweep)` / Melee Swing / Reinforced Plating /
-Last Stand / Verdant Wilds, dps 29.61, damage dealt 1322.0, share 33.0%,
+Last Stand / Verdant Wilds, dps 29.61, damage dealt 1284.6, share 33.7%,
 est. kills 17.94, WIPED. `choirs_ward` fired this run (2+ Rally Cry builds
 rolled) in addition to `twin_world_resonance` and `babel_discord` — all
 three visibly different from the `--seed 1` run's fired-rule set, confirming
@@ -360,7 +377,7 @@ py Scripts/sim/variety.py --scenario floor2-ranged-wave --seed 42
 ```
 A third seed, different scenario roster composition, different top build
 (`Beastcaller (Cleave Melee Sweep)` / Shrapnel Spread / none / Last Stand /
-Verdant Wilds, dps 26.65, damage dealt 388.3, share 31.5%) — spread across
+Verdant Wilds, dps 26.65, damage dealt 369.0, share 33.5%) — spread across
 three independent rolls is visible: `--seed 1`'s and `--seed 2`'s top builds
 differ from each other and from `--seed 42`'s.
 

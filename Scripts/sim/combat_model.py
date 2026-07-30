@@ -43,15 +43,44 @@ def blow(dps: float, swing_interval: float) -> float:
     return dps * swing_interval
 
 
-def effective_blow(attacker_blow: float, victim_armor: float, chip_floor: float) -> float:
-    """entity-tiers.md §2.2: EffectiveBlow = max(AttackerBlow - Armor, ArmorChipFloor)."""
-    return max(attacker_blow - victim_armor, chip_floor)
+def effective_blow(
+    attacker_blow: float,
+    victim_armor: float,
+    chip_floor: float,
+    armor_penetration: float = 0.0,
+) -> float:
+    """
+    entity-tiers.md §2.2: EffectiveBlow = max(AttackerBlow - Armor, ArmorChipFloor).
+
+    `armor_penetration` extends that with the term
+    docs/data/hero-builds.json's `piercing_rounds` modification declares:
+
+        EffectiveBlow = max(AttackerBlow - max(Armor - ArmorPenetrationFlat, 0),
+                            ArmorChipFloor)
+
+    Penetration reduces the victim's armor, floored at 0 — it never becomes a
+    damage bonus against an unarmored victim, so a build that rolls
+    piercing_rounds is never WORSE off and never gains anything for free. The
+    default 0.0 leaves every pre-existing caller bit-identical.
+    """
+    return max(attacker_blow - max(victim_armor - armor_penetration, 0.0), chip_floor)
 
 
 def steady_state_dps(attacker: dict, victim_armor: float, chip_floor: float) -> float:
-    """Effective DPS one attacker deals into one victim, armor applied."""
+    """
+    Effective DPS one attacker deals into one victim, armor applied.
+
+    Reads `armor_penetration_flat` off the attacker's own fighter dict rather
+    than taking it as a parameter, so every call site gets penetration support
+    without a signature change. Fighter dicts that don't carry the key (every
+    one built by `enemy_fighter()`/`retinue_fighter()`/`hero_fighter()`) behave
+    exactly as before.
+    """
     a_blow = blow(attacker["dps"], attacker["swing_interval"])
-    e_blow = effective_blow(a_blow, victim_armor, chip_floor)
+    e_blow = effective_blow(
+        a_blow, victim_armor, chip_floor,
+        attacker.get("armor_penetration_flat", 0.0),
+    )
     return e_blow / attacker["swing_interval"]
 
 
@@ -145,6 +174,35 @@ def exposed_frontage(alive_melee_count: float, formation_spacing: float, engaged
     radius = formation_spacing * math.sqrt(alive_melee_count / math.pi)
     perimeter = 2.0 * math.pi * radius
     return max(1.0, min(alive_melee_count, perimeter / engaged_spacing))
+
+
+def mixed_victim_armor(victim_groups: list["WaveGroup"]) -> float:
+    """
+    Alive-count-weighted mean Armor across the groups that will actually absorb
+    this tick's damage.
+
+    The wave model pools HP and distributes each side's damage across that
+    side's subgroups proportional to current alive-count share (the well-mixed
+    target assumption stated in simulate_wave_attrition()'s step 6). A single
+    attacking group therefore has no one identifiable victim whose Armor to
+    subtract — it is hitting a mixture. Weighting Armor by the same alive-count
+    share the damage itself is split by is the assumption the rest of the model
+    already makes, applied consistently rather than a new one.
+
+    This is an APPROXIMATION and it is not conservative in both directions:
+    because effective_blow() floors at chip_floor per blow, averaging the armor
+    of a mixed pool is not identical to running each subgroup separately and
+    summing. It is close where armor values are similar and diverges where one
+    subgroup is far tougher than the rest (e.g. a Titan at Armor 20 mixed with
+    Fodder at Armor 0). Splitting damage per victim subgroup before applying
+    armor would remove the approximation; that is a larger restructuring of the
+    tick loop than correcting the hardcoded zero, and is noted in
+    docs/sim/LIMITATIONS.md rather than done here.
+    """
+    total = sum(g.alive_count for g in victim_groups)
+    if total <= 0:
+        return 0.0
+    return sum(g.fighter.get("armor", 0.0) * g.alive_count for g in victim_groups) / total
 
 
 def melee_reach_per_exposed_unit(engage_range: float, engaged_spacing: float, facing_fraction: float) -> float:
@@ -332,6 +390,17 @@ def simulate_wave_attrition(
 
         exposed_retinue = exposed_frontage(retinue_melee_alive, formation_spacing, engaged_spacing)
 
+        # Each side's mixed Armor, weighted over exactly the pool that receives
+        # that side's damage in the apply step below (melee + ranged arrived
+        # groups, both sides). Previously both were hardcoded 0.0 with the
+        # comment "retinue has no Armor column" — true of upgrades.json, but it
+        # silently discarded the ENEMY's Armor too (entity-tiers.json:
+        # brood_soldier_melee 6, brood_elite 12, brood_titan 20, brood_boss 14),
+        # and docs/data/hero-builds.json now gives the retinue side nonzero
+        # Armor as well (combat_engineer 2, beastcaller 1).
+        retinue_victim_armor = mixed_victim_armor(retinue_melee_active + retinue_ranged_active)
+        enemy_victim_armor = mixed_victim_armor(enemy_melee_active + enemy_ranged_active)
+
         # --- damage INTO retinue (melee contact, frontage-capped) ---
         engaging_enemy_melee = min(enemy_melee_alive, exposed_retinue * max_attackers_per_unit)
         dmg_to_retinue_melee = 0.0
@@ -339,13 +408,13 @@ def simulate_wave_attrition(
             for g in enemy_melee_active:
                 share = g.alive_count / enemy_melee_alive
                 bodies = engaging_enemy_melee * share
-                per_unit_dps = steady_state_dps(g.fighter, 0.0, chip_floor)  # retinue has no Armor column
+                per_unit_dps = steady_state_dps(g.fighter, retinue_victim_armor, chip_floor)
                 dmg_to_retinue_melee += bodies * per_unit_dps * dt
 
         # --- damage INTO retinue (ranged, uncapped) ---
         dmg_to_retinue_ranged = 0.0
         for g in enemy_ranged_active:
-            per_unit_dps = steady_state_dps(g.fighter, 0.0, chip_floor)
+            per_unit_dps = steady_state_dps(g.fighter, retinue_victim_armor, chip_floor)
             dmg_to_retinue_ranged += g.alive_count * per_unit_dps * dt
 
         dmg_to_retinue = dmg_to_retinue_melee + dmg_to_retinue_ranged
@@ -372,7 +441,7 @@ def simulate_wave_attrition(
                     g.fighter["engage_range"], engaged_spacing, melee_contact_facing_fraction
                 )
                 cleave = min(g.fighter["targets_per_hit"], reach)
-                per_unit_dps = steady_state_dps(g.fighter, 0.0, chip_floor)
+                per_unit_dps = steady_state_dps(g.fighter, enemy_victim_armor, chip_floor)
                 group_slots = exposed_share * cleave
                 group_output = group_slots * per_unit_dps * dt
                 raw_slots += group_slots
@@ -393,7 +462,7 @@ def simulate_wave_attrition(
         # --- damage INTO enemy (ranged, uncapped) ---
         dmg_to_enemy_ranged = 0.0
         for g in retinue_ranged_active:
-            per_unit_dps = steady_state_dps(g.fighter, 0.0, chip_floor)
+            per_unit_dps = steady_state_dps(g.fighter, enemy_victim_armor, chip_floor)
             output = g.alive_count * per_unit_dps * dt
             dmg_to_enemy_ranged += output
             # task-080 attribution: uncapped, so no contact_scale to apply.

@@ -151,3 +151,41 @@ reader doesn't assume silence means "handled":
   engagement. It does not chain wave 1's survivors into wave 2's starting
   count the way a real run (or `GATE1-FUN-PROTOTYPE.md`'s "refill to a cap"
   rule) would.
+- **Per-unit ability effects in the wave model** — burst windows, regeneration,
+  stealth and aura-radius effects have no primitive to attach to in a pooled
+  attrition model. Measured 2026-07-29 against `docs/data/hero-builds.json`:
+  5 of its 6 abilities are inert in `variety.py` for this reason, and they are
+  the dominant remaining source of tied rows in its ranking (see
+  `docs/sim/VARIETY.md`). This is the largest gap between what the hero-build
+  data expresses and what the harness can compare.
+
+## 5. Armor in the wave-attrition model is applied over a MIXED victim pool
+
+Added 2026-07-29, when armor stopped being hardcoded to zero in
+`simulate_wave_attrition()` (it had been passed `victim_armor=0.0` on all four
+`steady_state_dps` call sites, which silently discarded the enemy's `Armor` —
+`brood_soldier_melee` 6, `brood_elite` 12, `brood_titan` 20, `brood_boss` 14 —
+and systematically **overstated** the retinue's damage output in every wave
+fight).
+
+The fix carries its own approximation, and it is a real one. The model pools HP
+and splits each side's damage across that side's subgroups proportional to
+alive-count share, so an attacking group has no single identifiable victim whose
+Armor to subtract — it is hitting a mixture. `combat_model.mixed_victim_armor()`
+therefore uses the alive-count-weighted **mean** Armor over exactly the pool
+that absorbs the damage, reusing the well-mixed-target assumption the tick loop
+already makes.
+
+**Why that is not exact:** `effective_blow()` floors every blow at
+`chip_floor`, so averaging a mixed pool's armor is not the same as applying each
+subgroup's armor separately and summing. It is close where armor values are
+similar across the pool and diverges where one subgroup is far tougher than the
+rest — a `brood_titan` at Armor 20 mixed with `brood_fodder` at Armor 0 is the
+worst case, because the average understates how much the Titan absorbs and
+overstates how much the Fodder does. Removing the approximation means splitting
+damage per victim subgroup **before** applying armor, which is a restructuring
+of the tick loop rather than a parameter change.
+
+Practical read: trust armor's *direction and rough magnitude* in wave results,
+not its precise value in a mixed-tier fight. Point-target results are unaffected
+— that model always applied a single named target's armor and still does.
