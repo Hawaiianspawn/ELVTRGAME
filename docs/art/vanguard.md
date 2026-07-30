@@ -349,20 +349,101 @@ Reject the anchor and re-roll if any of these fail — they are cheap to check b
 against §4a and they are what the QC pass asserts:
 
 - [ ] Exactly four values present after quantization; alpha strictly 0 or 255.
-- [ ] Pale appears **only** inside one contiguous axis-aligned rectangle. Any Pale pixel
+  **FAILED (partial), sheet-wide measurement.** Alpha sub-claim is clean: `alpha_partial_before: 0`
+  on all 41 packed frames (`RawArt/Renders/hero-vanguard/r3/report.json`). The four-value
+  sub-claim is not universally true: `walk/north/0.png`, `walk/north/1.png`, and
+  `walk/north/3.png` each report `"values_used": 3, "histogram": {"bone": 0, ...}` — Bone
+  drops out entirely on three of the eight north-walk frames. The anchor itself
+  (`south.png`) is clean at `values_used: 4`.
+- [x] Pale appears **only** inside one contiguous axis-aligned rectangle. Any Pale pixel
       on skin, plate, weapon or eyes = reject (`pale_usage: banner`).
-- [ ] Steel is the largest bucket (`value_dominance: steel`).
-- [ ] Shoulder line is flat and horizontal for ≥18px.
-- [ ] Shield has four straight sides and a flat top edge.
-- [ ] Pole is vertical, ≤2px wide, Dark.
-- [ ] Face is open (no visor), eyes are Dark recesses.
-- [ ] No dither block smaller than 2×2 anywhere.
-- [ ] Content bbox ≤ 48×48.
+  **PASS for the anchor, measured exactly against §4a's ASCII source** (rows 6–12,
+  cols 35–44 hold every `@` character in the 48×48 grid; no `@` appears anywhere else in
+  the block). Since `pixelpipe.py authored` renders that block pixel-for-pixel, this is an
+  exact text measurement, not an eyeballed one. **UNVERIFIED-NEEDS-SHELL for the other 40
+  packed frames** (8 rotation + 32 walk) — those came from generation + quantize, not the
+  authored ASCII, and `report.json` only stores pale pixel *counts* per frame, not
+  *location*; percentage alone cannot confirm rectangularity or banner-only placement.
+  `quantize_array()` in `Scripts/art/pixelpipe.py` (~line 804) computes a related
+  `pale_uncaged` check (orphaned/edge-touching pale pixels) but that stat is not persisted
+  in `r3/report.json`, and even a clean value would not confirm shape or location. Settle
+  with `py Scripts\art\pixelpipe.py quantize hero-vanguard --stage rotation` /
+  `--stage anim` (read the console `pale_uncaged` output) plus a location/shape check that
+  no existing script performs.
+- [x] Steel is the largest bucket (`value_dominance: steel`).
+  **PASS, scoped to the anchor** — which is this item's own stated scope ("reject the
+  anchor and re-roll") and the precedent `Scripts/art/README.md` documents for this exact
+  metric. Anchor `south.png`: Steel 52.1% (453/870 opaque px), Dark 29.8%, Bone 10.1%,
+  Pale 8.0%, `"dominant": "steel"` (`r3/report.json` qc.anchor). Also clears §3.6's fuller
+  target (Steel ≥50% ✓, Bone ≤12% ✓, Pale ≤9% ✓; Dark runs a bit over the "~25%"
+  guideline at 29.8%, which this item doesn't gate on).
+  **Caveat, not a fail:** across the full packed sheet, 16 of 41 frames are *not*
+  Steel-dominant — `west` rotation (Dark 43.6% vs Steel 42.2%) and 12 of 32 walk frames,
+  concentrated in the west/north-west/south-west facings where the shield rotates out of
+  view and Dark boot/pole edges take over. Expected consequence of a profile silhouette
+  losing the shield, not a build defect — flagging so the "Steel-dominant class" read is
+  understood to hold for 25 of 41 frames, not all of them.
+- [x] Shoulder line is flat and horizontal for ≥18px.
+  **PASS, measured exactly against §4a.** The shoulder-line row (`##############...`) is
+  an unbroken run of 21 Dark characters — exceeds the 18px minimum.
+- [x] Shield has four straight sides and a flat top edge.
+  **PASS, measured exactly against §4a.** The shield's top edge is a straight 15-character
+  Dark run; the left/right sides are the Dark border columns running down through the
+  following rows to the belt-line closure. No curvature, no kite point — every edge is an
+  axis-aligned straight run.
+- [x] Pole is vertical, ≤2px wide, Dark.
+  **PASS, with one measured 1px deviation flagged.** Width holds at exactly 2 Dark
+  characters on every row it appears (never wider). Column position holds steady through
+  the flag, helm-top, and torso rows, **except the single seam row between the helm-top
+  box and the face box**, where the ASCII shows the pole one column left of its
+  neighbours above and below — a genuine 1px kink in the authored source at one row, not
+  drift over multiple rows. Unlikely to read at 12px horde zoom; worth a one-character fix
+  in a future authored-anchor revision (see §10 note below).
+- [x] Face is open (no visor), eyes are Dark recesses.
+  **PASS, measured exactly against §4a.** The two eye rows each show two separate
+  2-character Dark clusters at the same columns on both rows — two 2×2 Dark recesses, no
+  visor bar or crest crossing the Bone face field elsewhere.
+- [x] No dither block smaller than 2×2 anywhere.
+  **PASS, sheet-wide, fully measured.** `r3/report.json`: `stipple_px_before: 0` and
+  `dither_enforced: false` on all 41 frames (1 anchor + 8 rotation + 32 walk) — the
+  quantizer never detected a 1px checkerboard field anywhere on the sheet.
+- [x] Content bbox ≤ 48×48.
+  **PASS.** `r3/manifest.json` → `sheet.sprite_bbox: [44, 47]`, computed by the packer
+  across the whole sheet's alpha bounding box.
 
 If the anchor is good but the rotation pass loses the flag on the north-facing frame
 (a known failure mode — the pole tends to migrate behind the body), keep the anchor and
 re-roll the rotation pass only; do not re-roll the anchor, since everything else already
 inherits it.
+
+### 8a. Acceptance run — 2026-07-29 (task-009)
+
+**Canon check, resolved rather than assumed.** This checklist's palette items (four
+values, Pale rectangle, Steel dominance) look like they depend on the retired Direction A
+global lock, which `aesthetic-direction.md`'s 2026-07-28 AMENDMENT superseded — the game
+now ships full colour by default and `demichrome-4` is an explicit opt-in ramp, not a
+forced default (`docs/data/art/palette.json` `palettes.demichrome-4.superseded`). But
+`docs/data/art/requests/hero-vanguard.json` sets `"canon": {"palette": "demichrome-4", ...}`
+explicitly — this asset opted in. Under the current amendment that opt-in remains fully
+valid, so **none of the nine items are OBSOLETE-UNDER-CURRENT-CANON**; the strict-4-value
+gate is live for this specific sprite by this request's own declared choice, not by a
+game-wide rule this checklist is stale against. Separately, and out of this task's scope
+to fix: §2's framing above ("Global ramp, no exceptions, no swaps... GDD #6 resolved to
+strict global palette") states the *old* reason this ramp applies here; the *current*
+reason is the explicit `canon.palette` opt-in. That's a prose staleness note for a future
+edit, not a checklist failure.
+
+**What was measured vs. not, and why.** No shell access for this task (Read/Glob/Grep/
+Write/Edit only) — nothing here was run fresh; all measurements above come from the r3
+pipeline artifacts already on disk (`RawArt/Renders/hero-vanguard/r3/report.json`,
+`manifest.json`) plus exact character-level parsing of this document's own §4a ASCII
+block, which is the verified pixel-for-pixel source of the anchor
+(`Scripts/art/README.md`: "authored" mode renders that block straight to a PNG; its
+histogram matches `r3/report.json`'s anchor entry exactly, confirming the ASCII text and
+the anchor pixels are identical data). Parsing that text is an exact measurement, not an
+eyeballed one. What could **not** be verified this way — the 40 non-anchor frames' Pale
+placement — is marked UNVERIFIED-NEEDS-SHELL above with the exact commands that would
+settle it, rather than estimated.
 
 ---
 

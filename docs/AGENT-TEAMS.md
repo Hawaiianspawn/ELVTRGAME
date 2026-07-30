@@ -181,8 +181,21 @@ dispatchable right now.
 The width is capped by §5, not by ambition: `unreal-editor`, `mcp-9000` and
 `pixellab-credits` are global mutexes, so two siblings that both build cannot be approved
 together. Specs fan wide; build work belongs in the join. And since teammates cannot spawn
-teammates, the lead carries every dispatch and handback — 3–4 threads is the practical
-ceiling, same as §3's sizing.
+teammates, the lead carries every dispatch and handback — which is what caps the width, not
+the lock table.
+
+**Measured 2026-07-29, because the intuition here is wrong:** of 41 `proposed` tasks, only
+**12 hold `unreal-editor`** and **28 hold no resource at all**. The editor mutex is not what
+limits throughput — the lead's context is. `/host` §7a therefore closes a batch into one
+branch and one PR, moving the evidence write-up out of the lead, which is what raised
+`DEFAULT_WIDTH` from 4 to 6. A second editor instance (a second worktree on its own
+`ServerPortNumber`) is feasible on this box and was considered; it would unlock 12 tasks in
+pairs while leaving the other 28 capped, so it was **not** built. Revisit it when `waves`
+actually reports two editor tasks colliding often enough to notice.
+
+**One branch per batch, never one per teammate.** Teammates share the working tree, so there
+is exactly one branch to be on; `owns:` is what keeps their writes disjoint. And never stage
+with `git add -A` — another session's work lives in this tree too.
 
 Dispatch is gated by `py Scripts/backlog.py dispatch <id> --teammate <name>`, which records
 which teammate holds which task and **refuses any task that is not `approved` with its

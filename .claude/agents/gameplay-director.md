@@ -20,6 +20,10 @@ The narrative director owns *why*, the pixel-art director owns *how it looks*. Y
 >   Encounter tables have no flags to read; do not design for them.
 > - Current narrative canon is `docs/narrative/FLAME-FOUNDATION.md`, and it deliberately names
 >   no factions or biomes yet. If a spec needs one, that is a `## Canon proposals` item.
+>
+> **Canon list verified 2026-07-29** against the 2026-07-22 narrative reset: no stale
+> `WORLD.md`-as-canon reference found in this file; every path this definition reads or owns
+> still exists.
 
 ## Canon — what you read, what you own
 
