@@ -1,0 +1,43 @@
+{
+  "family": "broken-machine",
+  "renders": "RawArt/Renders/undead-green/raw",
+  "note": "F2 [Broken] from docs/art/variant-families-v1.md, approved 2026-07-30. RESOLVED WITHOUT GENERATING -- the owner pointed at an existing PixelLab group (a8770a41-6493-41be-b141-e21bc507783b, 37 states) which already contained the pair. Zero credits spent. 'Machine' was always the mechanism, not the fiction (see variant-families-v1.md F2); the states that fit are undead, which is a better fiction for an intact/wrecked pair than machines were.",
+  "base": {
+    "character_id": "a8770a41-6493-41be-b141-e21bc507783b",
+    "group_id": "8b4b9811-dcf3-4e9d-baa6-2cb3f8901d0b",
+    "canvas_size": 88,
+    "note": "Group holds 37 states across three hue clusters. This family uses two from the yellow-green cluster (46-62 deg). The base character itself ('A black ghost with sharp') is in the blue cluster and is NOT used here."
+  },
+  "axis": {
+    "name": "topology",
+    "description": "Asymmetry-by-damage. One creature at opposite ends of the asymmetry axis -- intact 0.07, wrecked 0.38 -- with solidity falling in step (0.76 to 0.63). The DELTA is the family read. No friendly does this: each of the six soldiers sits at one fixed asymmetry and stays there."
+  },
+  "constant": "One bulky upright brute, yellow-green palette (hue 58-62 deg), 88px canvas, 8 directions.",
+  "variants": [
+    {
+      "slug": "state00_intact",
+      "source_state": "Keep_this_exact_broa_2",
+      "measured": {"aspect_south": 1.03, "solidity_south": 0.76, "asymmetry_south": 0.07, "aspect_drift": 0.55, "hue": 58.0},
+      "silhouette_target": "broad, blocky, heavy-shouldered, dense -- reads whole",
+      "source": "existing"
+    },
+    {
+      "slug": "state01_wrecked",
+      "source_state": "Keep_this_exact_lops",
+      "measured": {"aspect_south": 0.71, "solidity_south": 0.63, "asymmetry_south": 0.38, "aspect_drift": 0.34, "hue": 61.9},
+      "silhouette_target": "the same brute sagging to one side, narrower, less dense -- reads wrecked, not ragged",
+      "source": "existing"
+    }
+  ],
+  "checks_run": [
+    "Hue clustering across all 37 states: no state falls in the green band (70-160 deg). The yellow-green cluster at 46-62 deg is the one the owner meant; cyan/blue ooze cluster (188-220 deg) and three strays excluded.",
+    "Silhouette measured south and --all-directions.",
+    "Visual confirmation that the pair reads as ONE creature whole vs wrecked -- measurement alone cannot judge this, and it eliminated the numerically-better pair (Reshape_this_undead_8 -> Keep_this_exact_lops_2 moved three measures the right way but reads as two different creatures: upright brute vs splayed low quadruped).",
+    "Keep_this_exact_broa_2 carries a 0.55 aspect-drift WATCH from silhouette_report. North frame inspected as instructed: form stays coherent, drift is view-dependent aspect only. Accepted."
+  ],
+  "open": [
+    "Intact half measures asymmetry 0.07, just above soldier06's 0.05. That is a thin margin against the roster's most symmetric friendly -- the two should be compared at horde scale before this ships.",
+    "docs/art/variant-families-v1.md section 5.5: regularity carries friend/foe alone for both approved families. F1 [Mirror] is still the decisive test and has not been run.",
+    "Duplicate outlines exist in the group (Keep_this_exact_tall == Reshape_this_undead; Keep_this_exact_tria == Reshape_this_undead_3). Not used here, but they should not both be treated as distinct states later."
+  ]
+}
