@@ -231,3 +231,123 @@ That (not `targets_per_shot`, which is inert against a single target) is
 what makes `cleave_melee_sweep` outperform even where its cleave mechanic
 does nothing, and it would still be present even if the swarm scenario's
 concentration problem were fixed some other way.
+
+---
+
+# task-098: opening the armor gate from the build side
+
+Acting on this doc's own finding above — the armor gate, not chassis-legality
+count, is what actually gates a weapon out of point-target relevance — this
+task widened the build space from the BUILD side only.
+`docs/data/entity-tiers.json` (Elite Armor 12, Boss Armor 14),
+`combat-model-constants.json`'s `chip_floor` (3.0), and every file under
+`Scripts/sim/` are unchanged; task-076's lock on `chip_floor` and this doc's
+own citations against the armor values both depend on that. Full rationale
+and the verified per-weapon blow table: `docs/design/hero-build-variety.md`
+§2b. In short, two changes to `docs/data/hero-builds.json`:
+
+1. `chassis.archer.legal_modifications` gained `piercing_rounds` (was
+   `[focus_optic, overcharge_core]`) — `precision_longbow`'s blow (16.2) was
+   already close enough to Elite/Boss armor that the existing +4 penetration
+   alone clears both with real margin; it just had no chassis with
+   penetration access before now (`piercing_rounds` previously reached only
+   `line_breaker`/`beastcaller` — `cleave_melee_sweep`'s own two chassis, the
+   "concentration is part of the cause" line above). `precision_longbow`
+   itself is untouched (a CALIBRATION row) and `calibration_builds.archers`
+   keeps `modification: null`.
+2. `weapon_archetypes.chain_bounce_shot.damage_per_shot` raised 14.0 -> 19.0
+   (blow 11.9 -> 16.15, a PROTOTYPE DIAL, not a calibration row).
+   `chain_bounce_shot` already had a piercing-legal chassis (`beastcaller`) —
+   this only needed the damage number, no access change.
+
+`dual_strike_melee`, `turret_autocannon`, `beam_continuous`, and
+`rapid_skirmish_blaster` are deliberately left floored — closing any of them
+the same way needed either a `piercing_rounds` pen increase (which would move
+this doc's own already-cited "+26.7% at Armor 12" figure for
+`cleave_melee_sweep`, `docs/sim/VARIETY.md` — **flagging that figure as now
+counterfactual to any FUTURE pen change, not stale today, since pen itself
+was not touched**) or a damage_per_shot increase large enough to push each
+weapon's raw dps past the roster's own ceiling (`cleave_melee_sweep`'s 30),
+i.e. trading "opens the gate" for "creates a new dominant weapon" — the
+disqualifying outcome this task was told to avoid.
+
+## Before / after, same command, same seeds
+
+`py Scripts/sim/differentiation.py --seeds 25` (identical invocation both
+times — only `docs/data/hero-builds.json` changed between runs).
+
+| | **floor1-swarm-wave** (WAVE, NOT VALIDATED — LIMITATIONS.md §1) | | **floor2-elite-point-target** (VALIDATED) | | **floor3-boss-point-target** (VALIDATED) | |
+|---|---|---|---|---|---|---|
+| | before | after | before | after | before | after |
+| avg rank-1 share | 31.3% | **30.2%** | 10.3% | **9.8%** | 9.9% | **9.7%** |
+| range across 25 seeds | 17.8%-42.1% | 18.1%-44.5% | 8.5%-11.9% | 8.1%-11.4% | 7.9%-12.5% | 7.9%-11.7% |
+| avg competitive @0.5x (of 20) | 2.64 | 2.64 | 9.08 | **9.52** | 9.72 | 9.68 |
+| avg competitive @0.8x (of 20) | 1.88 | 1.84 | 2.08 | 1.88 | 2.24 | 2.00 |
+| rank-1 weapon frequency | `cleave_melee_sweep` 25/25 | `cleave_melee_sweep` 25/25 | `cleave` 22/25, `siege` 3/25 | `cleave` 22/25, `siege` 3/25 | `cleave` 13/25, `siege` 12/25 | `cleave` 15/25, `siege` 9/25, **`arcing_aoe_lobber` 1/25** |
+
+## Reading the movement
+
+**The wave scenario is essentially untouched** (30.2% vs 31.3%, within
+seed-to-seed noise — compare the range column, which shifted by more than
+this delta on its own). Expected: neither changed weapon has
+`cleave_melee_sweep`'s `targets_per_shot: 8`, and the wave scenario's own
+dominant mechanic (per this doc's earlier finding) is that coverage
+advantage, not the armor gate — this task never touched it and wasn't asked
+to.
+
+**The two validated point-target scenarios both move in the intended
+direction, modestly.** Rank-1 share drops in both (10.3%->9.8% Elite,
+9.9%->9.7% Boss) — nobody replaces `cleave_melee_sweep` at the top; it still
+wins rank-1 in 22/25 and 15/25 seeds respectively, same or fewer than before.
+Elite's competitive-@0.5x band widens (9.08->9.52 of 20); Boss's is flat to
+very slightly down (9.72->9.68) — an average built substantially from
+seed-level noise given only 25 seeds, not a regression signal (`chain_bounce_
+shot`'s and `precision_longbow`'s own post-armor dps, computed directly
+against Boss's armor in `hero-build-variety.md` §2b's table, both rose from
+this change; a flat competitive-count average simply means their gains
+didn't always land inside the "within 2x of whichever build won that
+particular seed's rank 1" band, which moves per seed).
+
+**The real, unambiguous new signal: `arcing_aoe_lobber` wins rank-1 in the
+Boss scenario for the first time (1/25 seeds), something neither weapon in
+this doc's original 25-seed measurement ever did.** `arcing_aoe_lobber` was
+already one of the 3 armor-clearing survivors before this task touched
+anything — giving `archer` (its own chassis) `piercing_rounds` access as a
+side effect of opening `precision_longbow`'s path let a `piercing_rounds`
+roll push `arcing_aoe_lobber`'s own already-high blow (44.0) even further
+past Boss's armor (30.0 -> 34.0 effective, `hero-build-variety.md` §2b), and
+in at least one seed that was enough to overtake `siege_artillery`. A third
+weapon now has a demonstrated, not just theoretical, path to rank 1.
+
+## Verdict
+
+**The build space widened, honestly and modestly, not dramatically.** By
+the letter of the brief: more than three weapon archetypes now clear the
+armor gate with real margin (5 of 9: `siege_artillery`, `arcing_aoe_lobber`,
+`cleave_melee_sweep` unchanged, plus `precision_longbow` and
+`chain_bounce_shot` newly opened — `hero-build-variety.md` §2b's blow table),
+rank-1 share dropped in both validated scenarios, no single weapon replaced
+`cleave_melee_sweep` at the top, and a third weapon (`arcing_aoe_lobber`) won
+rank-1 at least once where it never had before. Four weapons
+(`dual_strike_melee`, `turret_autocannon`, `beam_continuous`,
+`rapid_skirmish_blaster`) remain floored by deliberate choice, not oversight
+— closing them would have required either moving the locked chip-floor/armor
+values (out of scope) or dps increases large enough to create a new
+monoculture (the disqualifying outcome). This is a real, cited, small step —
+not a full resolution of the concentration this doc's task-091 section
+measured, and the wave scenario's much larger concentration (cleave's
+`targets_per_shot` coverage advantage) is untouched, because it isn't an
+armor-gate problem and wasn't this task's brief.
+
+## Simulation notes
+
+Ran `py Scripts/sim/differentiation.py --seeds 25` twice, identical
+invocation, only `docs/data/hero-builds.json` changed between runs (git diff
+limited to the two edits in `hero-build-variety.md` §2b). `py Scripts/sim/
+validate.py` and `py Scripts/sim/drift_check.py` both re-run after the data
+change — results below. No `Scripts/sim/` file touched; no `entity-tiers.json`
+or `combat-model-constants.json` edit. A scratch (uncommitted) Python script
+recomputed `reachable_build_count` and the full armor-gate blow table
+directly from the live `hero-builds.json`, both before and after the edit,
+matching the file's own committed numbers exactly both times — not hand
+arithmetic (`hero-build-variety.md` §2b, §9).

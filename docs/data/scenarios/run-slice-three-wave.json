@@ -1,0 +1,24 @@
+{
+  "Name": "run-slice-three-wave",
+  "DisplayName": "Slice run — three-wave GATE1 density chain with carryover, degrade, and embers",
+  "Kind": "run_chain",
+  "Description": "Chains the three committed GATE1 density-calibration fixtures (docs/data/scenarios/gate1-calibration-wave1/2/3.json) into one continuous run via Scripts/sim/run_sim.py: wave N's actual retinue survivors become wave N+1's starting count (replacing each fixture's own 'fresh 120, flat refill' convention), embers accrue from brood kills plus a growth-site grant after wave 1 and wave 2 (docs/data/growth-sites.json slice_placement), and economy.json's supply/degrade formula scales retinue DPS down whenever upkeep demand exceeds capacity. Does NOT spend the banked embers (task-097 owns spending).",
+  "SourceRefs": [
+    "docs/data/scenarios/gate1-calibration-wave1.json, gate1-calibration-wave2.json, gate1-calibration-wave3.json -- the three chained scenarios, referenced by name and run unmodified",
+    "docs/data/growth-sites.json slice_placement (growth-A after the wave-1 breather, growth-B after the wave-2 breather)",
+    "docs/data/economy.json supply.start_capacity / supply.upkeep_per_unit / supply.degrade.dps_multiplier formula, and embers.income.per_brood_killed / embers.income.growth_site_grant"
+  ],
+  "StartingComposition": [
+    { "UnitType": "spearmen", "Tier": "militia", "Count": 120 }
+  ],
+  "Waves": [
+    "gate1-calibration-wave1",
+    "gate1-calibration-wave2",
+    "gate1-calibration-wave3"
+  ],
+  "Stops": [
+    { "AfterWaveIndex": 0, "GrowthSiteId": "growth-A" },
+    { "AfterWaveIndex": 1, "GrowthSiteId": "growth-B" }
+  ],
+  "Notes": "StartingComposition matches gate1-calibration-wave1.json's own Retinue.Composition exactly (single row, spearmen/militia, 120) -- required for run_sim.py's --selftest byte-identical check to have a valid single-wave comparison elsewhere, and because inventing a DIFFERENT starting mix here would not trace to any design doc. All three chained scenarios keep their shared zero-input convention (no Archers, no Hero) -- this run isolates carryover/degrade/embers from the tier-mix and hero-DPS variables the floor1/floor2/floor3 scenarios would additionally introduce. KNOWN CROSS-DOC MISMATCH, surfaced by this chain and not hidden: economy.json's start_capacity is 60, but GATE1's own wave-1 retinue convention is 120 -- so this run's wave 1 already starts with upkeep demand (120) at exactly 2x capacity (60), triggering the degrade multiplier from the very first wave, a combination neither GATE1-FUN-PROTOTYPE.md (predates the economy model) nor economy.json's own stated design intent (a well-played run 'keeps pace') anticipated. See docs/sim/RUN-SIM.md and the task-096 handback for the actual multiplier this produces. 'Kind': 'run_chain' is not consumed by run_sim.py's own logic -- it exists only so scenario_runner.py --all (which iterates every file in this directory) fails with a readable 'Unknown scenario Kind' message instead of a bare KeyError, since scenario_runner.py and data_loader.list_scenarios() are both locked this task and can't be taught to skip run-*.json files directly."
+}

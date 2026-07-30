@@ -70,7 +70,8 @@ projectile — every combination is "reachable" in the sense of existing in the
 axis tables, and almost none of it is thematically sane.
 
 **Legal count, after each chassis's own coherence constraint AND the
-weapon/projectile travel-type coupling (task-090, §2a below): 729** —
+weapon/projectile travel-type coupling (task-090, §2a below): 774** (was 729
+before task-098 widened archer's `legal_modifications`, §2b) —
 verified by script, not hand arithmetic (§9). Each `chassis` row in
 `hero-builds.json` declares its own `legal_weapons` / `legal_projectiles` /
 `legal_modifications` / `legal_abilities` / `legal_origin_worlds` — a subset
@@ -82,7 +83,7 @@ chassis (`hero-builds.json`'s `reachable_build_count.per_chassis`):
 
 | Chassis | Legal weapons | Weapon-projectile pairs (not weapons x projectiles) | Legal mods (+none) | Legal abilities (+none) | Legal origins | Legal builds |
 |---|---|---|---|---|---|---|
-| Archer | 3 | 5 (2+2+1, not 3x3=9) | 2 (+1) | 2 (+1) | 3 | **135** |
+| Archer | 3 | 5 (2+2+1, not 3x3=9) | **3** (+1) | 2 (+1) | 3 | **180** |
 | Gunner | 2 | 4 (2+2) | 2 (+1) | 2 (+1) | 3 | 108 |
 | Line Breaker | 2 | 2 (1+1, not 2x2=4) | 2 (+1) | 2 (+1) | 3 | **54** |
 | Skirmisher | 2 | 2 (1+1, not 2x2=4) | 2 (+1) | 2 (+1) | 3 | **54** |
@@ -90,7 +91,11 @@ chassis (`hero-builds.json`'s `reachable_build_count.per_chassis`):
 | Combat Engineer | 2 | 4 (2+2) | 2 (+1) | 2 (+1) | 3 | 108 |
 | Beastcaller | 2 | 2 (1+1, not 2x2=4) | 2 (+1) | 2 (+1) | 3 | **54** |
 | Siege Artillerist | 2 | 4 (2+2) | 2 (+1) | 2 (+1) | 3 | 108 |
-| **Total** | | | | | | **729** |
+| **Total** | | | | | | **774** |
+
+Archer's mod count went 2->3 in task-098 (§2b): it gained `piercing_rounds`,
+raising `(legal_modifications+1)` from 3 to 4 and its row from 135 to 180 —
+the only chassis task-098 touched.
 
 **Correction record (task-090):** the original 999 (still visible in prior
 commits of `hero-builds.json`) multiplied each chassis's `legal_weapons x
@@ -168,6 +173,103 @@ a second layer of the same constraint.
 
 ---
 
+## 2b. task-098 — opening the armor gate
+
+`docs/sim/DIFFERENTIATION.md` (task-091) found the real driver of
+`cleave_melee_sweep`'s point-target rank-1 rate wasn't chassis-legality
+breadth, it was an **armor gate**: against `brood_elite`'s Armor 12 /
+`brood_boss`'s Armor 14, 6 of the 9 reachable weapon archetypes sit at or
+effectively at `combat-model-constants.json`'s `chip_floor` (3.0) regardless
+of how often they're drawn, and only `siege_artillery`, `arcing_aoe_lobber`,
+and `cleave_melee_sweep` clear it meaningfully. This task's brief was to open
+that gate from the BUILD side — `entity-tiers.json`'s armor values and the
+chip floor itself are locked (task-076/091's own citations depend on them
+staying put) — using the two levers the data actually owns: weapon
+damage/swing values, and which chassis can reach `piercing_rounds`
+(`armor_penetration_flat` 4, `EffectiveBlow = max(AttackerBlow -
+max(Armor - ArmorPenetrationFlat, 0), ArmorChipFloor)`).
+
+**Two changes, both in `hero-builds.json`:**
+
+1. **`chassis.archer.legal_modifications` gained `piercing_rounds`** (was
+   `[focus_optic, overcharge_core]`, now adds a third option). `precision_longbow`
+   (Archer's calibration weapon, blow 16.2) was the ONE weapon in
+   DIFFERENTIATION.md's floored group whose blow was already close enough to
+   the armor values that a flat +4 penetration alone crosses it from "barely
+   clears Elite / floors Boss" to clearing both with real margin — it just had
+   no chassis with penetration access (`piercing_rounds` only reached
+   `line_breaker`/`beastcaller`, i.e. `cleave_melee_sweep`'s own two chassis —
+   DIFFERENTIATION.md's own "concentration is part of the cause" line).
+   Rather than retuning a CALIBRATION weapon row (`precision_longbow` is cited
+   against `unit-types.json`'s Archers and `entity-tiers.md` §2.2's own stated
+   Archer blow value — changing its numbers would break that citation), this
+   only widens WHICH chassis can reach an existing modification.
+   `calibration_builds.archers` keeps `modification: null` and is completely
+   unaffected — this only adds a build a player could ADDITIONALLY roll, not a
+   change to the calibration point itself.
+2. **`weapon_archetypes.chain_bounce_shot.damage_per_shot` raised 14.0 -> 19.0**
+   (blow 11.9 -> 16.15). `chain_bounce_shot` was the second-closest floored
+   weapon to clearing (blow 11.9 vs. `precision_longbow`'s 16.2), and unlike
+   `precision_longbow` it's a PROTOTYPE DIAL, not a calibration row, so its
+   own number was the correct lever rather than borrowing someone else's
+   chassis access. It's ALSO already legal on `beastcaller` alongside
+   `piercing_rounds` (`beastcaller.legal_weapons = [cleave_melee_sweep,
+   chain_bounce_shot]`, `legal_modifications = [lightweight_frame,
+   piercing_rounds]`) — no chassis-access edit needed, only the damage number.
+   +35.7% raw dps (17.85 -> 24.22) sits above the pre-change Monte-Carlo mean
+   (18.85, §9) but below the roster ceiling (`cleave_melee_sweep`'s 30) — a
+   real jump, not "+X% everything," and it moves exactly one weapon, not the
+   whole table.
+
+**What this deliberately does NOT touch, and why:** `dual_strike_melee`
+(blow 9.0), `turret_autocannon` (7.2), `beam_continuous` (6.0), and
+`rapid_skirmish_blaster` (4.2) stay floored. Closing any of them the same way
+would have needed either a much larger penetration value (breaking
+`cleave_melee_sweep`'s own already-cited "+26.7% at Armor 12," `docs/sim/
+VARIETY.md`) or a damage_per_shot increase large enough (roughly +75-115%,
+checked by hand against each weapon's own blow) to push its raw dps past the
+current roster ceiling — trading "opens the armor gate" for "creates a new
+dominant weapon," the exact failure mode this task's brief named as
+disqualifying. These four keep their own identity instead:
+`rapid_skirmish_blaster`/`turret_autocannon` are the roster's sustained
+suppression/pressure tools (highest ROF, most simultaneous targets per
+archetype-tier), `beam_continuous` is the steady-tick single-target
+alternative to `precision_longbow`, and `dual_strike_melee` is the
+mobility-flanking melee option next to `cleave_melee_sweep`'s wall-cleave —
+none of that is what a lone armored elite/boss punishes, and that's an
+honest, stated asymmetry (a swarm-pressure or mobility tool losing a duel
+with a single heavily-armored target), not neglect.
+
+**Verified numbers** (`chip_floor` 3.0, Elite Armor 12, Boss Armor 14,
+`piercing_rounds` pen 4 — recomputed by scratch script off the live data,
+same method §9 uses, not hand arithmetic):
+
+| Weapon | Blow | Elite (no pen) | Boss (no pen) | Elite w/ piercing | Boss w/ piercing | Piercing-legal chassis |
+|---|---|---|---|---|---|---|
+| `siege_artillery` | 154.00 | 142.00 | 140.00 | n/a | n/a | none |
+| `arcing_aoe_lobber` | 44.00 | 32.00 | 30.00 | 36.00 | 34.00 | **archer** (new) |
+| `cleave_melee_sweep` | 27.00 | 15.00 | 13.00 | 19.00 | 17.00 | line_breaker, beastcaller |
+| `precision_longbow` | 16.20 | 4.20 | 3.00 (floors) | **8.20** | **6.20** | **archer** (new) |
+| `chain_bounce_shot` | **16.15** (was 11.90) | 4.15 | 3.00 (floors) | **8.15** | **6.15** | beastcaller |
+| `dual_strike_melee` | 9.00 | 3.00 (floors) | 3.00 (floors) | 3.00 (floors) | 3.00 (floors) | line_breaker — floors regardless |
+| `turret_autocannon` | 7.20 | 3.00 (floors) | 3.00 (floors) | n/a | n/a | none |
+| `beam_continuous` | 6.00 | 3.00 (floors) | 3.00 (floors) | 3.00 (floors) | 3.00 (floors) | **archer** (new) — floors regardless |
+| `rapid_skirmish_blaster` | 4.25 | 3.00 (floors) | 3.00 (floors) | n/a | n/a | none |
+
+**Result: 5 of 9 reachable weapon archetypes now have a real (non-floor,
+armor-clearing-with-real-margin) path against both Elite and Boss armor**,
+up from 3 — `siege_artillery`, `arcing_aoe_lobber`, `cleave_melee_sweep`
+(unchanged) plus `precision_longbow` and `chain_bounce_shot` (new, both
+conditional on rolling `piercing_rounds`). Neither new entrant threatens
+`cleave_melee_sweep`'s lead: their own steady-state dps once armor is applied
+(`precision_longbow` 9.11 Elite / 6.89 Boss, `chain_bounce_shot` 12.22 Elite /
+9.22 Boss) stays well under `cleave_melee_sweep`'s (21.11 Elite / 18.89 Boss)
+and `siege_artillery`'s (21.30 Elite / 21.00 Boss) — they join the
+competitive middle of the pack, not the top. `docs/sim/DIFFERENTIATION.md`'s
+task-098 section has the measured before/after harness run.
+
+---
+
 ## 3. Weapon archetypes — numbers first, flavor as a label list
 
 Ten rows, each carrying `rate_of_fire` (shots/sec), `range`, `min_range`,
@@ -183,7 +285,7 @@ Ten rows, each carrying `rate_of_fire` (shots/sec), `range`, `min_range`,
 | Arcing AoE Lobber | 0.4 | 650 | 120 | 55.0 | 1 | 180 | 0.8 | rare heavy splash hit, can't fire point-blank — "RPG archer" |
 | Continuous Beam | 3.0 | 600 | 0 | 6.0 | 1 | 0 | 1.0 | rapid small ticks, same steady dps class as Longbow — "laser cannon" |
 | Rapid Skirmish Blaster | 4.0 | 350 | 0 | 5.0 | 1 | 0 | 0.85 | highest ROF, lowest per-shot, close pressure |
-| Chain / Bounce Shot | 1.5 | 500 | 50 | 14.0 | 3 | 0 | 0.85 | discrete multi-target chain, no splash |
+| Chain / Bounce Shot | 1.5 | 500 | 50 | 19.0 (task-098, was 14.0 — §2b) | 3 | 0 | 0.85 | discrete multi-target chain, no splash |
 | Dual Strike Melee | 1.8 | 90 | 0 | 9.0 | 2 | 0 | 1.0 | fast dual-hit melee |
 | Shotgun Spread | 1.2 | 140 | 0 | 10.0 | 4 | 0 | 0.9 | close-range instantaneous cone |
 | Siege Artillery | 0.15 | 1100 | 300 | 220.0 | 1 | 260 | 0.7 | biggest single hit + AoE, backline-only |
@@ -386,7 +488,10 @@ code and computing:
    (originally 999, corrected task-090, §2a — the difference is entirely
    removed weapon/projectile crossings that no physically-consistent build
    could ever use), matching `hero-builds.json`'s `reachable_build_count`
-   block exactly.
+   block exactly at the time. **Re-confirmed at 235,200 raw / 774 legal
+   post-task-098** (§2b's archer `piercing_rounds` legality is the entire
+   delta, +45 on archer's own row, nothing else moved), again matching
+   `hero-builds.json`'s current `reachable_build_count` block exactly.
 2. **Both calibration builds**, computed through the full `build_stat_block`
    derivation pipeline (§6) — confirmed both reproduce `unit-types.json`'s
    Spearmen and Archers rows exactly (hp/dps/swing_interval/engage_range/
@@ -402,6 +507,14 @@ code and computing:
    spanning 90-1100uu across the roster, steady-state `dps` stays in a
    tight band — variety lives in cadence/reach/target-count, not in a
    power-level spread that would make half the roster strictly worse.
+   **Re-run post-task-098** (same method, archer's new `piercing_rounds`
+   legality and `chain_bounce_shot`'s raised `damage_per_shot` folded in):
+   **12.67 to 30.0**, mean **20.06**, median **18.0** — floor and ceiling
+   unchanged (`cleave_melee_sweep` still both the tightest-melee-range and
+   the highest-dps row; `piercing_rounds` only reduces a VICTIM's armor, it
+   never raises the wielder's own `dps`, so it can't move this band at all),
+   only the mean shifted up by `chain_bounce_shot`'s single raised row —
+   consistent with §2b's "moves exactly one weapon, not the whole table."
 
 **Assumptions, stated plainly (none of these are measured):** every numeric
 value in `chassis`, `weapon_archetypes` (except the two calibration rows),
