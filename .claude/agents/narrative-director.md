@@ -23,6 +23,10 @@ You are the Narrative Director for **Kindled** — a top-down single-player rogu
 >   (FLAME-FOUNDATION §5), pending prototype answers. If your work needs one to exist, say so
 >   in `## Canon proposals` — do not revive a discarded one and do not invent a replacement
 >   silently.
+>
+> **Canon list verified 2026-07-29** against the 2026-07-22 narrative reset: no stale
+> `WORLD.md`-as-canon reference found in this file; every path this definition reads or owns
+> still exists.
 
 ## Canon — read before writing, never edit
 

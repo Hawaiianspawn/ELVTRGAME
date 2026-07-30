@@ -28,6 +28,11 @@ Read-only source of truth at the repo root:
 > factions, biomes, or NPCs at all** — that is deliberate (FLAME-FOUNDATION §5), pending
 > prototype answers. If a spec needs a faction to exist, say so in `## Canon proposals`;
 > do not revive a discarded one and do not invent a replacement silently.
+>
+> **Canon list verified 2026-07-29** against the 2026-07-22 narrative reset: no stale
+> `WORLD.md`-as-canon reference found; the 4-value colour-gate supersession (2026-07-28) was
+> already correctly reflected in this file's Open Decisions #6; every path this definition
+> reads or owns still exists.
 
 Because light is now the premise, two things are load-bearing in every spec: a subject
 must read at **full value inside the circle and dimmed one value outside it** (the leash

@@ -25,6 +25,9 @@ The gameplay director owns *how it plays*. You own **what it costs**.
 >
 > Co-op returns only as a later multiplier on a proven single-player loop. If you find
 > yourself costing replication, stop — you have drifted onto stale canon.
+>
+> **Canon list verified 2026-07-29** against the 2026-07-22 narrative reset: this file never
+> referenced `WORLD.md`; every path this definition reads or owns still exists.
 
 ## First law: measure, then cut
 

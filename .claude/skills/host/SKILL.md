@@ -17,6 +17,7 @@ the independent ones at once.**
       → present the plan and ask for the one verdict (§4, §5) — then stop
       → owner approves → dispatch wave 1, all at once, and post the board (§6)
       → one-line receipt as each lands; full evidence once, at the close (§7)
+      → close the batch into one branch and one PR for review (§7a)
       → the run ends when the batch closes. Say so and stop (§8)
 
 ## Invocations
@@ -184,9 +185,11 @@ shared DataTable — that write becomes its own task owning the shared file, wit
 in one file without overwriting each other; `dispatch` refuses it until they close, and
 `waves` places it automatically. `task-038` is the precedent.
 
-**Width.** `--max-width` defaults to 4. The ceiling is not the lock table — it is that the
-lead carries every dispatch and every handback in *this* context. Prefer letting wave 2
-exist over running eight teammates at once.
+**Width.** `--max-width` defaults to 6. The ceiling is not the lock table — it is that the
+lead carries every dispatch and every handback in *this* context. §7a moved the evidence
+write-up out to a PR, which is what bought 4 → 6; dispatch and checking each task against
+its evidence bar are still the lead's, which is why it is not 8. A wave of pure doc/spec
+tasks carries `--max-width 8` fine. Prefer letting wave 2 exist over maxing the width.
 
 **Resources cap width harder than files do.** `unreal-editor`, `mcp-9000` and
 `pixellab-credits` are global mutexes, so specs fan wide and anything that builds, PIEs or
@@ -361,6 +364,44 @@ one block, with `done <ids>` as a single batched command and therefore a single 
 Big changes hand over as a runnable build or on-screen evidence, never a diff plus "it
 works" (`show-a-build-for-review`). The owner launches the editor for review.
 
+### 7a · Close the batch into one PR
+
+**One branch per batch, one PR at the close — never one per task.** Teammates share the
+working tree (`concurrent-sessions-share-the-tree`), so there is one branch to be on and
+per-teammate branches are not available. `owns:` is what keeps their writes disjoint; the
+branch is the batch's, not the teammate's.
+
+The PR is a **review surface for work that already landed**, not the approval gate.
+`approve` (§5) and `done` (§7) keep raising the `backlog_guard.py` prompt, and that prompt
+is still what writes the verdict to `LOG.md`. Never route around it, never allowlist it.
+
+After the batch reads `n/n closed`, stage **only the `owns:` paths of the tasks in the
+batch** and open the PR:
+
+```
+git add <the owns: globs, named explicitly>      # never -A, never .
+git commit
+git push -u origin <branch>
+gh pr create --title "<epic slug> · <n> tasks" --body-file <scratchpad>/pr-body.md
+```
+
+**`git add -A` is the landmine, and it is not hypothetical.** Another session shares this
+tree — 218 modified paths were sitting in it when this section was written, none of them
+this batch's. Stage the declared `owns:` paths by name. If something outside them needs
+committing, that is a finding to report, not a path to sweep in.
+
+The PR body is the §7 evidence block you were going to write anyway — one section per
+task, what landed, and the evidence. Two things it must do that a diff cannot:
+
+- **`*.uasset` and `*.png` are LFS**, so the PR diff renders them "binary file not shown".
+  Link the blob URL for any capture or sprite instead of relying on the diff.
+- **Name what was NOT verified.** A PR approval reads as "this is good"; if a task's
+  evidence bar was met by a sim rather than a PIE run, or a capture showed geometry but
+  cannot certify palette (`docs/AGENT-TEAMS.md` §8), say so in the body.
+
+Post the PR URL in the same turn as the evidence block. The owner reviews it wherever they
+like; nothing waits on it, and the batch is already closed either way.
+
 A sibling that is `done` releases its `owns:` lock, which is what lets the join dispatch —
 so close siblings as they land even though you present them together. `epic <slug>` carries
 the running state in the meantime.
@@ -435,6 +476,10 @@ clarify round to repair the assumptions it made. Use `/model` if you want to pla
   denying it is correct.
 - Present a plan and start building in the same turn.
 - Paste a teammate's full report into the lead. Receipt now, evidence at the close (§7).
+- `git add -A` or `git add .` when closing a batch (§7a). Another session shares this tree;
+  stage the batch's declared `owns:` paths by name and nothing else.
+- Open one PR per task, or treat a PR approval as the gate that replaces `approve`/`done`.
+  The `backlog_guard.py` prompt is the recorded verdict; the PR is a review surface.
 - Give two live teammates overlapping `owns:` globs or the same resource. `validate` catches
   it; heed it rather than loosening the declaration.
 - Widen a sibling's `owns:` to make a fan "work". An overlap means the cut was wrong: move

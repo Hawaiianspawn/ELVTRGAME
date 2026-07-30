@@ -376,7 +376,11 @@ def check_epics(tasks: list, warnings: list) -> list:
 
 # AGENT-TEAMS.md §3: the lead carries every dispatch and every handback, and that
 # context is the real ceiling on parallelism — not the lock table.
-DEFAULT_WIDTH = 4
+# Raised 4 -> 6 on 2026-07-29: /host §7 now closes a batch into one PR, so the
+# owner-facing evidence write-up left the lead's context. Dispatch and checking each
+# task against its evidence bar did not, which is why this is 6 and not 8. A wave of
+# pure doc/spec tasks carries 8 fine — pass --max-width 8 for it.
+DEFAULT_WIDTH = 6
 
 
 def plan_waves(tasks: list, candidates: list, max_width: int = DEFAULT_WIDTH) -> dict:
