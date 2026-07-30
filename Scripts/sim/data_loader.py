@@ -160,6 +160,47 @@ def retinue_fighter(unit_type: str, tier: str) -> dict:
 
 
 # ---------------------------------------------------------------------------
+# Retinue sub-type CANDIDATES (task-086) — docs/data/scenarios/retinue-subtypes.json.
+# These are sim-director EXPERIMENT INPUTS derived from task-082's kept knight
+# silhouettes, never gameplay-director canon. Deliberately NOT folded into
+# retinue_fighter()/unit-types.json's tier-ladder path (data_loader.py:140's
+# "no tier ladder for this type" fallback needs the type to live in
+# unit-types.json, which is off limits to this task) — a small parallel
+# reader instead, same flat-fighter shape, sourced from the candidates file.
+# ---------------------------------------------------------------------------
+
+def load_retinue_subtypes() -> dict:
+    return _load_json(SCENARIOS_DIR / "retinue-subtypes.json")
+
+
+def retinue_subtype_fighter(candidate_id: str) -> dict:
+    """One docs/data/scenarios/retinue-subtypes.json candidate -> the same
+    flat fighter shape retinue_fighter()/enemy_fighter() produce. Role is
+    hardcoded 'melee' (every candidate's engage_range is well under the
+    150uu melee/ranged threshold retinue_fighter()/finalize_hero_build_fighter()
+    both already use, so this isn't a special case, just a known constant).
+    Armor 0.0, matching retinue_fighter()'s own note: no Armor column exists
+    for friendly units anywhere in docs/data."""
+    candidates = load_retinue_subtypes()["candidates"]
+    if candidate_id not in candidates:
+        raise KeyError(f"Unknown retinue subtype candidate '{candidate_id}'. Known: {sorted(candidates)}")
+    combat = candidates[candidate_id]["combat"]
+    return {
+        "name": candidate_id,
+        "display_name": candidates[candidate_id].get("display_name", candidate_id),
+        "max_hp": float(combat["max_hp"]),
+        "armor": 0.0,
+        "dps": float(combat["dps"]),
+        "swing_interval": swing_interval_shared(),
+        "engage_range": float(combat["engage_range"]),
+        "min_engage_range": float(combat["min_engage_range"]),
+        "targets_per_hit": int(combat["targets_per_hit"]),
+        "role": "melee",
+        "source": "docs/data/scenarios/retinue-subtypes.json (task-086 CANDIDATE, not unit-types.json canon)",
+    }
+
+
+# ---------------------------------------------------------------------------
 # Combat-model constants this harness owns (docs/data/scenarios/**) — the
 # handful of dials (Hero stats, frontage-model spacing) that no gameplay-owned
 # data file has a row for. See that file's own $schema_note for why.

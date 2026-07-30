@@ -164,3 +164,57 @@ Rejected and parked tasks keep their files — this records why.
 - 2026-07-29 · `task-080` · approved → **in-progress** · Roll hero builds in the harness and report metrics plus an ASCII top-10 performers table — dispatched to teammate `variety-report` at model `sonnet`
 - 2026-07-29 · `task-080` · in-progress → **needs-review** · Roll hero builds in the harness and report metrics plus an ASCII top-10 performers table
 - 2026-07-29 · `task-080` · needs-review → **done** · Roll hero builds in the harness and report metrics plus an ASCII top-10 performers table
+- 2026-07-29 · `task-059` · in-progress → **needs-review** · Give the brood nine looks on one draw call — variant axis in the atlas, chosen by a display-weight table
+- 2026-07-29 · `task-081` · proposed → **approved** · Codify the variant-family workflow into a driver — declarative family spec, machine-readable judging, auto-culled rejects
+- 2026-07-29 · `task-082` · proposed → **approved** · Run a Knight melee variant family through the codified pipeline and report it
+- 2026-07-29 · `task-081` · approved → **in-progress** · Codify the variant-family workflow into a driver — declarative family spec, machine-readable judging, auto-culled rejects — dispatched to teammate `variant-pipeline` at model `sonnet`
+- 2026-07-29 · `task-059` · needs-review → **done** · Give the brood nine looks on one draw call — variant axis in the atlas, chosen by a display-weight table — Variety mechanism landed and measured: 9 ooze skins in one 8x20 atlas, one draw call (draw_ms 0.001), weights provably driving the mix via renderer atlas-row logging, sizes live, sim space World confirmed. The 'human can SEE several ooze looks' bar is NOT met and cannot be inside this fence -- the ooze body is RGB 0-35, M_Swarm is Unlit and the colour path is multiplicative, so no light value lifts it. Closed on the mechanism; brood legibility filed as the follow-up that makes it visible.
+- 2026-07-29 · `task-081` · in-progress → **needs-review** · Codify the variant-family workflow into a driver — declarative family spec, machine-readable judging, auto-culled rejects
+- 2026-07-29 · `task-081` · needs-review → **done** · Codify the variant-family workflow into a driver — declarative family spec, machine-readable judging, auto-culled rejects
+- 2026-07-29 · `task-082` · approved → **in-progress** · Run a Knight melee variant family through the codified pipeline and report it — dispatched to teammate `knight-melee` at model `sonnet`
+- 2026-07-29 · `task-082` · in-progress → **needs-review** · Run a Knight melee variant family through the codified pipeline and report it
+- 2026-07-29 · `task-082` · needs-review → **done** · Run a Knight melee variant family through the codified pipeline and report it
+- 2026-07-29 · `task-084` · proposed → **approved** · Make the brood visible — the colour path is multiplicative and the ooze art is black, so no light value can lift it
+- 2026-07-29 · `task-084` · approved → **in-progress** · Make the brood visible — the colour path is multiplicative and the ooze art is black, so no light value can lift it — dispatched to teammate `brood-legibility` at model `opus`
+- 2026-07-29 · `task-087` · proposed → **approved** · Run knight-melee-v2 — break the 1.17x mass clustering and the two-group aspect split that v1 left behind
+- 2026-07-29 · `task-086` · proposed → **approved** · Find the fun in retinue sub-types — give the five kept knight silhouettes candidate stat identities and measure where the spread actually separates
+- 2026-07-29 · `task-087` · approved → **in-progress** · Run knight-melee-v2 — break the 1.17x mass clustering and the two-group aspect split that v1 left behind — dispatched to teammate `knight-melee-v2` at model `sonnet`
+- 2026-07-29 · `task-086` · approved → **in-progress** · Find the fun in retinue sub-types — give the five kept knight silhouettes candidate stat identities and measure where the spread actually separates — dispatched to teammate `retinue-subtypes` at model `sonnet`
+- 2026-07-29 · `task-086` · in-progress → **needs-review** · Find the fun in retinue sub-types — give the five kept knight silhouettes candidate stat identities and measure where the spread actually separates
+- 2026-07-29 · `task-084` · in-progress → **needs-review** · Make the brood visible — the colour path is multiplicative and the ooze art is black, so no light value can lift it
+- 2026-07-29 · `task-087` · in-progress → **needs-review** · Run knight-melee-v2 — break the 1.17x mass clustering and the two-group aspect split that v1 left behind
+- 2026-07-29 · `task-084` · needs-review → **done** · Make the brood visible — the colour path is multiplicative and the ooze art is black, so no light value can lift it
+- 2026-07-29 · `task-086` · needs-review → **done** · Find the fun in retinue sub-types — give the five kept knight silhouettes candidate stat identities and measure where the spread actually separates
+- 2026-07-29 · `task-087` · needs-review → **done** · Run knight-melee-v2 — break the 1.17x mass clustering and the two-group aspect split that v1 left behind
+- 2026-07-29 · `task-005` · proposed → **approved** · Tune the Vanguard retinue — growth, attrition, per-floor cap
+- 2026-07-29 · `task-089` · proposed → **approved** · Expose Swarm.BroodAdd and Swarm.RawNear through the /cvars tuning surface so the two dials that finally make the brood visible are actually tunable in play
+- 2026-07-29 · `task-005` · approved → **in-progress** · Tune the Vanguard retinue — growth, attrition, per-floor cap — dispatched to teammate `retinue-tuning` at model `sonnet`
+- 2026-07-29 · `task-089` · approved → **in-progress** · Expose Swarm.BroodAdd and Swarm.RawNear through the /cvars tuning surface so the two dials that finally make the brood visible are actually tunable in play — dispatched to teammate `brood-cvars` at model `sonnet`
+- 2026-07-29 · `task-005` · in-progress → **needs-review** · Tune the Vanguard retinue — growth, attrition, per-floor cap
+- 2026-07-29 · `task-089` · in-progress → **needs-review** · Expose Swarm.BroodAdd and Swarm.RawNear through the /cvars tuning surface so the two dials that finally make the brood visible are actually tunable in play
+- 2026-07-29 · `task-076` · proposed → **approved** · Add a seeded variance layer to the combat model so a config yields a distribution, not a single point estimate
+- 2026-07-29 · `task-001` · proposed → **approved** · Correct the stale blockers in GDD-TODO.md and point it at the backlog
+- 2026-07-29 · `task-009` · proposed → **approved** · Run the Vanguard sprite acceptance checklist against the packed sheet
+- 2026-07-29 · `task-017` · proposed → **approved** · Bring the three consolidated flame-bearer questions to a decision
+- 2026-07-29 · `task-018` · proposed → **approved** · Repoint the director agents off superseded WORLD.md onto current narrative canon
+- 2026-07-29 · `task-036` · proposed → **approved** · Design the runtime pacing director (L4D-style intensity manager)
+- 2026-07-29 · `task-076` · approved → **in-progress** · Add a seeded variance layer to the combat model so a config yields a distribution, not a single point estimate — dispatched to teammate `variance-layer` at model `sonnet`
+- 2026-07-29 · `task-001` · approved → **in-progress** · Correct the stale blockers in GDD-TODO.md and point it at the backlog — dispatched to teammate `gdd-todo` at model `sonnet`
+- 2026-07-29 · `task-009` · approved → **in-progress** · Run the Vanguard sprite acceptance checklist against the packed sheet — dispatched to teammate `vanguard-accept` at model `sonnet`
+- 2026-07-29 · `task-018` · approved → **in-progress** · Repoint the director agents off superseded WORLD.md onto current narrative canon — dispatched to teammate `agent-canon` at model `sonnet`
+- 2026-07-29 · `task-036` · approved → **in-progress** · Design the runtime pacing director (L4D-style intensity manager) — dispatched to teammate `pacing-director` at model `sonnet`
+- 2026-07-29 · `task-017` · approved → **in-progress** · Bring the three consolidated flame-bearer questions to a decision — dispatched to teammate `flame-bearer` at model `sonnet`
+- 2026-07-29 · `task-036` · in-progress → **parked** · Design the runtime pacing director (L4D-style intensity manager) — Modulates an encounter budget (task-004) and floor structure (task-024) that don't exist yet; Gate 1's fixed wave rhythm may suffice for the slice. Revisit after task-008 says whether pacing actually feels flat. Task file carried no spawn prompt and recommended this verdict.
+- 2026-07-29 · `task-017` · in-progress → **parked** · Bring the three consolidated flame-bearer questions to a decision — Blocked: depends-on task-015, which is itself parked. The task's own spawn prompt states task-015 'must land first'. Its deliverable is three owner decisions, which a teammate cannot make. Unpark together with task-015.
+- 2026-07-29 · `task-018` · in-progress → **needs-review** · Repoint the director agents off superseded WORLD.md onto current narrative canon
+- 2026-07-29 · `task-001` · in-progress → **needs-review** · Correct the stale blockers in GDD-TODO.md and point it at the backlog
+- 2026-07-29 · `task-009` · in-progress → **needs-review** · Run the Vanguard sprite acceptance checklist against the packed sheet
+- 2026-07-29 · `task-076` · in-progress → **needs-review** · Add a seeded variance layer to the combat model so a config yields a distribution, not a single point estimate
+- 2026-07-29 · `task-090` · proposed → **approved** · Constrain weapon×projectile pairing so a beam can't fire an arrow
+- 2026-07-29 · `task-091` · proposed → **approved** · Measure whether the build space actually differentiates, or whether cleave is the only answer
+- 2026-07-29 · `task-090` · approved → **in-progress** · Constrain weapon×projectile pairing so a beam can't fire an arrow — dispatched to teammate `weapon-projectile` at model `sonnet`
+- 2026-07-29 · `task-090` · in-progress → **needs-review** · Constrain weapon×projectile pairing so a beam can't fire an arrow
+- 2026-07-29 · `task-090` · needs-review → **done** · Constrain weapon×projectile pairing so a beam can't fire an arrow
+- 2026-07-29 · `task-091` · approved → **in-progress** · Measure whether the build space actually differentiates, or whether cleave is the only answer — dispatched to teammate `differentiation` at model `sonnet`
+- 2026-07-29 · `task-091` · in-progress → **needs-review** · Measure whether the build space actually differentiates, or whether cleave is the only answer
+- 2026-07-29 · `task-091` · needs-review → **done** · Measure whether the build space actually differentiates, or whether cleave is the only answer
