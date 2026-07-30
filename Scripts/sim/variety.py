@@ -11,12 +11,24 @@ Usage:
     py Scripts/sim/variety.py --scenario <name> --seed <n> [--roster <k>]
         [--count-per-build <n>] [--json]
 
+task-086 adds a second mode that reuses this same table-printing shape for a
+different, much smaller question — see run_subtypes()/print_subtype_report()
+below and docs/sim/SUBTYPE-VARIETY.md:
+
+    py Scripts/sim/variety.py --mode subtypes --scenario <name> [--seed <n>] [--json]
+
 READ docs/sim/VARIETY.md before trusting a number out of this — short
 version: this is a WAVE-ATTRITION result, and docs/sim/LIMITATIONS.md §1
 already states that model does not reproduce GATE1's measured survival at
 this harness's committed defaults. The top-10 table ranks builds RELATIVE TO
 EACH OTHER inside one shared, imperfect model — never an absolute claim
 about how a build performs in the real game.
+
+task-090 fixed weapon_id/projectile_id being rolled independently (see
+sample_roster()'s docstring below) — a roll now picks the weapon first, then
+the projectile from that weapon's own physically-compatible subset of the
+chassis's legal_projectiles, per hero-builds.json's
+weapon_projectile_coupling_note.
 
 No stat blocks are hardcoded here — every fighter comes from data_loader.py.
 No global random — random.Random(seed) only. No third-party dependencies.
@@ -46,19 +58,45 @@ _OPS = {">=": operator.ge, ">": operator.gt, "<=": operator.le, "<": operator.lt
 #    from THAT chassis's own legal_* list — a uniform draw over the raw
 #    235,200-build product would roll off-theme combinations task-079's
 #    chassis-coherence table exists to rule out).
+#
+# task-090: weapon and projectile are no longer drawn independently. A weapon
+# is picked from the chassis's legal_weapons first, THEN the projectile is
+# drawn only from that weapon's own physically-compatible subset of the
+# chassis's legal_projectiles — chassis.legal_projectiles ∩ {p :
+# projectiles[p].travel_type in weapon.legal_travel_types}, per
+# hero-builds.json's weapon_projectile_coupling_note. An empty intersection
+# means hero-builds.json's data is wrong (a chassis legalized a weapon with
+# no compatible projectile in its own legal_projectiles list) — that's a data
+# bug to surface loudly, not a case to silently paper over by falling back to
+# the chassis's full projectile list.
 # ---------------------------------------------------------------------------
 
 def sample_roster(hero_builds: dict, roster_size: int, rng: random.Random) -> list[dict]:
     chassis_ids = list(hero_builds["chassis"].keys())
+    weapons = hero_builds["weapon_archetypes"]
+    projectiles = hero_builds["projectiles"]
     roster = []
     for idx in range(roster_size):
         chassis_id = rng.choice(chassis_ids)
         chassis = hero_builds["chassis"][chassis_id]
+        weapon_id = rng.choice(chassis["legal_weapons"])
+        legal_travel_types = weapons[weapon_id]["legal_travel_types"]
+        compatible_projectiles = [
+            pid for pid in chassis["legal_projectiles"]
+            if projectiles[pid]["travel_type"] in legal_travel_types
+        ]
+        if not compatible_projectiles:
+            raise ValueError(
+                f"variety.py: chassis '{chassis_id}' legalizes weapon '{weapon_id}' (legal_travel_types="
+                f"{legal_travel_types}) but none of its legal_projectiles {chassis['legal_projectiles']} "
+                "have a matching travel_type -- hero-builds.json data is wrong, see "
+                "weapon_projectile_coupling_note and hero-builds.schema.md 'weapon_archetypes.<id>.legal_travel_types'."
+            )
         roster.append({
             "idx": idx,
             "chassis_id": chassis_id,
-            "weapon_id": rng.choice(chassis["legal_weapons"]),
-            "projectile_id": rng.choice(chassis["legal_projectiles"]),
+            "weapon_id": weapon_id,
+            "projectile_id": rng.choice(compatible_projectiles),
             "modification_id": rng.choice(chassis["legal_modifications"] + [None]),
             "ability_id": rng.choice(chassis["legal_abilities"] + [None]),
             "origin_world_id": rng.choice(chassis["legal_origin_worlds"]),
@@ -181,6 +219,177 @@ def build_enemy_groups(scenario: dict) -> list[cm.WaveGroup]:
         )
         for row in scenario["Enemy"]["Composition"]
     ]
+
+
+# ---------------------------------------------------------------------------
+# task-086: retinue sub-type identity mode. NOT a roll over a huge
+# combinatorial space like the hero-builds mode above — docs/data/scenarios/
+# retinue-subtypes.json is a small, FIXED set of 7 candidates, so this fields
+# all of them at once (every candidate present, one WaveGroup each) rather
+# than randomly sampling a subset. The scenario's 'spearmen' Composition
+# row(s) are replaced by that same total headcount split across the 7
+# candidates; every other row (e.g. Archers) is carried through UNCHANGED via
+# the normal retinue_fighter() path, and the Enemy side is untouched — a
+# like-for-like swap of the melee identity axis only, per task-086's scope
+# fence. `--seed` is OPTIONAL here (unlike hero-builds mode): omitted, the
+# split is EQUAL across all 7 (the primary, deterministic comparison); a seed
+# draws a random per-candidate headcount split instead (random.Random(seed)
+# only), a robustness check on whether the ranking holds regardless of how
+# the fixed total headcount happens to be portioned across candidates.
+# ---------------------------------------------------------------------------
+
+def random_split(total: float, n: int, rng: random.Random) -> list[float]:
+    """n positive weights drawn from rng, normalized to sum exactly to total."""
+    weights = [rng.random() for _ in range(n)]
+    wsum = sum(weights)
+    return [total * w / wsum for w in weights]
+
+
+def build_subtype_retinue_groups(scenario: dict, split_counts: list[float] | None) -> tuple[list[cm.WaveGroup], list[str]]:
+    subtypes = dl.load_retinue_subtypes()["candidates"]
+    candidate_ids = list(subtypes.keys())
+    spearmen_total = sum(row["Count"] for row in scenario["Retinue"]["Composition"] if row["UnitType"] == "spearmen")
+    other_rows = [row for row in scenario["Retinue"]["Composition"] if row["UnitType"] != "spearmen"]
+
+    counts = split_counts if split_counts is not None else [spearmen_total / len(candidate_ids)] * len(candidate_ids)
+
+    groups = [
+        cm.WaveGroup(name=cid, fighter=dl.retinue_subtype_fighter(cid), count=c)
+        for cid, c in zip(candidate_ids, counts)
+    ]
+    groups += [
+        cm.WaveGroup(name=f"{row['UnitType']}_{row['Tier']}", fighter=dl.retinue_fighter(row["UnitType"], row["Tier"]),
+                     count=float(row["Count"]))
+        for row in other_rows
+    ]
+    return groups, candidate_ids
+
+
+def run_subtypes(scenario_name: str, seed: int | None) -> dict:
+    scenario = dl.load_scenario(scenario_name)
+    if scenario["Kind"] != "wave_attrition":
+        raise ValueError(
+            f"variety.py --mode subtypes only runs Kind='wave_attrition' scenarios "
+            f"(got Kind='{scenario['Kind']}' for '{scenario_name}')."
+        )
+
+    candidate_ids = list(dl.load_retinue_subtypes()["candidates"].keys())
+    spearmen_total = sum(row["Count"] for row in scenario["Retinue"]["Composition"] if row["UnitType"] == "spearmen")
+    split_counts = None
+    if seed is not None:
+        rng = random.Random(seed)
+        split_counts = random_split(float(spearmen_total), len(candidate_ids), rng)
+
+    retinue_groups, candidate_ids = build_subtype_retinue_groups(scenario, split_counts)
+    enemy_groups = build_enemy_groups(scenario)
+
+    consts = dl.load_combat_model_constants()["wave_attrition_model"]
+    result = cm.simulate_wave_attrition(
+        retinue_groups=retinue_groups,
+        enemy_groups=enemy_groups,
+        chip_floor=dl.armor_chip_floor(),
+        max_attackers_per_unit=float(consts["MaxAttackersPerUnit"]),
+        formation_spacing=float(consts["FormationSpacingUU"]),
+        engaged_spacing=float(consts["EngagedSpacingUU"]),
+        melee_contact_facing_fraction=float(consts["MeleeContactFacingFraction"]),
+        dt=dl.swing_interval_shared(),
+        max_time=float(scenario.get("TimeLimitSeconds", 300)),
+    )
+
+    enemy_total_count = sum(g.count for g in enemy_groups)
+    enemy_avg_max_hp = (
+        sum(g.count * g.fighter["max_hp"] for g in enemy_groups) / enemy_total_count
+        if enemy_total_count > 0 else 0.0
+    )
+    dmg_by_group = result.get("group_damage_dealt", {})
+    total_dmg_dealt_by_retinue = result.get("total_damage_dealt", {}).get("enemy", 0.0)
+
+    candidate_groups = {wg.name: wg for wg in retinue_groups if wg.name in candidate_ids}
+    # share_of_candidate_damage's denominator is the sum of the 7 candidates'
+    # OWN damage only, not total_dmg_dealt_by_retinue — floor1-swarm-wave also
+    # carries an unchanged Archers row through retinue_groups, which deals
+    # damage of its own and is correctly excluded from `ranked` (only the
+    # melee identity axis is under test), so it must also be excluded from
+    # this share's denominator or the 7 shares would never sum to 1.0.
+    total_dmg_dealt_by_candidates = sum(dmg_by_group.get(cid, 0.0) for cid in candidate_ids)
+    ranked = []
+    for cid in candidate_ids:
+        wg = candidate_groups[cid]
+        fighter = wg.fighter
+        dmg = dmg_by_group.get(cid, 0.0)
+        est_kills = dmg / enemy_avg_max_hp if enemy_avg_max_hp > 0 else 0.0
+        # combat_model.melee_reach_per_exposed_unit(): a candidate's raw
+        # targets_per_hit is NOT its effective cleave — see
+        # docs/data/scenarios/retinue-subtypes.json's own
+        # engage_range_targets_per_hit_interaction_note.
+        reach = cm.melee_reach_per_exposed_unit(
+            fighter["engage_range"], float(consts["EngagedSpacingUU"]), float(consts["MeleeContactFacingFraction"]),
+        )
+        ranked.append({
+            "candidate": cid,
+            "max_hp": fighter["max_hp"], "dps": fighter["dps"], "engage_range": fighter["engage_range"],
+            "targets_per_hit": fighter["targets_per_hit"],
+            "effective_cleave": round(min(fighter["targets_per_hit"], reach), 2),
+            "count_start": round(wg.count, 2), "count_survivors": round(wg.alive_count, 2),
+            "survival_rate": round(wg.alive_count / wg.count, 4) if wg.count > 0 else 0.0,
+            "damage_dealt": round(dmg, 1),
+            "damage_per_unit_committed": round(dmg / wg.count, 2) if wg.count > 0 else 0.0,
+            "share_of_candidate_damage": (
+                round(dmg / total_dmg_dealt_by_candidates, 4) if total_dmg_dealt_by_candidates > 0 else 0.0
+            ),
+            "estimated_kills": round(est_kills, 2),
+        })
+    # rank by per-capita output (damage per unit committed), NOT raw damage_dealt
+    # — split_counts can be unequal across candidates (random_split), so raw
+    # damage_dealt alone would just reward whichever candidate got more bodies.
+    ranked.sort(key=lambda r: r["damage_per_unit_committed"], reverse=True)
+
+    if total_dmg_dealt_by_candidates > 0:
+        share_sum = sum(r["share_of_candidate_damage"] for r in ranked)
+        assert abs(share_sum - 1.0) < 0.01, (
+            f"variety.py --mode subtypes: share_of_candidate_damage should sum to ~1.0, got {share_sum:.4f}"
+        )
+
+    return {
+        "scenario": scenario_name,
+        "scenario_display_name": scenario.get("DisplayName", scenario_name),
+        "seed": seed,
+        "split": "equal" if seed is None else f"random_split(seed={seed})",
+        "spearmen_headcount_replaced": spearmen_total,
+        "enemy_avg_max_hp": round(enemy_avg_max_hp, 2),
+        "total_damage_dealt_by_retinue": round(total_dmg_dealt_by_retinue, 2),
+        "total_damage_dealt_by_candidates": round(total_dmg_dealt_by_candidates, 2),
+        "sim_result": result,
+        "ranked_candidates": ranked,
+    }
+
+
+def print_subtype_report(data: dict) -> None:
+    result = data["sim_result"]
+    print(f"\n=== Retinue sub-type identity roll (task-086): {data['scenario_display_name']} ({data['scenario']}) ===")
+    print(f"  split={data['split']}  spearmen headcount replaced={data['spearmen_headcount_replaced']:.0f} "
+          f"(spread across {len(data['ranked_candidates'])} candidates from docs/data/scenarios/retinue-subtypes.json)")
+    print()
+    print("  --- WAVE-ATTRITION result. docs/sim/LIMITATIONS.md section 1: this model does NOT reproduce")
+    print("  --- GATE1's measured survival at committed defaults. Ranks candidates RELATIVE TO EACH OTHER")
+    print("  --- inside one shared, imperfect model — never an absolute claim about the real game. ---")
+    print(f"  Result: {result['result']}  (elapsed {result['elapsed_seconds']}s)")
+    print(f"  Retinue: {result['retinue_start']:.0f} start -> {result['retinue_survivors']:.1f} survivors  "
+          f"(includes archers/other rows carried through unchanged)")
+    print(f"  Enemy ({data['scenario']}'s composition, unchanged): {result['enemy_start']:.0f} start -> "
+          f"{result['enemy_survivors']:.1f} survivors")
+    print()
+    header = (f"  {'#':>2} {'candidate':<26} {'hp':>6} {'dps':>6} {'engage':>7} {'tgt/hit':>7} "
+              f"{'eff.cleave':>10} {'count':>7} {'surv%':>6} {'dmg/unit':>9} {'shr-of-7':>8} {'est kills':>9}")
+    print(header)
+    for rank, row in enumerate(data["ranked_candidates"], start=1):
+        print(f"  {rank:>2} {row['candidate']:<26} {row['max_hp']:>6.1f} {row['dps']:>6.1f} "
+              f"{row['engage_range']:>7.1f} {row['targets_per_hit']:>7} {row['effective_cleave']:>10.2f} "
+              f"{row['count_start']:>7.2f} {row['survival_rate']*100:>5.1f}% {row['damage_per_unit_committed']:>9.2f} "
+              f"{row['share_of_candidate_damage']*100:>7.1f}% {row['estimated_kills']:>9.2f}")
+    print("  shr-of-7 = this candidate's share of the 7 candidates' own combined damage output "
+          "(excludes any unchanged Archers row).")
+    print()
 
 
 # ---------------------------------------------------------------------------
@@ -351,18 +560,38 @@ def main() -> None:
     parser = argparse.ArgumentParser(
         description="Roll a random legal hero-build roster (docs/data/hero-builds.json), apply task-079's "
                     "synergy rules, run it as the retinue side of a named wave_attrition scenario's enemy "
-                    "composition, and report a metrics block plus an ASCII top-10 table ranked by damage dealt."
+                    "composition, and report a metrics block plus an ASCII top-10 table ranked by damage dealt. "
+                    "--mode subtypes (task-086) instead compares docs/data/scenarios/retinue-subtypes.json's "
+                    "candidate melee identities against each other."
     )
+    parser.add_argument("--mode", choices=["hero-builds", "subtypes"], default="hero-builds",
+                        help="hero-builds (default, task-080): roll a random legal hero-build roster. "
+                             "subtypes (task-086): field all retinue-subtypes.json candidates at once.")
     parser.add_argument("--scenario", required=True, help="wave_attrition scenario name (without .json) "
                                                             "supplying the ENEMY side")
-    parser.add_argument("--seed", type=int, required=True, help="random.Random seed for the roster roll")
-    parser.add_argument("--roster", type=int, default=20, help="number of distinct hero-builds to roll (default 20)")
+    parser.add_argument("--seed", type=int, default=None,
+                        help="random.Random seed. REQUIRED for --mode hero-builds (the roster roll). OPTIONAL for "
+                             "--mode subtypes: omitted = equal headcount split across all candidates (the primary, "
+                             "deterministic comparison); given = a random per-candidate split, a robustness check.")
+    parser.add_argument("--roster", type=int, default=20,
+                        help="[hero-builds mode only] number of distinct hero-builds to roll (default 20)")
     parser.add_argument("--count-per-build", type=int, default=2,
-                        help="soldiers per rolled build's WaveGroup (default 2 -- with the default --roster 20 "
-                             "this totals 40, matching floor1-swarm-wave's real retinue size; an arbitrary but "
-                             "documented default, see docs/sim/VARIETY.md)")
+                        help="[hero-builds mode only] soldiers per rolled build's WaveGroup (default 2 -- with the "
+                             "default --roster 20 this totals 40, matching floor1-swarm-wave's real retinue size; "
+                             "an arbitrary but documented default, see docs/sim/VARIETY.md)")
     parser.add_argument("--json", action="store_true", help="emit machine-readable JSON instead of the human report")
     args = parser.parse_args()
+
+    if args.mode == "subtypes":
+        data = run_subtypes(args.scenario, args.seed)
+        if args.json:
+            print(json.dumps(sr.to_json_safe(data), indent=2))
+            return
+        print_subtype_report(data)
+        return
+
+    if args.seed is None:
+        parser.error("--seed is required for --mode hero-builds")
 
     hero_builds = dl.load_hero_builds()
     data = run(args.scenario, args.seed, args.roster, args.count_per_build)

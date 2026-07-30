@@ -69,33 +69,89 @@ doesn't even exist in this space, but the point stands) or fire a melee-only
 projectile — every combination is "reachable" in the sense of existing in the
 axis tables, and almost none of it is thematically sane.
 
-**Legal count, after each chassis's own coherence constraint: 999** — verified
-by script, not hand arithmetic (§8). Each `chassis` row in `hero-builds.json`
-declares its own `legal_weapons` / `legal_projectiles` / `legal_modifications`
-/ `legal_abilities` / `legal_origin_worlds` — a subset of each axis, not the
-whole thing. Summed per chassis (`hero-builds.json`'s
-`reachable_build_count.per_chassis`):
+**Legal count, after each chassis's own coherence constraint AND the
+weapon/projectile travel-type coupling (task-090, §2a below): 729** —
+verified by script, not hand arithmetic (§9). Each `chassis` row in
+`hero-builds.json` declares its own `legal_weapons` / `legal_projectiles` /
+`legal_modifications` / `legal_abilities` / `legal_origin_worlds` — a subset
+of each axis, not the whole thing — but **a chassis's `legal_weapons` and
+`legal_projectiles` are NOT a free cross product**: a given legal weapon only
+pairs with the subset of the chassis's legal projectiles that share its
+travel type (§2a). Summed per chassis, per legal weapon, then across the
+chassis (`hero-builds.json`'s `reachable_build_count.per_chassis`):
 
-| Chassis | Legal weapons | Legal projectiles | Legal mods (+none) | Legal abilities (+none) | Legal origins | Legal builds |
+| Chassis | Legal weapons | Weapon-projectile pairs (not weapons x projectiles) | Legal mods (+none) | Legal abilities (+none) | Legal origins | Legal builds |
 |---|---|---|---|---|---|---|
-| Archer | 3 | 3 | 2 (+1) | 2 (+1) | 3 | **243** |
-| Gunner | 2 | 2 | 2 (+1) | 2 (+1) | 3 | 108 |
-| Line Breaker | 2 | 2 | 2 (+1) | 2 (+1) | 3 | 108 |
-| Skirmisher | 2 | 2 | 2 (+1) | 2 (+1) | 3 | 108 |
-| Arcane Caster | 2 | 2 | 2 (+1) | 2 (+1) | 3 | 108 |
-| Combat Engineer | 2 | 2 | 2 (+1) | 2 (+1) | 3 | 108 |
-| Beastcaller | 2 | 2 | 2 (+1) | 2 (+1) | 3 | 108 |
-| Siege Artillerist | 2 | 2 | 2 (+1) | 2 (+1) | 3 | 108 |
-| **Total** | | | | | | **999** |
+| Archer | 3 | 5 (2+2+1, not 3x3=9) | 2 (+1) | 2 (+1) | 3 | **135** |
+| Gunner | 2 | 4 (2+2) | 2 (+1) | 2 (+1) | 3 | 108 |
+| Line Breaker | 2 | 2 (1+1, not 2x2=4) | 2 (+1) | 2 (+1) | 3 | **54** |
+| Skirmisher | 2 | 2 (1+1, not 2x2=4) | 2 (+1) | 2 (+1) | 3 | **54** |
+| Arcane Caster | 2 | 4 (2+2) | 2 (+1) | 2 (+1) | 3 | 108 |
+| Combat Engineer | 2 | 4 (2+2) | 2 (+1) | 2 (+1) | 3 | 108 |
+| Beastcaller | 2 | 2 (1+1, not 2x2=4) | 2 (+1) | 2 (+1) | 3 | **54** |
+| Siege Artillerist | 2 | 4 (2+2) | 2 (+1) | 2 (+1) | 3 | 108 |
+| **Total** | | | | | | **729** |
 
-**999 is 0.42% of the raw 235,200** — the constraint table is doing real
-work, and 999 lands solidly in the "hundreds" the brief asked for, not the
-"dozens" its own failure mode names. Archer is the one irregular row (3 legal
-weapons/projectiles instead of 2) — deliberately, since it's the owner's own
-named example and needed room to host both the calibration weapon
-(`precision_longbow`, reproducing `unit-types.json`'s Archers exactly, §7) and
-the two flavor-divergent weapons (`arcing_aoe_lobber` "RPG", `beam_continuous`
-"laser cannon") in the same chassis, side by side.
+**Correction record (task-090):** the original 999 (still visible in prior
+commits of `hero-builds.json`) multiplied each chassis's `legal_weapons x
+legal_projectiles` as a free cross product — it assumed
+every legal weapon could fire every one of that chassis's legal projectiles.
+That's false: `Scripts/sim/variety.py`, before task-090, rolled `weapon_id`
+and `projectile_id` independently and produced builds like "Beastcaller /
+Cleave Melee Sweep / Shrapnel Spread" (a melee sweep firing a thrown
+shrapnel cone) and "Archer / Continuous Beam / Fletched Arrow" (a laser
+firing an arrow). §2a below is the fix; **729 is the corrected count, not an
+estimate** — verified by the same scratch-script method as the original 999
+(§9), and it still comes out to 3.1% of the raw 235,200, comfortably in the
+"hundreds" the brief asked for.
+
+Archer is the one irregular row (3 legal weapons/projectiles instead of 2)
+— deliberately, since it's the owner's own named example and needed room to
+host both the calibration weapon (`precision_longbow`, reproducing
+`unit-types.json`'s Archers exactly, §7) and the two flavor-divergent weapons
+(`arcing_aoe_lobber` "RPG", `beam_continuous` "laser cannon") in the same
+chassis, side by side.
+
+### 2a. Weapon x projectile is a constrained pairing, not a free product (task-090)
+
+Chassis coherence (§2's "somewhat themed consistently") constrains WHICH
+weapons and WHICH projectiles a chassis can roll. It never constrained
+whether a given weapon could physically fire a given one of those
+projectiles — `Scripts/sim/variety.py` drew `weapon_id` and `projectile_id`
+independently, so any chassis with, say, one melee weapon and one hitscan
+weapon in its `legal_weapons`, and one melee projectile and one physical
+projectile in its `legal_projectiles`, could roll all four crossings —
+including the two nonsensical ones.
+
+**The fix:** each `weapon_archetypes.<id>` row now carries its own
+`legal_travel_types` (reusing `projectiles.<id>.travel_type`'s existing
+enum — no second taxonomy). A rolled build's legal projectile set is
+`chassis.legal_projectiles ∩ {p : projectiles[p].travel_type in
+weapon.legal_travel_types}`. Most weapons take exactly one travel type (a
+Cleave Melee Sweep only takes `melee_instant`, a Continuous Beam only takes
+`hitscan`, an Arcing AoE Lobber only takes `ballistic_arc` — the shape the
+task brief named directly); `chain_bounce_shot` takes two (`hitscan` AND
+`physical_straight`) because its own note already says "ricochet slug" /
+"barbed boomerang" as much as "chain lightning wand" — a bounced physical
+shot is as legitimate a flavor for it as a chained energy one, and Beastcaller
+needed that width to keep `chain_bounce_shot` reachable at all (Beastcaller's
+own `legal_projectiles` is `[melee_swing, shrapnel_spread]`, and
+`shrapnel_spread`'s `travel_type` is `physical_straight`).
+
+**`Scripts/sim/variety.py`'s `sample_roster()` raises if this intersection is
+ever empty** for a legal chassis/weapon pair, rather than silently falling
+back to the chassis's full `legal_projectiles` list — an empty intersection
+means `hero-builds.json` itself is wrong (a chassis legalized a weapon with
+no compatible projectile among its own legal projectiles), and that has to
+surface as a crash, not a quietly-wrong roll. Every current chassis/weapon
+pair was checked by hand before this shipped (the table in §2 above) and has
+a non-empty intersection — no chassis's `legal_projectiles` list needed to
+change to make that true.
+
+Both `calibration_builds` (Spearmen, Archers) and both `worked_example_builds`
+(RPG Archer, Laser Archer) remain exactly legal under this constraint — see
+§7 and §6 respectively; nothing about their axis picks or `build_stat_block`s
+changed.
 
 **What I loosened, honestly:** origin-world is NOT cross-constrained against
 weapon/projectile choice (any of a chassis's 3 legal origin-worlds can pair
@@ -326,8 +382,11 @@ committed — same house method `entity-tiers.md` §7 and `squad-group-system.md
 code and computing:
 
 1. **Raw product and legal count from the actual per-chassis constraint
-   lists**, not hand arithmetic — confirmed **235,200 raw / 999 legal**,
-   matching `hero-builds.json`'s `reachable_build_count` block exactly.
+   lists**, not hand arithmetic — confirmed **235,200 raw / 729 legal**
+   (originally 999, corrected task-090, §2a — the difference is entirely
+   removed weapon/projectile crossings that no physically-consistent build
+   could ever use), matching `hero-builds.json`'s `reachable_build_count`
+   block exactly.
 2. **Both calibration builds**, computed through the full `build_stat_block`
    derivation pipeline (§6) — confirmed both reproduce `unit-types.json`'s
    Spearmen and Archers rows exactly (hp/dps/swing_interval/engage_range/
@@ -414,6 +473,18 @@ canon), and all 4 synergy rules' thresholds and effect sizes.
 5. **`rally_cry`'s and `chain_reactor`'s approximations are genuinely
    author's-choice, not derived** — a different average-uptime assumption
    would move their numbers; flagged rather than presented as settled math.
+6. **A second incoherence class exists, found but NOT fixed by task-090
+   (out of scope — task-090's brief was weapon x projectile only):** three
+   axis rows are legal nowhere. `weapon_archetypes.shotgun_spread` does not
+   appear in any `chassis.legal_weapons` list, and `projectiles.crossbow_bolt`
+   / `projectiles.homing_seeker` do not appear in any `chassis.legal_projectiles`
+   list — all three are fully-specified rows (Shotgun Spread even has its own
+   `legal_travel_types: ["physical_straight"]` now) that no chassis can ever
+   roll. That's not a weapon/projectile PAIRING bug (nothing pairs them
+   incoherently, because nothing pairs them at all) — it's dead data: either
+   these three rows should gain a `legal_weapons`/`legal_projectiles` home on
+   at least one chassis, or they should be understood as reserved-for-later
+   and labeled as such. Left for a follow-up task; not touched here.
 
 ---
 

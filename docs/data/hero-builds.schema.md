@@ -13,6 +13,13 @@ this version targets.
 **v0.1 (2026-07-29):** new file, introduced alongside
 `docs/design/hero-build-variety.md`.
 
+**v0.2 (2026-07-29, task-090):** added `weapon_archetypes.<id>.legal_travel_types`
+and its coupling to `projectiles.<id>.travel_type` — the two axes were
+previously drawn independently, which let a rolled build pair a weapon with a
+physically-incoherent projectile (a melee sweep firing a thrown shrapnel
+cone, a beam firing a fletched arrow). `reachable_build_count.legal_count`
+recomputed under the new constraint: 999 -> 729.
+
 ---
 
 ## `reachable_build_count`
@@ -22,8 +29,8 @@ so the raw-vs-legal claim in the design doc has a citable source.
 
 | Field | Type | Notes |
 |---|---|---|
-| `raw_product` | int | `chassis x weapon_archetypes x projectiles x (modifications+1) x (abilities+1) x origin_worlds`, no constraints applied |
-| `legal_count` | int | Sum over chassis of `legal_weapons x legal_projectiles x (legal_modifications+1) x (legal_abilities+1) x legal_origin_worlds` |
+| `raw_product` | int | `chassis x weapon_archetypes x projectiles x (modifications+1) x (abilities+1) x origin_worlds`, no constraints applied (not even the weapon/projectile travel-type coupling below) |
+| `legal_count` | int | **task-090:** sum over chassis of `[sum over that chassis's legal_weapons of \|chassis.legal_projectiles ∩ {p : projectiles[p].travel_type in weapon.legal_travel_types}\|] x (legal_modifications+1) x (legal_abilities+1) x legal_origin_worlds`. Before task-090 this was `legal_weapons x legal_projectiles x ...`, which assumed every legal weapon could fire every legal projectile — see `hero-builds.json`'s `legal_count_note` for why that overcounted. |
 | `per_chassis` | object | `legal_count`'s per-chassis breakdown, `{chassis_id: int}` |
 
 ## `chassis.<id>`
@@ -68,6 +75,7 @@ exactly; every other row is a PROTOTYPE DIAL.
 | `aoe_radius` | float | uu, 0 if none | only read when the rolled `projectiles` row has `resolve_type: "area"` — see the area-conversion formula below |
 | `accuracy` | float | 0-1 | hit-chance multiplier, combined with the projectile's `accuracy_modifier` |
 | `flavor_names` | array of strings | | player-facing skins from different origin-worlds for the SAME numeric row — this is how "an RPG archer" and "a laser cannon" can be two flavors of what is mechanically one archetype family, or (as in the worked example) two entirely different archetype rows under one chassis; either is a legal way to express the owner's ask |
+| `legal_travel_types` | array of `projectiles.<id>.travel_type` values | **task-090.** Which `projectiles` rows this weapon may legally fire — reuses `travel_type`'s own enum (`hitscan`/`ballistic_arc`/`physical_straight`/`melee_instant`/`homing`) directly rather than a second taxonomy. A rolled build's legal projectile set is `chassis.legal_projectiles ∩ {p : projectiles[p].travel_type in weapon.legal_travel_types}` — see `weapon_projectile_coupling_note` (top of `hero-builds.json`) for the full rationale and `Scripts/sim/variety.py`'s `sample_roster()` for the consumer. Most weapons list exactly one travel type (a melee sweep only fires `melee_instant`); `chain_bounce_shot` lists two (`hitscan` and `physical_straight`) because its own flavor spans both a chained energy shot and a ricocheting physical one. **If this intersection is ever empty for a legal chassis/weapon pair, that's a data bug** — the consumer raises rather than silently falling back to the chassis's full `legal_projectiles` list. |
 
 ## `projectiles.<id>`
 

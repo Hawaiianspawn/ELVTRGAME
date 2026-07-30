@@ -7,20 +7,22 @@
     "raw_product": 235200,
     "raw_product_formula": "chassis(8) x weapon_archetypes(10) x projectiles(10) x (modifications(6)+none) x (abilities(6)+none) x origin_worlds(6) = 8x10x10x7x7x6",
     "raw_product_note": "The full combinatorial space with NO chassis coherence constraint applied — every chassis could roll every weapon/projectile/mod/ability/origin. This is the number that would let an archer chassis legally roll a shield-wall ability, which the owner explicitly ruled out ('somewhat themed consistently to their character view').",
-    "legal_count": 999,
-    "legal_count_note": "The reachable space AFTER each chassis's own legal_weapons/legal_projectiles/legal_modifications/legal_abilities/legal_origin_worlds lists are applied (see `chassis.<id>` below) — computed by summing, per chassis, legal_weapons x legal_projectiles x (legal_modifications+1 for 'none') x (legal_abilities+1 for 'none') x legal_origin_worlds. Verified by a committed-nowhere scratch script (docs/design/hero-build-variety.md 'Simulation notes'), not hand-arithmetic. 999 is 0.42% of the raw product — the chassis coherence table is doing real, load-bearing work, not a token filter.",
+    "legal_count": 729,
+    "legal_count_note": "task-090 correction: 999 (the old value) multiplied each chassis's legal_weapons x legal_projectiles as if every legal weapon could fire every one of that chassis's legal projectiles — it counted incoherent builds (a Cleave Melee Sweep firing a Shrapnel Spread, a Continuous Beam firing a Fletched Arrow) that Scripts/sim/variety.py now refuses to roll (see weapon_projectile_coupling_note below). Corrected formula: sum over chassis of [ sum over that chassis's legal_weapons of |chassis.legal_projectiles ∩ {p : projectiles[p].travel_type in weapon.legal_travel_types}| ] x (legal_modifications+1 for 'none') x (legal_abilities+1 for 'none') x legal_origin_worlds. Verified by the same committed-nowhere scratch-script method as before (docs/design/hero-build-variety.md 'Simulation notes'), not hand-arithmetic. 729 is 3.1% of the raw product (was 0.42% at the old, wrong 999) — still solidly 'hundreds'. Both calibration_builds and both worked_example_builds remain exactly legal under the new constraint (checked by hand, see docs/design/hero-build-variety.md).",
     "per_chassis": {
-      "archer": 243,
+      "archer": 135,
       "gunner": 108,
-      "line_breaker": 108,
-      "skirmisher": 108,
+      "line_breaker": 54,
+      "skirmisher": 54,
       "arcane_caster": 108,
       "combat_engineer": 108,
-      "beastcaller": 108,
+      "beastcaller": 54,
       "siege_artillerist": 108
     },
-    "per_chassis_note": "Archer is the one irregular row (3 legal weapons instead of 2, 3 legal projectiles instead of 2) — deliberately, because it's the owner's own named example (docs/design/hero-build-variety.md worked example: 'RPG archer' vs 'laser cannon' archer) and needed enough legal width to host both a calibration weapon (precision_longbow, reproducing unit-types.json's archers row exactly) AND the two flavor-divergent weapons in the same chassis. Every other chassis holds to the same 2x2x3x3xN(origins) shape; asymmetric per-chassis cardinality is allowed by design (chassis differ in how much variety they legally support, not just in flavor)."
+    "per_chassis_note": "task-090: no longer a uniform legal_weapons x legal_projectiles product per chassis — each legal weapon now contributes only the count of that chassis's legal_projectiles whose travel_type is in the weapon's own legal_travel_types (weapon_projectile_coupling_note). Archer's 135 = (precision_longbow: 2 arc-compatible projectiles + arcing_aoe_lobber: 2 arc-compatible + beam_continuous: 1 hitscan-compatible = 5 weapon-projectile pairs, not the old uniform 3x3=9) x 3 mods(+none) x 3 abilities(+none) x 3 origins. Line Breaker and Beastcaller drop 108->54 because each of their two legal weapons now resolves to exactly 1 compatible projectile instead of 2 (2 pairs, not 4). Gunner, Arcane Caster, Combat Engineer and Siege Artillerist are UNCHANGED at 108 — in each of those four chassis, both legal weapons happen to already be travel-type-compatible with both of the chassis's legal projectiles (still 4 pairs), so the coupling constraint removed nothing there. Archer is still the widest chassis by design (see original 'RPG archer'/'laser cannon' rationale below), just no longer uniformly so across its 3 weapons."
   },
+
+  "weapon_projectile_coupling_note": "task-090. A build's legal projectile set = chassis.legal_projectiles ∩ {p : projectiles[p].travel_type in weapon_archetypes[weapon].legal_travel_types} — reuses `projectiles.<id>.travel_type`'s own enum (hitscan/ballistic_arc/physical_straight/melee_instant/homing) directly, no second taxonomy. Chosen shape: a `legal_travel_types` array added to EACH `weapon_archetypes.<id>` row (not a standalone top-level weapon_projectile_legality map), because it reads next to the weapon field it constrains — the same place every other weapon-specific fact already lives — and because chain_bounce_shot genuinely needs TWO travel types (hitscan for chain_bolt/slug_round/energy_beam AND physical_straight for shrapnel_spread — its own note already says 'ricochet slug'/'barbed boomerang', i.e. a bounced physical shot as much as a chained energy one), so a single travel-type-per-weapon scalar wouldn't fit every row; an array does. Scripts/sim/variety.py picks the weapon first, then rng.choice()s from this intersection, and RAISES if the intersection is empty for a rolled chassis/weapon pair rather than silently falling back to the chassis's full legal_projectiles list — an empty intersection means the data is wrong, not that the roll should quietly degrade. Every existing chassis/weapon pair was checked by hand before this shipped and has a non-empty intersection (docs/design/hero-build-variety.md 'Simulation notes' has the full per-chassis arithmetic); no chassis.legal_projectiles list needed to change to make that true.",
 
   "chassis": {
     "archer": {
@@ -119,70 +121,80 @@
       "note": "CALIBRATION ROW — CITED. rate_of_fire/damage_per_shot chosen so dps and swing_interval exactly reproduce unit-types.json's Archers (dps 18, swing_interval 0.9) and entity-tiers.md §2.2's own stated Archer blow value (16.2 = 16.2 damage_per_shot x 1/0.9 rate_of_fire).",
       "rate_of_fire": 1.1111, "range": 750, "min_range": 150, "damage_per_shot": 16.2,
       "targets_per_shot": 1, "aoe_radius": 0, "accuracy": 1.0,
-      "flavor_names": ["hunting longbow", "scoped hunting rifle", "charged rail dart"]
+      "flavor_names": ["hunting longbow", "scoped hunting rifle", "charged rail dart"],
+      "legal_travel_types": ["ballistic_arc"]
     },
     "cleave_melee_sweep": {
       "display_name": "Cleave Melee Sweep",
       "note": "CALIBRATION ROW — CITED. rate_of_fire/damage_per_shot chosen so dps and swing_interval exactly reproduce unit-types.json's Spearmen (dps 30, swing_interval 0.9) and entity-tiers.json design_constants.reference_blow_value (27.0 = Militia's blow, the system's own stated balance anchor).",
       "rate_of_fire": 1.1111, "range": 95, "min_range": 0, "damage_per_shot": 27.0,
       "targets_per_shot": 8, "aoe_radius": 0, "accuracy": 1.0,
-      "flavor_names": ["spear sweep", "serrated cane-cutter blade", "force-pike arc"]
+      "flavor_names": ["spear sweep", "serrated cane-cutter blade", "force-pike arc"],
+      "legal_travel_types": ["melee_instant"]
     },
     "arcing_aoe_lobber": {
       "display_name": "Arcing AoE Lobber",
       "note": "PROTOTYPE DIAL. The owner's own named example ('RPG archer... shooting explosives that do damage in an area'). Slow, single heavy hit plus splash radius, deliberately un-usable at point-blank (min_range 120) — a lobbed weapon can't hit what's standing on it.",
       "rate_of_fire": 0.4, "range": 650, "min_range": 120, "damage_per_shot": 55.0,
       "targets_per_shot": 1, "aoe_radius": 180, "accuracy": 0.8,
-      "flavor_names": ["RPG launcher", "mortar shell", "greek fire pot", "seed-pod bomb"]
+      "flavor_names": ["RPG launcher", "mortar shell", "greek fire pot", "seed-pod bomb"],
+      "legal_travel_types": ["ballistic_arc"]
     },
     "beam_continuous": {
       "display_name": "Continuous Beam",
       "note": "PROTOTYPE DIAL. The owner's other named example ('the next a laser cannon'). Modeled as a very fast tick rate approximating a sustained channel — same steady-state dps class as Precision Longbow, but the opposite cadence shape (many small hits vs. one big one), so it reads as a genuinely different weapon, not a reskinned longbow.",
       "rate_of_fire": 3.0, "range": 600, "min_range": 0, "damage_per_shot": 6.0,
       "targets_per_shot": 1, "aoe_radius": 0, "accuracy": 1.0,
-      "flavor_names": ["laser cannon", "arc lightning beam", "resonant chant beam"]
+      "flavor_names": ["laser cannon", "arc lightning beam", "resonant chant beam"],
+      "legal_travel_types": ["hitscan"]
     },
     "rapid_skirmish_blaster": {
       "display_name": "Rapid Skirmish Blaster",
       "note": "PROTOTYPE DIAL. Highest rate_of_fire in the roster, lowest damage_per_shot, short range — a close-pressure suppression weapon, not a sniping tool.",
       "rate_of_fire": 4.0, "range": 350, "min_range": 0, "damage_per_shot": 5.0,
       "targets_per_shot": 1, "aoe_radius": 0, "accuracy": 0.85,
-      "flavor_names": ["repeating crossbow", "submachine blaster", "dart-spitter gland"]
+      "flavor_names": ["repeating crossbow", "submachine blaster", "dart-spitter gland"],
+      "legal_travel_types": ["hitscan"]
     },
     "chain_bounce_shot": {
       "display_name": "Chain / Bounce Shot",
       "note": "PROTOTYPE DIAL. Hits a primary target and chains to 2 more (targets_per_shot 3) without any aoe_radius — a genuinely different multi-target shape from an AoE weapon (discrete chain vs. area), meant to be paired with the 'pierce' projectile resolve_type.",
       "rate_of_fire": 1.5, "range": 500, "min_range": 50, "damage_per_shot": 14.0,
       "targets_per_shot": 3, "aoe_radius": 0, "accuracy": 0.85,
-      "flavor_names": ["chain lightning wand", "ricochet slug", "barbed boomerang"]
+      "flavor_names": ["chain lightning wand", "ricochet slug", "barbed boomerang"],
+      "legal_travel_types": ["hitscan", "physical_straight"]
     },
     "dual_strike_melee": {
       "display_name": "Dual Strike Melee",
       "note": "PROTOTYPE DIAL. Fast dual-hit melee, no cleave beyond its own two strikes (targets_per_shot 2) — the mobility-focused counterpart to Cleave Melee Sweep's wide, slower cleave.",
       "rate_of_fire": 1.8, "range": 90, "min_range": 0, "damage_per_shot": 9.0,
       "targets_per_shot": 2, "aoe_radius": 0, "accuracy": 1.0,
-      "flavor_names": ["twin short-blades", "dual energy talons", "claw-and-fang combo"]
+      "flavor_names": ["twin short-blades", "dual energy talons", "claw-and-fang combo"],
+      "legal_travel_types": ["melee_instant"]
     },
     "shotgun_spread": {
       "display_name": "Shotgun Spread",
       "note": "PROTOTYPE DIAL. Short range, wide instantaneous cone (targets_per_shot 4, no aoe_radius — the cone is resolved as discrete simultaneous targets, not a lingering area) — a burst-alpha weapon for a unit that gets in close and unloads.",
       "rate_of_fire": 1.2, "range": 140, "min_range": 0, "damage_per_shot": 10.0,
       "targets_per_shot": 4, "aoe_radius": 0, "accuracy": 0.9,
-      "flavor_names": ["blunderbuss", "scatter-slug shotgun", "spore-burst gland"]
+      "flavor_names": ["blunderbuss", "scatter-slug shotgun", "spore-burst gland"],
+      "legal_travel_types": ["physical_straight"]
     },
     "siege_artillery": {
       "display_name": "Siege Artillery",
       "note": "PROTOTYPE DIAL. The largest single hit and largest aoe_radius in the roster, the slowest rate_of_fire (a shot every ~6.7s), and the only min_range that excludes most of the map's mid-range band (300uu) — cannot function as anything but a fixed backline piece.",
       "rate_of_fire": 0.15, "range": 1100, "min_range": 300, "damage_per_shot": 220.0,
       "targets_per_shot": 1, "aoe_radius": 260, "accuracy": 0.7,
-      "flavor_names": ["siege ballista", "howitzer battery", "choir bell of ruin"]
+      "flavor_names": ["siege ballista", "howitzer battery", "choir bell of ruin"],
+      "legal_travel_types": ["ballistic_arc"]
     },
     "turret_autocannon": {
       "display_name": "Turret Autocannon",
       "note": "PROTOTYPE DIAL. Sustained mid-rate fire hitting 2 targets_per_shot with no aoe_radius (small discrete cleave, not splash) — the 'holds a line and keeps two targets suppressed' support gun.",
       "rate_of_fire": 2.5, "range": 500, "min_range": 0, "damage_per_shot": 8.0,
       "targets_per_shot": 2, "aoe_radius": 0, "accuracy": 0.9,
-      "flavor_names": ["deployable autocannon turret", "tesla coil emplacement", "iron reach ballista nest"]
+      "flavor_names": ["deployable autocannon turret", "tesla coil emplacement", "iron reach ballista nest"],
+      "legal_travel_types": ["hitscan"]
     }
   },
 
