@@ -24,6 +24,10 @@
 #include "Misc/Paths.h"
 #include "NiagaraComponent.h"
 #include "NiagaraDataInterfaceArrayFunctionLibrary.h"
+#if WITH_EDITOR
+#include "NiagaraDataInterfaceArrayFloat.h"
+#include "NiagaraSystem.h"
+#endif
 #include "RenderTimer.h"
 #include "RHI.h"
 #include "UnrealClient.h"
@@ -214,6 +218,48 @@ namespace
 		TEXT("today; the radii only start scaling once the camera narrows past this."),
 		ECVF_Default);
 
+	// --- the pool shrinks as the army loses (owner ask 2026-07-30) ---------------
+	// "Can the light get smaller as the enemies start winning." The premise says the
+	// congregation lives inside the light (FLAME-FOUNDATION §1), so a losing army and a
+	// closing circle are the same fact stated twice — this is the one place the fiction
+	// and a render dial line up exactly.
+	//
+	// Driven off AliveRetinue against a REFERENCE COUNT rather than a tracked peak,
+	// deliberately: a peak would need per-run state on this actor, and adding a member
+	// here is a class-layout change that Live Coding reports as a successful compile and
+	// then crashes on the next PIE. A CVar reference is stateless, survives a hot reload,
+	// and is one dial the owner can move live.
+	//
+	// Off by default, same as Swarm.FlameScaleWithView above — this changes the read of
+	// every losing fight, so it is an A/B the owner judges, not a silent default.
+	TAutoConsoleVariable<int32> CVarSwarmFlameArmyScale(
+		TEXT("Swarm.FlameArmyScale"),
+		0,
+		TEXT("0 = off (default): the pool's size ignores how the fight is going.\n")
+		TEXT("1 = the pool shrinks as the retinue dies, toward Swarm.FlameArmyFloor, using\n")
+		TEXT("Swarm.FlameArmyRef as the count at which it renders full size. Composes with\n")
+		TEXT("Swarm.FlameScaleWithView — that one tracks the CAMERA, this one tracks the\n")
+		TEXT("ARMY, and both multiply the same radii."),
+		ECVF_Default);
+
+	TAutoConsoleVariable<float> CVarSwarmFlameArmyRef(
+		TEXT("Swarm.FlameArmyRef"),
+		120.f,
+		TEXT("Retinue count at which the pool renders exactly as dialed, while\n")
+		TEXT("Swarm.FlameArmyScale is 1. Defaults to the wave-1 starting retinue (120), so a\n")
+		TEXT("full army looks identical to today and the pool only ever shrinks from there.\n")
+		TEXT("Raise it and the light starts already dimmed; it does not grow past full."),
+		ECVF_Default);
+
+	TAutoConsoleVariable<float> CVarSwarmFlameArmyFloor(
+		TEXT("Swarm.FlameArmyFloor"),
+		0.35f,
+		TEXT("[0..1] Smallest fraction of the dialed radii the pool shrinks to, so a nearly\n")
+		TEXT("dead army still lights something and the run stays playable rather than ending\n")
+		TEXT("in a black screen. 0 lets the light go out entirely — a lose condition by\n")
+		TEXT("rendering, which is a design decision and not this dial's default."),
+		ECVF_Default);
+
 	TAutoConsoleVariable<float> CVarSwarmFlameFalloff(
 		TEXT("Swarm.FlameFalloff"),
 		2.f,
@@ -230,7 +276,16 @@ namespace
 		TEXT("visible area saturates to the brightest value and the falloff ramp disappears.\n")
 		TEXT("0.55 specifically because Threshold3 is 0.75 — it keeps the body of the pool\n")
 		TEXT("at Demichrome Bone so the pure-white core reads as the focusing point instead\n")
-		TEXT("of blending into a field of Pale. Measured, see docs/RENDERING-LIGHTING.md §4b.7."),
+		TEXT("of blending into a field of Pale. Measured, see docs/RENDERING-LIGHTING.md §4b.7.\n")
+		TEXT("THAT RATIONALE IS STALE. It is a statement about where the QUANTIZER bins the\n")
+		TEXT("lifted value, and the game ships at Emberkeep.Quantize 0 — nothing bins it now,\n")
+		TEXT("so 0.55 is no longer justified by anything. It is the value the near floor's\n")
+		TEXT("wash-out comes from: owner-reported 2026-07-29 \"when we get close it looks\n")
+		TEXT("blown out\", measured as mean floor luminance 127/255 at the bottom of frame\n")
+		TEXT("against 45 with the post pass off, and the ENTIRE mid-field floor (22/255) is\n")
+		TEXT("this lift rather than the level's own material (0.1 without it).\n")
+		TEXT("0.30 measured at 77/255 near-floor, p99 189 -> 134, pool still legible. Left at\n")
+		TEXT("0.55 because it is a look call, not a bug — see RENDERING-LIGHTING.md §4e."),
 		ECVF_Default);
 
 	TAutoConsoleVariable<float> CVarSwarmFlameFlicker(
@@ -543,10 +598,84 @@ namespace
 		TEXT("Swarm.BroodLightFloor"),
 		0.f,
 		TEXT("Minimum brightness for BROOD, replacing Swarm.UnitLightFloor for that team.\n")
-		TEXT("0 means a brood at the outer edge of the pool is drawn black, which the\n")
-		TEXT("demichrome pass quantises to Palette[0] — the same value as the ground, so\n")
-		TEXT("it is invisible and FADES IN as it walks toward the flame. Raise it toward\n")
-		TEXT("Swarm.UnitLightFloor to buy back the old always-visible tide."),
+		TEXT("0 means a brood at the outer edge of the pool draws at zero albedo, so it is\n")
+		TEXT("invisible and FADES IN as it walks toward the flame.\n")
+		TEXT("THIS DIAL CANNOT BUY BACK VISIBILITY — it is a MULTIPLIER on the sprite, and\n")
+		TEXT("73%% of the ooze body is authored below luminance 8/255 (measured across all\n")
+		TEXT("nine states), so scaling it lands on black at any value in [0,1]. It is now\n")
+		TEXT("only a dial for how far the ooze's own HIGHLIGHTS (the 3-6%% of body pixels\n")
+		TEXT("above 96/255) dim at the pool edge. Use Swarm.BroodAdd for visibility.\n")
+		TEXT("(Its old advice — 'raise it toward Swarm.UnitLightFloor to buy back the\n")
+		TEXT("always-visible tide' — was written when a demichrome pass quantised the\n")
+		TEXT("result to a 4-value ramp and Palette[0] was not black. The game ships at\n")
+		TEXT("Emberkeep.Quantize 0, so that advice has been wrong since 2026-07-28.)"),
+		ECVF_Default);
+
+	// The dial that actually makes a brood visible, and the one thing in this block that is
+	// not a multiplier. See docs/RENDERING-LIGHTING.md §4e for the measurement behind it:
+	// the ooze body is authored as a near-black mass with a few bright specks (median body
+	// pixel 1-4/255, 74%% under 8/255, but highlights up to 221/255), so the two operations
+	// do opposite things to a range that is already extreme —
+	//
+	//   * a MULTIPLIER expands it. Bringing the median body pixel to a readable ~48/255
+	//     needs a gain of ~19x in linear space, which drives the 221/255 highlights to 14x
+	//     over white: the body stays dim and the teeth blow out and bloom.
+	//   * an ADDITIVE term compresses it. The same +0.03 linear lifts the median to
+	//     ~49/255 and moves the highlights from 221 to 226 — nothing clips.
+	//
+	// So the brood surface additively and dim multiplicatively, and the silhouette (which is
+	// the axis the nine variants were actually built to differ on) is what reads.
+	TAutoConsoleVariable<float> CVarSwarmBroodAdd(
+		TEXT("Swarm.BroodAdd"),
+		0.05f,
+		TEXT("ADDITIVE light floor for BROOD, in linear colour. THE on/off for the white lift:\n")
+		TEXT("0 = the pre-2026-07-29 look, brood invisible against the floor.\n")
+		TEXT("Flat with distance from the flame on purpose. It used to be scaled by the same\n")
+		TEXT("Atten as the multiply, which made a BAND once Swarm.RawNear also faded it from\n")
+		TEXT("the camera side — the two ramps run opposite ways along one axis, so a brood lit\n")
+		TEXT("up mid-approach and went out again. Only Swarm.RawNear fades this now.\n")
+		TEXT("Rough guide, since the art is near-black so this IS the body value you see:\n")
+		TEXT("0.02 ~ 40/255 on screen, 0.05 ~ 63/255, 0.12 ~ 95/255. Push it past the\n")
+		TEXT("retinue's own body values and the tide stops reading as the darker team.\n")
+		TEXT("Rides the sprite's alpha channel to M_Swarm, which is free because the\n")
+		TEXT("material is Masked off the TEXTURE's alpha and ignores the particle's."),
+		ECVF_Default);
+
+	// Owner, 2026-07-29, on the first look at the additive lift: "is there a way to have the
+	// uncolored version when they are extremely close to camera."
+	//
+	// Yes, and it wants to exist: the additive floor is a LEGIBILITY crutch for reading a
+	// black mass at range. In your face, at a couple of body-widths, the silhouette is already
+	// unmistakable and the lift is only costing you the art — the pure-black body and the
+	// white teeth it was drawn for. So the whole light model dissolves back to the authored
+	// sprite over a near band, measured to the CAMERA (not to the flame, which is what every
+	// other dial in this block measures).
+	TAutoConsoleVariable<float> CVarSwarmRawNear(
+		TEXT("Swarm.RawNear"),
+		// 420, not the 220 this shipped with. 220 was calibrated to "closer to the lens than the
+		// hero", which measured as doing nothing: a brood at melee range sits 416uu from the
+		// lens, so RawT was still ~0.9 and the white lift was ~90% applied exactly where the
+		// owner wanted it gone. Owner 2026-07-29: "you had the right solution for when near...
+		// a setting that just disabled the white portion on the enemy brood." The mechanism was
+		// right and the number made it inert. 420 puts everything at contact range at RawT 0.
+		420.f,
+		TEXT("Camera distance in uu inside which Swarm.BroodAdd's grey lift is fully OFF, so a\n")
+		TEXT("brood filling the screen shows its authored body instead of a flat grey lump.\n")
+		TEXT("Blends back to the full lift by 2x this distance, so there is no pop as one\n")
+		TEXT("closes. 0 disables the band and the lift applies at every distance.\n")
+		TEXT("This dial can only ever DARKEN a sprite toward what the artist drew — it does\n")
+		TEXT("not touch the multiply, so it cannot blow anything out. An earlier version also\n")
+		TEXT("relaxed the exposure ceiling here and the owner reported exactly that; see the\n")
+		TEXT("comment at the use site before putting it back.\n")
+		TEXT("It is a straight trade: more authored detail up close, less of the grey lift's\n")
+		TEXT("legibility at contact range. Measured against the shipped shot —\n")
+		TEXT("  420 (default) contact range fully authored, lift fades in over the approach\n")
+		TEXT("  220             does almost nothing: still ~90%% lifted at melee range\n")
+		TEXT("  700             lift only survives out near the pool edge\n")
+		TEXT("Scaled to the shipped eye-level shot — a unit standing ON the hero measures\n")
+		TEXT("363uu from the lens at Emberkeep.Cam.Dist 323. Retune if that framing moves.\n")
+		TEXT("Retinue are unaffected either way: they carry no additive term.\n")
+		TEXT("Does not touch the hit flash — being struck reads white at every distance."),
 		ECVF_Default);
 
 	TAutoConsoleVariable<float> CVarSwarmBroodLightCeil(
@@ -564,13 +693,11 @@ namespace
 	// crowd. These are amplitudes on a per-entity roll the sim publishes in the spare
 	// high bits of the anim int32 (SwarmRenderPack), so they retune live with no respawn.
 	//
-	// ponytail: LIVE ONLY IN THE UNIT CAM PANEL. The Niagara push writes SizeScratch to a
-	// User.Sizes array parameter that NS_Swarm.uasset does not have — the asset was last
-	// saved 2026-07-26, the push was added 2026-07-28, and the parameter was never added
-	// to the emitter. Niagara logs "OverrideParameter(Sizes) ... was not found" every
-	// frame and discards it. Same for User.Colors, which is why sprites do not dim with
-	// flame distance in the world view. Fix is in the ASSET, not here: add User.Colors
-	// (Array Color) and User.Sizes (Array Float) to NS_Swarm and bind them in the graph.
+	// Live in both the world view and the Unit Cam panel since 2026-07-29: NS_Swarm gained
+	// the User.Sizes array parameter (Swarm.NiagaraEnsureArrays below created it) and reads it
+	// as InitializeParticle's Uniform Sprite Size. Before that the push was discarded every
+	// frame — Niagara logged "OverrideParameter(Sizes) ... was not found" and this dial moved
+	// nothing in the world. If it ever goes quiet again, check the ASSET first.
 	TAutoConsoleVariable<float> CVarSwarmBroodSizeJitter(
 		TEXT("Swarm.BroodSizeJitter"),
 		0.2f,
@@ -588,6 +715,26 @@ namespace
 		TEXT("Raise it if the retinue should look conscripted rather than trained."),
 		ECVF_Default);
 
+	/**
+	 * 2026-07-30, owner: "its not distance they are just small units."
+	 *
+	 * Swarm.SpriteSize is GLOBAL — one BaseSize feeds both teams, so raising it enlarges the
+	 * brood by exactly as much and the retinue gains nothing relative to what it is fighting.
+	 * That made it the wrong dial for "my units are too small": it is a zoom, not a scale.
+	 *
+	 * This is the retinue-only half. 1.0 is the shipped look, so it changes nothing until
+	 * moved. Kept as a MULTIPLIER on Swarm.SpriteSize rather than a second absolute size so
+	 * there is still one number that scales the whole horde.
+	 */
+	TAutoConsoleVariable<float> CVarSwarmRetinueSizeScale(
+		TEXT("Swarm.RetinueSizeScale"),
+		1.f,
+		TEXT("Size multiplier applied to RETINUE sprites only, on top of Swarm.SpriteSize.\n")
+		TEXT("1 = the shipped look. Raise it to make your own soldiers read bigger than the\n")
+		TEXT("brood they are fighting, which Swarm.SpriteSize cannot do because it scales\n")
+		TEXT("both sides together. Clamped to [0.25, 4]."),
+		ECVF_Default);
+
 	TAutoConsoleVariable<float> CVarSwarmSpriteGroundOffset(
 		TEXT("Swarm.SpriteGroundOffset"),
 		-72.f,
@@ -599,6 +746,159 @@ namespace
 		TEXT("(-24 still floated, -100 sank below the floor, -72 read as grounded) — a measured\n")
 		TEXT("value, which implies live Sprite Size is ~144uu, not SETUP-EDITOR.md's stale 48."),
 		ECVF_Default);
+
+	TAutoConsoleVariable<float> CVarSwarmSpriteSize(
+		TEXT("Swarm.SpriteSize"),
+		48.f,
+		TEXT("Base sprite size, uu, before the per-unit size roll. 48 reproduces exactly what\n")
+		TEXT("NS_Swarm's InitializeParticle used to hardcode — the number moved here in 2026-07-29\n")
+		TEXT("because the Sizes array now feeds Uniform Sprite Size directly, so the graph no\n")
+		TEXT("longer has a size of its own and this is the only place it lives. Any component\n")
+		TEXT("scale still multiplies on top, which is why the sprite measures ~144uu on screen."),
+		ECVF_Default);
+
+	/**
+	 * Swarm.BroodVariantReport / Swarm.TeamVariantReport — what each side of the horde is
+	 * actually MADE OF, right now.
+	 *
+	 * The visual evidence for brood variety is weak by nature: the ooze art is a near-black
+	 * body (measured 0-35 per channel) with white teeth, so nine different silhouettes read
+	 * as nine different tooth patterns in a dark scene rather than nine obvious shapes. A
+	 * histogram is therefore the honest proof that a weight table is driving the mix, and it
+	 * is the thing to run after changing either weights CVar. task-085 split the report the
+	 * same way it split the atlas — one shared implementation, bTeam picks which side and
+	 * which CVar name to print alongside the counts.
+	 */
+	void LogVariantHistogram(const UWorld* World, bool bTeam)
+	{
+		const TCHAR* ReportName = bTeam ? TEXT("TeamVariantReport") : TEXT("BroodVariantReport");
+		const TCHAR* CVarName = bTeam ? TEXT("Swarm.TeamVariantWeights") : TEXT("Swarm.BroodVariantWeights");
+		const int32 NumVariants = bTeam ? SwarmSheet::Team::Variants : SwarmSheet::Enemy::Variants;
+
+		const USwarmSubsystem* Swarm = World ? World->GetSubsystem<USwarmSubsystem>() : nullptr;
+		if (!Swarm)
+		{
+			UE_LOG(LogTemp, Warning, TEXT("%s: no swarm subsystem (not in play?)"), ReportName);
+			return;
+		}
+		// Sized for the larger side (Team, 11) and only the first NumVariants slots used —
+		// same idiom as SwarmProcessors.cpp's FVariantTable, so this stays a stack array
+		// with no per-call allocation regardless of which side is being reported.
+		int32 Counts[SwarmSheet::Team::Variants] = {};
+		int32 Total = 0;
+		for (const int32 Bits : Swarm->GetRenderAnimBits())
+		{
+			if (((Bits & SwarmAnim::TeamBit) != 0) != bTeam)
+			{
+				continue;							// counting the other side
+			}
+			++Total;
+			Counts[FMath::Clamp(SwarmRenderPack::Variant(Bits), 0, NumVariants - 1)]++;
+		}
+		FString Line;
+		for (int32 i = 0; i < NumVariants; ++i)
+		{
+			Line += FString::Printf(TEXT("  v%d=%d (%.1f%%)"), i, Counts[i],
+				Total > 0 ? 100.f * (float)Counts[i] / (float)Total : 0.f);
+		}
+		// The weights CVars are owned by SwarmProcessors.cpp's translation unit — looked up
+		// by name for the same reason Emberkeep.Cam.Yaw is above, so this file does not
+		// register a second copy of either. Logged alongside the counts because a histogram
+		// without the table it came from is not evidence of anything.
+		const IConsoleVariable* WeightsVar = IConsoleManager::Get().FindConsoleVariable(CVarName);
+		UE_LOG(LogTemp, Display, TEXT("%s: %d %s | weights \"%s\" |%s"),
+			ReportName, Total, bTeam ? TEXT("team") : TEXT("brood"),
+			WeightsVar ? *WeightsVar->GetString() : TEXT("?"), *Line);
+	}
+
+	FAutoConsoleCommandWithWorld GCmdBroodVariantReport(
+		TEXT("Swarm.BroodVariantReport"),
+		TEXT("Log how many live brood are wearing each of the nine enemy-atlas looks."),
+		FConsoleCommandWithWorldDelegate::CreateLambda(
+			[](UWorld* World) { LogVariantHistogram(World, /*bTeam=*/false); }));
+
+	FAutoConsoleCommandWithWorld GCmdTeamVariantReport(
+		TEXT("Swarm.TeamVariantReport"),
+		TEXT("Log how many live retinue/knights are wearing each of the eleven team-atlas looks."),
+		FConsoleCommandWithWorldDelegate::CreateLambda(
+			[](UWorld* World) { LogVariantHistogram(World, /*bTeam=*/true); }));
+
+#if WITH_EDITOR
+	/**
+	 * Swarm.NiagaraEnsureArrays — give NS_Swarm the array User parameters this actor has
+	 * been pushing into thin air.
+	 *
+	 * This exists because there is no other way to do it from a script: MCP's
+	 * NiagaraToolset AddUserVariables fails on data-interface types ("We do not support
+	 * setting data interfaces in SetParameter_InternalUseOnly()"), and editor Python exposes
+	 * no exposed-parameter API on UNiagaraSystem at all. The engine C++ call is three lines,
+	 * so this is three lines plus the reason it is here. Editor-only, idempotent, and it
+	 * leaves the asset DIRTY on purpose — saving is the caller's decision, so a mistake can
+	 * be thrown away by not saving.
+	 *
+	 * task-085 extended this from the two Enemy-side arrays (Colors/Sizes; Positions/
+	 * SubImages/Count predate this command) to the full Team-side set
+	 * (TeamPositions/TeamSubImages/TeamColors/TeamSizes/TeamCount), needed once the Team
+	 * emitter existed to read from. Adding the parameter is only half the wiring; the graph
+	 * still has to READ it. See docs/perf/niagara-sprite-path.md for which module input each
+	 * one is bound to, on which emitter.
+	 */
+	FAutoConsoleCommand GCmdNiagaraEnsureArrays(
+		TEXT("Swarm.NiagaraEnsureArrays"),
+		TEXT("Editor only: add every Team/Enemy array + count User parameter NS_Swarm needs to NS_Swarm."),
+		FConsoleCommandDelegate::CreateLambda([]()
+		{
+			UNiagaraSystem* System = LoadObject<UNiagaraSystem>(nullptr, TEXT("/Game/Spike1/NS_Swarm.NS_Swarm"));
+			if (!System)
+			{
+				UE_LOG(LogTemp, Error, TEXT("NiagaraEnsureArrays: could not load /Game/Spike1/NS_Swarm"));
+				return;
+			}
+			FNiagaraUserRedirectionParameterStore& Store = System->GetExposedParameters();
+			// Data-interface array types (Position/Float/Color) — the route MCP cannot take.
+			auto EnsureArray = [System, &Store](const TCHAR* Name, UClass* Class)
+			{
+				// Braces, not parens: the paren form is a function declaration (most vexing parse).
+				const FNiagaraVariable Var{FNiagaraTypeDefinition(Class), FName(Name)};
+				FNiagaraVariableBase Redirected = Var;
+				Store.RedirectUserVariable(Redirected);
+				if (Store.IndexOf(FNiagaraVariable(Redirected)) != INDEX_NONE)
+				{
+					UE_LOG(LogTemp, Display, TEXT("NiagaraEnsureArrays: %s already present"), Name);
+					return;
+				}
+				Store.AddParameter(Var, /*bInitialize=*/true, /*bTriggerRebind=*/true);
+				UNiagaraDataInterface* DI = NewObject<UNiagaraDataInterface>(
+					System, Class, NAME_None, RF_Transactional | RF_Public);
+				Store.SetDataInterface(DI, Var);
+				UE_LOG(LogTemp, Display, TEXT("NiagaraEnsureArrays: added %s (%s)"), Name, *Class->GetName());
+			};
+			// Plain int32 — MCP AddUserVariables works fine for this shape too, but doing it
+			// here as well keeps one command that leaves NS_Swarm fully ready either way.
+			auto EnsureInt = [System, &Store](const TCHAR* Name)
+			{
+				const FNiagaraVariable Var{FNiagaraTypeDefinition::GetIntDef(), FName(Name)};
+				FNiagaraVariableBase Redirected = Var;
+				Store.RedirectUserVariable(Redirected);
+				if (Store.IndexOf(FNiagaraVariable(Redirected)) != INDEX_NONE)
+				{
+					UE_LOG(LogTemp, Display, TEXT("NiagaraEnsureArrays: %s already present"), Name);
+					return;
+				}
+				Store.AddParameter(Var, /*bInitialize=*/true, /*bTriggerRebind=*/true);
+				UE_LOG(LogTemp, Display, TEXT("NiagaraEnsureArrays: added %s (int32)"), Name);
+			};
+			EnsureArray(TEXT("User.Colors"), UNiagaraDataInterfaceArrayColor::StaticClass());
+			EnsureArray(TEXT("User.Sizes"), UNiagaraDataInterfaceArrayFloat::StaticClass());
+			EnsureArray(TEXT("User.TeamPositions"), UNiagaraDataInterfaceArrayPosition::StaticClass());
+			EnsureArray(TEXT("User.TeamSubImages"), UNiagaraDataInterfaceArrayFloat::StaticClass());
+			EnsureArray(TEXT("User.TeamColors"), UNiagaraDataInterfaceArrayColor::StaticClass());
+			EnsureArray(TEXT("User.TeamSizes"), UNiagaraDataInterfaceArrayFloat::StaticClass());
+			EnsureInt(TEXT("User.TeamCount"));
+			System->MarkPackageDirty();
+			UE_LOG(LogTemp, Display, TEXT("NiagaraEnsureArrays: NS_Swarm marked dirty — SAVE IT to keep this."));
+		}));
+#endif
 
 }
 
@@ -931,6 +1231,45 @@ void ASwarmRenderActor::TakeDebugShot()
 	const FString FileName = FString::Printf(TEXT("SwarmDebugShot_%s.png"), *FDateTime::Now().ToString(TEXT("%Y%m%d_%H%M%S")));
 	UKismetRenderingLibrary::ExportRenderTarget(this, DebugCaptureRT, Dir, FileName);
 
+	// Paired with the image on purpose: the brood art is a near-black body, so "several
+	// different oozes are on screen" is a claim a screenshot supports only weakly. The
+	// histogram is the same instant in numbers, and it is what makes the shot evidence.
+	// Both sides since task-085 -- one report per atlas.
+	LogVariantHistogram(GetWorld(), /*bTeam=*/false);
+	LogVariantHistogram(GetWorld(), /*bTeam=*/true);
+
+	// And the ROWS each sprite renderer was actually handed this frame, which is the only
+	// thing that proves the variant reached the renderer rather than just the sim: cell/8
+	// is the atlas row. A photograph cannot show this because the brood art is black; this
+	// can. If these rows are right and the art draws correctly, the decode is correct.
+	auto LogRows = [](const TCHAR* Label, const TArray<float>& Scratch, int32 Columns, int32 Rows)
+	{
+		if (Scratch.Num() == 0)
+		{
+			return;
+		}
+		TArray<bool> RowSeen;
+		RowSeen.SetNumZeroed(Rows);
+		for (const float Cell : Scratch)
+		{
+			const int32 Row = FMath::Clamp((int32)Cell / Columns, 0, Rows - 1);
+			RowSeen[Row] = true;
+		}
+		FString RowList;
+		for (int32 r = 0; r < Rows; ++r)
+		{
+			if (RowSeen[r])
+			{
+				RowList += FString::Printf(TEXT(" %d"), r);
+			}
+		}
+		UE_LOG(LogTemp, Display,
+			TEXT("SwarmDebug: %s renderer was handed %d cells this frame, atlas rows:%s"),
+			Label, Scratch.Num(), *RowList);
+	};
+	LogRows(TEXT("Team"), TeamSubImageScratch, SwarmSheet::Columns, SwarmSheet::Team::Rows);
+	LogRows(TEXT("Enemy"), EnemySubImageScratch, SwarmSheet::Columns, SwarmSheet::Enemy::Rows);
+
 	const bool bNoWorldRender = CVarSwarmDebugRender.GetValueOnGameThread() == 2;
 	UE_LOG(LogTemp, Display,
 		TEXT("SwarmDebug: capture written to %s (%dx%d)%s"),
@@ -1014,6 +1353,21 @@ void ASwarmRenderActor::TickFlame(float DeltaSeconds)
 		const float ViewScale = ViewWidthUU / RefWidth;
 		EffectiveFlameRadius *= ViewScale;
 		EffectiveFlameCoreRadius *= ViewScale;
+	}
+
+	// Then the army multiplier: the circle closes as the retinue dies. Applied AFTER the
+	// view scale so the two compose — camera framing decides the pool's screen size, the
+	// army decides what fraction of that it currently earns.
+	if (CVarSwarmFlameArmyScale.GetValueOnGameThread() != 0)
+	{
+		const float Ref = FMath::Max(CVarSwarmFlameArmyRef.GetValueOnGameThread(), 1.f);
+		const float Floor = FMath::Clamp(CVarSwarmFlameArmyFloor.GetValueOnGameThread(), 0.f, 1.f);
+		// Clamped at 1: reinforcements refilling past the reference must not blow the pool
+		// out wider than it was dialed. The light closes in and can recover, never overshoots.
+		const float Strength = FMath::Clamp((float)Swarm->GetAliveRetinue() / Ref, 0.f, 1.f);
+		const float ArmyScale = FMath::Lerp(Floor, 1.f, Strength);
+		EffectiveFlameRadius *= ArmyScale;
+		EffectiveFlameCoreRadius *= ArmyScale;
 	}
 
 	SetScalar(TEXT("FlameRadius"), EffectiveFlameRadius);
@@ -1217,9 +1571,11 @@ void ASwarmRenderActor::Tick(float DeltaSeconds)
 	SWARM_SCOPE(STAT_SwarmNiagaraPush, SwarmNiagaraPush);
 
 	const TArray<int32>& AnimBits = Swarm->GetRenderAnimBits();
-	SubImageScratch.Reset(AnimBits.Num());
+	TeamSubImageScratch.Reset(AnimBits.Num());
+	EnemySubImageScratch.Reset(AnimBits.Num());
 
-	// Per-particle colour and size scratch.
+	// Per-particle colour, size and position scratch -- one set per side since task-085 (two
+	// emitters, two independent SubUV grids, see SwarmFragments.h's SwarmSheet doc comment).
 	//
 	// FILE-STATIC, not members, and deliberately: adding a UPROPERTY (or any member) changes
 	// the class layout, which Live Coding cannot apply — it reports success and then crashes
@@ -1227,32 +1583,68 @@ void ASwarmRenderActor::Tick(float DeltaSeconds)
 	// function-body change and remains hot-reloadable while it is being tuned. Same reasoning
 	// and same caveat as GCamArmyScale in SpikeHeroPawn.cpp: one render actor exists in the
 	// prototype so a single static is sound, and it becomes wrong the moment there are two.
-	static TArray<FLinearColor> ColorScratch;
-	static TArray<float> SizeScratch;
-	static TArray<FVector> PositionScratch;
-	ColorScratch.Reset(AnimBits.Num());
-	SizeScratch.Reset(AnimBits.Num());
-	PositionScratch.Reset(AnimBits.Num());
+	// (TeamSubImageScratch/EnemySubImageScratch are the one exception -- they are members,
+	// because TakeDebugShot reads them back after Tick; see the header's doc comment on them.)
+	static TArray<FLinearColor> TeamColorScratch, EnemyColorScratch;
+	static TArray<float> TeamSizeScratch, EnemySizeScratch;
+	static TArray<FVector> TeamPositionScratch, EnemyPositionScratch;
+	TeamColorScratch.Reset(AnimBits.Num());
+	EnemyColorScratch.Reset(AnimBits.Num());
+	TeamSizeScratch.Reset(AnimBits.Num());
+	EnemySizeScratch.Reset(AnimBits.Num());
+	TeamPositionScratch.Reset(AnimBits.Num());
+	EnemyPositionScratch.Reset(AnimBits.Num());
 
 	// The flame light model, applied per sprite. Until 2026-07-28 the Niagara path pushed
 	// Positions/SubImages/Count and nothing else, so every sprite drew at flat full brightness
 	// regardless of distance and the hit flash could not be shown at all (SwarmFragments.h
 	// records the loss).
 	//
-	// STILL TRUE AT RUNTIME as of 2026-07-29: this computes correctly but lands nowhere,
-	// because NS_Swarm has no User.Colors parameter to receive it (see the ponytail: note on
-	// the size-jitter CVars above). Swarm.UnitLightFloor / BroodLightFloor / BroodLightCeil
-	// are inert in the world view until that asset gains the parameter; they are live in the
-	// Unit Cam panel, which shades in Slate and needs no Niagara binding.
+	// LANDED 2026-07-29 (task-059): NS_Swarm gained User.Colors and reads it in
+	// InitializeParticle. That fixed the Niagara half. It was not enough, and the reason is
+	// worth writing down because two separate investigations stopped one step short of it:
+	// M_Swarm's graph was a single ParticleSubUV node wired straight to Emissive, with NO
+	// ParticleColor node anywhere in it. The colour reached the sprite renderer and the
+	// MATERIAL THREW IT AWAY. So the light model was dead code for a second, independent
+	// reason, the hit flash never flashed, and the retinue never dimmed with distance either
+	// — the whole horde drew at flat authored albedo at every distance.
+	//
+	// LANDED 2026-07-29 (task-084): M_Swarm is now
+	//     Emissive = SubUV.RGB * ParticleColor.RGB + ParticleColor.A
+	// so this function drives two terms per sprite down one array:
+	//   RGB = the MULTIPLY, unchanged in meaning — distance dimming and the anti-blow-out
+	//         ceiling, which is all a multiplier can ever do to art this dark.
+	//   A   = the ADD, new. The brood body is authored near-black (74% of it under
+	//         luminance 8/255), so no multiplier can lift it; an additive floor can, and it
+	//         compresses the art's extreme range instead of expanding it. See Swarm.BroodAdd.
+	// Alpha was free to take this because the material's OpacityMask reads the TEXTURE's
+	// alpha, not the particle's, so nothing else was ever looking at this channel.
+	//
+	// The Unit Cam panel (UnitCamProjector.cpp) still runs the multiply-only model. It is
+	// disabled in the shipped one-camera build; if it is ever switched back on it needs the
+	// same additive term or the horde will change appearance between the world and the panel.
 	const FVector FlameP = bFlameInitialized ? SmoothedFlamePos : Swarm->GetAttractor();
 	const float FlameR = FMath::Max(CVarSwarmFlameRadius.GetValueOnGameThread(), 1.f);
 	const float FlameFall = FMath::Max(CVarSwarmFlameFalloff.GetValueOnGameThread(), 0.001f);
 	const float RetFloor = FMath::Clamp(CVarSwarmUnitLightFloor.GetValueOnGameThread(), 0.f, 1.f);
 	const float BrdFloor = FMath::Clamp(CVarSwarmBroodLightFloor.GetValueOnGameThread(), 0.f, 1.f);
 	const float BrdCeil = FMath::Clamp(CVarSwarmBroodLightCeil.GetValueOnGameThread(), BrdFloor, 1.f);
+	const float BrdAdd = FMath::Max(CVarSwarmBroodAdd.GetValueOnGameThread(), 0.f);
+
+	// Swarm.RawNear's camera-space band. Measured to the CAMERA, so this is the one term in
+	// the loop that does not care where the flame is. Read from the camera cache rather than
+	// re-deriving the Emberkeep.Cam.* rig: the rig writes to this camera, so the cache is
+	// already the answer and cannot drift out of step with it the way a second derivation would.
+	const float RawNear = FMath::Max(CVarSwarmRawNear.GetValueOnGameThread(), 0.f);
+	const APlayerController* RawPC = GetWorld() ? GetWorld()->GetFirstPlayerController() : nullptr;
+	const APlayerCameraManager* RawCamMgr = RawPC ? RawPC->PlayerCameraManager : nullptr;
+	const bool bRawBand = RawNear > 0.f && RawCamMgr != nullptr;
+	const FVector CamP = bRawBand ? RawCamMgr->GetCameraCacheView().Location : FVector::ZeroVector;
 	const float BrdJit = FMath::Clamp(CVarSwarmBroodSizeJitter.GetValueOnGameThread(), 0.f, 0.95f);
 	const float RetJit = FMath::Clamp(CVarSwarmRetinueSizeJitter.GetValueOnGameThread(), 0.f, 0.95f);
 	const float GroundOffset = CVarSwarmSpriteGroundOffset.GetValueOnGameThread();
+	const float BaseSize = FMath::Max(CVarSwarmSpriteSize.GetValueOnGameThread(), 1.f);
+	const float RetScale = FMath::Clamp(CVarSwarmRetinueSizeScale.GetValueOnGameThread(), 0.25f, 4.f);
 	const TArray<FVector>& RenderPos = Swarm->GetRenderPositions();
 
 	// The sim stores a WORLD facing; this camera turns it into a column. Reading the
@@ -1264,14 +1656,28 @@ void ASwarmRenderActor::Tick(float DeltaSeconds)
 	int32 PackIndex = 0;
 	for (const int32 Bits : AnimBits)
 	{
-		// --- per-particle colour: hit flash, then distance falloff ------------------
+		// --- which side this entity belongs to, and its scratch arrays -------------
+		// task-085: one Niagara emitter per side, so every array below is chosen once
+		// per entity rather than shared. References, not copies -- the branch costs one
+		// pointer indirection, not a duplicated push.
 		const bool bRet = (Bits & SwarmAnim::TeamBit) != 0;
+		TArray<FLinearColor>& ColorScratch = bRet ? TeamColorScratch : EnemyColorScratch;
+		TArray<float>& SizeScratch = bRet ? TeamSizeScratch : EnemySizeScratch;
+		TArray<FVector>& PositionScratch = bRet ? TeamPositionScratch : EnemyPositionScratch;
+		TArray<float>& SubImageScratch = bRet ? TeamSubImageScratch : EnemySubImageScratch;
+
+		// --- per-particle colour: hit flash, then distance falloff ------------------
 		if ((Bits & SwarmAnim::HitFlashBit) != 0)
 		{
 			// Struck this instant: full white, no falloff — the same "collapse everything and
 			// go bright" rule the debug renderer uses, so the two paths agree on what a hit
 			// looks like. This is the tell that was lost when the sheet dropped its hit cell.
-			ColorScratch.Add(FLinearColor::White);
+			//
+			// (0,0,0,1), not White. Under the material this drives, White is the MULTIPLIER's
+			// identity — "draw the art exactly as authored" — which on a near-black ooze is
+			// no flash at all. Killing the multiply and pushing the add to 1 is what actually
+			// puts a white body on screen, which is what the rule above always meant.
+			ColorScratch.Add(FLinearColor(0.f, 0.f, 0.f, 1.f));
 		}
 		else
 		{
@@ -1286,14 +1692,54 @@ void ASwarmRenderActor::Tick(float DeltaSeconds)
 				: FlameR;
 			const float T = FMath::Clamp(D / FlameR, 0.f, 1.f);
 			const float Atten = 1.f - FMath::Pow(T, FlameFall);
-			const float Lit = FMath::Lerp(bRet ? RetFloor : BrdFloor, bRet ? 1.f : BrdCeil, Atten);
-			// A multiplier on the sprite, not a replacement: the art is full colour now, so
-			// grey here dims it toward black and white leaves it exactly as authored.
-			ColorScratch.Add(FLinearColor(Lit, Lit, Lit, 1.f));
+			float Lit = FMath::Lerp(bRet ? RetFloor : BrdFloor, bRet ? 1.f : BrdCeil, Atten);
+			// NOT * Atten. Owner 2026-07-29: "You turned something on and off." Atten rises
+			// toward the flame, Swarm.RawNear's RawT falls toward the camera, and the flame sits
+			// on the hero the camera is looking at — so they are the SAME axis and their product
+			// is a band. A brood walking in lit up and then went out again. One ramp only.
+			float Add = bRet ? 0.f : BrdAdd;
+
+			// Swarm.RawNear: fade the ADDITIVE lift out for anything in the camera's face, so a
+			// brood that fills the screen shows its authored body instead of a flat grey lump.
+			// RawT 0 = no lift (authored art), 1 = full lift, linear across [RawNear, 2*RawNear].
+			//
+			// It deliberately does NOT touch the multiply. The first version lerped Lit toward
+			// 1 as well, and owner-reported 2026-07-29: "when we get close it looks blown out."
+			// That was this line's fault, and it was the worst of both — the additive is still
+			// most of the way on at these distances, so relaxing the ceiling on top of it gave a
+			// LIFTED FLAT BODY with HOTTER TEETH at the same time. BroodLightCeil now holds the
+			// highlights down at every distance, which is its whole job, and this band can only
+			// ever darken a sprite toward what the artist drew. That makes Swarm.RawNear safe to
+			// dial to taste: the trade is legibility vs. authored detail, never blow-out.
+			//
+			// ponytail: fixed 2x blend width; split into its own CVar only if the ramp is
+			// visibly wrong at some camera scale.
+			if (bRawBand)
+			{
+				const float CamD = (float)FVector::Dist(CamP,
+					RenderPos.IsValidIndex(PackIndex) ? RenderPos[PackIndex] : CamP);
+				Add *= FMath::Clamp(CamD / RawNear - 1.f, 0.f, 1.f);
+			}
+
+			// RGB multiplies, A adds — see the block above. Retinue take no additive term:
+			// their art is bright enough that the multiply alone reads, and giving them one
+			// would close the deliberate gap that keeps a soldier reading as the lit one
+			// beside a brood (CVarSwarmBroodLightCeil's comment explains why that gap exists).
+			// The add is monotonic in CAMERA distance only (see above). The multiply still
+			// carries Atten, so distant brood lose their authored colour toward the pool edge
+			// even though the additive floor does not fade with it.
+			ColorScratch.Add(FLinearColor(Lit, Lit, Lit, Add));
 		}
 
 		// --- per-particle size: the roll that was computed and thrown away ----------
-		SizeScratch.Add(SwarmRenderPack::SizeScale((int32)Bits, bRet ? RetJit : BrdJit));
+		// ABSOLUTE uu, not a multiplier: NS_Swarm's InitializeParticle takes this array
+		// straight into "Uniform Sprite Size", so there is no base size left in the graph
+		// to multiply against. That is deliberate — a multiplier would have needed a second
+		// nested dynamic input in the asset for the same result.
+		// Swarm.RetinueSizeScale rides on top for the team side only — Swarm.SpriteSize is
+		// shared, so it is a zoom rather than a way to make your own soldiers read bigger.
+		SizeScratch.Add(BaseSize * (bRet ? RetScale : 1.f)
+			* SwarmRenderPack::SizeScale((int32)Bits, bRet ? RetJit : BrdJit));
 
 		// --- per-particle position: ground-offset compensation for the centred pivot -
 		// See Swarm.SpriteGroundOffset's doc comment -- NS_Swarm centres each sprite on
@@ -1303,31 +1749,47 @@ void ASwarmRenderActor::Tick(float DeltaSeconds)
 			+ FVector(0.f, 0.f, GroundOffset));
 		++PackIndex;
 
-		// One shared decode (SwarmSheet::CellFor) rather than the old inline
-		// `frame + 2*team`, so the Unit Cam and this bridge cannot drift apart on what
-		// cell a given anim byte means.
-		//
-		// The (uint8) cast is load-bearing, not tidiness: bits 8-11 carry the per-entity
-		// size roll and bits 12-16 the facing (SwarmRenderPack); both would decode as
-		// garbage anim state without it. This path also IGNORES the size roll —
-		// Swarm.BroodSizeJitter does nothing to Niagara sprites, which need a
-		// per-particle size array and a graph edit to honour it. Every brood sprite is
-		// the same size until that exists.
 		const int32 Column = SwarmFacing::ColumnFor(
 			SwarmRenderPack::Facing(Bits), ViewYaw, SwarmSheet::Columns);
-		SubImageScratch.Add((float)SwarmSheet::CellFor((uint8)Bits, Column));
+		// One shared decode per side (SwarmSheet::Team::CellFor / ::Enemy::CellFor) rather
+		// than the old inline `frame + 2*team`, so the Unit Cam and this bridge cannot drift
+		// apart on what cell a given anim byte means.
+		//
+		// The (uint8) cast is load-bearing, not tidiness: bits 8-11 carry the per-entity
+		// size roll, 12-16 the facing and 21-24 the variant (SwarmRenderPack); all three
+		// would decode as garbage anim state without it. The size roll is no longer thrown
+		// away here — it goes out in Sizes above — and the variant picks the atlas ROW PAIR,
+		// which is what turns one look into eleven (team) or nine (enemy) on one draw call.
+		SubImageScratch.Add((float)(bRet
+			? SwarmSheet::Team::CellFor((uint8)Bits, Column, SwarmRenderPack::Variant(Bits))
+			: SwarmSheet::Enemy::CellFor((uint8)Bits, Column, SwarmRenderPack::Variant(Bits))));
 	}
 
+	// Two emitters, two independent sets of User parameters (task-085) -- see the design
+	// note in docs/perf/niagara-sprite-path.md for why this is two emitters rather than one
+	// emitter with two renderers or one material sampling two textures. Enemy keeps the
+	// ORIGINAL parameter names (Positions/SubImages/Colors/Sizes/Count) so the emitter that
+	// already existed and was already wired needed no graph rewiring; Team is new
+	// (TeamPositions/TeamSubImages/TeamColors/TeamSizes/TeamCount) on a duplicated emitter.
+	// Pushing before either emitter's graph reads an array is harmless -- an unbound User
+	// array is simply ignored, same as task-059's Colors/Sizes landed ahead of the graph edit.
 	UNiagaraDataInterfaceArrayFunctionLibrary::SetNiagaraArrayPosition(
-		NiagaraComponent, FName(TEXT("Positions")), PositionScratch);
+		NiagaraComponent, FName(TEXT("TeamPositions")), TeamPositionScratch);
 	UNiagaraDataInterfaceArrayFunctionLibrary::SetNiagaraArrayFloat(
-		NiagaraComponent, FName(TEXT("SubImages")), SubImageScratch);
-	// Colors and Sizes are new as of task-059. Pushing them is harmless before the emitter
-	// reads them — an unbound User array is simply ignored — so the C++ half can land and be
-	// verified independently of the graph edit.
+		NiagaraComponent, FName(TEXT("TeamSubImages")), TeamSubImageScratch);
 	UNiagaraDataInterfaceArrayFunctionLibrary::SetNiagaraArrayColor(
-		NiagaraComponent, FName(TEXT("Colors")), ColorScratch);
+		NiagaraComponent, FName(TEXT("TeamColors")), TeamColorScratch);
 	UNiagaraDataInterfaceArrayFunctionLibrary::SetNiagaraArrayFloat(
-		NiagaraComponent, FName(TEXT("Sizes")), SizeScratch);
-	NiagaraComponent->SetVariableInt(FName(TEXT("Count")), PositionScratch.Num());
+		NiagaraComponent, FName(TEXT("TeamSizes")), TeamSizeScratch);
+	NiagaraComponent->SetVariableInt(FName(TEXT("TeamCount")), TeamPositionScratch.Num());
+
+	UNiagaraDataInterfaceArrayFunctionLibrary::SetNiagaraArrayPosition(
+		NiagaraComponent, FName(TEXT("Positions")), EnemyPositionScratch);
+	UNiagaraDataInterfaceArrayFunctionLibrary::SetNiagaraArrayFloat(
+		NiagaraComponent, FName(TEXT("SubImages")), EnemySubImageScratch);
+	UNiagaraDataInterfaceArrayFunctionLibrary::SetNiagaraArrayColor(
+		NiagaraComponent, FName(TEXT("Colors")), EnemyColorScratch);
+	UNiagaraDataInterfaceArrayFunctionLibrary::SetNiagaraArrayFloat(
+		NiagaraComponent, FName(TEXT("Sizes")), EnemySizeScratch);
+	NiagaraComponent->SetVariableInt(FName(TEXT("Count")), EnemyPositionScratch.Num());
 }
