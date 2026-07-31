@@ -48,6 +48,11 @@ def read(path: str) -> str:
         return fh.read()
 
 
+def write(path: str, text: str) -> None:
+    with open(path, "w", encoding="utf-8") as fh:
+        fh.write(text)
+
+
 def pre(text: str, cls: str = "") -> str:
     return f'<pre class="{cls}">{html.escape(text.strip())}</pre>'
 
@@ -133,8 +138,12 @@ def main() -> int:
     f3_console = run_crew("--floor", "3")
     f3_report = read(os.path.join(OUT, "run-report.md"))
     f3_json = read(os.path.join(OUT, "encounters.json"))
+    # Floor 3 is the run worth showing — the one where the auditor rejects — so
+    # keep it under its own name instead of letting the floor-1 restore erase it.
+    write(os.path.join(OUT, "run-report.floor3.md"), f3_report)
+    write(os.path.join(OUT, "encounters.floor3.json"), f3_json)
 
-    f1_console = run_crew("--floor", "1")
+    run_crew("--floor", "1")
     f1_report = read(os.path.join(OUT, "run-report.md"))
     f1_json = read(os.path.join(OUT, "encounters.json"))
     f1_schema = read(os.path.join(OUT, "encounters.schema.md"))

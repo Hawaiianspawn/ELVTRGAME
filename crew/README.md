@@ -33,6 +33,10 @@ Concretely, one run writes:
 | `out/encounters.schema.md` | The column contract for that JSON, plus the audit state at generation |
 | `out/run-report.md` | Every agent's role, the encounter table, the budget verdict, and the full negotiation transcript |
 
+A floor-3 run additionally keeps `out/run-report.floor3.md` and
+`out/encounters.floor3.json` under their own names, because floor 3 is the run
+where the budget auditor actually rejects the plan — see below.
+
 Those three files are the deliverable. If you would rather read them than run
 anything, [`docs/Kindled-EncounterCrew-Output.pdf`](../docs/Kindled-EncounterCrew-Output.pdf)
 is all three rendered verbatim — floor 1 and the floor 3 run where the budget
