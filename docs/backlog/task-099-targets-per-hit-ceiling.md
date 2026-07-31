@@ -1,9 +1,9 @@
 ---
 id: 099
 title: Reconcile targets_per_hit against the engine's fixed 8-target ceiling, which flattens the axis for seven of nine melee rows
-status: proposed
+status: done
 agent: gameplay-director
-model: ""
+model: sonnet
 owns: ["docs/data/unit-types.json", "docs/design/retinue-melee-subtypes.md"]
 resources: []
 depends-on: []
@@ -11,8 +11,8 @@ epic: ""
 evidence: A stated resolution in docs/design/retinue-melee-subtypes.md — either the two over-ceiling rows are respecced to values the engine can honour, or the axis is explicitly declared capped with the design consequence written down, or the ceiling itself is raised as a separate follow-on. Whichever way it lands, docs/data/unit-types.json must stop carrying numbers the shipped combat loop silently discards.
 score: {feel: 2, risk: 1, cost: 1}
 source: lead
-teammate: ""
-decided: ""
+teammate: targets-ceiling
+decided: "2026-07-31 done"
 ---
 
 ## What surfaced
@@ -74,12 +74,13 @@ that ceiling — `heavycloak` at 9 and `simplecolumn` at 10 — so both land at 
 The shipped spread is therefore 8,8,8,8,8,8,8,7,6. Seven of nine rows sit at the same
 value while the data file and the sim both still treat the axis as a live differentiator.
 
-VERIFY THE CEILING YOURSELF before deciding anything — briefs on this repo go stale.
-The claim is that every TargetsPerHit accessor clamps to 1..8 at
-ELVTR/Source/ELVTR/Mass/SwarmCombatProcessors.cpp around lines 253-260
-(Swarm.RetinueTargetsPerHit, Swarm.BroodTargetsPerHit, Swarm.ArchersTargetsPerHit).
-Note that a teammate is editing that file RIGHT NOW for task-118, so read it, do not
-write it, and if the line numbers have moved say so rather than assuming the claim died.
+THE CEILING IS CONFIRMED, re-checked by the lead 2026-07-31 at HEAD:
+ELVTR/Source/ELVTR/Mass/SwarmCombatProcessors.cpp:253-260 clamps every accessor
+(Swarm.RetinueTargetsPerHit, Swarm.BroodTargetsPerHit, Swarm.ArchersTargetsPerHit) to
+1..8, and line 275 clamps the per-row Targets array to 1..8 a second time on read. The
+CVar help text at lines 199-200 states the reason outright: "the combat loop's own
+nearest-K arrays are fixed at 8". task-118 has since landed and been committed, so that
+file is no longer being written by anyone — read it freely, but still do not write it.
 
 DECIDE ONE OF THREE, and commit to it:
   1. Respec the two over-ceiling rows within 1..8.
@@ -104,7 +105,7 @@ YOU OWN ONLY: docs/data/unit-types.json, docs/design/retinue-melee-subtypes.md
 
 DO NOT TOUCH: any C++, Scripts/sim/**, docs/sim/**, docs/backlog/**, GDD.md, SYSTEMS.md,
 any .uasset. You have a shell but this task needs no build and no PIE — do not open,
-close or rebuild the editor. Another teammate holds that lock.
+close or rebuild the editor. This task holds no editor lock.
 
 CANON: the game is KINDLED, never Emberkeep. The 4-value colour gate is superseded — not
 that it bears on stat rows, but do not "fix" anything toward it.

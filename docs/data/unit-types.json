@@ -1,7 +1,7 @@
 {
-  "$schema_note": "Per-type stat/formation/growth dials for the typed unit model. Decisions + rationale live in docs/design/squad-group-system.md §1/§2/§4. All values are PROTOTYPE DIALS (first pass, unmeasured) — same status as economy.json and squads.json.",
-  "version": "0.1-prototype",
-  "last_updated": "2026-07-27",
+  "$schema_note": "Per-type stat/formation/growth dials for the typed unit model. Decisions + rationale live in docs/design/squad-group-system.md §1/§2/§4. All values are PROTOTYPE DIALS (first pass, unmeasured) — same status as economy.json and squads.json. types.spearmen.melee_subtypes (added task-088) is the melee identity split — see docs/design/retinue-melee-subtypes.md for the decision, row count, and the ten-silhouette-to-row mapping.",
+  "version": "0.2-prototype",
+  "last_updated": "2026-07-30",
   "note": "Records the SHIPPED CVAR DEFAULTS this spec proposes (Swarm.Formation.<Type>.*, Swarm.<Type>Combat.* — CVar names to be finalized by whoever implements task-046), the same role squads.json already plays for allocation dials. Not a runtime-read table; CVars stay the live source of truth so these remain tunable while the game runs, per SwarmFormation.h's own stated reasoning.",
 
   "types": {
@@ -32,6 +32,58 @@
         "charge": "Advance the Line",
         "hold": "Shield Wall",
         "rally": "To the Banner"
+      },
+      "melee_subtypes": {
+        "note": "DECIDED task-088, 2026-07-30 — docs/design/retinue-melee-subtypes.md. Each row REPLACES the combat block above for units rendered as its mapped silhouette(s); formation, stance_reflavor, and growth_source_weight are unchanged and shared by every row (only the combat stat block varies per row — GDD §10 Mass Entity data-cheap-soldier constraint). Derived from docs/data/scenarios/retinue-subtypes.json's task-094 ten-way candidate profiles (sim-director-owned candidate data, NOT copied verbatim): solo rows are that file's primary-formula combat block rounded to whole numbers; line_standard/line_light are the arithmetic mean of their two merged silhouettes' combat blocks, rounded the same way. min_engage_range (0) and move_speed_scale (1.0) are uniform across all 9 rows — no measured shape axis in the source formula feeds either one. variant_to_row is KEYED BY ATLAS INDEX (0-10, docs/data/art/team-variants.json's variants[].index / SwarmSheet::Team — task-095 reads the index, not the silhouette name); the name is carried alongside purely for readability and must not be treated as the binding key. heavycloak/simplecolumn's targets_per_hit respecced 9/10 -> 8, task-099 (Swarm.*TargetsPerHit accessors clamp 1..8, SwarmCombatProcessors.cpp:253-260) -- see per-row notes and docs/design/retinue-melee-subtypes.md.",
+        "rows": {
+          "retinue_base": {
+            "note": "Atlas index 0, task-085 (landed after this decision was first drafted) — the pre-split shipped look, ~20% of the army at default Swarm.TeamVariantWeights. NOT derived from the shape formula; it has no measured silhouette in retinue-subtypes.json. Ships as spearmen's existing combat block unchanged (Gate 1 defaults) so it reads as the baseline, not as an eleventh knight sub-type.",
+            "combat": { "max_hp": 130, "dps": 30, "engage_range": 95, "min_engage_range": 0, "targets_per_hit": 8, "move_speed_scale": 1.0 }
+          },
+          "heavycloak": {
+            "note": "targets_per_hit respecced 9 -> 8, task-099: the shipped combat loop's nearest-target array is fixed at 1..8 (SwarmCombatProcessors.cpp:253-260) and was already silently clamping this row's raw formula value to 8 in play. 8 is the nearest legal value to the formula's derived rank, not an invented number, and matches what task-095 already ships. Identity carries on max_hp instead (165 is the highest of all 9 rows) -- see docs/design/retinue-melee-subtypes.md Ceiling reconciliation.",
+            "combat": { "max_hp": 165, "dps": 30, "engage_range": 100, "min_engage_range": 0, "targets_per_hit": 8, "move_speed_scale": 1.0 }
+          },
+          "shieldbreak": {
+            "note": "Formula reads this silhouette's high asymmetry as high-DPS, not the 'more HP, less DPS' defensive guess task-086's brief made at a glance — resolved toward the formula (see design doc): 'shieldbreak' itself is an offensive name, not a defensive one.",
+            "combat": { "max_hp": 140, "dps": 36, "engage_range": 99, "min_engage_range": 0, "targets_per_hit": 8, "move_speed_scale": 1.0 }
+          },
+          "maceraised": {
+            "combat": { "max_hp": 146, "dps": 37, "engage_range": 93, "min_engage_range": 0, "targets_per_hit": 8, "move_speed_scale": 1.0 }
+          },
+          "lanceout": {
+            "combat": { "max_hp": 133, "dps": 30, "engage_range": 105, "min_engage_range": 0, "targets_per_hit": 7, "move_speed_scale": 1.0 }
+          },
+          "bracedstaff": {
+            "note": "Sits 4.8-5.9% from line_standard (v4_overhead) in every task-094 run — a flagged near-miss, roughly double the gap of the two pairs actually merged below. Kept as its own row: the gap is at the low end of 'clearly separated', not inside the collapsed band, and merging it would span three consecutive ranks (5/6/7) on evidence that only measured 5-vs-6 and 6-vs-7 pairwise, not 5-vs-7 directly.",
+            "combat": { "max_hp": 123, "dps": 33, "engage_range": 110, "min_engage_range": 0, "targets_per_hit": 6, "move_speed_scale": 1.0 }
+          },
+          "line_standard": {
+            "note": "v4_overhead + v11_midguard merged — 1.8-2.4% apart in every task-094 run (2 scenarios, 5 seeds), the tightest pair measured. combat block is the arithmetic mean of the two silhouettes' primary-formula stats. The holes-driven 'two-handed' alt-hypothesis probe for v4_overhead (retinue-subtypes.json's v4_overhead_holes_swap) was NOT adopted — it's an explicit probe, not a shipped candidate, and moot for the stat block now that this row is shared; the two-handed read is preserved as a visual/animation identity only.",
+            "combat": { "max_hp": 124, "dps": 28, "engage_range": 96, "min_engage_range": 0, "targets_per_hit": 8, "move_speed_scale": 1.0 }
+          },
+          "simplecolumn": {
+            "note": "targets_per_hit respecced 10 -> 8, task-099: same 1..8 combat-loop ceiling as heavycloak (SwarmCombatProcessors.cpp:253-260), already silently clamping this row in play. 8 is the nearest legal value to the formula's derived rank. Identity carries on engage_range/dps instead (82 is the shortest engage_range of all 9 rows, tied-lowest dps at 28) -- retinue-subtypes.json's own v6_simplecolumn derivation note already flagged its nominal cleave as mostly unreachable at this engage_range, independent of this ceiling. See docs/design/retinue-melee-subtypes.md Ceiling reconciliation.",
+            "combat": { "max_hp": 119, "dps": 28, "engage_range": 82, "min_engage_range": 0, "targets_per_hit": 8, "move_speed_scale": 1.0 }
+          },
+          "line_light": {
+            "note": "v7_barestance + v1_narrowguard merged — 3.3-3.8% apart in every task-094 run, second-tightest pair. combat block is the arithmetic mean of the two silhouettes' primary-formula stats; targets_per_hit's mean (8.5) rounds DOWN to 8, not up to 9 — this is the bottom-tier row by every other stat and rounding up would drift it toward simplecolumn/line_standard's band for no reason the data gives.",
+            "combat": { "max_hp": 114, "dps": 25, "engage_range": 85, "min_engage_range": 0, "targets_per_hit": 8, "move_speed_scale": 1.0 }
+          }
+        },
+        "variant_to_row": [
+          { "index": 0,  "id": "retinue",  "row": "retinue_base" },
+          { "index": 1,  "id": "v1_narrowguard", "row": "line_light" },
+          { "index": 2,  "id": "v2_lanceout", "row": "lanceout" },
+          { "index": 3,  "id": "v3_shieldbreak", "row": "shieldbreak" },
+          { "index": 4,  "id": "v4_overhead", "row": "line_standard" },
+          { "index": 5,  "id": "v6_simplecolumn", "row": "simplecolumn" },
+          { "index": 6,  "id": "v7_barestance", "row": "line_light" },
+          { "index": 7,  "id": "v8_heavycloak", "row": "heavycloak" },
+          { "index": 8,  "id": "v10_bracedstaff", "row": "bracedstaff" },
+          { "index": 9,  "id": "v11_midguard", "row": "line_standard" },
+          { "index": 10, "id": "v13_maceraised", "row": "maceraised" }
+        ]
       }
     },
     "archers": {
