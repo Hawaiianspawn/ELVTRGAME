@@ -17,6 +17,14 @@ of the two that dispatches. The `host` agent definition backs both.
 a queue of 40 needs an order. A feature the owner just brought is not competing with
 anything, so `/host` files the score and shows the plan instead.
 
+**Every owner decision is a button, never typing.** If the owner has to choose — which
+tasks to approve, whether a refusal is a reject or a park, what a stale tracker entry
+should become — it arrives as an `AskUserQuestion` with the real options as buttons,
+including the follow-up a refusal opens. A follow-up spends the same slot as the question
+it came from; it is that decision continuing, not a new interruption. Prose answers are
+always accepted, never required, and "what would you like to do about it?" is a question
+you should have already turned into options.
+
 Judgment lives here. Everything mechanical lives in `Scripts/backlog.py` — id allocation,
 validation, score math, INDEX regeneration, lock conflicts, status transitions, LOG
 appends. Same split as `/sprite` ↔ `Scripts/art/pixelpipe.py`. Never hand-compute a score
@@ -61,10 +69,14 @@ Two questions, one dialog, one round trip. Then run the whole answer as a single
 write. Never approve them one at a time: four prompts for one decision trains the owner to
 wave the gate through, which is the one thing the gate cannot survive.
 
-Rejects and parks need a *reason*, so they do not fit a click. Leave them to the free-text
-answer the question already offers, or ask after. If the owner answers in prose instead —
-"approve 1,3,4; park 2" — take it; the question exists to make deciding cheap, not to
-insist on a format.
+**Rejects and parks are buttons too.** A reason does not make a decision unclickable — you
+read the task, so you know the two or three reasons it would be refused. Anything left
+unticked in Q1/Q2 gets one follow-up `AskUserQuestion`, header `Refused`, one option per
+untouched task: `park — <the likely reason>`, `reject — <the likely reason>`, `leave
+proposed`. Take the ticked reason as the `-r` string. `Other` is always there for the case
+you misread. If the owner answers in prose instead — "approve 1,3,4; park 2, it needs the
+palette call first" — take it; the question exists to make deciding cheap, not to insist on
+a format.
 
 Then stop and wait. Do not start work, do not spawn anyone, do not assume approval from
 enthusiasm. **`AskUserQuestion` is not the gate** — the permission prompt that
@@ -152,6 +164,30 @@ one; `py Scripts/backlog.py epic <slug>` for where a running fan stands.
 `proposed` with the recommended `backlog.py park` command in the body and let the owner run
 it. Tasks 033–037 are the pattern.
 
+## Commit and push
+
+**A queue that only exists in a working tree is not a queue.** Whenever this skill writes —
+new task files from a sweep, a re-score, a verdict that moved `INDEX.md` and `LOG.md` —
+commit and push in the same turn. No question, this is part of the write, not a decision:
+
+    git add docs/backlog/                     # plus any tracker file you corrected
+    <commit with the `caveman-commit` skill, per CLAUDE.md>
+    git push
+
+Rules that bite:
+
+- **Stage the backlog paths, never `git add -A`.** The tree is shared with other sessions
+  (`concurrent-sessions-share-the-tree`) and carries unrelated modified assets.
+- **One commit per pass** — a whole sweep is one commit, a batch of verdicts is one commit.
+- Commit *after* the `approve`/`reject`/`park` command, so `LOG.md` and the frontmatter go
+  in together. A commit that records a task without the verdict that moved it is a lie.
+- If the push is refused — protected branch, no upstream, conflict — say so in one line and
+  hand the owner the fix. Do not force, do not rebase the shared branch unasked.
+
+**This applies to the skill itself.** Any change to `.claude/skills/backlog/SKILL.md` gets
+committed and pushed in the turn it is made, on its own commit. A process improvement
+living only in one session's working tree is not a process improvement.
+
 ## Re-ranking
 
 Re-rank when a task closes, not on a timer. `unblocks` is computed from open dependents, so
@@ -165,6 +201,9 @@ landings stays useful.
   denying it is correct.
 - Edit `GDD.md`, `SYSTEMS.md`, or `CLASSES.md` from this skill. Propose; the owner decides.
 - Hand-edit `INDEX.md` or `LOG.md`.
+- Put a decision in prose, or ask the owner to type a reason a button could have carried.
+- Leave filed tasks or recorded verdicts uncommitted, `git add -A` in a shared tree, or
+  edit this skill without committing and pushing that edit.
 - Dispatch approved work **from this skill**. Here, approval is not a start signal — the
   owner spawns, or runs `/host` to dispatch it. (In `/host` the owner's approval *is* the go
   signal, because they were shown the plan first. That is the difference between the two.)
