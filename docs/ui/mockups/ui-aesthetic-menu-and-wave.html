@@ -1,0 +1,502 @@
+<!doctype html>
+<title>Kindled — UI Aesthetic Preview</title>
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<style>
+  :root {
+    /* ---- token system: role, not hue-for-hue's-sake (see docs/ui/ui-aesthetic.md §1) ---- */
+    --ink:            #1c1712;
+    --ink-deep:       #120e0b;
+    --iron:           #585a66;
+    --iron-hair:      #3c3d47;
+    --iron-dim:       #6f7078;
+    --parchment:      #c9bfa0;
+    --parchment-hi:   #ddd3b6;
+    --ember:          #e8a23c;
+    --ember-hot:      #ffcf6b;
+    --rubrication:    #8f1d1d;
+
+    /* page chrome around the two previews — this shell is theme-aware; the previews
+       themselves are NOT (a fixed-dark game HUD is a design fact, not a page setting) */
+    --page-bg: #eee7d8;
+    --page-bg-2: #e2d9c4;
+    --page-fg: #2a241c;
+    --page-fg-dim: #6b6250;
+    --page-accent: #a8642f;
+    --page-line: #cabf9f;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --page-bg: #14110d;
+      --page-bg-2: #1b1712;
+      --page-fg: #e8ddc6;
+      --page-fg-dim: #9c9078;
+      --page-accent: #e8a23c;
+      --page-line: #332c22;
+    }
+  }
+  :root[data-theme="dark"] {
+    --page-bg: #14110d; --page-bg-2: #1b1712; --page-fg: #e8ddc6;
+    --page-fg-dim: #9c9078; --page-accent: #e8a23c; --page-line: #332c22;
+  }
+  :root[data-theme="light"] {
+    --page-bg: #eee7d8; --page-bg-2: #e2d9c4; --page-fg: #2a241c;
+    --page-fg-dim: #6b6250; --page-accent: #a8642f; --page-line: #cabf9f;
+  }
+
+  * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; }
+  body {
+    background: var(--page-bg);
+    color: var(--page-fg);
+    font: 15px/1.55 ui-serif, Georgia, "Iowan Old Style", serif;
+    padding: 40px 20px 80px;
+  }
+  .wrap { max-width: 1180px; margin: 0 auto; }
+
+  header.page-head { margin-bottom: 8px; }
+  header.page-head .eyebrow {
+    font: 700 11px/1 ui-monospace, "SFMono-Regular", Menlo, Consolas, monospace;
+    letter-spacing: .14em;
+    text-transform: uppercase;
+    color: var(--page-accent);
+    margin: 0 0 10px;
+  }
+  header.page-head h1 {
+    font: 600 32px/1.15 ui-serif, Georgia, serif;
+    text-wrap: balance;
+    margin: 0 0 10px;
+    letter-spacing: -0.01em;
+  }
+  header.page-head p {
+    max-width: 62ch;
+    color: var(--page-fg-dim);
+    margin: 0 0 6px;
+  }
+  header.page-head p.note {
+    font-size: 13px;
+    border-left: 2px solid var(--page-line);
+    padding-left: 12px;
+    margin-top: 18px;
+  }
+
+  .panels {
+    display: grid;
+    grid-template-columns: 1.05fr 1fr;
+    gap: 28px;
+    margin: 40px 0 30px;
+  }
+  @media (max-width: 880px) {
+    .panels { grid-template-columns: 1fr; }
+  }
+  .panel-slot h2 {
+    font: 600 13px/1 ui-monospace, monospace;
+    letter-spacing: .08em;
+    text-transform: uppercase;
+    color: var(--page-fg-dim);
+    margin: 0 0 12px;
+    display: flex;
+    align-items: baseline;
+    gap: 8px;
+  }
+  .panel-slot h2 .tag {
+    font: 400 11px/1 ui-serif, serif;
+    text-transform: none;
+    letter-spacing: 0;
+    color: var(--page-accent);
+  }
+
+  /* ================= GAME UI — fixed dark, pixel-locked, never theme-swaps ================= */
+  .game {
+    background: var(--ink);
+    color: var(--parchment);
+    font: 13px/1.5 ui-monospace, "SFMono-Regular", Menlo, Consolas, "Liberation Mono", monospace;
+    -webkit-font-smoothing: none;
+    font-smooth: never;
+    padding: 10px;
+    image-rendering: pixelated;
+    box-shadow: 0 12px 34px -14px rgba(0,0,0,.55);
+  }
+  .halftone {
+    background-image:
+      linear-gradient(45deg, var(--iron-hair) 25%, transparent 25%, transparent 75%, var(--iron-hair) 75%),
+      linear-gradient(45deg, var(--iron-hair) 25%, transparent 25%, transparent 75%, var(--iron-hair) 75%);
+    background-size: 2px 2px;
+    background-position: 0 0, 1px 1px;
+  }
+  .stitch-frame {
+    border: 1px solid var(--iron);
+    background: var(--ink);
+  }
+  .stitch-frame > .inner { border: 1px solid var(--ink-deep); }
+
+  /* corner notches: a plain UI bracket, NOT a game shape-carrier mark (see §5 of the spec) */
+  .bracket-corner {
+    position: relative;
+  }
+  .bracket-corner::before, .bracket-corner::after,
+  .bracket-corner .bc-br::before, .bracket-corner .bc-br::after { content: ""; position: absolute; width: 7px; height: 7px; }
+  .bracket-corner::before { top: -1px; left: -1px; border-top: 2px solid var(--iron); border-left: 2px solid var(--iron); }
+  .bracket-corner::after  { top: -1px; right: -1px; border-top: 2px solid var(--iron); border-right: 2px solid var(--iron); }
+  .bracket-corner .bc-br { position: absolute; inset: 0; }
+  .bracket-corner .bc-br::before { bottom: -1px; left: -1px; border-bottom: 2px solid var(--iron); border-left: 2px solid var(--iron); top: auto; }
+  .bracket-corner .bc-br::after  { bottom: -1px; right: -1px; border-bottom: 2px solid var(--iron); border-right: 2px solid var(--iron); top: auto; }
+
+  .band { padding: 5px 8px; }
+  .band.header { text-align: center; }
+  .crest { font: 700 12px/1 ui-serif, Georgia, serif; letter-spacing: .12em; text-transform: uppercase; color: var(--parchment-hi); }
+  .crest .flicker { color: var(--ember); }
+  .sub { font-size: 9px; letter-spacing: .06em; color: var(--iron-dim); margin-top: 2px; }
+
+  .row-flex { display: flex; gap: 6px; }
+  .col { display: flex; flex-direction: column; gap: 6px; }
+
+  .flank {
+    width: 78px;
+    flex: 0 0 auto;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 4px;
+  }
+  .medallion {
+    width: 40px; height: 40px;
+    border-radius: 50%;
+    border: 2px solid var(--iron);
+    background: var(--ink-deep);
+    display: flex; align-items: center; justify-content: center;
+    font: 700 15px ui-serif, serif;
+    color: var(--ember);
+  }
+  .flank .label { font-size: 8px; letter-spacing: .08em; text-transform: uppercase; color: var(--iron-dim); }
+
+  .pip-row { display: flex; gap: 2px; }
+  .pip { width: 5px; height: 8px; background: var(--iron-hair); }
+  .pip.full { background: var(--ember); }
+  .pip.full.hot { background: var(--ember-hot); }
+
+  .well { flex: 1 1 auto; min-width: 0; padding: 6px; }
+
+  .company-line { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 4px; }
+  .company-line .label { font-size: 10px; color: var(--parchment-hi); }
+  .company-line .stat { font-variant-numeric: tabular-nums; font-size: 10px; color: var(--parchment); }
+
+  .company-meter { display: flex; gap: 1px; margin-bottom: 8px; }
+  .company-meter .pip { width: 4px; height: 6px; }
+
+  .cards { display: flex; flex-wrap: wrap; gap: 5px; }
+  .card {
+    border: 1px solid var(--iron);
+    background: var(--ink);
+    padding: 4px 5px;
+    width: 90px;
+  }
+  .card.wide { width: 186px; }
+  .card.selected { border: 2px solid var(--ember); padding: 3px 4px; }
+  .card .chead { display: flex; justify-content: space-between; font-size: 9px; margin-bottom: 3px; }
+  .card .cname { color: var(--parchment); }
+  .card .cstat { color: var(--parchment-hi); font-variant-numeric: tabular-nums; }
+  .grid { display: grid; grid-template-columns: repeat(var(--cols, 6), 1fr); gap: 1px; margin-bottom: 4px; }
+  .grid .gp { width: 100%; aspect-ratio: 1; background: var(--iron-hair); }
+  .grid .gp.on { background: var(--ember); }
+  .chip {
+    display: inline-block;
+    font-size: 8px;
+    letter-spacing: .04em;
+    padding: 1px 4px;
+    background: var(--iron-hair);
+    color: var(--parchment);
+  }
+  .chip.active { background: var(--ember); color: var(--ink); }
+
+  .stancewheel { display: flex; flex-direction: column; align-items: center; gap: 4px; }
+  .spokes { display: grid; grid-template-columns: repeat(2, 1fr); gap: 3px; }
+  .spoke {
+    font-size: 8px; letter-spacing: .04em; text-align: center;
+    padding: 3px 4px; border: 1px solid var(--iron); color: var(--iron-dim);
+  }
+  .spoke.active { border-color: var(--ember); color: var(--ember); font-weight: 700; }
+  .leash { width: 100%; }
+  .leash-track { height: 5px; background: var(--iron-hair); position: relative; margin-top: 2px; }
+  .leash-fill { height: 100%; background: var(--parchment); width: 62%; }
+  .leash-warn { position: absolute; top: -1px; bottom: -1px; left: 80%; width: 1px; background: var(--ember); }
+
+  .footer.band { display: flex; justify-content: space-between; font-size: 8px; letter-spacing: .04em; color: var(--iron-dim); }
+  .footer.band .key { color: var(--parchment); }
+  .footer.band .redcheck { display: flex; align-items: center; gap: 4px; }
+  .redcheck .swatch { width: 7px; height: 7px; background: var(--rubrication); opacity: .35; border: 1px solid var(--iron-hair); }
+
+  /* ================= end-of-wave board ================= */
+  .wave-title { text-align: center; padding: 8px 8px 10px; }
+  .wave-title .h { font: 700 13px/1 ui-serif, serif; letter-spacing: .1em; text-transform: uppercase; color: var(--parchment-hi); }
+  .wave-title .h .ember-word { color: var(--ember); }
+  .wave-title .s { font-size: 9px; color: var(--iron-dim); margin-top: 3px; letter-spacing: .04em; }
+
+  table.board { width: 100%; border-collapse: collapse; margin: 0; }
+  table.board thead th {
+    text-align: left;
+    font: 700 8px/1 ui-monospace, monospace;
+    letter-spacing: .1em;
+    text-transform: uppercase;
+    color: var(--iron-dim);
+    padding: 0 6px 6px;
+    border-bottom: 1px solid var(--iron-hair);
+  }
+  table.board thead th.num { text-align: right; }
+  table.board td { padding: 7px 6px; border-bottom: 1px solid var(--iron-hair); vertical-align: baseline; }
+  table.board tr:last-child td { border-bottom: none; }
+  table.board td.rank {
+    font-variant-numeric: tabular-nums;
+    width: 2.4em;
+    color: var(--iron-dim);
+    font-size: 12px;
+  }
+  table.board tr.lead td.rank { color: var(--ember); font-size: 14px; font-weight: 700; }
+  table.board td.unit { color: var(--parchment); }
+  table.board tr.lead td.unit { color: var(--parchment-hi); }
+  table.board td.unit .mult { color: var(--iron-dim); font-variant-numeric: tabular-nums; }
+  table.board td.unit .tag {
+    display: block;
+    font-size: 8px;
+    letter-spacing: .08em;
+    color: var(--iron-dim);
+    margin-top: 1px;
+  }
+  table.board tr.lead td.unit .tag { color: var(--ember); }
+  table.board td.kills {
+    text-align: right;
+    font-variant-numeric: tabular-nums;
+    font-size: 13px;
+    color: var(--parchment);
+  }
+  table.board tr.lead td.kills { color: var(--ember); font-weight: 700; }
+
+  /* ================= shared page bits ================= */
+  .legend {
+    margin-top: 44px;
+    padding-top: 22px;
+    border-top: 1px solid var(--page-line);
+  }
+  .legend h3 {
+    font: 600 12px/1 ui-monospace, monospace;
+    letter-spacing: .1em; text-transform: uppercase;
+    color: var(--page-fg-dim);
+    margin: 0 0 14px;
+  }
+  .swatches { display: grid; grid-template-columns: repeat(5, 1fr); gap: 14px; }
+  @media (max-width: 720px) { .swatches { grid-template-columns: repeat(2, 1fr); } }
+  .sw { }
+  .sw .chip2 { height: 34px; border: 1px solid var(--page-line); margin-bottom: 6px; }
+  .sw .name { font: 600 12px/1.3 ui-serif, serif; }
+  .sw .role { font-size: 11.5px; color: var(--page-fg-dim); }
+  .sw.reserved .chip2 { position: relative; overflow: hidden; }
+  .sw.reserved .chip2::after {
+    content: "reserved — cost only, absent here";
+    position: absolute; inset: 0; display: flex; align-items: center; justify-content: center;
+    font: 600 9px ui-monospace, monospace; letter-spacing: .04em; text-transform: uppercase;
+    color: #f0d9d9; background: rgba(0,0,0,.15);
+  }
+
+  footer.colophon {
+    margin-top: 46px; padding-top: 18px; border-top: 1px solid var(--page-line);
+    font-size: 12px; color: var(--page-fg-dim);
+  }
+  footer.colophon code { font: 12px ui-monospace, monospace; background: var(--page-bg-2); padding: 1px 5px; }
+</style>
+
+<div class="wrap">
+  <header class="page-head">
+    <p class="eyebrow">Kindled · UI Aesthetic · docs/ui/ui-aesthetic.md</p>
+    <h1>Full colour, four roles, one reserved red</h1>
+    <p>
+      Two surfaces from the same token system, side by side so the palette and the
+      density rules can be judged against each other rather than in isolation: the
+      pause/muster panel (structure-heavy, low density) and the end-of-wave board
+      (five ranked rows, high density, mixed row kinds).
+    </p>
+    <p class="note">
+      Chrome shown here (frame, corners, medallion) is placeholder geometry standing
+      in for the pixel-art-director's Sampler Frame plate set — this page is a
+      palette/density/state preview, not finished art. Body/label type is a system
+      monospace stand-in; the real pixel face is still an open pick (§3).
+    </p>
+  </header>
+
+  <div class="panels">
+    <div class="panel-slot">
+      <h2>Pause / Muster <span class="tag">— reached from combat, not a launch title screen</span></h2>
+      <div class="game stitch-frame">
+        <div class="band header halftone bracket-corner">
+          <div class="bc-br"></div>
+          <div class="crest">Kindled <span class="flicker">·</span> Vanguard Company</div>
+          <div class="sub">the record keeps what you save</div>
+        </div>
+        <div class="row-flex" style="margin-top:4px;">
+          <div class="flank stitch-frame">
+            <div class="medallion">V</div>
+            <div class="label">Vigor</div>
+            <div class="pip-row">
+              <div class="pip full hot"></div><div class="pip full hot"></div><div class="pip full hot"></div>
+              <div class="pip full hot"></div><div class="pip full hot"></div><div class="pip full hot"></div>
+              <div class="pip full hot"></div><div class="pip"></div>
+            </div>
+          </div>
+          <div class="well stitch-frame">
+            <div class="company-line">
+              <span class="label">Vanguard Company</span>
+              <span class="stat">99 / 180 · 5 squads</span>
+            </div>
+            <div class="company-meter">
+              <!-- 24 segments, ~55% standing -->
+              <script>document.write(Array.from({length:24},(_,i)=>`<div class="pip ${i<13?'full':''}"></div>`).join(''))</script>
+            </div>
+            <div class="cards">
+              <div class="card">
+                <div class="chead"><span class="cname">Shield</span><span class="cstat">24/24</span></div>
+                <div class="grid" style="--cols:6;">
+                  <script>document.write(Array.from({length:24},()=>'<div class="gp on"></div>').join(''))</script>
+                </div>
+                <span class="chip">HOLD</span>
+              </div>
+              <div class="card selected">
+                <div class="chead"><span class="cname">Shield</span><span class="cstat">18/24</span></div>
+                <div class="grid" style="--cols:6;">
+                  <script>document.write(Array.from({length:24},(_,i)=>`<div class="gp ${i<18?'on':''}"></div>`).join(''))</script>
+                </div>
+                <span class="chip active">HOLD</span>
+              </div>
+              <div class="card">
+                <div class="chead"><span class="cname">Vets</span><span class="cstat">20/20</span></div>
+                <div class="grid" style="--cols:5;">
+                  <script>document.write(Array.from({length:20},()=>'<div class="gp on"></div>').join(''))</script>
+                </div>
+                <span class="chip">CHARGE</span>
+              </div>
+              <div class="card wide">
+                <div class="chead"><span class="cname">Spearmen <span class="mult" style="color:var(--iron-dim)">×50</span></span><span class="cstat">50/50</span></div>
+                <div class="grid" style="--cols:10;">
+                  <script>document.write(Array.from({length:50},()=>'<div class="gp on"></div>').join(''))</script>
+                </div>
+                <span class="chip">CHARGE</span>
+              </div>
+              <div class="card">
+                <div class="chead"><span class="cname">Banner</span><span class="cstat">2/2</span></div>
+                <div class="grid" style="--cols:2;">
+                  <script>document.write(Array.from({length:2},()=>'<div class="gp on"></div>').join(''))</script>
+                </div>
+                <span class="chip">FOLLOW</span>
+              </div>
+            </div>
+          </div>
+          <div class="flank stitch-frame" style="width:84px;">
+            <div class="label">Orders</div>
+            <div class="stancewheel">
+              <div class="spokes">
+                <div class="spoke">FLW</div>
+                <div class="spoke">CHRG</div>
+                <div class="spoke active">HOLD</div>
+                <div class="spoke">RLY</div>
+              </div>
+            </div>
+            <div class="leash">
+              <div class="label">Leash</div>
+              <div class="leash-track"><div class="leash-fill"></div><div class="leash-warn"></div></div>
+            </div>
+          </div>
+        </div>
+        <div class="footer band halftone" style="margin-top:4px;">
+          <span><span class="key">A</span> Confirm &nbsp; <span class="key">B</span> Back &nbsp; <span class="key">▤</span> Wheel</span>
+          <span class="redcheck"><span class="swatch"></span> no rubrication on this screen</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="panel-slot">
+      <h2>End of Wave <span class="tag">— mixed row kinds, five fixed rows, no scroll</span></h2>
+      <div class="game stitch-frame">
+        <div class="wave-title halftone bracket-corner">
+          <div class="bc-br"></div>
+          <div class="h">Wave 3 <span class="ember-word">Cleared</span></div>
+          <div class="s">the Highgates · floor 2</div>
+        </div>
+        <table class="board">
+          <thead>
+            <tr><th class="num">Rank</th><th>Unit</th><th class="num">Kills</th></tr>
+          </thead>
+          <tbody>
+            <tr class="lead">
+              <td class="rank">01</td>
+              <td class="unit">Spearmen <span class="mult">×50</span></td>
+              <td class="kills">142</td>
+            </tr>
+            <tr>
+              <td class="rank">02</td>
+              <td class="unit">Vanguard<span class="tag">HERO</span></td>
+              <td class="kills">97</td>
+            </tr>
+            <tr>
+              <td class="rank">03</td>
+              <td class="unit">Veteran <span class="mult">×12</span></td>
+              <td class="kills">74</td>
+            </tr>
+            <tr>
+              <td class="rank">04</td>
+              <td class="unit">Bannerman<span class="tag">STANDOUT</span></td>
+              <td class="kills">51</td>
+            </tr>
+            <tr>
+              <td class="rank">05</td>
+              <td class="unit">Shield <span class="mult">×24</span></td>
+              <td class="kills">38</td>
+            </tr>
+          </tbody>
+        </table>
+        <div class="footer band halftone" style="margin-top:0;">
+          <span><span class="key">A</span> Continue &nbsp; <span class="key">Y</span> Full Muster</span>
+          <span class="redcheck"><span class="swatch"></span> no rubrication on this screen</span>
+        </div>
+      </div>
+      <p style="font-size:12.5px; color:var(--page-fg-dim); margin-top:12px; max-width:52ch;">
+        Row 1 and 3 and 5 are squad-type aggregates (label carries the <code style="font:12px ui-monospace,monospace;">×N</code> suffix
+        in Iron); rows 2 and 4 are individuals — a fixed hero and a named standout — carrying a small
+        role tag instead of a multiplier. No icon or colour distinguishes the two kinds; the text does.
+      </p>
+    </div>
+  </div>
+
+  <div class="legend">
+    <h3>Role system</h3>
+    <div class="swatches">
+      <div class="sw">
+        <div class="chip2" style="background:#1c1712;"></div>
+        <div class="name">Ink</div>
+        <div class="role">Ground, recessed wells, void, text-on-Parchment</div>
+      </div>
+      <div class="sw">
+        <div class="chip2" style="background:#585a66;"></div>
+        <div class="name">Iron</div>
+        <div class="role">Borders, hairlines, unfilled track, inactive/disabled, secondary text</div>
+      </div>
+      <div class="sw">
+        <div class="chip2" style="background:#c9bfa0;"></div>
+        <div class="name">Parchment</div>
+        <div class="role">Default surface fill, body text on Ink, neutral meter fill</div>
+      </div>
+      <div class="sw">
+        <div class="chip2" style="background:#e8a23c;"></div>
+        <div class="name">Ember</div>
+        <div class="role">Focus, selection, active order, healthy meter fill, rank-1 — the flame's own warmth, spent narrowly</div>
+      </div>
+      <div class="sw reserved">
+        <div class="chip2" style="background:#8f1d1d;"></div>
+        <div class="name">Rubrication</div>
+        <div class="role">Cost / temptation / violation only. Never HUD, never menu, never this page's two panels.</div>
+      </div>
+    </div>
+  </div>
+
+  <footer class="colophon">
+    Full spec: <code>docs/ui/ui-aesthetic.md</code>. Local copy of this file:
+    <code>docs/ui/mockups/ui-aesthetic-menu-and-wave.html</code>.
+  </footer>
+</div>
