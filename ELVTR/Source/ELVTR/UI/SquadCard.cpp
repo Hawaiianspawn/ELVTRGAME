@@ -1,6 +1,6 @@
 #include "UI/SquadCard.h"
 #include "UI/MusterGrid.h"
-#include "UI/EmberkeepPalette.h"
+#include "UI/KindledPalette.h"
 #include "Blueprint/WidgetTree.h"
 #include "Components/Border.h"
 #include "Components/TextBlock.h"
@@ -10,7 +10,7 @@
 #include "Components/VerticalBoxSlot.h"
 #include "Styling/CoreStyle.h"
 
-void USquadCard::SetSquad(const FEmberkeepSquad& InSquad, bool bInSelected)
+void USquadCard::SetSquad(const FKindledSquad& InSquad, bool bInSelected)
 {
 	Squad = InSquad;
 	bSelected = bInSelected;
@@ -95,5 +95,5 @@ void USquadCard::Refresh()
 	// In the M1 mock, a squad's chip always reads as its active order (Pale fill / Dark text).
 	Chip->SetBrushColor(Demichrome::Pale());
 	ChipText->SetColorAndOpacity(FSlateColor(Demichrome::Dark()));
-	ChipText->SetText(FText::FromString(EmberkeepStanceToString(Squad.Stance)));
+	ChipText->SetText(FText::FromString(KindledStanceToString(Squad.Stance)));
 }

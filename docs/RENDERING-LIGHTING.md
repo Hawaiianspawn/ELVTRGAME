@@ -522,25 +522,25 @@ the color gate for now."* Asked what "without the color gate" meant, the owner c
 **bypass quantization entirely**, not just more palette values. Two new CVars, same
 per-tick push as everything else in this section:
 
-- `Emberkeep.Quantize` `[0..1]`, default 1. 0 bypasses the posterise inside the Custom
+- `Kindled.Quantize` `[0..1]`, default 1. 0 bypasses the posterise inside the Custom
   node (a `lerp` at the very end, not a disabled post-process volume) and shows the raw
   lit scene instead — the flame's additive lift and the world-anchored Bayer dither both
   survive, only the value-collapse goes. `lerp(litCol, outCol, 1) == outCol` exactly, so
   the default is byte-identical to before this task.
-- `Emberkeep.PaletteSteps` `[2..8]`, default 4. How many values the posterise collapses
+- `Kindled.PaletteSteps` `[2..8]`, default 4. How many values the posterise collapses
   onto. **At 4, `Threshold1/2/3` and `Palette0..3` are pushed completely unchanged** —
   this is the non-negotiable regression guard task-057 was built under. Away from 4,
   `SwarmRenderActor.cpp` derives `Steps-1` fresh evenly-spaced thresholds
   (`GetEvenThreshold`, never reusing the tuned N=4 numbers at a different count) and
-  resamples the active `Emberkeep.Palette` preset's 4 authored colours across the new
+  resamples the active `Kindled.Palette` preset's 4 authored colours across the new
   step count (`ResamplePaletteColor`, linear interpolation along the ramp), so no preset
   needs an 8-colour variant to support the full range.
 
 `MPC_Flame` gained matching `Threshold4..7` and `Palette4..7` parameters (16 → 26
 `CollectionParameter` nodes on `M_PP_Demichrome`), and the Custom node's fixed
 three-comparison unroll became a loop over `Steps`. Same **judging dial, not canon**
-status as `Emberkeep.Palette` (task-043) — Direction A stays locked, and UMG still does
-not follow (`EmberkeepPalette.h` draws after post; that gap is task-058's).
+status as `Kindled.Palette` (task-043) — Direction A stays locked, and UMG still does
+not follow (`KindledPalette.h` draws after post; that gap is task-058's).
 
 #### Two engine gotchas worth remembering
 
@@ -636,9 +636,9 @@ forward, using the 8 `vanguard` directions) is the next layer. Painter's-order o
 not true occlusion; fine for a handful of units.
 
 ### Relationship to the capture path
-It is now the **default Unit Cam**: `UEmberkeepHud::RebuildBand` hosts a
+It is now the **default Unit Cam**: `UKindledHud::RebuildBand` hosts a
 `UUnitCamProjector` in the band's right bookend (where the capture feed's "UNIT CAM"
-used to sit), so it shows on Play with the auto-HUD (`Emberkeep.UI.AutoShow 1`) — no
+used to sit), so it shows on Play with the auto-HUD (`Kindled.UI.AutoShow 1`) — no
 console command. It is embedded in the HUD band, so it cannot be occluded by the HUD the
 way a separately-viewport-added panel was. The old `AUnitPortraitStage` unit SceneCapture
 is **retired** (`ShowCombatHud` no longer spawns it) — that per-frame full-scene render is
@@ -687,17 +687,17 @@ keeps its internal values and only its lighting tier is quantised.
 
 | CVar | Default | Note |
 |---|---|---|
-| `Emberkeep.UnitCamProj.DirShade` | 1 | Shade by which side the lens sees. 0 = distance only (the old flat look) |
-| `Emberkeep.UnitCamProj.BroodFloor` | 0.05 | Brood-only light floor, replacing `Swarm.UnitLightFloor` in this panel. Lower = brood emerge from deeper dark |
-| `Emberkeep.UnitCamProj.BroodCeil` | 0.7 | Brightest a brood is ever drawn. Clamped to ≥ `BroodFloor`. 1 = brood may reach full sprite brightness |
-| `Emberkeep.UnitCamProj.LightSteps` | 5 | Discrete lighting tiers. 0/1 = continuous (smooth, off-style); 4–6 reads as 2-bit |
+| `Kindled.UnitCamProj.DirShade` | 1 | Shade by which side the lens sees. 0 = distance only (the old flat look) |
+| `Kindled.UnitCamProj.BroodFloor` | 0.05 | Brood-only light floor, replacing `Swarm.UnitLightFloor` in this panel. Lower = brood emerge from deeper dark |
+| `Kindled.UnitCamProj.BroodCeil` | 0.7 | Brightest a brood is ever drawn. Clamped to ≥ `BroodFloor`. 1 = brood may reach full sprite brightness |
+| `Kindled.UnitCamProj.LightSteps` | 5 | Discrete lighting tiers. 0/1 = continuous (smooth, off-style); 4–6 reads as 2-bit |
 
 Reused from the world so the panel and the main view stay locked together:
 `Swarm.FlameRadius`, `Swarm.FlameFalloff`, `Swarm.UnitBackShade`, `Swarm.UnitLightFloor`.
 
 ### Camera manager (seed) + near-plane fade
 `FUnitCamDirector` resolves what the camera centres on each frame — the seed of the
-flexible manager. `Emberkeep.UnitCamProj.Focus`: `0` = the hero (overview), `1` = **follow
+flexible manager. `Kindled.UnitCamProj.Focus`: `0` = the hero (overview), `1` = **follow
 a soldier** (default). Follow uses *nearest-unit continuity* — each frame it locks the
 nearest retinue unit to last frame's focus, which stays the same unit as it moves, so the
 camera rides along with no per-frame entity handle and survives the render buffers being
@@ -711,10 +711,10 @@ most-wounded/threatened) — that's the next layer on top of the director.
 
 ### Try it
 Just press Play — the bottom-right "UNIT CAM" bookend follows a soldier. Dials (live, no
-rebuild): `Emberkeep.UnitCamProj.Focus / FollowSpeed / SoldierScale / NearFade / Fov / Dist
+rebuild): `Kindled.UnitCamProj.Focus / FollowSpeed / SoldierScale / NearFade / Fov / Dist
 / Height / Yaw / Range / Scale`, plus the shading set `DirShade / BroodFloor / BroodCeil /
 LightSteps`. `SoldierScale` is the soldier framing-size dial; `Focus 0`
-drops back to the hero overview. The standalone `Emberkeep.UI.UnitCamProj` toggle still
+drops back to the hero overview. The standalone `Kindled.UI.UnitCamProj` toggle still
 exists for isolated testing (it lands top-left, outside the HUD).
 
 ## 5. Open decisions

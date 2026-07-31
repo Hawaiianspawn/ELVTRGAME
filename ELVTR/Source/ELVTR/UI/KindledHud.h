@@ -1,9 +1,9 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "UI/EmberkeepWidget.h"
-#include "UI/EmberkeepUITypes.h"
-#include "EmberkeepHud.generated.h"
+#include "UI/KindledWidget.h"
+#include "UI/KindledUITypes.h"
+#include "KindledHud.generated.h"
 
 class UBorder;
 class UMusterPanel;
@@ -22,7 +22,7 @@ class UUnitCamProjector;
  * bWithCams=false gives a muster-only preview (single centred shelf, no split).
  */
 UCLASS()
-class ELVTR_API UEmberkeepHud : public UEmberkeepWidget
+class ELVTR_API UKindledHud : public UKindledWidget
 {
 	GENERATED_BODY()
 
@@ -43,7 +43,7 @@ protected:
 	void PushLiveMuster();
 
 	/** Push the given squads into the wings (split left/right) or the single centred shelf. */
-	void ApplyMusterSquads(const TArray<FEmberkeepSquad>& InSquads);
+	void ApplyMusterSquads(const TArray<FKindledSquad>& InSquads);
 
 	/** Match the wing boxes and the company strip to the cam's live panel size, so the whole
 	 *  rectangle stays one object as the cam scales. */
@@ -68,7 +68,7 @@ protected:
 	UPROPERTY(Transient) TObjectPtr<UMusterPanel> MusterRight = nullptr; // right wing
 	UPROPERTY(Transient) TObjectPtr<USizeBox> WingLeftBox = nullptr;
 	UPROPERTY(Transient) TObjectPtr<USizeBox> WingRightBox = nullptr;
-	/** One-camera mode (Emberkeep.UI.Cams 0) only: the single muster shelf's height box. The
+	/** One-camera mode (Kindled.UI.Cams 0) only: the single muster shelf's height box. The
 	 *  wings get their height from the cam beside them; with no cam this is what bounds it. */
 	UPROPERTY(Transient) TObjectPtr<USizeBox> ShelfBox = nullptr;
 	UPROPERTY(Transient) TObjectPtr<UUnitCamProjector> UnitCam = nullptr;

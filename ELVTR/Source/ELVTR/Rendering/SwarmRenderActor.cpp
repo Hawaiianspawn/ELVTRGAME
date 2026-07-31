@@ -36,7 +36,7 @@
 namespace
 {
 	/**
-	 * Emberkeep.Cam.Yaw, by name.
+	 * Kindled.Cam.Yaw, by name.
 	 *
 	 * It is owned by ASpikeHeroPawn's translation unit, and duplicating the
 	 * TAutoConsoleVariable here would register the same name twice. Looked up once and
@@ -47,7 +47,7 @@ namespace
 	FORCEINLINE float GetCameraYawDegrees()
 	{
 		static IConsoleVariable* CamYaw =
-			IConsoleManager::Get().FindConsoleVariable(TEXT("Emberkeep.Cam.Yaw"));
+			IConsoleManager::Get().FindConsoleVariable(TEXT("Kindled.Cam.Yaw"));
 		return CamYaw ? CamYaw->GetFloat() : 0.f;
 	}
 
@@ -189,20 +189,20 @@ namespace
 
 	// --- flame pool vs. the army-scale camera (CAMERA-SCALE-HANDOFF.md #1/#4.5) ---
 	// FlameRadius/FlameCoreRadius are dialed against the SHIPPED framing (2400uu). At the
-	// close end of Emberkeep.Cam.Scale (~700uu) FlameCoreRadius alone (330uu, ~660uu across)
+	// close end of Kindled.Cam.Scale (~700uu) FlameCoreRadius alone (330uu, ~660uu across)
 	// exceeds the frame and the whole view sits inside the pure-white core — a genuine
 	// blowout, not a tuning miss (evidence: SwarmDebugShot00027.png). Two coherent answers,
 	// neither ruled: keep the pool WORLD-FIXED (physically honest, but then the close
 	// framing must never be narrower than the pool) or make it SCREEN-PROPORTIONAL (the
 	// pool keeps a constant screen fraction at every zoom, at the cost of the light's world
-	// reach now depending on army size). Same idiom as Emberkeep.Cam.ScaleStages/Ratchet —
+	// reach now depending on army size). Same idiom as Kindled.Cam.ScaleStages/Ratchet —
 	// both live behind a CVar so the owner judges it live rather than it being baked in.
 	TAutoConsoleVariable<int32> CVarSwarmFlameScaleWithView(
 		TEXT("Swarm.FlameScaleWithView"),
 		0,
 		TEXT("0 = world-fixed (default, today's behaviour): FlameRadius/FlameCoreRadius are\n")
 		TEXT("literal world-unit values, so the pool's reach never changes but its SCREEN size\n")
-		TEXT("grows as Emberkeep.Cam.Scale narrows the view — at the close end this blows the\n")
+		TEXT("grows as Kindled.Cam.Scale narrows the view — at the close end this blows the\n")
 		TEXT("whole frame out to the white core. 1 = screen-proportional: both radii scale by\n")
 		TEXT("the live view width over Swarm.FlameScaleReferenceWidth, so the pool keeps a\n")
 		TEXT("constant fraction of the screen at every zoom (the 'carried light, darkness\n")
@@ -214,7 +214,7 @@ namespace
 		TEXT("Swarm.FlameScaleReferenceWidth"), 2400.f,
 		TEXT("View width in uu at which FlameRadius/FlameCoreRadius render exactly as dialed,\n")
 		TEXT("used only while Swarm.FlameScaleWithView is 1. Matches the shipped OrthoWidth /\n")
-		TEXT("Emberkeep.Cam.ScaleWidthFull default, so a full-army run looks identical to\n")
+		TEXT("Kindled.Cam.ScaleWidthFull default, so a full-army run looks identical to\n")
 		TEXT("today; the radii only start scaling once the camera narrows past this."),
 		ECVF_Default);
 
@@ -278,7 +278,7 @@ namespace
 		TEXT("at Demichrome Bone so the pure-white core reads as the focusing point instead\n")
 		TEXT("of blending into a field of Pale. Measured, see docs/RENDERING-LIGHTING.md §4b.7.\n")
 		TEXT("THAT RATIONALE IS STALE. It is a statement about where the QUANTIZER bins the\n")
-		TEXT("lifted value, and the game ships at Emberkeep.Quantize 0 — nothing bins it now,\n")
+		TEXT("lifted value, and the game ships at Kindled.Quantize 0 — nothing bins it now,\n")
 		TEXT("so 0.55 is no longer justified by anything. It is the value the near floor's\n")
 		TEXT("wash-out comes from: owner-reported 2026-07-29 \"when we get close it looks\n")
 		TEXT("blown out\", measured as mean floor luminance 127/255 at the bottom of frame\n")
@@ -449,11 +449,11 @@ namespace
 	// staying; this is the follow-up where the owner asked to explore the scene WITHOUT it.
 	// Two independent dials, both routed through MPC_Flame into M_PP_Demichrome exactly like
 	// the thresholds above:
-	//   Emberkeep.Quantize     - 1 = today's look, 0 = raw lit scene, no posterisation at all
-	//   Emberkeep.PaletteSteps - how many values the posterise collapses onto, 2-8
+	//   Kindled.Quantize     - 1 = today's look, 0 = raw lit scene, no posterisation at all
+	//   Kindled.PaletteSteps - how many values the posterise collapses onto, 2-8
 
 	TAutoConsoleVariable<float> CVarSwarmQuantize(
-		TEXT("Emberkeep.Quantize"),
+		TEXT("Kindled.Quantize"),
 		1.f,
 		TEXT("1 = the locked posterised demichrome look (default, byte-identical to before this\n")
 		TEXT("CVar existed). 0 = BYPASS QUANTIZATION ENTIRELY and see the raw lit scene instead\n")
@@ -466,13 +466,13 @@ namespace
 		ECVF_Default);
 
 	TAutoConsoleVariable<int32> CVarSwarmPaletteSteps(
-		TEXT("Emberkeep.PaletteSteps"),
+		TEXT("Kindled.PaletteSteps"),
 		4,
 		TEXT("How many discrete values the demichrome pass posterises luminance into, 2-8.\n")
 		TEXT("Threshold1/2/3 and Palette0-3 stay the LOCKED, owner-tuned N=4 numbers - at the\n")
 		TEXT("default 4 this CVar changes nothing (see TickFlame). Away from 4 it derives a\n")
 		TEXT("fresh set of evenly spaced thresholds (GetEvenThreshold) rather than reusing the\n")
-		TEXT("tuned N=4 numbers at a different count, and resamples the active Emberkeep.Palette\n")
+		TEXT("tuned N=4 numbers at a different count, and resamples the active Kindled.Palette\n")
 		TEXT("preset's control points across the new step count (ResamplePaletteColor) so a\n")
 		TEXT("4-colour preset still serves 2-8 without a new authored row. Out-of-range clamps\n")
 		TEXT("to [2,8]."),
@@ -490,13 +490,13 @@ namespace
 	// bucket 2 and emerges as whatever entry 2 currently is. Baked sheets do not
 	// need regenerating to preview a ramp.
 	//
-	// NOT recoloured: UMG (EmberkeepPalette.h) draws after post-processing.
+	// NOT recoloured: UMG (KindledPalette.h) draws after post-processing.
 	//
 	// TO ADD A CANDIDATE: one row here, darkest to brightest, plus the matching
 	// entry in docs/data/art/palette.json. That is the whole cost, by design —
 	// palettes are meant to be shopped.
 	// task-057: Values[] grew from a fixed 4 to a padded 8 so a preset can serve
-	// Emberkeep.PaletteSteps 2-8. NumValues is how many of those 8 are actually AUTHORED
+	// Kindled.PaletteSteps 2-8. NumValues is how many of those 8 are actually AUTHORED
 	// (every existing preset is still just 4) - ResamplePaletteColor below stretches or
 	// compresses that many control points across whatever step count is live, so adding a
 	// candidate is still exactly one row here (task-043's cheapness requirement, preserved).
@@ -543,7 +543,7 @@ namespace
 
 	/**
 	 * The Nth of Steps-1 evenly spaced thresholds across (0,1), used whenever
-	 * Emberkeep.PaletteSteps asks for something other than the locked N=4 default.
+	 * Kindled.PaletteSteps asks for something other than the locked N=4 default.
 	 * N=4 never calls this - Threshold1/2/3 stay the owner-tuned 0.40/0.50/0.75 exactly,
 	 * per task-057's regression guard. Index is 0-based (0 -> the first/darkest step).
 	 */
@@ -553,7 +553,7 @@ namespace
 	}
 
 	TAutoConsoleVariable<int32> CVarSwarmPalette(
-		TEXT("Emberkeep.Palette"),
+		TEXT("Kindled.Palette"),
 		0,
 		TEXT("Which palette the demichrome pass outputs. Live — no rebuild, no sprite regen.\n")
 		TEXT("  0 = demichrome  (LOCKED direction, min luma gap 0.218)\n")
@@ -592,7 +592,7 @@ namespace
 	// as fully-formed shapes, and it let the near ones ride the full albedo into the
 	// top of the ramp and blow out. Brood now get their own window — near-black at
 	// spawn distance, held below the retinue at contact — which is the same split
-	// Emberkeep.UnitCamProj.BroodFloor/BroodCeil already makes in the close-up panel
+	// Kindled.UnitCamProj.BroodFloor/BroodCeil already makes in the close-up panel
 	// (docs/RENDERING-LIGHTING.md §4d finding 2/3). Keep the two roughly in step.
 	TAutoConsoleVariable<float> CVarSwarmBroodLightFloor(
 		TEXT("Swarm.BroodLightFloor"),
@@ -608,7 +608,7 @@ namespace
 		TEXT("(Its old advice — 'raise it toward Swarm.UnitLightFloor to buy back the\n")
 		TEXT("always-visible tide' — was written when a demichrome pass quantised the\n")
 		TEXT("result to a 4-value ramp and Palette[0] was not black. The game ships at\n")
-		TEXT("Emberkeep.Quantize 0, so that advice has been wrong since 2026-07-28.)"),
+		TEXT("Kindled.Quantize 0, so that advice has been wrong since 2026-07-28.)"),
 		ECVF_Default);
 
 	// The dial that actually makes a brood visible, and the one thing in this block that is
@@ -673,7 +673,7 @@ namespace
 		TEXT("  220             does almost nothing: still ~90%% lifted at melee range\n")
 		TEXT("  700             lift only survives out near the pool edge\n")
 		TEXT("Scaled to the shipped eye-level shot — a unit standing ON the hero measures\n")
-		TEXT("363uu from the lens at Emberkeep.Cam.Dist 323. Retune if that framing moves.\n")
+		TEXT("363uu from the lens at Kindled.Cam.Dist 323. Retune if that framing moves.\n")
 		TEXT("Retinue are unaffected either way: they carry no additive term.\n")
 		TEXT("Does not touch the hit flash — being struck reads white at every distance."),
 		ECVF_Default);
@@ -790,7 +790,7 @@ namespace
 				Total > 0 ? 100.f * (float)Counts[i] / (float)Total : 0.f);
 		}
 		// The weights CVars are owned by SwarmProcessors.cpp's translation unit — looked up
-		// by name for the same reason Emberkeep.Cam.Yaw is above, so this file does not
+		// by name for the same reason Kindled.Cam.Yaw is above, so this file does not
 		// register a second copy of either. Logged alongside the counts because a histogram
 		// without the table it came from is not evidence of anything.
 		const IConsoleVariable* WeightsVar = IConsoleManager::Get().FindConsoleVariable(CVarName);
@@ -1330,7 +1330,7 @@ void ASwarmRenderActor::TickFlame(float DeltaSeconds)
 
 	// Pool radii, optionally re-derived from the live framing so the pool keeps a constant
 	// SCREEN fraction while the camera zooms (Swarm.FlameScaleWithView) instead of blowing
-	// out at the close end of Emberkeep.Cam.Scale. Off by default — see the CVar comment.
+	// out at the close end of Kindled.Cam.Scale. Off by default — see the CVar comment.
 	float EffectiveFlameRadius = CVarSwarmFlameRadius.GetValueOnGameThread();
 	float EffectiveFlameCoreRadius = CVarSwarmFlameCoreRadius.GetValueOnGameThread();
 	FVector2D ViewportSize = FVector2D::ZeroVector;
@@ -1413,7 +1413,7 @@ void ASwarmRenderActor::TickFlame(float DeltaSeconds)
 	}
 
 	// Palette: push the selected preset's colours to MPC_Flame every tick, so dragging
-	// Emberkeep.Palette (or Emberkeep.PaletteSteps) in the Breadboard recolours the world
+	// Kindled.Palette (or Kindled.PaletteSteps) in the Breadboard recolours the world
 	// immediately. Presets are authored with 4 control points; ResamplePaletteColor stretches
 	// or compresses that ramp to whatever Steps is live, so this is never a hard error even
 	// when Steps != the preset's NumValues (task-057's "pad or clamp gracefully" requirement).
@@ -1621,7 +1621,7 @@ void ASwarmRenderActor::Tick(float DeltaSeconds)
 
 	// Swarm.RawNear's camera-space band. Measured to the CAMERA, so this is the one term in
 	// the loop that does not care where the flame is. Read from the camera cache rather than
-	// re-deriving the Emberkeep.Cam.* rig: the rig writes to this camera, so the cache is
+	// re-deriving the Kindled.Cam.* rig: the rig writes to this camera, so the cache is
 	// already the answer and cannot drift out of step with it the way a second derivation would.
 	const float RawNear = FMath::Max(CVarSwarmRawNear.GetValueOnGameThread(), 0.f);
 	const APlayerController* RawPC = GetWorld() ? GetWorld()->GetFirstPlayerController() : nullptr;
@@ -1636,7 +1636,7 @@ void ASwarmRenderActor::Tick(float DeltaSeconds)
 
 	// The sim stores a WORLD facing; this camera turns it into a column. Reading the
 	// live orbit CVar here rather than baking a column in the sim is what keeps sprites
-	// correct while Emberkeep.Cam.Yaw spins the map — otherwise every unit would keep
+	// correct while Kindled.Cam.Yaw spins the map — otherwise every unit would keep
 	// facing its old screen direction as the view rotated under it.
 	const float ViewYaw = GetCameraYawDegrees();
 

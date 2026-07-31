@@ -30,7 +30,7 @@ public:
 
 	/**
 	 * Seeds the camera's constructor placement only. At runtime TickCamera owns the transform
-	 * from Emberkeep.Cam.Dist, so editing this in the details panel will not move the in-game
+	 * from Kindled.Cam.Dist, so editing this in the details panel will not move the in-game
 	 * shot — change the CVar (or its line in Saved/SwarmExecOnPlay.txt) instead.
 	 */
 	UPROPERTY(EditAnywhere, Category = "Spike")
@@ -44,7 +44,7 @@ private:
 	void TickHeroCombat(float DeltaSeconds);
 
 	/**
-	 * Drive the whole camera transform from the Emberkeep.Cam.* dials — projection, pitch/yaw,
+	 * Drive the whole camera transform from the Kindled.Cam.* dials — projection, pitch/yaw,
 	 * distance, focus offset — plus the up-axis bias that keeps the HUD from pushing the hero
 	 * out of the visible strip. Owns the camera every frame, so the constructor's values only
 	 * survive as the editor preview before BeginPlay.
@@ -75,7 +75,7 @@ private:
 	/** Smoothed camera offset along its up-axis compensating for the HUD's occluded band. */
 	float CameraHudBias = 0.f;
 
-	/** Where the camera actually is, so Emberkeep.Cam.Lerp has something to ease from. */
+	/** Where the camera actually is, so Kindled.Cam.Lerp has something to ease from. */
 	FVector CameraLoc = FVector::ZeroVector;
 	FRotator CameraRot = FRotator::ZeroRotator;
 	/** False until the first TickCamera places it — stops Lerp swooping in from the origin. */

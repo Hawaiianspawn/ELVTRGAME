@@ -1,5 +1,5 @@
 #include "UI/StitchMeter.h"
-#include "UI/EmberkeepPalette.h"
+#include "UI/KindledPalette.h"
 #include "Blueprint/WidgetTree.h"
 #include "Components/HorizontalBox.h"
 #include "Components/HorizontalBoxSlot.h"

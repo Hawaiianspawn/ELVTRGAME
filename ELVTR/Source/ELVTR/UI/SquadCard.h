@@ -1,8 +1,8 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "UI/EmberkeepWidget.h"
-#include "UI/EmberkeepUITypes.h"
+#include "UI/KindledWidget.h"
+#include "UI/KindledUITypes.h"
 #include "SquadCard.generated.h"
 
 class UBorder;
@@ -15,19 +15,19 @@ class UMusterGrid;
  * Steel; selected jumps to Pale. Bound to one squad's state only. Built entirely in C++.
  */
 UCLASS()
-class ELVTR_API USquadCard : public UEmberkeepWidget
+class ELVTR_API USquadCard : public UKindledWidget
 {
 	GENERATED_BODY()
 
 public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Squad")
-	FEmberkeepSquad Squad;
+	FKindledSquad Squad;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Squad")
 	bool bSelected = false;
 
 	UFUNCTION(BlueprintCallable, Category = "Squad")
-	void SetSquad(const FEmberkeepSquad& InSquad, bool bInSelected);
+	void SetSquad(const FKindledSquad& InSquad, bool bInSelected);
 
 protected:
 	virtual TSharedRef<SWidget> RebuildWidget() override;

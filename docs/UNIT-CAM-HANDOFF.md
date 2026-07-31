@@ -9,7 +9,7 @@ replace it with your own camera-emulation method. **Nothing here is committed.**
 ## TL;DR
 
 - The unit cam **is** a real second camera (`AUnitPortraitStage` → `SceneCaptureComponent2D`
-  → render target → `UEmberkeepCamFeed` panel). It renders; it just had nothing useful to show.
+  → render target → `UKindledCamFeed` panel). It renders; it just had nothing useful to show.
 - Three hard walls, all **confirmed live** (PIE + screenshots), in priority order:
   1. **SceneCaptures can't see `DrawDebug` primitives.** The swarm's default renderer is debug
      boxes, which are viewport-only → invisible to any capture. Proven: filled the main view
@@ -59,12 +59,12 @@ Added 6 CVars and a block in `Tick()` that re-frames the capture **behind the un
 forward (+X) into the dark**, every frame, so the shot is tunable live without a rebuild:
 
 ```
-Emberkeep.UI.UnitCam.SubjectFwd  250   ; how far ahead the stand-in sits (local +X)
-Emberkeep.UI.UnitCam.Dist        320   ; how far BEHIND the stand-in the camera sits
-Emberkeep.UI.UnitCam.Height      150   ; camera height
-Emberkeep.UI.UnitCam.Pitch       -12   ; look-down degrees
-Emberkeep.UI.UnitCam.Side          0   ; over-the-shoulder offset
-Emberkeep.UI.UnitCam.FOV          55
+Kindled.UI.UnitCam.SubjectFwd  250   ; how far ahead the stand-in sits (local +X)
+Kindled.UI.UnitCam.Dist        320   ; how far BEHIND the stand-in the camera sits
+Kindled.UI.UnitCam.Height      150   ; camera height
+Kindled.UI.UnitCam.Pitch       -12   ; look-down degrees
+Kindled.UI.UnitCam.Side          0   ; over-the-shoulder offset
+Kindled.UI.UnitCam.FOV          55
 ```
 
 The header was **not** touched (kept it Live-Coding-safe — no UPROPERTY/layout change). The

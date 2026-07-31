@@ -1,7 +1,7 @@
 #include "UI/MusterPanel.h"
 #include "UI/SquadCard.h"
 #include "UI/StitchMeter.h"
-#include "UI/EmberkeepPalette.h"
+#include "UI/KindledPalette.h"
 #include "Blueprint/WidgetTree.h"
 #include "Components/Border.h"
 #include "Components/TextBlock.h"
@@ -14,13 +14,13 @@
 #include "Components/PanelWidget.h"
 #include "Styling/CoreStyle.h"
 
-void UMusterPanel::SetSquads(const TArray<FEmberkeepSquad>& InSquads)
+void UMusterPanel::SetSquads(const TArray<FKindledSquad>& InSquads)
 {
 	Squads = InSquads;
 	Rebuild();
 }
 
-void UMusterPanel::SetFlow(EEmberkeepMusterFlow InFlow)
+void UMusterPanel::SetFlow(EKindledMusterFlow InFlow)
 {
 	if (Flow != InFlow)
 	{
@@ -54,21 +54,21 @@ void UMusterPanel::SetShowCompany(bool bInShow)
 	}
 }
 
-TArray<FEmberkeepSquad> UMusterPanel::MakeMockSquads()
+TArray<FKindledSquad> UMusterPanel::MakeMockSquads()
 {
 	auto MakeSquad = [](const TCHAR* Name, int32 Size, int32 Standing, int32 Cols, bool bWide)
 	{
-		FEmberkeepSquad S;
+		FKindledSquad S;
 		S.DisplayName = FText::FromString(Name);
 		S.Size = Size;
 		S.Standing = Standing;
 		S.Columns = Cols;
 		S.bWide = bWide;
-		S.Stance = EEmberkeepStance::Follow;
+		S.Stance = EKindledStance::Follow;
 		return S;
 	};
 
-	TArray<FEmberkeepSquad> Mock;
+	TArray<FKindledSquad> Mock;
 	Mock.Add(MakeSquad(TEXT("Shield"), 24, 24, 6, false));
 	Mock.Add(MakeSquad(TEXT("Shield"), 24, 18, 6, false)); // one wounded squad, to show fallen pips
 	Mock.Add(MakeSquad(TEXT("Vets"), 20, 20, 5, false));
@@ -162,7 +162,7 @@ void UMusterPanel::Rebuild()
 
 	// The card container follows Flow: a horizontal shelf for the menu, a vertical stack for a
 	// HUD wing (a wing is tall and narrow, so cards run down it, not across).
-	const bool bColumnFlow = Flow == EEmberkeepMusterFlow::Column;
+	const bool bColumnFlow = Flow == EKindledMusterFlow::Column;
 	const TSubclassOf<UPanelWidget> WantClass = bColumnFlow
 		? TSubclassOf<UPanelWidget>(UVerticalBox::StaticClass())
 		: TSubclassOf<UPanelWidget>(UHorizontalBox::StaticClass());
@@ -186,7 +186,7 @@ void UMusterPanel::Rebuild()
 
 	for (int32 i = 0; i < Squads.Num(); ++i)
 	{
-		const FEmberkeepSquad& S = Squads[i];
+		const FKindledSquad& S = Squads[i];
 		TotalSize += S.Size;
 		TotalStanding += S.Standing;
 

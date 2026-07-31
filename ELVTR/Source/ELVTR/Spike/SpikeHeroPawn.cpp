@@ -15,7 +15,7 @@
 namespace
 {
 	TAutoConsoleVariable<float> CVarCamHudBias(
-		TEXT("Emberkeep.Cam.HudBias"), 1.f,
+		TEXT("Kindled.Cam.HudBias"), 1.f,
 		TEXT("How far the game camera slides to compensate for the combat HUD covering the\n")
 		TEXT("bottom of the screen, as a multiple of the exact correction. 1 = the hero sits\n")
 		TEXT("dead centre of the strip you can actually see (default). 0 = off, hero centred in\n")
@@ -24,7 +24,7 @@ namespace
 		ECVF_Default);
 
 	TAutoConsoleVariable<float> CVarCamHudBiasLerp(
-		TEXT("Emberkeep.Cam.HudBiasLerp"), 6.f,
+		TEXT("Kindled.Cam.HudBiasLerp"), 6.f,
 		TEXT("How fast the camera eases to a new HUD bias (FInterpTo speed). The HUD resizes in\n")
 		TEXT("steps as the body count changes, and snapping on those steps reads as the world\n")
 		TEXT("twitching. 0 = snap instantly."),
@@ -37,71 +37,71 @@ namespace
 	// the editor preview before BeginPlay. Defaults reproduce the old shot exactly.
 
 	TAutoConsoleVariable<int32> CVarCamOrtho(
-		TEXT("Emberkeep.Cam.Ortho"), 1,
+		TEXT("Kindled.Cam.Ortho"), 1,
 		TEXT("1 = orthographic (the shipped look: no perspective convergence, so the horde reads\n")
 		TEXT("as a flat tactical field). 0 = perspective, which brings back foreshortening and\n")
 		TEXT("makes Fov and Dist meaningful as separate dials."),
 		ECVF_Default);
 
 	TAutoConsoleVariable<float> CVarCamOrthoWidth(
-		TEXT("Emberkeep.Cam.OrthoWidth"), 2400.f,
+		TEXT("Kindled.Cam.OrthoWidth"), 2400.f,
 		TEXT("Ortho view WIDTH in world units — the zoom dial while Ortho is 1. This is the\n")
 		TEXT("framing number to compare against the retinue bbox in the spacing report when\n")
 		TEXT("deciding whether the army is too small or the camera is too wide."),
 		ECVF_Default);
 
 	TAutoConsoleVariable<float> CVarCamFov(
-		TEXT("Emberkeep.Cam.Fov"), 60.f,
+		TEXT("Kindled.Cam.Fov"), 60.f,
 		TEXT("Horizontal field of view in degrees, used only while Ortho is 0."),
 		ECVF_Default);
 
 	TAutoConsoleVariable<float> CVarCamDist(
-		TEXT("Emberkeep.Cam.Dist"), 1200.f,
+		TEXT("Kindled.Cam.Dist"), 1200.f,
 		TEXT("How far the camera sits from the hero along its own view axis, in uu. At the\n")
 		TEXT("default Pitch of -90 this is literally height above him. Under ortho it does NOT\n")
 		TEXT("zoom (that is OrthoWidth) — it only moves the near/far planes through the world."),
 		ECVF_Default);
 
 	TAutoConsoleVariable<float> CVarCamPitch(
-		TEXT("Emberkeep.Cam.Pitch"), -90.f,
+		TEXT("Kindled.Cam.Pitch"), -90.f,
 		TEXT("Camera pitch in degrees. -90 = straight down (default). Raising it toward about\n")
 		TEXT("-50 gives an angled RTS shot — note the units are camera-facing billboards, so a\n")
 		TEXT("shallow pitch is what makes their facing artwork read at all."),
 		ECVF_Default);
 
 	TAutoConsoleVariable<float> CVarCamYaw(
-		TEXT("Emberkeep.Cam.Yaw"), 0.f,
+		TEXT("Kindled.Cam.Yaw"), 0.f,
 		TEXT("Orbit the whole view around the hero, in degrees. At Pitch -90 this spins the map\n")
-		TEXT("under you. See Emberkeep.Cam.YawInput — without it WASD keeps pushing along world\n")
+		TEXT("under you. See Kindled.Cam.YawInput — without it WASD keeps pushing along world\n")
 		TEXT("axes and stops matching the screen as soon as this leaves 0."),
 		ECVF_Default);
 
 	TAutoConsoleVariable<int32> CVarCamYawInput(
-		TEXT("Emberkeep.Cam.YawInput"), 1,
+		TEXT("Kindled.Cam.YawInput"), 1,
 		TEXT("1 = rotate WASD by the camera yaw so 'W' always means up-screen (default). 0 = raw\n")
 		TEXT("world-axis movement, which is what the spike always did and is only correct while\n")
 		TEXT("Yaw is 0. Turn this off only if you want to feel the world axes directly."),
 		ECVF_Default);
 
 	TAutoConsoleVariable<float> CVarCamOffsetX(
-		TEXT("Emberkeep.Cam.OffsetX"), 0.f,
+		TEXT("Kindled.Cam.OffsetX"), 0.f,
 		TEXT("World-space X offset applied to what the camera centres on. Shifts the framing\n")
 		TEXT("without moving the hero — lead room ahead of the fight, for instance."),
 		ECVF_Default);
 
 	TAutoConsoleVariable<float> CVarCamOffsetY(
-		TEXT("Emberkeep.Cam.OffsetY"), 0.f,
+		TEXT("Kindled.Cam.OffsetY"), 0.f,
 		TEXT("World-space Y offset applied to the camera's focus point."),
 		ECVF_Default);
 
 	TAutoConsoleVariable<float> CVarCamOffsetZ(
-		TEXT("Emberkeep.Cam.OffsetZ"), 0.f,
+		TEXT("Kindled.Cam.OffsetZ"), 0.f,
 		TEXT("World-space Z offset applied to the camera's focus point. Useful to aim above the\n")
 		TEXT("hero's feet once Pitch is shallow enough for ground level to matter."),
 		ECVF_Default);
 
 	TAutoConsoleVariable<float> CVarCamLerp(
-		TEXT("Emberkeep.Cam.Lerp"), 0.f,
+		TEXT("Kindled.Cam.Lerp"), 0.f,
 		TEXT("Smoothing on camera moves (FInterpTo speed), so dragging a dial glides instead of\n")
 		TEXT("teleporting. 0 = snap, which is the honest setting while tuning: smoothing hides\n")
 		TEXT("how far a value actually moved the shot."),
@@ -113,28 +113,28 @@ namespace
 	// 0 every dial below is inert and the camera behaves exactly as it always has.
 
 	TAutoConsoleVariable<int32> CVarCamScale(
-		TEXT("Emberkeep.Cam.Scale"), 0,
+		TEXT("Kindled.Cam.Scale"), 0,
 		TEXT("1 = the camera scales with how much army you have left; 0 = off (default), and the\n")
 		TEXT("Cam.OrthoWidth / Pitch / Dist / Ortho dials drive the shot by hand as before.\n")
 		TEXT("While on, this OVERRIDES those four — they stop responding, by design."),
 		ECVF_Default);
 
-	// Weights deliberately mirror Emberkeep.UnitCamProj.Size* — the Unit Cam already solved
+	// Weights deliberately mirror Kindled.UnitCamProj.Size* — the Unit Cam already solved
 	// "how much army is this" and the two views must not disagree about it.
 	TAutoConsoleVariable<float> CVarCamScaleRetinueWeight(
-		TEXT("Emberkeep.Cam.ScaleRetinueWeight"), 10.f,
+		TEXT("Kindled.Cam.ScaleRetinueWeight"), 10.f,
 		TEXT("Weight of one live retinue soldier in the army-scale total. Heavily outweighs\n")
 		TEXT("ScaleBroodWeight on purpose: attrition of YOUR army is what the shot is about."),
 		ECVF_Default);
 
 	TAutoConsoleVariable<float> CVarCamScaleBroodWeight(
-		TEXT("Emberkeep.Cam.ScaleBroodWeight"), 0.25f,
+		TEXT("Kindled.Cam.ScaleBroodWeight"), 0.25f,
 		TEXT("Weight of one live brood in the army-scale total. Small but non-zero, so being\n")
 		TEXT("swarmed widens the shot a little — the tide is part of the picture."),
 		ECVF_Default);
 
 	TAutoConsoleVariable<float> CVarCamScaleBodies(
-		TEXT("Emberkeep.Cam.ScaleBodies"), 1200.f,
+		TEXT("Kindled.Cam.ScaleBodies"), 1200.f,
 		TEXT("WEIGHTED body count at which the camera is fully at its 'army' end. Not a raw\n")
 		TEXT("headcount — see ScaleRetinueWeight / ScaleBroodWeight.\n")
 		TEXT("Calibrated to RetinueCap * ScaleRetinueWeight (120 * 10), so a FULL RETINUE ON ITS\n")
@@ -145,20 +145,20 @@ namespace
 		ECVF_Default);
 
 	TAutoConsoleVariable<float> CVarCamScaleCurve(
-		TEXT("Emberkeep.Cam.ScaleCurve"), 1.f,
+		TEXT("Kindled.Cam.ScaleCurve"), 1.f,
 		TEXT("Shaping exponent on the 0..1 army scalar. 1 = linear. >1 holds the wide shot\n")
 		TEXT("longer and collapses late (attrition feels survivable, then sudden); <1 descends\n")
 		TEXT("early and eases out."),
 		ECVF_Default);
 
 	TAutoConsoleVariable<float> CVarCamScaleWidthFull(
-		TEXT("Emberkeep.Cam.ScaleWidthFull"), 2400.f,
+		TEXT("Kindled.Cam.ScaleWidthFull"), 2400.f,
 		TEXT("World units across the view at full army. Matches the shipped OrthoWidth, so a\n")
 		TEXT("full-strength run looks exactly like today."),
 		ECVF_Default);
 
 	TAutoConsoleVariable<float> CVarCamScaleWidthAlone(
-		TEXT("Emberkeep.Cam.ScaleWidthAlone"), 700.f,
+		TEXT("Kindled.Cam.ScaleWidthAlone"), 700.f,
 		TEXT("World units across the view with nobody left — the character-camera end."),
 		ECVF_Default);
 
@@ -174,7 +174,7 @@ namespace
 		// (OrthoWidth/aspect)/sin(pitch) of GROUND. At -90 that is ~1350uu, at -55 it is ~1650uu.
 		// Lower this further without raising NearRadius and the sim LOD starts striding units the
 		// player can watch. The pairing is the constraint, not either value alone.
-		TEXT("Emberkeep.Cam.ScalePitchFull"), -55.f,
+		TEXT("Kindled.Cam.ScalePitchFull"), -55.f,
 		TEXT("Camera pitch at full army. -90 = straight down (the old battlefield map), -55 =\n")
 		TEXT("tilted so the arena reads as ground you look ACROSS rather than down at.\n")
 		TEXT("Shallower sees further down-field — raise Swarm.SimLOD.NearRadius to match, or the\n")
@@ -183,23 +183,23 @@ namespace
 		ECVF_Default);
 
 	TAutoConsoleVariable<float> CVarCamScalePitchAlone(
-		TEXT("Emberkeep.Cam.ScalePitchAlone"), -22.f,
+		TEXT("Kindled.Cam.ScalePitchAlone"), -22.f,
 		TEXT("Camera pitch with nobody left. Shallow enough to read as standing behind a person\n")
 		TEXT("rather than looking down at a token."),
 		ECVF_Default);
 
 	TAutoConsoleVariable<float> CVarCamScaleDistFull(
-		TEXT("Emberkeep.Cam.ScaleDistFull"), 1200.f,
+		TEXT("Kindled.Cam.ScaleDistFull"), 1200.f,
 		TEXT("Camera distance back along the view axis at full army."),
 		ECVF_Default);
 
 	TAutoConsoleVariable<float> CVarCamScaleDistAlone(
-		TEXT("Emberkeep.Cam.ScaleDistAlone"), 420.f,
+		TEXT("Kindled.Cam.ScaleDistAlone"), 420.f,
 		TEXT("Camera distance with nobody left. Short enough that perspective actually bites."),
 		ECVF_Default);
 
 	TAutoConsoleVariable<float> CVarCamScaleSwapAt(
-		TEXT("Emberkeep.Cam.ScaleSwapAt"), 0.35f,
+		TEXT("Kindled.Cam.ScaleSwapAt"), 0.35f,
 		TEXT("Army scalar (0..1) below which the projection switches to perspective. You cannot\n")
 		TEXT("lerp an ortho matrix into a perspective one, so this is a HARD swap — but the FOV\n")
 		TEXT("is solved from the same framing width, so the frame is identical across the cut and\n")
@@ -207,7 +207,7 @@ namespace
 		ECVF_Default);
 
 	TAutoConsoleVariable<int32> CVarCamScaleStages(
-		TEXT("Emberkeep.Cam.ScaleStages"), 0,
+		TEXT("Kindled.Cam.ScaleStages"), 0,
 		TEXT("0 = continuous (the camera is always subtly moving). N > 0 quantises the army\n")
 		TEXT("scalar into N steps, so the shot SETTLES and only re-frames when a step is\n")
 		TEXT("crossed. This is CAMERA-SCALE.md's open question 2 as a live dial — try 4 or 5\n")
@@ -215,7 +215,7 @@ namespace
 		ECVF_Default);
 
 	TAutoConsoleVariable<int32> CVarCamScaleRatchet(
-		TEXT("Emberkeep.Cam.ScaleRatchet"), 0,
+		TEXT("Kindled.Cam.ScaleRatchet"), 0,
 		TEXT("1 = one-way: the camera descends as the army dies and never rises again, even if a\n")
 		TEXT("breather refills the retinue. 0 = reversible. CAMERA-SCALE.md's open question 3 —\n")
 		TEXT("one-way is the stronger dramatic statement and the worse feedback loop. Resets each\n")
@@ -223,7 +223,7 @@ namespace
 		ECVF_Default);
 
 	TAutoConsoleVariable<float> CVarCamScaleLerp(
-		TEXT("Emberkeep.Cam.ScaleLerp"), 1.5f,
+		TEXT("Kindled.Cam.ScaleLerp"), 1.5f,
 		TEXT("Easing speed on the army scalar itself (FInterpTo). Deliberately separate from\n")
 		TEXT("Cam.Lerp: this smooths the DRIVER so a squad wiping doesn't jolt the shot, while\n")
 		TEXT("Cam.Lerp smooths the resulting move. 0 = react instantly.\n")
@@ -237,7 +237,7 @@ namespace
 	// motion the owner asked for, and it matches how the flame already moves (TickFlame's
 	// stiffness/damping pair), so the two big continuous motions in the game share a feel.
 	TAutoConsoleVariable<float> CVarCamScaleStiffness(
-		TEXT("Emberkeep.Cam.ScaleStiffness"), 3.f,
+		TEXT("Kindled.Cam.ScaleStiffness"), 3.f,
 		TEXT("Spring stiffness (natural frequency, rad/s) pulling the army scalar toward its\n")
 		TEXT("target. Higher = the camera commits to a new scale sooner. 0 disables the spring\n")
 		TEXT("entirely and falls back to Cam.ScaleLerp's plain FInterpTo.\n")
@@ -246,7 +246,7 @@ namespace
 		ECVF_Default);
 
 	TAutoConsoleVariable<float> CVarCamScaleDamping(
-		TEXT("Emberkeep.Cam.ScaleDamping"), 1.f,
+		TEXT("Kindled.Cam.ScaleDamping"), 1.f,
 		TEXT("Spring damping RATIO. 1 = critically damped: fastest approach with NO overshoot,\n")
 		TEXT("and the right default here because overshoot on this scalar means the camera\n")
 		TEXT("visibly rebounds past the framing and comes back, which reads as a mistake rather\n")

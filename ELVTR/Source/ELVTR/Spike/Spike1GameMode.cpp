@@ -10,7 +10,7 @@
 #include "Misc/CommandLine.h"
 #include "Misc/Parse.h"
 #include "SpikeHeroPawn.h"
-#include "UI/EmberkeepUIDebug.h"
+#include "UI/KindledUIDebug.h"
 #include "TimerManager.h"
 
 namespace
@@ -199,11 +199,11 @@ void ASpike1GameMode::BeginPlay()
 		RestartRun();
 	}
 
-	// Show the combat HUD on play by default (toggle with `Emberkeep.UI.AutoShow 0`).
+	// Show the combat HUD on play by default (toggle with `Kindled.UI.AutoShow 0`).
 	// Next tick so the local player's viewport and pawn are ready.
 	GetWorldTimerManager().SetTimerForNextTick(FTimerDelegate::CreateLambda([this]()
 	{
-		EmberkeepUI::AutoShowIfEnabled(GetWorld());
+		KindledUI::AutoShowIfEnabled(GetWorld());
 	}));
 }
 

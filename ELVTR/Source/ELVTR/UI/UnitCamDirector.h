@@ -3,7 +3,7 @@
 #include "CoreMinimal.h"
 
 /**
- * What the virtual camera centres on. Mirrors Emberkeep.UnitCamProj.Focus.
+ * What the virtual camera centres on. Mirrors Kindled.UnitCamProj.Focus.
  *
  * Cast focus is NOT a mode here: a cast is a transient override that punches focus off
  * whatever mode is running and hands it back when the spell ends, so it composes with
@@ -37,7 +37,7 @@ struct FUnitCamShot
  *
  * Holds smoothing state across frames, so one instance belongs to one panel.
  *
- * Dials: Emberkeep.UnitCamProj.{Focus,FollowSpeed,Yaw,AutoLook,LookLerp,CombatScan,
+ * Dials: Kindled.UnitCamProj.{Focus,FollowSpeed,Yaw,AutoLook,LookLerp,CombatScan,
  * CastFocusSpeed,CastZoom,YawClampDeg,SelectedSquad,SelectSpeed} — defined in
  * UnitCamDirector.cpp alongside the logic they drive.
  */
@@ -69,7 +69,7 @@ struct FUnitCamDirector
 	/**
 	 * Which squad (0-7) the panel is framed on, or -1 for none (Army View's resting state).
 	 * Exposed here — not as a raw CVar read in UnitCamProjector.cpp — because the CVar itself
-	 * (Emberkeep.UnitCamProj.SelectedSquad) is registered in this translation unit; a second
+	 * (Kindled.UnitCamProj.SelectedSquad) is registered in this translation unit; a second
 	 * TAutoConsoleVariable of the same console name in another .cpp would collide with it.
 	 * Also keeps with the file split this class already documents: the director owns the
 	 * camera/selection decision, the projector only asks it what to draw.

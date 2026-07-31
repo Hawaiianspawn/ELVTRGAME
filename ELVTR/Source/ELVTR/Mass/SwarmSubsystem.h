@@ -76,7 +76,7 @@ public:
 
 	// --- HUD occlusion ----------------------------------------------------
 	// Fraction of the viewport height the combat HUD covers along the BOTTOM edge, published
-	// by UEmberkeepHud each tick. The hero camera reads it to bias itself so the bearer sits
+	// by UKindledHud each tick. The hero camera reads it to bias itself so the bearer sits
 	// in the middle of the ground you can still see, rather than the middle of the viewport —
 	// the rectangle scales with the body count, so this moves under you and can't be a constant.
 	void SetHudOccludedFraction(float InFraction) { HudOccludedFraction = FMath::Clamp(InFraction, 0.f, 0.9f); }
@@ -140,7 +140,7 @@ public:
 	// docs/design/squad-group-system.md §3: an order now targets an ADDRESS — "all units"
 	// (default) or one named unit. GetStance/SetStance/GetStanceAnchor keep their EXACT
 	// existing meaning and every existing call site (SpikeHeroPawn's four stance hotkeys,
-	// EmberkeepHud, SwarmTelemetry, UnitCamProjector's Army View tint) is untouched — this
+	// KindledHud, SwarmTelemetry, UnitCamProjector's Army View tint) is untouched — this
 	// is the main way this task could regress today's only behavior, so nothing about the
 	// "all units" path changed: SetStance still records the single last-commanded whole-
 	// retinue order AND (new) fans it out to every per-unit slot below, so a soldier's own

@@ -1,29 +1,29 @@
 // Preview + auto-show for the M1 UI over the running Spike map.
-//   Emberkeep.UI.Hud       — bottom band: Muster (centre) + Unit Cam (projection, right)
-//   Emberkeep.UI.Muster    — muster band only (no cam)
-//   Emberkeep.UI.Clear     — remove UI added by these helpers
-//   Emberkeep.UI.AutoShow  — cvar (default 1): show the HUD automatically on Play
+//   Kindled.UI.Hud       — bottom band: Muster (centre) + Unit Cam (projection, right)
+//   Kindled.UI.Muster    — muster band only (no cam)
+//   Kindled.UI.Clear     — remove UI added by these helpers
+//   Kindled.UI.AutoShow  — cvar (default 1): show the HUD automatically on Play
 //
 // The helpers find the active PIE/Game world themselves, so the console commands work
 // from any console as long as a play session is running.
 
-#include "UI/EmberkeepUIDebug.h"
+#include "UI/KindledUIDebug.h"
 #include "CoreMinimal.h"
 #include "HAL/IConsoleManager.h"
-#include "UI/EmberkeepHud.h"
+#include "UI/KindledHud.h"
 #include "Blueprint/UserWidget.h"
 #include "Engine/Engine.h"
 #include "Engine/World.h"
 #include "GameFramework/PlayerController.h"
 
 static TAutoConsoleVariable<int32> CVarUIAutoShow(
-	TEXT("Emberkeep.UI.AutoShow"), 1,
+	TEXT("Kindled.UI.AutoShow"), 1,
 	TEXT("Auto-show the combat HUD when a play session starts. 1=on (default), 0=off.\n")
-	TEXT("Whether that HUD carries cam panels is Emberkeep.UI.Cams, below."),
+	TEXT("Whether that HUD carries cam panels is Kindled.UI.Cams, below."),
 	ECVF_Default);
 
 static TAutoConsoleVariable<int32> CVarUICams(
-	TEXT("Emberkeep.UI.Cams"), 0,
+	TEXT("Kindled.UI.Cams"), 0,
 	TEXT("Does the auto-shown combat HUD carry CAMERA PANELS at all?\n")
 	TEXT("  0 = ONE-CAMERA MODE (default, owner call 2026-07-28): the viewport is the only\n")
 	TEXT("      camera and the band is one centred muster shelf holding the whole roster.\n")
@@ -32,7 +32,7 @@ static TAutoConsoleVariable<int32> CVarUICams(
 	TEXT("Why 0: the projector draws billboards on the game thread (100% of frame cost) while\n")
 	TEXT("the viewport's Niagara path draws on an idle GPU, and it caps ~24%% lower on entity\n")
 	TEXT("count before LOD, ~53%% after — docs/perf/one-camera-bench.md section 6.\n")
-	TEXT("`Emberkeep.UI.Hud` forces it on for a one-off look without changing this default."),
+	TEXT("`Kindled.UI.Hud` forces it on for a one-off look without changing this default."),
 	ECVF_Default);
 
 namespace
@@ -72,18 +72,18 @@ namespace
 
 }
 
-void EmberkeepUI::ShowCombatHud(UWorld* Passed, bool bWithCams)
+void KindledUI::ShowCombatHud(UWorld* Passed, bool bWithCams)
 {
 	UWorld* World = FindPlayWorld(Passed);
 	APlayerController* PC = World ? World->GetFirstPlayerController() : nullptr;
 	if (!PC)
 	{
 		UE_LOG(LogTemp, Warning,
-			TEXT("Emberkeep.UI: no active play world. Press Play (PIE), then run this."));
+			TEXT("Kindled.UI: no active play world. Press Play (PIE), then run this."));
 		return;
 	}
 
-	UEmberkeepHud* Hud = CreateWidget<UEmberkeepHud>(PC, UEmberkeepHud::StaticClass());
+	UKindledHud* Hud = CreateWidget<UKindledHud>(PC, UKindledHud::StaticClass());
 	if (!Hud)
 	{
 		return;
@@ -97,11 +97,11 @@ void EmberkeepUI::ShowCombatHud(UWorld* Passed, bool bWithCams)
 	Hud->UseMockData();
 	GSpawnedDebugWidgets.Add(Hud);
 
-	UE_LOG(LogTemp, Display, TEXT("Emberkeep.UI: band added (%s)."),
+	UE_LOG(LogTemp, Display, TEXT("Kindled.UI: band added (%s)."),
 		bWithCams ? TEXT("with cams") : TEXT("muster only"));
 }
 
-void EmberkeepUI::ClearHud()
+void KindledUI::ClearHud()
 {
 	for (const TWeakObjectPtr<UUserWidget>& Weak : GSpawnedDebugWidgets)
 	{
@@ -122,7 +122,7 @@ void EmberkeepUI::ClearHud()
 	GSpawnedDebugActors.Reset();
 }
 
-void EmberkeepUI::AutoShowIfEnabled(UWorld* World)
+void KindledUI::AutoShowIfEnabled(UWorld* World)
 {
 	if (CVarUIAutoShow.GetValueOnGameThread() != 0)
 	{
@@ -133,16 +133,16 @@ void EmberkeepUI::AutoShowIfEnabled(UWorld* World)
 // --- console commands --------------------------------------------------------
 
 static FAutoConsoleCommandWithWorld GShowHudCmd(
-	TEXT("Emberkeep.UI.Hud"),
+	TEXT("Kindled.UI.Hud"),
 	TEXT("Spawn the combat-HUD bottom band with live Hero/Unit cam feeds. Requires an active play session."),
-	FConsoleCommandWithWorldDelegate::CreateLambda([](UWorld* World) { EmberkeepUI::ShowCombatHud(World, true); }));
+	FConsoleCommandWithWorldDelegate::CreateLambda([](UWorld* World) { KindledUI::ShowCombatHud(World, true); }));
 
 static FAutoConsoleCommandWithWorld GShowMusterCmd(
-	TEXT("Emberkeep.UI.Muster"),
+	TEXT("Kindled.UI.Muster"),
 	TEXT("Spawn the muster band only, no cams. Requires an active play session."),
-	FConsoleCommandWithWorldDelegate::CreateLambda([](UWorld* World) { EmberkeepUI::ShowCombatHud(World, false); }));
+	FConsoleCommandWithWorldDelegate::CreateLambda([](UWorld* World) { KindledUI::ShowCombatHud(World, false); }));
 
 static FAutoConsoleCommandWithWorld GClearUICmd(
-	TEXT("Emberkeep.UI.Clear"),
-	TEXT("Remove UI and capture actors added by the Emberkeep.UI helpers."),
-	FConsoleCommandWithWorldDelegate::CreateLambda([](UWorld* /*World*/) { EmberkeepUI::ClearHud(); }));
+	TEXT("Kindled.UI.Clear"),
+	TEXT("Remove UI and capture actors added by the Kindled.UI helpers."),
+	FConsoleCommandWithWorldDelegate::CreateLambda([](UWorld* /*World*/) { KindledUI::ClearHud(); }));

@@ -1,6 +1,6 @@
 #include "UI/UnitCamProjector.h"
 
-#include "UI/EmberkeepPalette.h"
+#include "UI/KindledPalette.h"
 #include "Mass/SwarmSubsystem.h"
 #include "Mass/SwarmFragments.h"
 
@@ -137,32 +137,32 @@ namespace
 	// the projected box height, bottom-anchored on the ground point.
 	constexpr float SoldierHeightScale = 3.f;
 
-	// Virtual-camera dials. Named Emberkeep.UnitCamProj.* to sit clearly apart from the
-	// capture-based cam's Emberkeep.UI.UnitCam.* (they are two different approaches).
+	// Virtual-camera dials. Named Kindled.UnitCamProj.* to sit clearly apart from the
+	// capture-based cam's Kindled.UI.UnitCam.* (they are two different approaches).
 	TAutoConsoleVariable<float> CVarProjFov(
-		TEXT("Emberkeep.UnitCamProj.Fov"), 40.f,
+		TEXT("Kindled.UnitCamProj.Fov"), 40.f,
 		TEXT("Virtual-camera horizontal FOV in degrees for the projection Unit Cam."),
 		ECVF_Default);
 
 	TAutoConsoleVariable<float> CVarProjDist(
-		TEXT("Emberkeep.UnitCamProj.Dist"), 320.f,
+		TEXT("Kindled.UnitCamProj.Dist"), 320.f,
 		TEXT("How far behind the focus (the hero) the virtual camera sits, in uu."),
 		ECVF_Default);
 
 	TAutoConsoleVariable<float> CVarProjHeight(
-		TEXT("Emberkeep.UnitCamProj.Height"), 200.f,
+		TEXT("Kindled.UnitCamProj.Height"), 200.f,
 		TEXT("Virtual-camera height above the focus, in uu."),
 		ECVF_Default);
 
 	TAutoConsoleVariable<float> CVarProjPitch(
-		TEXT("Emberkeep.UnitCamProj.Pitch"), -20.f,
+		TEXT("Kindled.UnitCamProj.Pitch"), -20.f,
 		TEXT("Extra tilt of the camera, in degrees, on top of the look-at. Positive angles the\n")
 		TEXT("lens DOWN (more top-down); negative angles it UP toward eye level, for a\n")
 		TEXT("character's-eye view of the fight ahead. 0 = look straight at the focus."),
 		ECVF_Default);
 
 	TAutoConsoleVariable<float> CVarProjRange(
-		TEXT("Emberkeep.UnitCamProj.Range"), 1400.f,
+		TEXT("Kindled.UnitCamProj.Range"), 1400.f,
 		TEXT("Only units within this XY distance of the focus are considered for the panel. Acts\n")
 		TEXT("as a FLOOR in Unit/Squad View: FrameFraction/FrameFloor may widen the EFFECTIVE range\n")
 		TEXT("(and pull the camera back to match) beyond this, but never shrink below it."),
@@ -174,7 +174,7 @@ namespace
 	// the fraction at low counts. Protects squad cohesion by pulling the camera back (raising the
 	// effective Range/Dist) rather than cropping — the bearer may drift off-centre first.
 	TAutoConsoleVariable<float> CVarProjFrameFraction(
-		TEXT("Emberkeep.UnitCamProj.FrameFraction"), 0.6f,
+		TEXT("Kindled.UnitCamProj.FrameFraction"), 0.6f,
 		TEXT("Minimum fraction of the framed population (the selected squad's standing, or the\n")
 		TEXT("whole retinue with nothing selected) that must fit in Unit/Squad View before the\n")
 		TEXT("camera is allowed to widen no further. Spec default 60% (squad-group-system.md §4.2's\n")
@@ -182,7 +182,7 @@ namespace
 		ECVF_Default);
 
 	TAutoConsoleVariable<int32> CVarProjFrameFloor(
-		TEXT("Emberkeep.UnitCamProj.FrameFloor"), 6,
+		TEXT("Kindled.UnitCamProj.FrameFloor"), 6,
 		TEXT("Body-count floor that overrides FrameFraction at low counts — a 5-soldier squad\n")
 		TEXT("shows all 5, not 60% of 5 rounded down. Also the point below which the population is\n")
 		TEXT("small enough that FrameFraction can't apply at all."),
@@ -193,21 +193,21 @@ namespace
 	// USwarmSubsystem has no real per-squad centroid yet (SquadCentroidSum is proposed, not
 	// built — Mass/**, out of this task's scope), so this is the disclosed stand-in.
 	TAutoConsoleVariable<float> CVarProjArmyRingRadius(
-		TEXT("Emberkeep.UnitCamProj.ArmyRingRadius"), 700.f,
+		TEXT("Kindled.UnitCamProj.ArmyRingRadius"), 700.f,
 		TEXT("World-space radius (uu) of the placeholder ring Army View arranges its <=8 squad\n")
 		TEXT("blocks around the bearer on. FAKE positioning — replace with real per-squad\n")
 		TEXT("centroids (SquadCentroidSum) once the Mass layer publishes them."),
 		ECVF_Default);
 
 	TAutoConsoleVariable<float> CVarProjArmyBlockScale(
-		TEXT("Emberkeep.UnitCamProj.ArmyBlockScale"), 1.f,
+		TEXT("Kindled.UnitCamProj.ArmyBlockScale"), 1.f,
 		TEXT("Multiplier on Army View block size. Each block already scales with its own standing\n")
 		TEXT("relative to SquadTargetSize; this is the overall bigness dial on top of that."),
 		ECVF_Default);
 
 	// --- dynamic panel size by total bodies (individual <-> mass) -----------
 	TAutoConsoleVariable<float> CVarProjCountLog(
-		TEXT("Emberkeep.UnitCamProj.CountLog"), 0.f,
+		TEXT("Kindled.UnitCamProj.CountLog"), 0.f,
 		TEXT("Log how many billboards this panel actually drew, every N seconds. 0 = off.\n")
 		TEXT("\n")
 		TEXT("Exists because 'the Unit Cam costs nothing' and 'the Unit Cam drew nothing' are\n")
@@ -217,7 +217,7 @@ namespace
 		ECVF_Default);
 
 	TAutoConsoleVariable<int32> CVarProjEnable(
-		TEXT("Emberkeep.UnitCamProj.Enable"), 1,
+		TEXT("Kindled.UnitCamProj.Enable"), 1,
 		TEXT("Master switch for the Unit Cam projector. 0 collapses the panel and skips its\n")
 		TEXT("per-frame projection entirely — the honest 'this camera costs nothing' state,\n")
 		TEXT("used by the bench to measure the world renderers without the panel underneath\n")
@@ -225,7 +225,7 @@ namespace
 		ECVF_Default);
 
 	TAutoConsoleVariable<int32> CVarProjFullscreen(
-		TEXT("Emberkeep.UnitCamProj.Fullscreen"), 0,
+		TEXT("Kindled.UnitCamProj.Fullscreen"), 0,
 		TEXT("Blow the Unit Cam up to fill the viewport, so the projector can be evaluated as\n")
 		TEXT("the game's ONE camera rather than a corner panel (docs/perf/one-camera-bench.md).\n")
 		TEXT("A real perf variable, not just framing: cost scales with what survives the cull,\n")
@@ -235,26 +235,26 @@ namespace
 		ECVF_Default);
 
 	TAutoConsoleVariable<float> CVarProjSizeMax(
-		TEXT("Emberkeep.UnitCamProj.SizeMax"), 620.f,
+		TEXT("Kindled.UnitCamProj.SizeMax"), 620.f,
 		TEXT("Unit Cam panel HEIGHT (px) when the field is nearly empty — the individual is big\n")
 		TEXT("and matters. The panel shrinks from here toward SizeMin as bodies pile up.\n")
 		TEXT("Width = this * Aspect. Sized for the cam as the HUD's centrepiece."),
 		ECVF_Default);
 
 	TAutoConsoleVariable<float> CVarProjSizeMin(
-		TEXT("Emberkeep.UnitCamProj.SizeMin"), 300.f,
+		TEXT("Kindled.UnitCamProj.SizeMin"), 300.f,
 		TEXT("Unit Cam panel height (px) at SizeBodies total bodies and beyond — the mass has\n")
 		TEXT("taken over and any one soldier is a pixel."),
 		ECVF_Default);
 
 	TAutoConsoleVariable<float> CVarProjAspect(
-		TEXT("Emberkeep.UnitCamProj.Aspect"), 1.35f,
+		TEXT("Kindled.UnitCamProj.Aspect"), 1.35f,
 		TEXT("Panel width as a multiple of its height. >1 gives the letterboxed viewport the\n")
 		TEXT("command rectangle wants; 1 = the old square."),
 		ECVF_Default);
 
 	TAutoConsoleVariable<float> CVarProjSizeBodies(
-		TEXT("Emberkeep.UnitCamProj.SizeBodies"), 1500.f,
+		TEXT("Kindled.UnitCamProj.SizeBodies"), 1500.f,
 		TEXT("WEIGHTED body count at which the Unit Cam reaches SizeMin. The panel scales from\n")
 		TEXT("SizeMax down to SizeMin across 0..this many weighted bodies, where the weights are\n")
 		TEXT("SizeRetinueWeight and SizeBroodWeight — NOT a raw headcount."),
@@ -266,14 +266,14 @@ namespace
 	// as the army stops being one. Weighting brood equally would invert that: a big enemy wave
 	// would shrink the cam at the moment the last of your men needed watching.
 	TAutoConsoleVariable<float> CVarProjSizeRetinueWeight(
-		TEXT("Emberkeep.UnitCamProj.SizeRetinueWeight"), 10.f,
+		TEXT("Kindled.UnitCamProj.SizeRetinueWeight"), 10.f,
 		TEXT("How much each of YOUR soldiers counts toward shrinking the Unit Cam. High relative\n")
 		TEXT("to SizeBroodWeight on purpose: your own headcount is what should drive the panel,\n")
 		TEXT("so the cam grows as you take losses regardless of how many brood are on the field."),
 		ECVF_Default);
 
 	TAutoConsoleVariable<float> CVarProjSizeBroodWeight(
-		TEXT("Emberkeep.UnitCamProj.SizeBroodWeight"), 0.25f,
+		TEXT("Kindled.UnitCamProj.SizeBroodWeight"), 0.25f,
 		TEXT("How much each enemy counts toward shrinking the Unit Cam. Deliberately a fraction\n")
 		TEXT("of a soldier: at 1.0 a 700-strong wave alone shrinks the panel to mid-size even\n")
 		TEXT("with your whole retinue dead, which is the opposite of the intent. Set 0 to make\n")
@@ -281,7 +281,7 @@ namespace
 		ECVF_Default);
 
 	TAutoConsoleVariable<float> CVarProjSizeCurve(
-		TEXT("Emberkeep.UnitCamProj.SizeCurve"), 1.f,
+		TEXT("Kindled.UnitCamProj.SizeCurve"), 1.f,
 		TEXT("Shaping exponent on the shrink ramp. 1 = linear. Above 1 holds the cam LARGE\n")
 		TEXT("through the middle of the range and collapses it only once the army is near full\n")
 		TEXT("strength; below 1 shrinks it early, so the last survivors produce a dramatic\n")
@@ -289,25 +289,25 @@ namespace
 		ECVF_Default);
 
 	TAutoConsoleVariable<int32> CVarProjThreatTint(
-		TEXT("Emberkeep.UnitCamProj.ThreatTint"), 1,
+		TEXT("Kindled.UnitCamProj.ThreatTint"), 1,
 		TEXT("Bleed the Unit Cam frame toward the reserved red as the brood outnumber the\n")
 		TEXT("retinue — a small cam then reads as a big threat, not just a big army. 0 = off."),
 		ECVF_Default);
 
 	TAutoConsoleVariable<int32> CVarProjDebugFrustum(
-		TEXT("Emberkeep.UnitCamProj.DebugFrustum"), 0,
+		TEXT("Kindled.UnitCamProj.DebugFrustum"), 0,
 		TEXT("Draw the virtual camera in the MAIN world view: its position, FOV pyramid\n")
 		TEXT("(near->far), the aim line to the focus, and the Range ring on the ground — so you\n")
 		TEXT("can see where the Unit Cam is looking and what it covers. 1 = on."),
 		ECVF_Default);
 
 	TAutoConsoleVariable<float> CVarProjScale(
-		TEXT("Emberkeep.UnitCamProj.Scale"), 1.f,
+		TEXT("Kindled.UnitCamProj.Scale"), 1.f,
 		TEXT("Multiplier on the billboard world half-size (~40uu base). Tune sprite bigness."),
 		ECVF_Default);
 
 	TAutoConsoleVariable<float> CVarProjSoldierScale(
-		TEXT("Emberkeep.UnitCamProj.SoldierScale"), 0.75f,
+		TEXT("Kindled.UnitCamProj.SoldierScale"), 0.75f,
 		TEXT("Unit sprite size as a multiple of the projected footprint box. The main\n")
 		TEXT("framing-size dial for the units themselves."),
 		ECVF_Default);
@@ -329,7 +329,7 @@ namespace
 	// rather than just filling more of the cell, since (unlike the packing fix) it IS a resize,
 	// done live at draw time on an already-fixed sheet — worth knowing before pushing it far.
 	TAutoConsoleVariable<float> CVarProjSoldierAspect(
-		TEXT("Emberkeep.UnitCamProj.SoldierAspect"), 1.f,
+		TEXT("Kindled.UnitCamProj.SoldierAspect"), 1.f,
 		TEXT("Width-only multiplier on every billboard (brood, retinue, hero alike), applied\n")
 		TEXT("after the sheet's own cell aspect. >1 = broader, <1 = narrower. 1 = exactly as\n")
 		TEXT("packed. This is a LIVE STRETCH, not a repack — past ~1.2 it reads as distortion,\n")
@@ -342,35 +342,35 @@ namespace
 	// view they are boxes seen from above — so a horde size change has to be answerable here
 	// too or the two views disagree about what a brood is.
 	TAutoConsoleVariable<float> CVarProjBroodScale(
-		TEXT("Emberkeep.UnitCamProj.BroodScale"), 1.f,
+		TEXT("Kindled.UnitCamProj.BroodScale"), 1.f,
 		TEXT("Brood billboard size as a multiple of a soldier's, in the Unit Cam panel only.\n")
 		TEXT("The panel counterpart to Swarm.BroodSize; mirrors HeroScale. 1 = same size as\n")
 		TEXT("your soldiers. Set alongside Swarm.BroodSize so the world and the panel agree."),
 		ECVF_Default);
 
 	TAutoConsoleVariable<float> CVarProjNearFade(
-		TEXT("Emberkeep.UnitCamProj.NearFade"), 150.f,
+		TEXT("Kindled.UnitCamProj.NearFade"), 150.f,
 		TEXT("Depth band (uu) just in front of the near plane over which a unit fades in\n")
 		TEXT("instead of popping. A unit at the near plane is transparent; NearFade uu deeper\n")
 		TEXT("it is fully solid. 0 = hard pop (old behaviour)."),
 		ECVF_Default);
 
 	TAutoConsoleVariable<float> CVarProjNearPlane(
-		TEXT("Emberkeep.UnitCamProj.NearPlane"), 10.f,
+		TEXT("Kindled.UnitCamProj.NearPlane"), 10.f,
 		TEXT("Near clip distance of the fake camera, in uu. Units closer than this are\n")
 		TEXT("dropped; NearFade is the fade band just beyond it."),
 		ECVF_Default);
 
 	// --- hero proxy (the bearer, drawn in the panel) ------------------------
 	TAutoConsoleVariable<int32> CVarProjHero(
-		TEXT("Emberkeep.UnitCamProj.Hero"), 1,
+		TEXT("Kindled.UnitCamProj.Hero"), 1,
 		TEXT("Draw the bearer himself in the Unit Cam. He is a pawn, not a Mass entity, so he\n")
 		TEXT("is not in the render buffers — this injects one extra billboard at his location.\n")
 		TEXT("0 = off (the panel shows only the swarm, as before)."),
 		ECVF_Default);
 
 	TAutoConsoleVariable<float> CVarProjHeroScale(
-		TEXT("Emberkeep.UnitCamProj.HeroScale"), 1.6f,
+		TEXT("Kindled.UnitCamProj.HeroScale"), 1.6f,
 		TEXT("Hero billboard size as a multiple of a soldier's. He is the subject of the shot,\n")
 		TEXT("so he reads bigger than the retinue around him."),
 		ECVF_Default);
@@ -382,7 +382,7 @@ namespace
 	// direction and nothing currently animates the hero's pose or turns him to face the cam.
 
 	TAutoConsoleVariable<int32> CVarProjHeroCell(
-		TEXT("Emberkeep.UnitCamProj.HeroCell"), 0,
+		TEXT("Kindled.UnitCamProj.HeroCell"), 0,
 		TEXT("Which cell of T_Hero_Vanguard's own 4x4 sheet the hero draws from (0-15).\n")
 		TEXT("Defaults to 0 = south idle — a portrait pose turned toward the viewer, matching\n")
 		TEXT("what the old shared-atlas default (retinue walk0 facing south) was standing in\n")
@@ -394,7 +394,7 @@ namespace
 	// --- panel lighting (see the block comment in the projection loop) -------
 
 	TAutoConsoleVariable<int32> CVarProjDirShade(
-		TEXT("Emberkeep.UnitCamProj.DirShade"), 1,
+		TEXT("Kindled.UnitCamProj.DirShade"), 1,
 		TEXT("Shade each unit by WHICH SIDE of it the lens can see. The world renderer splits a\n")
 		TEXT("unit into a flame-lit half and a Swarm.UnitBackShade half; a billboard can't be\n")
 		TEXT("split, so this resolves the same geometry against the VIRTUAL CAMERA instead: a\n")
@@ -404,7 +404,7 @@ namespace
 		ECVF_Default);
 
 	TAutoConsoleVariable<float> CVarProjBroodFloor(
-		TEXT("Emberkeep.UnitCamProj.BroodFloor"), 0.05f,
+		TEXT("Kindled.UnitCamProj.BroodFloor"), 0.05f,
 		TEXT("Minimum brightness for BROOD, replacing Swarm.UnitLightFloor in this panel only.\n")
 		TEXT("Deliberately far below it: the shared floor (0.28) exists so units never vanish at\n")
 		TEXT("gameplay zoom, but in a close-up it pins every distant brood at one flat mid-grey —\n")
@@ -415,7 +415,7 @@ namespace
 		ECVF_Default);
 
 	TAutoConsoleVariable<float> CVarProjBroodCeil(
-		TEXT("Emberkeep.UnitCamProj.BroodCeil"), 0.7f,
+		TEXT("Kindled.UnitCamProj.BroodCeil"), 0.7f,
 		TEXT("Brightest a BROOD is ever drawn, even standing in the flame. Below 1 on purpose, and\n")
 		TEXT("the direct fix for brood reading as flat grey up close: the atlas authors them as\n")
 		TEXT("mid-grey hooded figures, and a Slate tint can only ever darken the art (the tint is\n")
@@ -428,7 +428,7 @@ namespace
 		ECVF_Default);
 
 	TAutoConsoleVariable<int32> CVarProjLightSteps(
-		TEXT("Emberkeep.UnitCamProj.LightSteps"), 5,
+		TEXT("Kindled.UnitCamProj.LightSteps"), 5,
 		TEXT("Quantize the light into this many discrete tiers. The panel is UMG — it draws AFTER\n")
 		TEXT("the demichrome pass, so nothing downstream posterises it and a continuous multiplier\n")
 		TEXT("smears the 2-bit art across every intermediate grey there is. Note this steps the\n")
@@ -464,7 +464,7 @@ namespace
 	// BroodFloor, just a separate, higher number so it doesn't also raise brood or retire the
 	// shared retinue floor other sprite sets still use.
 	TAutoConsoleVariable<float> CVarProjFullColorFloor(
-		TEXT("Emberkeep.UnitCamProj.FullColorFloor"), 0.55f,
+		TEXT("Kindled.UnitCamProj.FullColorFloor"), 0.55f,
 		TEXT("Minimum brightness for the knight/archer sprite sets only (Swarm.UnitLightFloor's\n")
 		TEXT("0.28 still applies to brood, hero and anything else). Chosen by looking at a\n")
 		TEXT("typical-distance capture, not guessed — 0.28 crushed full-colour detail toward\n")
@@ -474,7 +474,7 @@ namespace
 		ECVF_Default);
 
 	TAutoConsoleVariable<float> CVarProjFullColorDimStrength(
-		TEXT("Emberkeep.UnitCamProj.FullColorDimStrength"), 0.5f,
+		TEXT("Kindled.UnitCamProj.FullColorDimStrength"), 0.5f,
 		TEXT("How much of the shared distance/facing falloff (Atten) is applied to the knight/\n")
 		TEXT("archer sprite sets before FullColorFloor takes over. 1 = full strength, identical\n")
 		TEXT("proportional dimming to brood/retinue. 0 = falloff has no effect at all (constant\n")
@@ -783,9 +783,9 @@ void UUnitCamProjector::SetFrameThickness(float InPx)
 TSharedRef<SWidget> UUnitCamProjector::RebuildWidget()
 {
 	// The framed panel is the ROOT so this widget can be EMBEDDED — the combat HUD hosts
-	// it in the band's right bookend as the default Unit Cam (UEmberkeepHud::RebuildBand),
+	// it in the band's right bookend as the default Unit Cam (UKindledHud::RebuildBand),
 	// which is why it shows in PIE without a console command and can't be occluded by the
-	// HUD. Standalone via AddToViewport (the Emberkeep.UI.UnitCamProj toggle) it just lands
+	// HUD. Standalone via AddToViewport (the Kindled.UI.UnitCamProj toggle) it just lands
 	// top-left — that path is now only for isolated testing.
 	USizeBox* Box = WidgetTree->ConstructWidget<USizeBox>(USizeBox::StaticClass(), TEXT("Box"));
 	WidgetTree->RootWidget = Box;
@@ -1517,7 +1517,7 @@ void UUnitCamProjector::NativeTick(const FGeometry& MyGeometry, float DeltaTime)
 }
 
 // ---------------------------------------------------------------------------
-// Console toggle: Emberkeep.UI.UnitCamProj
+// Console toggle: Kindled.UI.UnitCamProj
 // ---------------------------------------------------------------------------
 namespace
 {
@@ -1558,7 +1558,7 @@ namespace
 		{
 			GUnitCamProjWidget->RemoveFromParent();
 			GUnitCamProjWidget.Reset();
-			UE_LOG(LogTemp, Display, TEXT("Emberkeep.UI.UnitCamProj: removed."));
+			UE_LOG(LogTemp, Display, TEXT("Kindled.UI.UnitCamProj: removed."));
 			return;
 		}
 
@@ -1567,7 +1567,7 @@ namespace
 		if (!PC)
 		{
 			UE_LOG(LogTemp, Warning,
-				TEXT("Emberkeep.UI.UnitCamProj: no active play world. Press Play, then run this."));
+				TEXT("Kindled.UI.UnitCamProj: no active play world. Press Play, then run this."));
 			return;
 		}
 
@@ -1579,11 +1579,11 @@ namespace
 		Widget->AddToViewport(60);
 		GUnitCamProjWidget = Widget;
 		UE_LOG(LogTemp, Display,
-			TEXT("Emberkeep.UI.UnitCamProj: shown (bottom-right). Dials: Emberkeep.UnitCamProj.*"));
+			TEXT("Kindled.UI.UnitCamProj: shown (bottom-right). Dials: Kindled.UnitCamProj.*"));
 	}
 
 	FAutoConsoleCommandWithWorld GUnitCamProjCmd(
-		TEXT("Emberkeep.UI.UnitCamProj"),
+		TEXT("Kindled.UI.UnitCamProj"),
 		TEXT("Toggle the projection-prototype Unit Cam: billboards the swarm into a bottom-right "
 			 "panel from the live sim positions, no SceneCapture. Requires an active play session."),
 		FConsoleCommandWithWorldDelegate::CreateStatic(&ToggleUnitCamProj));
@@ -1597,18 +1597,18 @@ namespace
 		USwarmSubsystem* Swarm = World ? World->GetSubsystem<USwarmSubsystem>() : nullptr;
 		if (!Swarm)
 		{
-			UE_LOG(LogTemp, Warning, TEXT("Emberkeep.UnitCamProj.TestCast: no play world / swarm subsystem."));
+			UE_LOG(LogTemp, Warning, TEXT("Kindled.UnitCamProj.TestCast: no play world / swarm subsystem."));
 			return;
 		}
 		const float Duration = Args.Num() > 0 ? FCString::Atof(*Args[0]) : 2.f;
 		Swarm->SetCastFocus(Swarm->GetAttractor(), World->GetTimeSeconds() + Duration);
 		UE_LOG(LogTemp, Display,
-			TEXT("Emberkeep.UnitCamProj.TestCast: focus-punch on the bearer for %.1fs."), Duration);
+			TEXT("Kindled.UnitCamProj.TestCast: focus-punch on the bearer for %.1fs."), Duration);
 	}
 
 	FAutoConsoleCommandWithWorldAndArgs GTestCastCmd(
-		TEXT("Emberkeep.UnitCamProj.TestCast"),
+		TEXT("Kindled.UnitCamProj.TestCast"),
 		TEXT("Simulate a spell cast: punch the Unit Cam focus onto the bearer for N seconds "
-			 "(default 2). Usage: Emberkeep.UnitCamProj.TestCast 2"),
+			 "(default 2). Usage: Kindled.UnitCamProj.TestCast 2"),
 		FConsoleCommandWithWorldAndArgsDelegate::CreateStatic(&TestCastFocus));
 }

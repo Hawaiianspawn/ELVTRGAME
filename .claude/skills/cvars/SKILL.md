@@ -1,6 +1,6 @@
 ---
 name: cvars
-description: Curate and sync ELVTR's important tuning console variables for live play. Regenerates Saved/SwarmExecOnPlay.txt, emits a paste list, refreshes the Console Variables Editor preset via the editor-Python script Scripts/populate_cvar_preset.py, and opens the in-engine Breadboard panel (Emberkeep.Breadboard) whose fields are parsed from that same file. Use when the user runs /cvars or asks to refresh/expose the tuning CVars, add a CVar to the tuning set, open the breadboard, or populate the Console Variables Editor panel.
+description: Curate and sync ELVTR's important tuning console variables for live play. Regenerates Saved/SwarmExecOnPlay.txt, emits a paste list, refreshes the Console Variables Editor preset via the editor-Python script Scripts/populate_cvar_preset.py, and opens the in-engine Breadboard panel (Kindled.Breadboard) whose fields are parsed from that same file. Use when the user runs /cvars or asks to refresh/expose the tuning CVars, add a CVar to the tuning set, open the breadboard, or populate the Console Variables Editor panel.
 ---
 
 # cvars — the ELVTR tuning-CVar surface
@@ -41,19 +41,19 @@ add one here only if the owner asks.)
 - **Dither:** `Swarm.DitherWorldAnchor`, `Swarm.WorldDitherScale`, `Swarm.DitherBandWidth`,
   `Swarm.DitherThreshold1`, `Swarm.DitherThreshold2`, `Swarm.DitherThreshold3` — the last
   four route through `MPC_Flame` into `M_PP_Demichrome`
-- **Palette:** `Emberkeep.Palette` — which 4-value ramp the demichrome pass outputs
+- **Palette:** `Kindled.Palette` — which 4-value ramp the demichrome pass outputs
   (`0` demichrome / `1` eulbink-4 / `2` rust-gold-4), added 2026-07-26 by task-043. Defined in
   `Rendering/SwarmRenderActor.cpp`; the four colours ride `MPC_Flame` as `Palette0..3` into
   `M_PP_Demichrome`'s Custom node inputs `C0..C3` — the same route the thresholds take.
   Sprites recolour too, because the pass quantises scene **luminance** into four buckets, so
   a sheet baked at Bone lands in bucket 2 and emerges as whatever entry 2 is; **no sprite
-  needs regenerating to preview a ramp.** UMG does **not** follow — `EmberkeepPalette.h`
+  needs regenerating to preview a ramp.** UMG does **not** follow — `KindledPalette.h`
   draws after post-processing. Candidate list and the luma gaps live in
   `docs/data/art/palette.json` under `trial_palettes`; the index there must match the
   `GSwarmPalettePresets` table in the .cpp. Adding a candidate is one row in each.
   This is a **judging dial, not a canon change** — Direction A stays locked
-- **Colour gate toggle:** `Emberkeep.Quantize` (`[0..1]`, default `1`) and
-  `Emberkeep.PaletteSteps` (`[2..8]`, default `4`) — added 2026-07-28 by task-057, same file.
+- **Colour gate toggle:** `Kindled.Quantize` (`[0..1]`, default `1`) and
+  `Kindled.PaletteSteps` (`[2..8]`, default `4`) — added 2026-07-28 by task-057, same file.
   `Quantize 0` bypasses the demichrome posterise **entirely** and shows the raw lit scene
   instead of more values (the flame's additive lift and the world-anchored Bayer dither both
   stay in the picture — only the value-collapse goes); values between 0 and 1 cross-fade the
@@ -64,7 +64,7 @@ add one here only if the owner asks.)
   control points across the new count (`ResamplePaletteColor`) rather than reusing the tuned
   N=4 numbers. `MPC_Flame` gained matching `Threshold4..7` and `Palette4..7` parameters and
   `M_PP_Demichrome`'s Custom node loops over them instead of unrolling three comparisons —
-  same **judging dial, not canon** status as `Emberkeep.Palette`, and UMG still does not follow
+  same **judging dial, not canon** status as `Kindled.Palette`, and UMG still does not follow
 - **Unit shading:** `Swarm.UnitShading`, `Swarm.UnitBackShade`, `Swarm.UnitLightFloor`
 - **Body size:** `Swarm.BroodSize`, `Swarm.RetinueSize`, `Swarm.BodyHeight` — defined in
   `Rendering/SwarmRenderActor.cpp`, added 2026-07-26. These **override** the placed
@@ -74,7 +74,7 @@ add one here only if the owner asks.)
   a live experiment on top of it — the exec file writes explicit positive values so the
   breadboard rows show real numbers rather than a sentinel. They drive the **debug-box**
   renderer, which is the shipping path while `Swarm.DebugRender` is 1. Pair `BroodSize` with
-  `Emberkeep.UnitCamProj.BroodScale` (the panel counterpart) and with `Swarm.BroodSeparation`
+  `Kindled.UnitCamProj.BroodScale` (the panel counterpart) and with `Swarm.BroodSeparation`
   — separation holds bodies apart with no idea how big they are, so size outgrowing it
   interpenetrates
 - **Per-unit size variation:** `Swarm.BroodSizeJitter` (0.2), `Swarm.RetinueSizeJitter` (0) —
@@ -119,21 +119,21 @@ add one here only if the owner asks.)
   `Mass/SwarmCommands.cpp`. The arc pair (added 2026-07-26) is what lets a wave arrive as a
   FRONT rather than a full encirclement; 360 (the old hard-coded behaviour) is the
   surrounded case and was the only one the spike could stage
-- **Unit Cam (projection close-up, §4d):** `Emberkeep.UnitCamProj.Focus`,
-  `Emberkeep.UnitCamProj.FollowSpeed`, `Emberkeep.UnitCamProj.SoldierScale`,
-  `Emberkeep.UnitCamProj.BroodScale`, `Emberkeep.UnitCamProj.FootAnchor`,
-  `Emberkeep.UnitCamProj.BroodTint`, `Emberkeep.UnitCamProj.NearFade`,
-  `Emberkeep.UnitCamProj.NearPlane`, `Emberkeep.UnitCamProj.Fov`, `Emberkeep.UnitCamProj.Dist`,
-  `Emberkeep.UnitCamProj.Height`, `Emberkeep.UnitCamProj.Pitch`, `Emberkeep.UnitCamProj.Yaw`,
-  `Emberkeep.UnitCamProj.AutoLook`, `Emberkeep.UnitCamProj.LookLerp`,
-  `Emberkeep.UnitCamProj.CombatScan`, `Emberkeep.UnitCamProj.CastFocusSpeed`,
-  `Emberkeep.UnitCamProj.CastZoom`, `Emberkeep.UnitCamProj.Range`, `Emberkeep.UnitCamProj.Scale`,
-  `Emberkeep.UnitCamProj.SizeMax`, `Emberkeep.UnitCamProj.SizeMin`,
-  `Emberkeep.UnitCamProj.SizeBodies`, `Emberkeep.UnitCamProj.SizeRetinueWeight`,
-  `Emberkeep.UnitCamProj.SizeBroodWeight`, `Emberkeep.UnitCamProj.SizeCurve`,
-  `Emberkeep.UnitCamProj.Aspect`,
-  `Emberkeep.UnitCamProj.ThreatTint`, `Emberkeep.UnitCamProj.Hero`,
-  `Emberkeep.UnitCamProj.HeroScale`, `Emberkeep.UnitCamProj.HeroCell`
+- **Unit Cam (projection close-up, §4d):** `Kindled.UnitCamProj.Focus`,
+  `Kindled.UnitCamProj.FollowSpeed`, `Kindled.UnitCamProj.SoldierScale`,
+  `Kindled.UnitCamProj.BroodScale`, `Kindled.UnitCamProj.FootAnchor`,
+  `Kindled.UnitCamProj.BroodTint`, `Kindled.UnitCamProj.NearFade`,
+  `Kindled.UnitCamProj.NearPlane`, `Kindled.UnitCamProj.Fov`, `Kindled.UnitCamProj.Dist`,
+  `Kindled.UnitCamProj.Height`, `Kindled.UnitCamProj.Pitch`, `Kindled.UnitCamProj.Yaw`,
+  `Kindled.UnitCamProj.AutoLook`, `Kindled.UnitCamProj.LookLerp`,
+  `Kindled.UnitCamProj.CombatScan`, `Kindled.UnitCamProj.CastFocusSpeed`,
+  `Kindled.UnitCamProj.CastZoom`, `Kindled.UnitCamProj.Range`, `Kindled.UnitCamProj.Scale`,
+  `Kindled.UnitCamProj.SizeMax`, `Kindled.UnitCamProj.SizeMin`,
+  `Kindled.UnitCamProj.SizeBodies`, `Kindled.UnitCamProj.SizeRetinueWeight`,
+  `Kindled.UnitCamProj.SizeBroodWeight`, `Kindled.UnitCamProj.SizeCurve`,
+  `Kindled.UnitCamProj.Aspect`,
+  `Kindled.UnitCamProj.ThreatTint`, `Kindled.UnitCamProj.Hero`,
+  `Kindled.UnitCamProj.HeroScale`, `Kindled.UnitCamProj.HeroCell`
   — split across two files since 2026-07-25: the **direction** dials (`Focus`, `FollowSpeed`,
   `Yaw`, `AutoLook`, `LookLerp`, `CombatScan`, `CastFocusSpeed`, `CastZoom`) live in
   `UI/UnitCamDirector.cpp` beside the camera manager they steer; the **lens/panel/hero-proxy**
@@ -145,22 +145,22 @@ add one here only if the owner asks.)
   through the floor exactly as much as upward. That is what "scaling sinks them through the
   floor" means. 1 plants the feet; 0 reproduces the old look for an A/B, and re-framing
   `Pitch`/`Height` after moving it is expected, since 1 lifts every body half its height
-- **Game camera (the shot):** `Emberkeep.Cam.HudBias`, `Emberkeep.Cam.HudBiasLerp`,
-  `Emberkeep.Cam.Ortho`, `Emberkeep.Cam.OrthoWidth`, `Emberkeep.Cam.Fov`, `Emberkeep.Cam.Dist`,
-  `Emberkeep.Cam.Pitch`, `Emberkeep.Cam.Yaw`, `Emberkeep.Cam.YawInput`,
-  `Emberkeep.Cam.OffsetX/Y/Z`, `Emberkeep.Cam.Lerp` — defined in `Spike/SpikeHeroPawn.cpp`.
+- **Game camera (the shot):** `Kindled.Cam.HudBias`, `Kindled.Cam.HudBiasLerp`,
+  `Kindled.Cam.Ortho`, `Kindled.Cam.OrthoWidth`, `Kindled.Cam.Fov`, `Kindled.Cam.Dist`,
+  `Kindled.Cam.Pitch`, `Kindled.Cam.Yaw`, `Kindled.Cam.YawInput`,
+  `Kindled.Cam.OffsetX/Y/Z`, `Kindled.Cam.Lerp` — defined in `Spike/SpikeHeroPawn.cpp`.
   `TickCamera` owns the camera transform every frame, so the pawn's `CameraHeight` UPROPERTY
   no longer moves the in-game shot and `Dist` replaces it. Defaults reproduce the old
   hard-coded constructor shot exactly (ortho, pitch -90, 1200uu). **`YawInput` is load-bearing
   for `Yaw`**: movement is world-axis WASD, so without it a yawed camera leaves W pushing
   sideways relative to the screen. Added 2026-07-25.
   **These five — `Ortho`, `OrthoWidth`, `Fov`, `Dist`, `Pitch` — are INERT while
-  `Emberkeep.Cam.Scale` is 1**, which is how the exec file ships: `TickCamera`'s `bScale`
+  `Kindled.Cam.Scale` is 1**, which is how the exec file ships: `TickCamera`'s `bScale`
   branch overwrites all five from the army-scale pair dials every frame. Any row that a
   `Scale`-on run cannot move must say so in its help text, or the breadboard is a panel of
   dials that quietly do nothing. `Yaw`, `YawInput`, `OffsetX/Y/Z`, `Lerp` and the HUD bias
   apply in both modes
-- **Army-scale camera (WHERE THE CAMERA ACTUALLY IS while `Cam.Scale` 1):** `Emberkeep.Cam.Scale`,
+- **Army-scale camera (WHERE THE CAMERA ACTUALLY IS while `Cam.Scale` 1):** `Kindled.Cam.Scale`,
   `ScaleWidthFull`, `ScaleWidthAlone`, `ScalePitchFull`, `ScalePitchAlone`, `ScaleDistFull`,
   `ScaleDistAlone`, `ScaleSwapAt`, `ScaleRetinueWeight`, `ScaleBroodWeight`, `ScaleBodies`,
   `ScaleCurve`, `ScaleStiffness`, `ScaleDamping`, `ScaleLerp`, `ScaleStages`, `ScaleRatchet`
@@ -170,7 +170,7 @@ add one here only if the owner asks.)
   ends equal to pin the shot regardless of army size. Ten of these were registered but absent
   from the exec file until 2026-07-28, which meant the breadboard exposed only the four dials
   the shipped config had already switched off, and nothing that moved the live camera
-- **HUD command rectangle:** `Emberkeep.UI.Muster.WingRatio` — defined in `UI/EmberkeepHud.cpp`.
+- **HUD command rectangle:** `Kindled.UI.Muster.WingRatio` — defined in `UI/KindledHud.cpp`.
   Sizes the retinue wings flanking the cam, and pairs with the `SizeMax`/`SizeMin`/`Aspect`
   framing dials above since the whole rectangle scales off the cam. The Unit Cam alone at full
   height is the layout; the split centre column and its second scene render were removed
@@ -188,7 +188,7 @@ point of this file being the single source of truth.
    `Mass/SwarmCombatProcessors.cpp`, horde movement in `Mass/SwarmProcessors.cpp`,
    horde arrival (spawn ring/arc/jitter) in `Mass/SwarmCommands.cpp`,
    Unit Cam lens/panel in `UI/UnitCamProjector.cpp`, Unit Cam direction in
-   `UI/UnitCamDirector.cpp`, the HUD rectangle in `UI/EmberkeepHud.cpp`.
+   `UI/UnitCamDirector.cpp`, the HUD rectangle in `UI/KindledHud.cpp`.
    Grep each for the CVar names in the canonical set; take the default value and first
    line of help text. If a name isn't found in any of them, flag it (renamed or removed)
    rather than emitting a stale line.
@@ -248,7 +248,7 @@ point of this file being the single source of truth.
    (`BreadboardModel.cpp` `Load`) — so the first `#` comment line *after* the closing banner is
    read as a **new section title** with no `@tab`, and every dial below it up to the next banner
    silently lands on the catch-all "Other" tab. This had already happened to the PALETTE
-   section (`Emberkeep.Palette` was on "Other", not "Debug"); fixed 2026-07-28 by moving the
+   section (`Kindled.Palette` was on "Other", not "Debug"); fixed 2026-07-28 by moving the
    closing banner below the prose. Correct shape:
 
    ```
@@ -278,7 +278,7 @@ point of this file being the single source of truth.
    Update `VALUES`/`PRESETS` in that script to match the canonical set, then have the owner
    run it. Do **not** try the MCP `set_properties` route — it cannot reach the row list.
 
-5. **Open the breadboard.** Type `Emberkeep.Breadboard` into the editor's status-bar console
+5. **Open the breadboard.** Type `Kindled.Breadboard` into the editor's status-bar console
    (SlateInspector `Snapshot` the main window, find the console textbox next to the "Cmd"
    label, `Type` with `submit:true` — the same route used to run the preset script). The
    panel is the in-engine face of the file written in step 2, so opening it last means the
@@ -287,7 +287,7 @@ point of this file being the single source of truth.
 
 ## Breadboard (the in-engine panel)
 
-`Window > Tools > Breadboard`, or the `Emberkeep.Breadboard` console command. Lives in the
+`Window > Tools > Breadboard`, or the `Kindled.Breadboard` console command. Lives in the
 editor-only `ELVTREditor` module (`ELVTR/Source/ELVTREditor/Breadboard/`).
 
 **Its data source is `Saved/SwarmExecOnPlay.txt` itself** — it parses the `# ===` banners into
@@ -339,7 +339,7 @@ Two facts, both verified 2026-07-23:
 | `CVP_Lighting` | flame + dither + unit shading | the spotlight look |
 | `CVP_Combat` | HP/DPS/melee + hit reaction | fight balance |
 | `CVP_Horde` | brood stat block + movement + arrival | how the tide behaves |
-| `CVP_UnitCam` | the 13 `Emberkeep.UnitCamProj.*` dials | the Unit Cam / camera work |
+| `CVP_UnitCam` | the 13 `Kindled.UnitCamProj.*` dials | the Unit Cam / camera work |
 
 The subset presets mirror the canonical groups above. To add a **scenario** preset (a
 named config with non-default values), add an entry to `PRESETS` with its own baked values.

@@ -55,9 +55,9 @@ namespace SwarmFormation
 	 * Read the console dials and resolve the facing.
 	 *
 	 * The facing is the part worth explaining. The camera does not rotate with the
-	 * hero — it holds a fixed bearing (Emberkeep.Cam.Yaw), so "away from the viewer"
+	 * hero — it holds a fixed bearing (Kindled.Cam.Yaw), so "away from the viewer"
 	 * is a constant world direction, not something derived per-unit. At the default
-	 * yaw of 0 that direction is world +X, which is also what Emberkeep.Cam.YawInput
+	 * yaw of 0 that direction is world +X, which is also what Kindled.Cam.YawInput
 	 * makes 'W' mean, so the formation, the camera and the controls all agree on which
 	 * way "forward" is by construction.
 	 */
@@ -108,7 +108,7 @@ namespace SwarmFormation
 	FVector2D BroodSlotOffset(int32 Index, const FParams& Params);
 
 	/**
-	 * Emberkeep.Cam.Yaw, looked up by name and cached (see ReadParams for why by-name).
+	 * Kindled.Cam.Yaw, looked up by name and cached (see ReadParams for why by-name).
 	 * Exposed so the brood spawn arc (SwarmCommands.cpp, Swarm.BroodSpawnFaceCamera) can
 	 * track the exact same camera reading the retinue formation does — two separate
 	 * lookups of the same CVar would risk drifting apart by a frame under a live edit.

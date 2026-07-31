@@ -2,7 +2,7 @@
 
 #include "CoreMinimal.h"
 #include "Components/Widget.h"
-#include "UI/EmberkeepWidget.h"
+#include "UI/KindledWidget.h"
 #include "UI/UnitCamDirector.h"
 #include "UnitCamProjector.generated.h"
 
@@ -113,13 +113,13 @@ protected:
  * tiers — see RENDERING-LIGHTING.md §4d "Panel shading" for why distance alone read
  * as a flat grey crowd. The per-direction facing-bucket sheet is still later.
  *
- * Toggle in a play session with the console command `Emberkeep.UI.UnitCamProj`.
- * Virtual-camera dials: `Emberkeep.UnitCamProj.*` (Fov, Dist, Height, Yaw, Range, Scale).
- * Named apart from the capture-based unit cam's `Emberkeep.UI.UnitCam.*` on purpose:
+ * Toggle in a play session with the console command `Kindled.UI.UnitCamProj`.
+ * Virtual-camera dials: `Kindled.UnitCamProj.*` (Fov, Dist, Height, Yaw, Range, Scale).
+ * Named apart from the capture-based unit cam's `Kindled.UI.UnitCam.*` on purpose:
  * this is a different, capture-free approach living alongside it, not a replacement yet.
  */
 UCLASS()
-class ELVTR_API UUnitCamProjector : public UEmberkeepWidget
+class ELVTR_API UUnitCamProjector : public UKindledWidget
 {
 	GENERATED_BODY()
 
@@ -203,6 +203,6 @@ protected:
 	FVector2D PanelSizePx = FVector2D::ZeroVector;
 	float FrameThickness = 4.f;
 	bool bHostSized = false;
-	/** Seconds since the last billboard-count log — see Emberkeep.UnitCamProj.CountLog. */
+	/** Seconds since the last billboard-count log — see Kindled.UnitCamProj.CountLog. */
 	float CountLogTimer = 0.f;
 };

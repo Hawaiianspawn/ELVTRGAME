@@ -110,18 +110,18 @@ public:
 		// exec'd in sequence into one running session, so an unstated CVar keeps whatever the
 		// PREVIOUS config set it to — the classic way a sweep like this silently measures the
 		// wrong thing.
-		TEXT("SIM-ONLY|Swarm.DebugRender 2;Emberkeep.UnitCamProj.Enable 0;Swarm.SimLOD.Stride 1"),
+		TEXT("SIM-ONLY|Swarm.DebugRender 2;Kindled.UnitCamProj.Enable 0;Swarm.SimLOD.Stride 1"),
 		// Range 2400 matches the main view's ground coverage (GetLiveViewWidthUU), so the
 		// projector is culling the same population the viewport rows have to draw. Left at the
 		// 1400 default it would frame less ground, win on cost, and the comparison would be a
 		// measurement of two different shots rather than of two renderers.
-		TEXT("UNITCAM-FULL|Swarm.DebugRender 2;Emberkeep.UnitCamProj.Enable 1;Emberkeep.UnitCamProj.Fullscreen 1;Emberkeep.UnitCamProj.Range 2400;Swarm.SimLOD.Stride 1"),
-		TEXT("UNITCAM+NIAGARA|Swarm.DebugRender 0;Emberkeep.UnitCamProj.Enable 1;Emberkeep.UnitCamProj.Fullscreen 1;Emberkeep.UnitCamProj.Range 2400;Swarm.SimLOD.Stride 1"),
+		TEXT("UNITCAM-FULL|Swarm.DebugRender 2;Kindled.UnitCamProj.Enable 1;Kindled.UnitCamProj.Fullscreen 1;Kindled.UnitCamProj.Range 2400;Swarm.SimLOD.Stride 1"),
+		TEXT("UNITCAM+NIAGARA|Swarm.DebugRender 0;Kindled.UnitCamProj.Enable 1;Kindled.UnitCamProj.Fullscreen 1;Kindled.UnitCamProj.Range 2400;Swarm.SimLOD.Stride 1"),
 		// The LOD ladder. Stride 1 is the control and must reproduce run 1's VIEWPORT-NIAGARA
 		// column; if it doesn't, the machine moved under us and the 2/4 rows mean nothing.
-		TEXT("NIAGARA-LOD1|Swarm.DebugRender 0;Emberkeep.UnitCamProj.Enable 0;Swarm.SimLOD.Stride 1"),
-		TEXT("NIAGARA-LOD2|Swarm.DebugRender 0;Emberkeep.UnitCamProj.Enable 0;Swarm.SimLOD.Stride 2"),
-		TEXT("NIAGARA-LOD4|Swarm.DebugRender 0;Emberkeep.UnitCamProj.Enable 0;Swarm.SimLOD.Stride 4")
+		TEXT("NIAGARA-LOD1|Swarm.DebugRender 0;Kindled.UnitCamProj.Enable 0;Swarm.SimLOD.Stride 1"),
+		TEXT("NIAGARA-LOD2|Swarm.DebugRender 0;Kindled.UnitCamProj.Enable 0;Swarm.SimLOD.Stride 2"),
+		TEXT("NIAGARA-LOD4|Swarm.DebugRender 0;Kindled.UnitCamProj.Enable 0;Swarm.SimLOD.Stride 4")
 	};
 
 	UPROPERTY(EditAnywhere, Category = "Swarm|Benchmark")

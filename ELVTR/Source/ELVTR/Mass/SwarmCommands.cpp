@@ -70,7 +70,7 @@ namespace
 	TAutoConsoleVariable<int32> CVarBroodSpawnFaceCamera(
 		TEXT("Swarm.BroodSpawnFaceCamera"), 1,
 		TEXT("1 = the arc's centre bearing tracks the same heading the retinue faces\n")
-		TEXT("(Emberkeep.Cam.Yaw, via the same composition Swarm.Formation.FaceCamera uses),\n")
+		TEXT("(Kindled.Cam.Yaw, via the same composition Swarm.Formation.FaceCamera uses),\n")
 		TEXT("so 'the front' keeps meaning the direction your line stands broadside to,\n")
 		TEXT("however the camera turns (default). 0 = BroodSpawnArcCenter below is a\n")
 		TEXT("literal fixed world bearing, for a scripted encounter that should always\n")
@@ -396,7 +396,7 @@ namespace
 
 	// Addressed order (docs/design/squad-group-system.md §3): one named unit instead of
 	// "all". Stand-in input surface — the real driver is a muster-card click/hotkey, owned
-	// elsewhere (mirrors Emberkeep.UnitCamProj.SelectedSquad's own stand-in precedent,
+	// elsewhere (mirrors Kindled.UnitCamProj.SelectedSquad's own stand-in precedent,
 	// UnitCamDirector.cpp). Does NOT touch the global Stance/StanceAnchor or any other
 	// unit's order — see USwarmSubsystem::SetUnitStance.
 	FAutoConsoleCommandWithWorldAndArgs GUnitStanceCmd(

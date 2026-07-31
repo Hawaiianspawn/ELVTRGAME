@@ -12,27 +12,27 @@
 namespace
 {
 	TAutoConsoleVariable<int32> CVarProjFocus(
-		TEXT("Emberkeep.UnitCamProj.Focus"), 0,
+		TEXT("Kindled.UnitCamProj.Focus"), 0,
 		TEXT("What the virtual camera centres on. 0 = the HERO, the bearer holding the light,\n")
 		TEXT("framed dead centre (default). 1 = follow a soldier (the nearest retinue unit,\n")
 		TEXT("tracked with continuity so the camera moves WITH that unit)."),
 		ECVF_Default);
 
 	TAutoConsoleVariable<float> CVarProjFollowSpeed(
-		TEXT("Emberkeep.UnitCamProj.FollowSpeed"), 6.f,
+		TEXT("Kindled.UnitCamProj.FollowSpeed"), 6.f,
 		TEXT("How quickly the followed focus catches its target (VInterpTo speed). Higher =\n")
 		TEXT("snappier/stiffer; lower = looser, more lag. 0 = frozen once acquired."),
 		ECVF_Default);
 
 	TAutoConsoleVariable<float> CVarProjYaw(
-		TEXT("Emberkeep.UnitCamProj.Yaw"), 35.f,
+		TEXT("Kindled.UnitCamProj.Yaw"), 35.f,
 		TEXT("Azimuth of the virtual camera around the focus, in degrees. Orbit it to\n")
 		TEXT("watch the billboards swing — the cheapest proof the projection is real 3D.\n")
 		TEXT("Used only while AutoLook is 0."),
 		ECVF_Default);
 
 	TAutoConsoleVariable<int32> CVarProjAutoLook(
-		TEXT("Emberkeep.UnitCamProj.AutoLook"), 2,
+		TEXT("Kindled.UnitCamProj.AutoLook"), 2,
 		TEXT("Camera rotation, driven by the director. 0 = manual (use Yaw). 1 = look OUTWARD\n")
 		TEXT("(from the hero through the followed unit, i.e. toward the enemy front). 2 = look\n")
 		TEXT("outward biased toward the nearest enemy cluster (where the fighting is). In Hero\n")
@@ -41,7 +41,7 @@ namespace
 		ECVF_Default);
 
 	TAutoConsoleVariable<float> CVarProjLookLerp(
-		TEXT("Emberkeep.UnitCamProj.LookLerp"), 1.5f,
+		TEXT("Kindled.UnitCamProj.LookLerp"), 1.5f,
 		TEXT("How fast the auto-look rotation eases toward its target direction. Higher = snappier,\n")
 		TEXT("lower = lazier pans. Keeps the camera from whipping around as the fight shifts.\n")
 		TEXT("Was 3.0; halved (docs/design/squad-group-system.md §5) so a swing across the full\n")
@@ -49,7 +49,7 @@ namespace
 		ECVF_Default);
 
 	TAutoConsoleVariable<float> CVarProjYawClamp(
-		TEXT("Emberkeep.UnitCamProj.YawClampDeg"), 30.f,
+		TEXT("Kindled.UnitCamProj.YawClampDeg"), 30.f,
 		TEXT("Hard envelope, in degrees either side of the base heading (bearer->focus, or the\n")
 		TEXT("bearer's own last movement heading when that's degenerate — see BaseDir in Tick()),\n")
 		TEXT("that AutoLook's enemy-cluster bias may swing the shot within. This is the actual fix\n")
@@ -66,7 +66,7 @@ namespace
 	// this task's six files — until it lands, this CVar IS the selection surface. -1 (default)
 	// is the resting state (Army View, per spec); >=0 is treated as "a squad is selected."
 	TAutoConsoleVariable<int32> CVarProjSelectedSquad(
-		TEXT("Emberkeep.UnitCamProj.SelectedSquad"), -1,
+		TEXT("Kindled.UnitCamProj.SelectedSquad"), -1,
 		TEXT("Which squad (0-7) the Unit Cam is framed on. -1 = none selected -> Army View (the\n")
 		TEXT("resting state: <=8 aggregate squad blocks, not individual billboards). >=0 switches\n")
 		TEXT("the SAME panel to Unit/Squad View, framed toward that squad. PLACEHOLDER input\n")
@@ -75,7 +75,7 @@ namespace
 		ECVF_Default);
 
 	TAutoConsoleVariable<float> CVarProjSelectSpeed(
-		TEXT("Emberkeep.UnitCamProj.SelectSpeed"), 10.f,
+		TEXT("Kindled.UnitCamProj.SelectSpeed"), 10.f,
 		TEXT("VInterpTo speed the camera travels at when a squad selection changes (docs/design/\n")
 		TEXT("squad-group-system.md §4.3). Faster than ambient FollowSpeed (6, ~0.5s settle) so a\n")
 		TEXT("selection reads as decisive, a notch under CastFocusSpeed (12, ~0.25s settle) so a\n")
@@ -83,19 +83,19 @@ namespace
 		ECVF_Default);
 
 	TAutoConsoleVariable<float> CVarProjCombatScan(
-		TEXT("Emberkeep.UnitCamProj.CombatScan"), 1200.f,
+		TEXT("Kindled.UnitCamProj.CombatScan"), 1200.f,
 		TEXT("Radius (uu) around the focus that AutoLook 2 scans for enemies (brood) to aim\n")
 		TEXT("toward. Larger = considers a wider swath of the battle when choosing where to look."),
 		ECVF_Default);
 
 	TAutoConsoleVariable<float> CVarProjCastFocusSpeed(
-		TEXT("Emberkeep.UnitCamProj.CastFocusSpeed"), 12.f,
+		TEXT("Kindled.UnitCamProj.CastFocusSpeed"), 12.f,
 		TEXT("How fast the camera punches focus onto the spell when the bearer casts (VInterpTo).\n")
 		TEXT("Higher than the normal FollowSpeed so a cast grabs the shot decisively."),
 		ECVF_Default);
 
 	TAutoConsoleVariable<float> CVarProjCastZoom(
-		TEXT("Emberkeep.UnitCamProj.CastZoom"), 0.7f,
+		TEXT("Kindled.UnitCamProj.CastZoom"), 0.7f,
 		TEXT("Camera distance multiplier while a spell cast is focused — <1 punches in for\n")
 		TEXT("emphasis, 1 = no zoom. Applied to Dist only during the cast window."),
 		ECVF_Default);

@@ -1,5 +1,5 @@
 #include "UI/MusterGrid.h"
-#include "UI/EmberkeepPalette.h"
+#include "UI/KindledPalette.h"
 #include "Blueprint/WidgetTree.h"
 #include "Components/UniformGridPanel.h"
 #include "Components/UniformGridSlot.h"

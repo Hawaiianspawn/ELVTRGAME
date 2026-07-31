@@ -48,7 +48,7 @@ void FELVTREditorModule::ShutdownModule()
 /** Typed in the editor console so the panel can be opened without hunting through menus —
  *  this is also how an automated session (MCP / Claude) pops the breadboard open. */
 static FAutoConsoleCommand GOpenBreadboardCommand(
-	TEXT("Emberkeep.Breadboard"),
+	TEXT("Kindled.Breadboard"),
 	TEXT("Open the ELVTR breadboard: every tuning CVar as a live field, with Save to file."),
 	FConsoleCommandDelegate::CreateStatic(&FELVTREditorModule::OpenBreadboard));
 

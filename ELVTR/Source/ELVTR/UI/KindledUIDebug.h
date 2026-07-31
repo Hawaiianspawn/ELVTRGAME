@@ -6,7 +6,7 @@ class UWorld;
 
 /** Spawns/clears the M1 combat-HUD preview. Shared by the console commands and the
  *  game mode's auto-show on play. */
-namespace EmberkeepUI
+namespace KindledUI
 {
 	/** Add the combat-HUD bottom band to the play world's viewport (bWithCams => live cam feeds). */
 	void ShowCombatHud(UWorld* World, bool bWithCams);
@@ -14,6 +14,6 @@ namespace EmberkeepUI
 	/** Remove any HUD + capture actors these helpers spawned. */
 	void ClearHud();
 
-	/** Show the HUD if the Emberkeep.UI.AutoShow cvar is on (default on). */
+	/** Show the HUD if the Kindled.UI.AutoShow cvar is on (default on). */
 	void AutoShowIfEnabled(UWorld* World);
 }

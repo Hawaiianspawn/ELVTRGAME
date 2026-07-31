@@ -1,7 +1,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "UI/EmberkeepWidget.h"
+#include "UI/KindledWidget.h"
 #include "MusterGrid.generated.h"
 
 class UUniformGridPanel;
@@ -12,7 +12,7 @@ class UUniformGridPanel;
  * Reads squad-level counts only; never iterates per-soldier actors. Built entirely in C++.
  */
 UCLASS()
-class ELVTR_API UMusterGrid : public UEmberkeepWidget
+class ELVTR_API UMusterGrid : public UKindledWidget
 {
 	GENERATED_BODY()
 

@@ -86,46 +86,46 @@ VALUES = {
     "Swarm.BroodSpawnArcCenter": "0",
     "Swarm.BroodSpeedJitter": "0.15",
     # Unit Cam — projection close-up
-    "Emberkeep.UnitCamProj.Focus": "0",
-    "Emberkeep.UnitCamProj.FollowSpeed": "6",
-    "Emberkeep.UnitCamProj.SoldierScale": "0.75",
-    "Emberkeep.UnitCamProj.BroodScale": "1",
+    "Kindled.UnitCamProj.Focus": "0",
+    "Kindled.UnitCamProj.FollowSpeed": "6",
+    "Kindled.UnitCamProj.SoldierScale": "0.75",
+    "Kindled.UnitCamProj.BroodScale": "1",
     # 1 = bodies stand on their projected ground point. Below 1 they draw half-buried and
     # every size multiplier digs downward as much as upward.
     # Units now pick their own cell of the 4x2 T_Swarm_2bit grid per body (SpriteCell is
     # gone); this is the one remaining override — the reserved-red wash over brood sprites.
-    "Emberkeep.UnitCamProj.NearFade": "150",
-    "Emberkeep.UnitCamProj.NearPlane": "10",
-    "Emberkeep.UnitCamProj.Fov": "40",
-    "Emberkeep.UnitCamProj.Dist": "320",
-    "Emberkeep.UnitCamProj.Height": "200",
-    "Emberkeep.UnitCamProj.Pitch": "-20",
-    "Emberkeep.UnitCamProj.Yaw": "35",
-    "Emberkeep.UnitCamProj.AutoLook": "2",
-    "Emberkeep.UnitCamProj.LookLerp": "3",
-    "Emberkeep.UnitCamProj.CombatScan": "1200",
-    "Emberkeep.UnitCamProj.CastFocusSpeed": "12",
-    "Emberkeep.UnitCamProj.CastZoom": "0.7",
-    "Emberkeep.UnitCamProj.Range": "1400",
-    "Emberkeep.UnitCamProj.Scale": "1",
+    "Kindled.UnitCamProj.NearFade": "150",
+    "Kindled.UnitCamProj.NearPlane": "10",
+    "Kindled.UnitCamProj.Fov": "40",
+    "Kindled.UnitCamProj.Dist": "320",
+    "Kindled.UnitCamProj.Height": "200",
+    "Kindled.UnitCamProj.Pitch": "-20",
+    "Kindled.UnitCamProj.Yaw": "35",
+    "Kindled.UnitCamProj.AutoLook": "2",
+    "Kindled.UnitCamProj.LookLerp": "3",
+    "Kindled.UnitCamProj.CombatScan": "1200",
+    "Kindled.UnitCamProj.CastFocusSpeed": "12",
+    "Kindled.UnitCamProj.CastZoom": "0.7",
+    "Kindled.UnitCamProj.Range": "1400",
+    "Kindled.UnitCamProj.Scale": "1",
     # Hero proxy — the bearer drawn in the panel (he is a pawn, not a Mass entity)
-    "Emberkeep.UnitCamProj.Hero": "1",
-    "Emberkeep.UnitCamProj.HeroScale": "1.6",
-    "Emberkeep.UnitCamProj.HeroCell": "6",  # retinue ATTACK; 0 is now a brood frame
+    "Kindled.UnitCamProj.Hero": "1",
+    "Kindled.UnitCamProj.HeroScale": "1.6",
+    "Kindled.UnitCamProj.HeroCell": "6",  # retinue ATTACK; 0 is now a brood frame
     # Panel framing — the HUD command rectangle scales off the cam
-    "Emberkeep.UnitCamProj.SizeMax": "620",
-    "Emberkeep.UnitCamProj.SizeMin": "300",
-    "Emberkeep.UnitCamProj.SizeBodies": "1500",
+    "Kindled.UnitCamProj.SizeMax": "620",
+    "Kindled.UnitCamProj.SizeMin": "300",
+    "Kindled.UnitCamProj.SizeBodies": "1500",
     # Weighted by YOUR headcount: a full retinue shrinks the cam, attrition grows it back.
-    "Emberkeep.UnitCamProj.SizeRetinueWeight": "10",
-    "Emberkeep.UnitCamProj.SizeBroodWeight": "0.25",
-    "Emberkeep.UnitCamProj.SizeCurve": "1",
-    "Emberkeep.UnitCamProj.Aspect": "1.35",
-    "Emberkeep.UnitCamProj.ThreatTint": "1",
-    "Emberkeep.UI.Muster.WingRatio": "0.5",
+    "Kindled.UnitCamProj.SizeRetinueWeight": "10",
+    "Kindled.UnitCamProj.SizeBroodWeight": "0.25",
+    "Kindled.UnitCamProj.SizeCurve": "1",
+    "Kindled.UnitCamProj.Aspect": "1.35",
+    "Kindled.UnitCamProj.ThreatTint": "1",
+    "Kindled.UI.Muster.WingRatio": "0.5",
     # Game camera — slides to keep the hero centred in the strip the HUD doesn't cover
-    "Emberkeep.Cam.HudBias": "1",
-    "Emberkeep.Cam.HudBiasLerp": "6",
+    "Kindled.Cam.HudBias": "1",
+    "Kindled.Cam.HudBiasLerp": "6",
 }
 
 LIGHTING = [k for k in VALUES if k.startswith("Swarm.Flame")
@@ -146,17 +146,17 @@ COMBAT = COMBAT + HITREACTION
 HORDE = ["Swarm.BroodMaxHP", "Swarm.BroodDPS", "Swarm.BroodTargetsPerHit",
          # BroodScale is the same size call in the panel, where the difference is legible.
          "Swarm.BroodSizeJitter", "Swarm.RetinueSizeJitter",
-         "Emberkeep.UnitCamProj.BroodScale",
+         "Kindled.UnitCamProj.BroodScale",
          "Swarm.BroodSpeed", "Swarm.BroodAggroRange", "Swarm.BroodSeparation",
          "Swarm.BroodSeparationWeight", "Swarm.BroodSeparationCap", "Swarm.BroodWalkHz",
          "Swarm.BroodSpawnRadiusMin", "Swarm.BroodSpawnRadiusMax", "Swarm.BroodSpawnArc",
          "Swarm.BroodSpawnArcCenter", "Swarm.BroodSpeedJitter"]
 # The wing ratio lives under a different prefix but frames the same rectangle, so it
 # belongs on the Unit Cam preset with the panel-size dials it pairs with.
-UNITCAM = ([k for k in VALUES if k.startswith("Emberkeep.UnitCamProj.")]
-           + ["Emberkeep.UI.Muster.WingRatio",
+UNITCAM = ([k for k in VALUES if k.startswith("Kindled.UnitCamProj.")]
+           + ["Kindled.UI.Muster.WingRatio",
               # The camera bias is driven BY the HUD's size, so it is tuned in the same sitting.
-              "Emberkeep.Cam.HudBias", "Emberkeep.Cam.HudBiasLerp"])
+              "Kindled.Cam.HudBias", "Kindled.Cam.HudBiasLerp"])
 EVERYTHING = list(VALUES.keys())
 
 # Preset asset name -> ordered list of CVar names (values pulled from VALUES).

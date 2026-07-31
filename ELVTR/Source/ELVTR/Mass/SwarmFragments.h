@@ -106,7 +106,7 @@ namespace SwarmSheet
  * World facing, quantised to 32 steps, and the view-relative column it becomes.
  *
  * Why 32 and not 8: the sheet has eight columns, but the SIM must not be the thing that
- * knows that. Camera yaw is a live CVar (Emberkeep.Cam.Yaw) that spins the map under the
+ * knows that. Camera yaw is a live CVar (Kindled.Cam.Yaw) that spins the map under the
  * player, and the Unit Cam looks from somewhere else entirely — so a facing baked to
  * eight screen-relative steps in the sim would be wrong for one of them and would snap
  * visibly when the view rotated. Storing a WORLD angle at 4x the sheet's resolution lets

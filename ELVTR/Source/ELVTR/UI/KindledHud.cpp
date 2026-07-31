@@ -1,8 +1,8 @@
-#include "UI/EmberkeepHud.h"
+#include "UI/KindledHud.h"
 #include "UI/MusterPanel.h"
-#include "UI/EmberkeepUITypes.h"
+#include "UI/KindledUITypes.h"
 #include "UI/UnitCamProjector.h"
-#include "UI/EmberkeepPalette.h"
+#include "UI/KindledPalette.h"
 #include "UI/StitchMeter.h"
 #include "Blueprint/WidgetTree.h"
 #include "Components/Border.h"
@@ -23,15 +23,15 @@
 namespace
 {
 	TAutoConsoleVariable<float> CVarMusterWingRatio(
-		TEXT("Emberkeep.UI.Muster.WingRatio"), 0.5f,
+		TEXT("Kindled.UI.Muster.WingRatio"), 0.5f,
 		TEXT("Width of each retinue wing as a fraction of the Unit Cam's width. The wings flank\n")
 		TEXT("the cam inside one rectangle and track its height exactly, so 0.5 makes the whole\n")
 		TEXT("command rectangle twice the cam's width."),
 		ECVF_Default);
 
 	TAutoConsoleVariable<float> CVarBandHeight(
-		TEXT("Emberkeep.UI.BandHeight"), 190.f,
-		TEXT("ONE-CAMERA MODE ONLY (Emberkeep.UI.Cams 0): height in px of the single muster\n")
+		TEXT("Kindled.UI.BandHeight"), 190.f,
+		TEXT("ONE-CAMERA MODE ONLY (Kindled.UI.Cams 0): height in px of the single muster\n")
 		TEXT("shelf along the bottom.\n")
 		TEXT("\n")
 		TEXT("This exists because the shelf has nothing else to size it. In the two-wing layout\n")
@@ -46,13 +46,13 @@ namespace
 
 }
 
-void UEmberkeepHud::Setup(bool bWithCams)
+void UKindledHud::Setup(bool bWithCams)
 {
 	bShowCams = bWithCams;
 	RebuildBand();
 }
 
-void UEmberkeepHud::UseMockData()
+void UKindledHud::UseMockData()
 {
 	if (!Muster)
 	{
@@ -64,7 +64,7 @@ void UEmberkeepHud::UseMockData()
 	ApplyMusterSquads(UMusterPanel::MakeMockSquads());
 }
 
-void UEmberkeepHud::ApplyMusterSquads(const TArray<FEmberkeepSquad>& InSquads)
+void UKindledHud::ApplyMusterSquads(const TArray<FKindledSquad>& InSquads)
 {
 	if (!Muster)
 	{
@@ -75,7 +75,7 @@ void UEmberkeepHud::ApplyMusterSquads(const TArray<FEmberkeepSquad>& InSquads)
 	// half of it.
 	int32 TotalSize = 0;
 	int32 TotalStanding = 0;
-	for (const FEmberkeepSquad& S : InSquads)
+	for (const FKindledSquad& S : InSquads)
 	{
 		TotalSize += S.Size;
 		TotalStanding += S.Standing;
@@ -105,26 +105,26 @@ void UEmberkeepHud::ApplyMusterSquads(const TArray<FEmberkeepSquad>& InSquads)
 	// Split down the middle, first half left. Order is stable (squad index), so a squad never
 	// hops sides as others are wiped out — you learn where your Shield squad lives.
 	const int32 Half = (InSquads.Num() + 1) / 2;
-	TArray<FEmberkeepSquad> Left(InSquads.GetData(), Half);
-	TArray<FEmberkeepSquad> Right(InSquads.GetData() + Half, InSquads.Num() - Half);
+	TArray<FKindledSquad> Left(InSquads.GetData(), Half);
+	TArray<FKindledSquad> Right(InSquads.GetData() + Half, InSquads.Num() - Half);
 
 	Muster->SetSquads(Left);
 	MusterRight->SetSquads(Right);
 }
 
-void UEmberkeepHud::NativeTick(const FGeometry& MyGeometry, float InDeltaTime)
+void UKindledHud::NativeTick(const FGeometry& MyGeometry, float InDeltaTime)
 {
 	Super::NativeTick(MyGeometry, InDeltaTime);
 
 	// Layout-shape dials can't be applied in place — they change which widgets exist and in
 	// what order — so watch them and rebuild the band only when one actually flips.
 
-	// Emberkeep.UI.Cams is the biggest of those shapes: cams or no cams. Watched here rather
+	// Kindled.UI.Cams is the biggest of those shapes: cams or no cams. Watched here rather
 	// than only read at spawn because the auto-show runs on a next-tick timer, which -ExecCmds
 	// and most startup paths lose the race against — set at launch it would appear to do
-	// nothing. Looked up by name (it is registered over in EmberkeepUIDebug.cpp) and cached,
+	// nothing. Looked up by name (it is registered over in KindledUIDebug.cpp) and cached,
 	// since a second CVar of the same name cannot be declared here.
-	static IConsoleVariable* CVarCams = IConsoleManager::Get().FindConsoleVariable(TEXT("Emberkeep.UI.Cams"));
+	static IConsoleVariable* CVarCams = IConsoleManager::Get().FindConsoleVariable(TEXT("Kindled.UI.Cams"));
 	if (CVarCams)
 	{
 		const bool bWantCams = CVarCams->GetInt() != 0;
@@ -155,7 +155,7 @@ void UEmberkeepHud::NativeTick(const FGeometry& MyGeometry, float InDeltaTime)
 	}
 }
 
-void UEmberkeepHud::PushLiveMuster()
+void UKindledHud::PushLiveMuster()
 {
 	if (!Muster)
 	{
@@ -193,12 +193,12 @@ void UEmberkeepHud::PushLiveMuster()
 	// Real per-squad standing (cosmetic squads, tracked in the sim). Each card's SIZE is that
 	// squad's high-water headcount, STANDING its live count — so cards show honest per-squad
 	// attrition. Squads that never had members are skipped, so the row matches the live army.
-	const EEmberkeepStance Stance = (EEmberkeepStance)(uint8)SwarmStance;
+	const EKindledStance Stance = (EKindledStance)(uint8)SwarmStance;
 	static const TCHAR* const SquadNames[] = {
 		TEXT("Shield"), TEXT("Vets"), TEXT("Spearmen"), TEXT("Banner"), TEXT("Reserve") };
 
 	const int32 SquadCount = FMath::Min<int32>(USwarmSubsystem::MaxSquads, UE_ARRAY_COUNT(SquadPeak));
-	TArray<FEmberkeepSquad> Live;
+	TArray<FKindledSquad> Live;
 	Live.Reserve(SquadCount);
 	for (int32 i = 0; i < SquadCount; ++i)
 	{
@@ -208,7 +208,7 @@ void UEmberkeepHud::PushLiveMuster()
 		{
 			continue; // squad never populated
 		}
-		FEmberkeepSquad S;
+		FKindledSquad S;
 		S.Size = SquadPeak[i];
 		S.Standing = FMath::Min(Standing, S.Size);
 		S.Columns = FMath::Clamp(FMath::RoundToInt(FMath::Sqrt((float)FMath::Max(S.Size, 1)) * 1.3f), 3, 10);
@@ -220,7 +220,7 @@ void UEmberkeepHud::PushLiveMuster()
 	ApplyMusterSquads(Live);
 }
 
-TSharedRef<SWidget> UEmberkeepHud::RebuildWidget()
+TSharedRef<SWidget> UKindledHud::RebuildWidget()
 {
 	if (!Band)
 	{
@@ -245,7 +245,7 @@ TSharedRef<SWidget> UEmberkeepHud::RebuildWidget()
 	return Super::RebuildWidget();
 }
 
-void UEmberkeepHud::RebuildBand()
+void UKindledHud::RebuildBand()
 {
 	if (!Band)
 	{
@@ -296,7 +296,7 @@ void UEmberkeepHud::RebuildBand()
 			return nullptr;
 		}
 		Panel->SetChrome(false);
-		Panel->SetFlow(EEmberkeepMusterFlow::Column);
+		Panel->SetFlow(EKindledMusterFlow::Column);
 		Panel->SetContentAlignment(Align);
 
 		UScaleBox* Scale = WidgetTree->ConstructWidget<UScaleBox>(UScaleBox::StaticClass());
@@ -315,7 +315,7 @@ void UEmberkeepHud::RebuildBand()
 	};
 
 	// No cam: one centred shelf carrying the whole roster. This is ONE-CAMERA MODE
-	// (Emberkeep.UI.Cams 0, the default since 2026-07-28) as well as the old muster-only
+	// (Kindled.UI.Cams 0, the default since 2026-07-28) as well as the old muster-only
 	// preview — the player's viewport is the only camera, so the band is just the muster.
 	//
 	// SetSquads already routes the FULL roster into this single panel when bShowCams is false
@@ -325,7 +325,7 @@ void UEmberkeepHud::RebuildBand()
 		if (Muster)
 		{
 			Muster->SetChrome(false);
-			Muster->SetFlow(EEmberkeepMusterFlow::Row);
+			Muster->SetFlow(EKindledMusterFlow::Row);
 			Muster->SetContentAlignment(HAlign_Left);
 			// The panel carries its own company readout here. The centre column's company strip
 			// (BuildCompanyStrip) is built further down, INSIDE the cam branch, so it does not
@@ -333,7 +333,7 @@ void UEmberkeepHud::RebuildBand()
 			// off the HUD entirely rather than relocating it.
 			Muster->SetShowCompany(true);
 
-			// Same scale-to-fit rig the wings use, but bounded by Emberkeep.UI.BandHeight
+			// Same scale-to-fit rig the wings use, but bounded by Kindled.UI.BandHeight
 			// instead of by the cam that isn't there. DownOnly so a thin roster keeps its
 			// natural size and only a full company gets shrunk.
 			UScaleBox* Scale = WidgetTree->ConstructWidget<UScaleBox>(UScaleBox::StaticClass());
@@ -402,7 +402,7 @@ void UEmberkeepHud::RebuildBand()
 	SyncWingsToCam();
 }
 
-void UEmberkeepHud::PublishHudOcclusion(const FGeometry& MyGeometry)
+void UKindledHud::PublishHudOcclusion(const FGeometry& MyGeometry)
 {
 	UWorld* World = GetWorld();
 	USwarmSubsystem* Swarm = World ? World->GetSubsystem<USwarmSubsystem>() : nullptr;
@@ -429,7 +429,7 @@ void UEmberkeepHud::PublishHudOcclusion(const FGeometry& MyGeometry)
 	Swarm->SetHudOccludedFraction((RectH + BandPadding) / ScreenH);
 }
 
-UBorder* UEmberkeepHud::BuildCompanyStrip()
+UBorder* UKindledHud::BuildCompanyStrip()
 {
 	// Its own compartment: Steel edge over Dark ground, matching the rectangle's own framing so
 	// it reads as a section of the same object rather than a floating label.
@@ -463,7 +463,7 @@ UBorder* UEmberkeepHud::BuildCompanyStrip()
 	return Frame;
 }
 
-void UEmberkeepHud::SyncWingsToCam()
+void UKindledHud::SyncWingsToCam()
 {
 	// One-camera mode: no cam to sync to, but the shelf's height is a live dial, so drive it
 	// here before the early-out rather than only at build time.

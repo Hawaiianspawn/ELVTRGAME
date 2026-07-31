@@ -89,7 +89,7 @@ namespace
 		TEXT("protects. [1..8]"), ECVF_Default);
 
 	TAutoConsoleVariable<float> CVarSimLodNearRadius(
-		// 2200 since 2026-07-28, was 1600. Emberkeep.Cam.ScalePitchFull went -90 -> -55 the same
+		// 2200 since 2026-07-28, was 1600. Kindled.Cam.ScalePitchFull went -90 -> -55 the same
 		// day; a tilted camera sees ~1650uu of ground rather than ~1350uu, which put the furthest
 		// visible corner within a hair of the old radius. Raised with margin rather than tuned to
 		// the edge, because the failure mode (units striding on screen) is worse than the cost.
@@ -100,7 +100,7 @@ namespace
 		TEXT("retinue, avoidance in the melee — has to sit inside it. The top-down view is at\n")
 		TEXT("most 2400uu wide, putting its furthest corner ~1470uu out, so at full army this\n")
 		TEXT("only strides brood that are off-screen walking in from the spawn ring. Exception:\n")
-		TEXT("below Emberkeep.Cam.ScaleSwapAt the camera goes shallow-perspective and sees\n")
+		TEXT("below Kindled.Cam.ScaleSwapAt the camera goes shallow-perspective and sees\n")
 		TEXT("further down-field, so a late-run shot CAN have strided units in frame — raise\n")
 		TEXT("this if that shot ever becomes a moment the game cares about. [0..8000]"), ECVF_Default);
 

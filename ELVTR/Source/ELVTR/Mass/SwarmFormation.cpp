@@ -65,7 +65,7 @@ namespace
 
 	TAutoConsoleVariable<int32> CVarFaceCamera(
 		TEXT("Swarm.Formation.FaceCamera"), 1,
-		TEXT("1 = the formation's 'forward' is up-screen, tracking Emberkeep.Cam.Yaw, so the\n")
+		TEXT("1 = the formation's 'forward' is up-screen, tracking Kindled.Cam.Yaw, so the\n")
 		TEXT("line stays broadside to the viewer however the camera is set (default).\n")
 		TEXT("0 = forward is world +X regardless of where the camera is looking."),
 		ECVF_Default);
@@ -285,7 +285,7 @@ namespace SwarmFormation
 	/**
 	 * The camera's bearing, read by name rather than by linking to the pawn.
 	 *
-	 * Emberkeep.Cam.Yaw is owned by SpikeHeroPawn.cpp — a spike actor the Mass side has
+	 * Kindled.Cam.Yaw is owned by SpikeHeroPawn.cpp — a spike actor the Mass side has
 	 * no business depending on, and which may not exist at all in a later shipping mode.
 	 * Finding it by name costs one lookup per pass and degrades to "world axes" if the
 	 * pawn's translation unit never registered it, which is exactly the right failure.
@@ -295,7 +295,7 @@ namespace SwarmFormation
 		static IConsoleVariable* CamYaw = nullptr;
 		if (!CamYaw)
 		{
-			CamYaw = IConsoleManager::Get().FindConsoleVariable(TEXT("Emberkeep.Cam.Yaw"));
+			CamYaw = IConsoleManager::Get().FindConsoleVariable(TEXT("Kindled.Cam.Yaw"));
 		}
 		return CamYaw ? CamYaw->GetFloat() : 0.f;
 	}
