@@ -1,7 +1,7 @@
 ---
 id: 036
 title: Design the runtime pacing director (L4D-style intensity manager)
-status: proposed
+status: parked
 agent: gameplay-director
 owns: ["docs/design/pacing-director.md"]
 resources: []
@@ -9,7 +9,9 @@ depends-on: [4, 24]
 evidence: A pacing spec reading party state and world flags to drive spawn pressure, breathers, and ambushes.
 score: {feel: 3, risk: 2, cost: 3}
 source: docs/GDD-TODO.md:115
-decided: ""
+decided: "2026-07-29 parked"
+model: sonnet
+teammate: pacing-director
 ---
 
 ## Why now

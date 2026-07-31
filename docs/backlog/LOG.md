@@ -342,3 +342,4 @@ Rejected and parked tasks keep their files — this records why.
 - 2026-07-31 · `task-125` · approved → **in-progress** · Generate a medieval archer variant family off the shipped knight base, judged on measured silhouette — dispatched to teammate `archer-family` at model `sonnet`
 - 2026-07-31 · `task-125` · in-progress → **needs-review** · Generate a medieval archer variant family off the shipped knight base, judged on measured silhouette
 - 2026-07-31 · `task-125` · needs-review → **done** · Generate a medieval archer variant family off the shipped knight base, judged on measured silhouette
+- 2026-07-31 · `task-126` · approved → **in-progress** · Make an archer look like an archer on the battlefield — pack the family into the team atlas and branch the render path on unit type — dispatched to teammate `land-archers` at model `opus`

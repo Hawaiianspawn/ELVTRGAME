@@ -1,7 +1,7 @@
 ---
 id: 018
 title: Repoint the director agents off superseded WORLD.md onto current narrative canon
-status: proposed
+status: done
 agent: claude
 owns: [".claude/agents/**"]
 resources: []
@@ -9,7 +9,9 @@ depends-on: []
 evidence: Every .claude/agents/*.md canon list checked against what is actually current, and a grep for WORLD.md across the agent definitions returning only intentional references.
 score: {feel: 1, risk: 1, cost: 1}
 source: .claude/agents/gameplay-director.md:17
-decided: ""
+decided: "2026-07-29 done"
+model: sonnet
+teammate: agent-canon
 ---
 
 ## Why now

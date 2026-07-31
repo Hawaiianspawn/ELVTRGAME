@@ -1,9 +1,9 @@
 ---
 id: 101
 title: Reconcile supply capacity with retinue size, and make provision bind
-status: proposed
+status: done
 agent: gameplay-director
-model: ""
+model: sonnet
 owns:
   - "docs/data/economy.json"
   - "docs/data/growth-sites.json"
@@ -19,6 +19,8 @@ evidence: >
   stops being byte-identical to spending nothing.
 score: {feel: 3, risk: 2, cost: 1}
 source: task-096 + task-097 handbacks, 2026-07-30
+decided: "2026-07-30 done"
+teammate: supply-bind
 ---
 
 ## Why now

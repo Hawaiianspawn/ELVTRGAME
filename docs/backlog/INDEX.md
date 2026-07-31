@@ -10,7 +10,7 @@ not a re-read.
 
 | proposed | approved | in-progress | needs-review | done | rejected | parked |
 |---|---|---|---|---|---|---|
-| 40 | 2 | 0 | 0 | 76 | 0 | 8 |
+| 40 | 1 | 1 | 0 | 76 | 0 | 8 |
 
 ## Audit queue — top 7 awaiting your verdict
 
@@ -94,11 +94,16 @@ A fan is approved in one batch and dispatched one teammate per task. `⨝` joins
 | `020` | 0.5 | [Assemble the four-section GDD submission document and export to PDF](task-020-gdd-submission-assembly-and-pdf.md) | claude | `docs/ASSIGNMENT-01-GDD-FIRST-DRAFT.md` | `docs/GDD-TODO.md:77` |
 | `037` | 0.5 | [Sweep the remaining CLASSES C2-C11 open questions against current canon](task-037-sweep-remaining-classes-open-questions.md) | narrative-director | `docs/narrative/open-questions-audit.md` | `docs/GDD-TODO.md:116` |
 
-## approved (2)
+## approved (1)
 
 | id | score | task | agent | owns | source |
 |---|---|---|---|---|---|
 | `031` | 2.0 | [Check the shipped leash system against RTS-VERTICAL-SLICE §2's spec](task-031-leash-system-conformance-check.md) | claude | `docs/RTS-VERTICAL-SLICE.md` | `docs/RTS-VERTICAL-SLICE.md:97` |
+
+## in-progress (1)
+
+| id | score | task | agent | owns | source |
+|---|---|---|---|---|---|
 | `126` | 2.0 | [Make an archer look like an archer on the battlefield — pack the family into the team atlas and branch the render path on unit type](task-126-land-archers-in-the-team-atlas.md) | claude | `ELVTR/Source/ELVTR/Mass/SwarmFragments.h`, `ELVTR/Source/ELVTR/Mass/SwarmProcessors.cpp`, `ELVTR/Source/ELVTR/Rendering/SwarmRenderActor.cpp`, `RawArt/Sheets/T_Team_2bit.png`, `ELVTR/Content/Spike1/**`, `docs/data/art/requests/team-units.json`, `docs/data/art/team-variants.json`, `docs/data/art/provenance.json`, `ELVTR/SETUP-EDITOR.md`, `docs/perf/niagara-sprite-path.md` | `user` |
 
 ## done (76)

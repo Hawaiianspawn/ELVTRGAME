@@ -1,0 +1,67 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://elvtr.local/family.schema.json",
+  "title": "Variant family spec",
+  "description": "A declarative record of one variant family for Scripts/art/variantpipe.py -- what the base character was, which silhouette axis the family spends, what every variant holds constant, and per-variant what was asked for. See .claude/skills/variants/SKILL.md for the workflow this codifies, and docs/backlog/task-081-codify-variant-family-pipeline.md for why. Families backfilled from before this schema existed (their generation predates any manifest) fill 'base' and per-variant 'edit_description'/'silhouette_target' with null rather than a guess -- see each family's family.json 'note' field for what is actually known.",
+  "type": "object",
+  "required": ["family", "axis", "constant", "variants"],
+  "additionalProperties": false,
+  "properties": {
+    "family": {
+      "type": "string",
+      "description": "Matches the directory name under RawArt/Renders/<family>/ and docs/data/art/families/<family>/."
+    },
+    "note": {
+      "type": "string",
+      "description": "Free text for anything a field can't say -- e.g. that this family predates manifest tracking."
+    },
+    "base": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "character_id": {"type": ["string", "null"], "description": "PixelLab character UUID this family's states were built from. get_character confirms it; null if not recorded."},
+        "canvas_size": {"type": ["integer", "null"], "description": "The confirmed RETURNED canvas in px (not the requested 'size' -- see SKILL.md's size-vs-canvas trap). Used by judge to reject a variant whose canvas doesn't match."},
+        "note": {"type": "string"}
+      }
+    },
+    "axis": {
+      "type": "object",
+      "required": ["name", "description"],
+      "additionalProperties": false,
+      "properties": {
+        "name": {"type": "string", "description": "aspect | topology | interior | mixed -- see SKILL.md's 'order of axes'."},
+        "description": {"type": "string", "description": "What this family actually varies, in one sentence."}
+      }
+    },
+    "constant": {
+      "type": "string",
+      "description": "What every variant in the family holds constant (SKILL.md step 2's variance table)."
+    },
+    "variants": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "required": ["slug"],
+        "additionalProperties": false,
+        "properties": {
+          "slug": {"type": "string", "description": "Matches the variant's folder name under raw/."},
+          "silhouette_target": {
+            "type": ["number", "string", "null"],
+            "description": "The target stated in plain geometric terms when the variant was queued (SKILL.md step 3). A bare number is read as an aspect target by judge's undershoot check; a string is a target judge cannot check numerically and is informational only. null for a variant whose original target was never recorded."
+          },
+          "edit_description": {
+            "type": ["string", "null"],
+            "description": "The exact prompt text sent to create_character_state/create_character. null if not recorded (pre-dates this schema) -- plan reconstructs kwargs from this when the variant has not yet been generated."
+          },
+          "source": {
+            "type": "string",
+            "enum": ["generated", "legacy"],
+            "default": "legacy",
+            "description": "'generated' = queue this through plan/fetch. 'legacy' = already on disk from before this pipeline existed; plan skips it."
+          }
+        }
+      }
+    }
+  }
+}

@@ -1,17 +1,18 @@
 ---
 id: 059
-title: Rework the Niagara sprite path so the horde has a state axis and per-unit size, without growing the atlas
-status: parked
+title: Give the brood nine looks on one draw call — variant axis in the atlas, chosen by a display-weight table
+status: done
 agent: claude
-owns: ["ELVTR/Source/ELVTR/Mass/SwarmFragments.h", "ELVTR/Source/ELVTR/Rendering/SwarmRenderActor.cpp", "ELVTR/Source/ELVTR/Rendering/SwarmRenderActor.h", "ELVTR/Content/Spike1/**", "ELVTR/Content/Swarm/**", "ELVTR/Content/Sprites/Swarm/**", "RawArt/Sheets/T_Swarm*.png", "docs/perf/niagara-sprite-path.md"]
+owns: ["ELVTR/Source/ELVTR/Mass/SwarmFragments.h", "ELVTR/Source/ELVTR/Mass/SwarmProcessors.cpp", "ELVTR/Source/ELVTR/Rendering/SwarmRenderActor.cpp", "ELVTR/Source/ELVTR/Rendering/SwarmRenderActor.h", "ELVTR/Content/Spike1/**", "ELVTR/Content/Swarm/**", "ELVTR/Content/Sprites/Swarm/**", "RawArt/Sheets/T_Swarm*.png", "docs/data/art/requests/swarm-units.json", "docs/data/art/brood-variants.json", "docs/data/art/provenance.json", "docs/perf/niagara-sprite-path.md"]
 resources: ["unreal-editor", "mcp-9000"]
 depends-on: [57]
 epic: ""
-evidence: A PIE capture of the viewport horde at gameplay density where soldiers of one type visibly differ — some face-shielded, some not, at varying sizes — with the draw-call count unchanged from today and a before/after frame-time row.
-score: {feel: 1, risk: 3, cost: 2}
+evidence: A PIE capture of the viewport horde at gameplay density where the brood visibly shows several different ooze looks at once and at varying sizes, plus a second capture at a deliberately skewed weight table (one skin at weight 100) proving the weights actually drive the mix, with the draw-call count unchanged from today and a before/after frame-time row.
+score: {feel: 2, risk: 2, cost: 2}
 source: user
-teammate: ""
-decided: "2026-07-28 parked"
+teammate: brood-variety
+decided: "2026-07-29 done"
+model: opus
 ---
 
 ## Why now
@@ -221,9 +222,87 @@ inventing one.
 **Gotcha carried forward:** MCP asset edits are in-memory until `save_assets([])`. Do not
 declare the graph edit done without a save and a re-read.
 
+## Update 2026-07-29 — UNPARKED and rescoped: the owner asked for this out loud, with a weight table
+
+Owner, 2026-07-29: *"can we get npc variety into our system, lets not create any new stuff but
+utilize some of the good skins we have. Example the Oozes have some variance in appearence.
+They will be match to display weight."*
+
+That is this task, plus one layer it did not have. **Four things are now settled that were
+open when it parked — all four measured, so do not re-derive them.**
+
+**I. THE ART IS MEASURED AND IT FITS. No repack of the cell size, no generation, no credits.**
+All nine states (`state00_base` … `state08_slug`) have all 8 rotations, in full colour, 88×88
+source. Measured max content bbox across all 72 frames:
+
+| state | max content | | state | max content |
+|---|---|---|---|---|
+| `state00_base` | 40×44 | | `state05_ridge` | 52×44 |
+| `state01_sump` | 53×44 | | `state06_crown` | 40×47 |
+| `state02_bell` | 43×45 | | `state07_twin` | 40×45 |
+| `state03_stalk` | 26×45 | | `state08_slug` | 43×47 |
+| `state04_wedge` | 47×44 | | *(shipping brood)* | 53×44 |
+
+**Every one fits the existing 56px cell** (worst case 53×47). `pixelpipe pack` will not have to
+scale anything, so Update A's forced-cell episode does not repeat. Width runs **26px → 53px, a
+2.0× spread** — real separation, not the 1.2× collapse that skeleton-based variants suffer
+(`variant-families-workflow`). **The nine are good as they are. Do not re-measure them with
+`/variants` and do not regenerate any of them to "improve the spread".**
+
+**II. GROW ROWS. Finding #2 is OVERRULED — do not build a `Texture2DArray`.** That finding
+argued from a "hard size ceiling" without numbers. Here are the numbers: keeping the walk axis,
+`Rows = variants×2 + retinue 2 = 20`, so the atlas is **448×1120** at 8×20 — under 2K in both
+dimensions, one texture, one renderer, one draw call, ~2MB uncompressed. The ceiling is not
+close and never was. A `Texture2DArray` costs a new material decode, a third per-particle
+array, and a new import path to buy headroom nothing needs. **Rows is a `Rows = 4` → `Rows = 20`
+constant, a `CellFor` signature, and a `frame_map`.** Take it.
+
+**Keep the walk axis even though it is currently dead** (`walk0 == walk1` for both teams today,
+Update F). Row = `Variant*2 + WalkFrame`. The ten duplicate rows cost ~1MB of texels and nothing
+else; collapsing them saves that 1MB and forces a *second* layout change the day any
+`animate_character` walk lands. Update F already warned not to design around the duplication as
+permanent — this is that warning honoured.
+
+**III. THE VARIANT PICK IS FREE — no new fragment, no class-layout change, no Live Coding trap.**
+`SwarmProcessors.cpp:1050` already derives the size bucket from `Jitter[i].Phase` via
+`SwarmRenderPack::BucketFromPhase` — *"Derived from the jitter phase rather than stored, so no
+fragment grows a field."* **The variant index derives from the same `Phase`, the same way**, and
+rides bits 21-24 of the existing packed int32 (bits 21-31 are free, finding #1). `Phase` is a
+per-entity `FRandRange(0, 10)` set once at spawn, so the look is stable for that entity's life
+and costs zero storage. This is the single most important line in this update: **if you find
+yourself adding a fragment field, you have taken a wrong turn.**
+
+**IV. The display-weight table — the layer the owner added, and the reason not to pre-judge
+the art.** Owner's chosen reading, confirmed 2026-07-29: *each skin gets a weight controlling
+how often it appears.* Write `docs/data/art/brood-variants.json` — a variant id, a source path,
+and an integer weight per row — and have the pick map `Phase` through the **cumulative** weight
+array rather than a uniform 0-8. Consequences worth stating because they are the point:
+
+  - **Pack all nine regardless.** A skin that reads badly in the horde drops to `weight: 0` and
+    vanishes with no repack, no reimport, no rebuild. That is why there is no "which nine ship"
+    gate ahead of this task and no contact-sheet approval step — the weights *are* the gate, and
+    they are tunable after seeing the thing move.
+  - **Expose one CVar** (`Swarm.BroodVariantWeights` or equivalent) so the mix can be skewed live
+    on the Breadboard without a reload. The second required capture depends on it.
+  - Ship sensible defaults, not a flat distribution — a common base look with a couple of rare
+    ones reads as variety; nine-way-equal reads as noise. The numbers are the owner's to tune;
+    getting them arguable is enough.
+
+**Rescored** `feel 1 → 2` (a visual layer that reads in play, `TEMPLATE.md` rubric) and
+`risk 3 → 2` (the C++ half landed, the graph edit is fully specified from the live asset, the
+art is measured — the remaining unknown is MCP asset-write reliability, not the design).
+
+**Retinue variety is NOT in this task.** The `T_Soldier_Knight_02..06` and
+`T_Soldier_Archer_02..05` sheets on disk are the friendly-side equivalent and they ride these
+exact same variant bits once this lands — but they are packed 8×4 per-character sheets, not raw
+rotation sets, so wiring them needs their raw renders located first. File it as a follow-up
+after this closes. Do not widen scope to reach it.
+
 ## Done when
-- The horde in the **viewport** shows more than one look per unit type — the states
-  `task-055` already packed reach the shipping camera.
+- The **brood in the viewport** shows several different ooze looks at once at gameplay density.
+- **The weight table demonstrably drives the mix** — skewing one skin to weight 100 changes what
+  the horde is made of, on screen.
+- All nine states packed into the atlas, `weight: 0` available as the way to retire a bad one.
 - **Draw calls unchanged.** One renderer, one draw call. If the design costs N draw calls,
   it is the wrong design; say so and stop rather than shipping it.
 - Per-unit size variety is live — `Swarm.BroodSizeJitter` visibly does something.
@@ -250,8 +329,48 @@ a different file-ownership story, which is exactly the line the epic machinery d
 
 ## Spawn prompt
 ```
-You are reworking Emberkeep's Niagara sprite path so the viewport horde has a state axis and
-per-unit size variety (C:\Projects\ELVTRGAME).
+You are giving Emberkeep's brood nine different looks on one draw call, chosen by a
+display-weight table (C:\Projects\ELVTRGAME).
+
+Owner, 2026-07-29: "can we get npc variety into our system, lets not create any new stuff but
+utilize some of the good skins we have. Example the Oozes have some variance in appearence.
+They will be match to display weight."
+
+READ docs/backlog/task-059-niagara-sprite-path-state-axis-and-variety.md IN FULL BEFORE YOU
+TOUCH ANYTHING. It carries several sessions of research and four measured decisions. The
+sections below the "Update 2026-07-29" heading OVERRULE parts of the older §Findings — where
+they disagree, the 2026-07-29 update wins. In particular:
+
+  * THE ART IS ALREADY MEASURED AND IT FITS. Nine states, RawArt/Renders/brood-ooze/raw/
+    state00_base .. state08_slug, 8 rotations each, full colour, worst-case content 53x47
+    inside the existing 56px cell. GENERATE NOTHING. Spend NO PixelLab credits. Do not
+    re-measure with /variants and do not "improve" any state.
+  * GROW ROWS, DO NOT BUILD A Texture2DArray. Finding #2 in the older text argues the other
+    way and it is OVERRULED with numbers in update §II: 8x20 @ 56px is 448x1120, nowhere near
+    any ceiling. Keep the walk axis: Row = Variant*2 + WalkFrame, Rows 4 -> 20.
+  * THE VARIANT PICK ADDS NO FRAGMENT FIELD. SwarmProcessors.cpp:1050 already derives the size
+    bucket from Jitter[i].Phase. Derive the variant index from that SAME Phase and ride bits
+    21-24 of the existing packed int32. IF YOU ARE ADDING A FRAGMENT FIELD YOU HAVE TAKEN A
+    WRONG TURN -- and it would also hit the Live Coding class-layout crash (see GOTCHAS).
+  * THE WEIGHTS ARE THE GATE. Pack all nine. docs/data/art/brood-variants.json holds a weight
+    per variant; the pick maps Phase through the CUMULATIVE weights, not a uniform 0-8. A skin
+    that reads badly drops to weight 0 with no repack. Expose a CVar so the mix can be skewed
+    live. Ship defaults with a common base and a couple of rare looks -- not nine-way-equal.
+
+THREE THINGS MUST AGREE ABOUT THE LAYOUT and SwarmFragments.h:44 says so explicitly: the C++
+constants (SwarmSheet::Columns/Rows), the packed sheet (docs/data/art/requests/swarm-units.json
+output.grid + frame_map), and the sprite renderer's Sub UV field in the ASSET. Change one and
+you must change all three, or the horde decodes garbage. Verify the Sub UV value by reading it
+back from the asset, not by assuming your write took.
+
+The remaining Niagara graph work is ALSO fully specified from the live asset in the
+"Update 2026-07-29 — C++ half LANDED" section — User.Colors and User.Sizes need adding and
+binding in the spawn Set-Parameters module, copying the existing SelectPositionFromArray /
+SelectFloatFromArray binding pattern. The C++ already pushes both arrays. Do that in the same
+graph visit as the variant work; it closes the missing hit flash and the blown-out lighting the
+owner reported, and it is why Swarm.BroodSizeJitter currently does nothing.
+
+Older context that still holds, unchanged:
 
 Owner, 2026-07-28: "if there is a better way to render those sprites via niagara and the
 simulation space feel free to research." The research is DONE and written up in
@@ -261,12 +380,12 @@ and do not redo it. Summary of what you are inheriting:
   1. SwarmRenderPack (Mass/SwarmFragments.h:202) already rides anim/size/facing/squad in one
      TArray<int32>. BITS 21-31 ARE FREE — a state index rides there for no new array and no
      class-layout change. That is the house pattern; follow it.
-  2. Growing the SubUV atlas is the WRONG axis — states multiply rows against a single
-     texture with a hard ceiling. Evaluate a Texture2DArray (one slice per state) FIRST: it
-     keeps the SubUV decode 2D, adds a slice index as a per-particle float, holds at ONE
-     draw call, and lets states be imported independently.
-  3. Half the atlas is already wasted — the brood has no real rotations, so rows 0-1 are
-     eight copies of one south frame (SwarmFragments.h:60). Reclaim that before growing.
+  2. [SUPERSEDED by update §II — this item argued for a Texture2DArray and it is OVERRULED.
+     Grow rows. Left here only so you recognise it if you meet the claim in another doc.]
+  3. [SUPERSEDED — the brood grew eight real facings on 2026-07-28. What IS duplicated now is
+     walk0 == walk1 for both teams (update §F), and update §II says KEEP that duplication
+     rather than reclaiming it. SwarmFragments.h:60 still carries the stale comment; fixing
+     that comment is in scope.]
   4. SwarmRenderPack::SizeScale is computed, packed, and THROWN AWAY by the bridge
      (SwarmRenderActor.cpp:1338). Per-unit size variety is fully built and unused — one more
      array push and one graph edit. Cheapest win here; do it.
@@ -287,18 +406,23 @@ changing it speculatively. Positions arrive via SetNiagaraArrayPosition (LWC-awa
 array) in world terms; if the emitter is Local and the actor is not at origin, that is a
 latent bug worth recording even if nothing currently trips it.
 
-WHERE THE STATES COME FROM: task-055 already generated, packed, imported and recorded real
-PixelLab character states — they are wired into the Unit Cam only, which the game no longer
-ships. Read docs/backlog/task-055-pack-character-states-for-unit-variety.md. You are NOT
-generating art. No PixelLab credits are to be spent.
+WHERE THE ART COMES FROM: RawArt/Renders/brood-ooze/raw/state00_base .. state08_slug, already
+on disk with 8 rotations each. Extend the composite sources + frame_map in
+docs/data/art/requests/swarm-units.json and repack with pixelpipe, exactly the way the two
+existing brood/retinue sources are declared there. quantize STAYS FALSE (the game ships in
+colour). Record the pack in docs/data/art/provenance.json — it currently has NO brood-ooze
+record at all. You are NOT generating art. No PixelLab credits are to be spent.
 
 DONE WHEN:
-  - The viewport horde shows more than one look per unit type at gameplay density.
+  - The brood in the viewport shows several different ooze looks at once at gameplay density.
+  - THE WEIGHT TABLE DEMONSTRABLY DRIVES THE MIX — skew one skin to weight 100 and the horde
+    visibly becomes mostly that skin. Capture both states.
   - DRAW CALLS UNCHANGED — one renderer, one draw call. If your design costs N draw calls it
     is the wrong design: say so and stop rather than shipping it.
   - Swarm.BroodSizeJitter visibly does something.
   - A before/after frame-time row at gameplay density — measured, not asserted.
-  - docs/perf/niagara-sprite-path.md records the decode, the bit layout, and the sim space.
+  - docs/perf/niagara-sprite-path.md records the decode, the bit layout, the weight-table
+    format and the sim space.
 
 DO NOT TOUCH:
   - The flat-shaded 3D route. SHELVED by the owner 2026-07-28: "the 3d perception can be
@@ -307,16 +431,26 @@ DO NOT TOUCH:
   - UnitCamProjector.* — the Unit Cam is disabled, not deleted.
   - ELVTR/Content/PostProcess/** — task-057's territory, already landed.
   - ELVTR/Source/ELVTR/UI/** — task-058's territory.
-  - The per-unit distance fade. Real open defect, separate task.
+  - RETINUE variety. T_Soldier_Knight_02..06 and T_Soldier_Archer_02..05 exist on disk and
+    ride these same variant bits once you land them, but they are packed 8x4 per-character
+    sheets rather than raw rotation sets. FOLLOW-UP TASK, not this one. Do not widen scope.
+  - The nine ooze states themselves. Do not edit, requantize, recolour or regenerate the
+    source PNGs. They are the input, measured and accepted.
 
 GOTCHAS:
-  - MCP asset edits are IN-MEMORY until save_assets([]). You are editing NS_Swarm.
-  - Live Coding CANNOT add a UPROPERTY — reports success, crashes the next PIE. Needs a full
-    editor-closed rebuild.
+  - MCP asset edits are IN-MEMORY until save_assets([]). You are editing NS_Swarm. And a
+    set_properties that returns true is NOT proof the write landed — READ THE VALUE BACK and
+    compare before you recompile or save.
+  - Live Coding is UNUSABLE on this module — see the BUILD NOTE above. Use
+    Stop-Editor; Build-Editor; Start-Editor; Wait-Mcp (Scripts/ue-mcp.ps1), ~7s.
+  - This task parked on 2026-07-28 when the editor lock went to task-060 (blood), which has
+    since LANDED. BloodSubsystem now exists on the render path — reconcile with it rather than
+    assuming SwarmRenderActor.cpp looks the way this file's line numbers say. Re-read before
+    editing; every line number quoted in this task may have moved.
   - The tree may carry uncommitted work from a concurrent session in SwarmRenderActor.cpp.
     Build on top of it. Do not revert, stash or tidy it, and do not attribute it to anyone.
 
 You hold the unreal-editor and mcp-9000 locks. Deliver ON-SCREEN EVIDENCE from a runnable
-build — a PIE capture of the horde at gameplay density where soldiers of one type visibly
-differ. Not a diff plus "it works".
+build — TWO PIE captures at gameplay density: the default weight mix showing several ooze
+looks at once, and a skewed table proving the weights drive it. Not a diff plus "it works".
 ```

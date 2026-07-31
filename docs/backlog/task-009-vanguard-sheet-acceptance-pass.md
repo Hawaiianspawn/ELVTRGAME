@@ -1,7 +1,7 @@
 ---
 id: 009
 title: Run the Vanguard sprite acceptance checklist against the packed sheet
-status: proposed
+status: done
 agent: pixel-art-director
 owns: ["docs/art/vanguard.md"]
 resources: []
@@ -9,7 +9,9 @@ depends-on: []
 evidence: All nine checklist items at docs/art/vanguard.md:351-360 ticked or failed, each backed by a pixelpipe quantize report or a stated pixel measurement.
 score: {feel: 1, risk: 1, cost: 1}
 source: docs/art/vanguard.md:351
-decided: ""
+decided: "2026-07-30 done"
+model: sonnet
+teammate: vanguard-accept
 ---
 
 ## Why now

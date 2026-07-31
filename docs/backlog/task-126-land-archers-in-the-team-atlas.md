@@ -1,9 +1,9 @@
 ---
 id: 126
 title: Make an archer look like an archer on the battlefield — pack the family into the team atlas and branch the render path on unit type
-status: approved
+status: in-progress
 agent: claude
-model: ""
+model: opus
 owns: ["ELVTR/Source/ELVTR/Mass/SwarmFragments.h", "ELVTR/Source/ELVTR/Mass/SwarmProcessors.cpp", "ELVTR/Source/ELVTR/Rendering/SwarmRenderActor.cpp", "RawArt/Sheets/T_Team_2bit.png", "ELVTR/Content/Spike1/**", "docs/data/art/requests/team-units.json", "docs/data/art/team-variants.json", "docs/data/art/provenance.json", "ELVTR/SETUP-EDITOR.md", "docs/perf/niagara-sprite-path.md"]
 resources: ["unreal-editor", "mcp-9000"]
 depends-on: [125]
@@ -11,8 +11,8 @@ epic: archers-on-the-field
 evidence: A PIE screenshot at gameplay density where the archer line behind the spearmen is visibly a different unit, plus `Swarm.TeamVariantReport` output showing the archer sub-table in use and a frame-time row at 1k/10k/40k against the current baseline.
 score: {feel: 2, risk: 2, cost: 2}
 source: user
-teammate: ""
-decided: "2026-07-31 approved"
+teammate: land-archers
+decided: "2026-07-31 in-progress"
 ---
 
 ## Why now
