@@ -1,7 +1,7 @@
 ---
 id: 001
 title: Correct the stale blockers in GDD-TODO.md and point it at the backlog
-status: in-progress
+status: done
 agent: claude
 owns: ["docs/GDD-TODO.md"]
 resources: []
@@ -9,7 +9,7 @@ depends-on: []
 evidence: GDD-TODO.md Part A shows no false blockers; a diff showing each corrected line against the canon line that settles it.
 score: {feel: 1, risk: 1, cost: 1}
 source: docs/GDD-TODO.md:46
-decided: "2026-07-31 in-progress"
+decided: "2026-07-31 done"
 model: sonnet
 teammate: gdd-todo-retry
 ---
