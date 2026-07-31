@@ -13,6 +13,39 @@
 > biomes, or NPCs. Those get written after the fun is found, not before — the whole
 > reason for the reset is that set dressing outran the prototype.
 
+> **AMENDMENT 2026-07-31: the army's arms-and-kit register is OPEN, and that is a
+> decision, not an oversight.** Owner call, made against the twelve-look Pathfinder
+> group. Firearms, mechanical siege pieces, emplaced turrets, powered/masked helms and
+> overt mage kit all ship on player units. A future session must not narrow these back
+> to bows-and-leather on the grounds that the setting "is medieval."
+>
+> **This amendment exists because nothing here ever banned them.** The prohibition
+> ("no guns, no energy weapons, no glow") was written into `task-125`'s brief as an
+> *inference* from §1's pitch-dark premise and was never a line in this document. The
+> inference was wrong, it cost a generation pass aimed at the wrong register, and
+> writing the decision down is how that stops repeating. §5 below still holds: the
+> world is deliberately unwritten, and an unwritten world does not imply a medieval one.
+>
+> **What earns its place, per §2's test:** the looks do mechanical work, so they are
+> not decoration. Unit type has to be legible in a mass of hundreds at a 56px cell —
+> the player reads *what a squad is* off silhouette alone, at a glance, with no unit
+> selection to fall back on (§2, "a god is obeyed in intent"). A visibly distinct arms
+> register per unit type is the readability mechanism, and it is the reason the render
+> path carries per-type sub-tables at all.
+>
+> **What this does NOT license:** it does not reopen the palette
+> (`docs/art/aesthetic-direction.md`'s 2026-07-28 amendment governs colour, unchanged);
+> it does not move the chibi gameplay register; and it does not make the setting
+> science-fiction. The premise in §1 is untouched — the world is still dark, the flame
+> is still the only light, and the congregation still follows it.
+>
+> **One real tension, named rather than papered over:** §1 says power does not exist
+> except as it passes through fire, and several of these looks emit their own light (a
+> cyan-lit crossbow, a mage's lit orb). Either that emitted light is kit *lit by the
+> bearer's flame* rather than a second power source, or §1's clause is about the
+> world's ambient dark and not about props. **Not decided.** Flagged so it gets an
+> owner call rather than a silent revert of the art.
+
 ---
 
 ## 1. The Premise
@@ -131,8 +164,14 @@ written around.
 ## 5. What is deliberately not written yet
 
 No faction names. No biome names. No NPC roster. No world flags. No decision-event
-templates. No antagonist. **No game title** — `Emberkeep` came from the old canon and
-is not assumed to survive.
+templates. No antagonist.
+
+**The title is settled: the game is `Kindled`** (`GDD.md`, owner 2026-07-27; rename
+propagated through code and docs 2026-07-31). `Emberkeep` came from the old canon and
+did not survive.
+
+**Unwritten is not the same as implied.** Nothing above licenses an assumption about
+period, technology or arms — see the 2026-07-31 amendment at the head of this file.
 
 Those get written once the prototype answers §4.1 and §4.4, because those two answers
 determine what the world needs to *contain*. Writing them now would repeat exactly the

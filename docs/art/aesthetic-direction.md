@@ -5,6 +5,15 @@
 This is an analysis + direction document, not a sprite spec. It exists to narrow the board
 into one buildable style before more per-asset specs are written.
 
+> **AMENDMENT 2026-07-31: the arms-and-kit register on player units is OPEN.** Owner
+> call. Firearms, mechanical siege, turrets, powered helms and overt mage kit all ship;
+> do not narrow a unit look back to bows-and-leather on the grounds that the setting is
+> medieval. The canon record and the reasoning live in
+> `docs/narrative/FLAME-FOUNDATION.md`'s 2026-07-31 amendment — read it before writing
+> any sprite brief. This changes the *subject matter* of unit art only. It does not
+> touch the palette, the value model or the chibi gameplay register, all of which the
+> 2026-07-28 amendment below still governs.
+
 > **AMENDMENT 2026-07-28: the strict 4-value global palette is SUPERSEDED. Colour is
 > back.** Owner call, made live in-editor against a running build. `Emberkeep.Quantize`
 > is now **0** in `SwarmExecOnPlay.txt`: the demichrome pass no longer collapses the
