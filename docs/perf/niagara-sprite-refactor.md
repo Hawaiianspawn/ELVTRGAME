@@ -14,8 +14,9 @@ source tree and the project's own dated findings in `docs/RENDERING-LIGHTING.md`
 
 ## 1. Why: the measured case
 
-Retinue held at 100, brood swept, `Swarm.DebugRender 1` (today's only renderer — the
-Niagara path draws nothing, see §2). A = `Swarm.UnitShading 1` (default two-box
+Retinue held at 100, brood swept, `Swarm.DebugRender 1` (at the time of this measurement
+pass, the only renderer that drew anything — the Niagara path drew nothing then; fixed
+2026-07-26, see the RESOLVED box in §2). A = `Swarm.UnitShading 1` (default two-box
 shading). B = `Swarm.UnitShading 0` (flat single box, the cheapest the debug-box
 renderer can be).
 
@@ -84,7 +85,14 @@ layer of the bridge is confirmed working:
 | `T_Swarm_2bit` texture | imported, read back OK, 4 palette values | good |
 | `NS_Swarm` Sub UV renderer property | verified 8x4 on disk (`SETUP-EDITOR.md` §3, set + read back via MCP 2026-07-26) | good |
 | Unit Cam (bypasses Niagara, draws the same texture) | renders correctly | good |
-| **`NS_Swarm` emitter graph** | zero particles visible with debug render off | **the fault** |
+| ~~**`NS_Swarm` emitter graph**~~ | zero particles visible with debug render off | ~~**the fault**~~ — superseded, see the RESOLVED box above |
+
+> **Historical — the next two paragraphs are the pre-fix theory and the plan to test it.
+> Both are moot.** The particle-spawn module's `Engine.ExecIndex` bindings were fine —
+> read live via `NiagaraToolsets.NiagaraToolset_System` after the fault was found
+> elsewhere, per the RESOLVED box above. Kept below as the record of how this proposal
+> reasoned about the bug before the actual cause (`SimTarget: GPUComputeSim`) was found;
+> nobody needed to spend the hour this section proposes.
 
 The standing theory (`SETUP-EDITOR.md` §3.3, restated as still-live in GATE1 §3a) is
 that the particle-spawn module's `Set Particles.Position` / `Set
@@ -143,8 +151,7 @@ The CPU-side half of the sprite bridge is done and sitting unused behind
   tick — it just never executes while `Swarm.DebugRender` stays at 1.
 
 None of this needs to be re-derived. **Cutting over is not "build the bridge," it's
-"fix the emitter graph and then decide what the debug-box renderer did that the sprite
-sheet still can't."**
+"decide what the debug-box renderer did that the sprite sheet still can't."**
 
 ## 3a. The mechanism for directional shading: §4a's light-bucket plan, not a shader term
 
@@ -267,6 +274,13 @@ past ~1930 entities. Recommend stating this to the owner as "buys time, not head
 at the counts the game actually wants," not as a solved interim.
 
 ## 5. Sequencing and cost — honest, not padded
+
+> **Historical — superseded by the RESOLVED box in §2.** The best/worst-case split below
+> was written against a graph-rewiring diagnosis that never happened; the actual fault
+> was a one-line `SimTarget` property (`GPUComputeSim` → `CPUSim`), found and fixed the
+> same day this document was drafted. Kept as the record of what this proposal budgeted
+> before the real cause was known — the emitter-graph line in the table after it is
+> stale for the same reason.
 
 **Best case:** the `NiagaraToolset_System` module-editing capability (§2) reaches the
 broken binding directly — this could be under a day once someone (human or the
@@ -396,10 +410,13 @@ this section:
 
 ## 8. Recommendation
 
-1. Spend the one hour from §2 testing whether `NiagaraToolsets.NiagaraToolset_System`
+1. **Void, per the RESOLVED box in §2 — kept as the record of the original plan.**
+   ~~Spend the one hour from §2 testing whether `NiagaraToolsets.NiagaraToolset_System`
    can read/rewrite the particle-spawn module's index binding on a **duplicate** of
    `NS_Swarm` (never the live asset) before scheduling anything further — it's the
-   cheapest possible reduction of the biggest unknown in this document.
+   cheapest possible reduction of the biggest unknown in this document.~~ The graph was
+   never broken; the fix was a one-line `SimTarget` change. No module-graph test was
+   ever run or needed.
 2. In parallel, decide whether `Swarm.UnitShading 0` ships as an interim default. It's
    free and real, but per §4 it is not a fix — say so to whoever signs off on it.
 3. `art`'s task #15 has landed (`docs/art/brood-approach-rim.md`) and the light-floor

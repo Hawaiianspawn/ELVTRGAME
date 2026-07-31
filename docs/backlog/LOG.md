@@ -334,3 +334,5 @@ Rejected and parked tasks keep their files — this records why.
 - 2026-07-31 · `task-120` · approved → **in-progress** · Refresh SWEEPS.md's two demonstration tables, which disagree with baseline.json after the armor fix — dispatched to teammate `sweeps-refresh` at model `sonnet`
 - 2026-07-31 · `task-120` · in-progress → **needs-review** · Refresh SWEEPS.md's two demonstration tables, which disagree with baseline.json after the armor fix
 - 2026-07-31 · `task-120` · needs-review → **done** · Refresh SWEEPS.md's two demonstration tables, which disagree with baseline.json after the armor fix
+- 2026-07-31 · `task-019` · in-progress → **needs-review** · Retire the stale "emitter draws zero particles" claims across the perf and camera docs
+- 2026-07-31 · `task-019` · needs-review → **done** · Retire the stale "emitter draws zero particles" claims across the perf and camera docs

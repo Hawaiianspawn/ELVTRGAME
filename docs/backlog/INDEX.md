@@ -10,7 +10,7 @@ not a re-read.
 
 | proposed | approved | in-progress | needs-review | done | rejected | parked |
 |---|---|---|---|---|---|---|
-| 38 | 1 | 2 | 0 | 74 | 0 | 7 |
+| 39 | 1 | 1 | 0 | 75 | 0 | 7 |
 
 ## Audit queue — top 7 awaiting your verdict
 
@@ -48,7 +48,7 @@ Approve with `py Scripts/backlog.py approve <ids>` (or `/backlog approve <ids>`)
 
 A fan is approved in one batch and dispatched one teammate per task. `⨝` joins own the shared writes and wait on their siblings — see `py Scripts/backlog.py epic <slug>`.
 
-## proposed (38)
+## proposed (39)
 
 | id | score | task | agent | owns | source |
 |---|---|---|---|---|---|
@@ -83,6 +83,7 @@ A fan is approved in one batch and dispatched one teammate per task. `⨝` joins
 | `113` | 1.0 | [Fix variantpipe judge silently skipping the undershoot check on mixed-target families](task-113-judge-misses-undershoot-on-mixed-target-families.md) | claude | `Scripts/art/variantpipe.py`, `Scripts/art/test_variantpipe.py` | `task-112 handback verification, 2026-07-30` |
 | `117` | 1.0 | [Repoint the prose that cites console variables and headers the rename deleted](task-117-prose-that-cites-the-old-cvar-names.md) | claude | `docs/art/aesthetic-direction.md`, `docs/data/squads.json`, `docs/data/art/palette.json`, `docs/data/art/provenance.json`, `docs/data/art/requests/swarm-units.json`, `docs/design/**`, `docs/perf/**`, `docs/SPRITE-SHEET-HANDOFF.md`, `.claude/skills/art-coverage/SKILL.md`, `Scripts/backlog.py` | `task-092 and task-093 handbacks` |
 | `119` | 1.0 | [Stop scenario_runner.py --all crashing on a docs/data/scenarios file that is not a scenario](task-119-scenario-runner-all-crashes-on-non-scenario.md) | sim-director | `Scripts/sim/data_loader.py`, `Scripts/sim/scenario_runner.py`, `docs/sim/README.md` | `task-075 handback` |
+| `123` | 1.0 | [Retire the same stale emitter claim from GATE1, which sits 30 lines under its own FIXED heading](task-123-gate1-still-says-the-emitter-is-the-fault.md) | performance-director | `docs/GATE1-FUN-PROTOTYPE.md` | `task-019 handback, 2026-07-31` |
 | `034` | 0.75 | [Full loot & itemization system](task-034-full-loot-and-itemization-system.md) | gameplay-director | `docs/design/loot-full.md` | `docs/GDD-TODO.md:112` |
 | `041` | 0.75 | [Build Phase B — the index + palette-ID LUT pipeline](task-041-phase-b-index-lut-pipeline.md) | claude | `ELVTR/Content/PostProcess/**`, `ELVTR/Source/ELVTR/Rendering/**`, `ELVTR/Source/ELVTR/UI/EmberkeepPalette.h`, `docs/RENDERING-LIGHTING.md`, `Scripts/art/pixelpipe.py` | `docs/RENDERING-LIGHTING.md:21` |
 | `033` | 0.67 | [Unwitnessed faction — final name, titan variety, horror level](task-033-unwitnessed-faction-revisit.md) | narrative-director | `docs/narrative/unwitnessed.md` | `docs/GDD-TODO.md:109` |
@@ -97,14 +98,13 @@ A fan is approved in one batch and dispatched one teammate per task. `⨝` joins
 |---|---|---|---|---|---|
 | `031` | 2.0 | [Check the shipped leash system against RTS-VERTICAL-SLICE §2's spec](task-031-leash-system-conformance-check.md) | claude | `docs/RTS-VERTICAL-SLICE.md` | `docs/RTS-VERTICAL-SLICE.md:97` |
 
-## in-progress (2)
+## in-progress (1)
 
 | id | score | task | agent | owns | source |
 |---|---|---|---|---|---|
 | `122` | 2.0 | [Measure why the frame reads black and fix the value hierarchy it inverted](task-122-say-why-the-frame-goes-black.md) | claude | `ELVTR/Source/ELVTR/Rendering/SwarmRenderActor.cpp`, `ELVTR/Source/ELVTR/Rendering/SwarmRenderActor.h`, `ELVTR/Config/SwarmExecOnPlay.canonical.txt`, `ELVTR/Content/PostProcess/M_PP_Demichrome.uasset`, `docs/RENDERING-LIGHTING.md`, `docs/perf/evidence/black-frame/**` | `user` |
-| `019` | 1.0 | [Retire the stale "emitter draws zero particles" claims across the perf and camera docs](task-019-retire-stale-sprite-gpu-sim-claims.md) | performance-director | `docs/perf/niagara-sprite-refactor.md`, `docs/design/CAMERA-SCALE.md` | `docs/perf/niagara-sprite-refactor.md:94` |
 
-## done (74)
+## done (75)
 
 | id | score | task | agent | owns | source |
 |---|---|---|---|---|---|
@@ -166,6 +166,7 @@ A fan is approved in one batch and dispatched one teammate per task. `⨝` joins
 | `046` | 1.33 | [Build the typed-unit command layer in Mass — sticky type, per-type stance, per-type allocation, published centroids](task-046-squad-command-layer-in-mass.md) | claude | `ELVTR/Source/ELVTR/Mass/**`, `ELVTR/Source/ELVTR/UI/UnitCamProjector.cpp`, `ELVTR/Source/ELVTR/UI/UnitCamProjector.h`, `ELVTR/Source/ELVTR/UI/UnitCamDirector.cpp`, `ELVTR/Source/ELVTR/UI/UnitCamDirector.h` | `docs/design/squad-group-system.md` |
 | `085` | 1.33 | [Split the horde into a team atlas and an enemy atlas, and land the knight family in the team half](task-085-split-team-and-enemy-atlases-with-knight-family.md) | claude | `ELVTR/Source/ELVTR/Mass/SwarmFragments.h`, `ELVTR/Source/ELVTR/Mass/SwarmSubsystem.h`, `ELVTR/Source/ELVTR/Rendering/SwarmRenderActor.cpp`, `ELVTR/Source/ELVTR/Rendering/SwarmRenderActor.h`, `ELVTR/Content/Spike1/**`, `ELVTR/SETUP-EDITOR.md`, `RawArt/Sheets/T_Swarm*.png`, `RawArt/Sheets/T_Team*.png`, `RawArt/Sheets/T_Enemy*.png`, `docs/data/art/requests/swarm-units.json`, `docs/data/art/requests/team-units.json`, `docs/data/art/requests/enemy-units.json`, `docs/data/art/brood-variants.json`, `docs/data/art/team-variants.json`, `docs/data/art/provenance.json`, `docs/data/art/sprite-request.schema.json`, `Scripts/art/pixelpipe.py`, `Scripts/art/check_brood_variants.py`, `docs/perf/niagara-sprite-path.md` | `user` |
 | `010` | 1.0 | [Run the retinue militia acceptance checklist against the packed sheet](task-010-retinue-militia-acceptance-pass.md) | claude | `docs/art/retinue-militia.md` | `docs/art/retinue-militia.md:426` |
+| `019` | 1.0 | [Retire the stale "emitter draws zero particles" claims across the perf and camera docs](task-019-retire-stale-sprite-gpu-sim-claims.md) | performance-director | `docs/perf/niagara-sprite-refactor.md`, `docs/design/CAMERA-SCALE.md` | `docs/perf/niagara-sprite-refactor.md:94` |
 | `051` | 1.0 | [Build the art asset matrix and a coverage audit that finds missing, unwired and off-ramp art](task-051-art-coverage-matrix-and-audit.md) | claude | `docs/data/art/asset-matrix.json`, `docs/data/art/asset-matrix.schema.md`, `.claude/skills/art-coverage/**`, `Scripts/art/coverage.py` | `user` |
 | `055` | 1.0 | [Pack every PixelLab character state per type, so a rank of spearmen has visual variety](task-055-pack-character-states-for-unit-variety.md) | claude | `ELVTR/Content/Sprites/Units/**`, `RawArt/Renders/knight/**`, `RawArt/Renders/archer-proxy/**`, `RawArt/Sheets/T_Soldier_Knight*.png`, `RawArt/Sheets/T_Soldier_Archer*.png`, `docs/data/art/provenance.json`, `ELVTR/Source/ELVTR/UI/UnitCamProjector.cpp` | `user` |
 | `062` | 1.0 | [Bring the art tooling onto the full-colour reversal — palette.json still enforces a retired lock](task-062-bring-art-tooling-onto-the-full-colour-reversal.md) | claude | `docs/data/art/palette.json`, `Scripts/art/coverage.py`, `Scripts/art/pixelpipe.py`, `Scripts/art/authored_states.py`, `Scripts/art/silhouette_report.py`, `.claude/skills/art-coverage/SKILL.md`, `.claude/skills/sprite/SKILL.md` | `user` |
@@ -197,4 +198,4 @@ A fan is approved in one batch and dispatched one teammate per task. `⨝` joins
 
 ---
 
-*Regenerated 2026-07-31 · 122 task(s) · decisions in [LOG.md](LOG.md).*
+*Regenerated 2026-07-31 · 123 task(s) · decisions in [LOG.md](LOG.md).*
