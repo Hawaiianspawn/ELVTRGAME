@@ -136,6 +136,56 @@ public:
 	int64 GetTotalKilledRetinue() const { return TotalKilledRetinue; }
 	int64 GetTotalKilledBrood() const { return TotalKilledBrood; }
 
+	// --- squad kill attribution (docs/ui/end-of-wave-showcase.md §5.2/§5.3) ------------
+	// What the end-of-wave board ranks. Credited by the COMBAT pass, not the death pass:
+	// by the time USwarmDeathProcessor sees HP <= 0 the attackers have been summed into
+	// one Damage number and their identities discarded (see FGridEntry::SquadId).
+	//
+	// Exactly ONE squad is credited per kill — the first to claim a blow on that victim
+	// this frame, by iteration order. Same arbitrary, already-documented tie-break
+	// FGridEntry::BlowsClaimed uses ("whichever chunk/entity is iterated first this
+	// frame... not a meaningful unfairness over the course of a run"). Proportional-damage
+	// credit was considered and rejected by §5.3: it needs a second bookkeeping pass this
+	// model doesn't otherwise carry.
+	//
+	// NO per-TYPE storage on purpose: the board's "Types" view is a read-time fold over
+	// squads sharing GetSquadType(i). A per-type counter would be a second source of truth
+	// for the same number.
+	//
+	// Batched, not one call per kill, for the same reason DamageToRetinue/HeroDamage are
+	// local accumulators in USwarmCombatProcessor::Execute — the credit site is inside the
+	// per-entity chunk loop, and keeping the write chunk-local is what lets that loop
+	// survive a future move to ParallelForEachEntityChunk.
+	void CreditKills(const int32* KilledBySquad, int32 HeroKilled)
+	{
+		for (int32 i = 0; i < MaxSquads; ++i)
+		{
+			WaveKilledBySquad[i] += KilledBySquad[i];
+			RunKilledBySquad[i] += KilledBySquad[i];
+		}
+		HeroWaveKills += HeroKilled;
+		HeroRunKills += HeroKilled;
+	}
+
+	int32 GetWaveKilledBySquad(int32 Index) const
+	{
+		return (Index >= 0 && Index < MaxSquads) ? WaveKilledBySquad[Index] : 0;
+	}
+	int32 GetRunKilledBySquad(int32 Index) const
+	{
+		return (Index >= 0 && Index < MaxSquads) ? RunKilledBySquad[Index] : 0;
+	}
+	int32 GetHeroWaveKills() const { return HeroWaveKills; }
+	int32 GetHeroRunKills() const { return HeroRunKills; }
+
+	/** Zero the per-WAVE accumulators only; the run totals keep climbing. Called from
+	 *  ASpike1GameMode::BeginWave. The run side resets in ResetRunState. */
+	void ResetWaveKills()
+	{
+		for (int32& K : WaveKilledBySquad) { K = 0; }
+		HeroWaveKills = 0;
+	}
+
 	// --- stance ------------------------------------------------------------
 	// docs/design/squad-group-system.md §3: an order now targets an ADDRESS — "all units"
 	// (default) or one named unit. GetStance/SetStance/GetStanceAnchor keep their EXACT
@@ -258,6 +308,22 @@ public:
 		 * same as StrikeReachSq/TargetsPerHit above.
 		 */
 		float BlowDamage = 0.f;
+
+		/**
+		 * The SwarmSquad-packed byte (unit index + type) of whoever owns this entry, so a
+		 * victim that dies this frame can credit the kill to a real unit — docs/ui/
+		 * end-of-wave-showcase.md §5.3. Meaningless for brood (they carry no unit), read
+		 * only on the retinue side of the claim.
+		 *
+		 * This is the ONLY place attacker identity survives the combat pass:
+		 * USwarmDeathProcessor sees HP <= 0 long after every contributing attacker's
+		 * Damage was summed into one number and who they were was thrown away.
+		 *
+		 * Cheap on purpose: FGridEntry is rebuilt from scratch every frame, so a wider
+		 * transient struct costs a memcpy, not a class-layout change on a hot persistent
+		 * fragment.
+		 */
+		uint8 SquadId = 0;
 	};
 
 	void ResetGrid(int32 ExpectedCount)
@@ -267,10 +333,10 @@ public:
 	}
 
 	void AddToGrid(const FVector& Location, bool bRetinue, bool bStriking = false,
-		float StrikeReachSq = 0.f, int32 TargetsPerHit = 0, float BlowDamage = 0.f)
+		float StrikeReachSq = 0.f, int32 TargetsPerHit = 0, float BlowDamage = 0.f, uint8 SquadId = 0)
 	{
 		const FIntPoint Cell = ToCell(Location);
-		Grid.FindOrAdd(Cell).Add(FGridEntry{ Location, bRetinue, bStriking, StrikeReachSq, TargetsPerHit, 0, BlowDamage });
+		Grid.FindOrAdd(Cell).Add(FGridEntry{ Location, bRetinue, bStriking, StrikeReachSq, TargetsPerHit, 0, BlowDamage, SquadId });
 	}
 
 	static FIntPoint ToCell(const FVector& Location)
@@ -362,6 +428,12 @@ public:
 	 * (main camera vs. Unit Cam), so the conversion belongs to each renderer and the
 	 * sim stays ignorant of the sheet — see SwarmFacing.
 	 *
+	 * VariantIndex is the same story a third time: which atlas look this body wears —
+	 * SwarmSheet::Enemy (0-8) or SwarmSheet::Team (0-10) depending on TeamBit, since
+	 * task-085 split the one variant table into a team side and an enemy side sharing
+	 * this same field. Chosen by the caller from a live display-weight table, so this
+	 * buffer carries a resolved index and knows nothing about the weights.
+	 *
 	 * SquadId is now the SwarmSquad-packed byte (unit index + type, see SwarmFragments.h).
 	 * It rides into the render int32 too (SwarmRenderPack::Squad) — the piece
 	 * docs/design/squad-group-system.md §1.3 and UnitCamDirector.cpp's own comment named
@@ -369,10 +441,10 @@ public:
 	 * unit AND type instead of approximating off the whole visible retinue.
 	 */
 	void PushRenderEntry(const FVector& Location, uint8 AnimBits, uint8 SquadId = 0, int32 SizeBucket = 0,
-		int32 FacingIndex = 0)
+		int32 FacingIndex = 0, int32 VariantIndex = 0)
 	{
 		RenderPositions.Add(Location);
-		RenderAnimBits.Add(SwarmRenderPack::Pack(AnimBits, SizeBucket, FacingIndex, SquadId));
+		RenderAnimBits.Add(SwarmRenderPack::Pack(AnimBits, SizeBucket, FacingIndex, SquadId, VariantIndex));
 		if ((AnimBits & SwarmAnim::TeamBit) != 0)
 		{
 			++AliveRetinue;
@@ -562,6 +634,9 @@ public:
 		TotalHeroDamage = 0.0;
 		TotalKilledRetinue = 0;
 		TotalKilledBrood = 0;
+		for (int32& K : RunKilledBySquad) { K = 0; }
+		HeroRunKills = 0;
+		ResetWaveKills();
 	}
 
 private:
@@ -606,4 +681,13 @@ private:
 	double TotalHeroDamage = 0.0;
 	int64 TotalKilledRetinue = 0;
 	int64 TotalKilledBrood = 0;
+
+	// Brood killed, credited per unit. Independent accumulators, NOT derived from current
+	// standing — a wiped squad still shows its real kill count against a x0 suffix
+	// (docs/ui/end-of-wave-showcase.md §6.2). Same for the hero: these live here, not on
+	// the pawn, so a HeroDown outcome doesn't take the number with it.
+	int32 WaveKilledBySquad[MaxSquads] = {};
+	int32 RunKilledBySquad[MaxSquads] = {};
+	int32 HeroWaveKills = 0;
+	int32 HeroRunKills = 0;
 };

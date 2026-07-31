@@ -62,8 +62,23 @@ public:
 	UPROPERTY(EditDefaultsOnly, Category = "Run")
 	float DeploySeconds = 1.f;
 
+	/**
+	 * Long enough to READ the end-of-wave board, not just long enough to respawn
+	 * reinforcements (docs/ui/end-of-wave-showcase.md §9, which asks for 6-8s).
+	 *
+	 * 2s was a fast-internal-test-loop placeholder from before that panel existed; a
+	 * five-row table cannot be read in it. Of the two answers §9 offers — raise the
+	 * number, or gate the transition on an explicit A-press with a timer backstop — this
+	 * is the raise, deliberately: the dismiss half needs an input binding on the hero pawn
+	 * and a W_WaveBoard widget, neither of which exists yet, and shipping the binding
+	 * ahead of the widget would be a control bound to nothing. Adding the A-press later
+	 * only means calling EnterPhase(WaveActive) early — this value stays as its backstop.
+	 *
+	 * Counts up on PhaseTimer, so task-115's pause menu freezing PhaseTimer freezes this
+	 * read-time budget too: summoning the menu can't burn the board's dwell down.
+	 */
 	UPROPERTY(EditDefaultsOnly, Category = "Run")
-	float BreatherSeconds = 2.f;
+	float BreatherSeconds = 7.f;
 
 	/**
 	 * Grace period after a wave spawns before "no brood left" counts as a clear.

@@ -31,15 +31,29 @@ checked. Same shape as task-009; both are cheap and both are pure verification.
 
 ## Spawn prompt
 ```
-You are the pixel-art-director for Emberkeep (C:\Projects\ELVTRGAME).
+You are the pixel-art-director for Kindled (C:\Projects\ELVTRGAME).
 
 Run the acceptance checklist at docs/art/retinue-militia.md:426-436 against the packed
 militia sheet. This is a verification pass — you are NOT regenerating art.
 
-Read docs/art/retinue-militia.md in full, plus docs/art/aesthetic-direction.md
-(Direction A LOCKED, strict 4-value Demichrome) and docs/data/art/palette.json. Note this
-unit's rule is stricter than the global one: THREE values, zero Pale pixels, any Pale
-pixel is a reject.
+Read docs/art/retinue-militia.md in full, plus docs/art/aesthetic-direction.md and
+docs/data/art/palette.json.
+
+THE PALETTE SITUATION, checked by the lead 2026-07-31 — read this before you judge
+anything against a ramp:
+  - demichrome-4 is NO LONGER the game-wide default. The 4-value colour gate was
+    SUPERSEDED by the owner on 2026-07-28; the game ships in full colour at
+    Kindled.Quantize 0. Any doc still calling the 4-value palette globally LOCKED is
+    stale, and docs/art/aesthetic-direction.md is the current canon.
+  - BUT this checklist still binds. docs/data/art/requests/unit-retinue.json's `canon`
+    block explicitly names `"palette": "demichrome-4"` with `"value_dominance": "bone"`
+    and `"pale_usage": "none"`. A request that names demichrome-4 is still fully held to
+    it. So judge the militia sheet against demichrome-4 exactly as the checklist is
+    written — THREE values, zero Pale pixels, any Pale pixel is a reject.
+  - Do not "helpfully" re-judge this asset against full colour, and do not rewrite the
+    checklist's bands. If you think the asset's own request should be revisited now that
+    the default moved, say so as a finding at the end — that is an owner decision, not
+    yours or mine.
 
 Use Scripts/art/pixelpipe.py quantize for on-palette %, value dominance, and alpha
 strictness (see Scripts/art/README.md). Do NOT call any mcp__pixellab__* generation

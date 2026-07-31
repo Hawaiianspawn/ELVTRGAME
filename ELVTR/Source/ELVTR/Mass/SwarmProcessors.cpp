@@ -123,6 +123,97 @@ namespace
 		TEXT("Brood walk-cycle rate, full frames/sec. Independent of the retinue's so the\n")
 		TEXT("two teams read as different creatures at a glance. [0..20]"), ECVF_Default);
 
+	// --- brood variety (2026-07-29) --------------------------------------
+	// Owner: "can we get npc variety into our system... the Oozes have some variance in
+	// appearence. They will be match to display weight."
+
+	TAutoConsoleVariable<FString> CVarBroodVariantWeights(
+		TEXT("Swarm.BroodVariantWeights"), TEXT("14,40,12,8,10,4,2,6,4"),
+		TEXT("How often each of the nine ENEMY-atlas looks appears, comma-separated integer\n")
+		TEXT("weights in atlas order: base,sump,bell,stalk,wedge,ridge,crown,twin,slug. Only the\n")
+		TEXT("RATIOS matter — the pick maps each unit's spawn phase through the cumulative sum.\n")
+		TEXT("A weight of 0 RETIRES a look with no repack and no rebuild, which is why all nine\n")
+		TEXT("are in the sheet. Takes effect on the frame you set it, on units already standing,\n")
+		TEXT("because the variant is derived from the phase every pass and never stored.\n")
+		TEXT("Fewer than nine entries leaves the rest at 0. Defaults documented in\n")
+		TEXT("docs/data/art/brood-variants.json — keep the two in step (there is a check:\n")
+		TEXT("Scripts/art/check_brood_variants.py). Try 0,0,0,0,0,0,100,0,0 to see it work."),
+		ECVF_Default);
+
+	// task-085: the team-side twin of the CVar above, same mechanism, other atlas. Owner,
+	// 2026-07-29: "can we implement the knight family into the group... use that for
+	// materials as the enemies will change from time to time."
+	TAutoConsoleVariable<FString> CVarTeamVariantWeights(
+		// 2026-07-30, owner: "i want at most 5% of the army to be super small like this. They
+		// are outliers and not the average or part of a bell curve."
+		//
+		// So this is a BELL CURVE OVER BODY SIZE, not the flat mix it shipped as. Sizes
+		// re-measured across all EIGHT rotations — the family manifests record ONE frame each,
+		// which ranks these differently and misleadingly. Median mass across the eleven is 953:
+		//
+		//    822 v1_narrowguard  26w |  839 v7_barestance 28w |  891 v6_simplecolumn 29w  <- tail
+		//    904 v10_bracedstaff 46w |  911 v4_overhead   40w |  953 v11_midguard    34w  <- floor
+		//    998 v2_lanceout     47w | 1016 v13_maceraised 36w| 1040 v3_shieldbreak  40w
+		//   1108 retinue         37w | 1242 v8_heavycloak 46w                            <- tail
+		//
+		// v11_midguard is the REALISTIC SMALLEST normal soldier: narrow, but mass dead on the
+		// median. Below it the break is clean — the three tail looks are the only ones under
+		// 30px wide AND under 0.95x mass, against midguard's 34px, with nothing in between.
+		// They get 2 each = 4.9% combined. v8_heavycloak gets the same at the large end, so
+		// both tails are rare rather than only the one that got complained about.
+		//
+		// NOT judged on mass alone: v10_bracedstaff is light (0.95x) but 46px wide, so it reads
+		// as a big footprint, not a small unit. Mass alone would have wrongly demoted it.
+		//
+		// Since task-095 this table also drives STATS. Checked: the reweight moves average
+		// retinue HP 132.7 -> 132.6 and DPS 30.71 -> 31.13, so the look fix is very nearly
+		// combat-neutral. Re-check that if these weights move again.
+		TEXT("Swarm.TeamVariantWeights"), TEXT("20,2,18,14,14,2,2,6,10,18,16"),
+		TEXT("How often each of the eleven TEAM-atlas looks appears, comma-separated integer\n")
+		TEXT("weights in atlas order: retinue base, then the ten judged knight keeps (v1, v2,\n")
+		TEXT("v3, v4, v6, v7, v8, v10, v11, v13 — see docs/data/art/team-variants.json for which\n")
+		TEXT("index is which silhouette). Only the RATIOS matter, same cumulative-sum pick as\n")
+		TEXT("Swarm.BroodVariantWeights. A weight of 0 retires a look with no repack. Defaults\n")
+		TEXT("documented in docs/data/art/team-variants.json — keep the two in step (checked by\n")
+		TEXT("Scripts/art/check_brood_variants.py). Try 0,100,0,0,0,0,0,0,0,0,0 to see one knight\n")
+		TEXT("dominate the army."),
+		ECVF_Default);
+
+	/** Cumulative display weights, so a per-entity roll becomes a variant with one scan. */
+	struct FVariantTable
+	{
+		int32 Cum[SwarmSheet::Team::Variants] = {};	// sized for the larger of the two sides
+		int32 Num = 0;
+	};
+
+	/**
+	 * Parse a comma-separated weights CVar into cumulative form, capped at MaxVariants
+	 * entries (SwarmSheet::Enemy::Variants for the brood table, SwarmSheet::Team::Variants
+	 * for the team table — the two sides use the same parser, different caps and CVars).
+	 *
+	 * ponytail: reparsed once per pass rather than cached against the last string — a
+	 * handful of Atoi calls next to a 30k-entity sim, and it buys a live CVar with no
+	 * change-detection machinery and no way for a cache to go stale. Cache on a string
+	 * compare if it ever shows up in a profile.
+	 */
+	FVariantTable ParseVariantTable(const FString& Csv, int32 MaxVariants)
+	{
+		FVariantTable Table;
+		TArray<FString> Parts;
+		Csv.ParseIntoArray(Parts, TEXT(","), false);
+		int32 Running = 0;
+		for (const FString& Part : Parts)
+		{
+			if (Table.Num >= MaxVariants)
+			{
+				break;
+			}
+			Running += FMath::Max(FCString::Atoi(*Part.TrimStartAndEnd()), 0);
+			Table.Cum[Table.Num++] = Running;
+		}
+		return Table;
+	}
+
 	// --- facing (2026-07-26) ---------------------------------------------
 	// "They face outwards from you but sometimes look back at you." The resting posture
 	// of your army is a ring staring into the dark; the glance is what keeps the flame
@@ -390,6 +481,11 @@ void USwarmGridBuildProcessor::ConfigureQueries(const TSharedRef<FMassEntityMana
 	EntityQuery.AddRequirement<FTransformFragment>(EMassFragmentAccess::ReadOnly);
 	EntityQuery.AddRequirement<FSwarmAnimFragment>(EMassFragmentAccess::ReadOnly);
 	EntityQuery.AddRequirement<FSwarmStrikeFragment>(EMassFragmentAccess::ReadOnly);
+	// Read-only, already exists on every swarm entity (SwarmSpawn.cpp) — no class-layout
+	// change. A Spearman's own walk-cycle phase resolves which knight sub-type row it
+	// strikes for (task-095), the same phase VariantFromPhase below already uses to pick
+	// its look, so the two can never disagree.
+	EntityQuery.AddRequirement<FSwarmJitterFragment>(EMassFragmentAccess::ReadOnly);
 	EntityQuery.AddTagRequirement<FSwarmTag>(EMassFragmentPresence::All);
 }
 
@@ -410,7 +506,6 @@ void USwarmGridBuildProcessor::Execute(FMassEntityManager& EntityManager, FMassE
 	// Each entity's own K (how many blows it may hand out this swing) rides into the
 	// grid alongside its reach, so the combat pass can cap claims against it instead
 	// of trusting the radius alone — see FGridEntry::BlowsClaimed.
-	const int32 RetinueTargets = SwarmCombatTuning::RetinueTargetsPerHit();  // Spearmen's K
 	const int32 ArchersTargets = SwarmCombatTuning::ArchersTargetsPerHit();
 	const int32 BroodTargets = SwarmCombatTuning::BroodTargetsPerHit();
 
@@ -419,15 +514,21 @@ void USwarmGridBuildProcessor::Execute(FMassEntityManager& EntityManager, FMassE
 	// assumption) can't stand; a Spearman and an Archer striking the same victim this
 	// frame must not deal the same damage. Snapshotted once per pass, same as the K's.
 	const float SwingInterval = SwarmCombatTuning::SwingInterval();
-	const float SpearmenBlow = SwarmCombatTuning::RetinueDPS() * SwingInterval;
 	const float ArchersBlow = SwarmCombatTuning::ArchersDPS() * SwingInterval;
 	const float BroodBlow = SwarmCombatTuning::BroodDPS() * SwingInterval;
 
-	EntityQuery.ForEachEntityChunk(Context, [Swarm, RetinueTargets, ArchersTargets, BroodTargets, SpearmenBlow, ArchersBlow, BroodBlow](FMassExecutionContext& ChunkContext)
+	// A Spearman's own K and blow value now come from the knight sub-type row its team-
+	// atlas variant (SwarmSheet::Team) maps to (task-095), instead of one flat
+	// Swarm.RetinueTargetsPerHit / Swarm.RetinueDPS for the whole line — see
+	// SwarmCombatTuning::FKnightSubtypeTables (SwarmCombat.h).
+	const SwarmCombatTuning::FKnightSubtypeTables KnightTables = SwarmCombatTuning::GetKnightSubtypeTables();
+
+	EntityQuery.ForEachEntityChunk(Context, [Swarm, ArchersTargets, BroodTargets, ArchersBlow, BroodBlow, SwingInterval, KnightTables](FMassExecutionContext& ChunkContext)
 	{
 		const TConstArrayView<FTransformFragment> Transforms = ChunkContext.GetFragmentView<FTransformFragment>();
 		const TConstArrayView<FSwarmAnimFragment> Anim = ChunkContext.GetFragmentView<FSwarmAnimFragment>();
 		const TConstArrayView<FSwarmStrikeFragment> Strike = ChunkContext.GetFragmentView<FSwarmStrikeFragment>();
+		const TConstArrayView<FSwarmJitterFragment> Jitter = ChunkContext.GetFragmentView<FSwarmJitterFragment>();
 		for (int32 i = 0; i < ChunkContext.GetNumEntities(); ++i)
 		{
 			// Strike state rides along with position so the combat pass can tell
@@ -436,15 +537,38 @@ void USwarmGridBuildProcessor::Execute(FMassEntityManager& EntityManager, FMassE
 			// end of the last one — so what combat reads is current, not stale.
 			const bool bRetinue = (Anim[i].Bits & SwarmAnim::TeamBit) != 0;
 			const bool bArcher = bRetinue && SwarmSquad::UnitType(Anim[i].SquadId) == EUnitType::Archers;
-			const int32 MyTargets = bRetinue ? (bArcher ? ArchersTargets : RetinueTargets) : BroodTargets;
-			const float MyBlow = bRetinue ? (bArcher ? ArchersBlow : SpearmenBlow) : BroodBlow;
+
+			int32 MyTargets;
+			float MyBlow;
+			if (!bRetinue)
+			{
+				MyTargets = BroodTargets;
+				MyBlow = BroodBlow;
+			}
+			else if (bArcher)
+			{
+				MyTargets = ArchersTargets;
+				MyBlow = ArchersBlow;
+			}
+			else
+			{
+				const int32 Variant = SwarmRenderPack::VariantFromPhase(
+					Jitter[i].Phase, KnightTables.TeamVariantCum, KnightTables.NumTeamVariants);
+				const int32 Row = SwarmCombatTuning::KnightSubtypeRowFor(KnightTables, Variant);
+				MyTargets = KnightTables.Targets[Row];
+				MyBlow = KnightTables.DPS[Row] * SwingInterval;
+			}
+
 			Swarm->AddToGrid(
 				Transforms[i].GetTransform().GetLocation(),
 				bRetinue,
 				Strike[i].bStrikeFrame,
 				Strike[i].StrikeReachSq,
 				MyTargets,
-				MyBlow);
+				MyBlow,
+				// Attacker identity for squad kill credit (docs/ui/end-of-wave-showcase.md
+				// §5.3) — the combat pass has no other way to know who landed a blow.
+				Anim[i].SquadId);
 		}
 	});
 
@@ -961,7 +1085,16 @@ void USwarmIntegrateProcessor::Execute(FMassEntityManager& EntityManager, FMassE
 	Facing.bGlanceEnabled = CVarGlanceEnabled.GetValueOnAnyThread() != 0;
 	const FVector HeroLocation = Swarm->GetAttractor();
 
-	EntityQuery.ForEachEntityChunk(Context, [Swarm, DeltaTime, TimeSeconds, SwingInterval, StrikeAt, PoseStart, PoseEnd, Lunge, KnockDecay, BroodWalkHz, Facing, HeroLocation](FMassExecutionContext& ChunkContext)
+	// Which look each body wears. Snapshotted here, once, exactly like the facing dials —
+	// so dragging either weights CVar reskins the standing horde on the next frame. Two
+	// tables since task-085: brood reads EnemyVariants, retinue/knights read TeamVariants,
+	// picked per-entity below on TeamBit (SwarmSheet::Enemy / SwarmSheet::Team).
+	const FVariantTable EnemyVariants = ParseVariantTable(
+		CVarBroodVariantWeights.GetValueOnGameThread(), SwarmSheet::Enemy::Variants);
+	const FVariantTable TeamVariants = ParseVariantTable(
+		CVarTeamVariantWeights.GetValueOnGameThread(), SwarmSheet::Team::Variants);
+
+	EntityQuery.ForEachEntityChunk(Context, [Swarm, DeltaTime, TimeSeconds, SwingInterval, StrikeAt, PoseStart, PoseEnd, Lunge, KnockDecay, BroodWalkHz, Facing, HeroLocation, EnemyVariants, TeamVariants](FMassExecutionContext& ChunkContext)
 	{
 		const TArrayView<FTransformFragment> Transforms = ChunkContext.GetMutableFragmentView<FTransformFragment>();
 		const TConstArrayView<FMassVelocityFragment> Velocities = ChunkContext.GetFragmentView<FMassVelocityFragment>();
@@ -1045,10 +1178,17 @@ void USwarmIntegrateProcessor::Execute(FMassEntityManager& EntityManager, FMassE
 				Velocity, HeroLocation, (Anim[i].Bits & SwarmAnim::TeamBit) != 0,
 				Jitter[i].Phase, TimeSeconds, Facing);
 
-			// Size roll rides along in the same int32. Derived from the jitter phase
-				// rather than stored, so no fragment grows a field — see SwarmRenderPack.
+			// Size roll and atlas variant both ride along in the same int32, and both are
+				// DERIVED from the jitter phase rather than stored, so no fragment grows a
+				// field — see SwarmRenderPack. Which table picks the variant is TeamBit:
+				// task-085 gave the team side its own eleven-look weight table instead of
+				// the one-look-forever this used to leave retinue with.
+				const bool bTeamEntity = (Anim[i].Bits & SwarmAnim::TeamBit) != 0;
 				Swarm->PushRenderEntry(Published, Anim[i].Bits, Anim[i].SquadId,
-					SwarmRenderPack::BucketFromPhase(Jitter[i].Phase), Anim[i].Facing);
+					SwarmRenderPack::BucketFromPhase(Jitter[i].Phase), Anim[i].Facing,
+					bTeamEntity
+						? SwarmRenderPack::VariantFromPhase(Jitter[i].Phase, TeamVariants.Cum, TeamVariants.Num)
+						: SwarmRenderPack::VariantFromPhase(Jitter[i].Phase, EnemyVariants.Cum, EnemyVariants.Num));
 
 			// Consume AttackBit: it is an observation made THIS frame by the steering
 			// and combat passes, and it has to be re-observed next frame. Left set it

@@ -311,3 +311,5 @@ Rejected and parked tasks keep their files — this records why.
 - 2026-07-31 · `task-076` · in-progress → **needs-review** · Add a seeded variance layer to the combat model so a config yields a distribution, not a single point estimate
 - 2026-07-31 · `task-001` · needs-review → **done** · Correct the stale blockers in GDD-TODO.md and point it at the backlog
 - 2026-07-31 · `task-076` · needs-review → **done** · Add a seeded variance layer to the combat model so a config yields a distribution, not a single point estimate
+- 2026-07-31 · `task-118` · in-progress → **needs-review** · Credit kills to the squad that landed them, and give the Breather long enough to read
+- 2026-07-31 · `task-118` · needs-review → **done** · Credit kills to the squad that landed them, and give the Breather long enough to read

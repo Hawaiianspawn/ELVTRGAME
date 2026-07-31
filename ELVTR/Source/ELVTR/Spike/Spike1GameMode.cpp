@@ -164,6 +164,44 @@ namespace
 namespace
 {
 	/**
+	 * The end-of-wave board's data, printed the moment a wave clears (docs/ui/
+	 * end-of-wave-showcase.md §5) — the only readout of it that exists until W_WaveBoard
+	 * is built, and the reconciliation the attribution has to survive: every credited kill
+	 * plus the hero's should account for the run's whole KilledBrood total.
+	 *
+	 * A nonzero delta is expected in exactly one case and is printed, not hidden: brood
+	 * force-cleared by the Swarm.WaveClearTimeoutSeconds valve are destroyed outright
+	 * rather than dropped to HP <= 0, so they are counted by NEITHER side — and any other
+	 * gap means the credit site missed a death.
+	 */
+	void LogWaveKills(const USwarmSubsystem& Swarm, int32 WaveIndex)
+	{
+		FString Wave, Run;
+		int32 WaveSum = 0;
+		int32 RunSum = 0;
+		for (int32 i = 0; i < USwarmSubsystem::MaxSquads; ++i)
+		{
+			if (!Swarm.IsSquadClaimed(i))
+			{
+				continue;
+			}
+			const TCHAR* TypeName = Swarm.GetSquadType(i) == EUnitType::Archers ? TEXT("Archers") : TEXT("Spearmen");
+			Wave += FString::Printf(TEXT(" unit%d(%s x%d)=%d"),
+				i, TypeName, Swarm.GetSquadStanding(i), Swarm.GetWaveKilledBySquad(i));
+			Run += FString::Printf(TEXT(" unit%d=%d"), i, Swarm.GetRunKilledBySquad(i));
+			WaveSum += Swarm.GetWaveKilledBySquad(i);
+			RunSum += Swarm.GetRunKilledBySquad(i);
+		}
+
+		const int64 Credited = (int64)RunSum + Swarm.GetHeroRunKills();
+		UE_LOG(LogTemp, Display, TEXT("Run: wave %d board — WAVE:%s hero=%d (sum %d)"),
+			WaveIndex + 1, *Wave, Swarm.GetHeroWaveKills(), WaveSum + Swarm.GetHeroWaveKills());
+		UE_LOG(LogTemp, Display, TEXT("Run: wave %d board — RUN: %s hero=%d (sum %lld) vs KilledBrood=%lld, delta %lld"),
+			WaveIndex + 1, *Run, Swarm.GetHeroRunKills(), Credited,
+			Swarm.GetTotalKilledBrood(), Swarm.GetTotalKilledBrood() - Credited);
+	}
+
+	/**
 	 * True when launched with -SwarmBench, i.e. ASwarmRenderActor's benchmark owns
 	 * the entity population. Evaluated once; the command line cannot change at runtime.
 	 */
@@ -244,9 +282,19 @@ void ASpike1GameMode::EnterPhase(ERunPhase NewPhase)
 void ASpike1GameMode::BeginWave()
 {
 	const int32 Count = WaveBroodCounts.IsValidIndex(WaveIndex) ? WaveBroodCounts[WaveIndex] : 0;
+
+	// A wave's kill board is this wave's, not the run's — zero it here, at the start of
+	// the wave whose numbers it will show. The run accumulators keep climbing and only
+	// reset in USwarmSubsystem::ResetRunState (docs/ui/end-of-wave-showcase.md §5.2).
+	if (USwarmSubsystem* Swarm = GetWorld()->GetSubsystem<USwarmSubsystem>())
+	{
+		Swarm->ResetWaveKills();
+	}
+
 	SwarmSpawn::SpawnBrood(GetWorld(), Count);
 	EnterPhase(ERunPhase::WaveActive);
-	UE_LOG(LogTemp, Display, TEXT("Run: wave %d/%d — %d brood"), WaveIndex + 1, WaveBroodCounts.Num(), Count);
+	UE_LOG(LogTemp, Display, TEXT("Run: wave %d/%d — %d brood (wave kill board zeroed)"),
+		WaveIndex + 1, WaveBroodCounts.Num(), Count);
 }
 
 void ASpike1GameMode::Tick(float DeltaSeconds)
@@ -337,6 +385,9 @@ void ASpike1GameMode::Tick(float DeltaSeconds)
 
 		if (CurrentBrood == 0 || bTimedOut)
 		{
+			// Before WaveIndex moves and before BeginWave zeroes the wave side.
+			LogWaveKills(*Swarm, WaveIndex);
+
 			ResetStallTracking();
 			SwarmSpawn::CompactTracked(GetWorld());
 			++WaveIndex;

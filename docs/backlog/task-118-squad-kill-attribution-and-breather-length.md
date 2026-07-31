@@ -1,12 +1,13 @@
 ---
 id: 118
 title: Credit kills to the squad that landed them, and give the Breather long enough to read
-status: in-progress
+status: done
 agent: claude
 model: opus
 owns:
   - "Source/ELVTR/Mass/SwarmSubsystem.h"
   - "Source/ELVTR/Mass/SwarmCombatProcessors.cpp"
+  - "Source/ELVTR/Mass/SwarmProcessors.cpp"
   - "Source/ELVTR/Spike/Spike1GameMode.h"
   - "Source/ELVTR/Spike/Spike1GameMode.cpp"
 resources: ["unreal-editor"]
@@ -21,7 +22,7 @@ evidence: >
   `docs/perf/one-camera-bench.md`.
 score: {feel: 2, risk: 3, cost: 2}
 source: docs/ui/end-of-wave-showcase.md §5
-decided: "2026-07-31 in-progress"
+decided: "2026-07-31 done"
 teammate: kill-attribution
 ---
 

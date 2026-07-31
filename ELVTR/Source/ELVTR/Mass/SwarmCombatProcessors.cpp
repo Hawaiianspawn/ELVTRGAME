@@ -1,5 +1,6 @@
 #include "SwarmCombatProcessors.h"
 
+#include "HAL/IConsoleManager.h"
 #include "MassCommonFragments.h"
 #include "MassExecutionContext.h"
 #include "SwarmCombat.h"
@@ -159,6 +160,73 @@ namespace
 		TEXT("the class's primary identity, per CLASSES.md. v1 has no real growth-site system,\n")
 		TEXT("so this stands in for a generator-tagged site (§1.4): every recruit rolls\n")
 		TEXT("independently against this weight. [0..1]"), ECVF_Default);
+
+	// --- knight sub-types (task-095) --------------------------------------------------
+	// Nine stat rows backing the eleven team-atlas looks (docs/data/art/team-variants.json)
+	// -- two pairs share a row because task-094 measured them as indistinguishable. Row
+	// order: retinue_base, heavycloak, shieldbreak, maceraised, lanceout, bracedstaff,
+	// line_standard, simplecolumn, line_light (docs/data/unit-types.json
+	// types.spearmen.melee_subtypes.rows) -- Swarm.KnightSubtypeMap is what ties a variant
+	// index to a row in this order, so it is NOT the identity list.
+	TAutoConsoleVariable<FString> CVarKnightSubtypeMap(
+		TEXT("Swarm.KnightSubtypeMap"), TEXT("0,8,4,2,6,7,8,1,5,6,3"),
+		TEXT("Team-atlas variant index (0-10, docs/data/art/team-variants.json) -> row index\n")
+		TEXT("into the KnightSubtype* tables below, comma-separated integers, one per variant.\n")
+		TEXT("Reordering team-variants.json without updating this list swaps every knight's\n")
+		TEXT("stats onto a different skin -- see docs/perf/knight-subtype-binding.md."),
+		ECVF_Default);
+	TAutoConsoleVariable<FString> CVarKnightSubtypeHP(
+		TEXT("Swarm.KnightSubtypeHP"), TEXT("130,165,140,146,133,123,124,119,114"),
+		TEXT("Max HP per knight sub-type row (Swarm.KnightSubtypeMap has the row order),\n")
+		TEXT("comma-separated floats. Baked into a soldier's FSwarmHealthFragment.MaxHP once,\n")
+		TEXT("at spawn (SwarmSpawn.cpp), from the exact look-roll spawn already makes -- unlike\n")
+		TEXT("DPS/Engage/Targets below, NOT re-read every pass, because HP is a running total\n")
+		TEXT("combat decrements, not a per-frame lookup. docs/data/unit-types.json is the spec\n")
+		TEXT("this transcribes."), ECVF_Default);
+	TAutoConsoleVariable<FString> CVarKnightSubtypeDPS(
+		TEXT("Swarm.KnightSubtypeDPS"), TEXT("30,30,36,37,30,33,28,28,25"),
+		TEXT("Damage/sec per knight sub-type row, read live every pass like Swarm.RetinueDPS --\n")
+		TEXT("dragging one entry visibly changes only the look(s) mapped to that row. See\n")
+		TEXT("Swarm.KnightSubtypeMap for the row order."), ECVF_Default);
+	TAutoConsoleVariable<FString> CVarKnightSubtypeEngage(
+		TEXT("Swarm.KnightSubtypeEngage"), TEXT("95,100,99,93,105,110,96,82,85"),
+		TEXT("Melee engage range, uu, per knight sub-type row -- replaces the shared\n")
+		TEXT("Swarm.MeleeRange for Spearmen only (brood and Archers unaffected). See\n")
+		TEXT("Swarm.KnightSubtypeMap for the row order."), ECVF_Default);
+	TAutoConsoleVariable<FString> CVarKnightSubtypeTargets(
+		TEXT("Swarm.KnightSubtypeTargets"), TEXT("8,9,8,8,7,6,8,10,8"),
+		TEXT("Cleave (targets per blow) per knight sub-type row -- replaces the shared\n")
+		TEXT("Swarm.RetinueTargetsPerHit for Spearmen only. Clamped to 1-8 on read: the combat\n")
+		TEXT("loop's own nearest-K arrays are fixed at 8 (Swarm.RetinueTargetsPerHit's own\n")
+		TEXT("comment), so simplecolumn's spec value of 10 reads as 8 in play -- a mechanical\n")
+		TEXT("ceiling, not a rebalance. See Swarm.KnightSubtypeMap for the row order."),
+		ECVF_Default);
+
+	int32 ParseFloatCsv(const FString& Csv, float* Out, int32 MaxNum)
+	{
+		TArray<FString> Parts;
+		Csv.ParseIntoArray(Parts, TEXT(","), false);
+		int32 Num = 0;
+		for (const FString& Part : Parts)
+		{
+			if (Num >= MaxNum) { break; }
+			Out[Num++] = FCString::Atof(*Part.TrimStartAndEnd());
+		}
+		return Num;
+	}
+
+	int32 ParseIntCsv(const FString& Csv, int32* Out, int32 MaxNum)
+	{
+		TArray<FString> Parts;
+		Csv.ParseIntoArray(Parts, TEXT(","), false);
+		int32 Num = 0;
+		for (const FString& Part : Parts)
+		{
+			if (Num >= MaxNum) { break; }
+			Out[Num++] = FCString::Atoi(*Part.TrimStartAndEnd());
+		}
+		return Num;
+	}
 }
 
 namespace SwarmCombatTuning
@@ -192,6 +260,48 @@ namespace SwarmCombatTuning
 	int32 ArchersTargetsPerHit() { return FMath::Clamp(CVarArchersTargetsPerHit.GetValueOnAnyThread(), 1, 8); }
 	float ArchersMoveSpeedScale(){ return FMath::Max(CVarArchersMoveSpeedScale.GetValueOnAnyThread(), 0.f); }
 	float ArcherGrowthWeight()   { return FMath::Clamp(CVarArcherGrowthWeight.GetValueOnAnyThread(), 0.f, 1.f); }
+
+	FKnightSubtypeTables GetKnightSubtypeTables()
+	{
+		FKnightSubtypeTables T;
+		T.NumRows = ParseFloatCsv(CVarKnightSubtypeHP.GetValueOnAnyThread(), T.HP, MaxKnightSubtypeRows);
+		ParseFloatCsv(CVarKnightSubtypeDPS.GetValueOnAnyThread(), T.DPS, MaxKnightSubtypeRows);
+		ParseFloatCsv(CVarKnightSubtypeEngage.GetValueOnAnyThread(), T.Engage, MaxKnightSubtypeRows);
+		ParseIntCsv(CVarKnightSubtypeTargets.GetValueOnAnyThread(), T.Targets, MaxKnightSubtypeRows);
+		for (int32 i = 0; i < T.NumRows; ++i)
+		{
+			// Mechanical ceiling, not a balance clamp -- see Swarm.KnightSubtypeTargets'
+			// own comment: the combat loop's nearest-K scratch arrays are fixed at 8.
+			T.Targets[i] = FMath::Clamp(T.Targets[i], 1, 8);
+		}
+		T.NumVariants = ParseIntCsv(CVarKnightSubtypeMap.GetValueOnAnyThread(), T.Map, MaxKnightSubtypeVariants);
+
+		// The SAME cumulative Swarm.TeamVariantWeights table the render bridge resolves a
+		// look from. That CVar is owned by SwarmProcessors.cpp's translation unit; read by
+		// name here rather than redeclared, same idiom SwarmRenderActor.cpp's
+		// LogVariantHistogram already uses to log it alongside a variant histogram.
+		const IConsoleVariable* WeightsVar = IConsoleManager::Get().FindConsoleVariable(TEXT("Swarm.TeamVariantWeights"));
+		TArray<FString> WeightParts;
+		(WeightsVar ? WeightsVar->GetString() : FString()).ParseIntoArray(WeightParts, TEXT(","), false);
+		int32 Running = 0;
+		for (const FString& Part : WeightParts)
+		{
+			if (T.NumTeamVariants >= MaxKnightSubtypeVariants) { break; }
+			Running += FMath::Max(FCString::Atoi(*Part.TrimStartAndEnd()), 0);
+			T.TeamVariantCum[T.NumTeamVariants++] = Running;
+		}
+		return T;
+	}
+
+	int32 KnightSubtypeRowFor(const FKnightSubtypeTables& Tables, int32 VariantIndex)
+	{
+		if (Tables.NumVariants <= 0 || Tables.NumRows <= 0)
+		{
+			return 0;
+		}
+		const int32 V = FMath::Clamp(VariantIndex, 0, Tables.NumVariants - 1);
+		return FMath::Clamp(Tables.Map[V], 0, Tables.NumRows - 1);
+	}
 }
 
 //----------------------------------------------------------------------
@@ -214,6 +324,11 @@ void USwarmCombatProcessor::ConfigureQueries(const TSharedRef<FMassEntityManager
 	// Reads this unit's own bStrikeFrame (for the hero exchange) and writes its hit
 	// reaction — flash timer and knockback impulse. Still only ever writing to self.
 	EntityQuery.AddRequirement<FSwarmStrikeFragment>(EMassFragmentAccess::ReadWrite);
+	// Read-only, already exists on every swarm entity (SwarmSpawn.cpp) — no class-layout
+	// change. A Spearman's own walk-cycle phase is what resolves which knight sub-type row
+	// it fights on (task-095), the same phase the render bridge already uses to pick its
+	// look, so the two can never disagree.
+	EntityQuery.AddRequirement<FSwarmJitterFragment>(EMassFragmentAccess::ReadOnly);
 	EntityQuery.AddTagRequirement<FSwarmTag>(EMassFragmentPresence::All);
 }
 
@@ -242,16 +357,21 @@ void USwarmCombatProcessor::Execute(FMassEntityManager& EntityManager, FMassExec
 	// archer PREFERS not to count anything already in its own melee-range scrum as a
 	// target — see the per-entity loop below for the task-073 escape hatch that lets an
 	// archer take a dead-zone target anyway when it is the ONLY target it can see).
-	// Spearmen and brood are UNCHANGED — both still read the shared MeleeRangeSq exactly
-	// as before.
+	// Brood are UNCHANGED — still the shared MeleeRangeSq. Spearmen no longer are: their
+	// range and K now come from their own knight sub-type row (task-095) — see KnightTables
+	// below and the per-entity lookup in the loop. MeleeRangeSq survives as brood's own
+	// flat range.
 	const float MeleeRangeSq = FMath::Square(SwarmCombatTuning::MeleeRange());
 	const float ArchersRangeSq = FMath::Square(SwarmCombatTuning::ArchersEngageRange());
 	const float ArchersMinRangeSq = FMath::Square(SwarmCombatTuning::ArchersMinEngageRange());
 	const float HeroMeleeRangeSq = FMath::Square(SwarmCombatTuning::HeroMeleeRange());
 	const int32 MaxAttackers = SwarmCombatTuning::MaxAttackersPerUnit();
-	const int32 RetinueTargets = SwarmCombatTuning::RetinueTargetsPerHit(); // Spearmen's K
 	const int32 ArchersTargets = SwarmCombatTuning::ArchersTargetsPerHit();
 	const int32 BroodTargets = SwarmCombatTuning::BroodTargetsPerHit();
+
+	// Snapshotted once per pass, same as everything above — see FKnightSubtypeTables'
+	// own doc comment (SwarmCombat.h) for why this is safe next to a 30k-entity sim.
+	const SwarmCombatTuning::FKnightSubtypeTables KnightTables = SwarmCombatTuning::GetKnightSubtypeTables();
 
 	// Damage is now parcelled into blows: one blow removes a whole interval's worth
 	// of DPS at once. Average throughput over time is identical to the old per-tick
@@ -279,23 +399,41 @@ void USwarmCombatProcessor::Execute(FMassEntityManager& EntityManager, FMassExec
 	double DamageToRetinue = 0.0;
 	double DamageToBrood = 0.0;
 
-	EntityQuery.ForEachEntityChunk(Context, [Swarm, HeroLocation, bHeroAlive, bHeroStriking, MeleeRangeSq, ArchersRangeSq, ArchersMinRangeSq, HeroMeleeRangeSq, BroodBlow, HeroBlow, MaxAttackers, RetinueTargets, ArchersTargets, BroodTargets, FlashTime, KnockSpeed, &HeroDamage, &DamageToRetinue, &DamageToBrood](FMassExecutionContext& ChunkContext)
+	// Squad kill attribution (docs/ui/end-of-wave-showcase.md §5.3), same chunk-local
+	// shape as the two accumulators above: brood killed this pass, bucketed by the unit
+	// that landed the first claimed blow on each victim, plus the hero's own tally.
+	// Merged into the subsystem once at the end.
+	int32 KilledBySquad[USwarmSubsystem::MaxSquads] = {};
+	int32 HeroKilled = 0;
+
+	EntityQuery.ForEachEntityChunk(Context, [Swarm, HeroLocation, bHeroAlive, bHeroStriking, MeleeRangeSq, ArchersRangeSq, ArchersMinRangeSq, HeroMeleeRangeSq, BroodBlow, HeroBlow, MaxAttackers, ArchersTargets, BroodTargets, KnightTables, FlashTime, KnockSpeed, &HeroDamage, &DamageToRetinue, &DamageToBrood, &KilledBySquad, &HeroKilled](FMassExecutionContext& ChunkContext)
 	{
 		const TConstArrayView<FTransformFragment> Transforms = ChunkContext.GetFragmentView<FTransformFragment>();
 		const TArrayView<FSwarmHealthFragment> Health = ChunkContext.GetMutableFragmentView<FSwarmHealthFragment>();
 		const TArrayView<FSwarmAnimFragment> Anim = ChunkContext.GetMutableFragmentView<FSwarmAnimFragment>();
 		const TArrayView<FSwarmStrikeFragment> Strike = ChunkContext.GetMutableFragmentView<FSwarmStrikeFragment>();
+		const TConstArrayView<FSwarmJitterFragment> Jitter = ChunkContext.GetFragmentView<FSwarmJitterFragment>();
 
 		for (int32 i = 0; i < ChunkContext.GetNumEntities(); ++i)
 		{
 			const FVector Location = Transforms[i].GetTransform().GetLocation();
 			const bool bRetinue = (Anim[i].Bits & SwarmAnim::TeamBit) != 0;
 			const bool bArcher = bRetinue && SwarmSquad::UnitType(Anim[i].SquadId) == EUnitType::Archers;
+			const bool bKnight = bRetinue && !bArcher; // a Spearman -- task-095 sub-type binding applies
+
+			// Which stat row THIS Spearman fights on, from the SAME phase + live weights
+			// table the render bridge resolves its look from (SwarmProcessors.cpp) -- so
+			// this can never disagree with the sprite on screen. Unused (0) for archers/brood.
+			const int32 MyKnightRow = bKnight
+				? SwarmCombatTuning::KnightSubtypeRowFor(KnightTables, SwarmRenderPack::VariantFromPhase(
+					Jitter[i].Phase, KnightTables.TeamVariantCum, KnightTables.NumTeamVariants))
+				: 0;
 
 			// MY OWN candidate band this frame — Archers reach much further (§2.2) and
 			// won't count anything already inside their own MinEngageRange as a candidate.
-			// Spearmen and brood keep the exact shared MeleeRangeSq, unchanged.
-			const float MyRangeSq = bArcher ? ArchersRangeSq : MeleeRangeSq;
+			// A Spearman's range now comes from its own knight sub-type row (task-095);
+			// brood keep the shared MeleeRangeSq, unchanged.
+			const float MyRangeSq = bArcher ? ArchersRangeSq : (bKnight ? FMath::Square(KnightTables.Engage[MyKnightRow]) : MeleeRangeSq);
 			const float MyMinRangeSq = bArcher ? ArchersMinRangeSq : 0.f;
 
 			// One walk of the neighbourhood does three jobs:
@@ -321,9 +459,10 @@ void USwarmCombatProcessor::Execute(FMassEntityManager& EntityManager, FMassExec
 			// my blow uses this frame. Read it before it gets overwritten below.
 			const float MyReachSq = Strike[i].StrikeReachSq;
 
-			// Cleave is per team, and per type within retinue: Spearmen cleave, Archers hit
-			// one precise target, brood commit to one.
-			const int32 MyTargets = bRetinue ? (bArcher ? ArchersTargets : RetinueTargets) : BroodTargets;
+			// Cleave is per team, and per type within retinue: Spearmen cleave (per their own
+			// knight sub-type row, task-095), Archers hit one precise target, brood commit
+			// to one.
+			const int32 MyTargets = bRetinue ? (bArcher ? ArchersTargets : KnightTables.Targets[MyKnightRow]) : BroodTargets;
 
 			float NearestSq[8];
 			for (int32 k = 0; k < MyTargets; ++k)
@@ -337,6 +476,15 @@ void USwarmCombatProcessor::Execute(FMassEntityManager& EntityManager, FMassExec
 			// the doc comment above this pass's tunable snapshot for why: retinue strikers
 			// aren't all one type any more.
 			float Damage = 0.f;
+
+			// Who gets the kill if this frame's Damage finishes me: the FIRST attacker to
+			// claim a blow on me, by iteration order — squad byte if that was a soldier,
+			// the hero flag if the hero's blow got here first (his branch runs after the
+			// neighbour walk below, so a soldier always wins a same-frame tie). Exactly one
+			// claimant is credited; see USwarmSubsystem::CreditKills for why the model
+			// doesn't do proportional-damage credit.
+			int32 CreditSquad = INDEX_NONE;
+			bool bCreditHero = false;
 
 			// task-073 escape hatch. MyMinRangeSq is 0 for everyone except Archers, so this
 			// whole shadow scan is a no-op (bDeadZoneContact can never go true) for Spearmen
@@ -435,6 +583,10 @@ void USwarmCombatProcessor::Execute(FMassEntityManager& EntityManager, FMassExec
 				{
 					++Entry.BlowsClaimed;
 					++Strikers;
+					if (CreditSquad == INDEX_NONE)
+					{
+						CreditSquad = Entry.SquadId;
+					}
 					// This striker's OWN blow value — a Spearman and an Archer striking the
 					// same victim this frame no longer deal the same damage (see above).
 					Damage += Entry.BlowDamage;
@@ -482,6 +634,7 @@ void USwarmCombatProcessor::Execute(FMassEntityManager& EntityManager, FMassExec
 					{
 						Damage += HeroBlow;
 						bStruck = true;
+						bCreditHero = (CreditSquad == INDEX_NONE);
 						const FVector2f Away(
 							(float)(Location.X - HeroLocation.X),
 							(float)(Location.Y - HeroLocation.Y));
@@ -552,7 +705,26 @@ void USwarmCombatProcessor::Execute(FMassEntityManager& EntityManager, FMassExec
 				const float Applied = FMath::Min(Damage, FMath::Max(Health[i].HP, 0.f));
 				(bRetinue ? DamageToRetinue : DamageToBrood) += Applied;
 
+				// The kill lands HERE, not in USwarmDeathProcessor: this is the last point
+				// at which who dealt the damage is still known. The HP > 0 test is what
+				// makes it exactly-once — an already-dead body taking another blow before
+				// the deferred DestroyEntity flushes must not pay out a second time.
+				// Retinue deaths are not attributed: brood carry no unit to credit.
+				const bool bLethal = !bRetinue && Health[i].HP > 0.f && (Health[i].HP - Damage) <= 0.f;
+
 				Health[i].HP -= Damage;
+
+				if (bLethal)
+				{
+					if (CreditSquad != INDEX_NONE)
+					{
+						KilledBySquad[SwarmSquad::UnitIndex((uint8)CreditSquad)]++;
+					}
+					else if (bCreditHero)
+					{
+						++HeroKilled;
+					}
+				}
 			}
 
 			if (bContact)
@@ -568,6 +740,7 @@ void USwarmCombatProcessor::Execute(FMassEntityManager& EntityManager, FMassExec
 	}
 
 	Swarm->AddDamageDealt(DamageToRetinue, DamageToBrood);
+	Swarm->CreditKills(KilledBySquad, HeroKilled);
 }
 
 //----------------------------------------------------------------------
@@ -617,4 +790,76 @@ void USwarmDeathProcessor::Execute(FMassEntityManager& EntityManager, FMassExecu
 	{
 		Swarm->AddKills(KilledRetinue, KilledBrood);
 	}
+}
+
+//----------------------------------------------------------------------
+// Swarm.KnightSubtypeReport (task-095)
+//----------------------------------------------------------------------
+namespace
+{
+	/**
+	 * Which knight sub-type ROW each live Spearman is actually fighting on, right now,
+	 * printed BESIDE the table it came from — same reasoning as SwarmRenderActor.cpp's
+	 * Swarm.BroodVariantReport/TeamVariantReport: a histogram without its table proves
+	 * nothing. Nine rows back eleven looks (task-095), so this also prints which
+	 * team-atlas variant indices feed each row (Swarm.KnightSubtypeMap).
+	 *
+	 * Reads the render buffer's already-packed variant + squad byte (SwarmRenderPack),
+	 * the exact same numbers the sprite on screen and the combat loop's own per-entity
+	 * lookup are built from, rather than re-deriving anything from Phase — so this can
+	 * never show a different mix than what is actually fighting.
+	 */
+	void LogKnightSubtypeHistogram(const UWorld* World)
+	{
+		const USwarmSubsystem* Swarm = World ? World->GetSubsystem<USwarmSubsystem>() : nullptr;
+		if (!Swarm)
+		{
+			UE_LOG(LogTemp, Warning, TEXT("KnightSubtypeReport: no swarm subsystem (not in play?)"));
+			return;
+		}
+
+		const SwarmCombatTuning::FKnightSubtypeTables Tables = SwarmCombatTuning::GetKnightSubtypeTables();
+
+		int32 RowCounts[SwarmCombatTuning::MaxKnightSubtypeRows] = {};
+		int32 Total = 0;
+		for (const int32 Bits : Swarm->GetRenderAnimBits())
+		{
+			if ((Bits & SwarmAnim::TeamBit) == 0)
+			{
+				continue; // brood -- sub-types are melee-retinue only
+			}
+			if (SwarmSquad::UnitType(SwarmRenderPack::Squad(Bits)) == EUnitType::Archers)
+			{
+				continue; // Archers untouched -- still on their own Archers* tuning
+			}
+			++Total;
+			const int32 Row = SwarmCombatTuning::KnightSubtypeRowFor(Tables, SwarmRenderPack::Variant(Bits));
+			RowCounts[FMath::Clamp(Row, 0, SwarmCombatTuning::MaxKnightSubtypeRows - 1)]++;
+		}
+
+		FString Line;
+		for (int32 Row = 0; Row < Tables.NumRows; ++Row)
+		{
+			FString Indices;
+			for (int32 V = 0; V < Tables.NumVariants; ++V)
+			{
+				if (Tables.Map[V] == Row)
+				{
+					Indices += Indices.IsEmpty() ? FString::Printf(TEXT("v%d"), V) : FString::Printf(TEXT(",v%d"), V);
+				}
+			}
+			Line += FString::Printf(TEXT("  row%d[%s] HP=%.0f DPS=%.1f Engage=%.0f Targets=%d count=%d (%.1f%%)"),
+				Row, *Indices, Tables.HP[Row], Tables.DPS[Row], Tables.Engage[Row], Tables.Targets[Row],
+				RowCounts[Row], Total > 0 ? 100.f * (float)RowCounts[Row] / (float)Total : 0.f);
+		}
+		UE_LOG(LogTemp, Display, TEXT("KnightSubtypeReport: %d knights | map \"%s\" |%s"),
+			Total, *CVarKnightSubtypeMap.GetValueOnAnyThread(), *Line);
+	}
+
+	FAutoConsoleCommandWithWorld GCmdKnightSubtypeReport(
+		TEXT("Swarm.KnightSubtypeReport"),
+		TEXT("Log how many live Spearmen are fighting on each knight sub-type row, beside\n")
+		TEXT("the HP/DPS/Engage/Targets table and the variant indices that feed each row."),
+		FConsoleCommandWithWorldDelegate::CreateLambda(
+			[](UWorld* World) { LogKnightSubtypeHistogram(World); }));
 }
