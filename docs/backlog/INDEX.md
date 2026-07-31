@@ -10,7 +10,7 @@ not a re-read.
 
 | proposed | approved | in-progress | needs-review | done | rejected | parked |
 |---|---|---|---|---|---|---|
-| 39 | 1 | 1 | 0 | 75 | 0 | 7 |
+| 40 | 1 | 0 | 0 | 75 | 0 | 8 |
 
 ## Audit queue — top 7 awaiting your verdict
 
@@ -48,7 +48,7 @@ Approve with `py Scripts/backlog.py approve <ids>` (or `/backlog approve <ids>`)
 
 A fan is approved in one batch and dispatched one teammate per task. `⨝` joins own the shared writes and wait on their siblings — see `py Scripts/backlog.py epic <slug>`.
 
-## proposed (39)
+## proposed (40)
 
 | id | score | task | agent | owns | source |
 |---|---|---|---|---|---|
@@ -66,6 +66,7 @@ A fan is approved in one batch and dispatched one teammate per task. `⨝` joins
 | `083` | 2.0 | [Run a caster variant family — once the roster decides where a caster-silhouette retinue actually lives](task-083-caster-variant-family.md) | claude | `RawArt/Renders/caster-v1/**`, `docs/data/art/families/caster-v1/**` | `user` |
 | `111` | 2.0 | [Spend the protrusion axis on the Baby face brood — limbs out, not faces on](task-111-baby-parts-brood-family.md) | claude | `docs/data/art/families/brood-baby/**`, `RawArt/Renders/brood-baby/**`, `docs/data/art/provenance.json` | `user` |
 | `121` | 2.0 | [Repack the militia hit frame from the eight already-generated frames the sheet never used](task-121-repack-militia-hit-frame.md) | claude | `docs/data/art/requests/unit-retinue.json`, `RawArt/Sheets/T_Unit_Retinue.png`, `docs/art/retinue-militia.md` | `task-010 handback` |
+| `124` | 2.0 | [Put the floor back under the sprites — the ground plane sits above where the units draw](task-124-floor-sits-above-the-sprite-plane.md) | claude | `ELVTR/Content/Spike1/L_Spike1.umap`, `ELVTR/Source/ELVTR/Rendering/SwarmRenderActor.cpp`, `ELVTR/Config/SwarmExecOnPlay.canonical.txt`, `docs/perf/evidence/black-frame/**` | `owner, 2026-07-31 ("it was because the floor was above the meshes")` |
 | `025` | 1.33 | [Spec the procgen room-graph generator over the prefab library](task-025-procgen-room-graph-generator.md) | gameplay-director | `docs/design/procgen-room-graph.md`, `docs/data/room-types.json`, `docs/data/room-types.schema.md` | `docs/RTS-VERTICAL-SLICE.md:102` |
 | `026` | 1.33 | [Produce the Highgates tileset](task-026-highgates-tileset.md) | pixel-art-director | `docs/art/highgates-tileset.md` | `docs/RTS-VERTICAL-SLICE.md:109` |
 | `011` | 1.0 | [Run the soldier roster v1 acceptance checklist across all six variants](task-011-soldier-roster-acceptance-pass.md) | pixel-art-director | `docs/art/soldier-roster-v1.md` | `docs/art/soldier-roster-v1.md:1093` |
@@ -97,12 +98,6 @@ A fan is approved in one batch and dispatched one teammate per task. `⨝` joins
 | id | score | task | agent | owns | source |
 |---|---|---|---|---|---|
 | `031` | 2.0 | [Check the shipped leash system against RTS-VERTICAL-SLICE §2's spec](task-031-leash-system-conformance-check.md) | claude | `docs/RTS-VERTICAL-SLICE.md` | `docs/RTS-VERTICAL-SLICE.md:97` |
-
-## in-progress (1)
-
-| id | score | task | agent | owns | source |
-|---|---|---|---|---|---|
-| `122` | 2.0 | [Measure why the frame reads black and fix the value hierarchy it inverted](task-122-say-why-the-frame-goes-black.md) | claude | `ELVTR/Source/ELVTR/Rendering/SwarmRenderActor.cpp`, `ELVTR/Source/ELVTR/Rendering/SwarmRenderActor.h`, `ELVTR/Config/SwarmExecOnPlay.canonical.txt`, `ELVTR/Content/PostProcess/M_PP_Demichrome.uasset`, `docs/RENDERING-LIGHTING.md`, `docs/perf/evidence/black-frame/**` | `user` |
 
 ## done (75)
 
@@ -184,7 +179,7 @@ A fan is approved in one batch and dispatched one teammate per task. `⨝` joins
 | `115` | 1.0 | [Respec the menu as a front door the game never waits at](task-115-menu-that-boots-straight-into-play.md) | ui-director | `docs/ui/menu-frame-system.md`, `docs/ui/UI-PROTOTYPE-PLAN.md`, `docs/ui/mockups/menu-frame-system.html` | `user` |
 | `070` | 0.5 | [Build out the scenario library so the tuning questions have something to run against](task-070-tuning-question-scenario-library.md) | sim-director | `docs/data/scenarios/**` | `user` |
 
-## parked (7)
+## parked (8)
 
 | id | score | task | agent | owns | source |
 |---|---|---|---|---|---|
@@ -194,8 +189,9 @@ A fan is approved in one batch and dispatched one teammate per task. `⨝` joins
 | `036` | 2.0 | [Design the runtime pacing director (L4D-style intensity manager)](task-036-pacing-director-intensity-manager.md) | gameplay-director | `docs/design/pacing-director.md` | `docs/GDD-TODO.md:115` |
 | `040` | 2.0 | [Replace the literal white hit-flash in the Unit Cam panel with Demichrome Pale](task-040-unitcam-literal-white-violates-ramp.md) | claude | `ELVTR/Source/**/UnitCamProjector.cpp` | `docs/art/palette-exceptions.md:45` |
 | `056` | 2.0 | [Build a 6-variant silhouette family off the bright-palette sci-fi soldier and publish the contact sheet](task-056-scifi-soldier-silhouette-variant-family.md) | claude | `RawArt/Renders/soldier-scifi-variants/**`, `docs/art/soldier-scifi-variants.md` | `user` |
+| `122` | 2.0 | [Measure why the frame reads black and fix the value hierarchy it inverted](task-122-say-why-the-frame-goes-black.md) | claude | `ELVTR/Source/ELVTR/Rendering/SwarmRenderActor.cpp`, `ELVTR/Source/ELVTR/Rendering/SwarmRenderActor.h`, `ELVTR/Config/SwarmExecOnPlay.canonical.txt`, `ELVTR/Content/PostProcess/M_PP_Demichrome.uasset`, `docs/RENDERING-LIGHTING.md`, `docs/perf/evidence/black-frame/**` | `user` |
 | `058` | 1.0 | [Tighten the HUD chrome, and let UMG follow the live ramp instead of hardcoding four hexes](task-058-hud-chrome-tightening.md) | claude | `ELVTR/Source/ELVTR/UI/EmberkeepHud.cpp`, `ELVTR/Source/ELVTR/UI/EmberkeepHud.h`, `ELVTR/Source/ELVTR/UI/EmberkeepPalette.h`, `ELVTR/Source/ELVTR/UI/MusterPanel.cpp`, `ELVTR/Source/ELVTR/UI/MusterPanel.h`, `ELVTR/Source/ELVTR/UI/MusterGrid.cpp`, `ELVTR/Source/ELVTR/UI/MusterGrid.h`, `ELVTR/Source/ELVTR/UI/SquadCard.cpp`, `ELVTR/Source/ELVTR/UI/SquadCard.h`, `ELVTR/Source/ELVTR/UI/StitchMeter.cpp`, `ELVTR/Source/ELVTR/UI/StitchMeter.h`, `ELVTR/Source/ELVTR/UI/EmberkeepUITypes.h`, `docs/ui/hud-chrome.md` | `user` |
 
 ---
 
-*Regenerated 2026-07-31 · 123 task(s) · decisions in [LOG.md](LOG.md).*
+*Regenerated 2026-07-31 · 124 task(s) · decisions in [LOG.md](LOG.md).*

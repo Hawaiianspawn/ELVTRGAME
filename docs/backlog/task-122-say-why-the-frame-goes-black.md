@@ -1,7 +1,7 @@
 ---
 id: 122
 title: Measure why the frame reads black and fix the value hierarchy it inverted
-status: in-progress
+status: parked
 agent: claude
 model: opus
 owns:
@@ -18,7 +18,7 @@ evidence: A measured luminance table for the shipped framing — upper frame, mi
 score: {feel: 2, risk: 2, cost: 2}
 source: user
 teammate: black-frame
-decided: "2026-07-31 in-progress"
+decided: "2026-07-31 parked"
 ---
 
 ## Why now
