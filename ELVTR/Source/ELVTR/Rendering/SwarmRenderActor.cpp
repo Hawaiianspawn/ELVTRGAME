@@ -1729,15 +1729,14 @@ void ASwarmRenderActor::Tick(float DeltaSeconds)
 			* SwarmRenderPack::SizeScale((int32)Bits, bRet ? RetJit : BrdJit);
 		SizeScratch.Add(Size);
 
-		// task-110: NS_Swarm's Sprite Renderer PivotInUVSpace is (0.5, 1.0) on both emitters
+		// task-110: NS_Swarm's Sprite Renderer PivotInUVSpace is (0.5, 0.0) on both emitters
 		// (was the (0.5, 0.5) centred default), which anchors the sprite's BOTTOM edge to
 		// Particles.Position instead of its centre -- size-independent by construction, so
-		// no per-particle Z compensation is needed here any more. This used to carry a
+		// no per-particle Z compensation is needed here at all. This used to carry a
 		// Swarm.SpriteGroundOffset/GroundScale correction to fake the same thing in world
 		// space; that only ever grounded the nominal-size body (every particle rolls its own
 		// size via Swarm.BroodSizeJitter etc.), so off-nominal bodies floated or sank up to
-		// ~29uu. Deleted rather than re-tuned -- verified grounded at BroodSizeJitter 0,
-		// shipped 0.4072, and worst-case 0.6, all at wave-1 density.
+		// ~29uu. Deleted rather than re-tuned -- owner-verified grounded on the live pivot.
 		PositionScratch.Add(PackIndex < RenderPos.Num() ? RenderPos[PackIndex] : FVector::ZeroVector);
 		++PackIndex;
 

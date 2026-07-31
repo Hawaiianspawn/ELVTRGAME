@@ -171,7 +171,7 @@ void UBloodSubsystem::Tick(float DeltaSeconds)
 	const float HeightOffset = CVarBloodHeightOffset.GetValueOnGameThread();
 
 	// GetRenderPositions() is the RAW ground-plane position (Z=0) the sim publishes. task-110:
-	// NS_Swarm's Sprite Renderer pivot is (0.5, 1.0) on both emitters now, so that raw position
+	// NS_Swarm's Sprite Renderer pivot is (0.5, 0.0) on both emitters now, so that raw position
 	// IS where the sprite's feet render -- no ground correction needed here any more. (Used to
 	// re-derive SwarmRenderActor's Swarm.SpriteGroundOffset/GroundScale, an absolute-uu or
 	// per-sprite-size Z shift that faked the same anchoring in world space; deleted along with

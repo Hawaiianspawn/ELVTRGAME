@@ -96,13 +96,12 @@ Swarm.FlameShadowRadius 45    ; caster radius uu — angular width each soldier 
 # The brood's counterpart lives on the Horde tab. Base size is the Niagara sprite's own
 # Sprite Size now (the half-extent dials went with the debug-box renderer, 2026-07-29);
 # these vary it per unit. Floor anchoring is no longer a tuning dial here at all (task-110):
-# NS_Swarm's Sprite Renderer PivotInUVSpace is (0.5, 1.0) on both emitters, which anchors
+# NS_Swarm's Sprite Renderer PivotInUVSpace is (0.5, 0.0) on both emitters, which anchors
 # the sprite's BOTTOM edge to Particles.Position instead of its centre -- size-independent
 # by construction. That replaced Swarm.SpriteGroundOffset/GroundScale, a world-space Z-shift
 # CVar that only ever grounded the nominal-size body (every particle rolls its own size via
 # Swarm.BroodSizeJitter etc.), so off-nominal bodies floated or sank up to ~29uu. Deleted
-# rather than re-tuned -- verified grounded at BroodSizeJitter 0, shipped 0.4072, and
-# worst-case 0.6, all at wave-1 density.
+# rather than re-tuned -- owner-verified grounded on the live pivot, no residual, no CVar.
 # ============================================================
 Swarm.RetinueSizeJitter 0.15   ; [0..0.6] per-soldier size variation, applied as 1 +/- this, so
                                ; 0.15 spans 0.85x to 1.15x. WAS 0.6 until 2026-07-30, which spans
