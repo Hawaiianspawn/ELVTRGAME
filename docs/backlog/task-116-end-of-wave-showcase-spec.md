@@ -1,7 +1,7 @@
 ---
 id: 116
 title: Spec the end-of-wave showcase that names the five units doing the work
-status: proposed
+status: approved
 agent: ui-director
 model: ""
 owns: ["docs/ui/end-of-wave-showcase.md", "docs/ui/mockups/end-of-wave-showcase.html"]
@@ -11,6 +11,7 @@ epic: ui-showcase
 evidence: docs/ui/end-of-wave-showcase.md with a published Artifact mockup of the panel at three states — a clean wave, a bloodbath, and the run's final wave — plus a data-contract section naming every field the Mass side must expose, written as a spec an engine task can be filed from without asking a follow-up question
 score: {feel: 2, risk: 2, cost: 2}
 source: user
+decided: "2026-07-31 approved"
 ---
 
 ## Why now

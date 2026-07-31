@@ -1,7 +1,7 @@
 ---
 id: 115
 title: Respec the menu as a front door the game never waits at
-status: proposed
+status: approved
 agent: ui-director
 model: ""
 owns: ["docs/ui/menu-frame-system.md", "docs/ui/UI-PROTOTYPE-PLAN.md", "docs/ui/mockups/menu-frame-system.html"]
@@ -11,6 +11,7 @@ epic: ui-showcase
 evidence: A revised menu-frame-system.md and UI-PROTOTYPE-PLAN.md carrying the new aesthetic and a boot-straight-into-play flow, plus a published Artifact mockup of the menu as it appears when summoned mid-run rather than as a launch gate
 score: {feel: 2, risk: 1, cost: 2}
 source: user
+decided: "2026-07-31 approved"
 ---
 
 ## Why now

@@ -1,9 +1,9 @@
 ---
 id: 114
 title: Write the UI aesthetic that replaces the four-value gate the colour reversal killed
-status: proposed
+status: done
 agent: ui-director
-model: ""
+model: sonnet
 owns: ["docs/ui/ui-aesthetic.md", "docs/ui/mockups/ui-aesthetic-*.html"]
 resources: []
 depends-on: []
@@ -11,6 +11,8 @@ epic: ui-showcase
 evidence: docs/ui/ui-aesthetic.md plus a published Artifact mockup showing the language applied to two real surfaces — one menu panel and one end-of-wave results panel — in full colour, with the value roles named per element rather than described in the abstract
 score: {feel: 2, risk: 2, cost: 2}
 source: user
+decided: "2026-07-31 done"
+teammate: ui-aesthetic
 ---
 
 ## Why now
