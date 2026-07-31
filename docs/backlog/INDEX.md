@@ -10,7 +10,7 @@ not a re-read.
 
 | proposed | approved | in-progress | needs-review | done | rejected | parked |
 |---|---|---|---|---|---|---|
-| 38 | 0 | 0 | 0 | 73 | 0 | 7 |
+| 41 | 0 | 0 | 0 | 73 | 0 | 7 |
 
 ## Audit queue — top 7 awaiting your verdict
 
@@ -48,7 +48,7 @@ Approve with `py Scripts/backlog.py approve <ids>` (or `/backlog approve <ids>`)
 
 A fan is approved in one batch and dispatched one teammate per task. `⨝` joins own the shared writes and wait on their siblings — see `py Scripts/backlog.py epic <slug>`.
 
-## proposed (38)
+## proposed (41)
 
 | id | score | task | agent | owns | source |
 |---|---|---|---|---|---|
@@ -66,6 +66,8 @@ A fan is approved in one batch and dispatched one teammate per task. `⨝` joins
 | `077` | 2.0 | [Build the parallel batch driver — wire trials into the pipeline and measure where the process pool actually pays](task-077-batch-driver-pool-and-trials.md) | sim-director | `Scripts/sim/batch.py`, `docs/sim/PIPELINE.md` | `user` |
 | `083` | 2.0 | [Run a caster variant family — once the roster decides where a caster-silhouette retinue actually lives](task-083-caster-variant-family.md) | claude | `RawArt/Renders/caster-v1/**`, `docs/data/art/families/caster-v1/**` | `user` |
 | `111` | 2.0 | [Spend the protrusion axis on the Baby face brood — limbs out, not faces on](task-111-baby-parts-brood-family.md) | claude | `docs/data/art/families/brood-baby/**`, `RawArt/Renders/brood-baby/**`, `docs/data/art/provenance.json` | `user` |
+| `120` | 2.0 | [Refresh SWEEPS.md's two demonstration tables, which disagree with baseline.json after the armor fix](task-120-sweeps-demo-tables-disagree-with-baseline.md) | sim-director | `docs/sim/SWEEPS.md`, `docs/sim/baseline.json` | `task-075 handback` |
+| `121` | 2.0 | [Repack the militia hit frame from the eight already-generated frames the sheet never used](task-121-repack-militia-hit-frame.md) | claude | `docs/data/art/requests/unit-retinue.json`, `RawArt/Sheets/T_Unit_Retinue.png`, `docs/art/retinue-militia.md` | `task-010 handback` |
 | `025` | 1.33 | [Spec the procgen room-graph generator over the prefab library](task-025-procgen-room-graph-generator.md) | gameplay-director | `docs/design/procgen-room-graph.md`, `docs/data/room-types.json`, `docs/data/room-types.schema.md` | `docs/RTS-VERTICAL-SLICE.md:102` |
 | `026` | 1.33 | [Produce the Highgates tileset](task-026-highgates-tileset.md) | pixel-art-director | `docs/art/highgates-tileset.md` | `docs/RTS-VERTICAL-SLICE.md:109` |
 | `011` | 1.0 | [Run the soldier roster v1 acceptance checklist across all six variants](task-011-soldier-roster-acceptance-pass.md) | pixel-art-director | `docs/art/soldier-roster-v1.md` | `docs/art/soldier-roster-v1.md:1093` |
@@ -83,6 +85,7 @@ A fan is approved in one batch and dispatched one teammate per task. `⨝` joins
 | `109` | 1.0 | [Run a wave N times unattended, so a metric has a spread instead of one sample](task-109-unattended-run-loop.md) | claude | `ELVTR/Source/ELVTR/Mass/SwarmTelemetry.cpp`, `ELVTR/Source/ELVTR/Mass/SwarmTelemetry.h`, `ELVTR/Source/ELVTR/Spike/**` | `user, 2026-07-30 — "an effective way to test them"` |
 | `113` | 1.0 | [Fix variantpipe judge silently skipping the undershoot check on mixed-target families](task-113-judge-misses-undershoot-on-mixed-target-families.md) | claude | `Scripts/art/variantpipe.py`, `Scripts/art/test_variantpipe.py` | `task-112 handback verification, 2026-07-30` |
 | `117` | 1.0 | [Repoint the prose that cites console variables and headers the rename deleted](task-117-prose-that-cites-the-old-cvar-names.md) | claude | `docs/art/aesthetic-direction.md`, `docs/data/squads.json`, `docs/data/art/palette.json`, `docs/data/art/provenance.json`, `docs/data/art/requests/swarm-units.json`, `docs/design/**`, `docs/perf/**`, `docs/SPRITE-SHEET-HANDOFF.md`, `.claude/skills/art-coverage/SKILL.md`, `Scripts/backlog.py` | `task-092 and task-093 handbacks` |
+| `119` | 1.0 | [Stop scenario_runner.py --all crashing on a docs/data/scenarios file that is not a scenario](task-119-scenario-runner-all-crashes-on-non-scenario.md) | sim-director | `Scripts/sim/data_loader.py`, `Scripts/sim/scenario_runner.py`, `docs/sim/README.md` | `task-075 handback` |
 | `034` | 0.75 | [Full loot & itemization system](task-034-full-loot-and-itemization-system.md) | gameplay-director | `docs/design/loot-full.md` | `docs/GDD-TODO.md:112` |
 | `041` | 0.75 | [Build Phase B — the index + palette-ID LUT pipeline](task-041-phase-b-index-lut-pipeline.md) | claude | `ELVTR/Content/PostProcess/**`, `ELVTR/Source/ELVTR/Rendering/**`, `ELVTR/Source/ELVTR/UI/EmberkeepPalette.h`, `docs/RENDERING-LIGHTING.md`, `Scripts/art/pixelpipe.py` | `docs/RENDERING-LIGHTING.md:21` |
 | `033` | 0.67 | [Unwitnessed faction — final name, titan variety, horror level](task-033-unwitnessed-faction-revisit.md) | narrative-director | `docs/narrative/unwitnessed.md` | `docs/GDD-TODO.md:109` |
@@ -183,4 +186,4 @@ A fan is approved in one batch and dispatched one teammate per task. `⨝` joins
 
 ---
 
-*Regenerated 2026-07-31 · 118 task(s) · decisions in [LOG.md](LOG.md).*
+*Regenerated 2026-07-31 · 121 task(s) · decisions in [LOG.md](LOG.md).*
