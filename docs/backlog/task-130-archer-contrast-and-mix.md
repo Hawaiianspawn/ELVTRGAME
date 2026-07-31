@@ -1,9 +1,9 @@
 ---
 id: 130
 title: Spend the contrast and mix rungs task-127 left — a visible archer block, not one findable archer
-status: proposed
+status: in-progress
 agent: claude
-model: ""
+model: sonnet
 owns: ["ELVTR/Source/ELVTR/Rendering/SwarmRenderActor.cpp", "ELVTR/Source/ELVTR/Mass/SwarmCombatProcessors.cpp", "docs/perf/niagara-sprite-path.md", "docs/perf/evidence/task130/**"]
 resources: ["unreal-editor"]
 depends-on: []
@@ -11,8 +11,8 @@ epic: archers-on-the-field
 evidence: A PIE capture at gameplay density and DEFAULT settings in which the archer line reads as a distinct block behind the spearmen, beside the task-127 capture for comparison, plus a frame-time row at 10k and 40k against docs/perf/evidence/task126/SwarmBench-task126.csv.
 score: {feel: 2, risk: 1, cost: 1}
 source: user
-teammate: ""
-decided: ""
+teammate: archer-block
+decided: "2026-07-31 in-progress"
 ---
 
 ## Why now
