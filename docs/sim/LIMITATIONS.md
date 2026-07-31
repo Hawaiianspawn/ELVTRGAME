@@ -189,3 +189,75 @@ of the tick loop rather than a parameter change.
 Practical read: trust armor's *direction and rough magnitude* in wave results,
 not its precise value in a mixed-tier fight. Point-target results are unaffected
 — that model always applied a single named target's armor and still does.
+
+## 6. The seeded variance layer produces a SPREAD, not a confidence interval
+
+Added 2026-07-31 with task-076's variance layer (`docs/sim/MODEL.md` §4).
+Nothing in this section weakens or replaces §1 through §5 — a distribution
+inherits **every** limitation the point estimate it is built from already
+had, and adds one of its own.
+
+**What a spread from `run_trials` actually is:** the output of this harness's
+models, re-run under perturbations to two specific inputs, at magnitudes
+listed in `combat-model-constants.json`'s `variance_model` block. That is
+all it is. It is a statement about *this harness's sensitivity to those two
+dials*, not about how much the real game varies run to run.
+
+**What it is not, stated flatly:**
+
+- **Not a confidence interval on the real game.** The real sim's run-to-run
+  variation comes from per-entity spawn positions, steering, target
+  selection, player input, and dozens of interactions this pooled model has
+  no representation of at all (§4). Two of those have been modelled; the
+  rest have not. A p5-p95 band here says nothing about where a real run
+  would land.
+- **Not a way to declare check 3 passing.** This is the trap this section
+  exists for, and it is a more tempting version of §1's. §1 forbids tuning
+  `EngagedSpacingUU` / `MaxAttackersPerUnit` / `MeleeContactFacingFraction`
+  to force check 3 to pass. A variance layer offers the same fitting shortcut
+  in nicer clothes: with a large enough magnitude, GATE1's measured 109-111
+  survivors falls inside *some* distribution's tail, and the failure can be
+  reframed as "passing within variance." **Do not do this.** Do not select a
+  magnitude because it widens a distribution toward a measured value, do not
+  call check 3 passing because a measured number lands in a tail, and note
+  that no code in `Scripts/sim/` searches for a magnitude by proximity to a
+  target — same permanent omission, same reason, as `sweep.py`'s own GUARD.
+  **Adding variance does not close §1's gap.** §1 stands exactly as written:
+  at committed defaults the wave-attrition model predicts a full retinue
+  wipe against a measured ~110-of-120 survival, and check 3 fails.
+- **Not evidence that arrival timing matters more than task-068 found.**
+  The one cited source here is the same `Swarm.BroodSpeedJitter` ±6% bracket
+  task-068 already hand-checked at its Fast/Nominal/Slow endpoints. Running
+  it 200 times instead of 3 samples the interior of that bracket; it does not
+  add information the bracket didn't already carry. Measured 2026-07-31 on
+  `gate1-calibration-wave1`, 200 trials: `retinue_survivors` is **0.00 in
+  every single trial**, `result` is `retinue_wiped` in every single trial,
+  and `enemy_survivors` varies over 17.26-22.50 — sitting neatly inside
+  task-068's own hand-checked 20.19-22.50 band. The distribution is a
+  sharper picture of the same negative result, and §1's mechanistic reason
+  for it (nothing in this model depends on elapsed time, only on current
+  alive-counts) is unchanged.
+
+**One source is invented, and it is off.** `damage_roll`'s 0.10 magnitude
+traces to nothing — no CVar, no data file, no design doc. It defaults to
+disabled, and any run enabling it is flagged `diagnostic_invented_variance`
+and prints a banner. Enabling it on `gate1-calibration-wave1` widens
+`enemy_survivors`' stdev from 1.62 to 8.80 and moves the verdict not at all
+(still `retinue_wiped` in 200 of 200). **A wider band produced by an invented
+number is not more information than a narrower band produced by a cited one
+— it is less.**
+
+**The cited source is more correlated here than in the real game.** Arrival
+jitter is rolled once per `WaveGroup`, not per entity as the shipped code
+does, so a whole rank arrives early or late together. This *overstates* the
+spread relative to what independent per-entity draws would give. Even the
+one honest source is therefore an upper bound on its own contribution, not
+an estimate of it.
+
+**The point-target model gets no cited variance at all.** It is a
+closed-form snapshot with no time axis, so `arrival_jitter` has nothing to
+attach to, and the only source that applies to it is the invented one. A
+cited-sources-only `point_target` distribution is 200 identical trials with
+zero spread. That is the honest answer — the validated model has no grounded
+source of variation in this harness — and it should be reported as such, not
+padded out with the invented source to make the table look less empty.

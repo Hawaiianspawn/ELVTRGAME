@@ -91,6 +91,46 @@ def ttk_1v1(attacker: dict, victim: dict, chip_floor: float) -> float:
 
 
 # ---------------------------------------------------------------------------
+# Seeded variance layer (task-076) — see docs/sim/MODEL.md §4
+# ---------------------------------------------------------------------------
+#
+# Two hard properties, in this order of importance:
+#
+#   1. OFF BY DEFAULT, BIT-IDENTICALLY. Both models below take `rng` and
+#      `variance` as trailing keyword arguments defaulting to None. With
+#      `rng is None` — which is every pre-task-076 call site, and every
+#      seedless run of scenario_runner/sweep/drift_check/validate — the
+#      variance helpers return EXACTLY 1.0 and are multiplied into values
+#      that `x * 1.0 == x` leaves untouched for every float. Not "close
+#      enough"; identical. docs/sim/DRIFT-CHECK.md's whole baseline rests on
+#      this harness having no randomness on the default path, and it still
+#      doesn't.
+#   2. NEVER a module-global RNG. The caller constructs a fresh
+#      random.Random per trial from a derived seed (see
+#      scenario_runner.derive_seed) and passes it in explicitly, so results
+#      don't depend on execution order or process count.
+#
+# `variance` is a plain {source_name: magnitude} dict of ENABLED sources
+# only, assembled by the caller from combat-model-constants.json's
+# variance_model block. A source that is disabled simply isn't a key.
+
+def variance_roll(rng, variance: dict | None, source: str) -> float:
+    """
+    Multiplicative U(1-m, 1+m) factor for one named variance source, or
+    exactly 1.0 when that source is off (no rng, no config, or magnitude
+    <= 0). Uniform because the one CITED source's shipped implementation is
+    uniform (SwarmCommands.cpp:306 `Rand.FRandRange(1 - SpeedJitter, 1 +
+    SpeedJitter)`) — not because uniform was convenient.
+    """
+    if rng is None or not variance:
+        return 1.0
+    m = float(variance.get(source, 0.0))
+    if m <= 0.0:
+        return 1.0
+    return rng.uniform(1.0 - m, 1.0 + m)
+
+
+# ---------------------------------------------------------------------------
 # Point-target army TTK — same method as entity-tiers.md §7
 # ---------------------------------------------------------------------------
 
@@ -106,6 +146,8 @@ def army_ttk_vs_point_target(
     groups: list[ArmyGroup],
     chip_floor: float,
     hero: dict | None = None,
+    rng=None,
+    variance: dict | None = None,
 ) -> tuple[float, dict]:
     """
     Melee groups are capped at target['surround_cap_estimate'] simultaneous
@@ -113,6 +155,13 @@ def army_ttk_vs_point_target(
     groups are never capped — entity-tiers.md §4's own finding: 'Ranged
     attackers are not subject to this cap... every archer in the army can
     contribute simultaneously.'
+
+    VARIANCE (task-076): only `damage_roll` (an INVENTED source, off by
+    default) applies here — one roll on the army's summed DPS. The CITED
+    source (`arrival_jitter`) has nothing to attach to: this is a closed-form
+    snapshot with no time axis, so there is no arrival to perturb. That is a
+    real limitation of what this layer can say about the point-target model,
+    not an oversight — see docs/sim/LIMITATIONS.md §6.
     """
     total_dps = 0.0
     breakdown = {}
@@ -139,6 +188,11 @@ def army_ttk_vs_point_target(
 
     if total_dps <= 0:
         return math.inf, breakdown
+
+    roll = variance_roll(rng, variance, "damage_roll")
+    if roll != 1.0:
+        total_dps *= roll
+        breakdown["_variance"] = {"damage_roll_factor": round(roll, 6)}
     return target["max_hp"] / total_dps, breakdown
 
 
@@ -302,6 +356,8 @@ def simulate_wave_attrition(
     dt: float,
     max_time: float,
     log_every_seconds: float = 5.0,
+    rng=None,
+    variance: dict | None = None,
 ) -> dict:
     """
     Frontage-capped two-sided attrition, ticking at the shared discrete swing
@@ -348,10 +404,35 @@ def simulate_wave_attrition(
     this tick. This is a straightforward reading of what "not in contact
     range yet" means physically — no new free parameter, arrival_seconds
     just partitions each group's timeline into "off the field" / "on it."
+
+    VARIANCE (task-076, docs/sim/MODEL.md §4). Both sources apply here and
+    both are off unless `rng` is not None:
+      - `arrival_jitter` (CITED, Swarm.BroodSpeedJitter 0.06): each group's
+        arrival_seconds is divided by one U(1-j, 1+j) speed-scale draw,
+        matching encounter-budget.json's own rank_arrival_formula. Groups
+        with arrival_seconds == 0 are unaffected (0/x == 0), so this does
+        nothing at all on a scenario with no ArrivalSeconds rows.
+      - `damage_roll` (INVENTED, off by default): one U(1-m, 1+m) factor per
+        tick per direction, folded into the dt used for that direction's
+        damage so the task-080 per-group attribution stays consistent with
+        the pooled totals it is attributing.
     """
     t = 0.0
     log: list[WaveTickRecord] = []
     next_log_t = 0.0
+
+    # CITED variance source. Drawn once per group, before the loop, in
+    # retinue-then-enemy list order — the draw sequence must not depend on
+    # anything that varies mid-fight, or two runs of the same seed could
+    # diverge. Divide, don't multiply: BroodSpeedJitter scales SPEED, and
+    # arrival time is travel/speed (docs/data/encounter-budget.json
+    # rank_arrival_formula).
+    arrival_jitter = float((variance or {}).get("arrival_jitter", 0.0)) if rng is not None else 0.0
+    jittered_arrival: dict[int, float] = {}
+    if arrival_jitter > 0.0:
+        for g in list(retinue_groups) + list(enemy_groups):
+            factor = rng.uniform(1.0 - arrival_jitter, 1.0 + arrival_jitter)
+            jittered_arrival[id(g)] = g.arrival_seconds / factor
 
     # task-080 (Scripts/sim/variety.py): per-retinue-group damage attribution,
     # ADDITIVE only — accumulates numbers the tick loop below already
@@ -365,9 +446,16 @@ def simulate_wave_attrition(
     def total_alive(groups, role_filter=None):
         return sum(g.alive_count for g in groups if role_filter is None or g.fighter["role"] == role_filter)
 
+    def has_arrived(g, current_t):
+        # jittered_arrival is empty unless the CITED arrival_jitter source is
+        # on, so the default path is g.has_arrived() unchanged.
+        if id(g) in jittered_arrival:
+            return current_t >= jittered_arrival[id(g)]
+        return g.has_arrived(current_t)
+
     def arrived(groups, current_t, role_filter=None):
         return [g for g in groups
-                if (role_filter is None or g.fighter["role"] == role_filter) and g.has_arrived(current_t)]
+                if (role_filter is None or g.fighter["role"] == role_filter) and has_arrived(g, current_t)]
 
     while t < max_time:
         # total_alive() is NOT arrival-filtered — a group that hasn't arrived
@@ -401,6 +489,14 @@ def simulate_wave_attrition(
         retinue_victim_armor = mixed_victim_armor(retinue_melee_active + retinue_ranged_active)
         enemy_victim_armor = mixed_victim_armor(enemy_melee_active + enemy_ranged_active)
 
+        # INVENTED variance source (off by default). Folded into dt rather
+        # than applied to the finished totals so the task-080 per-group
+        # attribution below is scaled by exactly the same factor as the
+        # pooled damage it attributes. Both are exactly 1.0 with variance
+        # off, and dt * 1.0 == dt, so the default path is bit-identical.
+        dt_in = dt * variance_roll(rng, variance, "damage_roll")
+        dt_out = dt * variance_roll(rng, variance, "damage_roll")
+
         # --- damage INTO retinue (melee contact, frontage-capped) ---
         engaging_enemy_melee = min(enemy_melee_alive, exposed_retinue * max_attackers_per_unit)
         dmg_to_retinue_melee = 0.0
@@ -409,13 +505,13 @@ def simulate_wave_attrition(
                 share = g.alive_count / enemy_melee_alive
                 bodies = engaging_enemy_melee * share
                 per_unit_dps = steady_state_dps(g.fighter, retinue_victim_armor, chip_floor)
-                dmg_to_retinue_melee += bodies * per_unit_dps * dt
+                dmg_to_retinue_melee += bodies * per_unit_dps * dt_in
 
         # --- damage INTO retinue (ranged, uncapped) ---
         dmg_to_retinue_ranged = 0.0
         for g in enemy_ranged_active:
             per_unit_dps = steady_state_dps(g.fighter, retinue_victim_armor, chip_floor)
-            dmg_to_retinue_ranged += g.alive_count * per_unit_dps * dt
+            dmg_to_retinue_ranged += g.alive_count * per_unit_dps * dt_in
 
         dmg_to_retinue = dmg_to_retinue_melee + dmg_to_retinue_ranged
 
@@ -443,7 +539,7 @@ def simulate_wave_attrition(
                 cleave = min(g.fighter["targets_per_hit"], reach)
                 per_unit_dps = steady_state_dps(g.fighter, enemy_victim_armor, chip_floor)
                 group_slots = exposed_share * cleave
-                group_output = group_slots * per_unit_dps * dt
+                group_output = group_slots * per_unit_dps * dt_out
                 raw_slots += group_slots
                 raw_output += group_output
                 raw_output_by_group[g.name] = raw_output_by_group.get(g.name, 0.0) + group_output
@@ -463,7 +559,7 @@ def simulate_wave_attrition(
         dmg_to_enemy_ranged = 0.0
         for g in retinue_ranged_active:
             per_unit_dps = steady_state_dps(g.fighter, enemy_victim_armor, chip_floor)
-            output = g.alive_count * per_unit_dps * dt
+            output = g.alive_count * per_unit_dps * dt_out
             dmg_to_enemy_ranged += output
             # task-080 attribution: uncapped, so no contact_scale to apply.
             group_damage_dealt[g.name] = group_damage_dealt.get(g.name, 0.0) + output

@@ -230,3 +230,115 @@ all, across its full measured jitter range. Candidate (2)
 (`MaxAttackersPerUnit`'s pooled-vs-per-entity transfer) is untouched by this
 change and remains the more promising open explanation — see
 `docs/sim/LIMITATIONS.md` §1 for the current state of both.
+
+## 4. The seeded variance layer (task-076) — distributions instead of points
+
+Everything above produces a single number per configuration. This layer lets
+one configuration be run N times and yield a distribution. It adds no new
+combat mechanism: it perturbs inputs the existing models already have.
+
+**It is off unless you ask for it, and off in a way that is checked, not
+promised.** `combat_model`'s two entry points take trailing `rng=None,
+variance=None` keyword arguments; `scenario_runner.run(name)` builds an RNG
+only when handed a seed. With no seed, `variance_roll()` returns *exactly*
+`1.0` and every use of it is a multiplication that `x * 1.0 == x` leaves
+untouched, so the default path is bit-identical rather than merely close.
+`validate.py`'s check 5 (IDENTITY) holds five committed scenarios' pre-layer
+numbers as literals and gates the exit code on them, because
+`docs/sim/DRIFT-CHECK.md`'s entire baseline rests on this harness having no
+randomness on its default path.
+
+### 4a. Seed derivation — derived, never streamed
+
+```
+seed_for(root_seed, scenario_name, overrides, trial_index)
+  = int.from_bytes(
+        sha256(json.dumps([root_seed, scenario_name,
+                           sorted(overrides.items()), trial_index],
+                          sort_keys=True, separators=(",", ":"),
+                          default=str).encode("utf-8")).digest()[:8],
+        "big")
+```
+
+(`scenario_runner.derive_seed`.) Each trial then gets a **fresh
+`random.Random(seed)` instance, passed explicitly down the call chain** —
+never the `random` module's global state, never one stream advanced across
+cells or trials.
+
+That choice is the whole reason this layer is usable at all. A shared stream
+makes every result depend on how many results were computed before it: the
+same trial gives different answers depending on batch size, on whether a
+sweep cell was skipped, and — fatally — on how work happened to be split
+across a process pool. Every persisted artifact would be unreproducible.
+Hashing the coordinates instead means trial 7 of a run is the same trial 7
+whether it was computed first, last, alone, or in one of four workers.
+`validate.py` check 7 (ORDER-INDEPENDENCE) tests exactly this: 8 trials in
+order, the same 8 shuffled, and the same 8 through a 4-worker
+`ProcessPoolExecutor`, all required to match. Check 6 (REPRODUCIBILITY)
+tests that the same call twice agrees. Both gate the exit code.
+
+### 4b. The two variance sources, and which one is invented
+
+Magnitudes live in `docs/data/scenarios/combat-model-constants.json`'s
+`variance_model` block, each with its enable flag and its citation — or its
+plain admission of not having one.
+
+**`arrival_jitter` — CITED. Enabled.** `Swarm.BroodSpeedJitter`, shipped
+default `0.06` (±6%), declared at `ELVTR/Source/ELVTR/Mass/SwarmCommands.cpp:120`
+and rolled per spawned brood at `:306` as
+`Rand.FRandRange(1 - SpeedJitter, 1 + SpeedJitter)`. Both the magnitude and
+the *shape* (uniform) come off shipped source. A group's arrival time is
+**divided** by the drawn speed factor, not multiplied, because the jitter
+scales speed and arrival time is travel/speed — this reproduces
+`docs/data/encounter-budget.json`'s own `rank_arrival_formula` term for term.
+Groups with `arrival_seconds == 0` are untouched (`0/x == 0`), so a scenario
+with no `ArrivalSeconds` rows gets zero spread from this source, correctly.
+Applies to `wave_attrition` only.
+
+*The one approximation on top of the citation, flagged because it is not part
+of it:* the real sim rolls this per **entity**; this harness has no
+per-entity representation and rolls it once per `WaveGroup`, so a whole rank
+arrives early or late together. That **overstates** within-rank correlation
+and therefore overstates the spread relative to the real sim, where ~60
+independent draws per rank would largely average out.
+
+**`damage_roll` — INVENTED. Disabled by default.** Per-tick multiplicative
+`U(1-m, 1+m)` noise on each side's dealt damage, `m = 0.10`, drawn
+independently per direction. It stands in for real per-swing effects this
+pooled model has no primitive for (swing-phase desynchronisation across a
+population, target-selection churn, partial overkill) — **none of which has
+a measured magnitude anywhere in this repo, which is exactly why 0.10 is a
+made-up number.** It is implemented by folding the factor into the `dt` used
+for that direction's damage, so task-080's per-group attribution is scaled by
+the same factor as the pooled total it attributes. Applies to
+`wave_attrition` per tick, and to `point_target` as one roll on the army's
+summed DPS. Any run with it enabled sets `diagnostic_invented_variance` and
+prints a DIAGNOSTIC banner — the same register `sweep.py` gives its family-3
+axes.
+
+**`arrival_jitter` deliberately does not apply to `point_target`.** That
+model is a closed-form snapshot with no time axis; there is no arrival to
+perturb. So with cited sources only, a `point_target` distribution is
+degenerate — 200 identical trials, spread zero. That is a real statement
+about what this layer can say about the validated model, not a bug, and
+`print_trials` says so out loud rather than printing a row of zeros without
+comment.
+
+### 4c. Percentile method
+
+`summarize_trials` uses `statistics.quantiles(values, n=20,
+method="inclusive")`, taking cut point 0 as **p5** and cut point 18 as
+**p95**. `"inclusive"` treats the sample as the whole population and linearly
+interpolates between order statistics (the same convention as numpy's default
+`linear`), so p5/p95 never fall outside the observed min/max. Stated here
+because p5/p95 on small n is method-sensitive: `"exclusive"` on the same 8
+values gives visibly different tails, and a reader comparing two runs needs
+to know which was used. With `n < 2` there is nothing to interpolate — p5/p95
+collapse to the single value and `stdev` is `0.0`.
+
+### 4d. What a spread out of this is not
+
+It is not a confidence interval on the real game, and it cannot be used to
+argue `validate.py` check 3 passes. `docs/sim/LIMITATIONS.md` §6 states the
+boundary in full; read it before quoting a percentile in a design
+conversation.

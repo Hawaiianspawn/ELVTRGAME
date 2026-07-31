@@ -367,3 +367,184 @@ data changing, not a harness regression. Zeroing all five reconstructs the
 exact pre-task-068 configuration this table was originally run against. Full
 account and both demonstration sweeps (game-balance data, encounter
 composition): `docs/sim/SWEEPS.md`.
+
+## task-076 — the seeded variance layer, and three new gating checks
+
+`docs/sim/MODEL.md` §4 has the mechanism; `docs/sim/LIMITATIONS.md` §6 has
+what a spread from it may and may not be used to argue. This section is the
+committed record of the suite actually running.
+
+### Full suite output
+
+Run: `py Scripts/sim/validate.py`, 2026-07-31. **Exit code 0.**
+
+```
+=== task-063 validation suite ===
+
+Militia vs Fodder TTK = 2.0000s (expected 2.0s) -> PASS
+Hero(55dps) vs Elite TTK = 21.6000s (expected 21.6s) -> PASS
+GATE1 calibration: retinue survivors = 0.00 of 120 (measured range 109-111) -> FAIL (see docs/sim/VALIDATION.md for the read)
+Cleave sensitivity guard (K=MaxAttackersPerUnit=4 vs K=2xMaxAttackersPerUnit=8): 25.8 vs 19.7 enemy survivors, delta=6.1 (threshold 2.0) -> PASS
+[smoke, not the regression guard] TargetsPerHit=1 -> 188.7, TargetsPerHit=8 -> 19.7 enemy survivors, delta=169.0 -> PASS
+[bonus] Army(N=120, 80/20) vs Elite TTK = 1.848s (entity-tiers.md §7 table: 1.85s) -> PASS
+Variance-OFF identity (5 scenarios, 14 fields): PASS
+Trials reproducibility (run_trials x2, 8 trials, root_seed=1234, sources=['arrival_jitter']): -> PASS
+Trials order-independence (8 trials: in-order vs shuffled [7, 2, 0, 5, 4, 1, 3, 6] vs ProcessPoolExecutor x4): shuffled=MATCH, pooled=MATCH -> PASS
+
+REQUIRED closed-form checks (1, 2): PASS
+Cleave-sensitivity regression guard (4): PASS — TargetsPerHit still has real effect.
+GATE1 wave-attrition reproduction (3): FAIL — per task-063's own instructions, this is reported honestly, not fudged. See docs/sim/VALIDATION.md and docs/sim/LIMITATIONS.md for the numbers and the read on why. Wave-attrition scenario OUTPUT (floor1/floor2) should be read as illustrative of the MECHANISM (frontage concurrency limits), not as a trusted survivor-count prediction, until this closes.
+Variance-layer checks (5, 6, 7): PASS — variance is off by default and bit-identical, and seeded trials are reproducible and order/process independent.
+```
+
+**Checks 1, 2, 4 and the bonus check print byte-identical lines to the
+task-068 run above.** That is the point of check 5, restated as evidence:
+the variance layer did not move the default numeric path by so much as a
+rounding digit.
+
+**Check 3 still FAILS, unchanged, and adding variance did not and cannot
+change that** — see `LIMITATIONS.md` §6's second bullet for why the
+temptation to reframe it as "passing within variance" is refused here.
+
+### Check 5 — IDENTITY
+
+Five committed scenarios, 14 fields, compared against literals captured by
+running each with `--json` **before** the variance layer was written
+(`validate.py`'s `IDENTITY_EXPECTED`):
+
+| scenario | model | expected |
+|---|---|---|
+| `gate1-calibration-wave1` | wave_attrition | 0.0 / 19.24 / 11.7s / `retinue_wiped` |
+| `floor1-swarm-wave` | wave_attrition | 0.0 / 142.59 / 1.8s / `retinue_wiped` |
+| `floor2-ranged-wave` | wave_attrition | 0.0 / 353.8 / 0.9s / `retinue_wiped` |
+| `floor2-elite-point-target` | point_target | TTK 2.13s |
+| `floor3-boss-point-target` | point_target | TTK 8.23s |
+
+The check also asserts an unseeded result dict carries **no** `seed` or
+`variance_sources` key — a leaked key would mean the variance path had been
+entered on a default run even if the arithmetic happened to come out the
+same.
+
+Independently confirmed outside `validate.py`, the way the task asked: all 13
+committed scenarios `scenario_runner.py` can execute (of the 15 files
+`--list` reports — see the pre-existing breakage at the end of this section)
+were dumped with `--json` before and after the change and compared with
+`cmp`. **Every one is byte-identical**, and `py Scripts/sim/drift_check.py`
+is `CLEAN, EXIT: 0`
+against the **unchanged** `docs/sim/baseline.json` (not refreshed — refreshing
+it is an owner-level act per `docs/sim/DRIFT-CHECK.md`, and this task had no
+cause for one).
+
+### Checks 6 and 7 — reproducibility and order-independence
+
+Check 6 calls `run_trials("gate1-calibration-wave1", 8, root_seed=1234)`
+twice and compares per-trial `(trial_index, seed, survivors, elapsed,
+result)` tuples. Check 7 computes trials 0-7 three ways — serially in order,
+serially in the shuffled order `[7, 2, 0, 5, 4, 1, 3, 6]`, and through a
+4-worker `ProcessPoolExecutor` — and requires all three to match the serial
+in-order fingerprints. Both MATCH. This is the property derived seeding
+exists to buy (`MODEL.md` §4a); a shared/streamed RNG would fail both the
+shuffle and the pool immediately.
+
+### One wave_attrition distribution, cited source only
+
+```
+py Scripts/sim/scenario_runner.py gate1-calibration-wave1 --trials 200 --seed 1234
+
+=== gate1-calibration-wave1 — 200 trials (root_seed=1234) ===
+  variance sources enabled: arrival_jitter
+               field    n       mean     median         p5        p95        min        max     stdev
+   retinue_survivors  200        0.0        0.0        0.0        0.0        0.0        0.0       0.0
+     enemy_survivors  200    19.9374      19.24       18.0       22.5      17.26       22.5    1.6186
+     elapsed_seconds  200       11.7       11.7       11.7       11.7       11.7       11.7       0.0
+  outcomes: retinue_wiped=200
+```
+
+`retinue_survivors` is **0.00 in all 200 trials** and the outcome is
+`retinue_wiped` in all 200. `enemy_survivors` moves over 17.26-22.50, sitting
+inside the 20.19-22.50 band task-068 got by hand-checking the same
+`Swarm.BroodSpeedJitter` bracket at its Fast/Nominal/Slow endpoints — 200
+samples of the bracket's interior agreeing with 3 samples of its edges.
+`elapsed_seconds` has zero spread: the model ticks at a fixed 0.9s `dt`, so
+elapsed time is quantised to that grid, and across these 200 trials the ±6%
+arrival perturbation never moved resolution across a tick boundary (min ==
+max == 11.7). Not a claim that it can't at other populations — just what
+these 200 trials did.
+
+**This is a sharper picture of task-068's negative result, not a new one.**
+It is not evidence that arrival timing is closer to mattering than
+`LIMITATIONS.md` §1 says.
+
+### One point_target distribution, cited source only — degenerate, and that is the honest answer
+
+```
+py Scripts/sim/scenario_runner.py floor3-boss-point-target --trials 200 --seed 1234
+
+=== floor3-boss-point-target — 200 trials (root_seed=1234) ===
+  variance sources enabled: (none)
+  NOTE: no applicable variance source is enabled — every trial is the same point estimate, and the spread below is identically zero by construction.
+               field    n       mean     median         p5        p95        min        max     stdev
+         ttk_seconds  200       8.23       8.23       8.23       8.23       8.23       8.23       0.0
+```
+
+The one cited source (`arrival_jitter`) has nothing to attach to in a
+closed-form snapshot with no time axis, so the harness's **validated** model
+has no grounded variance source at all. 200 identical trials is the correct
+output, and the runner says so in the run rather than leaving a row of zeros
+to be misread.
+
+### The invented source, for the record — enabled by override, never committed on
+
+`damage_roll` is `Enabled: false` in `combat-model-constants.json` and stays
+that way. To see what it does without editing that file, it was switched on
+through the override channel (which routes through `sweep.py`'s existing
+in-memory patch — nothing written to disk):
+
+```python
+overrides = {"constants:variance_model.damage_roll.Enabled": "true"}
+run_trials("gate1-calibration-wave1", 200, root_seed=1234, overrides=overrides)
+```
+
+```
+=== gate1-calibration-wave1 — 200 trials (root_seed=1234) ===
+  variance sources enabled: arrival_jitter, damage_roll
+
+============= DIAGNOSTIC: INVENTED VARIANCE ENABLED =============
+At least one enabled variance source has NO citation — its magnitude
+is a made-up number, not a shipped CVar or a committed measurement.
+[...]
+=================================================================
+
+               field    n       mean     median         p5        p95        min        max     stdev
+   retinue_survivors  200        0.0        0.0        0.0        0.0        0.0        0.0       0.0
+     enemy_survivors  200     21.466      21.29     7.6015    37.4175       0.85      43.64    8.8034
+     elapsed_seconds  200     11.583       11.7     10.755       12.6        9.9       15.3    0.7882
+  outcomes: retinue_wiped=200
+```
+
+`enemy_survivors` stdev goes 1.62 -> 8.80. `retinue_survivors` is still 0.00
+in 200 of 200 and the outcome is still `retinue_wiped` in 200 of 200. **A
+five-fold wider band, produced entirely by a number nobody measured, that
+changes no verdict** — recorded here as the concrete illustration of
+`LIMITATIONS.md` §6's rule that a wide band from an invented magnitude is
+less information than a narrow one from a cited magnitude, not more.
+
+### A pre-existing breakage found while capturing the before/after baseline
+
+`py Scripts/sim/scenario_runner.py --all` does not run today and did not
+before this task — it raises on the first non-`wave_attrition`/`point_target`
+entry `data_loader.list_scenarios()` hands it. Two files in
+`docs/data/scenarios/` are not scenarios in that sense:
+
+- `retinue-subtypes.json` (task-086 sub-type candidates) has no `Kind` key at
+  all -> `KeyError: 'Kind'`.
+- `run-slice-three-wave.json` carries `Kind: "run_chain"`, which `run_sim.py`
+  handles and `scenario_runner.py` does not -> `ValueError: Unknown scenario
+  Kind 'run_chain'`.
+
+Both are pre-existing and neither is caused by the variance layer (verified:
+the only difference between the before and after tracebacks is line numbers).
+The byte-identity evidence above was therefore captured **per scenario**
+across all 14 runnable ones rather than through `--all`. The fix belongs in
+`data_loader.list_scenarios()` (filtering by presence of a runnable `Kind`),
+which is outside this task's owned paths — reported, not patched.

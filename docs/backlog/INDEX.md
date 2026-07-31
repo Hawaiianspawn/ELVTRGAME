@@ -10,7 +10,7 @@ not a re-read.
 
 | proposed | approved | in-progress | needs-review | done | rejected | parked |
 |---|---|---|---|---|---|---|
-| 41 | 0 | 2 | 0 | 67 | 0 | 7 |
+| 41 | 0 | 1 | 0 | 69 | 0 | 7 |
 
 ## Audit queue — top 7 awaiting your verdict
 
@@ -38,10 +38,10 @@ Approve with `py Scripts/backlog.py approve <ids>` (or `/backlog approve <ids>`)
 | `retinue-identity` | 2/2 closed | [`086`](task-086-retinue-subtype-stat-identity-sim.md), [`087`](task-087-knight-melee-v2-break-the-mass-clustering.md) | — | complete |
 | `scene-tightening` | 2/2 closed | [`057`](task-057-scene-look-rig-bypass-the-colour-gate.md), [`058`](task-058-hud-chrome-tightening.md) | `058` | complete |
 | `sim-irons-out-fun` | 3/3 closed | [`096`](task-096-run-chaining-driver.md), [`097`](task-097-growth-site-decision-divergence.md), [`098`](task-098-open-the-armour-gate.md) | `097` | complete |
-| `sim-pipeline` | 0/4 closed | [`075`](task-075-experiment-pipeline-persisted-runs.md), [`076`](task-076-seeded-variance-layer-distributions.md), [`077`](task-077-batch-driver-pool-and-trials.md), [`078`](task-078-experiment-watcher.md) | `077`, `078` | approve `75,77,78` |
+| `sim-pipeline` | 1/4 closed | [`075`](task-075-experiment-pipeline-persisted-runs.md), [`076`](task-076-seeded-variance-layer-distributions.md), [`077`](task-077-batch-driver-pool-and-trials.md), [`078`](task-078-experiment-watcher.md) | `077`, `078` | approve `75,77,78` |
 | `sim-tuning-loop` | 2/2 closed | [`069`](task-069-committed-sweep-runner.md), [`070`](task-070-tuning-question-scenario-library.md) | — | complete |
 | `three-act-waves` | 3/3 closed | [`102`](task-102-three-act-wave-scaling.md), [`103`](task-103-simulate-three-act-waves.md), [`105`](task-105-play-the-three-act-waves.md) | `103` | complete |
-| `ui-showcase` | 3/3 closed | [`114`](task-114-ui-aesthetic-after-the-colour-reversal.md), [`115`](task-115-menu-that-boots-straight-into-play.md), [`116`](task-116-end-of-wave-showcase-spec.md) | `115`, `116` | complete |
+| `ui-showcase` | 3/4 closed | [`114`](task-114-ui-aesthetic-after-the-colour-reversal.md), [`115`](task-115-menu-that-boots-straight-into-play.md), [`116`](task-116-end-of-wave-showcase-spec.md), [`118`](task-118-squad-kill-attribution-and-breather-length.md) | `115`, `116` | `epic ui-showcase` |
 | `unique-knights` | 4/4 closed | [`085`](task-085-split-team-and-enemy-atlases-with-knight-family.md), [`088`](task-088-adopt-melee-subtype-identity-into-unit-types.md), [`094`](task-094-subtype-candidates-all-ten-knights.md), [`095`](task-095-bind-knight-look-to-stat-block.md) | `088`, `095` | complete |
 | `unit-variant-automation` | 2/2 closed | [`081`](task-081-codify-variant-family-pipeline.md), [`082`](task-082-knight-melee-variant-family.md) | `082` | complete |
 | `wave-measurement` | 1/3 closed | [`107`](task-107-read-the-fight-telemetry.md), [`108`](task-108-measure-the-late-wave-population.md), [`109`](task-109-unattended-run-loop.md) | — | approve `108,109` |
@@ -94,14 +94,13 @@ A fan is approved in one batch and dispatched one teammate per task. `⨝` joins
 | `020` | 0.5 | [Assemble the four-section GDD submission document and export to PDF](task-020-gdd-submission-assembly-and-pdf.md) | claude | `docs/ASSIGNMENT-01-GDD-FIRST-DRAFT.md` | `docs/GDD-TODO.md:77` |
 | `037` | 0.5 | [Sweep the remaining CLASSES C2-C11 open questions against current canon](task-037-sweep-remaining-classes-open-questions.md) | narrative-director | `docs/narrative/open-questions-audit.md` | `docs/GDD-TODO.md:116` |
 
-## in-progress (2)
+## in-progress (1)
 
 | id | score | task | agent | owns | source |
 |---|---|---|---|---|---|
-| `076` | 3.0 | [Add a seeded variance layer to the combat model so a config yields a distribution, not a single point estimate](task-076-seeded-variance-layer-distributions.md) | sim-director | `Scripts/sim/combat_model.py`, `Scripts/sim/scenario_runner.py`, `Scripts/sim/validate.py`, `docs/sim/MODEL.md`, `docs/sim/VALIDATION.md`, `docs/sim/LIMITATIONS.md`, `docs/data/scenarios/combat-model-constants.json` | `user` |
-| `001` | 2.0 | [Correct the stale blockers in GDD-TODO.md and point it at the backlog](task-001-correct-stale-gdd-todo-tracker.md) | claude | `docs/GDD-TODO.md` | `docs/GDD-TODO.md:46` |
+| `118` | 3.0 | [Credit kills to the squad that landed them, and give the Breather long enough to read](task-118-squad-kill-attribution-and-breather-length.md) | claude | `Source/ELVTR/Mass/SwarmSubsystem.h`, `Source/ELVTR/Mass/SwarmCombatProcessors.cpp`, `Source/ELVTR/Spike/Spike1GameMode.h`, `Source/ELVTR/Spike/Spike1GameMode.cpp` | `docs/ui/end-of-wave-showcase.md §5` |
 
-## done (67)
+## done (69)
 
 | id | score | task | agent | owns | source |
 |---|---|---|---|---|---|
@@ -118,11 +117,13 @@ A fan is approved in one batch and dispatched one teammate per task. `⨝` joins
 | `029` | 3.0 | [Spec the minimal audio set — hits, deaths, stance confirmations](task-029-minimal-audio-readability-set.md) | gameplay-director | `docs/design/audio-minimal.md` | `docs/RTS-VERTICAL-SLICE.md:113` |
 | `050` | 3.0 | [Draw the real sprite set in the Unit Cam — six soldier variants, the hero, and an archer proxy](task-050-wire-real-sprites-into-the-unit-cam.md) | claude | `ELVTR/Source/ELVTR/UI/UnitCamProjector.cpp`, `ELVTR/Source/ELVTR/UI/UnitCamProjector.h`, `ELVTR/Content/Sprites/**`, `RawArt/Renders/archer-proxy/**`, `RawArt/Sheets/T_Soldier_Archer.png`, `docs/data/art/provenance.json` | `user` |
 | `057` | 3.0 | [Take the colour gate off — a bypass and an N-value quantizer, live on the Breadboard](task-057-scene-look-rig-bypass-the-colour-gate.md) | claude | `ELVTR/Content/PostProcess/**`, `ELVTR/Source/ELVTR/Rendering/SwarmRenderActor.cpp`, `ELVTR/Source/ELVTR/Rendering/SwarmRenderActor.h`, `ELVTR/Saved/SwarmExecOnPlay.txt`, `docs/RENDERING-LIGHTING.md`, `.claude/skills/cvars/SKILL.md`, `docs/data/art/palette.json` | `user` |
+| `076` | 3.0 | [Add a seeded variance layer to the combat model so a config yields a distribution, not a single point estimate](task-076-seeded-variance-layer-distributions.md) | sim-director | `Scripts/sim/combat_model.py`, `Scripts/sim/scenario_runner.py`, `Scripts/sim/validate.py`, `docs/sim/MODEL.md`, `docs/sim/VALIDATION.md`, `docs/sim/LIMITATIONS.md`, `docs/data/scenarios/combat-model-constants.json` | `user` |
 | `079` | 3.0 | [Design the combinatorial hero-build variety layer — axes, weapon archetypes, and composition synergies](task-079-hero-build-variety-table.md) | gameplay-director | `docs/design/hero-build-variety.md`, `docs/data/hero-builds.json`, `docs/data/hero-builds.schema.md` | `user` |
 | `095` | 3.0 | [Make the knight you see the knight that fights — bind the team variant index to a per-sub-type stat block](task-095-bind-knight-look-to-stat-block.md) | claude | `ELVTR/Source/ELVTR/Mass/SwarmCombat.h`, `ELVTR/Source/ELVTR/Mass/SwarmProcessors.cpp`, `ELVTR/Source/ELVTR/Mass/SwarmCombatProcessors.cpp`, `ELVTR/Config/SwarmExecOnPlay.canonical.txt`, `docs/perf/knight-subtype-binding.md` | `user` |
 | `097` | 3.0 | [Measure whether the growth-site allocation is a real decision or theatre](task-097-growth-site-decision-divergence.md) | sim-director | `Scripts/sim/decisions.py`, `docs/sim/DECISIONS.md` | `user` |
 | `098` | 3.0 | [Open the armour gate so more than three weapon archetypes are worth taking](task-098-open-the-armour-gate.md) | gameplay-director | `docs/data/hero-builds.json`, `docs/design/hero-build-variety.md`, `docs/sim/DIFFERENTIATION.md` | `user` |
 | `102` | 3.0 | [Spec the three waves as early / mid / late game — retinue size, unique units, and the scale ceiling](task-102-three-act-wave-scaling.md) | gameplay-director | `docs/design/wave-scaling-three-act.md`, `docs/data/wave-scaling.json` | `user` |
+| `001` | 2.0 | [Correct the stale blockers in GDD-TODO.md and point it at the backlog](task-001-correct-stale-gdd-todo-tracker.md) | claude | `docs/GDD-TODO.md` | `docs/GDD-TODO.md:46` |
 | `009` | 2.0 | [Run the Vanguard sprite acceptance checklist against the packed sheet](task-009-vanguard-sheet-acceptance-pass.md) | pixel-art-director | `docs/art/vanguard.md` | `docs/art/vanguard.md:351` |
 | `018` | 2.0 | [Repoint the director agents off superseded WORLD.md onto current narrative canon](task-018-director-agents-point-at-superseded-world.md) | claude | `.claude/agents/**` | `.claude/agents/gameplay-director.md:17` |
 | `021` | 2.0 | [Measure the per-entity cost and design the group-as-cost-boundary (squad aggregation)](task-021-mass-squad-aggregation.md) | performance-director | `docs/perf/squad-aggregation.md` | `docs/RTS-VERTICAL-SLICE.md:95` |
@@ -187,4 +188,4 @@ A fan is approved in one batch and dispatched one teammate per task. `⨝` joins
 
 ---
 
-*Regenerated 2026-07-31 · 117 task(s) · decisions in [LOG.md](LOG.md).*
+*Regenerated 2026-07-31 · 118 task(s) · decisions in [LOG.md](LOG.md).*

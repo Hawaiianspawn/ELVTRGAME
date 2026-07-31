@@ -305,3 +305,9 @@ Rejected and parked tasks keep their files — this records why.
 - 2026-07-31 · `task-116` · in-progress → **needs-review** · Spec the end-of-wave showcase that names the five units doing the work
 - 2026-07-31 · `task-115` · needs-review → **done** · Respec the menu as a front door the game never waits at
 - 2026-07-31 · `task-116` · needs-review → **done** · Spec the end-of-wave showcase that names the five units doing the work
+- 2026-07-31 · `task-118` · proposed → **approved** · Credit kills to the squad that landed them, and give the Breather long enough to read — owner: build the kill attribution from 116's contract while it is fresh
+- 2026-07-31 · `task-118` · approved → **in-progress** · Credit kills to the squad that landed them, and give the Breather long enough to read — dispatched to teammate `kill-attribution` at model `opus`
+- 2026-07-31 · `task-001` · in-progress → **needs-review** · Correct the stale blockers in GDD-TODO.md and point it at the backlog
+- 2026-07-31 · `task-076` · in-progress → **needs-review** · Add a seeded variance layer to the combat model so a config yields a distribution, not a single point estimate
+- 2026-07-31 · `task-001` · needs-review → **done** · Correct the stale blockers in GDD-TODO.md and point it at the backlog
+- 2026-07-31 · `task-076` · needs-review → **done** · Add a seeded variance layer to the combat model so a config yields a distribution, not a single point estimate
