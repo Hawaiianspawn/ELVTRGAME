@@ -756,12 +756,15 @@ namespace
 	 * is the thing to run after changing either weights CVar. task-085 split the report the
 	 * same way it split the atlas — one shared implementation, bTeam picks which side and
 	 * which CVar name to print alongside the counts.
+	 *
+	 * task-126: the TEAM side is now two sub-tables over one atlas, so the team report is
+	 * two lines — spearmen against Swarm.TeamVariantWeights, archers against
+	 * Swarm.ArcherVariantWeights. The indices printed are WITHIN-TABLE, matching what the
+	 * render int32 actually carries; the archer line's v0 is atlas row pair 11.
 	 */
 	void LogVariantHistogram(const UWorld* World, bool bTeam)
 	{
 		const TCHAR* ReportName = bTeam ? TEXT("TeamVariantReport") : TEXT("BroodVariantReport");
-		const TCHAR* CVarName = bTeam ? TEXT("Swarm.TeamVariantWeights") : TEXT("Swarm.BroodVariantWeights");
-		const int32 NumVariants = bTeam ? SwarmSheet::Team::Variants : SwarmSheet::Enemy::Variants;
 
 		const USwarmSubsystem* Swarm = World ? World->GetSubsystem<USwarmSubsystem>() : nullptr;
 		if (!Swarm)
@@ -769,34 +772,56 @@ namespace
 			UE_LOG(LogTemp, Warning, TEXT("%s: no swarm subsystem (not in play?)"), ReportName);
 			return;
 		}
-		// Sized for the larger side (Team, 11) and only the first NumVariants slots used —
-		// same idiom as SwarmProcessors.cpp's FVariantTable, so this stays a stack array
-		// with no per-call allocation regardless of which side is being reported.
-		int32 Counts[SwarmSheet::Team::Variants] = {};
-		int32 Total = 0;
+		// Block 0 = brood or spearmen, block 1 = archers (team only). Sized for the largest
+		// table and only the first NumVariants slots of each used — same idiom as
+		// SwarmProcessors.cpp's FVariantTable, so this stays a stack array with no per-call
+		// allocation regardless of which side is being reported.
+		int32 Counts[2][SwarmSheet::Team::Variants] = {};
+		int32 Totals[2] = {};
 		for (const int32 Bits : Swarm->GetRenderAnimBits())
 		{
 			if (((Bits & SwarmAnim::TeamBit) != 0) != bTeam)
 			{
 				continue;							// counting the other side
 			}
-			++Total;
-			Counts[FMath::Clamp(SwarmRenderPack::Variant(Bits), 0, NumVariants - 1)]++;
+			const int32 Block = (bTeam
+				&& SwarmSquad::UnitType(SwarmRenderPack::Squad(Bits)) == EUnitType::Archers) ? 1 : 0;
+			const int32 Cap = bTeam
+				? (Block == 1 ? SwarmSheet::Team::ArcherVariants : SwarmSheet::Team::SpearVariants)
+				: SwarmSheet::Enemy::Variants;
+			++Totals[Block];
+			Counts[Block][FMath::Clamp(SwarmRenderPack::Variant(Bits), 0, Cap - 1)]++;
 		}
-		FString Line;
-		for (int32 i = 0; i < NumVariants; ++i)
-		{
-			Line += FString::Printf(TEXT("  v%d=%d (%.1f%%)"), i, Counts[i],
-				Total > 0 ? 100.f * (float)Counts[i] / (float)Total : 0.f);
-		}
+
 		// The weights CVars are owned by SwarmProcessors.cpp's translation unit — looked up
 		// by name for the same reason Kindled.Cam.Yaw is above, so this file does not
-		// register a second copy of either. Logged alongside the counts because a histogram
-		// without the table it came from is not evidence of anything.
-		const IConsoleVariable* WeightsVar = IConsoleManager::Get().FindConsoleVariable(CVarName);
-		UE_LOG(LogTemp, Display, TEXT("%s: %d %s | weights \"%s\" |%s"),
-			ReportName, Total, bTeam ? TEXT("team") : TEXT("brood"),
-			WeightsVar ? *WeightsVar->GetString() : TEXT("?"), *Line);
+		// register a second copy of any of them. Logged alongside the counts because a
+		// histogram without the table it came from is not evidence of anything.
+		auto Emit = [&](int32 Block, const TCHAR* Label, const TCHAR* CVarName, int32 NumVariants)
+		{
+			FString Line;
+			for (int32 i = 0; i < NumVariants; ++i)
+			{
+				Line += FString::Printf(TEXT("  v%d=%d (%.1f%%)"), i, Counts[Block][i],
+					Totals[Block] > 0 ? 100.f * (float)Counts[Block][i] / (float)Totals[Block] : 0.f);
+			}
+			const IConsoleVariable* WeightsVar = IConsoleManager::Get().FindConsoleVariable(CVarName);
+			UE_LOG(LogTemp, Display, TEXT("%s: %d %s | weights \"%s\" |%s"),
+				ReportName, Totals[Block], Label,
+				WeightsVar ? *WeightsVar->GetString() : TEXT("?"), *Line);
+		};
+
+		if (bTeam)
+		{
+			Emit(0, TEXT("spearmen (atlas rows 0-21)"), TEXT("Swarm.TeamVariantWeights"),
+				SwarmSheet::Team::SpearVariants);
+			Emit(1, TEXT("archers (atlas rows 22-33)"), TEXT("Swarm.ArcherVariantWeights"),
+				SwarmSheet::Team::ArcherVariants);
+		}
+		else
+		{
+			Emit(0, TEXT("brood"), TEXT("Swarm.BroodVariantWeights"), SwarmSheet::Enemy::Variants);
+		}
 	}
 
 	FAutoConsoleCommandWithWorld GCmdBroodVariantReport(
@@ -807,7 +832,8 @@ namespace
 
 	FAutoConsoleCommandWithWorld GCmdTeamVariantReport(
 		TEXT("Swarm.TeamVariantReport"),
-		TEXT("Log how many live retinue/knights are wearing each of the eleven team-atlas looks."),
+		TEXT("Log how many live retinue/knights wear each of the eleven spearman looks, and how\n")
+		TEXT("many archers wear each of the six archer looks -- two lines, one per sub-table."),
 		FConsoleCommandWithWorldDelegate::CreateLambda(
 			[](UWorld* World) { LogVariantHistogram(World, /*bTeam=*/true); }));
 
@@ -1750,9 +1776,20 @@ void ASwarmRenderActor::Tick(float DeltaSeconds)
 		// size roll, 12-16 the facing and 21-24 the variant (SwarmRenderPack); all three
 		// would decode as garbage anim state without it. The size roll is no longer thrown
 		// away here — it goes out in Sizes above — and the variant picks the atlas ROW PAIR,
-		// which is what turns one look into eleven (team) or nine (enemy) on one draw call.
+		// which is what turns one look into seventeen (team) or nine (enemy) on one draw call.
+		//
+		// task-126: the team atlas has TWO blocks and the variant field has only four bits,
+		// so what arrives here is a WITHIN-BLOCK index and this is where the archer block's
+		// row offset gets added. Unit type comes off the squad byte the pack already carries
+		// (bits 17-20) — the same SwarmSquad::UnitType(SwarmRenderPack::Squad(Bits)) lookup
+		// the melee sub-type report does, so the sprite and the stat path agree on who is an
+		// archer by construction. Doing the offset here rather than widening VariantMask is
+		// what lets the atlas grow past sixteen looks a side with no repack of the int32.
+		const int32 VariantBase = (bRet
+			&& SwarmSquad::UnitType(SwarmRenderPack::Squad(Bits)) == EUnitType::Archers)
+				? SwarmSheet::Team::ArcherVariantBase : 0;
 		SubImageScratch.Add((float)(bRet
-			? SwarmSheet::Team::CellFor((uint8)Bits, Column, SwarmRenderPack::Variant(Bits))
+			? SwarmSheet::Team::CellFor((uint8)Bits, Column, VariantBase + SwarmRenderPack::Variant(Bits))
 			: SwarmSheet::Enemy::CellFor((uint8)Bits, Column, SwarmRenderPack::Variant(Bits))));
 	}
 

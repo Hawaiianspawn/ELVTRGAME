@@ -6,11 +6,52 @@ author: the Niagara system, its material, and the map. Do them in order.
 ## 0. Open the project
 Double-click `ELVTR.uproject` (UE 5.8). If prompted to rebuild modules, accept.
 
-## 1. Import the texture
+## 1. Import the texture(s)
 
-The sheet is **owned by the `/sprite` pipeline** — do not hand-assemble it. It is built
+**task-085 (2026-07-30) SPLIT THIS INTO TWO ATLASES.** `swarm-units.json` /
+`T_Swarm_2bit` below are SUPERSEDED and kept only as history — nothing in the shipped
+NS_Swarm reads them any more. There are now two independent composite requests, two
+textures, two materials and two Niagara emitters, one per side, so that retargeting the
+enemy roster never touches the team's rows and vice versa:
+
+| side | request | texture | grid | material |
+|---|---|---|---|---|
+| team | `docs/data/art/requests/team-units.json` | `T_Team_2bit` | 8×34 | `M_Swarm_Team` |
+| enemy | `docs/data/art/requests/enemy-units.json` | `T_Enemy_2bit` | 8×18 | `M_Swarm` |
+
+(`M_Swarm` was the pre-split material; task-085 repointed its texture from
+`T_Swarm_2bit` to `T_Enemy_2bit` in place rather than renaming it, so the enemy emitter
+needed no rewiring — `M_Swarm_Team` is the new one.)
+
+Full layout, variant ordering and the render-bridge User-parameter names for both sides:
+`docs/perf/niagara-sprite-path.md` §1-§2. `Scripts/art/check_brood_variants.py` checks
+both sides' request/weights/C++ agreement in one run.
+
+```
+py Scripts/art/pixelpipe.py pack team-units
+py Scripts/art/pixelpipe.py pack enemy-units
+```
+
+Import is scripted — run this in the **editor** console rather than dragging, so
+the texture settings are applied *and read back*:
+
+```
+py "C:/Projects/ELVTRGAME/Scripts/art/import_sprites.py" team-units
+py "C:/Projects/ELVTRGAME/Scripts/art/import_sprites.py" enemy-units
+```
+
+**Everything below this point through §3 describes the PRE-SPLIT single-atlas setup.**
+Kept as history of how the mechanism was built; do not follow it for a fresh setup —
+duplicate the enemy emitter's finished stack instead (task-085's handback has the exact
+MCP call sequence that built the Team emitter from a blank `CompletelyEmpty` template,
+since `NiagaraToolset_System.AddEmitter` needs a template EMITTER ASSET and neither side
+was ever one).
+
+### Original single-atlas notes (superseded)
+
+The sheet was **owned by the `/sprite` pipeline** — do not hand-assemble it. It was built
 from `docs/data/art/requests/swarm-units.json` (a *composite* request: one texture,
-two subjects) and lands at `RawArt/Sheets/T_Swarm_2bit.png`:
+two subjects) and landed at `RawArt/Sheets/T_Swarm_2bit.png`:
 
 ```
 py Scripts/art/pixelpipe.py validate swarm-units
@@ -29,8 +70,13 @@ It sets Filter = **Nearest**, NoMipmaps, UserInterface2D, sRGB on, then verifies
 and logs `SPRITE import ... [OK]` or `[VERIFY FAILED]`. If you do import by hand
 instead, set those four yourself — Nearest is the one that silently ruins pixel art.
 
-**Sheet layout (grid changed 2026-07-26: was 4×2, now 8×4. Cell changed 2026-07-28: was
-48px, now 56px).** 448 × 224, 56px cells. The cell grew because the retinue character that
+**Sheet layout — SUPERSEDED by the task-085 split; kept only to date the cell change.**
+The 8×20 / 448×1120 combined `T_Swarm_2bit` sheet this paragraph described is retired.
+Live as of task-126: **`T_Enemy_2bit` 448×1008 (8×18)** and **`T_Team_2bit` 448×1904
+(8×34)**, per the table at the top of this file. Rows are deliberately NOT a power of two
+on either sheet: `SubImageSize` is a float ratio, so 18 or 34 rows decode exactly as well
+as 16, and rounding up would cost megabytes of transparent texels. The cell grew because
+the retinue character that
 replaced the knight measures 41×49 and `pixelpipe pack` refuses to scale pixel art — see
 `docs/data/art/requests/swarm-units.json` `output.cell_note`. Only `T_Swarm_2bit` moved;
 every other request still packs at 48px, and nothing in C++ reads the cell size.
@@ -71,6 +117,12 @@ north is static. One 8-direction template walk (~8 generations) fills them in wi
 layout, decode or Sub UV change.
 
 ## 2. Material `M_Swarm`
+
+**task-085: there are now two, `M_Swarm` (enemy, samples `T_Enemy_2bit`) and
+`M_Swarm_Team` (team, samples `T_Team_2bit`) — `M_Swarm_Team` is a straight
+`AssetTools.duplicate` of `M_Swarm` with the `ParticleSubUV` node's `texture` property
+repointed. Same graph, same Emissive/Opacity wiring, otherwise.**
+
 1. New Material in `Content/Spike1`, name `M_Swarm`.
 2. Details: Shading Model = **Unlit**, Blend Mode = **Masked**, Two Sided = on.
 3. Nodes: `Particle SubUV` texture sample (assign `T_Swarm_2bit`) →
@@ -78,6 +130,18 @@ layout, decode or Sub UV change.
 4. Usage flags: check **Used with Niagara Sprites**. Save.
 
 ## 3. Niagara system `NS_Swarm`
+
+**task-085: NS_Swarm now holds TWO emitters, `Swarm` (enemy — the original, unrenamed)
+and `Team` (new). Every step below happens ONCE PER EMITTER, with its own User
+parameter names (`User.Positions/SubImages/Colors/Sizes/Count` for `Swarm`,
+`User.TeamPositions/TeamSubImages/TeamColors/TeamSizes/TeamCount` for `Team`) and its
+own Sub UV (8×18 vs 8×34 — the team grid grew from 8×22 in task-126, which appended the
+six archer looks as rows 22-33). See docs/perf/niagara-sprite-path.md §1-§5 for the full
+table and the exact parameter/dynamic-input chain each field needs.**
+
+**CPUSim is not negotiable on either emitter** — GPUComputeSim was tried and drew
+nothing (docs/perf/niagara-sprite-path.md §6).
+
 1. New → Niagara System → **Empty** system, name `NS_Swarm`, add one **empty
    emitter** (GPU: in Emitter Properties set **Sim Target = GPUCompute Sim**,
    Calculate Bounds Mode = Fixed, generous fixed bounds e.g. ±100000).
@@ -96,16 +160,34 @@ layout, decode or Sub UV change.
    - Set `Particles.SubImageIndex` = `User.SubImages[Exec Index]`
      (Select Float From Array, Direct Set by `Engine.ExecIndex`).
      The index is already decoded on the CPU in `SwarmRenderActor.cpp` via
-     `SwarmSheet::CellFor` — `col + 8*row`, where the column is the unit's facing
-     resolved against the live camera yaw (`SwarmFacing::ColumnFor`) and the row is
-     the team bit plus the walk frame.
+     `SwarmSheet::Enemy::CellFor` / `::Team::CellFor` — `col + 8*row`, where the column is
+     the unit's facing resolved against the live camera yaw (`SwarmFacing::ColumnFor`) and
+     the row is `Variant*2 + WalkFrame`. Post-split the retinue is NOT rows 18/19 of this
+     sheet — it is variant 0 of the team sheet, on the other emitter.
+   - Set `Particles.Color` = `User.Colors[Exec Index]` and `Uniform Sprite Size` =
+     `User.Sizes[Exec Index]`, both on `InitializeParticle`, both the same Direct Set /
+     `Engine.ExecIndex` pattern (added 2026-07-29 — before that the hit flash, the distance
+     gradient and `Swarm.BroodSizeJitter` all did nothing in the world view).
 5. Render section — **Sprite Renderer**:
-   - Material = `M_Swarm`, **Sub UV = 8 × 4** (updated 2026-07-26, was 4 × 2, before
-     that 2 × 2 — see §1), Alignment = Unaligned, Facing Mode = Face Camera.
+   - **Two emitters, two Sub UVs, one per sheet — each matches its OWN texture's row
+     count, not the row range the C++ addresses.** Emitter `Swarm` (enemy): Material =
+     `M_Swarm` → `T_Enemy_2bit` (448×1008), **Sub UV = 8 × 18**. Emitter `Team`: Material
+     = `M_Swarm_Team` → `T_Team_2bit` (448×1904), **Sub UV = 8 × 34**. Both Alignment =
+     Unaligned, Facing Mode = Face Camera.
+   - The old **8 × 20** value recorded here was for the retired combined `T_Swarm_2bit`
+     and is no longer live on either emitter (corrected 2026-07-31, task-126). Do not
+     "restore" it: 8 × 18 against `T_Enemy_2bit` is exact, because the enemy emitter does
+     not sample the 20-row sheet. `SwarmSheet::Enemy::Rows` 18 and the texture's 18 rows
+     agree; the 20-row `T_Swarm_2bit` is only `SwarmSheet::Legacy`'s business.
    - This field **can** be set from script, but only through the Niagara MCP toolset
      (`NiagaraToolset_System.SetRendererData`), not editor Python — see the sprite
      skill's "Niagara Sub UV" note for the exact calls and the save trap. It was set to
-     8 × 4 that way on 2026-07-26 and read back to confirm.
+     8 × 4 that way on 2026-07-26, 8 × 20 on 2026-07-29, and the Team emitter to 8 × 34 on
+     2026-07-31, read back to confirm each time.
+   - Adding a new User ARRAY parameter is a different story and the MCP route does NOT work
+     for it — `AddUserVariables` returns success and silently does nothing for data-interface
+     types. Use the `Swarm.NiagaraEnsureArrays` console command instead
+     (docs/perf/niagara-sprite-path.md §5).
    - A stale Sub UV is silent and just draws the wrong frame on every unit, so after any
      sheet change, read it back (or open `NS_Swarm` and check by eye) before judging the
      result.
@@ -130,6 +212,11 @@ layout, decode or Sub UV change.
    entity count and cumulative hero contacts.
 
 ## 6. Benchmark (fills docs/SPIKE1-RESULTS.md)
+
+**task-085: draw calls went 1 → 2 (one NiagaraSpriteRendererProperties per emitter,
+each its own material/texture) — measured as no cost, see
+docs/perf/niagara-sprite-path.md §7 for the game/draw/gpu ms table at 1k/10k/40k brood.**
+
 - **Automated:** tick `Run Benchmark` on the placed SwarmRenderActor (or launch
   standalone with `-SwarmBench`). It steps through 500/1k/2k/5k/10k brood
   (+100 retinue), waits 8 s to converge, samples 5 s, and logs one

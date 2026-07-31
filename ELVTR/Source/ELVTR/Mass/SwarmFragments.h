@@ -35,18 +35,30 @@ namespace SwarmAnim
 }
 
 /**
- * T_Swarm_2bit layout — the contract between the anim byte and the sprite sheet.
+ * T_Team_2bit / T_Enemy_2bit layout — the contract between the anim byte and the sprite
+ * sheets. task-085 split what used to be ONE shared atlas (T_Swarm_2bit) into two,
+ * one per side, because a single grid meant retargeting the enemy roster could never
+ * avoid touching the team's rows too (SwarmFragments.h has said so since 2026-07-26).
  *
- * Lives here, next to the bits it decodes, because THREE things have to agree about
- * this grid and they are in three different places: the Niagara Sprite Renderer's
- * "Sub UV" field (an editor asset, ELVTR/SETUP-EDITOR.md §3.5), the SubImage index the
- * render bridge computes, and the atlas UVs the Unit Cam brush slices. The asset can't
- * read this header, so if you change Columns/Rows you MUST change Sub UV to match — the
- * failure is silent and looks like every unit wearing the wrong frame.
+ * Lives here, next to the bits it decodes, because FOUR things have to agree about
+ * EACH grid and they are in four different places — and there are now TWO such grids,
+ * independent of each other:
  *
- * r2 (2026-07-26) turned the COLUMN axis into facing. The old layout spent its four
- * columns on walk0/walk1/attack/hit; the new one spends eight on direction and keeps
- * only the two walk frames, on the owner's call:
+ *   | # | Team                                      | Enemy                            |
+ *   |---|-------------------------------------------|-----------------------------------|
+ *   | 1 | these constants (SwarmSheet::Team)         | SwarmSheet::Enemy                 |
+ *   | 2 | docs/data/art/requests/team-units.json     | .../enemy-units.json output.grid  |
+ *   | 3 | imported texture T_Team_2bit               | imported texture T_Enemy_2bit     |
+ *   | 4 | NS_Swarm emitter "Team" Sub UV              | NS_Swarm emitter "Enemy" Sub UV   |
+ *
+ * Row 4 lives in a .uasset and cannot be grepped. Change a Columns/Rows constant and you
+ * MUST change that side's Sub UV to match; the failure is silent and looks like every
+ * unit on that side wearing the wrong frame. Scripts/art/check_brood_variants.py checks
+ * 1 against 2, for BOTH sides, and prints what each Sub UV field has to hold. Full table
+ * in docs/perf/niagara-sprite-path.md §1.
+ *
+ * r2 (2026-07-26) turned the COLUMN axis into facing; both sheets keep that shape —
+ * eight columns of direction, two rows per look (walk0/walk1):
  *
  *   - ATTACK is not lost — it was always also a lunge (the render position leads the
  *     true position during the swing pose, see USwarmIntegrateProcessor), and that
@@ -59,46 +71,141 @@ namespace SwarmAnim
  *
  *      col:    0      1      2      3      4      5      6      7
  *              S     SE      E     NE      N     NW      W     SW
- *   row 0:  brood walk0, eight real facings (since 2026-07-28 — the brood used to have
- *   row 1:  brood walk1,  no rotations at all, so every column packed the same south
- *                         frame and the tide read identically from every angle. The
- *                         decode was written to be correct when that changed, and it
- *                         was: swapping in an 8-rotation ooze character needed only a
- *                         frame_map repoint in swarm-units.json, no code change)
- *   row 2:  retinue walk0, eight real facings
- *   row 3:  retinue walk1
+ *
+ *   ENEMY (T_Enemy_2bit, 8x18): rows 0-17, the NINE brood variants, unchanged since
+ *   2026-07-29 apart from losing the retinue rows that used to trail them —
+ *   Row = Variant*2 + WalkFrame. docs/data/art/brood-variants.json still owns the mix.
+ *
+ *   TEAM (T_Team_2bit, 8x34): rows 0-33, SEVENTEEN variants in TWO BLOCKS —
+ *     - rows 0-21, variants 0-10, the SPEARMAN block: index 0 is the retinue base look
+ *       (same art, same index the pre-split sheet used, so the default appearance did
+ *       not move), indices 1-10 are the ten knight keeps task-085 landed (see
+ *       docs/data/art/team-variants.json for which index is which silhouette —
+ *       task-095 binds combat stats to this exact ordering, so it is not a free re-sort).
+ *     - rows 22-33, variants 11-16, the ARCHER block: archer-medieval v1-v6, landed by
+ *       task-126 so a unit that spawns as EUnitType::Archers stops drawing as a knight.
+ *   Row = Variant*2 + WalkFrame, same formula as Enemy, different variant count.
+ *
+ * WHICH variant an entity wears is not this namespace's business — it comes in on bits
+ * 21-24 of the render int32 (SwarmRenderPack::Variant), chosen by a display-weight table
+ * — Swarm.BroodVariantWeights for the enemy side, Swarm.TeamVariantWeights (spearmen) or
+ * Swarm.ArcherVariantWeights (archers) for the team side. TeamBit picks the side and the
+ * squad byte's unit type picks the team sub-table. A look is retired by setting its
+ * weight to 0, which is why every variant on a side is packed rather than a chosen
+ * subset: retiring one costs no repack.
+ *
+ * The variant field is FOUR BITS and stops at 15, so seventeen team rows do not fit a
+ * flat index. They do not have to: the field carries the WITHIN-BLOCK index (0-10 for
+ * spearmen, 0-5 for archers) and SwarmRenderActor.cpp's pack loop adds
+ * Team::ArcherVariantBase when the entity is an archer. The atlas can therefore grow
+ * past sixteen looks per side without ever repacking the render int32.
+ *
+ * NOTE walk0 and walk1 are IDENTICAL images for every row today — no source character has
+ * a generated walk. The axis is kept anyway (double the rows either sheet strictly needs)
+ * because collapsing it would force a SECOND layout change the day an animate_character
+ * walk lands, and this comment block is the thing that has to be right in three places
+ * at once, now times two.
  *
  * Column order is south-first and counter-clockwise on screen, matching the direction
- * order PixelLab returns rotations in and the frame_map in
- * docs/data/art/requests/swarm-units.json. Changing it means changing both.
+ * order PixelLab returns rotations in and the frame_map in both request files. Changing
+ * it means changing all of them.
  */
 namespace SwarmSheet
 {
+	/** Shared by every sheet in this namespace — eight-direction facing never varies. */
 	constexpr int32 Columns = 8;
-	constexpr int32 Rows = 4;
-
-	constexpr int32 RowBroodWalk0 = 0;
-	constexpr int32 RowBroodWalk1 = 1;
-	constexpr int32 RowRetinueWalk0 = 2;
-	constexpr int32 RowRetinueWalk1 = 3;
 
 	/**
-	 * Sheet cell for an anim byte and an already-resolved direction column.
-	 *
-	 * The column is passed in rather than decoded from the anim byte because facing is
-	 * VIEW-relative and the anim byte is not: the same unit is column 0 to the main
-	 * camera and some other column to the Unit Cam, whose yaw differs. Each consumer
-	 * resolves its own column via SwarmFacing::ColumnFor and hands it here, so the two
-	 * cannot drift on what a row means even though they disagree about direction.
+	 * ENEMY atlas (T_Enemy_2bit) — the nine brood-ooze looks, no retinue. Independent
+	 * of Team below by design: adding a tenth enemy touches only these rows, this
+	 * texture, this emitter's Sub UV, and never the team's.
 	 */
-	FORCEINLINE int32 CellFor(uint8 Bits, int32 DirColumn)
+	namespace Enemy
 	{
-		const int32 Col = FMath::Clamp(DirColumn, 0, Columns - 1);
-		const bool bRetinue = (Bits & SwarmAnim::TeamBit) != 0;
-		const bool bFrame1 = (Bits & SwarmAnim::FrameBit) != 0;
-		const int32 Row = bRetinue ? (bFrame1 ? RowRetinueWalk1 : RowRetinueWalk0)
-								   : (bFrame1 ? RowBroodWalk1 : RowBroodWalk0);
-		return Col + Row * Columns;
+		constexpr int32 Variants = 9;
+		constexpr int32 Rows = Variants * 2;	// 18
+
+		/**
+		 * Sheet cell for an anim byte, an already-resolved direction column, and an
+		 * enemy variant. See the doc comment on Team::CellFor below for why the column
+		 * is passed in rather than decoded here — same reasoning, both sheets.
+		 */
+		FORCEINLINE int32 CellFor(uint8 Bits, int32 DirColumn, int32 Variant = 0)
+		{
+			const int32 Col = FMath::Clamp(DirColumn, 0, Columns - 1);
+			const int32 Frame1 = (Bits & SwarmAnim::FrameBit) != 0 ? 1 : 0;
+			const int32 Row = FMath::Clamp(Variant, 0, Variants - 1) * 2 + Frame1;
+			return Col + Row * Columns;
+		}
+	}
+
+	/**
+	 * TEAM atlas (T_Team_2bit) — the retinue base look (variant 0), the ten judged knight
+	 * keeps task-085 landed (variants 1-10), and the six archer keeps task-126 landed
+	 * (variants 11-16). Independent of Enemy above: this grid never moves because the
+	 * enemy roster churns.
+	 */
+	namespace Team
+	{
+		// Two sub-tables, one grid. SpearVariants is the cap on Swarm.TeamVariantWeights
+		// (and the index task-095's stat rows are keyed on, so it must not drift);
+		// ArcherVariants is the cap on Swarm.ArcherVariantWeights. ArcherVariantBase is
+		// the row-pair offset the render bridge adds for an archer — the only place the
+		// two blocks ever share an index space, because the 4-bit render field cannot
+		// hold a flat 0-16.
+		constexpr int32 SpearVariants = 11;
+		constexpr int32 ArcherVariants = 6;
+		constexpr int32 ArcherVariantBase = SpearVariants;	// 11
+		constexpr int32 Variants = SpearVariants + ArcherVariants;	// 17
+		constexpr int32 Rows = Variants * 2;	// 34
+
+		/**
+		 * Sheet cell for an anim byte, an already-resolved direction column, and a team
+		 * variant.
+		 *
+		 * The column is passed in rather than decoded from the anim byte because facing
+		 * is VIEW-relative and the anim byte is not: the same unit is column 0 to the
+		 * main camera and some other column to the Unit Cam, whose yaw differs. Each
+		 * consumer resolves its own column via SwarmFacing::ColumnFor and hands it here,
+		 * so the two cannot drift on what a row means even though they disagree about
+		 * direction.
+		 *
+		 * Variant defaults to 0 (the retinue base look) so a caller that does not care
+		 * about team variety keeps compiling and simply draws every soldier as variant 0.
+		 */
+		FORCEINLINE int32 CellFor(uint8 Bits, int32 DirColumn, int32 Variant = 0)
+		{
+			const int32 Col = FMath::Clamp(DirColumn, 0, Columns - 1);
+			const int32 Frame1 = (Bits & SwarmAnim::FrameBit) != 0 ? 1 : 0;
+			const int32 Row = FMath::Clamp(Variant, 0, Variants - 1) * 2 + Frame1;
+			return Col + Row * Columns;
+		}
+	}
+
+	/**
+	 * PRE-task-085 combined layout (T_Swarm_2bit) — nine brood variants then two
+	 * retinue rows, one shared grid, TeamBit picking which half. Retained ONLY for
+	 * UnitCamProjector.cpp's SwarmAtlas billboard path, which still slices that one
+	 * texture and is disabled in the shipped one-camera build
+	 * (Kindled.UnitCamProj.Enable 0) — outside this task's scope to rebuild. Do not
+	 * extend this; new variety belongs in Team or Enemy above, not here.
+	 */
+	namespace Legacy
+	{
+		constexpr int32 BroodVariants = 9;
+		constexpr int32 RowRetinueWalk0 = BroodVariants * 2;		// 18
+		constexpr int32 RowRetinueWalk1 = RowRetinueWalk0 + 1;	// 19
+		constexpr int32 Rows = RowRetinueWalk1 + 1;				// 20
+
+		FORCEINLINE int32 CellFor(uint8 Bits, int32 DirColumn, int32 Variant = 0)
+		{
+			const int32 Col = FMath::Clamp(DirColumn, 0, Columns - 1);
+			const bool bRetinue = (Bits & SwarmAnim::TeamBit) != 0;
+			const int32 Frame1 = (Bits & SwarmAnim::FrameBit) != 0 ? 1 : 0;
+			const int32 Row = bRetinue ? RowRetinueWalk0 + Frame1
+									   : FMath::Clamp(Variant, 0, BroodVariants - 1) * 2 + Frame1;
+			return Col + Row * Columns;
+		}
 	}
 }
 
@@ -200,7 +307,13 @@ namespace SwarmSquad
  *   bits 8-11  size bucket: a per-entity uniform random, 0-15
  *   bits 12-16 world facing, 32 steps (SwarmFacing)
  *   bits 17-20 squad byte (SwarmSquad) — unit index (0-2) + type (bit 3), retinue only
- *   bits 21-31 free
+ *   bits 21-24 variant: which atlas look this body wears, as a WITHIN-SUB-TABLE index.
+ *              Shared field for all three tables -- TeamBit (already in bits 0-7) picks
+ *              the side and, on the team side, the squad byte's unit type picks the
+ *              sub-table: SwarmSheet::Enemy (0-8), team spearmen (0-10), team archers
+ *              (0-5). task-126 kept this four bits wide by putting the archer ROW OFFSET
+ *              in the render bridge instead of in this field -- see SwarmSheet::Team.
+ *   bits 25-31 free
  */
 namespace SwarmRenderPack
 {
@@ -225,18 +338,35 @@ namespace SwarmRenderPack
 	constexpr int32 SquadShift = 17;
 	constexpr int32 SquadMask = SwarmSquad::IdMask | SwarmSquad::TypeBit; // 4 bits, 0-15
 
-	FORCEINLINE int32 Pack(uint8 AnimBits, int32 SizeBucket, int32 FacingIndex = 0, uint8 SquadByte = 0)
+	// Bits 21-24: which atlas look this body wears -- SwarmSheet::Enemy (0-8), team
+	// spearmen (0-10) or team archers (0-5), picked by TeamBit plus the squad byte's unit
+	// type (task-085 split one variant field into two independent tables sharing the same
+	// bits, since the two sides are never both live for a given entity; task-126 added a
+	// third table the same way, WITHIN-BLOCK, with the +11 archer row offset applied in
+	// SwarmRenderActor.cpp so seventeen team rows still index through four bits).
+	// Same "free bits in an array that already exists" reasoning as Size/Facing/Squad above,
+	// and the reason this feature needed no new fragment field, no new array, and no
+	// class-layout change — which matters more than usual here, because a layout change on
+	// this module cannot be applied by Live Coding at all (it reports success and then
+	// crashes the next PIE, see the ponytail: note in SwarmRenderActor.cpp).
+	constexpr int32 VariantShift = 21;
+	constexpr int32 VariantMask = 0xF;						// 4 bits, 0-15: 11 spear, 6 archer, 9 enemy
+
+	FORCEINLINE int32 Pack(uint8 AnimBits, int32 SizeBucket, int32 FacingIndex = 0, uint8 SquadByte = 0,
+		int32 VariantIndex = 0)
 	{
 		return (int32)AnimBits
 			| ((SizeBucket & SizeIndexMask) << SizeShift)
 			| ((FacingIndex & FacingIndexMask) << FacingShift)
-			| (((int32)SquadByte & SquadMask) << SquadShift);
+			| (((int32)SquadByte & SquadMask) << SquadShift)
+			| ((VariantIndex & VariantMask) << VariantShift);
 	}
 
 	FORCEINLINE uint8 Anim(int32 Packed) { return (uint8)(Packed & AnimMask); }
 	FORCEINLINE int32 SizeBucket(int32 Packed) { return (Packed >> SizeShift) & SizeIndexMask; }
 	FORCEINLINE int32 Facing(int32 Packed) { return (Packed >> FacingShift) & FacingIndexMask; }
 	FORCEINLINE uint8 Squad(int32 Packed) { return (uint8)((Packed >> SquadShift) & SquadMask); }
+	FORCEINLINE int32 Variant(int32 Packed) { return (Packed >> VariantShift) & VariantMask; }
 
 	/**
 	 * Per-entity size multiplier, 1 +/- Amplitude.
@@ -264,6 +394,52 @@ namespace SwarmRenderPack
 	{
 		const float U = FMath::Frac(Phase * 0.6180339887f);
 		return FMath::Clamp((int32)(U * (float)SizeSteps), 0, SizeIndexMask);
+	}
+
+	/**
+	 * Which atlas look an entity wears, from the same walk-cycle phase, mapped through a
+	 * CUMULATIVE display-weight table.
+	 *
+	 * Shared by all three tables — the caller passes the brood table
+	 * (Swarm.BroodVariantWeights, 9 entries) for enemies, the spearman table
+	 * (Swarm.TeamVariantWeights, 11 entries) for retinue/knights, or the archer table
+	 * (Swarm.ArcherVariantWeights, 6 entries, task-126); nothing here cares which, it
+	 * just walks whatever Cum/Num it is handed. What it returns is always a WITHIN-TABLE
+	 * index — the archer row offset is the render bridge's business, not this function's.
+	 *
+	 * Cumulative rather than uniform because the mix is the point: the owner's ask was
+	 * "they will be match to display weight", so a common base look and a couple of rare
+	 * ones is the shipped default and a look is RETIRED by giving it weight 0. The table
+	 * itself is not baked in here — the caller passes a live one — for exactly the reason
+	 * SizeScale takes its amplitude as an argument: the weights CVar then reskins a
+	 * standing horde on the frame you change it, with no respawn, because the sim never
+	 * stored a variant in the first place.
+	 *
+	 * A DIFFERENT irrational multiplier from BucketFromPhase, and that is load-bearing:
+	 * sharing 0.618 would make variant a pure function of size bucket, so the largest body
+	 * would always be the same skin and the variety would read as one big and one small
+	 * creature instead of spread across the whole table.
+	 *
+	 * Cum must be non-decreasing with Cum[Num-1] == total weight. Num <= 0, or an all-zero
+	 * table, falls back to variant 0 rather than dividing by nothing.
+	 */
+	FORCEINLINE int32 VariantFromPhase(float Phase, const int32* Cum, int32 Num)
+	{
+		if (Num <= 0 || Cum[Num - 1] <= 0)
+		{
+			return 0;
+		}
+		const float U = FMath::Frac(Phase * 0.3819660887f);	// 1 - golden ratio conjugate
+		const int32 Roll = FMath::Min((int32)(U * (float)Cum[Num - 1]), Cum[Num - 1] - 1);
+		// Linear scan: Num is 6, 9 or 11.
+		for (int32 i = 0; i < Num; ++i)
+		{
+			if (Roll < Cum[i])
+			{
+				return i;
+			}
+		}
+		return Num - 1;
 	}
 }
 

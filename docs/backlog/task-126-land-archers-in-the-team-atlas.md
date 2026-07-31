@@ -1,7 +1,7 @@
 ---
 id: 126
 title: Make an archer look like an archer on the battlefield — pack the family into the team atlas and branch the render path on unit type
-status: in-progress
+status: done
 agent: claude
 model: opus
 owns: ["ELVTR/Source/ELVTR/Mass/SwarmFragments.h", "ELVTR/Source/ELVTR/Mass/SwarmProcessors.cpp", "ELVTR/Source/ELVTR/Rendering/SwarmRenderActor.cpp", "RawArt/Sheets/T_Team_2bit.png", "ELVTR/Content/Spike1/**", "docs/data/art/requests/team-units.json", "docs/data/art/team-variants.json", "docs/data/art/provenance.json", "ELVTR/SETUP-EDITOR.md", "docs/perf/niagara-sprite-path.md"]
@@ -12,7 +12,7 @@ evidence: A PIE screenshot at gameplay density where the archer line behind the 
 score: {feel: 2, risk: 2, cost: 2}
 source: user
 teammate: land-archers
-decided: "2026-07-31 in-progress"
+decided: "2026-07-31 done"
 ---
 
 ## Why now

@@ -1,0 +1,231 @@
+{
+  "id": "team-variants",
+  "revision": 4,
+  "note": "task-085. Companion to brood-variants.json, same mechanism, other side of the split atlas: how often each of the eleven team looks (retinue base + ten judged knight keeps) shows up. Owner, 2026-07-29: 'can we implement the knight family into the group... use that for materials as the enemies will change from time to time.' Nothing parses this JSON at runtime -- the compiled CVar default is the document of record, checked against this file by Scripts/art/check_brood_variants.py. task-126 added the ARCHER block: the same file now documents TWO sub-tables over one atlas -- 'variants' (Swarm.TeamVariantWeights, spearmen, atlas variants 0-10) and 'archer_variants' (Swarm.ArcherVariantWeights, atlas variants 11-16). Archers were fully simulated and invisible before it: with no unit-type branch in the render path they rolled a KNIGHT look, so the player could not see their own ranged line.",
+  "cvar": "Swarm.TeamVariantWeights",
+  "weight_note": "Integer weights, any scale -- mapped through the cumulative sum exactly like Swarm.BroodVariantWeights. weight 0 retires a look with no repack.\n\nRETUNED 2026-07-30 (revision 3) into a BELL CURVE OVER BODY SIZE. Owner, after seeing the flat mix at gameplay density: \"i want at most 5% of the army to be super small like this. They are outliers and not the average or part of a bell curve.\"\n\nSizes were re-measured across ALL EIGHT rotations for this. The family manifests in docs/data/art/families/*/manifest.json record ONE frame each, and they rank these looks differently and misleadingly -- do not reweight off those numbers. See measured_8rot on each entry; median mass across the eleven is 953.\n\nv11_midguard (index 9) is the REALISTIC SMALLEST normal soldier: narrow at 34px but mass dead on the median. Below it the break is clean -- v1_narrowguard (26px, 0.86x), v7_barestance (28px, 0.88x) and v6_simplecolumn (29px, 0.93x) are the only looks under 30px wide AND under 0.95x mass, with nothing between 29 and 34. Those three are the small tail at 2 each = 4.9% combined. v8_heavycloak (1242, 1.30x) gets the same weight at the large end so BOTH tails are rare, not just the one that was complained about.\n\nNOT judged on mass alone: v10_bracedstaff is light (904, 0.95x) but 46px wide, so it reads as a big footprint rather than a small unit. Mass alone would have wrongly demoted it.\n\nSince task-095 this table also drives STATS (variant index -> melee stat row), so any reweight shifts the army's combat mix too. This one was checked and is very nearly combat-neutral: average retinue HP 132.7 -> 132.6, DPS 30.71 -> 31.13. Re-check if these move again -- see docs/perf/knight-subtype-binding.md.",
+  "index_note": "index IS the value carried in bits 21-24 of the render int32 (SwarmRenderPack::VariantShift, shared with the enemy side -- the TeamBit says which table applies) AND the team atlas row pair (Row = index*2 + WalkFrame in SwarmSheet::Team). task-095 binds per-sub-type combat stats to exactly this index -- reordering this list without repacking BOTH the sheet and task-095's stat table swaps every knight's stats onto a different skin.",
+  "atlas": "docs/data/art/requests/team-units.json",
+  "variants": [
+    {
+      "index": 0,
+      "id": "retinue",
+      "state": "base retinue",
+      "source": "RawArt/Renders/unit-retinue-colour/raw/rotations",
+      "weight": 20,
+      "look": "The look that shipped before this task -- pale grey-green cloth, no weapon variety. Kept as variant 0 so a table of all-0s elsewhere in the codebase still means 'the old look', not 'no army'.",
+      "measured_8rot": {
+        "median_mass": 1108,
+        "median_width": 36.5
+      }
+    },
+    {
+      "index": 1,
+      "id": "knight-v1",
+      "state": "v1_narrowguard",
+      "source": "RawArt/Renders/knight-melee-v1/raw/v1_narrowguard/rotations",
+      "weight": 2,
+      "look": "Narrow and tall, shield lowered flush, sword sheathed -- the tightest silhouette of the ten.",
+      "measured_8rot": {
+        "median_mass": 822,
+        "median_width": 26.0
+      }
+    },
+    {
+      "index": 2,
+      "id": "knight-v2",
+      "state": "v2_lanceout",
+      "source": "RawArt/Renders/knight-melee-v1/raw/v2_lanceout/rotations",
+      "weight": 18,
+      "look": "Lance couched and extended to one side -- the widest, most weapon-forward look.",
+      "measured_8rot": {
+        "median_mass": 998,
+        "median_width": 47.0
+      }
+    },
+    {
+      "index": 3,
+      "id": "knight-v3",
+      "state": "v3_shieldbreak",
+      "source": "RawArt/Renders/knight-melee-v1/raw/v3_shieldbreak/rotations",
+      "weight": 14,
+      "look": "Asymmetric brace, shield thrust out with the gap open to the edge -- left/right profiles read as different shapes.",
+      "measured_8rot": {
+        "median_mass": 1040,
+        "median_width": 40.0
+      }
+    },
+    {
+      "index": 4,
+      "id": "knight-v4",
+      "state": "v4_overhead",
+      "source": "RawArt/Renders/knight-melee-v1/raw/v4_overhead/rotations",
+      "weight": 14,
+      "look": "Two-handed sword raised overhead, arms enclosing a hole above the head.",
+      "measured_8rot": {
+        "median_mass": 911,
+        "median_width": 39.5
+      }
+    },
+    {
+      "index": 5,
+      "id": "knight-v6",
+      "state": "v6_simplecolumn",
+      "source": "RawArt/Renders/knight-melee-v1/raw/v6_simplecolumn/rotations",
+      "weight": 2,
+      "look": "Simplified outer silhouette, shield slung on the back -- the cleanest column shape.",
+      "measured_8rot": {
+        "median_mass": 891,
+        "median_width": 29.0
+      }
+    },
+    {
+      "index": 6,
+      "id": "knight-v7",
+      "state": "v7_barestance",
+      "source": "RawArt/Renders/knight-melee-v2/raw/v7_barestance/rotations",
+      "weight": 2,
+      "look": "Bare, unadorned stance -- the plainest of the second family.",
+      "measured_8rot": {
+        "median_mass": 839,
+        "median_width": 28.0
+      }
+    },
+    {
+      "index": 7,
+      "id": "knight-v8",
+      "state": "v8_heavycloak",
+      "source": "RawArt/Renders/knight-melee-v2/raw/v8_heavycloak/rotations",
+      "weight": 6,
+      "look": "Heavy cloak, broadest mass of the ten.",
+      "measured_8rot": {
+        "median_mass": 1242,
+        "median_width": 46.0
+      }
+    },
+    {
+      "index": 8,
+      "id": "knight-v10",
+      "state": "v10_bracedstaff",
+      "source": "RawArt/Renders/knight-melee-v2/raw/v10_bracedstaff/rotations",
+      "weight": 10,
+      "look": "Staff braced at an angle -- the most asymmetric reach in the set.",
+      "measured_8rot": {
+        "median_mass": 904,
+        "median_width": 46.0
+      }
+    },
+    {
+      "index": 9,
+      "id": "knight-v11",
+      "state": "v11_midguard",
+      "source": "RawArt/Renders/knight-melee-v2/raw/v11_midguard/rotations",
+      "weight": 18,
+      "look": "Mid guard stance, moderate width.",
+      "measured_8rot": {
+        "median_mass": 953,
+        "median_width": 34.0
+      }
+    },
+    {
+      "index": 10,
+      "id": "knight-v13",
+      "state": "v13_maceraised",
+      "source": "RawArt/Renders/knight-melee-v2/raw/v13_maceraised/rotations",
+      "weight": 16,
+      "look": "Mace raised, one enclosed hole -- the second silhouette with a real gap after v4_overhead.",
+      "measured_8rot": {
+        "median_mass": 1016,
+        "median_width": 35.5
+      }
+    }
+  ],
+  "archer_cvar": "Swarm.ArcherVariantWeights",
+  "archer_note": "Six archer-medieval keeps from task-125, packed into rows 22-33 of T_Team_2bit by task-126. index is the ATLAS variant (11-16); table_index is what the render int32's 4-bit variant field actually carries (0-5) and what position a weight occupies in Swarm.ArcherVariantWeights. The +11 offset between them is applied in SwarmRenderActor.cpp's pack loop, keyed on the squad byte's unit type -- an archer can never draw a knight row and vice versa. UNLIKE the spearman table this one does NOT drive stats: archers short-circuit task-095's knight sub-type binding and read the Swarm.Archers* CVars, so reweighting here is a pure look change. Weights start FLAT -- there is no owner verdict on the archer mix yet, and unlike the knights there is no small-outlier complaint to answer; all six read as archers, which is the point. v2_bowextended carries a 'flag' verdict in the family manifest (it missed its 1.50 aspect target, measured band 0.73-0.87) -- owner decided 2026-07-31 to keep it anyway.",
+  "archer_variants": [
+    {
+      "index": 11,
+      "table_index": 0,
+      "id": "archer-v1",
+      "state": "v1_narrowstrung",
+      "source": "RawArt/Renders/archer-medieval/raw/v1_narrowstrung/rotations",
+      "weight": 16,
+      "look": "Hooded, bow strung and held close -- the tightest archer silhouette, and the only one that reads as a lurker rather than a shooter.",
+      "measured": {
+        "aspect": 0.609,
+        "solidity": 0.743,
+        "holes": 1
+      }
+    },
+    {
+      "index": 12,
+      "table_index": 1,
+      "id": "archer-v2",
+      "state": "v2_bowextended",
+      "source": "RawArt/Renders/archer-medieval/raw/v2_bowextended/rotations",
+      "weight": 16,
+      "look": "Longbow held out at full extension -- the widest reach of the six, bow limb breaking the outline on one side.",
+      "measured": {
+        "aspect": 0.87,
+        "solidity": 0.515,
+        "holes": 2
+      }
+    },
+    {
+      "index": 13,
+      "table_index": 2,
+      "id": "archer-v3",
+      "state": "v3_loosingarm",
+      "source": "RawArt/Renders/archer-medieval/raw/v3_loosingarm/rotations",
+      "weight": 16,
+      "look": "Mid-loose, draw arm back and bow arm forward -- the most asymmetric of the six.",
+      "measured": {
+        "aspect": 0.809,
+        "solidity": 0.568,
+        "holes": 0
+      }
+    },
+    {
+      "index": 14,
+      "table_index": 3,
+      "id": "archer-v4",
+      "state": "v4_quiverreach",
+      "source": "RawArt/Renders/archer-medieval/raw/v4_quiverreach/rotations",
+      "weight": 16,
+      "look": "Reaching back to the quiver, arrows fanning above the shoulder.",
+      "measured": {
+        "aspect": 0.955,
+        "solidity": 0.58,
+        "holes": 3
+      }
+    },
+    {
+      "index": 15,
+      "table_index": 4,
+      "id": "archer-v5",
+      "state": "v5_crossbowbrace",
+      "source": "RawArt/Renders/archer-medieval/raw/v5_crossbowbrace/rotations",
+      "weight": 16,
+      "look": "Crossbow braced level at the waist -- a horizontal bar across the body, unlike every bow pose.",
+      "measured": {
+        "aspect": 0.886,
+        "solidity": 0.565,
+        "holes": 0
+      }
+    },
+    {
+      "index": 16,
+      "table_index": 5,
+      "id": "archer-v6",
+      "state": "v6_slingwhirl",
+      "source": "RawArt/Renders/archer-medieval/raw/v6_slingwhirl/rotations",
+      "weight": 16,
+      "look": "Sling whirling overhead, a large enclosed loop above the head -- the biggest hole in the set.",
+      "measured": {
+        "aspect": 0.979,
+        "solidity": 0.48,
+        "holes": 1
+      }
+    }
+  ]
+}

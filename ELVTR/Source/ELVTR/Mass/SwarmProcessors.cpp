@@ -179,17 +179,36 @@ namespace
 		TEXT("dominate the army."),
 		ECVF_Default);
 
+	// task-126: the third table, over the ARCHER block of the same team atlas. Archers were
+	// fully simulated and completely invisible -- they wore whichever of the eleven spearman
+	// looks their phase happened to land on, so the player could not see their own ranged
+	// line. Flat weights to start: unlike the team table this one has no owner verdict on
+	// the mix yet, and six looks that all read as "archer" is the point.
+	TAutoConsoleVariable<FString> CVarArcherVariantWeights(
+		TEXT("Swarm.ArcherVariantWeights"), TEXT("16,16,16,16,16,16"),
+		TEXT("How often each of the six ARCHER looks appears, comma-separated integer weights\n")
+		TEXT("in archer-block order: v1_narrowstrung, v2_bowextended, v3_loosingarm,\n")
+		TEXT("v4_quiverreach, v5_crossbowbrace, v6_slingwhirl. Same cumulative-sum pick as\n")
+		TEXT("Swarm.TeamVariantWeights, over the archer half of the SAME team atlas (rows\n")
+		TEXT("22-33; the +11 row offset is applied in the render bridge, not stored). A weight\n")
+		TEXT("of 0 retires a look with no repack. Does NOT touch combat: archers read the\n")
+		TEXT("Swarm.Archers* stats and never the knight sub-type table, so skewing this is a\n")
+		TEXT("pure look change. Defaults documented in docs/data/art/team-variants.json.\n")
+		TEXT("Try 0,0,0,0,0,100 to put the whole ranged line on slings."),
+		ECVF_Default);
+
 	/** Cumulative display weights, so a per-entity roll becomes a variant with one scan. */
 	struct FVariantTable
 	{
-		int32 Cum[SwarmSheet::Team::Variants] = {};	// sized for the larger of the two sides
+		int32 Cum[SwarmSheet::Team::Variants] = {};	// sized for the largest of the three tables
 		int32 Num = 0;
 	};
 
 	/**
 	 * Parse a comma-separated weights CVar into cumulative form, capped at MaxVariants
-	 * entries (SwarmSheet::Enemy::Variants for the brood table, SwarmSheet::Team::Variants
-	 * for the team table — the two sides use the same parser, different caps and CVars).
+	 * entries (SwarmSheet::Enemy::Variants for the brood table, ::Team::SpearVariants for
+	 * the spearman table, ::Team::ArcherVariants for the archer table — one parser, three
+	 * caps and three CVars).
 	 *
 	 * ponytail: reparsed once per pass rather than cached against the last string — a
 	 * handful of Atoi calls next to a 30k-entity sim, and it buys a live CVar with no
@@ -1086,15 +1105,20 @@ void USwarmIntegrateProcessor::Execute(FMassEntityManager& EntityManager, FMassE
 	const FVector HeroLocation = Swarm->GetAttractor();
 
 	// Which look each body wears. Snapshotted here, once, exactly like the facing dials —
-	// so dragging either weights CVar reskins the standing horde on the next frame. Two
-	// tables since task-085: brood reads EnemyVariants, retinue/knights read TeamVariants,
-	// picked per-entity below on TeamBit (SwarmSheet::Enemy / SwarmSheet::Team).
+	// so dragging any weights CVar reskins the standing horde on the next frame. THREE
+	// tables since task-126: brood read EnemyVariants, spearmen read TeamVariants, archers
+	// read ArcherVariants, picked per-entity below on TeamBit plus the squad byte's unit
+	// type. The team pair index the same atlas — the archer block's +11 row offset is added
+	// in SwarmRenderActor.cpp's pack loop, not here, because the render int32's variant
+	// field is four bits and seventeen looks do not fit a flat index (SwarmSheet::Team).
 	const FVariantTable EnemyVariants = ParseVariantTable(
 		CVarBroodVariantWeights.GetValueOnGameThread(), SwarmSheet::Enemy::Variants);
 	const FVariantTable TeamVariants = ParseVariantTable(
-		CVarTeamVariantWeights.GetValueOnGameThread(), SwarmSheet::Team::Variants);
+		CVarTeamVariantWeights.GetValueOnGameThread(), SwarmSheet::Team::SpearVariants);
+	const FVariantTable ArcherVariants = ParseVariantTable(
+		CVarArcherVariantWeights.GetValueOnGameThread(), SwarmSheet::Team::ArcherVariants);
 
-	EntityQuery.ForEachEntityChunk(Context, [Swarm, DeltaTime, TimeSeconds, SwingInterval, StrikeAt, PoseStart, PoseEnd, Lunge, KnockDecay, BroodWalkHz, Facing, HeroLocation, EnemyVariants, TeamVariants](FMassExecutionContext& ChunkContext)
+	EntityQuery.ForEachEntityChunk(Context, [Swarm, DeltaTime, TimeSeconds, SwingInterval, StrikeAt, PoseStart, PoseEnd, Lunge, KnockDecay, BroodWalkHz, Facing, HeroLocation, EnemyVariants, TeamVariants, ArcherVariants](FMassExecutionContext& ChunkContext)
 	{
 		const TArrayView<FTransformFragment> Transforms = ChunkContext.GetMutableFragmentView<FTransformFragment>();
 		const TConstArrayView<FMassVelocityFragment> Velocities = ChunkContext.GetFragmentView<FMassVelocityFragment>();
@@ -1180,15 +1204,24 @@ void USwarmIntegrateProcessor::Execute(FMassEntityManager& EntityManager, FMassE
 
 			// Size roll and atlas variant both ride along in the same int32, and both are
 				// DERIVED from the jitter phase rather than stored, so no fragment grows a
-				// field — see SwarmRenderPack. Which table picks the variant is TeamBit:
-				// task-085 gave the team side its own eleven-look weight table instead of
-				// the one-look-forever this used to leave retinue with.
+				// field — see SwarmRenderPack. Which table picks the variant is TeamBit
+				// plus, on the team side, the unit type this soldier was recruited as:
+				// task-085 gave the team side its own eleven-look table instead of the
+				// one-look-forever retinue used to have, and task-126 gave ARCHERS their own
+				// six-look table on top, because until then an archer rolled a KNIGHT look
+				// and the player's ranged line was invisible as a unit type.
+				//
+				// What goes into the int32 is the within-table index; the archer block's row
+				// offset is added by the render bridge (SwarmSheet::Team::ArcherVariantBase).
 				const bool bTeamEntity = (Anim[i].Bits & SwarmAnim::TeamBit) != 0;
+				const bool bArcherEntity = bTeamEntity
+					&& SwarmSquad::UnitType(Anim[i].SquadId) == EUnitType::Archers;
+				const FVariantTable& MyVariants = bTeamEntity
+					? (bArcherEntity ? ArcherVariants : TeamVariants)
+					: EnemyVariants;
 				Swarm->PushRenderEntry(Published, Anim[i].Bits, Anim[i].SquadId,
 					SwarmRenderPack::BucketFromPhase(Jitter[i].Phase), Anim[i].Facing,
-					bTeamEntity
-						? SwarmRenderPack::VariantFromPhase(Jitter[i].Phase, TeamVariants.Cum, TeamVariants.Num)
-						: SwarmRenderPack::VariantFromPhase(Jitter[i].Phase, EnemyVariants.Cum, EnemyVariants.Num));
+					SwarmRenderPack::VariantFromPhase(Jitter[i].Phase, MyVariants.Cum, MyVariants.Num));
 
 			// Consume AttackBit: it is an observation made THIS frame by the steering
 			// and combat passes, and it has to be re-observed next frame. Left set it
