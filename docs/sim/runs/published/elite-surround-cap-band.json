@@ -1,0 +1,150 @@
+{
+  "envelope_version": 1,
+  "run_id": "20260731-085756-elite-surround-cap-band-7b4cf8",
+  "experiment": "elite-surround-cap-band",
+  "scenario": "floor2-elite-point-target",
+  "question": "How much does the Elite's un-measured SurroundCapEstimate Fermi band move the floor-2 point-target TTK the harness's one validated model produces?",
+  "created_utc": "2026-07-31T08:57:56Z",
+  "harness": {
+    "git_commit": "f3740e3",
+    "dirty": true
+  },
+  "inputs_fingerprint": {
+    "docs/data/entity-tiers.json": "95cdf27c4036",
+    "docs/data/experiments/elite-surround-cap-band.json": "269b24450906",
+    "docs/data/scenarios/combat-model-constants.json": "cbdb897aaa0e",
+    "docs/data/scenarios/floor2-elite-point-target.json": "c6a80ba3b8a7",
+    "docs/data/unit-types.json": "c4ad23a955a9",
+    "docs/data/upgrades.json": "d92fd57a7b53"
+  },
+  "invocation": {
+    "argv": [
+      "capture",
+      "elite-surround-cap-band",
+      "--publish"
+    ],
+    "workers": 1,
+    "serial": true,
+    "trigger": "cli"
+  },
+  "diagnostic_family_3": false,
+  "diagnostic_reason": null,
+  "cells": [
+    {
+      "overrides": {
+        "entity-tiers:tiers[Name=brood_elite].SurroundCapEstimate": 15
+      },
+      "trial": 0,
+      "seed": null,
+      "result": {
+        "scenario": "floor2-elite-point-target",
+        "kind": "point_target",
+        "target": "Brood Elite, anti-swarm (working name)",
+        "target_max_hp": 900.0,
+        "surround_cap_estimate": 15,
+        "ttk_seconds": 2.66,
+        "breakdown": {
+          "spearmen_militia": {
+            "role": "melee",
+            "count": 40,
+            "engaged": 15,
+            "per_unit_dps": 16.667,
+            "group_dps": 250.0
+          },
+          "archers_militia": {
+            "role": "ranged",
+            "count": 10,
+            "engaged": 10,
+            "per_unit_dps": 4.667,
+            "group_dps": 46.667
+          },
+          "hero": {
+            "role": "melee",
+            "count": 1,
+            "engaged": 1,
+            "per_unit_dps": 41.667,
+            "group_dps": 41.667
+          }
+        }
+      }
+    },
+    {
+      "overrides": {
+        "entity-tiers:tiers[Name=brood_elite].SurroundCapEstimate": 20
+      },
+      "trial": 0,
+      "seed": null,
+      "result": {
+        "scenario": "floor2-elite-point-target",
+        "kind": "point_target",
+        "target": "Brood Elite, anti-swarm (working name)",
+        "target_max_hp": 900.0,
+        "surround_cap_estimate": 20,
+        "ttk_seconds": 2.13,
+        "breakdown": {
+          "spearmen_militia": {
+            "role": "melee",
+            "count": 40,
+            "engaged": 20,
+            "per_unit_dps": 16.667,
+            "group_dps": 333.333
+          },
+          "archers_militia": {
+            "role": "ranged",
+            "count": 10,
+            "engaged": 10,
+            "per_unit_dps": 4.667,
+            "group_dps": 46.667
+          },
+          "hero": {
+            "role": "melee",
+            "count": 1,
+            "engaged": 1,
+            "per_unit_dps": 41.667,
+            "group_dps": 41.667
+          }
+        }
+      }
+    },
+    {
+      "overrides": {
+        "entity-tiers:tiers[Name=brood_elite].SurroundCapEstimate": 27
+      },
+      "trial": 0,
+      "seed": null,
+      "result": {
+        "scenario": "floor2-elite-point-target",
+        "kind": "point_target",
+        "target": "Brood Elite, anti-swarm (working name)",
+        "target_max_hp": 900.0,
+        "surround_cap_estimate": 27,
+        "ttk_seconds": 1.67,
+        "breakdown": {
+          "spearmen_militia": {
+            "role": "melee",
+            "count": 40,
+            "engaged": 27,
+            "per_unit_dps": 16.667,
+            "group_dps": 450.0
+          },
+          "archers_militia": {
+            "role": "ranged",
+            "count": 10,
+            "engaged": 10,
+            "per_unit_dps": 4.667,
+            "group_dps": 46.667
+          },
+          "hero": {
+            "role": "melee",
+            "count": 1,
+            "engaged": 1,
+            "per_unit_dps": 41.667,
+            "group_dps": 41.667
+          }
+        }
+      }
+    }
+  ],
+  "wall_clock_seconds": 0.0072,
+  "cell_count": 3
+}

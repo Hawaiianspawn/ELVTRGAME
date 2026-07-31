@@ -1,0 +1,17 @@
+{
+  "Name": "floor1-retinue-count-vs-wipe",
+  "DisplayName": "Floor 1 — Spearmen headcount vs the wipe (family 2)",
+  "Question": "Holding floor 1's locked 250-strong population fixed, how much Spearmen headcount alone does it take to stop the retinue wipe this model predicts?",
+  "Scenario": "floor1-swarm-wave",
+  "Axes": [
+    "scenario:Retinue.Composition[UnitType=spearmen].Count=32,64,96,128,160,200,250"
+  ],
+  "Trials": 1,
+  "Seed": null,
+  "SourceRefs": [
+    "docs/data/scenarios/floor1-swarm-wave.json Retinue.Composition — 32 Spearmen (8 Archers held fixed), itself tracing to docs/data/economy.json slice_targets start_units 40 x unit-types.json growth_source_weight 0.8/0.2",
+    "docs/design/scaling-curve.md §1 floor-1 composition table — the locked 250 population (85% Fodder / 15% Soldier-melee) this sweeps against, held fixed",
+    "docs/sim/SWEEPS.md 'Demonstration 2 — family 2 (encounter composition)' — the same question and the same seven values, previously runnable only as a hand-typed command line"
+  ],
+  "Notes": "EXPLORATORY RANGE, stated plainly per experiments.schema.md's rule: only the first value (32) is a committed number. 64/96/128/160/200/250 trace to nothing in docs/data — they are chosen to bracket where this model's outcome flips, exactly as SWEEPS.md's demonstration 2 chose them, and they are not newly-cited headcounts the economy can actually produce on floor 1. Archers stay at the scenario's own 8 throughout, so this measures Spearmen headcount alone, not army size. WAVE-ATTRITION CAVEAT, inherited whole from docs/sim/LIMITATIONS.md §1: this model does not reproduce GATE1-FUN-PROTOTYPE.md's measured ~110-of-120 wave-1 survival at committed defaults, so a breakpoint out of this experiment is illustrative of the mechanism (frontage concurrency limits) and roughly where this model's knee sits for this one scenario — NOT a prediction of the headcount a real floor-1 run needs, and not an argument for changing economy.json's start_units. LIMITATIONS.md §5 adds a second one specific to this scenario: its population is mixed-tier (Armor 0 Fodder + Armor 6 Soldier-melee), and the pooled model applies an alive-count-weighted MEAN armor across that mixture, so trust the direction and rough magnitude of the armor term here, not its precise value."
+}

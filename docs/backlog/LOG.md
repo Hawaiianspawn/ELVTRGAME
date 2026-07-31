@@ -313,3 +313,15 @@ Rejected and parked tasks keep their files — this records why.
 - 2026-07-31 · `task-076` · needs-review → **done** · Add a seeded variance layer to the combat model so a config yields a distribution, not a single point estimate
 - 2026-07-31 · `task-118` · in-progress → **needs-review** · Credit kills to the squad that landed them, and give the Breather long enough to read
 - 2026-07-31 · `task-118` · needs-review → **done** · Credit kills to the squad that landed them, and give the Breather long enough to read
+- 2026-07-31 · `task-075` · proposed → **approved** · Make simulation results durable — a declarative experiment format, a versioned run-artifact store, and an artifact comparison tool
+- 2026-07-31 · `task-099` · proposed → **approved** · Reconcile targets_per_hit against the engine's fixed 8-target ceiling, which flattens the axis for seven of nine melee rows
+- 2026-07-31 · `task-010` · proposed → **approved** · Run the retinue militia acceptance checklist against the packed sheet
+- 2026-07-31 · `task-075` · approved → **in-progress** · Make simulation results durable — a declarative experiment format, a versioned run-artifact store, and an artifact comparison tool — dispatched to teammate `runstore` at model `opus`
+- 2026-07-31 · `task-099` · approved → **in-progress** · Reconcile targets_per_hit against the engine's fixed 8-target ceiling, which flattens the axis for seven of nine melee rows — dispatched to teammate `targets-ceiling` at model `sonnet`
+- 2026-07-31 · `task-010` · approved → **in-progress** · Run the retinue militia acceptance checklist against the packed sheet — dispatched to teammate `militia-acceptance` at model `sonnet`
+- 2026-07-31 · `task-099` · in-progress → **needs-review** · Reconcile targets_per_hit against the engine's fixed 8-target ceiling, which flattens the axis for seven of nine melee rows
+- 2026-07-31 · `task-010` · in-progress → **needs-review** · Run the retinue militia acceptance checklist against the packed sheet
+- 2026-07-31 · `task-075` · in-progress → **needs-review** · Make simulation results durable — a declarative experiment format, a versioned run-artifact store, and an artifact comparison tool
+- 2026-07-31 · `task-075` · needs-review → **done** · Make simulation results durable — a declarative experiment format, a versioned run-artifact store, and an artifact comparison tool
+- 2026-07-31 · `task-099` · needs-review → **done** · Reconcile targets_per_hit against the engine's fixed 8-target ceiling, which flattens the axis for seven of nine melee rows
+- 2026-07-31 · `task-010` · needs-review → **done** · Run the retinue militia acceptance checklist against the packed sheet

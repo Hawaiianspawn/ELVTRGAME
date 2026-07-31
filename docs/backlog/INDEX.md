@@ -10,7 +10,7 @@ not a re-read.
 
 | proposed | approved | in-progress | needs-review | done | rejected | parked |
 |---|---|---|---|---|---|---|
-| 41 | 0 | 0 | 0 | 70 | 0 | 7 |
+| 38 | 0 | 0 | 0 | 73 | 0 | 7 |
 
 ## Audit queue — top 7 awaiting your verdict
 
@@ -38,7 +38,7 @@ Approve with `py Scripts/backlog.py approve <ids>` (or `/backlog approve <ids>`)
 | `retinue-identity` | 2/2 closed | [`086`](task-086-retinue-subtype-stat-identity-sim.md), [`087`](task-087-knight-melee-v2-break-the-mass-clustering.md) | — | complete |
 | `scene-tightening` | 2/2 closed | [`057`](task-057-scene-look-rig-bypass-the-colour-gate.md), [`058`](task-058-hud-chrome-tightening.md) | `058` | complete |
 | `sim-irons-out-fun` | 3/3 closed | [`096`](task-096-run-chaining-driver.md), [`097`](task-097-growth-site-decision-divergence.md), [`098`](task-098-open-the-armour-gate.md) | `097` | complete |
-| `sim-pipeline` | 1/4 closed | [`075`](task-075-experiment-pipeline-persisted-runs.md), [`076`](task-076-seeded-variance-layer-distributions.md), [`077`](task-077-batch-driver-pool-and-trials.md), [`078`](task-078-experiment-watcher.md) | `077`, `078` | approve `75,77,78` |
+| `sim-pipeline` | 2/4 closed | [`075`](task-075-experiment-pipeline-persisted-runs.md), [`076`](task-076-seeded-variance-layer-distributions.md), [`077`](task-077-batch-driver-pool-and-trials.md), [`078`](task-078-experiment-watcher.md) | `077`, `078` | approve `77,78` |
 | `sim-tuning-loop` | 2/2 closed | [`069`](task-069-committed-sweep-runner.md), [`070`](task-070-tuning-question-scenario-library.md) | — | complete |
 | `three-act-waves` | 3/3 closed | [`102`](task-102-three-act-wave-scaling.md), [`103`](task-103-simulate-three-act-waves.md), [`105`](task-105-play-the-three-act-waves.md) | `103` | complete |
 | `ui-showcase` | 4/4 closed | [`114`](task-114-ui-aesthetic-after-the-colour-reversal.md), [`115`](task-115-menu-that-boots-straight-into-play.md), [`116`](task-116-end-of-wave-showcase-spec.md), [`118`](task-118-squad-kill-attribution-and-breather-length.md) | `115`, `116` | complete |
@@ -48,7 +48,7 @@ Approve with `py Scripts/backlog.py approve <ids>` (or `/backlog approve <ids>`)
 
 A fan is approved in one batch and dispatched one teammate per task. `⨝` joins own the shared writes and wait on their siblings — see `py Scripts/backlog.py epic <slug>`.
 
-## proposed (41)
+## proposed (38)
 
 | id | score | task | agent | owns | source |
 |---|---|---|---|---|---|
@@ -63,14 +63,11 @@ A fan is approved in one batch and dispatched one teammate per task. `⨝` joins
 | `042` | 2.0 | [Trial rust-gold and eulbink as LUT rows against the locked demichrome](task-042-trial-candidate-palettes-as-lut-rows.md) | pixel-art-director | `docs/art/palette-trials.md` | `user` |
 | `065` | 2.0 | [Land the hit flash, retire the stale header, and fix the black late-session capture](task-065-sprite-path-evidence-trio.md) | claude | `ELVTR/Source/ELVTR/Mass/SwarmFragments.h`, `ELVTR/Source/ELVTR/Rendering/SwarmRenderActor.cpp`, `ELVTR/Source/ELVTR/Rendering/SwarmRenderActor.h`, `ELVTR/Content/Spike1/**` | `user` |
 | `074` | 2.0 | [Scope the archer dead-zone hatch per-brood, not per-archer](task-074-per-brood-dead-zone-hatch.md) | claude | `ELVTR/Source/ELVTR/Mass/SwarmCombatProcessors.cpp`, `ELVTR/Source/ELVTR/Mass/SwarmProcessors.cpp` | `user` |
-| `075` | 2.0 | [Make simulation results durable — a declarative experiment format, a versioned run-artifact store, and an artifact comparison tool](task-075-experiment-pipeline-persisted-runs.md) | sim-director | `Scripts/sim/runstore.py`, `Scripts/sim/report.py`, `docs/data/experiments/**`, `docs/sim/RUNSTORE.md`, `.gitignore` | `user` |
 | `077` | 2.0 | [Build the parallel batch driver — wire trials into the pipeline and measure where the process pool actually pays](task-077-batch-driver-pool-and-trials.md) | sim-director | `Scripts/sim/batch.py`, `docs/sim/PIPELINE.md` | `user` |
 | `083` | 2.0 | [Run a caster variant family — once the roster decides where a caster-silhouette retinue actually lives](task-083-caster-variant-family.md) | claude | `RawArt/Renders/caster-v1/**`, `docs/data/art/families/caster-v1/**` | `user` |
-| `099` | 2.0 | [Reconcile targets_per_hit against the engine's fixed 8-target ceiling, which flattens the axis for seven of nine melee rows](task-099-targets-per-hit-ceiling.md) | gameplay-director | `docs/data/unit-types.json`, `docs/design/retinue-melee-subtypes.md` | `lead` |
 | `111` | 2.0 | [Spend the protrusion axis on the Baby face brood — limbs out, not faces on](task-111-baby-parts-brood-family.md) | claude | `docs/data/art/families/brood-baby/**`, `RawArt/Renders/brood-baby/**`, `docs/data/art/provenance.json` | `user` |
 | `025` | 1.33 | [Spec the procgen room-graph generator over the prefab library](task-025-procgen-room-graph-generator.md) | gameplay-director | `docs/design/procgen-room-graph.md`, `docs/data/room-types.json`, `docs/data/room-types.schema.md` | `docs/RTS-VERTICAL-SLICE.md:102` |
 | `026` | 1.33 | [Produce the Highgates tileset](task-026-highgates-tileset.md) | pixel-art-director | `docs/art/highgates-tileset.md` | `docs/RTS-VERTICAL-SLICE.md:109` |
-| `010` | 1.0 | [Run the retinue militia acceptance checklist against the packed sheet](task-010-retinue-militia-acceptance-pass.md) | pixel-art-director | `docs/art/retinue-militia.md` | `docs/art/retinue-militia.md:426` |
 | `011` | 1.0 | [Run the soldier roster v1 acceptance checklist across all six variants](task-011-soldier-roster-acceptance-pass.md) | pixel-art-director | `docs/art/soldier-roster-v1.md` | `docs/art/soldier-roster-v1.md:1093` |
 | `012` | 1.0 | [Write the Pathfinder rework art spec (brief-005)](task-012-pathfinder-rework-art-spec.md) | pixel-art-director | `docs/art/merle.md`, `docs/briefs/brief-005-pathfinder-rework.md` | `docs/briefs/brief-005-pathfinder-rework.md` |
 | `016` | 1.0 | [Write GDD §12 Q6's resolution back into the table](task-016-gdd-q6-palette-strategy.md) | claude | `GDD.md` | `GDD.md:430` |
@@ -94,7 +91,7 @@ A fan is approved in one batch and dispatched one teammate per task. `⨝` joins
 | `020` | 0.5 | [Assemble the four-section GDD submission document and export to PDF](task-020-gdd-submission-assembly-and-pdf.md) | claude | `docs/ASSIGNMENT-01-GDD-FIRST-DRAFT.md` | `docs/GDD-TODO.md:77` |
 | `037` | 0.5 | [Sweep the remaining CLASSES C2-C11 open questions against current canon](task-037-sweep-remaining-classes-open-questions.md) | narrative-director | `docs/narrative/open-questions-audit.md` | `docs/GDD-TODO.md:116` |
 
-## done (70)
+## done (73)
 
 | id | score | task | agent | owns | source |
 |---|---|---|---|---|---|
@@ -135,6 +132,7 @@ A fan is approved in one batch and dispatched one teammate per task. `⨝` joins
 | `064` | 2.0 | [Fix the wave-clear stalemate — stray brood that never die stop the run advancing](task-064-wave-clear-stalemate.md) | claude | `ELVTR/Source/ELVTR/Spike/Spike1GameMode.cpp`, `ELVTR/Source/ELVTR/Spike/Spike1GameMode.h`, `ELVTR/Config/SwarmExecOnPlay.canonical.txt` | `user` |
 | `072` | 2.0 | [Reconcile scaling-curve §4's scratch TTK table against entity-tiers' committed numbers](task-072-reconcile-scaling-curve-scratch-table.md) | gameplay-director | `docs/design/scaling-curve.md` | `user` |
 | `073` | 2.0 | [Close the archer dead zone — brood inside 150uu that nothing can kill](task-073-archer-dead-zone-unkillable-brood.md) | claude | `ELVTR/Source/ELVTR/Mass/SwarmCombatProcessors.cpp`, `ELVTR/Source/ELVTR/Mass/SwarmProcessors.cpp` | `user` |
+| `075` | 2.0 | [Make simulation results durable — a declarative experiment format, a versioned run-artifact store, and an artifact comparison tool](task-075-experiment-pipeline-persisted-runs.md) | sim-director | `Scripts/sim/runstore.py`, `Scripts/sim/report.py`, `docs/data/experiments/**`, `docs/sim/RUNSTORE.md`, `.gitignore` | `user` |
 | `081` | 2.0 | [Codify the variant-family workflow into a driver — declarative family spec, machine-readable judging, auto-culled rejects](task-081-codify-variant-family-pipeline.md) | claude | `Scripts/art/variantpipe.py`, `Scripts/art/silhouette_report.py`, `docs/data/art/family.schema.json`, `docs/data/art/families/archer-scifi/**`, `docs/data/art/families/archer-proxy/**`, `docs/data/art/families/knight-topology/**`, `docs/data/art/families/knight-primitive/**`, `docs/data/art/families/knight-mass/**`, `docs/data/art/families/knight-types/**`, `docs/data/art/families/brood-ooze/**`, `docs/data/art/families/brood-ooze-colour/**`, `.claude/skills/variants/SKILL.md`, `RawArt/Renders/archer-scifi/**`, `RawArt/Renders/archer-proxy/**`, `RawArt/Renders/knight-topology/**`, `RawArt/Renders/knight-primitive/**`, `RawArt/Renders/knight-mass/**`, `RawArt/Renders/knight-types/**`, `RawArt/Renders/brood-ooze/**`, `RawArt/Renders/brood-ooze-colour/**` | `user` |
 | `082` | 2.0 | [Run a Knight melee variant family through the codified pipeline and report it](task-082-knight-melee-variant-family.md) | claude | `RawArt/Renders/knight-melee-v1/**`, `docs/data/art/families/knight-melee-v1/**` | `user` |
 | `084` | 2.0 | [Make the brood visible — the colour path is multiplicative and the ooze art is black, so no light value can lift it](task-084-brood-legibility-additive-light.md) | claude | `ELVTR/Source/ELVTR/Rendering/SwarmRenderActor.cpp`, `ELVTR/Source/ELVTR/Rendering/SwarmRenderActor.h`, `docs/RENDERING-LIGHTING.md`, `docs/perf/niagara-sprite-path.md` | `user` |
@@ -145,6 +143,7 @@ A fan is approved in one batch and dispatched one teammate per task. `⨝` joins
 | `093` | 2.0 | [Rename the Emberkeep console variables and C++ reflected types to Kindled](task-093-emberkeep-cvar-rename.md) | claude | `ELVTR/Source/**`, `ELVTR/Config/**`, `ELVTR/Content/SwarmControls/**`, `Scripts/populate_cvar_preset.py`, `Scripts/cvars*.py`, `docs/RENDERING-LIGHTING.md`, `docs/UNIT-CAM-HANDOFF.md` | `user` |
 | `094` | 2.0 | [Extend the melee sub-type derivation to all ten kept knight silhouettes and re-run the spread](task-094-subtype-candidates-all-ten-knights.md) | sim-director | `Scripts/sim/variety.py`, `docs/data/scenarios/retinue-subtypes.json`, `docs/data/scenarios/retinue-subtypes-v2.json`, `docs/sim/SUBTYPE-VARIETY.md` | `user` |
 | `096` | 2.0 | [Chain waves into a run — survivor carryover, ember income, and supply degrade](task-096-run-chaining-driver.md) | sim-director | `Scripts/sim/run_sim.py`, `docs/sim/RUN-SIM.md`, `docs/data/scenarios/run-*.json` | `user` |
+| `099` | 2.0 | [Reconcile targets_per_hit against the engine's fixed 8-target ceiling, which flattens the axis for seven of nine melee rows](task-099-targets-per-hit-ceiling.md) | gameplay-director | `docs/data/unit-types.json`, `docs/design/retinue-melee-subtypes.md` | `lead` |
 | `110` | 2.0 | [Scale the sprite ground offset by each unit's own size so feet land on one floor](task-110-ground-offset-scales-with-sprite-size.md) | claude | `ELVTR/Source/ELVTR/Rendering/SwarmRenderActor.cpp`, `ELVTR/Source/ELVTR/Rendering/BloodSubsystem.cpp`, `ELVTR/Config/SwarmExecOnPlay.canonical.txt`, `ELVTR/Content/Spike1/NS_Swarm.uasset` | `user` |
 | `112` | 2.0 | [Build the armored-enemy variant family off the brighter-palette base and publish the contact sheet](task-112-enemy-armored-variant-family.md) | claude | `docs/data/art/families/enemy-armored/**`, `RawArt/Renders/enemy-armored/**`, `docs/art/enemy-armored-variants.md` | `user` |
 | `114` | 2.0 | [Write the UI aesthetic that replaces the four-value gate the colour reversal killed](task-114-ui-aesthetic-after-the-colour-reversal.md) | ui-director | `docs/ui/ui-aesthetic.md`, `docs/ui/mockups/ui-aesthetic-*.html` | `user` |
@@ -152,6 +151,7 @@ A fan is approved in one batch and dispatched one teammate per task. `⨝` joins
 | `068` | 1.5 | [Teach the wave-attrition model arrival timing, and re-run the GATE1 calibration check](task-068-teach-the-wave-model-arrival-timing.md) | sim-director | `Scripts/sim/**`, `docs/sim/**`, `docs/data/scenarios/**` | `user` |
 | `046` | 1.33 | [Build the typed-unit command layer in Mass — sticky type, per-type stance, per-type allocation, published centroids](task-046-squad-command-layer-in-mass.md) | claude | `ELVTR/Source/ELVTR/Mass/**`, `ELVTR/Source/ELVTR/UI/UnitCamProjector.cpp`, `ELVTR/Source/ELVTR/UI/UnitCamProjector.h`, `ELVTR/Source/ELVTR/UI/UnitCamDirector.cpp`, `ELVTR/Source/ELVTR/UI/UnitCamDirector.h` | `docs/design/squad-group-system.md` |
 | `085` | 1.33 | [Split the horde into a team atlas and an enemy atlas, and land the knight family in the team half](task-085-split-team-and-enemy-atlases-with-knight-family.md) | claude | `ELVTR/Source/ELVTR/Mass/SwarmFragments.h`, `ELVTR/Source/ELVTR/Mass/SwarmSubsystem.h`, `ELVTR/Source/ELVTR/Rendering/SwarmRenderActor.cpp`, `ELVTR/Source/ELVTR/Rendering/SwarmRenderActor.h`, `ELVTR/Content/Spike1/**`, `ELVTR/SETUP-EDITOR.md`, `RawArt/Sheets/T_Swarm*.png`, `RawArt/Sheets/T_Team*.png`, `RawArt/Sheets/T_Enemy*.png`, `docs/data/art/requests/swarm-units.json`, `docs/data/art/requests/team-units.json`, `docs/data/art/requests/enemy-units.json`, `docs/data/art/brood-variants.json`, `docs/data/art/team-variants.json`, `docs/data/art/provenance.json`, `docs/data/art/sprite-request.schema.json`, `Scripts/art/pixelpipe.py`, `Scripts/art/check_brood_variants.py`, `docs/perf/niagara-sprite-path.md` | `user` |
+| `010` | 1.0 | [Run the retinue militia acceptance checklist against the packed sheet](task-010-retinue-militia-acceptance-pass.md) | claude | `docs/art/retinue-militia.md` | `docs/art/retinue-militia.md:426` |
 | `051` | 1.0 | [Build the art asset matrix and a coverage audit that finds missing, unwired and off-ramp art](task-051-art-coverage-matrix-and-audit.md) | claude | `docs/data/art/asset-matrix.json`, `docs/data/art/asset-matrix.schema.md`, `.claude/skills/art-coverage/**`, `Scripts/art/coverage.py` | `user` |
 | `055` | 1.0 | [Pack every PixelLab character state per type, so a rank of spearmen has visual variety](task-055-pack-character-states-for-unit-variety.md) | claude | `ELVTR/Content/Sprites/Units/**`, `RawArt/Renders/knight/**`, `RawArt/Renders/archer-proxy/**`, `RawArt/Sheets/T_Soldier_Knight*.png`, `RawArt/Sheets/T_Soldier_Archer*.png`, `docs/data/art/provenance.json`, `ELVTR/Source/ELVTR/UI/UnitCamProjector.cpp` | `user` |
 | `062` | 1.0 | [Bring the art tooling onto the full-colour reversal — palette.json still enforces a retired lock](task-062-bring-art-tooling-onto-the-full-colour-reversal.md) | claude | `docs/data/art/palette.json`, `Scripts/art/coverage.py`, `Scripts/art/pixelpipe.py`, `Scripts/art/authored_states.py`, `Scripts/art/silhouette_report.py`, `.claude/skills/art-coverage/SKILL.md`, `.claude/skills/sprite/SKILL.md` | `user` |

@@ -1,0 +1,17 @@
+{
+  "Name": "gate1-maxattackers-sensitivity",
+  "DisplayName": "GATE1 wave 1 — MaxAttackersPerUnit sensitivity (DIAGNOSTIC, family 3)",
+  "Question": "How far does MaxAttackersPerUnit alone move the GATE1 wave-1 outcome, across the three values docs/sim/VALIDATION.md's 27-cell sweep already ran?",
+  "Scenario": "gate1-calibration-wave1",
+  "Axes": [
+    "constants:wave_attrition_model.MaxAttackersPerUnit=1,2,4"
+  ],
+  "Trials": 1,
+  "Seed": null,
+  "SourceRefs": [
+    "docs/data/scenarios/combat-model-constants.json wave_attrition_model.MaxAttackersPerUnit = 4 (Swarm.MaxAttackersPerUnit shipped default, GATE1-FUN-PROTOTYPE.md §3b) — the committed default and the top of this range",
+    "docs/sim/VALIDATION.md 27-cell sweep (EngagedSpacingUU x MaxAttackersPerUnit x MeleeContactFacingFraction) — the values 1, 2, 4 are that sweep's own MaxAttackersPerUnit axis, not new ones",
+    "docs/sim/LIMITATIONS.md §1 — this dial is what drives the 15-of-27 result (strict 1 always wins, shipped default 4 always loses), and candidate (2) for the remaining gap is whether it transfers cleanly from the real per-entity sim into this pooled approximation"
+  ],
+  "Notes": "DIAGNOSTIC ONLY, family 3 — runstore.py tags this artifact automatically from the axis's target file. MaxAttackersPerUnit is one of the harness's OWN model dials, not gameplay-owned balance data, and this experiment is sensitivity analysis of that dial's uncertainty, NOT a search for a value to adopt. docs/sim/LIMITATIONS.md §1 states plainly that some off-default value here can make validate.py check 3 pass and that adopting it would be worse than the current honest failure — a passing check with no citation behind the value that produced it. Nothing in this experiment or in Scripts/sim/ ranks these three cells by closeness to GATE1's measured 109-111, and the cells are stored in the literal order given above. The other two dials of VALIDATION.md's 27-cell sweep are deliberately NOT varied here: this experiment isolates the one axis LIMITATIONS.md §1 names as the driver, and does not reproduce the full 27 cells (docs/sim/SWEEPS.md's own reproduction command does that). Note also that this runs against the CURRENT gate1-calibration-wave1.json, whose 5 rows carry task-068's real nonzero ArrivalSeconds — so its numbers are the arrival-gated ones, not the pre-task-068 table's; see SWEEPS.md's 'One thing to flag, not a regression'."
+}

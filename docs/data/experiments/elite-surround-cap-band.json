@@ -1,0 +1,17 @@
+{
+  "Name": "elite-surround-cap-band",
+  "DisplayName": "Floor 2 Elite — SurroundCapEstimate Fermi band (15-27)",
+  "Question": "How much does the Elite's un-measured SurroundCapEstimate Fermi band move the floor-2 point-target TTK the harness's one validated model produces?",
+  "Scenario": "floor2-elite-point-target",
+  "Axes": [
+    "entity-tiers:tiers[Name=brood_elite].SurroundCapEstimate=15,20,27"
+  ],
+  "Trials": 1,
+  "Seed": null,
+  "SourceRefs": [
+    "docs/data/entity-tiers.json brood_elite.SurroundCapEstimate = 20 (the committed midpoint) and brood_elite.SurroundCapRange = '15-27, Fermi estimate not measured (entity-tiers.md §4)' — the three swept values are that field's stated endpoints and its own default, nothing invented",
+    "docs/sim/LIMITATIONS.md §3 — 'SurroundCapEstimate per tier is a Fermi estimate (entity-tiers.md §4), not an in-engine measurement', listed as the first thing the validated point-target model inherits unmeasured",
+    "docs/data/scenarios/floor2-elite-point-target.json — the scenario, whose own Description already names the saturation this cap controls (only 20 of 40 Spearmen engage; Archers keep scaling past it)"
+  ],
+  "Notes": "This is the harness's VALIDATED model (docs/sim/LIMITATIONS.md §3: army_ttk_vs_point_target passes its checks and reproduces entity-tiers.md §7's table exactly), so the spread this produces is a real sensitivity band on a trustworthy number — unlike the wave-attrition experiments, which inherit §1's headline gap. Two caveats carry over unchanged and are not softened by running this: (1) every TTK here is a CLEAN-FIGHT LOWER BOUND — scaling-curve.md §4 point 1 and LIMITATIONS.md §3 both state the floor-2 Elite is always embedded in the live swarm (scaling-curve.json elite_boss_schedule, EncounterMode embedded_in_swarm) and never fought this way in a real run; (2) the Archer contribution rides on data_loader.retinue_fighter's ASSUMED tier scaling, which entity-tiers.md §7 flags as unresolved. A wider TTK band here is a statement about how much the Fermi estimate's own uncertainty costs, not a reason to move SurroundCapEstimate — that number is the gameplay director's, and closing it needs an in-engine measurement, not a sweep."
+}

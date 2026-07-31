@@ -26,3 +26,17 @@ Desktop.ini
 # Python bytecode caches (build artifacts — never source)
 __pycache__/
 *.pyc
+
+# Sim run artifacts (task-075). Every `runstore.py capture` writes one JSON
+# here plus an index entry — volatile local output, not a record. Promoting a
+# result into the committed record is a deliberate act (`capture --publish`),
+# which writes docs/sim/runs/published/<experiment>.json — that IS committed,
+# and is the artifact a design conversation may cite.
+#
+# The trailing /* is load-bearing, not a typo for `docs/sim/runs/`: git will
+# not descend into an excluded DIRECTORY, so a plain `docs/sim/runs/` makes
+# the `!` line below unreachable and silently ignores published/ too
+# (verified with `git check-ignore -v`). Excluding the directory's ENTRIES
+# instead leaves published/ re-includable.
+docs/sim/runs/*
+!docs/sim/runs/published/
