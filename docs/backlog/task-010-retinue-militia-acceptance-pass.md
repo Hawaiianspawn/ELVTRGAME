@@ -1,15 +1,17 @@
 ---
 id: 010
 title: Run the retinue militia acceptance checklist against the packed sheet
-status: proposed
-agent: pixel-art-director
+status: done
+agent: claude
 owns: ["docs/art/retinue-militia.md"]
 resources: []
 depends-on: []
 evidence: All eleven checklist items at docs/art/retinue-militia.md:426-436 ticked or failed, each backed by a pixelpipe quantize report or a stated pixel measurement.
 score: {feel: 1, risk: 1, cost: 1}
 source: docs/art/retinue-militia.md:426
-decided: ""
+decided: "2026-07-31 done"
+model: sonnet
+teammate: militia-acceptance
 ---
 
 ## Why now
@@ -31,10 +33,15 @@ checked. Same shape as task-009; both are cheap and both are pure verification.
 
 ## Spawn prompt
 ```
-You are the pixel-art-director for Kindled (C:\Projects\ELVTRGAME).
+You are standing in for the pixel-art-director on Kindled (C:\Projects\ELVTRGAME).
+That agent has no shell and this pass is entirely measurement, so it routes to you —
+apply the art director's standards, but run the tools yourself.
 
 Run the acceptance checklist at docs/art/retinue-militia.md:426-436 against the packed
-militia sheet. This is a verification pass — you are NOT regenerating art.
+militia sheet at RawArt/Sheets/T_Unit_Retinue.png (the individual source frames live
+under RawArt/Renders/swarm-units-v1/retinue/ELVTR_Retinue_Militia_swarm_unit/ if a
+per-frame measurement needs them). This is a verification pass — you are NOT
+regenerating art.
 
 Read docs/art/retinue-militia.md in full, plus docs/art/aesthetic-direction.md and
 docs/data/art/palette.json.

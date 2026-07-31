@@ -423,17 +423,83 @@ The anchor is authored, so items 1–3 should pass by construction — check the
 because a hand edit to §5a will silently change them. Items 4–10 are what to check on the
 **rotation and animation passes**, which is where a generated frame can drift.
 
-- [ ] Exactly three values present (Dark, Steel, Bone); alpha strictly 0 or 255.
-- [ ] **Zero Pale pixels.** Any pale pixel = reject (`pale_usage: none`).
+- [x] Exactly three values present (Dark, Steel, Bone); alpha strictly 0 or 255.
+      **MEASURED** (`pixelpipe.py quantize`, standalone, `--palette demichrome-4
+      --moving`, on the four cells cropped from the packed `T_Unit_Retinue.png`):
+      `values_used = 3` and `alpha_partial_before = 0` for all four cells (idle,
+      walk, attack, hit); on-palette 100.0% in all four. Sheet-wide, no exceptions.
+- [x] **Zero Pale pixels.** Any pale pixel = reject (`pale_usage: none`).
+      **MEASURED:** pale = 0.0% in the quantized histogram of all four cells.
+      Sheet-wide, no exceptions.
 - [ ] Bone is the largest bucket (`value_dominance: bone`), 38–44%; Dark ≤30%.
-- [ ] Shoulder line is visibly uneven — one bulky pauldron, one thin arm.
+      **FAILED on cell 3 (hit).** MEASURED per-cell dark/steel/bone histogram %:
+      idle 28/32/40, walk 29/31/40, attack 29/30/41 — all on spec, idle matching
+      §5a's own 28.9/30.7/40.3 almost exactly. **hit measures 27/6/67** — Bone is
+      67%, 23 points past the 44% ceiling, and Steel has collapsed from its
+      28–34% band to 6%. See finding below.
+- [x] Shoulder line is visibly uneven — one bulky pauldron, one thin arm.
+      Visually confirmed in all four cells: idle/walk/attack show the bulky
+      Steel pauldron on one side and a thinner limb on the other; hit keeps an
+      asymmetric silhouette (arm and club thrown wide on the recoil) even though
+      its value read fails below. PASS on shape in all four.
 - [ ] Head is value-split: cap on one side, bare scalp on the other.
+      **FAILED on cell 3 (hit).** idle/walk/attack all show the Steel skullcap
+      over roughly the left half of the crown and bare Bone scalp on the right,
+      matching §5a. **hit renders the head as one undifferentiated Bone mass** —
+      the skullcap has detached into a separate small Steel fragment flying
+      above/behind the head rather than remaining a value-split cap. See finding.
 - [ ] Torso is value-split the other way (cloth vs. plate).
-- [ ] Club present, off-vertical, its far end clear of the body outline.
+      **FAILED on cell 3 (hit).** idle/walk/attack show a clean Bone-left /
+      Steel-right torso split. **hit's torso is entirely Bone** — no Steel
+      plate survives the pose. See finding.
+- [x] Club present, off-vertical, its far end clear of the body outline.
+      Confirmed in all four cells: idle (diagonal down and away, Steel head /
+      Bone shaft), walk (held low near the ground), attack (extended to full
+      reach, clear of the body), hit (thrown wide on the recoil). PASS.
 - [ ] Legs mismatched — one Steel, one Bone.
+      **FAILED on cell 3 (hit).** idle/walk/attack all show one Steel booted
+      leg and one bare Bone leg. **Both of hit's legs render Bone** — the Steel
+      boot is gone. See finding.
 - [ ] Eyes are Dark recesses. No visor, no closed helm, no crest.
-- [ ] No dither block smaller than 2×2; no frame that is mostly stipple.
-- [ ] Content bbox ≤ 48×48 in every packed frame.
+      **FAILED on cell 3 (hit).** idle/walk/attack all show two small Dark
+      eye-recess pixels on the face. **hit has zero Dark pixels anywhere in the
+      head** — not a visor or closed helm, just an absence of the eye recesses
+      along with everything else the head normally carries. See finding.
+- [x] No dither block smaller than 2×2; no frame that is mostly stipple.
+      **MEASURED:** `stipple_px_before`/`after` = 0/0 in all four cells; no
+      checker field detected in any of them, `dither_enforced = False`
+      throughout. Sheet-wide, no exceptions.
+- [x] Content bbox ≤ 48×48 in every packed frame.
+      **MEASURED** (alpha bbox of each cropped cell): idle 35×39, walk 37×39,
+      attack 33×39, hit 42×39. All comfortably inside the 48px cell; idle matches
+      §5a's stated 35×39 content box exactly. Sheet-wide, no exceptions.
+
+**Finding — the hit (recoil) cell has lost its Steel value, 2026-07-31 (task-010
+verification pass).** Cell 3 of the packed sheet is not a scaled or cropped version
+of the same silhouette rules the other three cells hold to — its Steel content has
+collapsed to two small isolated fragments (the detached skullcap and the club
+head), taking the skullcap/scalp head-split, the cloth/plate torso-split, and the
+Steel booted leg down with it, and pushing Bone to 67% of the frame against the
+38–44% target. This is the frame `docs/art/retinue-militia.md` §7 says has to carry
+the *most* legible shape change ("a hit must be legible as a shape change, since a
+1-frame flash of a 16px sprite is not") and it is the one cell where the subject's
+entire patchwork read — the mechanism this spec exists to protect — is absent. It
+resembles the "generator tidying the sprite up" failure mode §9 already warns
+about (a rotation coming back cleaner/more uniform than requested), just showing
+up on the animation pass rather than the rotation pass, which is not the case that
+prose anticipates. Not fixed here — this is a verification pass, not a regeneration
+pass. Re-rolling `attack`/`hit` frame selection or the v3 hit generation itself
+(§6's "frame-pick freedom, costing zero generations" — three of eleven generated
+hit/attack frames are packed, the other eight already exist under
+`RawArt/Renders/unit-retinue/r1/`) is the likely fix and costs no new generations
+if one of the other three hit frames holds its Steel value; only a fresh v3
+generation would spend budget.
+
+Measured against `docs/data/art/requests/unit-retinue.json`'s `canon.palette:
+"demichrome-4"` exactly as written — this checklist does not reconsider whether
+that opt-in should change now that demichrome-4 is no longer the game-wide
+default (`aesthetic-direction.md` AMENDMENT 2026-07-28); that is an owner call,
+not this pass's.
 
 **Known failure modes to watch, in order of likelihood:**
 
