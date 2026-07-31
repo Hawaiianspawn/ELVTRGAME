@@ -735,18 +735,6 @@ namespace
 		TEXT("both sides together. Clamped to [0.25, 4]."),
 		ECVF_Default);
 
-	TAutoConsoleVariable<float> CVarSwarmSpriteGroundOffset(
-		TEXT("Swarm.SpriteGroundOffset"),
-		-72.f,
-		TEXT("Z shift, uu, applied to every unit's position before it reaches NS_Swarm. The\n")
-		TEXT("Sprite Renderer centres each sprite on Particles.Position rather than anchoring\n")
-		TEXT("its feet, so a full-body sprite on the ground plane floats half its own height.\n")
-		TEXT("Negative pushes the position DOWN so the feet land at true ground; 0 reproduces\n")
-		TEXT("the float for an A/B. Owner-tuned 2026-07-28 by A/B screenshot at wave-1 density\n")
-		TEXT("(-24 still floated, -100 sank below the floor, -72 read as grounded) — a measured\n")
-		TEXT("value, which implies live Sprite Size is ~144uu, not SETUP-EDITOR.md's stale 48."),
-		ECVF_Default);
-
 	TAutoConsoleVariable<float> CVarSwarmSpriteSize(
 		TEXT("Swarm.SpriteSize"),
 		48.f,
@@ -1642,7 +1630,6 @@ void ASwarmRenderActor::Tick(float DeltaSeconds)
 	const FVector CamP = bRawBand ? RawCamMgr->GetCameraCacheView().Location : FVector::ZeroVector;
 	const float BrdJit = FMath::Clamp(CVarSwarmBroodSizeJitter.GetValueOnGameThread(), 0.f, 0.95f);
 	const float RetJit = FMath::Clamp(CVarSwarmRetinueSizeJitter.GetValueOnGameThread(), 0.f, 0.95f);
-	const float GroundOffset = CVarSwarmSpriteGroundOffset.GetValueOnGameThread();
 	const float BaseSize = FMath::Max(CVarSwarmSpriteSize.GetValueOnGameThread(), 1.f);
 	const float RetScale = FMath::Clamp(CVarSwarmRetinueSizeScale.GetValueOnGameThread(), 0.25f, 4.f);
 	const TArray<FVector>& RenderPos = Swarm->GetRenderPositions();
@@ -1738,15 +1725,20 @@ void ASwarmRenderActor::Tick(float DeltaSeconds)
 		// nested dynamic input in the asset for the same result.
 		// Swarm.RetinueSizeScale rides on top for the team side only — Swarm.SpriteSize is
 		// shared, so it is a zoom rather than a way to make your own soldiers read bigger.
-		SizeScratch.Add(BaseSize * (bRet ? RetScale : 1.f)
-			* SwarmRenderPack::SizeScale((int32)Bits, bRet ? RetJit : BrdJit));
+		const float Size = BaseSize * (bRet ? RetScale : 1.f)
+			* SwarmRenderPack::SizeScale((int32)Bits, bRet ? RetJit : BrdJit);
+		SizeScratch.Add(Size);
 
-		// --- per-particle position: ground-offset compensation for the centred pivot -
-		// See Swarm.SpriteGroundOffset's doc comment -- NS_Swarm centres each sprite on
-		// this position rather than anchoring the sprite's feet to it, so without this
-		// shift every unit floats roughly half its own height above the floor.
-		PositionScratch.Add((PackIndex < RenderPos.Num() ? RenderPos[PackIndex] : FVector::ZeroVector)
-			+ FVector(0.f, 0.f, GroundOffset));
+		// task-110: NS_Swarm's Sprite Renderer PivotInUVSpace is (0.5, 1.0) on both emitters
+		// (was the (0.5, 0.5) centred default), which anchors the sprite's BOTTOM edge to
+		// Particles.Position instead of its centre -- size-independent by construction, so
+		// no per-particle Z compensation is needed here any more. This used to carry a
+		// Swarm.SpriteGroundOffset/GroundScale correction to fake the same thing in world
+		// space; that only ever grounded the nominal-size body (every particle rolls its own
+		// size via Swarm.BroodSizeJitter etc.), so off-nominal bodies floated or sank up to
+		// ~29uu. Deleted rather than re-tuned -- verified grounded at BroodSizeJitter 0,
+		// shipped 0.4072, and worst-case 0.6, all at wave-1 density.
+		PositionScratch.Add(PackIndex < RenderPos.Num() ? RenderPos[PackIndex] : FVector::ZeroVector);
 		++PackIndex;
 
 		const int32 Column = SwarmFacing::ColumnFor(

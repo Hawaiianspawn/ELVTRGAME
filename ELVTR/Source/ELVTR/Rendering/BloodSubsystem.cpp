@@ -67,11 +67,10 @@ namespace
 	TAutoConsoleVariable<float> CVarBloodHeightOffset(
 		TEXT("Blood.HeightOffset"),
 		15.f,
-		TEXT("Z lift, uu, ON TOP OF Swarm.SpriteGroundOffset (applied separately in Tick, not\n")
-		TEXT("part of this default) -- this dial alone is NOT the struck unit's ground level.\n")
-		TEXT("SpriteGroundOffset re-grounds the raw published position to match where the unit\n")
-		TEXT("sprite actually renders; this is the additional lift up the body toward roughly\n")
-		TEXT("where a blow lands. 0 = spawns at the unit's (corrected) feet."),
+		TEXT("Z lift, uu, above the raw published (ground-plane) position -- task-110: that raw\n")
+		TEXT("position is where NS_Swarm's sprite pivot renders the unit's feet, so this alone\n")
+		TEXT("is the whole story now. Lifts the spawn up the body toward roughly where a blow\n")
+		TEXT("lands. 0 = spawns at the unit's feet."),
 		ECVF_Default);
 }
 
@@ -171,17 +170,12 @@ void UBloodSubsystem::Tick(float DeltaSeconds)
 	const int32 MaxBursts = FMath::Max(CVarBloodMaxBurstsPerFrame.GetValueOnGameThread(), 0);
 	const float HeightOffset = CVarBloodHeightOffset.GetValueOnGameThread();
 
-	// GetRenderPositions() is the RAW ground-plane position (Z=0) the sim publishes.
-	// SwarmRenderActor's own Niagara push loop shifts that DOWN by Swarm.SpriteGroundOffset
-	// before it reaches NS_Swarm, so the sprite's centred pivot reads as grounded instead of
-	// floating (see that CVar's doc comment). This subsystem never saw that correction --
-	// spawning blood at the raw position put it exactly where the unit visually USED to float
-	// before that fix landed, which now reads as blood hanging well above the (correctly
-	// grounded) sprite. Same live-read pattern as UnitStencilCVar below: not cached at
-	// startup, so tuning the swarm's offset for an A/B moves blood with it.
-	static IConsoleVariable* SpriteGroundOffsetCVar =
-		IConsoleManager::Get().FindConsoleVariable(TEXT("Swarm.SpriteGroundOffset"));
-	const float SpriteGroundOffset = SpriteGroundOffsetCVar ? SpriteGroundOffsetCVar->GetFloat() : 0.f;
+	// GetRenderPositions() is the RAW ground-plane position (Z=0) the sim publishes. task-110:
+	// NS_Swarm's Sprite Renderer pivot is (0.5, 1.0) on both emitters now, so that raw position
+	// IS where the sprite's feet render -- no ground correction needed here any more. (Used to
+	// re-derive SwarmRenderActor's Swarm.SpriteGroundOffset/GroundScale, an absolute-uu or
+	// per-sprite-size Z shift that faked the same anchoring in world space; deleted along with
+	// that CVar rather than re-pointed at the pivot, since the pivot makes it dead weight.)
 
 	int32 BurstsThisFrame = 0;
 	for (int32 i = 0; i < Count && BurstsThisFrame < MaxBursts; ++i)
@@ -197,7 +191,7 @@ void UBloodSubsystem::Tick(float DeltaSeconds)
 		}
 
 		FVector Location = Positions[i];
-		Location.Z += SpriteGroundOffset + HeightOffset;
+		Location.Z += HeightOffset;
 
 		// Orient the spray with the struck unit's own published facing rather than always
 		// along world axes -- see SpawnBurst's comment for how this reaches the Niagara

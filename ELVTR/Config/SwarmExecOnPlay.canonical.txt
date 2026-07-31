@@ -95,19 +95,27 @@ Swarm.FlameShadowRadius 45    ; caster radius uu — angular width each soldier 
 # BODY SIZE — per-unit size variation, both teams   @tab Unit
 # The brood's counterpart lives on the Horde tab. Base size is the Niagara sprite's own
 # Sprite Size now (the half-extent dials went with the debug-box renderer, 2026-07-29);
-# these vary it per unit and anchor it to the floor.
+# these vary it per unit. Floor anchoring is no longer a tuning dial here at all (task-110):
+# NS_Swarm's Sprite Renderer PivotInUVSpace is (0.5, 1.0) on both emitters, which anchors
+# the sprite's BOTTOM edge to Particles.Position instead of its centre -- size-independent
+# by construction. That replaced Swarm.SpriteGroundOffset/GroundScale, a world-space Z-shift
+# CVar that only ever grounded the nominal-size body (every particle rolls its own size via
+# Swarm.BroodSizeJitter etc.), so off-nominal bodies floated or sank up to ~29uu. Deleted
+# rather than re-tuned -- verified grounded at BroodSizeJitter 0, shipped 0.4072, and
+# worst-case 0.6, all at wave-1 density.
 # ============================================================
-Swarm.RetinueSizeJitter 0.6    ; [0..0.6] per-soldier size variation. 0 on purpose: a drilled line
-                               ; that is uniform against a tide that is not is a free read on which
-                               ; team a body belongs to. Raise it for a conscripted look
-Swarm.SpriteGroundOffset -72   ; (owner-tuned 2026-07-28) uu, Niagara sprite path ONLY. NS_Swarm
-                               ; centres each sprite on the pushed position instead of anchoring
-                               ; its feet, so a unit floats above the floor without this. Negative
-                               ; pushes it down to compensate; 0 reproduces the float for an A/B.
-                               ; -72 is a MEASURED value from an A/B screenshot pass at wave-1
-                               ; density (-24 still floated, -100 sank feet below the floor) —
-                               ; see the CVar's own comment in SwarmRenderActor.cpp for the full
-                               ; reasoning and what it implies about the live Sprite Size
+Swarm.RetinueSizeJitter 0.15   ; [0..0.6] per-soldier size variation, applied as 1 +/- this, so
+                               ; 0.15 spans 0.85x to 1.15x. WAS 0.6 until 2026-07-30, which spans
+                               ; 0.4x to 1.6x -- a FOUR-TIMES spread between the smallest and
+                               ; largest soldier in one army, and the roll is UNIFORM over 16
+                               ; buckets, so a 0.4x runt was exactly as common as an average body.
+                               ; Owner: "its not distance they are just small units" / "they are
+                               ; outliers and not the average or part of a bell curve". This was
+                               ; that, not the variant silhouettes (those only span 0.86x-1.30x).
+                               ; The old comment here said "0 on purpose" while the value read 0.6
+                               ; -- the dial moved and the prose did not. 0 is still the design
+                               ; intent if you want a drilled line: uniform soldiers against a
+                               ; tide that is not is a free read on which team a body belongs to.
 
 # ============================================================
 # PER-UNIT SHADING — flame falloff applied per sprite in the Niagara push   @tab Unit
@@ -122,6 +130,15 @@ Swarm.BroodLightFloor 0    ; [0..0.3] brood-only floor. 0 = a brood at the outer
 Swarm.BroodLightCeil 0.7   ; [0.3..1] brightest a brood is ever drawn — the anti blow-out dial
                            ; for brood standing in the flame. Under 1 also keeps them a step
                            ; below retinue at every distance. 1 = the pre-2026-07-26 look
+Swarm.BroodAdd 0.05        ; [0..0.3] ADDITIVE light floor for brood, linear colour — rides the
+                           ; sprite's ALPHA, not a multiply (the ooze is near-black; a multiply
+                           ; alone blows out the highlights before the body reads). 0 = invisible
+                           ; against the floor (pre-2026-07-29 look). ~63/255 on screen at 0.05.
+                           ; Only Swarm.RawNear fades it now — see that dial
+Swarm.RawNear 420          ; [0..1000] camera distance, uu, inside which BroodAdd's lift is fully
+                           ; OFF, so a brood filling the screen shows its authored near-black body
+                           ; instead of a flat grey lift. Fades back in by 2x this distance. Only
+                           ; darkens toward the authored art — cannot blow anything out. 0 disables
 
 # ============================================================
 # UNIT CAM — projection close-up (docs/RENDERING-LIGHTING.md §4d)   @tab Camera
@@ -387,6 +404,16 @@ Swarm.RetinueTargetsPerHit 8   ; brood hit per retinue blow (its K nearest). The
                                ; scaling stabiliser the old model had by accident and makes fights
                                ; bimodal (K=3 lost with ~220 brood, K=4 won outright)
 
+# task-095 (2026-07-30): the four CVars above are read for the "retinue_base" look
+# (variant 0) and as the archetype the melee sub-type table's row 0 mirrors -- they are
+# NOT the whole picture any more. A Spearman rendered as one of the ten judged knight
+# looks (Swarm.TeamVariantWeights, see @tab Unit further down) fights on its OWN row of
+# Swarm.KnightSubtypeHP / .DPS / .Engage / .Targets instead, indexed via
+# Swarm.KnightSubtypeMap. Not listed here as individual lines -- five prototype CVars,
+# not owner-judged yet, same precedent Swarm.TeamVariantWeights already set (also absent
+# from this file). Defaults, the row layout, and Swarm.KnightSubtypeReport's evidence
+# live in docs/perf/knight-subtype-binding.md. Archers are untouched by any of this.
+
 # ============================================================
 # BROOD COMBAT — the tide's side of the exchange   @tab Horde
 # ============================================================
@@ -408,9 +435,7 @@ Swarm.BroodSizeJitter 0.4072   ; [0..0.6] PER-UNIT variation: each body draws at
                                ; fraction of its base size, fixed for its lifetime. The dial that
                                ; stops the tide reading as one repeated stamp. 0 = the old
                                ; identical-bodies look. Quantised to 16 steps, so past ~0.5 the
-                               ; banding shows. LIVE IN THE UNIT CAM ONLY — NS_Swarm has no
-                               ; User.Sizes parameter, so the world-view push is discarded every
-                               ; frame (see SwarmRenderActor.cpp's ponytail: note). Asset fix
+                               ; banding shows. Honoured by both the Niagara push and the Unit Cam
 Emberkeep.UnitCamProj.BroodScale 1 ; [0.2..4] the same call for the UNIT CAM panel, as a multiple
                                ; of a soldier's billboard. The panel is where the difference is
                                ; actually legible — the world view is boxes from above — so move
@@ -501,7 +526,7 @@ Blood.MaxBurstsPerFrame 8     ; DOWN from 24, same wash fix. GLOBAL cap on burst
                                ; the cost-bounding dial; without it cost scales with how many
                                ; units are mid-flash at once, which is unbounded at horde
                                ; density
-Blood.Lifetime 0.3             ; seconds a particle lives — sub-second by design
+Blood.Lifetime 0.5             ; seconds a particle lives — sub-second by design
 Blood.Size 2                   ; sprite half-size uu — pixel-scale, not an fx-scale splat
 Blood.SpeedScale 1.1            ; multiplier over NS_Blood's authored spray range; 0 = drops
                                ; straight down at the hit point. DOWN from 2.2 (owner-tuned
