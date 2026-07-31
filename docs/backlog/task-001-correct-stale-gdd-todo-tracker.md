@@ -1,7 +1,7 @@
 ---
 id: 001
 title: Correct the stale blockers in GDD-TODO.md and point it at the backlog
-status: proposed
+status: in-progress
 agent: claude
 owns: ["docs/GDD-TODO.md"]
 resources: []
@@ -9,7 +9,9 @@ depends-on: []
 evidence: GDD-TODO.md Part A shows no false blockers; a diff showing each corrected line against the canon line that settles it.
 score: {feel: 1, risk: 1, cost: 1}
 source: docs/GDD-TODO.md:46
-decided: ""
+decided: "2026-07-31 in-progress"
+model: sonnet
+teammate: gdd-todo-retry
 ---
 
 ## Why now
@@ -34,12 +36,14 @@ from it starts from a false premise.
 
 ## Spawn prompt
 ```
-You are correcting a stale tracker in the Emberkeep repo (C:\Projects\ELVTRGAME).
+You are correcting a stale tracker in the Kindled repo (C:\Projects\ELVTRGAME).
 
 docs/GDD-TODO.md was written 2026-07-21 for an assignment due that night. It has not
 been updated since, and it now contradicts canon. Confirmed example: line 46 lists
-"Name the game" as a red blocker, but GDD.md line 433 records Q10 as decided on
-2026-07-21 — the name is Emberkeep.
+"Name the game" as a red blocker, but GDD.md line 481 records Q10 as re-decided on
+2026-07-27 — the game is named KINDLED. "Emberkeep" is the DISCARDED working title;
+GDD-TODO.md's Part A blocker table and its parked-candidates list are both stale on
+this point. Never re-introduce Emberkeep as the name.
 
 Go through every unchecked item in Part A and Part B. For each one, check it against
 GDD.md (especially the §12 Open Questions table at line 411), CLASSES.md, SYSTEMS.md,

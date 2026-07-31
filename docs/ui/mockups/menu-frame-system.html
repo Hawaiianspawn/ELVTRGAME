@@ -1,445 +1,371 @@
-<title>Kindled — The Sampler Frame & Muster HUD</title>
+<!doctype html>
+<title>Kindled — Menu Summoned Over a Live Run</title>
+<meta name="viewport" content="width=device-width, initial-scale=1" />
 <style>
-  /* ============================================================
-     KINDLED — The Sampler Frame + central Muster (unit management)
-     Palette is LOCKED: strict global 4-value Demichrome. No 5th value.
-     Single-theme by intent — the locked palette IS the design; a
-     light/dark inversion would violate the art direction.
-     This is a LAYOUT PREVIEW. Flanking figures / dragon lintel shown
-     as stitched-silhouette placeholders -> real plates are an art
-     brief to the pixel-art-director.
-     ============================================================ */
-  :root{
-    --dark:#211e20;   /* darkest — ground, frame ink, wells, text-on-pale */
-    --steel:#555568;  /* dark-mid — inactive, hairline, spent/lost, track */
-    --bone:#a0a08b;   /* pale-mid — surface, body text, neutral fill */
-    --pale:#e9efec;   /* the only bright — title, focus, healthy fill, glint */
-    --red:#8f2d24;    /* RUBRICATION — reserved: cost/temptation. Legend only. */
+  :root {
+    /* ---- token system inherited verbatim from docs/ui/ui-aesthetic.md §1 — not reinvented here ---- */
+    --ink:            #1c1712;
+    --ink-deep:       #120e0b;
+    --iron:           #585a66;
+    --iron-hair:      #3c3d47;
+    --iron-dim:       #6f7078;
+    --parchment:      #c9bfa0;
+    --parchment-hi:   #ddd3b6;
+    --ember:          #e8a23c;
+    --ember-hot:      #ffcf6b;
+    --rubrication:    #8f1d1d;
 
-    --face-chronicle:"Iowan Old Style","Palatino Linotype",Palatino,"Book Antiqua",Georgia,serif;
-    --face-tapestry:ui-monospace,"Cascadia Mono","DejaVu Sans Mono","Roboto Mono","Courier New",monospace;
+    /* page chrome around the game panel — theme-aware; the game panel itself is NOT
+       (a fixed-dark game HUD is a design fact, not a page setting) */
+    --page-bg: #eee7d8;
+    --page-bg-2: #e2d9c4;
+    --page-fg: #2a241c;
+    --page-fg-dim: #6b6250;
+    --page-accent: #a8642f;
+    --page-line: #cabf9f;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root { --page-bg: #14110d; --page-bg-2: #1b1712; --page-fg: #e8ddc6; --page-fg-dim: #9c9078; --page-accent: #e8a23c; --page-line: #332c22; }
+  }
+  :root[data-theme="dark"]  { --page-bg: #14110d; --page-bg-2: #1b1712; --page-fg: #e8ddc6; --page-fg-dim: #9c9078; --page-accent: #e8a23c; --page-line: #332c22; }
+  :root[data-theme="light"] { --page-bg: #eee7d8; --page-bg-2: #e2d9c4; --page-fg: #2a241c; --page-fg-dim: #6b6250; --page-accent: #a8642f; --page-line: #cabf9f; }
 
-    --gap:clamp(8px,1.1vw,16px);
-    --rail:14px;               /* stitched frame rail thickness */
-    /* 1px halftone — legal here: static, pixel-locked UI only */
-    --halftone:repeating-conic-gradient(from 0deg,#26232500 0deg 90deg,#2c2a2c 90deg 180deg) 0 0/2px 2px;
-    --stitch-h:repeating-linear-gradient(90deg,var(--bone) 0 3px,transparent 3px 7px);
-    --stitch-v:repeating-linear-gradient(0deg,var(--bone) 0 3px,transparent 3px 7px);
+  * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; }
+  body {
+    background: var(--page-bg);
+    color: var(--page-fg);
+    font: 15px/1.55 ui-serif, Georgia, "Iowan Old Style", serif;
+    padding: 40px 20px 80px;
+  }
+  .wrap { max-width: 1180px; margin: 0 auto; }
+
+  header.page-head { margin-bottom: 8px; }
+  header.page-head .eyebrow {
+    font: 700 11px/1 ui-monospace, "SFMono-Regular", Menlo, Consolas, monospace;
+    letter-spacing: .14em; text-transform: uppercase; color: var(--page-accent); margin: 0 0 10px;
+  }
+  header.page-head h1 { font: 600 32px/1.15 ui-serif, Georgia, serif; text-wrap: balance; margin: 0 0 10px; letter-spacing: -0.01em; }
+  header.page-head p { max-width: 66ch; color: var(--page-fg-dim); margin: 0 0 6px; }
+  header.page-head p.note { font-size: 13px; border-left: 2px solid var(--page-line); padding-left: 12px; margin-top: 18px; }
+
+  .stage-label {
+    font: 700 12px/1 ui-monospace, monospace; letter-spacing: .09em; text-transform: uppercase;
+    color: var(--page-fg-dim); margin: 40px 0 12px; display: flex; align-items: baseline; gap: 8px;
+  }
+  .stage-label .tag { font: 400 12px/1 ui-serif, serif; text-transform: none; letter-spacing: 0; color: var(--page-accent); }
+
+  /* ================= the stage: a paused battlefield behind the summoned frame ================= */
+  .stage {
+    position: relative;
+    background: #0a0806;
+    border: 1px solid var(--page-line);
+    padding: 34px;
+    overflow: hidden;
+  }
+  .battlefield {
+    position: absolute; inset: 0;
+    filter: grayscale(.55) blur(.3px);
+  }
+  .battlefield .dot {
+    position: absolute; width: 5px; height: 5px;
+    background: var(--iron);
+  }
+  .battlefield .dot.hero { background: var(--ember-hot); width: 7px; height: 7px; box-shadow: 0 0 6px 1px rgba(255,207,107,.5); }
+  .battlefield .dot.foe { background: #6b3b3b; }
+  .scrim {
+    position: absolute; inset: 0;
+    background: rgba(10,8,6,.72);
+  }
+  .paused-tag {
+    position: absolute; top: 14px; left: 14px;
+    font: 700 10px/1 ui-monospace, monospace; letter-spacing: .12em; text-transform: uppercase;
+    color: var(--iron-dim); display: flex; align-items: center; gap: 6px; z-index: 2;
+  }
+  .paused-tag .bar { width: 3px; height: 10px; background: var(--iron-dim); }
+  .paused-tag .bar + .bar { margin-left: -3px; }
+  .phase-badge {
+    position: absolute; top: 12px; right: 14px; z-index: 2;
+    font: 700 9px/1 ui-monospace, monospace; letter-spacing: .1em; text-transform: uppercase;
+    color: var(--ink); background: var(--ember); padding: 4px 8px;
   }
 
-  *{box-sizing:border-box;margin:0;padding:0;}
-  html{-webkit-text-size-adjust:100%;}
-  body{
-    background:var(--dark);
-    background-image:radial-gradient(120% 90% at 50% 0%,#2a272a 0%,#211e20 60%,#1a181a 100%);
-    color:var(--bone);
-    font-family:var(--face-tapestry);
-    line-height:1.35;
-    min-height:100vh;
-    display:flex;
-    justify-content:center;
-    align-items:flex-start;
-    padding:clamp(10px,2.4vw,40px);
-    image-rendering:pixelated;
+  /* ================= GAME UI — fixed dark, pixel-locked, never theme-swaps ================= */
+  .game {
+    position: relative; z-index: 3;
+    max-width: 760px; margin: 0 auto;
+    background: var(--ink); color: var(--parchment);
+    font: 13px/1.5 ui-monospace, "SFMono-Regular", Menlo, Consolas, "Liberation Mono", monospace;
+    -webkit-font-smoothing: none; font-smooth: never;
+    padding: 10px; image-rendering: pixelated;
+    box-shadow: 0 0 0 1px var(--iron-hair), 0 24px 60px -20px rgba(0,0,0,.8);
   }
-  img,svg{image-rendering:pixelated;}
-
-  /* ---- the screen ---------------------------------------------------- */
-  .screen{
-    width:min(1180px,100%);
-    background:var(--dark);
-    position:relative;
-    padding:var(--rail);
-    box-shadow:0 0 0 2px var(--dark),0 0 0 3px var(--steel);
+  .halftone {
+    background-image:
+      linear-gradient(45deg, var(--iron-hair) 25%, transparent 25%, transparent 75%, var(--iron-hair) 75%),
+      linear-gradient(45deg, var(--iron-hair) 25%, transparent 25%, transparent 75%, var(--iron-hair) 75%);
+    background-size: 2px 2px; background-position: 0 0, 1px 1px;
   }
-  /* stitched outer border rails */
-  .screen::before,.screen::after{content:"";position:absolute;pointer-events:none;}
-  .screen::before{ /* top+bottom running stitch */
-    left:var(--rail);right:var(--rail);top:5px;height:3px;
-    background:var(--stitch-h);opacity:.7;
-    box-shadow:0 calc(100% + 3px) 0 0 rgba(0,0,0,0);
+  .stitch-frame { border: 1px solid var(--iron); background: var(--ink); }
+
+  .bracket-corner { position: relative; }
+  .bracket-corner::before, .bracket-corner::after,
+  .bracket-corner .bc-br::before, .bracket-corner .bc-br::after { content: ""; position: absolute; width: 7px; height: 7px; }
+  .bracket-corner::before { top: -1px; left: -1px; border-top: 2px solid var(--iron); border-left: 2px solid var(--iron); }
+  .bracket-corner::after  { top: -1px; right: -1px; border-top: 2px solid var(--iron); border-right: 2px solid var(--iron); }
+  .bracket-corner .bc-br { position: absolute; inset: 0; }
+  .bracket-corner .bc-br::before { bottom: -1px; left: -1px; border-bottom: 2px solid var(--iron); border-left: 2px solid var(--iron); top: auto; }
+  .bracket-corner .bc-br::after  { bottom: -1px; right: -1px; border-bottom: 2px solid var(--iron); border-right: 2px solid var(--iron); top: auto; }
+
+  .band { padding: 5px 8px; }
+  .band.header { text-align: center; }
+  .crest { font: 700 12px/1 ui-serif, Georgia, serif; letter-spacing: .12em; text-transform: uppercase; color: var(--parchment-hi); }
+  .crest .flicker { color: var(--ember); }
+  .sub { font-size: 9px; letter-spacing: .06em; color: var(--iron-dim); margin-top: 2px; }
+
+  /* tab strip — new: Muster / Settings, the two wells this summon can open */
+  .tabstrip { display: flex; justify-content: center; gap: 2px; margin-top: 5px; }
+  .tab {
+    font-size: 9px; letter-spacing: .08em; text-transform: uppercase;
+    padding: 3px 10px; color: var(--iron-dim); border: 1px solid var(--iron-hair); border-bottom: none;
   }
-  .rail-b{position:absolute;left:var(--rail);right:var(--rail);bottom:5px;height:3px;background:var(--stitch-h);opacity:.7;}
-  .rail-l{position:absolute;top:var(--rail);bottom:var(--rail);left:5px;width:3px;background:var(--stitch-v);opacity:.7;}
-  .rail-r{position:absolute;top:var(--rail);bottom:var(--rail);right:5px;width:3px;background:var(--stitch-v);opacity:.7;}
+  .tab.active { color: var(--ink); background: var(--ember); border-color: var(--ember); font-weight: 700; }
 
-  .frame{
-    border:2px solid var(--steel);
-    background:var(--dark);
-    display:grid;
-    grid-template-columns:minmax(140px,180px) 1fr minmax(140px,180px);
-    grid-template-rows:auto 1fr auto;
-    grid-template-areas:
-      "header header header"
-      "left   well   right"
-      "footer footer footer";
+  .row-flex { display: flex; gap: 6px; }
+  .flank { width: 78px; flex: 0 0 auto; display: flex; flex-direction: column; align-items: center; gap: 6px; padding: 6px 4px; }
+  .medallion {
+    width: 40px; height: 40px; border-radius: 50%; border: 2px solid var(--iron); background: var(--ink-deep);
+    display: flex; align-items: center; justify-content: center; font: 700 15px ui-serif, serif; color: var(--ember);
   }
+  .flank .label { font-size: 8px; letter-spacing: .08em; text-transform: uppercase; color: var(--iron-dim); }
+  .pip-row { display: flex; gap: 2px; }
+  .pip { width: 5px; height: 8px; background: var(--iron-hair); }
+  .pip.full { background: var(--ember); }
+  .pip.full.hot { background: var(--ember-hot); }
 
-  /* ---- corner medallions (decorative sampler rosettes) --------------- */
-  .rosette{
-    position:absolute;width:46px;height:46px;z-index:5;
-    border-radius:50%;
-    background:
-      repeating-conic-gradient(var(--bone) 0deg 9deg,transparent 9deg 18deg),
-      radial-gradient(circle at 50% 50%,var(--dark) 0 34%,var(--bone) 34% 40%,var(--dark) 40% 52%,var(--steel) 52% 100%);
-    box-shadow:0 0 0 2px var(--dark),0 0 0 3px var(--steel);
+  .well { flex: 1 1 auto; min-width: 0; padding: 6px; }
+  .company-line { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 4px; }
+  .company-line .label { font-size: 10px; color: var(--parchment-hi); }
+  .company-line .stat { font-variant-numeric: tabular-nums; font-size: 10px; color: var(--parchment); }
+  .company-meter { display: flex; gap: 1px; margin-bottom: 8px; }
+  .company-meter .pip { width: 4px; height: 6px; }
+
+  .cards { display: flex; flex-wrap: wrap; gap: 5px; }
+  .card { border: 1px solid var(--iron); background: var(--ink); padding: 4px 5px; width: 90px; }
+  .card.wide { width: 186px; }
+  .card.selected { border: 2px solid var(--ember); padding: 3px 4px; }
+  .card .chead { display: flex; justify-content: space-between; font-size: 9px; margin-bottom: 3px; }
+  .card .cname { color: var(--parchment); }
+  .card .cstat { color: var(--parchment-hi); font-variant-numeric: tabular-nums; }
+  .grid { display: grid; grid-template-columns: repeat(var(--cols, 6), 1fr); gap: 1px; margin-bottom: 4px; }
+  .grid .gp { width: 100%; aspect-ratio: 1; background: var(--iron-hair); }
+  .grid .gp.on { background: var(--ember); }
+  .chip { display: inline-block; font-size: 8px; letter-spacing: .04em; padding: 1px 4px; background: var(--iron-hair); color: var(--parchment); }
+  .chip.active { background: var(--ember); color: var(--ink); }
+
+  .stancewheel { display: flex; flex-direction: column; align-items: center; gap: 4px; }
+  .spokes { display: grid; grid-template-columns: repeat(2, 1fr); gap: 3px; }
+  .spoke { font-size: 8px; letter-spacing: .04em; text-align: center; padding: 3px 4px; border: 1px solid var(--iron); color: var(--iron-dim); }
+  .spoke.active { border-color: var(--ember); color: var(--ember); font-weight: 700; }
+  .leash { width: 100%; }
+  .leash-track { height: 5px; background: var(--iron-hair); position: relative; margin-top: 2px; }
+  .leash-fill { height: 100%; background: var(--parchment); width: 62%; }
+  .leash-warn { position: absolute; top: -1px; bottom: -1px; left: 80%; width: 1px; background: var(--ember); }
+
+  .footer.band { display: flex; justify-content: space-between; font-size: 8px; letter-spacing: .04em; color: var(--iron-dim); }
+  .footer.band .key { color: var(--parchment); }
+  .footer.band .redcheck { display: flex; align-items: center; gap: 4px; }
+  .redcheck .swatch { width: 7px; height: 7px; background: var(--rubrication); opacity: .35; border: 1px solid var(--iron-hair); }
+
+  /* first-launch toast — annotated outside the frame, page-chrome register (not game chrome) */
+  .toast-note {
+    max-width: 760px; margin: 10px auto 0; display: flex; align-items: center; gap: 8px;
+    font-size: 12px; color: var(--page-fg-dim);
   }
-  .rosette::after{content:"";position:absolute;inset:38%;border-radius:50%;background:var(--pale);opacity:.85;}
-  .rosette.tl{top:2px;left:2px;} .rosette.tr{top:2px;right:2px;}
-  .rosette.bl{bottom:2px;left:2px;} .rosette.br{bottom:2px;right:2px;}
+  .toast-note .dot { width: 6px; height: 6px; border-radius: 50%; background: var(--page-accent); flex: 0 0 auto; }
 
-  /* ---- header band --------------------------------------------------- */
-  .header{
-    grid-area:header;position:relative;
-    padding:10px 64px 12px;
-    border-bottom:2px solid var(--steel);
-    background:var(--halftone),var(--dark);
-    text-align:center;
-    overflow:hidden;
-  }
-  .lintel{display:block;width:min(560px,80%);height:64px;margin:0 auto 2px;}
-  .crest{
-    font-family:var(--face-chronicle);
-    font-weight:700;
-    color:var(--pale);
-    font-size:clamp(26px,4.4vw,44px);
-    letter-spacing:.14em;
-    line-height:1;
-    text-transform:uppercase;
-    text-wrap:balance;
-    text-shadow:2px 2px 0 var(--dark),3px 3px 0 var(--steel);
-  }
-  .crest small{
-    display:block;font-family:var(--face-tapestry);color:var(--bone);
-    font-size:clamp(9px,1.15vw,12px);font-weight:400;letter-spacing:.5em;
-    text-transform:uppercase;text-shadow:none;margin-top:8px;padding-left:.5em;
-  }
-  .inscribe{
-    font-family:var(--face-chronicle);font-style:italic;color:var(--steel);
-    font-size:clamp(11px,1.4vw,14px);letter-spacing:.02em;margin-top:6px;
-  }
+  /* ================= phase-behavior legend ================= */
+  .phase-table { width: 100%; border-collapse: collapse; margin-top: 14px; }
+  .phase-table th, .phase-table td { text-align: left; padding: 8px 10px; border-bottom: 1px solid var(--page-line); vertical-align: top; }
+  .phase-table th { font: 700 10px/1 ui-monospace, monospace; letter-spacing: .08em; text-transform: uppercase; color: var(--page-fg-dim); }
+  .phase-table td { font-size: 13.5px; }
+  .phase-table td.phase { font: 700 12px ui-monospace, monospace; color: var(--page-accent); white-space: nowrap; }
+  .phase-table code { font: 12px ui-monospace, monospace; background: var(--page-bg-2); padding: 1px 5px; }
 
-  /* ---- flanking guardian panels -------------------------------------- */
-  .flank{position:relative;display:flex;flex-direction:column;padding:12px 8px;gap:10px;}
-  .flank.left{grid-area:left;border-right:2px solid var(--steel);}
-  .flank.right{grid-area:right;border-left:2px solid var(--steel);}
-  .guardian{width:100%;height:150px;opacity:.9;}
-  .flank-label{
-    font-size:10px;letter-spacing:.28em;text-transform:uppercase;color:var(--steel);
-    text-align:center;border-top:1px dotted var(--steel);border-bottom:1px dotted var(--steel);
-    padding:4px 0;
-  }
+  .legend { margin-top: 44px; padding-top: 22px; border-top: 1px solid var(--page-line); }
+  .legend h3 { font: 600 12px/1 ui-monospace, monospace; letter-spacing: .1em; text-transform: uppercase; color: var(--page-fg-dim); margin: 0 0 14px; }
 
-  /* hero medallion */
-  .medallion{
-    --sz:96px;width:var(--sz);height:var(--sz);margin:0 auto;position:relative;border-radius:50%;
-    background:
-      repeating-conic-gradient(var(--bone) 0deg 7deg,transparent 7deg 14deg),
-      radial-gradient(circle,var(--dark) 0 64%,var(--steel) 64% 72%,var(--dark) 72% 80%,var(--bone) 80% 86%,var(--dark) 86% 100%);
-    box-shadow:0 0 0 2px var(--dark),0 0 0 3px var(--steel);
-    display:grid;place-items:center;
-  }
-  .medallion svg{width:66%;height:66%;}
-  .hero-name{text-align:center;color:var(--pale);font-size:12px;letter-spacing:.18em;text-transform:uppercase;}
-  .hero-role{text-align:center;color:var(--steel);font-size:9px;letter-spacing:.3em;text-transform:uppercase;margin-top:-4px;}
-
-  /* ---- meters (counted-stitch segmented pips) ------------------------ */
-  .meter{display:flex;gap:2px;height:14px;align-items:stretch;}
-  .meter.sm{height:9px;}
-  .meter.lg{height:18px;}
-  .seg{flex:1 1 0;background:var(--dark);box-shadow:inset 0 0 0 1px var(--steel);}
-  .seg.full{background:var(--pale);box-shadow:inset 0 0 0 1px var(--dark);}
-  .seg.wound{background:var(--steel);box-shadow:inset 0 0 0 1px var(--dark);}
-  .meter-row{display:flex;flex-direction:column;gap:4px;}
-  .meter-cap{display:flex;justify-content:space-between;align-items:baseline;font-size:10px;letter-spacing:.12em;text-transform:uppercase;}
-  .meter-cap .val{color:var(--pale);font-variant-numeric:tabular-nums;letter-spacing:.06em;}
-  .meter-cap .lbl{color:var(--bone);}
-
-  /* ---- central well: the Muster -------------------------------------- */
-  .well{grid-area:well;padding:14px clamp(12px,1.8vw,22px) 16px;display:flex;flex-direction:column;gap:14px;background:var(--dark);}
-  .well-title{display:flex;justify-content:space-between;align-items:flex-end;gap:12px;flex-wrap:wrap;}
-  .well-title h2{
-    font-family:var(--face-chronicle);color:var(--pale);font-size:clamp(16px,2.2vw,22px);
-    letter-spacing:.06em;text-transform:uppercase;font-weight:700;text-wrap:balance;
-  }
-  .well-title .sub{color:var(--steel);font-size:10px;letter-spacing:.24em;text-transform:uppercase;}
-  .company{border:2px solid var(--steel);background:var(--halftone),var(--dark);padding:11px 13px;display:flex;flex-direction:column;gap:8px;}
-  .company .top{display:flex;justify-content:space-between;align-items:baseline;}
-  .company .top b{font-family:var(--face-chronicle);color:var(--pale);font-size:15px;letter-spacing:.08em;text-transform:uppercase;font-weight:700;}
-  .company .strength{color:var(--bone);font-size:11px;letter-spacing:.14em;}
-  .company .strength var{font-style:normal;color:var(--pale);font-variant-numeric:tabular-nums;}
-
-  /* squad note */
-  .ranknote{font-size:10px;color:var(--steel);letter-spacing:.02em;line-height:1.55;}
-  .ranknote b{color:var(--bone);font-weight:400;}
-
-  /* ---- square RTS squad cards (Warcraft-format) ---------------------- */
-  .roster{display:grid;grid-template-columns:repeat(auto-fill,minmax(120px,1fr));gap:8px;align-items:start;}
-  .squad{
-    border:1px solid var(--steel);background:var(--dark);
-    display:flex;flex-direction:column;gap:6px;padding:7px;position:relative;
-  }
-  .squad.wide{grid-column:span 2;}
-  .squad:focus-within,.squad.sel{border-color:var(--pale);box-shadow:inset 0 0 0 1px var(--pale);}
-  .shead{display:flex;justify-content:space-between;align-items:center;gap:6px;}
-  .stype{display:flex;align-items:center;gap:6px;min-width:0;}
-  .stype svg{width:15px;height:15px;flex:none;}
-  .stype b{font-size:10px;letter-spacing:.08em;text-transform:uppercase;color:var(--bone);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
-  .size{font-size:12px;color:var(--pale);font-variant-numeric:tabular-nums;letter-spacing:.02em;flex:none;}
-  .size s{color:var(--steel);text-decoration:none;font-size:9px;}
-  /* the muster: rank & file — one pip = a soldier (a FILE at scale) */
-  .muster{display:grid;gap:2px;background:var(--dark);padding:5px;box-shadow:inset 0 0 0 1px var(--steel);}
-  .pip{aspect-ratio:1;background:var(--dark);box-shadow:inset 0 0 0 1px var(--steel);}
-  .pip.alive{background:var(--pale);box-shadow:none;}
-  .pip.lost{opacity:.5;}
-  .sfoot{display:flex;justify-content:space-between;align-items:center;gap:6px;}
-  .hpread{font-size:9px;color:var(--steel);letter-spacing:.08em;font-variant-numeric:tabular-nums;}
-
-  .chip{
-    justify-self:end;text-align:center;min-width:70px;
-    font-size:10px;letter-spacing:.16em;text-transform:uppercase;
-    padding:5px 6px;border:1px solid var(--steel);color:var(--bone);background:var(--dark);
-  }
-  .chip.on{border-color:var(--pale);color:var(--dark);background:var(--pale);font-weight:700;}
-  .chip.sq{justify-self:auto;min-width:0;padding:3px 8px;font-size:9px;letter-spacing:.12em;}
-
-  /* ---- right flank: stance wheel + leash ----------------------------- */
-  .orders{display:flex;flex-direction:column;gap:12px;align-items:center;}
-  .wheel{--w:132px;width:var(--w);height:var(--w);position:relative;border-radius:50%;
-    background:radial-gradient(circle,var(--dark) 0 30%,var(--steel) 30% 31%,var(--dark) 31% 100%);
-    box-shadow:0 0 0 2px var(--dark),0 0 0 3px var(--steel);}
-  .wheel .hubv{position:absolute;inset:0;display:grid;place-items:center;font-size:9px;letter-spacing:.14em;color:var(--pale);text-transform:uppercase;text-align:center;}
-  .wheel .hubv b{font-family:var(--face-chronicle);font-size:13px;letter-spacing:.06em;}
-  .stance{position:absolute;width:44px;height:24px;display:grid;place-items:center;font-size:9px;letter-spacing:.1em;text-transform:uppercase;color:var(--bone);border:1px solid var(--steel);background:var(--dark);}
-  .stance.on{color:var(--dark);background:var(--pale);border-color:var(--pale);font-weight:700;}
-  .stance.n{top:-6px;left:50%;transform:translateX(-50%);}
-  .stance.e{right:-16px;top:50%;transform:translateY(-50%);}
-  .stance.s{bottom:-6px;left:50%;transform:translateX(-50%);}
-  .stance.w{left:-16px;top:50%;transform:translateY(-50%);}
-
-  .leash{width:100%;display:flex;flex-direction:column;gap:5px;}
-  .leash .track{position:relative;height:12px;background:var(--dark);box-shadow:inset 0 0 0 1px var(--steel);}
-  .leash .fill{position:absolute;inset:1px auto 1px 1px;width:calc(64% - 2px);background:var(--bone);}
-  .leash .warn{position:absolute;top:-3px;bottom:-3px;left:80%;width:2px;background:var(--pale);}
-  .leash .warn::after{content:"80%";position:absolute;top:-13px;left:50%;transform:translateX(-50%);font-size:8px;color:var(--pale);letter-spacing:.05em;}
-  .leash-cap{display:flex;justify-content:space-between;font-size:9px;letter-spacing:.14em;text-transform:uppercase;color:var(--steel);}
-  .leash-cap var{font-style:normal;color:var(--bone);font-variant-numeric:tabular-nums;}
-
-  /* ---- footer -------------------------------------------------------- */
-  .footer{
-    grid-area:footer;border-top:2px solid var(--steel);
-    background:var(--halftone),var(--dark);
-    display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;
-    padding:9px 20px;
-  }
-  .hints{display:flex;gap:16px;flex-wrap:wrap;}
-  .hint{display:flex;align-items:center;gap:6px;font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:var(--bone);}
-  .btn{display:inline-grid;place-items:center;min-width:18px;height:18px;padding:0 4px;border-radius:50%;background:var(--bone);color:var(--dark);font-size:10px;font-weight:700;}
-  .btn.sq{border-radius:2px;}
-  .legend{display:flex;align-items:center;gap:8px;font-size:9px;letter-spacing:.1em;text-transform:uppercase;color:var(--steel);}
-  .swatch{width:10px;height:10px;display:inline-block;box-shadow:inset 0 0 0 1px var(--dark);}
-  .swatch.r{background:var(--red);}
-
-  /* baked light-flicker on Pale glints (portrait-register §3) */
-  @keyframes glint{0%,88%{opacity:.85;}92%{opacity:1;}96%{opacity:.7;}100%{opacity:.85;}}
-  .glint{animation:glint 3.2s steps(1,end) infinite;}
-  @media (prefers-reduced-motion:reduce){.glint{animation:none;}}
-
-  /* ---- caption below the screen -------------------------------------- */
-  .caption{width:min(1180px,100%);margin-top:14px;color:var(--steel);font-size:11px;letter-spacing:.04em;line-height:1.5;}
-  .caption b{color:var(--bone);font-weight:400;}
-  .caption code{color:var(--pale);}
-
-  /* ---- responsive collapse (Deck / narrow): flanks stack ------------- */
-  @media (max-width:720px){
-    .frame{grid-template-columns:1fr;grid-template-areas:"header" "well" "left" "right" "footer";}
-    .flank.left,.flank.right{flex-direction:row;flex-wrap:wrap;justify-content:center;border:none;border-top:2px solid var(--steel);}
-    .guardian{display:none;}
-    .roster{grid-template-columns:repeat(auto-fill,minmax(104px,1fr));}
-    .squad.wide{grid-column:span 2;}
-  }
+  footer.colophon { margin-top: 46px; padding-top: 18px; border-top: 1px solid var(--page-line); font-size: 12px; color: var(--page-fg-dim); }
+  footer.colophon code { font: 12px ui-monospace, monospace; background: var(--page-bg-2); padding: 1px 5px; }
 </style>
 
-<div class="screen">
-  <span class="rail-b"></span><span class="rail-l"></span><span class="rail-r"></span>
-  <div class="rosette tl"></div><div class="rosette tr"></div>
-  <div class="rosette bl"></div><div class="rosette br"></div>
+<div class="wrap">
+  <header class="page-head">
+    <p class="eyebrow">Kindled · task-115 · docs/ui/menu-frame-system.md</p>
+    <h1>The menu is summoned, not booted into</h1>
+    <p>
+      The game boots straight into <code style="font:14px ui-monospace,monospace;">Deploying</code> —
+      there is no title screen. This is what pressing Start looks like mid-fight: the run hard-pauses,
+      the Sampler Frame takes the screen back from the battle, and the same Muster well built for the
+      old main-menu flow reappears as an overlay. Dismiss returns to exactly where the wave left off.
+    </p>
+    <p class="note">
+      Chrome (frame plate, medallion, corner brackets) is placeholder geometry, not final pixel art —
+      this previews structure, palette, and the pause behaviour, not finished art. The scattered dots
+      behind the frame stand in for the frozen swarm; they are not a battle render.
+    </p>
+  </header>
 
-  <div class="frame">
+  <div class="stage-label">Summoned mid-<span class="tag">Wave 2 · Active — the hardest case, not the easiest</span></div>
 
-    <!-- ============ HEADER: beast lintel + blackletter crest ========= -->
-    <header class="header">
-      <svg class="lintel" viewBox="0 0 560 64" role="img" aria-label="Beast lintel (placeholder plate)">
-        <defs>
-          <pattern id="dith" width="2" height="2" patternUnits="userSpaceOnUse">
-            <rect width="2" height="2" fill="#a0a08b"/><rect width="1" height="1" fill="#211e20"/><rect x="1" y="1" width="1" height="1" fill="#211e20"/>
-          </pattern>
-        </defs>
-        <!-- sinuous dragon silhouette, stitched-dither fill -->
-        <path fill="url(#dith)" d="M18 40 q40 -30 92 -14 q30 8 66 2 q26 -4 40 -18 q6 -6 14 -3 q6 3 3 11 q-6 16 -30 24 q28 -2 50 6 q30 11 62 6 q30 -5 52 -22 q14 -11 30 -8 q10 2 8 12 q-3 14 -22 22 q22 3 40 -4 q10 -4 18 2 q6 5 0 12 q-14 15 -44 15 q-40 0 -74 -12 q-40 -14 -80 -12 q-46 2 -86 18 q-30 12 -60 10 q-24 -2 -34 -14 q-6 -8 1 -15 q7 -7 17 -1 z"/>
-        <!-- horned head -->
-        <path fill="url(#dith)" d="M40 44 l-22 -6 l10 10 l-14 2 l16 6 l-8 8 l18 -4 l6 8 l6 -12 z"/>
-        <circle cx="30" cy="46" r="2" fill="#e9efec" class="glint"/>
-      </svg>
-      <div class="crest">Kindled<small>The Sampler Frame</small></div>
-      <div class="inscribe">— the record keeps what you save —</div>
-    </header>
+  <div class="stage">
+    <div class="battlefield" id="battlefield"></div>
+    <div class="scrim"></div>
+    <div class="paused-tag"><span class="bar"></span><span class="bar"></span> paused</div>
+    <div class="phase-badge">Wave 2 · Active</div>
 
-    <!-- ============ LEFT FLANK: guardian + hero medallion ============ -->
-    <aside class="flank left">
-      <svg class="guardian" viewBox="0 0 120 150" role="img" aria-label="Vanguard guardian (placeholder plate)">
-        <use href="#guard"/>
-        <g fill="url(#dith)">
-          <!-- helm + plume -->
-          <path d="M60 8 l10 6 l-2 12 l-16 0 l-2 -12 z"/>
-          <rect x="58" y="2" width="4" height="8"/>
-          <!-- shoulders / cloak -->
-          <path d="M40 30 q20 -8 40 0 l6 40 l-8 44 l-36 0 l-8 -44 z"/>
-          <!-- shield disc -->
-          <circle cx="34" cy="70" r="15"/>
-        </g>
-        <!-- spear with honest-light glint -->
-        <rect x="90" y="10" width="3" height="120" fill="#555568"/>
-        <path d="M91.5 4 l6 12 l-12 0 z" fill="#e9efec" class="glint"/>
-      </svg>
-      <div class="flank-label">Commander</div>
-      <div class="medallion">
-        <svg viewBox="0 0 60 60" role="img" aria-label="Vanguard hero portrait medallion">
-          <g fill="url(#dith)"><path d="M30 12 l11 7 l-2 12 l-18 0 l-2 -12 z"/><path d="M16 34 q14 -8 28 0 l4 20 l-36 0 z"/></g>
-          <rect x="27" y="6" width="6" height="8" fill="url(#dith)"/>
-        </svg>
-      </div>
-      <div class="hero-name">The Vanguard</div>
-      <div class="hero-role">Commander</div>
-      <div class="meter-row">
-        <div class="meter-cap"><span class="lbl">Vigor</span><span class="val">88%</span></div>
-        <div class="meter sm" data-total="16" data-full="14" aria-label="Hero vigor 88 percent"></div>
-      </div>
-    </aside>
-
-    <!-- ============ CENTRAL WELL: the Muster (unit management) ======== -->
-    <main class="well">
-      <div class="well-title">
-        <h2>Muster</h2>
-        <span class="sub">Highgates · Floor II</span>
-      </div>
-
-      <!-- aggregate company health -->
-      <section class="company" aria-label="Company strength">
-        <div class="top">
-          <b>Vanguard Company</b>
-          <span class="strength">Standing <var>99</var> / 180 · <var>85%</var> · 5 squads</span>
-        </div>
-        <div class="meter lg" data-total="30" data-full="26" aria-label="Company standing 85 percent"></div>
-      </section>
-
-      <p class="ranknote">Retinue is mustered as <b>squads</b> — rank-and-file groups of ~20 / 50. Each pip is a soldier (a <b>file</b> at larger scale): <b>lit = standing, dark = fallen</b>. Squads are the unit of logic — the sim commands the group, not every soldier.</p>
-
-      <!-- square RTS squad cards; card health = the rank-and-file muster -->
-      <section class="roster" aria-label="Retinue squads">
-        <div class="squad sel" tabindex="0">
-          <div class="shead"><span class="stype"><svg viewBox="0 0 24 24"><g fill="url(#dith)"><rect x="7" y="3" width="10" height="7"/><circle cx="12" cy="15" r="6"/></g></svg><b>Shieldmen</b></span><span class="size">23<s>/24</s></span></div>
-          <div class="muster" data-size="24" data-alive="23" data-cols="6" aria-label="Shieldmen squad — 23 of 24 standing"></div>
-          <div class="sfoot"><span class="hpread">96% · Squad A</span><span class="chip sq on">Hold</span></div>
-        </div>
-
-        <div class="squad" tabindex="0">
-          <div class="shead"><span class="stype"><svg viewBox="0 0 24 24"><g fill="url(#dith)"><rect x="7" y="3" width="10" height="7"/><circle cx="12" cy="15" r="6"/></g></svg><b>Shieldmen</b></span><span class="size">22<s>/24</s></span></div>
-          <div class="muster" data-size="24" data-alive="22" data-cols="6" aria-label="Shieldmen squad — 22 of 24 standing"></div>
-          <div class="sfoot"><span class="hpread">92% · Squad B</span><span class="chip sq on">Hold</span></div>
-        </div>
-
-        <div class="squad" tabindex="0">
-          <div class="shead"><span class="stype"><svg viewBox="0 0 24 24"><g fill="url(#dith)"><path d="M12 3 l9 5 l-2 11 l-14 0 l-2 -11 z"/></g><rect x="10" y="1" width="4" height="5" fill="#e9efec"/></svg><b>Veterans</b></span><span class="size">14<s>/16</s></span></div>
-          <div class="muster" data-size="16" data-alive="14" data-cols="4" aria-label="Veterans squad — 14 of 16 standing"></div>
-          <div class="sfoot"><span class="hpread">88% · elite</span><span class="chip sq on">Charge</span></div>
-        </div>
-
-        <div class="squad" tabindex="0">
-          <div class="shead"><span class="stype"><svg viewBox="0 0 24 24"><g fill="url(#dith)"><rect x="10" y="2" width="3" height="20"/><path d="M13 3 l9 3 l-9 6 z"/></g></svg><b>Banner</b></span><span class="size">2<s>/2</s></span></div>
-          <div class="muster" data-size="2" data-alive="2" data-cols="2" aria-label="Bannermen — 2 of 2 standing"></div>
-          <div class="sfoot"><span class="hpread">100%</span><span class="chip sq">Follow</span></div>
-        </div>
-
-        <!-- a 50-strong compacted squad: one wide card, a 10-file rank block -->
-        <div class="squad wide" tabindex="0">
-          <div class="shead"><span class="stype"><svg viewBox="0 0 24 24"><g fill="url(#dith)"><path d="M12 2 l2 6 l-2 14 l-2 -14 z"/><rect x="6" y="9" width="12" height="4"/></g></svg><b>Spearmen · compacted</b></span><span class="size">38<s>/50</s></span></div>
-          <div class="muster" data-size="50" data-alive="38" data-cols="10" aria-label="Spearmen squad — 38 of 50 standing, ten files"></div>
-          <div class="sfoot"><span class="hpread">76% · 10 files × 5 ranks</span><span class="chip sq on">Charge</span></div>
-        </div>
-      </section>
-    </main>
-
-    <!-- ============ RIGHT FLANK: stance wheel + leash =============== -->
-    <aside class="flank right">
-      <svg class="guardian" viewBox="0 0 120 150" role="img" aria-label="Still Legion guardian (placeholder plate)" style="transform:scaleX(-1)">
-        <g fill="url(#dith)">
-          <path d="M60 8 l10 6 l-2 12 l-16 0 l-2 -12 z"/>
-          <rect x="58" y="2" width="4" height="8"/>
-          <path d="M40 30 q20 -8 40 0 l6 40 l-8 44 l-36 0 l-8 -44 z"/>
-          <circle cx="34" cy="70" r="15"/>
-        </g>
-        <rect x="90" y="10" width="3" height="120" fill="#555568"/>
-        <path d="M85 18 l16 0 l-8 12 z" fill="#555568"/>
-      </svg>
-      <div class="flank-label">Orders</div>
-
-      <div class="orders">
-        <div class="wheel" role="img" aria-label="Stance wheel — Charge active">
-          <span class="stance n">Follow</span>
-          <span class="stance e on">Charge</span>
-          <span class="stance s">Hold</span>
-          <span class="stance w">Rally</span>
-          <span class="hubv"><span><b>Charge</b><br>active</span></span>
-        </div>
-
-        <div class="leash" aria-label="Leash tension 64 percent, warning at 80">
-          <div class="leash-cap"><span>Leash</span><span><var>64%</var></span></div>
-          <div class="track"><div class="fill"></div><div class="warn"></div></div>
-          <div class="leash-cap"><span style="color:var(--bone)">Holding</span><span>break @ 80</span></div>
+    <div class="game stitch-frame">
+      <div class="band header halftone bracket-corner">
+        <div class="bc-br"></div>
+        <div class="crest">Kindled <span class="flicker">·</span> Vanguard Company</div>
+        <div class="sub">the record keeps what you save</div>
+        <div class="tabstrip">
+          <div class="tab active">Muster</div>
+          <div class="tab">Settings</div>
         </div>
       </div>
-    </aside>
-
-    <!-- ============ FOOTER: input hints + reserved-red legend ======== -->
-    <footer class="footer">
-      <div class="hints">
-        <span class="hint"><span class="btn">A</span>Confirm</span>
-        <span class="hint"><span class="btn">B</span>Back</span>
-        <span class="hint"><span class="btn sq">▤</span>Stance Wheel</span>
-        <span class="hint"><span class="btn sq">↹</span>Cycle Group</span>
+      <div class="row-flex" style="margin-top:4px;">
+        <div class="flank stitch-frame">
+          <div class="medallion">V</div>
+          <div class="label">Vigor</div>
+          <div class="pip-row">
+            <div class="pip full hot"></div><div class="pip full hot"></div><div class="pip full hot"></div>
+            <div class="pip full hot"></div><div class="pip full hot"></div><div class="pip full hot"></div>
+            <div class="pip full hot"></div><div class="pip"></div>
+          </div>
+        </div>
+        <div class="well stitch-frame">
+          <div class="company-line">
+            <span class="label">Vanguard Company</span>
+            <span class="stat">99 / 180 · 5 squads</span>
+          </div>
+          <div class="company-meter">
+            <script>document.write(Array.from({length:24},(_,i)=>`<div class="pip ${i<13?'full':''}"></div>`).join(''))</script>
+          </div>
+          <div class="cards">
+            <div class="card">
+              <div class="chead"><span class="cname">Shield</span><span class="cstat">24/24</span></div>
+              <div class="grid" style="--cols:6;">
+                <script>document.write(Array.from({length:24},()=>'<div class="gp on"></div>').join(''))</script>
+              </div>
+              <span class="chip">HOLD</span>
+            </div>
+            <div class="card selected">
+              <div class="chead"><span class="cname">Shield</span><span class="cstat">18/24</span></div>
+              <div class="grid" style="--cols:6;">
+                <script>document.write(Array.from({length:24},(_,i)=>`<div class="gp ${i<18?'on':''}"></div>`).join(''))</script>
+              </div>
+              <span class="chip active">HOLD</span>
+            </div>
+            <div class="card">
+              <div class="chead"><span class="cname">Vets</span><span class="cstat">20/20</span></div>
+              <div class="grid" style="--cols:5;">
+                <script>document.write(Array.from({length:20},()=>'<div class="gp on"></div>').join(''))</script>
+              </div>
+              <span class="chip">CHARGE</span>
+            </div>
+            <div class="card wide">
+              <div class="chead"><span class="cname">Spearmen <span class="mult" style="color:var(--iron-dim)">×50</span></span><span class="cstat">50/50</span></div>
+              <div class="grid" style="--cols:10;">
+                <script>document.write(Array.from({length:50},()=>'<div class="gp on"></div>').join(''))</script>
+              </div>
+              <span class="chip">CHARGE</span>
+            </div>
+            <div class="card">
+              <div class="chead"><span class="cname">Banner</span><span class="cstat">2/2</span></div>
+              <div class="grid" style="--cols:2;">
+                <script>document.write(Array.from({length:2},()=>'<div class="gp on"></div>').join(''))</script>
+              </div>
+              <span class="chip">FOLLOW</span>
+            </div>
+          </div>
+        </div>
+        <div class="flank stitch-frame" style="width:84px;">
+          <div class="label">Orders</div>
+          <div class="stancewheel">
+            <div class="spokes">
+              <div class="spoke">FLW</div>
+              <div class="spoke">CHRG</div>
+              <div class="spoke active">HOLD</div>
+              <div class="spoke">RLY</div>
+            </div>
+          </div>
+          <div class="leash">
+            <div class="label">Leash</div>
+            <div class="leash-track"><div class="leash-fill"></div><div class="leash-warn"></div></div>
+          </div>
+        </div>
       </div>
-      <div class="legend">
-        <span class="swatch r"></span> Rubrication reserved — cost / temptation only · not shown here
+      <div class="footer band halftone" style="margin-top:4px;">
+        <span><span class="key">☰/Esc</span> Resume &nbsp; <span class="key">A</span> Confirm &nbsp; <span class="key">B</span> Back &nbsp; <span class="key">▤</span> Wheel</span>
+        <span class="redcheck"><span class="swatch"></span> no rubrication on this screen</span>
       </div>
-    </footer>
-
+    </div>
   </div>
+
+  <div class="toast-note">
+    <span class="dot"></span>
+    First launch only: the same <code style="font:12px ui-monospace,monospace;">☰/Esc</code> hint above appears as a
+    one-shot toast during the first Deploying beat, then never again — there is no other moment the player
+    is told the summon exists, since there is no title screen to teach it.
+  </div>
+
+  <div class="legend">
+    <h3>What summon does, phase by phase</h3>
+    <table class="phase-table">
+      <thead><tr><th style="width:12ch;">Phase</th><th>Summon behaviour</th></tr></thead>
+      <tbody>
+        <tr>
+          <td class="phase">Deploying</td>
+          <td>Opens same as any other phase. Low stakes — the formation is still settling — but the sim still hard-pauses for consistency; no special case.</td>
+        </tr>
+        <tr>
+          <td class="phase">WaveActive</td>
+          <td>The case above. Hard pause (single-player — no other player's clock to protect), frame takes the full screen, battle freezes exactly where it stood. Dismiss resumes mid-swing.</td>
+        </tr>
+        <tr>
+          <td class="phase">Breather</td>
+          <td>Same hard pause, and it also freezes <code>PhaseTimer</code> — reviewing squads in Muster must never burn down the breather clock and force an unwanted wave start.</td>
+        </tr>
+        <tr>
+          <td class="phase">Won / Lost</td>
+          <td>Summon still opens Muster/Settings (still useful for Quit or reviewing the roster), but it is not how results are read — that's task-116's end-of-wave board, a separate screen shown automatically, not reached through this summon.</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <footer class="colophon">
+    Full spec: <code>docs/ui/menu-frame-system.md</code>. Local copy of this file:
+    <code>docs/ui/mockups/menu-frame-system.html</code>. Palette/type source of truth:
+    <code>docs/ui/ui-aesthetic.md</code>.
+  </footer>
 </div>
 
-<p class="caption">
-  <b>What to look at:</b> the woodcut reference becomes <b>The Sampler Frame</b> — beast lintel + blackletter crest, two flanking guardian panels, four corner rosette medallions, footer input band. The reference's empty middle is repurposed as the <b>central well</b>: an RTS company readout — aggregate <b>company meter</b> on top, then <b>square squad cards</b> (Warcraft-format). Each card's health <em>is</em> its <b>rank-and-file muster</b>: one pip per soldier (a file at scale), lit = standing, dark = fallen — so a squad's count, formation, health and scale are one read. The wide card is a <b>50-strong compacted squad</b> (10 files × 5 ranks). The <code>Follow / Charge / Hold / Rally</code> wheel and leash gauge stay on the right.
-  Strictly the four locked Demichrome values; 1px halftone on static bands only. Dragon and guardian figures are <b>placeholder plates</b> — real art is an art brief to the pixel-art-director. Resize narrow to see the Steam-Deck collapse (flanks unstack, guardians drop).
-</p>
-
 <script>
-  // Company / hero meters: full = Pale present; next 2 = Steel wound; rest Dark.
-  for (const m of document.querySelectorAll('.meter[data-total]')){
-    const total = +m.dataset.total, full = +m.dataset.full;
-    for (let i=0;i<total;i++){
-      const s=document.createElement('span');
-      s.className='seg '+(i<full?'full':(i<full+2?'wound':''));
-      m.appendChild(s);
+  // deterministic scatter standing in for a frozen 99-strong retinue + a few foes — not a battle render.
+  (function () {
+    let s = 1337;
+    function rnd() { s = (s * 1103515245 + 12345) & 0x7fffffff; return (s % 1000) / 1000; }
+    const field = document.getElementById('battlefield');
+    let html = '';
+    for (let i = 0; i < 70; i++) {
+      html += `<div class="dot" style="left:${(rnd()*100).toFixed(1)}%; top:${(rnd()*100).toFixed(1)}%;"></div>`;
     }
-  }
-  // Squad musters: rank & file grid. alive = Pale pip (standing), rest = fallen.
-  for (const el of document.querySelectorAll('.muster[data-size]')){
-    const size=+el.dataset.size, alive=+el.dataset.alive, cols=+el.dataset.cols||6;
-    el.style.gridTemplateColumns='repeat('+cols+',1fr)';
-    for (let i=0;i<size;i++){
-      const p=document.createElement('span');
-      p.className='pip '+(i<alive?'alive':'lost');
-      el.appendChild(p);
+    for (let i = 0; i < 10; i++) {
+      html += `<div class="dot foe" style="left:${(70+rnd()*28).toFixed(1)}%; top:${(rnd()*100).toFixed(1)}%;"></div>`;
     }
-  }
+    html += `<div class="dot hero" style="left:${(20+rnd()*15).toFixed(1)}%; top:${(40+rnd()*20).toFixed(1)}%;"></div>`;
+    field.innerHTML = html;
+  })();
 </script>

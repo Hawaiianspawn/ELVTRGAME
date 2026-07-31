@@ -249,3 +249,59 @@ Rejected and parked tasks keep their files — this records why.
 - 2026-07-30 · `task-097` · in-progress → **needs-review** · Measure whether the growth-site allocation is a real decision or theatre
 - 2026-07-30 · `task-097` · needs-review → **done** · Measure whether the growth-site allocation is a real decision or theatre
 - 2026-07-30 · `task-098` · needs-review → **done** · Open the armour gate so more than three weapon archetypes are worth taking
+- 2026-07-30 · `task-104` · proposed → **approved** · Spend a real silhouette axis on Made of tongues, the best surface in the legacy brood batch
+- 2026-07-30 · `task-104` · approved → **in-progress** · Spend a real silhouette axis on Made of tongues, the best surface in the legacy brood batch — dispatched to teammate `brood-tongues` at model `sonnet`
+- 2026-07-30 · `task-102` · proposed → **approved** · Spec the three waves as early / mid / late game — retinue size, unique units, and the scale ceiling
+- 2026-07-30 · `task-103` · proposed → **approved** · Turn the three-act curve into runnable scenarios and report what the harness actually says
+- 2026-07-30 · `task-102` · approved → **in-progress** · Spec the three waves as early / mid / late game — retinue size, unique units, and the scale ceiling — dispatched to teammate `wave-scaling` at model `sonnet`
+- 2026-07-30 · `task-102` · in-progress → **needs-review** · Spec the three waves as early / mid / late game — retinue size, unique units, and the scale ceiling
+- 2026-07-30 · `task-102` · needs-review → **done** · Spec the three waves as early / mid / late game — retinue size, unique units, and the scale ceiling
+- 2026-07-30 · `task-103` · approved → **in-progress** · Turn the three-act curve into runnable scenarios and report what the harness actually says — dispatched to teammate `three-act-sim` at model `sonnet`
+- 2026-07-30 · `task-103` · in-progress → **needs-review** · Turn the three-act curve into runnable scenarios and report what the harness actually says
+- 2026-07-30 · `task-103` · needs-review → **done** · Turn the three-act curve into runnable scenarios and report what the harness actually says
+- 2026-07-30 · `task-105` · proposed → **approved** · Wire per-wave retinue and composition into Spike1GameMode, and play the three-act curve
+- 2026-07-30 · `task-107` · proposed → **approved** · Read fights.csv — turn the telemetry nobody opens into per-wave metrics with spread
+- 2026-07-30 · `task-105` · approved → **parked** · Wire per-wave retinue and composition into Spike1GameMode, and play the three-act curve — Temporarily parked to free the unreal-editor lock for task-110 (sprite ground offset fix, under an hour). Re-approve as soon as 110 closes -- nothing about 105 changed.
+- 2026-07-30 · `task-110` · proposed → **approved** · Scale the sprite ground offset by each unit's own size so feet land on one floor
+- 2026-07-30 · `task-110` · approved → **in-progress** · Scale the sprite ground offset by each unit's own size so feet land on one floor — dispatched to teammate `ground-offset` at model `sonnet`
+- 2026-07-30 · `task-101` · proposed → **approved** · Reconcile supply capacity with retinue size, and make provision bind
+- 2026-07-30 · `task-107` · approved → **in-progress** · Read fights.csv — turn the telemetry nobody opens into per-wave metrics with spread — dispatched to teammate `fight-metrics` at model `sonnet`
+- 2026-07-30 · `task-101` · approved → **in-progress** · Reconcile supply capacity with retinue size, and make provision bind — dispatched to teammate `supply-bind` at model `sonnet`
+- 2026-07-30 · `task-107` · in-progress → **needs-review** · Read fights.csv — turn the telemetry nobody opens into per-wave metrics with spread
+- 2026-07-30 · `task-101` · in-progress → **needs-review** · Reconcile supply capacity with retinue size, and make provision bind
+- 2026-07-30 · `task-110` · in-progress → **needs-review** · Scale the sprite ground offset by each unit's own size so feet land on one floor
+- 2026-07-30 · `task-104` · in-progress → **needs-review** · Spend a real silhouette axis on Made of tongues, the best surface in the legacy brood batch
+- 2026-07-30 · `task-104` · needs-review → **done** · Spend a real silhouette axis on Made of tongues, the best surface in the legacy brood batch
+- 2026-07-30 · `task-112` · proposed → **approved** · Build the armored-enemy variant family off the brighter-palette base and publish the contact sheet
+- 2026-07-30 · `task-112` · approved → **in-progress** · Build the armored-enemy variant family off the brighter-palette base and publish the contact sheet — dispatched to teammate `enemy-armored` at model `sonnet`
+- 2026-07-30 · `task-112` · in-progress → **needs-review** · Build the armored-enemy variant family off the brighter-palette base and publish the contact sheet
+- 2026-07-30 · `task-112` · needs-review → **done** · Build the armored-enemy variant family off the brighter-palette base and publish the contact sheet
+- 2026-07-30 · `task-101` · needs-review → **done** · Reconcile supply capacity with retinue size, and make provision bind
+- 2026-07-30 · `task-107` · needs-review → **done** · Read fights.csv — turn the telemetry nobody opens into per-wave metrics with spread
+- 2026-07-30 · `task-009` · needs-review → **done** · Run the Vanguard sprite acceptance checklist against the packed sheet
+- 2026-07-30 · `task-110` · needs-review → **done** · Scale the sprite ground offset by each unit's own size so feet land on one floor
+- 2026-07-30 · `task-092` · proposed → **approved** · Purge Emberkeep from docs, agent definitions and skills
+- 2026-07-30 · `task-093` · proposed → **approved** · Rename the Emberkeep console variables and C++ reflected types to Kindled
+- 2026-07-30 · `task-092` · approved → **in-progress** · Purge Emberkeep from docs, agent definitions and skills — dispatched to teammate `emberkeep-docs` at model `sonnet`
+- 2026-07-30 · `task-093` · approved → **in-progress** · Rename the Emberkeep console variables and C++ reflected types to Kindled — dispatched to teammate `emberkeep-cvars` at model `opus`
+- 2026-07-31 · `task-092` · in-progress → **needs-review** · Purge Emberkeep from docs, agent definitions and skills
+- 2026-07-31 · `task-093` · in-progress → **needs-review** · Rename the Emberkeep console variables and C++ reflected types to Kindled
+- 2026-07-31 · `task-092` · needs-review → **done** · Purge Emberkeep from docs, agent definitions and skills
+- 2026-07-31 · `task-114` · proposed → **approved** · Write the UI aesthetic that replaces the four-value gate the colour reversal killed
+- 2026-07-31 · `task-115` · proposed → **approved** · Respec the menu as a front door the game never waits at
+- 2026-07-31 · `task-116` · proposed → **approved** · Spec the end-of-wave showcase that names the five units doing the work
+- 2026-07-31 · `task-114` · approved → **in-progress** · Write the UI aesthetic that replaces the four-value gate the colour reversal killed — dispatched to teammate `ui-aesthetic` at model `sonnet`
+- 2026-07-31 · `task-114` · in-progress → **needs-review** · Write the UI aesthetic that replaces the four-value gate the colour reversal killed
+- 2026-07-31 · `task-114` · needs-review → **done** · Write the UI aesthetic that replaces the four-value gate the colour reversal killed
+- 2026-07-31 · `task-093` · needs-review → **needs-review** · Rename the Emberkeep console variables and C++ reflected types to Kindled
+- 2026-07-31 · `task-093` · needs-review → **done** · Rename the Emberkeep console variables and C++ reflected types to Kindled
+- 2026-07-31 · `task-116` · approved → **in-progress** · Spec the end-of-wave showcase that names the five units doing the work — dispatched to teammate `wave-showcase` at model `sonnet`
+- 2026-07-31 · `task-115` · approved → **in-progress** · Respec the menu as a front door the game never waits at — dispatched to teammate `menu-front-door` at model `sonnet`
+- 2026-07-31 · `task-001` · needs-review → **approved** · Correct the stale blockers in GDD-TODO.md and point it at the backlog — re-dispatch: both teammates died without landing any work; nothing to review
+- 2026-07-31 · `task-076` · needs-review → **approved** · Add a seeded variance layer to the combat model so a config yields a distribution, not a single point estimate — re-dispatch: both teammates died without landing any work; nothing to review
+- 2026-07-31 · `task-001` · approved → **in-progress** · Correct the stale blockers in GDD-TODO.md and point it at the backlog — dispatched to teammate `gdd-todo-retry` at model `sonnet`
+- 2026-07-31 · `task-076` · approved → **in-progress** · Add a seeded variance layer to the combat model so a config yields a distribution, not a single point estimate — dispatched to teammate `variance-layer-retry` at model `opus`
+- 2026-07-31 · `task-115` · in-progress → **needs-review** · Respec the menu as a front door the game never waits at
+- 2026-07-31 · `task-116` · in-progress → **needs-review** · Spec the end-of-wave showcase that names the five units doing the work
+- 2026-07-31 · `task-115` · needs-review → **done** · Respec the menu as a front door the game never waits at
+- 2026-07-31 · `task-116` · needs-review → **done** · Spec the end-of-wave showcase that names the five units doing the work
