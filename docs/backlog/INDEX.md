@@ -10,7 +10,7 @@ not a re-read.
 
 | proposed | approved | in-progress | needs-review | done | rejected | parked |
 |---|---|---|---|---|---|---|
-| 42 | 1 | 0 | 0 | 77 | 0 | 8 |
+| 41 | 1 | 0 | 0 | 78 | 0 | 8 |
 
 ## Audit queue — top 7 awaiting your verdict
 
@@ -18,11 +18,12 @@ not a re-read.
 |---|---|---|---|---|---|---|
 | 1 | **12.0** | 3×2×2÷1 | [Play Gate 1 and answer its five open feel questions](task-008-gate1-playtest-feel-questions.md) `#008` | claude | 1 | The five questions in GATE1-FUN-PROTOTYPE.md §"open" answered from an actual play session, each with the tuning value tried and what it felt like. |
 | 2 | **4.5** | 3×3×1÷2 | [Prove faction separation at horde scale](task-028-prove-faction-separation-at-horde-scale.md) `#028` | claude | 2 | Screen captures at 700 units showing a player can tell friend from foe at gameplay zoom, with the failure cases named. |
-| 3 | **4.0** | 2×2×2÷2 | [Make an archer readable at default weights — the render branch works but the bow disappears into the mass](task-127-make-the-archer-read-at-default-weights.md) `#127` | claude | 2 | A PIE screenshot at gameplay density, at DEFAULT Swarm.ArcherVariantWeights, in which an archer is findable without being told where to look — plus the same capture at the pre-change setting for comparison, and a frame-time row showing the change costs nothing. |
-| 4 | **3.0** | 1×3×2÷2 | [Run Spike 1 and fill SPIKE1-RESULTS.md with measured numbers and a verdict](task-007-fill-spike1-results-and-verdict.md) `#007` | performance-director | 2 | SPIKE1-RESULTS.md with every table cell filled from a real -SwarmBench run, machine specs recorded, and exactly one of GO / ADJUST / KILL ticked. |
-| 5 | **3.0** | 3×2×2÷4 | [Produce the slice sprite set — Vanguard, retinue, 5 enemies, walk/attack/death each](task-027-slice-sprite-animation-production.md) `#027` | claude | 4 | Imported UE sprite sheets that pass the palette checker, plus the provenance manifest recording every generation UUID and its credit cost. |
-| 6 | **3.0** | 3×2×1÷2 | [Answer CAMERA-SCALE §4's six open questions](task-030-camera-scale-six-open-questions.md) `#030` | claude | 2 | Each of the six questions answered from a PIE session with the value tried, especially the flame-pool ratio against OrthoWidth. |
-| 7 | **3.0** | 3×3×1÷3 | [Build the feeding-distraction mechanic in Mass — corpses, kill attribution, and the three-slot feed](task-054-build-feeding-distraction-in-mass.md) `#054` | claude | 3 | A PIE capture showing a killer stopped on a corpse while the fight continues around it, a second showing three feeders on one body and a fourth attacker walking past it, and a measured before/after frame time at wave-3 density. |
+| 3 | **3.0** | 1×3×2÷2 | [Run Spike 1 and fill SPIKE1-RESULTS.md with measured numbers and a verdict](task-007-fill-spike1-results-and-verdict.md) `#007` | performance-director | 2 | SPIKE1-RESULTS.md with every table cell filled from a real -SwarmBench run, machine specs recorded, and exactly one of GO / ADJUST / KILL ticked. |
+| 4 | **3.0** | 3×2×2÷4 | [Produce the slice sprite set — Vanguard, retinue, 5 enemies, walk/attack/death each](task-027-slice-sprite-animation-production.md) `#027` | claude | 4 | Imported UE sprite sheets that pass the palette checker, plus the provenance manifest recording every generation UUID and its credit cost. |
+| 5 | **3.0** | 3×2×1÷2 | [Answer CAMERA-SCALE §4's six open questions](task-030-camera-scale-six-open-questions.md) `#030` | claude | 2 | Each of the six questions answered from a PIE session with the value tried, especially the flame-pool ratio against OrthoWidth. |
+| 6 | **3.0** | 3×3×1÷3 | [Build the feeding-distraction mechanic in Mass — corpses, kill attribution, and the three-slot feed](task-054-build-feeding-distraction-in-mass.md) `#054` | claude | 3 | A PIE capture showing a killer stopped on a corpse while the fight continues around it, a second showing three feeders on one body and a fourth attacker walking past it, and a measured before/after frame time at wave-3 density. |
+| 7 | **3.0** | 1×3×1÷1 | [Measure frame time at the three-act populations, and price the Elite/Boss actors](task-108-measure-the-late-wave-population.md) `#108` | performance-director | 1 | `docs/perf/three-act-scale.md` reporting measured frame/game/draw/GPU time at the three populations `docs/data/wave-scaling.json` specifies (notably 20,600), from a `-SwarmBench` run, plus a measured per-actor cost for the Elite/Boss PromotedActors at that population — replacing task-102's arithmetic headroom claim with a measurement, and stating plainly whether the late wave holds 60fps.
+ |
 
 Approve with `py Scripts/backlog.py approve <ids>` (or `/backlog approve <ids>`).
 
@@ -30,7 +31,7 @@ Approve with `py Scripts/backlog.py approve <ids>` (or `/backlog approve <ids>`)
 
 | epic | progress | tasks | joins | next move |
 |---|---|---|---|---|
-| `archers-on-the-field` | 2/3 closed | [`125`](task-125-medieval-archer-variant-family.md), [`126`](task-126-land-archers-in-the-team-atlas.md), [`127`](task-127-make-the-archer-read-at-default-weights.md) | `126` | approve `127` |
+| `archers-on-the-field` | 3/3 closed | [`125`](task-125-medieval-archer-variant-family.md), [`126`](task-126-land-archers-in-the-team-atlas.md), [`127`](task-127-make-the-archer-read-at-default-weights.md) | `126` | complete |
 | `build-space-differentiates` | 2/2 closed | [`090`](task-090-weapon-projectile-pairing.md), [`091`](task-091-build-space-differentiation.md) | `091` | complete |
 | `emberkeep-purge` | 2/3 closed | [`092`](task-092-emberkeep-docs-purge.md), [`093`](task-093-emberkeep-cvar-rename.md), [`117`](task-117-prose-that-cites-the-old-cvar-names.md) | `117` | approve `117` |
 | `feeding-distraction` | 2/3 closed | [`053`](task-053-feeding-distraction-mechanic-spec.md), [`054`](task-054-build-feeding-distraction-in-mass.md), [`061`](task-061-persistent-corpses-and-walk-up-feeding.md) | `054`, `061` | approve `54` |
@@ -48,13 +49,12 @@ Approve with `py Scripts/backlog.py approve <ids>` (or `/backlog approve <ids>`)
 
 A fan is approved in one batch and dispatched one teammate per task. `⨝` joins own the shared writes and wait on their siblings — see `py Scripts/backlog.py epic <slug>`.
 
-## proposed (42)
+## proposed (41)
 
 | id | score | task | agent | owns | source |
 |---|---|---|---|---|---|
 | `008` | 12.0 | [Play Gate 1 and answer its five open feel questions](task-008-gate1-playtest-feel-questions.md) | claude | `docs/GATE1-FUN-PROTOTYPE.md` | `docs/GATE1-FUN-PROTOTYPE.md:377` |
 | `028` | 4.5 | [Prove faction separation at horde scale](task-028-prove-faction-separation-at-horde-scale.md) | claude | `docs/art/faction-separation-proof.md` | `docs/RTS-VERTICAL-SLICE.md:111` |
-| `127` | 4.0 | [Make an archer readable at default weights — the render branch works but the bow disappears into the mass](task-127-make-the-archer-read-at-default-weights.md) | claude | `ELVTR/Source/ELVTR/Rendering/SwarmRenderActor.cpp`, `ELVTR/Source/ELVTR/Mass/SwarmProcessors.cpp`, `docs/perf/evidence/task127/**`, `docs/perf/niagara-sprite-path.md` | `user` |
 | `007` | 3.0 | [Run Spike 1 and fill SPIKE1-RESULTS.md with measured numbers and a verdict](task-007-fill-spike1-results-and-verdict.md) | performance-director | `docs/SPIKE1-RESULTS.md` | `docs/SPIKE1-RESULTS.md:31` |
 | `027` | 3.0 | [Produce the slice sprite set — Vanguard, retinue, 5 enemies, walk/attack/death each](task-027-slice-sprite-animation-production.md) | claude | `docs/data/art/requests/**`, `RawArt/Renders/**`, `ELVTR/Content/Sprites/**` | `docs/RTS-VERTICAL-SLICE.md:110` |
 | `030` | 3.0 | [Answer CAMERA-SCALE §4's six open questions](task-030-camera-scale-six-open-questions.md) | claude | `docs/design/CAMERA-SCALE-HANDOFF.md` | `docs/design/CAMERA-SCALE-HANDOFF.md:89` |
@@ -101,7 +101,7 @@ A fan is approved in one batch and dispatched one teammate per task. `⨝` joins
 |---|---|---|---|---|---|
 | `031` | 2.0 | [Check the shipped leash system against RTS-VERTICAL-SLICE §2's spec](task-031-leash-system-conformance-check.md) | claude | `docs/RTS-VERTICAL-SLICE.md` | `docs/RTS-VERTICAL-SLICE.md:97` |
 
-## done (77)
+## done (78)
 
 | id | score | task | agent | owns | source |
 |---|---|---|---|---|---|
@@ -115,6 +115,7 @@ A fan is approved in one batch and dispatched one teammate per task. `⨝` joins
 | `024` | 6.0 | [Extend the run structure from waves to three floors plus a boss](task-024-run-structure-three-floors-and-boss.md) | gameplay-director | `docs/design/run-structure.md` | `docs/RTS-VERTICAL-SLICE.md:101` |
 | `043` | 6.0 | [Put a live palette-preset dial on the Breadboard](task-043-live-palette-dial-on-the-breadboard.md) | claude | `ELVTR/Content/PostProcess/M_PP_Demichrome**`, `ELVTR/Content/PostProcess/MPC_Flame**`, `ELVTR/Source/ELVTR/Rendering/SwarmRenderActor.cpp`, `.claude/skills/cvars/SKILL.md`, `docs/data/art/palette.json` | `user` |
 | `101` | 6.0 | [Reconcile supply capacity with retinue size, and make provision bind](task-101-supply-capacity-collides-with-retinue-size.md) | gameplay-director | `docs/data/economy.json`, `docs/data/growth-sites.json`, `docs/design/retinue-economy.md` | `task-096 + task-097 handbacks, 2026-07-30` |
+| `127` | 4.0 | [Make an archer readable at default weights — the render branch works but the bow disappears into the mass](task-127-make-the-archer-read-at-default-weights.md) | claude | `ELVTR/Source/ELVTR/Rendering/SwarmRenderActor.cpp`, `ELVTR/Source/ELVTR/Mass/SwarmProcessors.cpp`, `docs/perf/evidence/task127/**`, `docs/perf/niagara-sprite-path.md` | `user` |
 | `029` | 3.0 | [Spec the minimal audio set — hits, deaths, stance confirmations](task-029-minimal-audio-readability-set.md) | gameplay-director | `docs/design/audio-minimal.md` | `docs/RTS-VERTICAL-SLICE.md:113` |
 | `050` | 3.0 | [Draw the real sprite set in the Unit Cam — six soldier variants, the hero, and an archer proxy](task-050-wire-real-sprites-into-the-unit-cam.md) | claude | `ELVTR/Source/ELVTR/UI/UnitCamProjector.cpp`, `ELVTR/Source/ELVTR/UI/UnitCamProjector.h`, `ELVTR/Content/Sprites/**`, `RawArt/Renders/archer-proxy/**`, `RawArt/Sheets/T_Soldier_Archer.png`, `docs/data/art/provenance.json` | `user` |
 | `057` | 3.0 | [Take the colour gate off — a bypass and an N-value quantizer, live on the Breadboard](task-057-scene-look-rig-bypass-the-colour-gate.md) | claude | `ELVTR/Content/PostProcess/**`, `ELVTR/Source/ELVTR/Rendering/SwarmRenderActor.cpp`, `ELVTR/Source/ELVTR/Rendering/SwarmRenderActor.h`, `ELVTR/Saved/SwarmExecOnPlay.txt`, `docs/RENDERING-LIGHTING.md`, `.claude/skills/cvars/SKILL.md`, `docs/data/art/palette.json` | `user` |

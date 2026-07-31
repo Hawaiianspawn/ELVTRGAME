@@ -345,3 +345,7 @@ Rejected and parked tasks keep their files — this records why.
 - 2026-07-31 · `task-126` · approved → **in-progress** · Make an archer look like an archer on the battlefield — pack the family into the team atlas and branch the render path on unit type — dispatched to teammate `land-archers` at model `opus`
 - 2026-07-31 · `task-126` · in-progress → **needs-review** · Make an archer look like an archer on the battlefield — pack the family into the team atlas and branch the render path on unit type
 - 2026-07-31 · `task-126` · needs-review → **done** · Make an archer look like an archer on the battlefield — pack the family into the team atlas and branch the render path on unit type
+- 2026-07-31 · `task-127` · proposed → **approved** · Make an archer readable at default weights — the render branch works but the bow disappears into the mass
+- 2026-07-31 · `task-127` · approved → **in-progress** · Make an archer readable at default weights — the render branch works but the bow disappears into the mass — dispatched to teammate `archer-readable` at model `sonnet`
+- 2026-07-31 · `task-127` · in-progress → **needs-review** · Make an archer readable at default weights — the render branch works but the bow disappears into the mass
+- 2026-07-31 · `task-127` · needs-review → **done** · Make an archer readable at default weights — the render branch works but the bow disappears into the mass

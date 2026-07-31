@@ -179,6 +179,18 @@ stat binding at `SwarmProcessors.cpp`'s `bArcher` branch and at
 `KnightSubtypeRowFor`. Skewing `Swarm.ArcherVariantWeights` is combat-neutral by
 construction, unlike `Swarm.TeamVariantWeights`.
 
+**task-127: the mechanism above was proven correct but invisible at default weights.**
+Archers are ~20% of recruits split six ways over this table, so any one archer look is
+~3% of the army, and the tell (a thin, dark bow arc) is below the size/contrast threshold
+that reads in a mass of hundreds — see `docs/perf/evidence/task126/01-...png` (invisible
+at default weights) against `02-...png` (visible once skewed). `Swarm.ArcherSizeScale`
+(`SwarmRenderActor.cpp`, default 1.4, range [1,3]) is the fix: a per-particle size
+multiplier applied to archers only, in the pack loop, on top of `Swarm.RetinueSizeScale`.
+Stacks with the existing `bArcher` unit-type test the archer row offset already computes
+(both now share one `bArcher` local per entity rather than deriving it twice). Purely a
+render-size dial — does not touch `Swarm.Archers*` combat stats, the weight tables, or
+the atlas. See `docs/perf/evidence/task127/` for the before/after capture.
+
 `check_brood_variants.py` fails if either compiled CVar default and its weights file
 disagree. `Swarm.BroodVariantReport` / `Swarm.TeamVariantReport` log the live histogram
 plus the weight string it came from — both fire automatically alongside

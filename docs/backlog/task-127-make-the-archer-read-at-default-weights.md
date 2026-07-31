@@ -1,9 +1,9 @@
 ---
 id: 127
 title: Make an archer readable at default weights — the render branch works but the bow disappears into the mass
-status: proposed
+status: done
 agent: claude
-model: ""
+model: sonnet
 owns: ["ELVTR/Source/ELVTR/Rendering/SwarmRenderActor.cpp", "ELVTR/Source/ELVTR/Mass/SwarmProcessors.cpp", "docs/perf/evidence/task127/**", "docs/perf/niagara-sprite-path.md"]
 resources: ["unreal-editor"]
 depends-on: []
@@ -11,8 +11,8 @@ epic: archers-on-the-field
 evidence: A PIE screenshot at gameplay density, at DEFAULT Swarm.ArcherVariantWeights, in which an archer is findable without being told where to look — plus the same capture at the pre-change setting for comparison, and a frame-time row showing the change costs nothing.
 score: {feel: 2, risk: 2, cost: 2}
 source: user
-teammate: ""
-decided: ""
+teammate: archer-readable
+decided: "2026-07-31 done"
 ---
 
 ## Why now

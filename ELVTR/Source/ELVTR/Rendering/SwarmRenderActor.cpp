@@ -735,6 +735,30 @@ namespace
 		TEXT("both sides together. Clamped to [0.25, 4]."),
 		ECVF_Default);
 
+	/**
+	 * task-127: an archer is ~3% of the army (20% recruit weight split six ways over the
+	 * archer sub-table, SwarmCommands.cpp:271) and its tell is a thin, dark bow arc — below
+	 * the threshold that reads in a mass of hundreds at default weights, even though
+	 * task-126's evidence proves the render branch itself is correct (skew the weight table
+	 * and archers ARE visible). SIZE is the first rung of the readability ladder: on top of
+	 * Swarm.RetinueSizeScale, so archers read as your own bigger-bodied ranged line rather
+	 * than changing what a spearman looks like. Stat-neutral — this is the render pack loop
+	 * only, nowhere near SwarmCombatProcessors.cpp's Archers* CVars.
+	 */
+	TAutoConsoleVariable<float> CVarSwarmArcherSizeScale(
+		TEXT("Swarm.ArcherSizeScale"),
+		1.4f,
+		TEXT("Size multiplier applied to ARCHER sprites only, stacked on top of\n")
+		TEXT("Swarm.RetinueSizeScale and Swarm.SpriteSize. 1 = no bump (the pre-task-127 look,\n")
+		TEXT("archers sized identically to spearmen and effectively invisible at default\n")
+		TEXT("Swarm.ArcherVariantWeights). Default 1.4 is a modest bump, enough to separate an\n")
+		TEXT("archer's silhouette from the spearmen mass without the six-way archer sub-table\n")
+		TEXT("needing its weights reshuffled (rung 3 of the ladder) or a contrast pass (rung 2).\n")
+		TEXT("Useful range ~1.2-2: below 1.2 does not clear the bar, above ~2 an archer starts\n")
+		TEXT("reading as a different-sized creature rather than the same soldier with a bow.\n")
+		TEXT("Clamped to [1, 3] -- this dial only ever makes archers BIGGER, never smaller."),
+		ECVF_Default);
+
 	TAutoConsoleVariable<float> CVarSwarmSpriteSize(
 		TEXT("Swarm.SpriteSize"),
 		48.f,
@@ -1658,6 +1682,7 @@ void ASwarmRenderActor::Tick(float DeltaSeconds)
 	const float RetJit = FMath::Clamp(CVarSwarmRetinueSizeJitter.GetValueOnGameThread(), 0.f, 0.95f);
 	const float BaseSize = FMath::Max(CVarSwarmSpriteSize.GetValueOnGameThread(), 1.f);
 	const float RetScale = FMath::Clamp(CVarSwarmRetinueSizeScale.GetValueOnGameThread(), 0.25f, 4.f);
+	const float ArcherScale = FMath::Clamp(CVarSwarmArcherSizeScale.GetValueOnGameThread(), 1.f, 3.f);
 	const TArray<FVector>& RenderPos = Swarm->GetRenderPositions();
 
 	// The sim stores a WORLD facing; this camera turns it into a column. Reading the
@@ -1674,6 +1699,13 @@ void ASwarmRenderActor::Tick(float DeltaSeconds)
 		// per entity rather than shared. References, not copies -- the branch costs one
 		// pointer indirection, not a duplicated push.
 		const bool bRet = (Bits & SwarmAnim::TeamBit) != 0;
+		// task-127: resolved once and reused below for both the size bump and the archer
+		// row offset, rather than the two call sites each re-deriving it (as the row offset
+		// alone used to) -- same SwarmSquad::UnitType(SwarmRenderPack::Squad(Bits)) lookup
+		// SwarmCombatProcessors.cpp's stat routing already does, so sprite/size/stats agree
+		// on who is an archer by construction.
+		const bool bArcher = bRet
+			&& SwarmSquad::UnitType(SwarmRenderPack::Squad(Bits)) == EUnitType::Archers;
 		TArray<FLinearColor>& ColorScratch = bRet ? TeamColorScratch : EnemyColorScratch;
 		TArray<float>& SizeScratch = bRet ? TeamSizeScratch : EnemySizeScratch;
 		TArray<FVector>& PositionScratch = bRet ? TeamPositionScratch : EnemyPositionScratch;
@@ -1751,7 +1783,10 @@ void ASwarmRenderActor::Tick(float DeltaSeconds)
 		// nested dynamic input in the asset for the same result.
 		// Swarm.RetinueSizeScale rides on top for the team side only — Swarm.SpriteSize is
 		// shared, so it is a zoom rather than a way to make your own soldiers read bigger.
-		const float Size = BaseSize * (bRet ? RetScale : 1.f)
+		// Swarm.ArcherSizeScale rides on top of THAT, archers only (task-127) — the size
+		// bump that makes the bow-carrying line separate from the spearmen mass at default
+		// Swarm.ArcherVariantWeights, without touching the mix or any combat stat.
+		const float Size = BaseSize * (bRet ? RetScale : 1.f) * (bArcher ? ArcherScale : 1.f)
 			* SwarmRenderPack::SizeScale((int32)Bits, bRet ? RetJit : BrdJit);
 		SizeScratch.Add(Size);
 
@@ -1780,14 +1815,12 @@ void ASwarmRenderActor::Tick(float DeltaSeconds)
 		//
 		// task-126: the team atlas has TWO blocks and the variant field has only four bits,
 		// so what arrives here is a WITHIN-BLOCK index and this is where the archer block's
-		// row offset gets added. Unit type comes off the squad byte the pack already carries
-		// (bits 17-20) — the same SwarmSquad::UnitType(SwarmRenderPack::Squad(Bits)) lookup
-		// the melee sub-type report does, so the sprite and the stat path agree on who is an
-		// archer by construction. Doing the offset here rather than widening VariantMask is
-		// what lets the atlas grow past sixteen looks a side with no repack of the int32.
-		const int32 VariantBase = (bRet
-			&& SwarmSquad::UnitType(SwarmRenderPack::Squad(Bits)) == EUnitType::Archers)
-				? SwarmSheet::Team::ArcherVariantBase : 0;
+		// row offset gets added. bArcher (resolved once, above) is the same
+		// SwarmSquad::UnitType(SwarmRenderPack::Squad(Bits)) lookup the melee sub-type report
+		// does, so the sprite and the stat path agree on who is an archer by construction.
+		// Doing the offset here rather than widening VariantMask is what lets the atlas grow
+		// past sixteen looks a side with no repack of the int32.
+		const int32 VariantBase = bArcher ? SwarmSheet::Team::ArcherVariantBase : 0;
 		SubImageScratch.Add((float)(bRet
 			? SwarmSheet::Team::CellFor((uint8)Bits, Column, VariantBase + SwarmRenderPack::Variant(Bits))
 			: SwarmSheet::Enemy::CellFor((uint8)Bits, Column, SwarmRenderPack::Variant(Bits))));
