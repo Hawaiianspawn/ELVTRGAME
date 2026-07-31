@@ -8,11 +8,11 @@
     "actions": [
       { "id": "recruit",   "label": "Rally the freed", "embers": 12, "effect": "+10 units at FREED tier",        "supply_demand_delta": 10, "lane": "breadth" },
       { "id": "promote",   "label": "Drill the line",  "embers": 15, "effect": "promote up to 20 units one tier","supply_demand_delta": 0,  "lane": "depth" },
-      { "id": "provision", "label": "Break out stores","embers": 10, "effect": "+25 Supply capacity",            "supply_demand_delta": 0,  "lane": "sustain" },
+      { "id": "provision", "label": "Break out stores","embers": 16, "effect": "+25 Supply capacity",            "supply_demand_delta": 0,  "lane": "sustain" },
       { "id": "item",      "label": "Take up arms",    "embers": 20, "effect": "choose 1 of 3 offered items",    "supply_demand_delta": 0,  "lane": "spice" },
       { "id": "hero",      "label": "Sharpen the kit", "embers": 18, "effect": "buy 1 hero ability node",        "supply_demand_delta": 0,  "lane": "hero" }
     ],
-    "budget_note": "The three TRIANGLE lanes (recruit/promote/provision) total 37 Embers — at ~33 on arrival you can take two of three, or two lanes plus a partial. Item (20) and hero (18) are the real temptations: taking one means giving up most of the triangle that turn."
+    "budget_note": "The three TRIANGLE lanes (recruit/promote/provision) total 43 Embers — at ~33 on arrival you can take two of three, never all three in one visit. Item (20) and hero (18) are the real temptations: taking one means giving up most of the triangle that turn. `provision` is priced ABOVE `promote` (task-101, docs/design/retinue-economy.md): the greedy afford-check spends costliest-first when the bank falls short, and provision is the lane with no measured standalone value (see growth_site_bindings note below), so it is the one that should give way, not the standout `promote` lane — see docs/design/retinue-economy.md for the measured finding this re-costing is based on."
   },
 
   "slice_placement": [

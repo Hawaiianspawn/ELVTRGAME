@@ -1,12 +1,12 @@
 {
-  "$schema_note": "Tuned numbers for the retinue economy. Decisions + rationale live in SYSTEMS.md §7. All values are PROTOTYPE DIALS (first pass) to be re-tuned in play, not committed balance.",
+  "$schema_note": "Tuned numbers for the retinue economy. Decisions + rationale live in SYSTEMS.md §7 and docs/design/retinue-economy.md (task-101 reconciliation). All values are PROTOTYPE DIALS (first pass) to be re-tuned in play, not committed balance.",
   "version": "0.1-vslice",
-  "last_updated": "2026-07-24",
+  "last_updated": "2026-07-30",
 
   "supply": {
     "model": "headroom-ratio",
-    "note": "Supply is CAPACITY (headroom), not a draining stock. Upkeep DEMAND = sum of per-unit upkeep. Units degrade when demand > capacity; they NEVER die from upkeep (GDD §7). Provision raises capacity; recruiting raises demand.",
-    "start_capacity": 60,
+    "note": "Supply is CAPACITY (headroom), not a draining stock. Upkeep DEMAND = sum of per-unit upkeep. Units degrade when demand > capacity; they NEVER die from upkeep (GDD §7). Provision raises capacity; recruiting raises demand. start_capacity=120 matches the GATE1 refill-to-cap retinue convention (docs/GATE1-FUN-PROTOTYPE.md, docs/data/scenarios/gate1-calibration-wave1.json) so the retinue does not open the run already 2x over capacity -- see docs/design/retinue-economy.md.",
+    "start_capacity": 120,
     "upkeep_per_unit": 1,
     "upkeep_note": "Uniform 1/unit across tiers in the slice. This makes PROMOTE upkeep-neutral (quality lane) and RECRUIT upkeep-hungry (breadth lane) — the core of the triangle. Per-tier upkeep is a parked v2 knob.",
     "degrade": {
