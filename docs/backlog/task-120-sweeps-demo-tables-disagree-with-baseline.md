@@ -1,9 +1,9 @@
 ---
 id: 120
 title: Refresh SWEEPS.md's two demonstration tables, which disagree with baseline.json after the armor fix
-status: proposed
+status: done
 agent: sim-director
-model: ""
+model: sonnet
 owns: ["docs/sim/SWEEPS.md", "docs/sim/baseline.json"]
 resources: []
 depends-on: []
@@ -16,8 +16,8 @@ evidence: >
   Scripts/sim/drift_check.py` still passes.
 score: {feel: 1, risk: 2, cost: 1}
 source: task-075 handback
-teammate: ""
-decided: ""
+teammate: sweeps-refresh
+decided: "2026-07-31 done"
 ---
 
 ## Why now

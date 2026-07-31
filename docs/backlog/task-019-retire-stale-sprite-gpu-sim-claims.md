@@ -1,7 +1,7 @@
 ---
 id: 019
 title: Retire the stale "emitter draws zero particles" claims across the perf and camera docs
-status: proposed
+status: in-progress
 agent: performance-director
 owns: ["docs/perf/niagara-sprite-refactor.md", "docs/design/CAMERA-SCALE.md"]
 resources: []
@@ -9,7 +9,9 @@ depends-on: []
 evidence: A grep for the zero-draw / unfixed-emitter claim across docs returning nothing outside a clearly-marked historical record section.
 score: {feel: 1, risk: 1, cost: 1}
 source: docs/perf/niagara-sprite-refactor.md:94
-decided: ""
+decided: "2026-07-31 in-progress"
+model: sonnet
+teammate: stale-gpu-claims
 ---
 
 ## Why now

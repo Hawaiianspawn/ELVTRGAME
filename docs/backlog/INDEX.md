@@ -10,7 +10,7 @@ not a re-read.
 
 | proposed | approved | in-progress | needs-review | done | rejected | parked |
 |---|---|---|---|---|---|---|
-| 41 | 0 | 0 | 0 | 73 | 0 | 7 |
+| 38 | 1 | 2 | 0 | 74 | 0 | 7 |
 
 ## Audit queue — top 7 awaiting your verdict
 
@@ -48,7 +48,7 @@ Approve with `py Scripts/backlog.py approve <ids>` (or `/backlog approve <ids>`)
 
 A fan is approved in one batch and dispatched one teammate per task. `⨝` joins own the shared writes and wait on their siblings — see `py Scripts/backlog.py epic <slug>`.
 
-## proposed (41)
+## proposed (38)
 
 | id | score | task | agent | owns | source |
 |---|---|---|---|---|---|
@@ -59,21 +59,18 @@ A fan is approved in one batch and dispatched one teammate per task. `⨝` joins
 | `030` | 3.0 | [Answer CAMERA-SCALE §4's six open questions](task-030-camera-scale-six-open-questions.md) | claude | `docs/design/CAMERA-SCALE-HANDOFF.md` | `docs/design/CAMERA-SCALE-HANDOFF.md:89` |
 | `054` | 3.0 | [Build the feeding-distraction mechanic in Mass — corpses, kill attribution, and the three-slot feed](task-054-build-feeding-distraction-in-mass.md) | claude | `ELVTR/Source/ELVTR/Mass/SwarmCombat.h`, `ELVTR/Source/ELVTR/Mass/SwarmCombatProcessors.cpp`, `ELVTR/Source/ELVTR/Mass/SwarmCombatProcessors.h`, `ELVTR/Source/ELVTR/Mass/SwarmFragments.h`, `ELVTR/Source/ELVTR/Mass/SwarmSubsystem.h`, `ELVTR/Config/SwarmExecOnPlay.canonical.txt`, `ELVTR/Saved/SwarmExecOnPlay.txt` | `user` |
 | `108` | 3.0 | [Measure frame time at the three-act populations, and price the Elite/Boss actors](task-108-measure-the-late-wave-population.md) | performance-director | `docs/perf/three-act-scale.md` | `user, 2026-07-30 — the scale half of "an effective way to test them"` |
-| `031` | 2.0 | [Check the shipped leash system against RTS-VERTICAL-SLICE §2's spec](task-031-leash-system-conformance-check.md) | claude | `docs/RTS-VERTICAL-SLICE.md` | `docs/RTS-VERTICAL-SLICE.md:97` |
 | `042` | 2.0 | [Trial rust-gold and eulbink as LUT rows against the locked demichrome](task-042-trial-candidate-palettes-as-lut-rows.md) | pixel-art-director | `docs/art/palette-trials.md` | `user` |
 | `065` | 2.0 | [Land the hit flash, retire the stale header, and fix the black late-session capture](task-065-sprite-path-evidence-trio.md) | claude | `ELVTR/Source/ELVTR/Mass/SwarmFragments.h`, `ELVTR/Source/ELVTR/Rendering/SwarmRenderActor.cpp`, `ELVTR/Source/ELVTR/Rendering/SwarmRenderActor.h`, `ELVTR/Content/Spike1/**` | `user` |
 | `074` | 2.0 | [Scope the archer dead-zone hatch per-brood, not per-archer](task-074-per-brood-dead-zone-hatch.md) | claude | `ELVTR/Source/ELVTR/Mass/SwarmCombatProcessors.cpp`, `ELVTR/Source/ELVTR/Mass/SwarmProcessors.cpp` | `user` |
 | `077` | 2.0 | [Build the parallel batch driver — wire trials into the pipeline and measure where the process pool actually pays](task-077-batch-driver-pool-and-trials.md) | sim-director | `Scripts/sim/batch.py`, `docs/sim/PIPELINE.md` | `user` |
 | `083` | 2.0 | [Run a caster variant family — once the roster decides where a caster-silhouette retinue actually lives](task-083-caster-variant-family.md) | claude | `RawArt/Renders/caster-v1/**`, `docs/data/art/families/caster-v1/**` | `user` |
 | `111` | 2.0 | [Spend the protrusion axis on the Baby face brood — limbs out, not faces on](task-111-baby-parts-brood-family.md) | claude | `docs/data/art/families/brood-baby/**`, `RawArt/Renders/brood-baby/**`, `docs/data/art/provenance.json` | `user` |
-| `120` | 2.0 | [Refresh SWEEPS.md's two demonstration tables, which disagree with baseline.json after the armor fix](task-120-sweeps-demo-tables-disagree-with-baseline.md) | sim-director | `docs/sim/SWEEPS.md`, `docs/sim/baseline.json` | `task-075 handback` |
 | `121` | 2.0 | [Repack the militia hit frame from the eight already-generated frames the sheet never used](task-121-repack-militia-hit-frame.md) | claude | `docs/data/art/requests/unit-retinue.json`, `RawArt/Sheets/T_Unit_Retinue.png`, `docs/art/retinue-militia.md` | `task-010 handback` |
 | `025` | 1.33 | [Spec the procgen room-graph generator over the prefab library](task-025-procgen-room-graph-generator.md) | gameplay-director | `docs/design/procgen-room-graph.md`, `docs/data/room-types.json`, `docs/data/room-types.schema.md` | `docs/RTS-VERTICAL-SLICE.md:102` |
 | `026` | 1.33 | [Produce the Highgates tileset](task-026-highgates-tileset.md) | pixel-art-director | `docs/art/highgates-tileset.md` | `docs/RTS-VERTICAL-SLICE.md:109` |
 | `011` | 1.0 | [Run the soldier roster v1 acceptance checklist across all six variants](task-011-soldier-roster-acceptance-pass.md) | pixel-art-director | `docs/art/soldier-roster-v1.md` | `docs/art/soldier-roster-v1.md:1093` |
 | `012` | 1.0 | [Write the Pathfinder rework art spec (brief-005)](task-012-pathfinder-rework-art-spec.md) | pixel-art-director | `docs/art/merle.md`, `docs/briefs/brief-005-pathfinder-rework.md` | `docs/briefs/brief-005-pathfinder-rework.md` |
 | `016` | 1.0 | [Write GDD §12 Q6's resolution back into the table](task-016-gdd-q6-palette-strategy.md) | claude | `GDD.md` | `GDD.md:430` |
-| `019` | 1.0 | [Retire the stale "emitter draws zero particles" claims across the perf and camera docs](task-019-retire-stale-sprite-gpu-sim-claims.md) | performance-director | `docs/perf/niagara-sprite-refactor.md`, `docs/design/CAMERA-SCALE.md` | `docs/perf/niagara-sprite-refactor.md:94` |
 | `022` | 1.0 | [Design Spike 2 — replication for 2-4 players with aggregate swarms](task-022-replication-two-to-four-players.md) | performance-director | `docs/perf/replication-spike2.md` | `docs/RTS-VERTICAL-SLICE.md:98` |
 | `023` | 1.0 | [Build UMG milestone 1 — main menu → muster → combat HUD](task-023-umg-hud-and-menu-flow-milestone-1.md) | claude | `ELVTR/Content/UI/**`, `docs/ui/UI-PROTOTYPE-PLAN.md` | `docs/RTS-VERTICAL-SLICE.md:99` |
 | `032` | 1.0 | [Final naming pass on the four classes (GDD Q11 / CLASSES C1)](task-032-final-class-naming-pass.md) | narrative-director | `docs/narrative/class-naming-pass.md` | `GDD.md:437` |
@@ -94,7 +91,20 @@ A fan is approved in one batch and dispatched one teammate per task. `⨝` joins
 | `020` | 0.5 | [Assemble the four-section GDD submission document and export to PDF](task-020-gdd-submission-assembly-and-pdf.md) | claude | `docs/ASSIGNMENT-01-GDD-FIRST-DRAFT.md` | `docs/GDD-TODO.md:77` |
 | `037` | 0.5 | [Sweep the remaining CLASSES C2-C11 open questions against current canon](task-037-sweep-remaining-classes-open-questions.md) | narrative-director | `docs/narrative/open-questions-audit.md` | `docs/GDD-TODO.md:116` |
 
-## done (73)
+## approved (1)
+
+| id | score | task | agent | owns | source |
+|---|---|---|---|---|---|
+| `031` | 2.0 | [Check the shipped leash system against RTS-VERTICAL-SLICE §2's spec](task-031-leash-system-conformance-check.md) | claude | `docs/RTS-VERTICAL-SLICE.md` | `docs/RTS-VERTICAL-SLICE.md:97` |
+
+## in-progress (2)
+
+| id | score | task | agent | owns | source |
+|---|---|---|---|---|---|
+| `122` | 2.0 | [Measure why the frame reads black and fix the value hierarchy it inverted](task-122-say-why-the-frame-goes-black.md) | claude | `ELVTR/Source/ELVTR/Rendering/SwarmRenderActor.cpp`, `ELVTR/Source/ELVTR/Rendering/SwarmRenderActor.h`, `ELVTR/Config/SwarmExecOnPlay.canonical.txt`, `ELVTR/Content/PostProcess/M_PP_Demichrome.uasset`, `docs/RENDERING-LIGHTING.md`, `docs/perf/evidence/black-frame/**` | `user` |
+| `019` | 1.0 | [Retire the stale "emitter draws zero particles" claims across the perf and camera docs](task-019-retire-stale-sprite-gpu-sim-claims.md) | performance-director | `docs/perf/niagara-sprite-refactor.md`, `docs/design/CAMERA-SCALE.md` | `docs/perf/niagara-sprite-refactor.md:94` |
+
+## done (74)
 
 | id | score | task | agent | owns | source |
 |---|---|---|---|---|---|
@@ -151,6 +161,7 @@ A fan is approved in one batch and dispatched one teammate per task. `⨝` joins
 | `112` | 2.0 | [Build the armored-enemy variant family off the brighter-palette base and publish the contact sheet](task-112-enemy-armored-variant-family.md) | claude | `docs/data/art/families/enemy-armored/**`, `RawArt/Renders/enemy-armored/**`, `docs/art/enemy-armored-variants.md` | `user` |
 | `114` | 2.0 | [Write the UI aesthetic that replaces the four-value gate the colour reversal killed](task-114-ui-aesthetic-after-the-colour-reversal.md) | ui-director | `docs/ui/ui-aesthetic.md`, `docs/ui/mockups/ui-aesthetic-*.html` | `user` |
 | `116` | 2.0 | [Spec the end-of-wave showcase that names the five units doing the work](task-116-end-of-wave-showcase-spec.md) | ui-director | `docs/ui/end-of-wave-showcase.md`, `docs/ui/mockups/end-of-wave-showcase.html` | `user` |
+| `120` | 2.0 | [Refresh SWEEPS.md's two demonstration tables, which disagree with baseline.json after the armor fix](task-120-sweeps-demo-tables-disagree-with-baseline.md) | sim-director | `docs/sim/SWEEPS.md`, `docs/sim/baseline.json` | `task-075 handback` |
 | `068` | 1.5 | [Teach the wave-attrition model arrival timing, and re-run the GATE1 calibration check](task-068-teach-the-wave-model-arrival-timing.md) | sim-director | `Scripts/sim/**`, `docs/sim/**`, `docs/data/scenarios/**` | `user` |
 | `046` | 1.33 | [Build the typed-unit command layer in Mass — sticky type, per-type stance, per-type allocation, published centroids](task-046-squad-command-layer-in-mass.md) | claude | `ELVTR/Source/ELVTR/Mass/**`, `ELVTR/Source/ELVTR/UI/UnitCamProjector.cpp`, `ELVTR/Source/ELVTR/UI/UnitCamProjector.h`, `ELVTR/Source/ELVTR/UI/UnitCamDirector.cpp`, `ELVTR/Source/ELVTR/UI/UnitCamDirector.h` | `docs/design/squad-group-system.md` |
 | `085` | 1.33 | [Split the horde into a team atlas and an enemy atlas, and land the knight family in the team half](task-085-split-team-and-enemy-atlases-with-knight-family.md) | claude | `ELVTR/Source/ELVTR/Mass/SwarmFragments.h`, `ELVTR/Source/ELVTR/Mass/SwarmSubsystem.h`, `ELVTR/Source/ELVTR/Rendering/SwarmRenderActor.cpp`, `ELVTR/Source/ELVTR/Rendering/SwarmRenderActor.h`, `ELVTR/Content/Spike1/**`, `ELVTR/SETUP-EDITOR.md`, `RawArt/Sheets/T_Swarm*.png`, `RawArt/Sheets/T_Team*.png`, `RawArt/Sheets/T_Enemy*.png`, `docs/data/art/requests/swarm-units.json`, `docs/data/art/requests/team-units.json`, `docs/data/art/requests/enemy-units.json`, `docs/data/art/brood-variants.json`, `docs/data/art/team-variants.json`, `docs/data/art/provenance.json`, `docs/data/art/sprite-request.schema.json`, `Scripts/art/pixelpipe.py`, `Scripts/art/check_brood_variants.py`, `docs/perf/niagara-sprite-path.md` | `user` |
@@ -186,4 +197,4 @@ A fan is approved in one batch and dispatched one teammate per task. `⨝` joins
 
 ---
 
-*Regenerated 2026-07-31 · 121 task(s) · decisions in [LOG.md](LOG.md).*
+*Regenerated 2026-07-31 · 122 task(s) · decisions in [LOG.md](LOG.md).*

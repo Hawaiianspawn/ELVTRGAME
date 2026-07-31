@@ -325,3 +325,12 @@ Rejected and parked tasks keep their files — this records why.
 - 2026-07-31 · `task-075` · needs-review → **done** · Make simulation results durable — a declarative experiment format, a versioned run-artifact store, and an artifact comparison tool
 - 2026-07-31 · `task-099` · needs-review → **done** · Reconcile targets_per_hit against the engine's fixed 8-target ceiling, which flattens the axis for seven of nine melee rows
 - 2026-07-31 · `task-010` · needs-review → **done** · Run the retinue militia acceptance checklist against the packed sheet
+- 2026-07-31 · `task-122` · proposed → **approved** · Measure why the frame reads black and fix the value hierarchy it inverted
+- 2026-07-31 · `task-122` · approved → **in-progress** · Measure why the frame reads black and fix the value hierarchy it inverted — dispatched to teammate `black-frame` at model `opus`
+- 2026-07-31 · `task-019` · proposed → **approved** · Retire the stale "emitter draws zero particles" claims across the perf and camera docs
+- 2026-07-31 · `task-120` · proposed → **approved** · Refresh SWEEPS.md's two demonstration tables, which disagree with baseline.json after the armor fix
+- 2026-07-31 · `task-031` · proposed → **approved** · Check the shipped leash system against RTS-VERTICAL-SLICE §2's spec
+- 2026-07-31 · `task-019` · approved → **in-progress** · Retire the stale "emitter draws zero particles" claims across the perf and camera docs — dispatched to teammate `stale-gpu-claims` at model `sonnet`
+- 2026-07-31 · `task-120` · approved → **in-progress** · Refresh SWEEPS.md's two demonstration tables, which disagree with baseline.json after the armor fix — dispatched to teammate `sweeps-refresh` at model `sonnet`
+- 2026-07-31 · `task-120` · in-progress → **needs-review** · Refresh SWEEPS.md's two demonstration tables, which disagree with baseline.json after the armor fix
+- 2026-07-31 · `task-120` · needs-review → **done** · Refresh SWEEPS.md's two demonstration tables, which disagree with baseline.json after the armor fix

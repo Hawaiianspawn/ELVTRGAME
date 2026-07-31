@@ -24,7 +24,7 @@
           ]
         }
       ],
-      "trust": "wave_attrition \u2014 DRIFT-ONLY signal, not a correctness claim. docs/sim/LIMITATIONS.md \u00a71: this model does not reproduce its one measured baseline (GATE1 109-111 of 120); at committed defaults it predicts a full retinue wipe. This entry exists to catch CHANGE in upgrades.json's Militia HP row, never to assert these survivor counts are right. Exact reproduction of docs/sim/SWEEPS.md Demonstration 1 \u2014 same command, same 6 cells.",
+      "trust": "wave_attrition \u2014 DRIFT-ONLY signal, not a correctness claim. docs/sim/LIMITATIONS.md \u00a71: this model does not reproduce its one measured baseline (GATE1 109-111 of 120); at committed defaults it predicts a full retinue wipe. This entry exists to catch CHANGE in upgrades.json's Militia HP row, never to assert these survivor counts are right. Reproduces docs/sim/SWEEPS.md Demonstration 1 \u2014 same command, same 6 cells, refreshed 2026-07-31 (task-120) after these numbers diverged following the 2026-07-29 armor fix (\u00a75); SWEEPS.md's table was stale, this file's numbers were already current.",
       "diagnostic_family_3": false,
       "cells": [
         {
@@ -114,7 +114,7 @@
           ]
         }
       ],
-      "trust": "wave_attrition \u2014 DRIFT-ONLY, same caveat as A. Catches drift in floor1-swarm-wave.json's own composition numbers and in the enemy population's stat block (brood_fodder / brood_soldier_melee), neither of which A's axis touches. Exact reproduction of docs/sim/SWEEPS.md Demonstration 2 \u2014 same command, same 7 cells.",
+      "trust": "wave_attrition \u2014 DRIFT-ONLY, same caveat as A. Catches drift in floor1-swarm-wave.json's own composition numbers and in the enemy population's stat block (brood_fodder / brood_soldier_melee), neither of which A's axis touches. Reproduces docs/sim/SWEEPS.md Demonstration 2 \u2014 same command, same 7 cells, refreshed 2026-07-31 (task-120) after these numbers diverged following the 2026-07-29 armor fix (\u00a75); SWEEPS.md's table was stale, this file's numbers were already current.",
       "diagnostic_family_3": false,
       "cells": [
         {

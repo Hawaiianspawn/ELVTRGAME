@@ -1,7 +1,7 @@
 ---
 id: 031
 title: Check the shipped leash system against RTS-VERTICAL-SLICE §2's spec
-status: proposed
+status: approved
 agent: claude
 owns: ["docs/RTS-VERTICAL-SLICE.md"]
 resources: []
@@ -9,7 +9,7 @@ depends-on: [8]
 evidence: A per-clause conformance table — radius, hysteresis, warning, break-to-Follow — each marked shipped, partial, or missing against the source.
 score: {feel: 2, risk: 1, cost: 1}
 source: docs/RTS-VERTICAL-SLICE.md:97
-decided: ""
+decided: "2026-07-31 approved"
 ---
 
 ## Why now
