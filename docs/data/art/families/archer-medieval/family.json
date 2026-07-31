@@ -1,0 +1,52 @@
+{
+  "family": "archer-medieval",
+  "note": "task-125. Base confirmed live via get_character 2026-07-31: 88x88px, group 2cc3ab61-4230-4786-98fa-b94da9e99218 (same base as knight-melee-v1/v2, 42 sibling states). The base carries a shield + polearm as its established silhouette -- every variant here explicitly drops both per SKILL.md's Finding 4 (a large dominant prop anchors mass in every child state unless removed). Register is medieval fantasy per docs/narrative/FLAME-FOUNDATION.md: bows, crossbows, slings, quivers, hoods, leather -- no guns, no energy weapons, no glow, matching archer-scifi's own register warning. Full colour throughout per docs/art/aesthetic-direction.md's 2026-07-28 amendment -- no quantizing, no fewer-colours request, glow banned explicitly in every prompt. Task-085 ruled the ranged-roster family out entirely for a content bbox up to 124px against a 56px atlas cell, so every keep here is measured against that same 56x56 gate across all 8 rotations before being called a keep.",
+  "base": {
+    "character_id": "1c935515-0ea3-459b-8c63-e7f8cf368272",
+    "canvas_size": 88,
+    "note": "Confirmed by get_character before queueing anything: 88x88, group has 42 sibling states (knight-mass/primitive/topology/types plus knight-melee-v1/v2's 12 kept states were all built from this same base). create_character_state inherits the source's canvas, so the size-vs-canvas trap does not apply here."
+  },
+  "axis": {
+    "name": "mixed",
+    "description": "Two variants move width via the skeletal-base axis SKILL.md proves works -- narrow (arms tucked, bow slung on the back) versus wide-by-extension (a fully drawn longbow held out at arm's length) -- never tall<->squat, since knight-melee-v1 measured this base will not compress vertically. Four variants move topology instead, each opening or closing a different silhouette shape while staying a ranged unit: a single raised loosing arm enclosing a hole against the head/shoulder (the v13_maceraised recipe), a quiver held away from the torso enclosing a hole on every side (SKILL.md's 'hold an object away from the body' rule), a forward crouch bracing a crossbow low and level (a genuinely lower, more compact profile than the upright bow poses), and a sling whirled overhead in a wide arc (a loop of open air well clear of the body)."
+  },
+  "constant": "Base knight/archer character (1c935515-0ea3-459b-8c63-e7f8cf368272), inherited palette via use_color_palette_from_reference (no new hues, no fewer colours), 88px canvas, full colour per the 2026-07-28 amendment, glow explicitly banned in every prompt, shield and polearm explicitly dropped in every prompt, every variant nameable as a ranged archer (drawn bow, nocked arrow, loosing pose, quiver or crossbow visible) from its outline alone.",
+  "variants": [
+    {
+      "slug": "v1_narrowstrung",
+      "silhouette_target": 0.55,
+      "edit_description": "Standing narrow and tall with no shield and no polearm: a longbow slung diagonally across the back, one hand resting near an arrow quiver at the hip, the other arm tucked close against the torso. Legs together, hood up and cloak held close to the body. Roughly half again as tall as wide. Keep the head and legs clearly visible. Match the existing color palette exactly, no new colors, no glowing parts.",
+      "source": "generated"
+    },
+    {
+      "slug": "v2_bowextended",
+      "silhouette_target": 1.5,
+      "edit_description": "A longbow held fully drawn, the bow arm extended straight out to one side at arm's length so the bow reaches well past the body's edge, the string pulled back to the ear with the other hand close to the face. No shield, no polearm. Body kept narrow and compact behind the extended bow. The bow should read as a rigid curved line reaching outward, roughly one and a half times wider than tall overall. Keep the head and legs clearly visible. Match the existing color palette exactly, no new colors, no glowing parts.",
+      "source": "generated"
+    },
+    {
+      "slug": "v3_loosingarm",
+      "silhouette_target": "a single raised loosing arm, asymmetric (not overhead-symmetric), fully enclosing a hole between the upper arm, forearm and head -- reuses the knight family's v13_maceraised recipe (a raised limb closing a gap against the body), the mechanism SKILL.md proves works for a reliable hole",
+      "edit_description": "A single arm raised high and out to one side just after loosing an arrow, elbow bent sharply outward and up so the raised arm and drawn bow fully enclose a gap between the upper arm, the forearm and the head/shoulder below -- a real enclosed hole, asymmetric rather than symmetric overhead. The other arm holds a small quiver low against the hip. No shield, no polearm. Keep the head and legs clearly visible below and beside the raised arm. Match the existing color palette exactly, no new colors, no glowing parts.",
+      "source": "generated"
+    },
+    {
+      "slug": "v4_quiverreach",
+      "silhouette_target": "a quiver held away from the torso at the hip, the gap between the extended forearm, the quiver and the body closed on every side -- SKILL.md's 'hold an object away from the body rather than relying on an armpit' recipe for a hole that survives downsampling",
+      "edit_description": "Reaching one arm back and away from the body to grip a quiver of arrows held out at the hip, well clear of the torso, so the gap between the extended forearm, the quiver and the body is fully closed on every side -- a genuine enclosed hole, not an open notch. The other arm holds a longbow lowered close to the body. No shield, no polearm. Keep the head and legs clearly visible. Match the existing color palette exactly, no new colors, no glowing parts.",
+      "source": "generated"
+    },
+    {
+      "slug": "v5_crossbowbrace",
+      "silhouette_target": "a forward-leaning crouch with a crossbow held low and level -- a distinctly lower, more compact profile than the upright bow poses, different weapon silhouette (crossbow, not longbow) as the interior/kit tiebreaker",
+      "edit_description": "A crouched bracing stance, leaning the torso forward, both hands gripping a loaded crossbow held low and level across the body at waist height. No shield, no polearm, no longbow. Legs spread slightly for balance, hood down. The overall silhouette should be lower and more compact than an upright stance, distinctly different in profile. Keep the head and legs clearly visible. Match the existing color palette exactly, no new colors, no glowing parts.",
+      "source": "generated"
+    },
+    {
+      "slug": "v6_slingwhirl",
+      "silhouette_target": "a sling whirled overhead in a wide arc, one arm fully extended up and out so the cord's loop encloses a real gap clear of the head and shoulder -- a third weapon silhouette (sling, not bow or crossbow) and a third hole topology, above the head rather than at the hip or beside the ribs",
+      "edit_description": "A sling being whirled overhead in a wide circular arc, gripped in one fully extended arm reaching up and out to the side, the sling's cord and pouch tracing a loop well clear of the head and shoulder so the loop encloses a real gap between the cord and the body. The other arm holds a small pouch of stones at the hip. No bow, no shield, no polearm. Keep the head and legs clearly visible below the raised arm. Match the existing color palette exactly, no new colors, no glowing parts.",
+      "source": "generated"
+    }
+  ]
+}

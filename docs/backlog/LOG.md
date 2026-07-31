@@ -337,3 +337,8 @@ Rejected and parked tasks keep their files — this records why.
 - 2026-07-31 · `task-019` · in-progress → **needs-review** · Retire the stale "emitter draws zero particles" claims across the perf and camera docs
 - 2026-07-31 · `task-019` · needs-review → **done** · Retire the stale "emitter draws zero particles" claims across the perf and camera docs
 - 2026-07-31 · `task-122` · in-progress → **parked** · Measure why the frame reads black and fix the value hierarchy it inverted — Superseded by the owner's own diagnosis: the floor was above the meshes. The task was scoped to measure and tune the flame/lift model; the cause is geometry. RENDERING-LIGHTING.md 4e (uncommitted) already carries the pool-edge measurement this task would have re-derived. measure.py/capture.py kept in docs/perf/evidence/black-frame/. Refiled as task-124.
+- 2026-07-31 · `task-125` · proposed → **approved** · Generate a medieval archer variant family off the shipped knight base, judged on measured silhouette
+- 2026-07-31 · `task-126` · proposed → **approved** · Make an archer look like an archer on the battlefield — pack the family into the team atlas and branch the render path on unit type
+- 2026-07-31 · `task-125` · approved → **in-progress** · Generate a medieval archer variant family off the shipped knight base, judged on measured silhouette — dispatched to teammate `archer-family` at model `sonnet`
+- 2026-07-31 · `task-125` · in-progress → **needs-review** · Generate a medieval archer variant family off the shipped knight base, judged on measured silhouette
+- 2026-07-31 · `task-125` · needs-review → **done** · Generate a medieval archer variant family off the shipped knight base, judged on measured silhouette
