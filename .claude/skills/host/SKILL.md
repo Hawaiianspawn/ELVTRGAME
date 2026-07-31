@@ -16,7 +16,8 @@ the independent ones at once.**
       → ask `waves` what can run at once, if there is more than one task (§3a)
       → present the plan and ask for the one verdict (§4, §5) — then stop
       → owner approves → dispatch wave 1, all at once, and post the board (§6)
-      → one-line receipt as each lands; full evidence once, at the close (§7)
+      → one-line receipt as each lands; full evidence + a close button, once (§7)
+      → commit and push what landed (§7a)
       → the run ends when the batch closes. Say so and stop (§8)
 
 ## Invocations
@@ -33,14 +34,27 @@ the independent ones at once.**
 ## The interruption budget
 
 This is the constraint the rest of the skill serves. **One `/host` run costs the owner at
-most two questions and two permission prompts, and never more:**
+most three questions and two permission prompts, and never more:**
 
 | | What | When |
 |---|---|---|
 | Question 1 | Clarify — *optional*, and the good case is skipping it | §2 |
 | Question 2 | **The verdict.** Build this, or not | §5 |
 | Prompt 1 | `approve <ids>` — the signature on that verdict | §5 |
+| Question 3 | **The close.** Did the evidence clear the bar | §7 |
 | Prompt 2 | `done <ids>` — the signature that it landed | §7 |
+
+**Every decision is a button, never typing.** If the owner has to choose — the plan gate
+(§5), the close gate (§7), a clarification (§2), which follow-up path a refusal takes,
+what to do about a goal that is already filed — it arrives as an `AskUserQuestion` with
+the real options as buttons. The owner should never have to compose a verdict in prose or
+type an id list; the permission prompt behind a gate is the signature, not the decision.
+Prose answers are always accepted, never required.
+
+**A follow-up spends the same slot, not a new one.** When the owner clicks `Revise first`,
+`Don't build this` or `Close some`, the next question is that decision continuing — ask it
+as buttons and it does not breach the budget. Two questions to settle one verdict is fine;
+a second *independent* question is not.
 
 Anything else that wants an owner decision is a bug in the plan, not a question to ask.
 Do not ask about models, do not ask the owner to confirm a feature split, do not ask
@@ -83,8 +97,9 @@ The test is the one the scheduler uses: **would these write the same files?**
 Then, per feature, spend a few tool calls before drafting:
 
 - `py Scripts/backlog.py sweep-report --json` → check `existing_sources` and filed titles.
-  **If the goal is already a task, say so and stop drafting.** Offer the real choices:
-  re-score it, dispatch it if approved, or supersede it deliberately.
+  **If the goal is already a task, say so and stop drafting.** Put the real choices up as
+  an `AskUserQuestion`, header `Already filed` — re-score it, dispatch it if approved,
+  supersede it deliberately. That question replaces §2; it is not an extra one.
 - Grep current canon: `GDD.md`, `SYSTEMS.md`, `CLASSES.md`, `docs/narrative/FLAME-FOUNDATION.md`.
   Goals get built that already exist.
 - Note the traps in `.claude/skills/backlog/SKILL.md` §Sweeping — they apply to goals too.
@@ -248,10 +263,11 @@ Then ask for the verdict (§5) and **stop**. Do not start work. Do not spawn. Do
 approval into enthusiasm — "looks good" about the *shape* of a plan is not "go".
 
 If the honest recommendation is that this should not be built — already done, better
-waited on, needs a decision first — say that instead of presenting a plan. Recommending
-work not happen is part of the job.
+waited on, needs a decision first — say that instead of presenting a plan, and still ask
+with `AskUserQuestion`: the recommendation first, the plan-anyway option second.
+Recommending work not happen is part of the job; making the owner argue back in prose is not.
 
-## 5 · The verdict — the one gate
+## 5 · The verdict — the plan gate
 
 **Ask with `AskUserQuestion`, in the same turn as the plan.** The owner should never have
 to type a verdict. One question, header `Verdict`, `multiSelect: false`:
@@ -260,8 +276,12 @@ to type a verdict. One question, header `Verdict`, `multiSelect: false`:
 |---|---|---|
 | `Approve all N & run wave 1` | go | §6, once per wave-1 task |
 | `Approve, hold dispatch` | approved, not spawning yet | run `approve`, then stop |
-| `Revise first` | the plan is wrong somewhere | ask what, redraft, re-present |
-| `Don't build this` | `reject` or `park`, with a reason | ask which and why |
+| `Revise first` | the plan is wrong somewhere | one follow-up `AskUserQuestion` naming the *specific* soft spots you already flagged as options — scope, evidence bar, agent, model — then redraft and re-present |
+| `Don't build this` | `reject` or `park`, with a reason | one follow-up `AskUserQuestion`, header `Reject or park`, the likely reasons as options |
+
+**The follow-up is buttons too.** Never answer a `Revise first` click with "what would you
+like changed?" — you drafted the plan, so you know the two or three places it could be
+wrong. Put those up as options. `Other` is always there for the case you missed.
 
 **The question is about the batch, not the tasks.** One click approves every task in the
 plan and starts every task in wave 1 — put the number in the option label so the owner
@@ -361,6 +381,25 @@ one block, with `done <ids>` as a single batched command and therefore a single 
 Big changes hand over as a runnable build or on-screen evidence, never a diff plus "it
 works" (`show-a-build-for-review`). The owner launches the editor for review.
 
+**Then ask for the close with `AskUserQuestion`, in the same turn as the evidence** — the
+mirror of §5, header `Close`, `multiSelect: false`. The owner clicks; they never type an
+id list:
+
+| Option | What it means | Then |
+|---|---|---|
+| `Close all N` | every task cleared its bar | `done <ids>`, one batched prompt |
+| `Send NNN back` | one task missed | `SendMessage` that teammate, leave it `needs-review` |
+| `Close some` | mixed | one follow-up `AskUserQuestion`, `multiSelect: true`, one option per task — the owner ticks what clears. `done` those, hold the rest |
+| `Re-run NNN on Opus` | it missed *in kind*, not in detail | re-dispatch at Opus (§7 model note) |
+
+Same rules as §5: lead each `description` with what the evidence actually shows, and only
+put `Close all` first when you actually believe it cleared. A close question whose first
+option is always "yes" is the rubber stamp the bar exists to prevent. If the owner answers
+in prose instead — "close 63 and 65, 64 needs another pass" — take it.
+
+Offer `Re-run NNN on Opus` as a fifth option only when a miss is wrong-in-kind, never as
+standing furniture.
+
 A sibling that is `done` releases its `owns:` lock, which is what lets the join dispatch —
 so close siblings as they land even though you present them together. `epic <slug>` carries
 the running state in the meantime.
@@ -370,6 +409,29 @@ back work that is wrong in kind — misread the architecture, solved the adjacen
 say so and offer re-running that task on Opus. Two Sonnet attempts at work that needed Opus
 costs more than one Opus attempt. When a Sonnet teammate lands it clean, that is worth a
 sentence too: it is what keeps the default honest.
+
+## 7a · Commit and push what landed
+
+**Closed work that is not pushed did not land.** After `done <ids>` clears, commit and push
+in the same turn — no extra question, this is part of the close, not a decision:
+
+    git add <the closed tasks' owns: paths + docs/backlog/>
+    <commit with the `caveman-commit` skill, per CLAUDE.md>
+    git push
+
+Rules that bite:
+
+- **Stage the `owns:` paths, never `git add -A`.** The tree is shared with other sessions
+  (`concurrent-sessions-share-the-tree`) and carries unrelated modified assets. Sweeping
+  them in commits someone else's work under your message.
+- **One commit per batch**, not per task, unless the tasks are genuinely unrelated.
+- If the push is refused — protected branch, no upstream, conflict — say so in one line and
+  hand the owner the fix. Do not force, do not rebase the shared branch unasked.
+
+**This applies to the skill itself.** Any change to `.claude/skills/host/SKILL.md` — a rule
+added, a gate reworded — gets committed and pushed in the turn it is made, on its own
+commit. A process improvement living only in one session's working tree is not a process
+improvement.
 
 ## 8 · The end of a run
 
@@ -427,8 +489,14 @@ clarify round to repair the assumptions it made. Use `/model` if you want to pla
 
 ## Never
 
-- Ask the owner more than two questions in one run, or ask about anything other than a
-  clarification (§2) and the verdict (§5). Take the default and say which default you took.
+- Ask the owner more than three questions in one run, or ask about anything other than a
+  clarification (§2), the verdict (§5) and the close (§7) — plus the follow-up a refusal or
+  a partial close opens, which spends the same slot. Take the default and say which default
+  you took.
+- Put a decision in prose. Every owner choice in this skill is an `AskUserQuestion` with
+  the real options as buttons — the gates, the clarify, and every follow-up off them.
+  Prose answers are accepted, never required, and "what would you like me to change?" is
+  a question you should have already turned into options.
 - Spawn a teammate on a task that is not `approved`. `dispatch` enforces it; do not work
   around it by calling `Agent` first.
 - Set `approved`, `done`, `rejected`, or `parked` by editing a file. The hook denies it and
@@ -447,4 +515,6 @@ clarify round to repair the assumptions it made. Use `/model` if you want to pla
 - Spawn at a model the task's `model:` does not name, or quietly upgrade a build to Opus
   because the work looked hard mid-flight. Re-dispatching at a different model is the
   owner's decision, at handback (§7), with the failed attempt in front of them.
+- Leave closed work uncommitted, `git add -A` in a shared tree, or edit this skill without
+  committing and pushing that edit (§7a).
 - Roll into the next epic after a batch closes (§8).
