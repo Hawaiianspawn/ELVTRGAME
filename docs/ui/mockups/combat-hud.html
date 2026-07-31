@@ -1,7 +1,7 @@
-<title>Emberkeep — Combat HUD over live gameplay</title>
+<title>Kindled — Combat HUD over live gameplay</title>
 <style>
   /* ============================================================
-     EMBERKEEP — Combat HUD (the §8 collapse) laid over a REAL
+     KINDLED — Combat HUD (the §8 collapse) laid over a REAL
      screenshot of the current build (SwarmDebugShot00000.png).
      Designer HUD replaces the programmer debug text in-place.
      HUD state is matched to the screenshot: STANCE FOLLOW,
@@ -169,7 +169,7 @@
 
   <!-- OPS panel — replaces the programmer debug readout in-place -->
   <div class="ops">
-    <div class="brand"><b>Emberkeep</b><span>Highgates · Floor II</span></div>
+    <div class="brand"><b>Kindled</b><span>Highgates · Floor II</span></div>
     <div class="line"><span class="lbl">Retinue</span><span><var>120</var> <s>/ 180</s></span></div>
     <div class="meter" data-total="24" data-full="24" aria-label="Retinue at strength"></div>
     <div class="line"><span class="lbl">Brood</span><span><var>0</var> <s>· field clear</s></span></div>
@@ -273,7 +273,7 @@
 </div>
 
 <p class="caption">
-  <b>This is the current build.</b> The background is the real editor capture <code>SwarmDebugShot00000.png</code> — the swarm spiral, hero at centre. The Emberkeep <b>combat HUD</b> (the §8 collapse of the Sampler Frame) is laid over it: the top-left <b>ops panel</b> replaces the programmer debug text in the same corner; the bottom band is <b>bookended</b> by two live <b>subcamera feeds</b> — a <b>Hero Cam</b> flush-left and a <b>Unit Cam</b> flush-right, each a <code>SceneCaptureComponent2D → RenderTarget2D</code> framed as a cinematic portrait (the flame-bearer at <code>500/500</code>, the selected Shield squad at <code>24/24</code>). Between them sit the <b>squad cards</b> (rank-and-file musters, matched to <code>RETINUE 120</code>, all on <code>FOLLOW</code>) and the stance wheel + leash. The muster is a <b>static, compressed</b> block — a fixed footprint that never scrolls, so the two cams stay pinned as balanced bookends regardless of retinue count. Guardians and lintel are dropped in combat so the play space stays clear — thin stitched rails only. Strictly the four Demichrome values. <b>Wiring note:</b> rig one capture camera to a socket on the hero and one to the selected unit's representative; the frames here (corner brackets, focus reticle, scanline, live tag, flame-lit rim) are the UMG overlay that sits <em>on top of</em> the render target so it reads as a live cinematic window, not a static portrait.
+  <b>This is the current build.</b> The background is the real editor capture <code>SwarmDebugShot00000.png</code> — the swarm spiral, hero at centre. The Kindled <b>combat HUD</b> (the §8 collapse of the Sampler Frame) is laid over it: the top-left <b>ops panel</b> replaces the programmer debug text in the same corner; the bottom band is <b>bookended</b> by two live <b>subcamera feeds</b> — a <b>Hero Cam</b> flush-left and a <b>Unit Cam</b> flush-right, each a <code>SceneCaptureComponent2D → RenderTarget2D</code> framed as a cinematic portrait (the flame-bearer at <code>500/500</code>, the selected Shield squad at <code>24/24</code>). Between them sit the <b>squad cards</b> (rank-and-file musters, matched to <code>RETINUE 120</code>, all on <code>FOLLOW</code>) and the stance wheel + leash. The muster is a <b>static, compressed</b> block — a fixed footprint that never scrolls, so the two cams stay pinned as balanced bookends regardless of retinue count. Guardians and lintel are dropped in combat so the play space stays clear — thin stitched rails only. Strictly the four Demichrome values. <b>Wiring note:</b> rig one capture camera to a socket on the hero and one to the selected unit's representative; the frames here (corner brackets, focus reticle, scanline, live tag, flame-lit rim) are the UMG overlay that sits <em>on top of</em> the render target so it reads as a live cinematic window, not a static portrait.
 </p>
 
 <script>

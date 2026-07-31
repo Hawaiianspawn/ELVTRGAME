@@ -1,6 +1,6 @@
 ---
 name: backlog
-description: Emberkeep's work queue — sweep the repo for undone work, rank it by a stated score, present the top 7 for the owner to audit, and record their verdicts. Use when the user runs /backlog, asks what to work on next, asks to add or re-rank a task, approves or rejects backlog items, or wants the backlog swept for newly-landed or newly-stale work.
+description: Kindled's work queue — sweep the repo for undone work, rank it by a stated score, present the top 7 for the owner to audit, and record their verdicts. Use when the user runs /backlog, asks what to work on next, asks to add or re-rank a task, approves or rejects backlog items, or wants the backlog swept for newly-landed or newly-stale work.
 ---
 
 # backlog — propose, rank, audit

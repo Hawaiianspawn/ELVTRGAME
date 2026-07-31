@@ -1,0 +1,91 @@
+<title>brood-ooze-colour -- variant family</title>
+<style>
+:root{--ground:#141418;--surface:#1d1d24;--line:#31313c;--sunk:#0e0e12;
+  --bone:#a0a08b;--pale:#e9efec;--steel:#7f8494;--blood:#8f4038;
+  --ink:var(--pale);--dim:var(--steel);
+  --serif:"Iowan Old Style","Palatino Linotype",Palatino,Georgia,serif;
+  --mono:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;}
+@media (prefers-color-scheme:light){:root{--ground:#f3f2ed;--surface:#fff;--line:#dad8ce;
+  --sunk:#e8e6dd;--ink:#20202a;--dim:#5d6270;--bone:#7b7b66;}}
+:root[data-theme="light"]{--ground:#f3f2ed;--surface:#fff;--line:#dad8ce;--sunk:#e8e6dd;
+  --ink:#20202a;--dim:#5d6270;--bone:#7b7b66;}
+:root[data-theme="dark"]{--ground:#141418;--surface:#1d1d24;--line:#31313c;--sunk:#0e0e12;
+  --ink:#e9efec;--dim:#7f8494;--bone:#a0a08b;}
+body{background:var(--ground);color:var(--ink);font-family:var(--serif);margin:0;
+  padding:clamp(1.25rem,3.5vw,3rem);line-height:1.55;}
+.wrap{max-width:108rem;margin:0 auto;display:flex;flex-direction:column;gap:2rem;}
+header{max-width:62ch;display:flex;flex-direction:column;gap:.6rem;}
+.eyebrow{font-family:var(--mono);font-size:.7rem;letter-spacing:.16em;text-transform:uppercase;
+  color:var(--bone);margin:0;}
+h1{font-size:clamp(1.8rem,3.6vw,2.5rem);margin:0;font-weight:600;text-wrap:balance;
+  line-height:1.15;}
+header p{margin:0;color:var(--dim);}
+.tiles{display:grid;gap:.75rem;grid-template-columns:repeat(auto-fit,minmax(11rem,1fr));}
+.t{background:var(--surface);border:1px solid var(--line);padding:.8rem .9rem;display:flex;
+  flex-direction:column;gap:.15rem;}
+.t b{font-family:var(--mono);font-size:1.4rem;font-weight:600;line-height:1;
+  font-variant-numeric:tabular-nums;color:var(--bone);}
+.t span{font-size:.78rem;color:var(--dim);}
+/* One family = ONE horizontal row, read left to right, because that is how a player
+   compares silhouettes. Wrapping into short stacked rows made the page a vertical
+   scroll and put siblings above/below each other instead of side by side.
+   The row scrolls inside ITSELF (overflow-x on .strip, never on body) so a 13-variant
+   family stays a row without the page scrolling sideways. */
+.strip{display:grid;gap:.75rem;grid-auto-flow:column;
+  grid-auto-columns:minmax(11rem,1fr);overflow-x:auto;padding-bottom:.5rem;
+  scrollbar-width:thin;overscroll-behavior-x:contain;}
+.s{margin:0;background:var(--surface);border:1px solid var(--line);display:flex;
+  flex-direction:column;}
+.pair{display:flex;align-items:flex-end;justify-content:center;gap:.45rem;padding:.7rem .35rem;
+  min-height:9rem;background:repeating-conic-gradient(from 0deg,rgba(127,132,148,.06) 0% 25%,
+  transparent 0% 50%) 0 0/14px 14px;}
+.s img{height:auto;max-width:100%;image-rendering:pixelated;}
+.s img.sil{opacity:.92;}
+figcaption{border-top:1px solid var(--line);padding:.5rem .65rem;display:flex;
+  flex-direction:column;gap:.1rem;}
+figcaption b{font-size:.95rem;font-weight:600;}
+.mx{margin:.25rem 0 0;font-family:var(--mono);font-size:.63rem;color:var(--dim);
+  font-variant-numeric:tabular-nums;line-height:1.5;}
+em{font-style:normal;font-family:var(--mono);font-size:.63rem;text-transform:uppercase;
+  letter-spacing:.04em;}
+em.bad{color:var(--blood);}
+.legend{display:flex;flex-wrap:wrap;gap:.9rem;font-family:var(--mono);font-size:.68rem;
+  color:var(--dim);align-items:center;}
+.legend i{width:11px;height:11px;display:block;border:1px solid var(--line);
+  background:#a0a08b;}
+.scroll{overflow-x:auto;}
+</style>
+<div class="wrap">
+  <header>
+    <p class="eyebrow">Kindled &middot; silhouette report</p>
+    <h1>brood-ooze-colour -- variant family</h1>
+    <p>Colour-treatment test of brood-ooze's state01_sump silhouette under the full-colour amendment -- not a silhouette axis at all. Every variant appears as rendered and again as a flat outline, because the outline
+    is what survives at panel scale. All figures share one zoom, so relative size is true.</p>
+  </header>
+  <div class="tiles">
+    <div class="t"><b>1.56&ndash;1.56</b><span>aspect range, a 1.0&times; spread across 1
+      variants.</span></div>
+    <div class="t"><b>53&ndash;53 px</b><span>width range, a 1.0&times; spread.</span></div>
+    <div class="t"><b>0.09</b><span>widest asymmetry &mdash; above ~0.4 means a form with a
+      front and a back.</span></div>
+    <div class="t"><b>0.67</b><span>lowest solidity &mdash; the gappiest outline, a different
+      kind of shape rather than a different ratio.</span></div>
+  </div>
+  <div class="legend"><b><i></i></b>
+    <span>outline &mdash; solidity is the share of the bounding box filled; asymmetry is the
+    mirror difference, 0.00 being perfectly symmetrical.</span>
+  </div>
+  <section><div class="strip">
+        <figure class="s">
+          <div class="pair">
+            <img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAADUAAAAiCAYAAAD/NZFTAAAFYklEQVR4nM1ZXWhcRRQ+s3uz7GK3oKZL20RMzNKf0JYS/yKB0gcLxUIwCoJ9KT70pQ8Vthj0qS+KTw3EBx/6EBFEn3wRKdIUGvqgVTTQVpK2VFswiSHGFjexmya7XDln5szO3L+99zYJfjC5u7NzZ84358z5mQjYQIi2ghv1u7tWExuxrrMegvuEEwUX3Ib+unfPbti69Qn9/cefJtWnnAuwKv5XpJxC0b30zXk4fOSErZEAQof6n9d91eq/9Lx95zdo1LP0rruG79gEWdNuQo1m4DHQqNfh2o2bVl//wItKoCw83f6U1tC3F6/o5kVH504aTyRQy4rQ5QtjqeTKJH5DNBdGzM4+gMGhYyQUmxYTQtz5/V6saV9+qU9OT7aTS00otaYmLo5JcgAw8ulnsLCwQEK179hmjft78T6U2rdBqVSCcrlbNxNZx4H5+QWYmZunOdBcERe++4Happwp4YA0OTo3WXih7wCdlytXf9Fj3LokhAJO37xFDfv4fQT+tqvcQ+eKgcSOv3GMTBbn+3ny+uZoyl2riXcrH1t9TGj10aoWHoWe+vUWfX7v9Eno7NpJG4HawDFIlM8lttmZOVhZWaG5cJPQmSBpuRMFd0NJSTeMC2VJOHbPuKtLS8tSg24Dpm5MweDrR2lMR8eT8MX5D2nc22++qokyMRNT07dpvKnBpEjv/dwGjJ4b1oRwt72onHpLu/fDR05Y77529BVy43yGTLx/9hM491GFNE2ad5shIg5EWi3hQuzxTKCgnd3PwMzdP/Q4/TTepScA9O6T546BXhPN+GFtBeq1R2p8Ddf2xbF10JQiRJJLAfn86G6vspiIudNmn9sgQhinGOhgEKR5kSXHItoKahMMGR6fVFNDvft7LQGRCLekZtLMJOwNqT5Ytr7v3bMbnLyjLKM1sUzrIGsQ2ue3f95xk9DMvTlIAvR87Op92lbYVe6BfD4vibXwhpmwnG64chKwMZgQu+lIKIKjIx+EDpkY/9x+pd7UGoOJTqsz1931rNWfHFpLObd/YIBaMzfL+Vpnd09g/+jIWXpOjH9lPYfPnA4dS01ZCq4pVBscGjJkSA05OROSWXMuWVObgAKZT+/mBBHyknIKRY8saQhBjl5upSVu7Ts6fH29+w9q4Xg+3d9qM1KSciJ5iSx5nmZRF43FP//y9eEZDHIwmHFEQsUyPGtCSekL8FSM+mutkGAmPR7XRle/n6SJvQd5U6BilQnMH3mjZSixiQWQsl24Ge3TxqLYUFmGmXFQtwO+coU1F0QqE5oGGa40LHaYsIJyGhgkdCahWhTodzOeWqTYTZqTG9DE8HfVCkVZqmNAxA3QxELmaCUclidxiHghUylaU14F0B/lSTAHS5INFLbk6Yl1UBCiNIyCmDkfZxZxkHUcn9Mg2e9iuZIDB90kZsOccZNDCBAmzK4RmL6YWOMFnQCPZQiBJLwVsXduRCNkDp+MbQVyZoJJsR1HLWYu2OZZ2AtNLIZg5lpeQmFoGPNhuYLZPRHCWynF0ApkbBZoikE72IpQFDmvQCbSEGI0w82qENZNK4813bYRJ3DRJITCSCVFo16ntbdvL9HNk0nKDjOyiNTej25B0d8HEDLPGKqa7/TiIOkmBKFY3AKVU+9A9Z+qTQi1Q/IimWZVHKs8ZvNk88Daprq8pKvUKC15SUVpDjVhetPyc136unrsy69hcf6+J7MJLu8T3VEgOdPuUYi+gwfo8/ilicB3vFpF8wkCa8AQWD3xbsKL6LsKke6/HNLLaHsWWaug5Pty1CY7GzMxDTu7FgIvbGrxLAtSI94lSPjK8YWEpFOvzywhtY2V/K7//6HC8B9DMAHcyHxwCwAAAABJRU5ErkJggg==" alt="rotations" style="width:159px">
+            <img class="sil" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAADUAAAAiCAYAAAD/NZFTAAAA9klEQVR4nN2XYQ6DMAiFyzspl/AUuwQ33bLFJUZFywpr6ftp08LXB6hUAiXyeF6tMy8UERcRib+f3QFpez1ELZu9k9o79z2fjY42O+WprcMtF4aWwFFqPR+9AkcKZULBuiFqDHtWBaID9BDKhEIWl8QQG5nKTipzQBYgSy6UAcQ6hZER6E4Y5V3kKWgLo4PJRTWpUJlLECWxRLn49INCTnJFZiBNp7/PWcXrcMMsQFsGmgVoK8wGlH6ka8LoXw5WMS/0cWoWMF45DjAZe4x3plQ5NCooKxVmKrtR4PimXcy91BOMK3v/5wHhARc1oMjjkBrAf07YF06YiGD/7BMHAAAAAElFTkSuQmCC" alt="rotations outline" style="width:159px">
+          </div>
+          <figcaption><b>rotations</b>
+            <p class="mx">53&times;34 &middot; aspect 1.56 &middot; solidity 0.67 &middot; asym 0.09</p>
+            <p class="mx">luma 0.054 / p95 0.229 &middot; 15 colours</p>
+            <p class="mx"><em class="bad">luma 0.054</em> <em>keep</em></p>
+          </figcaption>
+        </figure>
+  </div></section>
+</div>

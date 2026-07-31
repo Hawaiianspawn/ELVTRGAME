@@ -1,6 +1,6 @@
-# UI Prototype Plan — Emberkeep UMG build (HUD + menu flow)
+# UI Prototype Plan — Kindled UMG build (HUD + menu flow)
 
-**What this is:** the implementation plan for the first real, interactive Emberkeep UI —
+**What this is:** the implementation plan for the first real, interactive Kindled UI —
 built **natively in Unreal UMG**, covering the full screen flow (main menu → muster →
 combat HUD). This is the hand-off doc: a fresh session should be able to start
 implementation from here without re-deriving context.

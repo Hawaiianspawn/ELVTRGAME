@@ -1,6 +1,6 @@
 # The Sampler Frame + the Muster — menu shell & central unit-management HUD
 
-**What this is:** the master menu-frame layout system for Emberkeep, and the first content that fills its central well — an RTS-style company readout with health meters.
+**What this is:** the master menu-frame layout system for Kindled, and the first content that fills its central well — an RTS-style company readout with health meters.
 **Extends:** `docs/art/aesthetic-direction.md` (locked Direction A + UI register), `docs/art/portrait-register.md` (medallions), `GDD.md` §4 (stances), `docs/RTS-VERTICAL-SLICE.md` §2/§5 (leash, minimal HUD).
 **Mockup:** https://claude.ai/code/artifact/d22fcc8c-0b41-4888-a143-76b4776240c1 — *look at the empty middle of the woodcut becoming the company roster; resize narrow for the Steam-Deck collapse.*
 
