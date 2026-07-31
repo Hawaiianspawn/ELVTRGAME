@@ -349,3 +349,7 @@ Rejected and parked tasks keep their files — this records why.
 - 2026-07-31 · `task-127` · approved → **in-progress** · Make an archer readable at default weights — the render branch works but the bow disappears into the mass — dispatched to teammate `archer-readable` at model `sonnet`
 - 2026-07-31 · `task-127` · in-progress → **needs-review** · Make an archer readable at default weights — the render branch works but the bow disappears into the mass
 - 2026-07-31 · `task-127` · needs-review → **done** · Make an archer readable at default weights — the render branch works but the bow disappears into the mass
+- 2026-07-31 · `task-129` · proposed → **approved** · Show the volley — an arcing cue on an archer's SwingBit so the ranged line visibly shoots
+- 2026-07-31 · `task-129` · approved → **in-progress** · Show the volley — an arcing cue on an archer's SwingBit so the ranged line visibly shoots — dispatched to teammate `volley-arcs` at model `opus`
+- 2026-07-31 · `task-129` · in-progress → **needs-review** · Show the volley — an arcing cue on an archer's SwingBit so the ranged line visibly shoots
+- 2026-07-31 · `task-129` · needs-review → **done** · Show the volley — an arcing cue on an archer's SwingBit so the ranged line visibly shoots

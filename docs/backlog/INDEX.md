@@ -10,7 +10,7 @@ not a re-read.
 
 | proposed | approved | in-progress | needs-review | done | rejected | parked |
 |---|---|---|---|---|---|---|
-| 41 | 1 | 0 | 0 | 78 | 0 | 8 |
+| 42 | 1 | 0 | 0 | 79 | 0 | 8 |
 
 ## Audit queue — top 7 awaiting your verdict
 
@@ -31,7 +31,7 @@ Approve with `py Scripts/backlog.py approve <ids>` (or `/backlog approve <ids>`)
 
 | epic | progress | tasks | joins | next move |
 |---|---|---|---|---|
-| `archers-on-the-field` | 3/3 closed | [`125`](task-125-medieval-archer-variant-family.md), [`126`](task-126-land-archers-in-the-team-atlas.md), [`127`](task-127-make-the-archer-read-at-default-weights.md) | `126` | complete |
+| `archers-on-the-field` | 4/5 closed | [`125`](task-125-medieval-archer-variant-family.md), [`126`](task-126-land-archers-in-the-team-atlas.md), [`127`](task-127-make-the-archer-read-at-default-weights.md), [`129`](task-129-volley-arcs-on-swingbit.md), [`130`](task-130-archer-contrast-and-mix.md) | `126` | approve `130` |
 | `build-space-differentiates` | 2/2 closed | [`090`](task-090-weapon-projectile-pairing.md), [`091`](task-091-build-space-differentiation.md) | `091` | complete |
 | `emberkeep-purge` | 2/3 closed | [`092`](task-092-emberkeep-docs-purge.md), [`093`](task-093-emberkeep-cvar-rename.md), [`117`](task-117-prose-that-cites-the-old-cvar-names.md) | `117` | approve `117` |
 | `feeding-distraction` | 2/3 closed | [`053`](task-053-feeding-distraction-mechanic-spec.md), [`054`](task-054-build-feeding-distraction-in-mass.md), [`061`](task-061-persistent-corpses-and-walk-up-feeding.md) | `054`, `061` | approve `54` |
@@ -49,7 +49,7 @@ Approve with `py Scripts/backlog.py approve <ids>` (or `/backlog approve <ids>`)
 
 A fan is approved in one batch and dispatched one teammate per task. `⨝` joins own the shared writes and wait on their siblings — see `py Scripts/backlog.py epic <slug>`.
 
-## proposed (41)
+## proposed (42)
 
 | id | score | task | agent | owns | source |
 |---|---|---|---|---|---|
@@ -69,6 +69,7 @@ A fan is approved in one batch and dispatched one teammate per task. `⨝` joins
 | `121` | 2.0 | [Repack the militia hit frame from the eight already-generated frames the sheet never used](task-121-repack-militia-hit-frame.md) | claude | `docs/data/art/requests/unit-retinue.json`, `RawArt/Sheets/T_Unit_Retinue.png`, `docs/art/retinue-militia.md` | `task-010 handback` |
 | `124` | 2.0 | [Put the floor back under the sprites — the ground plane sits above where the units draw](task-124-floor-sits-above-the-sprite-plane.md) | claude | `ELVTR/Content/Spike1/L_Spike1.umap`, `ELVTR/Source/ELVTR/Rendering/SwarmRenderActor.cpp`, `ELVTR/Config/SwarmExecOnPlay.canonical.txt`, `docs/perf/evidence/black-frame/**` | `owner, 2026-07-31 ("it was because the floor was above the meshes")` |
 | `128` | 2.0 | [Land the twelve Pathfinder looks as a third team sub-table — the owner-supplied group, already measured and inside the cell](task-128-pathfinder-line-third-sub-table.md) | claude | `ELVTR/Source/ELVTR/Mass/SwarmFragments.h`, `ELVTR/Source/ELVTR/Mass/SwarmProcessors.cpp`, `ELVTR/Source/ELVTR/Rendering/SwarmRenderActor.cpp`, `RawArt/Sheets/T_Team_2bit.png`, `ELVTR/Content/Spike1/**`, `docs/data/art/requests/team-units.json`, `docs/data/art/team-variants.json`, `docs/data/art/provenance.json`, `docs/data/art/families/pathfinder-line/**`, `RawArt/Renders/pathfinder-line/**`, `ELVTR/SETUP-EDITOR.md`, `docs/perf/evidence/task128/**` | `user` |
+| `130` | 2.0 | [Spend the contrast and mix rungs task-127 left — a visible archer block, not one findable archer](task-130-archer-contrast-and-mix.md) | claude | `ELVTR/Source/ELVTR/Rendering/SwarmRenderActor.cpp`, `ELVTR/Source/ELVTR/Mass/SwarmCombatProcessors.cpp`, `docs/perf/niagara-sprite-path.md`, `docs/perf/evidence/task130/**` | `user` |
 | `025` | 1.33 | [Spec the procgen room-graph generator over the prefab library](task-025-procgen-room-graph-generator.md) | gameplay-director | `docs/design/procgen-room-graph.md`, `docs/data/room-types.json`, `docs/data/room-types.schema.md` | `docs/RTS-VERTICAL-SLICE.md:102` |
 | `026` | 1.33 | [Produce the Highgates tileset](task-026-highgates-tileset.md) | pixel-art-director | `docs/art/highgates-tileset.md` | `docs/RTS-VERTICAL-SLICE.md:109` |
 | `011` | 1.0 | [Run the soldier roster v1 acceptance checklist across all six variants](task-011-soldier-roster-acceptance-pass.md) | pixel-art-director | `docs/art/soldier-roster-v1.md` | `docs/art/soldier-roster-v1.md:1093` |
@@ -101,7 +102,7 @@ A fan is approved in one batch and dispatched one teammate per task. `⨝` joins
 |---|---|---|---|---|---|
 | `031` | 2.0 | [Check the shipped leash system against RTS-VERTICAL-SLICE §2's spec](task-031-leash-system-conformance-check.md) | claude | `docs/RTS-VERTICAL-SLICE.md` | `docs/RTS-VERTICAL-SLICE.md:97` |
 
-## done (78)
+## done (79)
 
 | id | score | task | agent | owns | source |
 |---|---|---|---|---|---|
@@ -162,6 +163,7 @@ A fan is approved in one batch and dispatched one teammate per task. `⨝` joins
 | `120` | 2.0 | [Refresh SWEEPS.md's two demonstration tables, which disagree with baseline.json after the armor fix](task-120-sweeps-demo-tables-disagree-with-baseline.md) | sim-director | `docs/sim/SWEEPS.md`, `docs/sim/baseline.json` | `task-075 handback` |
 | `125` | 2.0 | [Generate a medieval archer variant family off the shipped knight base, judged on measured silhouette](task-125-medieval-archer-variant-family.md) | claude | `RawArt/Renders/archer-medieval/**`, `docs/data/art/families/archer-medieval/**`, `docs/art/archer-medieval.md` | `user` |
 | `126` | 2.0 | [Make an archer look like an archer on the battlefield — pack the family into the team atlas and branch the render path on unit type](task-126-land-archers-in-the-team-atlas.md) | claude | `ELVTR/Source/ELVTR/Mass/SwarmFragments.h`, `ELVTR/Source/ELVTR/Mass/SwarmProcessors.cpp`, `ELVTR/Source/ELVTR/Rendering/SwarmRenderActor.cpp`, `RawArt/Sheets/T_Team_2bit.png`, `ELVTR/Content/Spike1/**`, `docs/data/art/requests/team-units.json`, `docs/data/art/team-variants.json`, `docs/data/art/provenance.json`, `ELVTR/SETUP-EDITOR.md`, `docs/perf/niagara-sprite-path.md` | `user` |
+| `129` | 2.0 | [Show the volley — an arcing cue on an archer's SwingBit so the ranged line visibly shoots](task-129-volley-arcs-on-swingbit.md) | claude | `ELVTR/Source/ELVTR/Rendering/VolleySubsystem.h`, `ELVTR/Source/ELVTR/Rendering/VolleySubsystem.cpp`, `ELVTR/Content/Gore/**`, `docs/perf/volley-vfx.md`, `docs/perf/evidence/task129/**` | `user` |
 | `068` | 1.5 | [Teach the wave-attrition model arrival timing, and re-run the GATE1 calibration check](task-068-teach-the-wave-model-arrival-timing.md) | sim-director | `Scripts/sim/**`, `docs/sim/**`, `docs/data/scenarios/**` | `user` |
 | `046` | 1.33 | [Build the typed-unit command layer in Mass — sticky type, per-type stance, per-type allocation, published centroids](task-046-squad-command-layer-in-mass.md) | claude | `ELVTR/Source/ELVTR/Mass/**`, `ELVTR/Source/ELVTR/UI/UnitCamProjector.cpp`, `ELVTR/Source/ELVTR/UI/UnitCamProjector.h`, `ELVTR/Source/ELVTR/UI/UnitCamDirector.cpp`, `ELVTR/Source/ELVTR/UI/UnitCamDirector.h` | `docs/design/squad-group-system.md` |
 | `085` | 1.33 | [Split the horde into a team atlas and an enemy atlas, and land the knight family in the team half](task-085-split-team-and-enemy-atlases-with-knight-family.md) | claude | `ELVTR/Source/ELVTR/Mass/SwarmFragments.h`, `ELVTR/Source/ELVTR/Mass/SwarmSubsystem.h`, `ELVTR/Source/ELVTR/Rendering/SwarmRenderActor.cpp`, `ELVTR/Source/ELVTR/Rendering/SwarmRenderActor.h`, `ELVTR/Content/Spike1/**`, `ELVTR/SETUP-EDITOR.md`, `RawArt/Sheets/T_Swarm*.png`, `RawArt/Sheets/T_Team*.png`, `RawArt/Sheets/T_Enemy*.png`, `docs/data/art/requests/swarm-units.json`, `docs/data/art/requests/team-units.json`, `docs/data/art/requests/enemy-units.json`, `docs/data/art/brood-variants.json`, `docs/data/art/team-variants.json`, `docs/data/art/provenance.json`, `docs/data/art/sprite-request.schema.json`, `Scripts/art/pixelpipe.py`, `Scripts/art/check_brood_variants.py`, `docs/perf/niagara-sprite-path.md` | `user` |
@@ -199,4 +201,4 @@ A fan is approved in one batch and dispatched one teammate per task. `⨝` joins
 
 ---
 
-*Regenerated 2026-07-31 · 128 task(s) · decisions in [LOG.md](LOG.md).*
+*Regenerated 2026-07-31 · 130 task(s) · decisions in [LOG.md](LOG.md).*
