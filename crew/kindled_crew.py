@@ -540,13 +540,26 @@ def run_crew(drop: str | None = None, verbose: bool = False,
     bb = Blackboard(verbose=verbose)
     by_name = {a.name: a for a in crew}
     rounds = 0
+    transcript: list[str] = []
+
+    def step(name: str, header: str | None = None) -> None:
+        """Run one agent and record what it said, so the report shows the
+        negotiation itself and not just the blackboard traffic."""
+        if name not in by_name:
+            return
+        if header:
+            transcript.append(header)
+        agent = by_name[name]
+        mark = len(agent.notes)
+        print(f"[{name}]")
+        agent.run(bb)
+        transcript.extend(f"{name:20} {line}" for line in agent.notes[mark:])
 
     try:
         # Phase 1 — ground the run in canon, then derive the roster.
         for name in ("canon-reader", "roster-architect"):
-            if name in by_name:
-                print(f"\n[{name}]")
-                by_name[name].run(bb)
+            print()
+            step(name)
 
         # The floor's density multiplier is a run parameter, not an agent's
         # opinion, so the orchestrator stamps it onto the canon fact block.
@@ -558,10 +571,8 @@ def run_crew(drop: str | None = None, verbose: bool = False,
         while rounds < MAX_NEGOTIATION_ROUNDS:
             rounds += 1
             print(f"\n--- negotiation round {rounds} ---")
-            for name in ("encounter-architect", "budget-auditor"):
-                if name in by_name:
-                    print(f"[{name}]")
-                    by_name[name].run(bb)
+            step("encounter-architect", f"--- negotiation round {rounds} ---")
+            step("budget-auditor")
             if not bb.has("budget_verdict"):
                 break                       # auditor dropped: fail downstream
             if bb._data["budget_verdict"]["status"] == "PASS":
@@ -569,9 +580,9 @@ def run_crew(drop: str | None = None, verbose: bool = False,
 
         # Phase 3 — readability gate, then emit.
         for name in ("readability-auditor", "data-emitter"):
-            if name in by_name:
-                print(f"\n[{name}]")
-                by_name[name].run(bb)
+            print()
+            step(name, "--- audit and emit ---" if name == "readability-auditor"
+                       else None)
 
     except ContractViolation as exc:
         print(f"\n{'!' * 74}\nPIPELINE BROKEN - {exc}\n{'!' * 74}")
@@ -584,7 +595,7 @@ def run_crew(drop: str | None = None, verbose: bool = False,
         print(f"\n!! {exc}")
         return 1
 
-    _write_report(crew, bb, rounds)
+    _write_report(crew, bb, rounds, transcript)
     art = bb._data["artifacts"]
     print("\n" + "=" * 74)
     print(f"  DONE - {art['row_count']} encounter rows, "
@@ -596,7 +607,8 @@ def run_crew(drop: str | None = None, verbose: bool = False,
     return 0
 
 
-def _write_report(crew: list[Agent], bb: Blackboard, rounds: int) -> None:
+def _write_report(crew: list[Agent], bb: Blackboard, rounds: int,
+                  transcript: list[str]) -> None:
     b = bb._data["budget_verdict"]
     r = bb._data["readability_verdict"]
     p = bb._data["plan"]
@@ -631,7 +643,14 @@ def _write_report(crew: list[Agent], bb: Blackboard, rounds: int) -> None:
               f"- Projected frame cost: **{b['projected_frame_ms']}ms** against a "
               f"{b['frame_budget_ms']}ms budget — {b['headroom_ms']}ms headroom",
               f"- Basis: {b['basis']}", "",
-              "## Agent transcript", "", "```"]
+              "## Negotiation", "",
+              "What each agent said, in order. The architect only re-scales "
+              "because the auditor sent the plan back with a reason.", "", "```"]
+    lines += transcript
+    lines += ["```", "", "## Blackboard traffic", "",
+              "Every read and write, attributed. Access is enforced: an agent "
+              "that touches an undeclared key raises `ContractViolation`.",
+              "", "```"]
     lines += bb.trace
     lines += ["```", ""]
 

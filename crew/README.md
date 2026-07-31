@@ -33,6 +33,12 @@ Concretely, one run writes:
 | `out/encounters.schema.md` | The column contract for that JSON, plus the audit state at generation |
 | `out/run-report.md` | Every agent's role, the encounter table, the budget verdict, and the full negotiation transcript |
 
+Those three files are the deliverable. If you would rather read them than run
+anything, [`docs/Kindled-EncounterCrew-Output.pdf`](../docs/Kindled-EncounterCrew-Output.pdf)
+is all three rendered verbatim — floor 1 and the floor 3 run where the budget
+auditor rejects the plan twice — alongside the console sessions that produced
+them. Rebuild it from a live run with `py crew/build_output_pdf.py`.
+
 This is game-ready output, not a document about game-ready output: `encounters.json` has a
 unique `Name` row key, scalar columns only and no nesting, which is exactly what Unreal's
 DataTable importer requires — the same contract the project's other data files follow.

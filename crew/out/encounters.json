@@ -2,7 +2,7 @@
   "_meta": {
     "game": "Kindled",
     "floor": 1,
-    "generated": "2026-07-27",
+    "generated": "2026-07-30",
     "generator": "crew/kindled_crew.py",
     "canon_sources": [
       "docs/GATE1-FUN-PROTOTYPE.md",

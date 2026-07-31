@@ -2,7 +2,7 @@
 
 **Floor 1** (density x1.0)
 
-Generated 2026-07-27 by `crew/kindled_crew.py`.
+Generated 2026-07-30 by `crew/kindled_crew.py`.
 
 **Negotiation rounds:** 1  ·  **Budget:** PASS (11.12ms / 16.6ms)  ·  **Readability:** CROWDED
 
@@ -31,7 +31,26 @@ Generated 2026-07-27 by `crew/kindled_crew.py`.
 - Projected frame cost: **11.12ms** against a 16.6ms budget — 5.48ms headroom
 - Basis: measured draw curve, single client, UnitShading=1
 
-## Agent transcript
+## Negotiation
+
+What each agent said, in order. The architect only re-scales because the auditor sent the plan back with a reason.
+
+```
+canon-reader         read 2 canon source(s): docs/GATE1-FUN-PROTOTYPE.md, docs/perf/BUDGETS.md
+canon-reader         waves=[250, 450, 700]  retinue_cap=120  perf curve has 6 measured points
+roster-architect     derived 4 tiers over baseline 130HP/30DPS: fodder(58HP), soldier(130HP), elite(416HP), boss(2340HP)
+--- negotiation round 1 ---
+encounter-architect  composed W1: 250 bodies (250pts) | W2: 450 bodies (674pts) | W3: 701 bodies (1698pts)
+budget-auditor       PASS - peak 821 entities ~ 11.12ms (5.48ms headroom)
+--- audit and emit ---
+readability-auditor  CROWDED - max 4 distinct enemy types in a wave against 2 free palette values
+data-emitter         wrote 7 DataTable rows -> crew/out/encounters.json
+data-emitter         wrote column contract -> crew/out/encounters.schema.md
+```
+
+## Blackboard traffic
+
+Every read and write, attributed. Access is enforced: an agent that touches an undeclared key raises `ContractViolation`.
 
 ```
 canon-reader -> wrote  canon
