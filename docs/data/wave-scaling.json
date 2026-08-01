@@ -1,0 +1,57 @@
+{
+  "$schema_note": "Three-act (early/mid/late) wave curve (task-102), a NEW PROPOSAL replacing the shipped Spike1GameMode.h flat wave shape (WaveBroodCounts {250,450,700}, single StartingRetinue/RetinueCap 120) and superseding SYSTEMS.md line 45's locked 250/450/700 curve -- see docs/design/wave-scaling-three-act.md's 'Canon proposals' section for the exact supersession statement. Retinue size now varies per wave (unlike the old curve, which held it flat at 120) and enemy composition unlocks new entity-tiers.json tiers at wave 2 rather than wave 1. Decisions + rationale: docs/design/wave-scaling-three-act.md. Columns/units/ranges: wave-scaling.schema.md. All values PROTOTYPE DIALS / a fresh proposal, unmeasured in-engine except where explicitly citing GATE1-FUN-PROTOTYPE.md's measured baseline or one-camera-bench.md's measured perf ceiling.",
+  "version": "0.1-proposal",
+  "last_updated": "2026-07-30",
+
+  "design_constants": {
+    "ceiling_60fps_simlod_stride4": 34000,
+    "ceiling_60fps_simlod_stride4_note": "UNVERIFIED, CORRECTED 2026-07-31 -- do NOT cite this number as measured fact. It comes from ONE standalone run (one-camera-bench.md §8 run5: 30,000 -> 14.73ms, 40,000 -> 19.06ms/52fps) that four in-editor sweeps on 2026-07-30/31 (task126/128/129/130) did not reproduce -- they cross 16.6ms somewhere between ~13,000 and ~26,000 entities (20k measured at 20.15 / 21.21 / 18.16 / 13.70ms). The gap is confounded (standalone vs. in-editor, +/-0.9ms harness floor, gpu_ms varying 2-6x between identical passes) but UNRESOLVED. Honest working figure: ~13,000-20,000 total entities at 60fps. task-108 replaces this with a measurement. Every HeadroomPctVs34kCeiling value below divides by this untrusted number and is therefore arithmetic, not a measurement -- wave3_late's 39.41 in particular has never been run. This is a TOTAL Mass-Entity figure (retinue + enemy brood share the same sim pass); Elite/Titan/Boss are PromotedActors (entity-tiers.json ActorType) and are NOT part of this budget, and their cost at horde concurrency is entirely unmeasured.",
+    "ceiling_60fps_no_lod": 21000,
+    "ceiling_60fps_no_lod_note": "one-camera-bench.md §5/§6 -- the ceiling WITHOUT Swarm.SimLOD.Stride 4 (which is the shipped default, per §7 of that doc). Stated because the late wave's headroom against the 34k figure collapses to ~2% against this lower figure -- the design below depends on SimLOD staying on.",
+    "gate1_calibration_note": "GATE1-FUN-PROTOTYPE.md §3b 'shipped now' measured zero-input baseline, retinue flat-refilled to 120. Used the same way scaling-curve.json's design_constants already use it: as a DIRECTIONAL ratio-collapse reference (docs/sim/LIMITATIONS.md §1 -- never a survivor-count prediction for the waves below, which sit at very different retinue counts than this calibration's fixed N=120).",
+    "gate1_calibration": [
+      { "population": 250, "retinue_n": 120, "survivors_est": 110, "survival_rate": 0.92, "ratio": 2.08 },
+      { "population": 450, "retinue_n": 120, "survivors_est": 20, "survival_rate": 0.17, "ratio": 3.75 },
+      { "population": 700, "retinue_n": 120, "survivors_est": 0, "survival_rate": 0.0, "ratio": 5.83 }
+    ],
+    "blood_particle_note": "docs/perf/blood-particles.md: cost is bounded by Blood.MaxBurstsPerFrame (12), not by population size -- measured +0.7ms FrameTime / +1.4ms GameThreadTime at 820 total live entities under heavy mobbing (peak mobbed 14-15, the cap already saturating). Not re-measured at this doc's larger wave populations; the cap mechanism is the argument it won't grow past that already-measured figure, not a new measurement.",
+    "unit_types_growth_source_weight_note": "unit-types.json types.spearmen.growth_source_weight 0.8 / types.archers.growth_source_weight 0.2 -- the 80/20 split used for every retinue_composition row below that includes Archers, cited rather than invented.",
+    "surround_cap_handoff_note": "scaling-curve.md §6 flags entity-tiers.json's SurroundCapEstimate finding (melee DPS vs. a point-target caps and stops scaling past it) forward 'to whoever tunes growth_source_weight next, if a longer/co-op run ever pushes army size past ~120' -- wave3_late's RetinueStart (600) is exactly that scenario, well past the ~120-250 range task-002's own sweep tested. Flagged in the design doc's Open section, not resolved here."
+  },
+
+  "wave_definitions": [
+    { "Name": "wave1_early", "WaveIndex": 1, "Label": "Early", "RetinueStart": 60, "RetinueMechanism": "refill_to_rising_cap_or_growth_site_purchase", "EnemyPopulation": 120, "PopulationArmyRatio": 2.0, "EliteInstances": 0, "BossInstances": 0, "TotalMassEntities": 180, "HeadroomPctVs34kCeiling": 99.47, "Notes": "Melee-only both sides -- no Archers, no ranged brood, no Elite. STALE, CORRECTED 2026-07-31: this row originally argued 'RetinueStart 60 exactly equals economy.json supply.start_capacity (60): upkeep demand == capacity, no degrade multiplier triggers at wave 1.' task-101 moved start_capacity to 120 on the same day this file was written, so the equality is false and the no-degrade-at-wave-1 argument no longer holds as written -- 60 demand against 120 capacity still does not degrade (demand < capacity), so the CONCLUSION survives, but not the reasoning. Population/army ratio 2.0 sits just under the GATE1 250/120=2.08 'comfortable win' calibration point." },
+    { "Name": "wave2_mid", "WaveIndex": 2, "Label": "Mid", "RetinueStart": 120, "RetinueMechanism": "refill_to_rising_cap_or_growth_site_purchase", "EnemyPopulation": 400, "PopulationArmyRatio": 3.333, "EliteInstances": 1, "BossInstances": 0, "TotalMassEntities": 520, "HeadroomPctVs34kCeiling": 98.47, "Notes": "Retinue returns to today's shipped flat number (120) but its INTERNAL composition changes -- Archers now exist. Enemy side unlocks Soldier-melee, Soldier-ranged, and the first Elite, all simultaneously. Ratio 3.333 sits between the GATE1 2.08 (wins) and 3.75 (wipes) calibration points -- the escalating middle, read directionally, not predictively." },
+    { "Name": "wave3_late", "WaveIndex": 3, "Label": "Late", "RetinueStart": 600, "RetinueMechanism": "growth_site_purchase (exceeds what economy.json's current simulated scenarios reach -- see doc §1 flag)", "EnemyPopulation": 20000, "PopulationArmyRatio": 33.333, "EliteInstances": 3, "BossInstances": 1, "TotalMassEntities": 20600, "HeadroomPctVs34kCeiling": 39.41, "Notes": "The 'as far as the engine can be pushed' wave. Ratio 33.3 is far outside the 3-point GATE1 calibration band (2.08-5.83) -- argued from the perf ceiling and Design Law 3 composition, NOT from the ratio-collapse model, which was never calibrated at this scale. Headroom vs. the no-LOD 21,000 ceiling is only ~2% -- this design REQUIRES Swarm.SimLOD.Stride 4 (already the shipped default)." }
+  ],
+
+  "retinue_composition": [
+    { "Name": "wave1_early_spearmen", "WaveIndex": 1, "UnitType": "spearmen", "Tier": "militia", "Count": 60, "PctOfRetinue": 100.0 },
+
+    { "Name": "wave2_mid_spearmen", "WaveIndex": 2, "UnitType": "spearmen", "Tier": "militia", "Count": 96, "PctOfRetinue": 80.0 },
+    { "Name": "wave2_mid_archers", "WaveIndex": 2, "UnitType": "archers", "Tier": "militia", "Count": 24, "PctOfRetinue": 20.0 },
+
+    { "Name": "wave3_late_spearmen", "WaveIndex": 3, "UnitType": "spearmen", "Tier": "militia", "Count": 480, "PctOfRetinue": 80.0 },
+    { "Name": "wave3_late_archers", "WaveIndex": 3, "UnitType": "archers", "Tier": "militia", "Count": 120, "PctOfRetinue": 20.0 }
+  ],
+
+  "enemy_composition": [
+    { "Name": "wave1_early_fodder", "WaveIndex": 1, "EntityTier": "brood_fodder", "Count": 120, "PctOfPopulation": 100.0 },
+
+    { "Name": "wave2_mid_fodder", "WaveIndex": 2, "EntityTier": "brood_fodder", "Count": 220, "PctOfPopulation": 55.0 },
+    { "Name": "wave2_mid_soldier_melee", "WaveIndex": 2, "EntityTier": "brood_soldier_melee", "Count": 100, "PctOfPopulation": 25.0 },
+    { "Name": "wave2_mid_soldier_ranged", "WaveIndex": 2, "EntityTier": "brood_soldier_ranged", "Count": 80, "PctOfPopulation": 20.0 },
+
+    { "Name": "wave3_late_fodder", "WaveIndex": 3, "EntityTier": "brood_fodder", "Count": 9000, "PctOfPopulation": 45.0 },
+    { "Name": "wave3_late_soldier_melee", "WaveIndex": 3, "EntityTier": "brood_soldier_melee", "Count": 5000, "PctOfPopulation": 25.0 },
+    { "Name": "wave3_late_soldier_ranged", "WaveIndex": 3, "EntityTier": "brood_soldier_ranged", "Count": 6000, "PctOfPopulation": 30.0 }
+  ],
+
+  "elite_boss_schedule": [
+    { "Name": "wave2_elite_01", "WaveIndex": 2, "Tier": "Elite", "InstanceIndex": 1, "EncounterMode": "embedded_in_swarm" },
+    { "Name": "wave3_elite_01", "WaveIndex": 3, "Tier": "Elite", "InstanceIndex": 1, "EncounterMode": "embedded_in_swarm" },
+    { "Name": "wave3_elite_02", "WaveIndex": 3, "Tier": "Elite", "InstanceIndex": 2, "EncounterMode": "embedded_in_swarm" },
+    { "Name": "wave3_elite_03", "WaveIndex": 3, "Tier": "Elite", "InstanceIndex": 3, "EncounterMode": "embedded_in_swarm" },
+    { "Name": "wave3_boss_01", "WaveIndex": 3, "Tier": "Boss", "InstanceIndex": 1, "EncounterMode": "isolated_arena" }
+  ]
+}

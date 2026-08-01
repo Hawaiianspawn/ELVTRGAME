@@ -15,7 +15,7 @@ evidence: >
   `-SwarmBench` run, plus a measured per-actor cost for the Elite/Boss
   PromotedActors at that population — replacing task-102's arithmetic headroom claim
   with a measurement, and stating plainly whether the late wave holds 60fps.
-score: {feel: 1, risk: 3, cost: 1}
+score: {feel: 1, risk: 3, perf: 3, cost: 1}
 source: user, 2026-07-30 — the scale half of "an effective way to test them"
 teammate: ""
 decided: ""
