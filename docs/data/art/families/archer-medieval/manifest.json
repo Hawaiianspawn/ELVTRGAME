@@ -1,398 +1,426 @@
 {
-  "family": "archer-medieval",
-  "variants": {
-    "v1_narrowstrung": {
-      "urls": [
-        "https://backblaze.pixellab.ai/file/pixellab-characters/af7def4e-5692-4b18-9246-874d5382befb/15ab79ec-7d69-40a3-b662-9e1f6b5d349d/rotations/south.png?t=1785492741",
-        "https://backblaze.pixellab.ai/file/pixellab-characters/af7def4e-5692-4b18-9246-874d5382befb/15ab79ec-7d69-40a3-b662-9e1f6b5d349d/rotations/east.png?t=1785492741",
-        "https://backblaze.pixellab.ai/file/pixellab-characters/af7def4e-5692-4b18-9246-874d5382befb/15ab79ec-7d69-40a3-b662-9e1f6b5d349d/rotations/north.png?t=1785492741",
-        "https://backblaze.pixellab.ai/file/pixellab-characters/af7def4e-5692-4b18-9246-874d5382befb/15ab79ec-7d69-40a3-b662-9e1f6b5d349d/rotations/west.png?t=1785492741",
-        "https://backblaze.pixellab.ai/file/pixellab-characters/af7def4e-5692-4b18-9246-874d5382befb/15ab79ec-7d69-40a3-b662-9e1f6b5d349d/rotations/south-east.png?t=1785492741",
-        "https://backblaze.pixellab.ai/file/pixellab-characters/af7def4e-5692-4b18-9246-874d5382befb/15ab79ec-7d69-40a3-b662-9e1f6b5d349d/rotations/north-east.png?t=1785492741",
-        "https://backblaze.pixellab.ai/file/pixellab-characters/af7def4e-5692-4b18-9246-874d5382befb/15ab79ec-7d69-40a3-b662-9e1f6b5d349d/rotations/north-west.png?t=1785492741",
-        "https://backblaze.pixellab.ai/file/pixellab-characters/af7def4e-5692-4b18-9246-874d5382befb/15ab79ec-7d69-40a3-b662-9e1f6b5d349d/rotations/south-west.png?t=1785492741"
-      ],
-      "fetched": "2026-07-31T17:32:10+00:00",
-      "files": [
-        "east.png",
-        "north-east.png",
-        "north-west.png",
-        "north.png",
-        "south-east.png",
-        "south-west.png",
-        "south.png",
-        "west.png"
-      ],
-      "measured": {
-        "canvas": [
-          88,
-          88
-        ],
-        "content": [
-          28,
-          46
-        ],
-        "aspect": 0.6086956521739131,
-        "solidity": 0.7430124223602484,
-        "asymmetry": 0.2361546499477534,
-        "holes": 1,
-        "hole_px": 11,
-        "luma_mean": 0.18550604298563728,
-        "luma_p95": 0.5857160784313725,
-        "opaque": 957,
-        "distinct": 37,
-        "off_ramp": 957,
-        "binary_alpha": true
-      },
-      "band": {
-        "aspect": [
-          0.5909090909090909,
-          0.6976744186046512
-        ],
-        "solidity": [
-          0.6708754208754208,
-          0.7465116279069768
-        ],
-        "asymmetry": [
-          0.205607476635514,
-          0.4894409937888199
-        ],
-        "holes": [
-          0,
-          1
-        ]
-      },
-      "verdict": "keep",
-      "reasons": [
-        "luma 0.186 -- not automatically wrong (SKILL.md), but the outline is doing all the work"
-      ]
-    },
-    "v2_bowextended": {
-      "urls": [
-        "https://backblaze.pixellab.ai/file/pixellab-characters/af7def4e-5692-4b18-9246-874d5382befb/949d8d5d-a626-4741-97a1-31d585cf8846/rotations/south.png?t=1785492786",
-        "https://backblaze.pixellab.ai/file/pixellab-characters/af7def4e-5692-4b18-9246-874d5382befb/949d8d5d-a626-4741-97a1-31d585cf8846/rotations/east.png?t=1785492786",
-        "https://backblaze.pixellab.ai/file/pixellab-characters/af7def4e-5692-4b18-9246-874d5382befb/949d8d5d-a626-4741-97a1-31d585cf8846/rotations/north.png?t=1785492786",
-        "https://backblaze.pixellab.ai/file/pixellab-characters/af7def4e-5692-4b18-9246-874d5382befb/949d8d5d-a626-4741-97a1-31d585cf8846/rotations/west.png?t=1785492786",
-        "https://backblaze.pixellab.ai/file/pixellab-characters/af7def4e-5692-4b18-9246-874d5382befb/949d8d5d-a626-4741-97a1-31d585cf8846/rotations/south-east.png?t=1785492786",
-        "https://backblaze.pixellab.ai/file/pixellab-characters/af7def4e-5692-4b18-9246-874d5382befb/949d8d5d-a626-4741-97a1-31d585cf8846/rotations/north-east.png?t=1785492786",
-        "https://backblaze.pixellab.ai/file/pixellab-characters/af7def4e-5692-4b18-9246-874d5382befb/949d8d5d-a626-4741-97a1-31d585cf8846/rotations/north-west.png?t=1785492786",
-        "https://backblaze.pixellab.ai/file/pixellab-characters/af7def4e-5692-4b18-9246-874d5382befb/949d8d5d-a626-4741-97a1-31d585cf8846/rotations/south-west.png?t=1785492786"
-      ],
-      "fetched": "2026-07-31T17:32:16+00:00",
-      "files": [
-        "east.png",
-        "north-east.png",
-        "north-west.png",
-        "north.png",
-        "south-east.png",
-        "south-west.png",
-        "south.png",
-        "west.png"
-      ],
-      "measured": {
-        "canvas": [
-          88,
-          88
-        ],
-        "content": [
-          40,
-          46
-        ],
-        "aspect": 0.8695652173913043,
-        "solidity": 0.5152173913043478,
-        "asymmetry": 0.5949367088607594,
-        "holes": 2,
-        "hole_px": 77,
-        "luma_mean": 0.21165516670803342,
-        "luma_p95": 0.5679019607843138,
-        "opaque": 948,
-        "distinct": 40,
-        "off_ramp": 948,
-        "binary_alpha": true
-      },
-      "band": {
-        "aspect": [
-          0.7291666666666666,
-          0.8695652173913043
-        ],
-        "solidity": [
-          0.4765886287625418,
-          0.5238095238095238
-        ],
-        "asymmetry": [
-          0.5948372615039281,
-          0.7410714285714286
-        ],
-        "holes": [
-          2
-        ]
-      },
-      "verdict": "flag",
-      "reasons": [
-        "aspect target 1.50 falls outside the measured 0.73-0.87 band across all 8 rotations"
-      ]
-    },
-    "v3_loosingarm": {
-      "urls": [
-        "https://backblaze.pixellab.ai/file/pixellab-characters/af7def4e-5692-4b18-9246-874d5382befb/181c847e-5182-4915-9260-418f4d149692/rotations/south.png?t=1785492745",
-        "https://backblaze.pixellab.ai/file/pixellab-characters/af7def4e-5692-4b18-9246-874d5382befb/181c847e-5182-4915-9260-418f4d149692/rotations/east.png?t=1785492745",
-        "https://backblaze.pixellab.ai/file/pixellab-characters/af7def4e-5692-4b18-9246-874d5382befb/181c847e-5182-4915-9260-418f4d149692/rotations/north.png?t=1785492745",
-        "https://backblaze.pixellab.ai/file/pixellab-characters/af7def4e-5692-4b18-9246-874d5382befb/181c847e-5182-4915-9260-418f4d149692/rotations/west.png?t=1785492745",
-        "https://backblaze.pixellab.ai/file/pixellab-characters/af7def4e-5692-4b18-9246-874d5382befb/181c847e-5182-4915-9260-418f4d149692/rotations/south-east.png?t=1785492745",
-        "https://backblaze.pixellab.ai/file/pixellab-characters/af7def4e-5692-4b18-9246-874d5382befb/181c847e-5182-4915-9260-418f4d149692/rotations/north-east.png?t=1785492745",
-        "https://backblaze.pixellab.ai/file/pixellab-characters/af7def4e-5692-4b18-9246-874d5382befb/181c847e-5182-4915-9260-418f4d149692/rotations/north-west.png?t=1785492745",
-        "https://backblaze.pixellab.ai/file/pixellab-characters/af7def4e-5692-4b18-9246-874d5382befb/181c847e-5182-4915-9260-418f4d149692/rotations/south-west.png?t=1785492745"
-      ],
-      "fetched": "2026-07-31T17:32:22+00:00",
-      "files": [
-        "east.png",
-        "north-east.png",
-        "north-west.png",
-        "north.png",
-        "south-east.png",
-        "south-west.png",
-        "south.png",
-        "west.png"
-      ],
-      "measured": {
-        "canvas": [
-          88,
-          88
-        ],
-        "content": [
-          38,
-          47
-        ],
-        "aspect": 0.8085106382978723,
-        "solidity": 0.5677491601343785,
-        "asymmetry": 0.777120315581854,
-        "holes": 0,
-        "hole_px": 0,
-        "luma_mean": 0.23472886491085587,
-        "luma_p95": 0.600092549019608,
-        "opaque": 1014,
-        "distinct": 44,
-        "off_ramp": 1014,
-        "binary_alpha": true
-      },
-      "band": {
-        "aspect": [
-          0.6595744680851063,
-          0.8085106382978723
-        ],
-        "solidity": [
-          0.5677491601343785,
-          0.6202614379084967
-        ],
-        "asymmetry": [
-          0.6090621707060063,
-          0.777120315581854
-        ],
-        "holes": [
-          0,
-          2,
-          3
-        ]
-      },
-      "verdict": "keep",
-      "reasons": []
-    },
-    "v4_quiverreach": {
-      "urls": [
-        "https://backblaze.pixellab.ai/file/pixellab-characters/af7def4e-5692-4b18-9246-874d5382befb/28b38d42-55a4-4848-9c84-b282d062614d/rotations/south.png?t=1785492753",
-        "https://backblaze.pixellab.ai/file/pixellab-characters/af7def4e-5692-4b18-9246-874d5382befb/28b38d42-55a4-4848-9c84-b282d062614d/rotations/east.png?t=1785492753",
-        "https://backblaze.pixellab.ai/file/pixellab-characters/af7def4e-5692-4b18-9246-874d5382befb/28b38d42-55a4-4848-9c84-b282d062614d/rotations/north.png?t=1785492753",
-        "https://backblaze.pixellab.ai/file/pixellab-characters/af7def4e-5692-4b18-9246-874d5382befb/28b38d42-55a4-4848-9c84-b282d062614d/rotations/west.png?t=1785492753",
-        "https://backblaze.pixellab.ai/file/pixellab-characters/af7def4e-5692-4b18-9246-874d5382befb/28b38d42-55a4-4848-9c84-b282d062614d/rotations/south-east.png?t=1785492753",
-        "https://backblaze.pixellab.ai/file/pixellab-characters/af7def4e-5692-4b18-9246-874d5382befb/28b38d42-55a4-4848-9c84-b282d062614d/rotations/north-east.png?t=1785492753",
-        "https://backblaze.pixellab.ai/file/pixellab-characters/af7def4e-5692-4b18-9246-874d5382befb/28b38d42-55a4-4848-9c84-b282d062614d/rotations/north-west.png?t=1785492753",
-        "https://backblaze.pixellab.ai/file/pixellab-characters/af7def4e-5692-4b18-9246-874d5382befb/28b38d42-55a4-4848-9c84-b282d062614d/rotations/south-west.png?t=1785492753"
-      ],
-      "fetched": "2026-07-31T17:32:28+00:00",
-      "files": [
-        "east.png",
-        "north-east.png",
-        "north-west.png",
-        "north.png",
-        "south-east.png",
-        "south-west.png",
-        "south.png",
-        "west.png"
-      ],
-      "measured": {
-        "canvas": [
-          88,
-          88
-        ],
-        "content": [
-          42,
-          44
-        ],
-        "aspect": 0.9545454545454546,
-        "solidity": 0.5800865800865801,
-        "asymmetry": 0.5783582089552238,
-        "holes": 3,
-        "hole_px": 19,
-        "luma_mean": 0.24109991878841086,
-        "luma_p95": 0.600092549019608,
-        "opaque": 1072,
-        "distinct": 47,
-        "off_ramp": 1072,
-        "binary_alpha": true
-      },
-      "band": {
-        "aspect": [
-          0.8636363636363636,
-          1.0
-        ],
-        "solidity": [
-          0.43388429752066116,
-          0.5800865800865801
-        ],
-        "asymmetry": [
-          0.40476190476190477,
-          0.9016216216216216
-        ],
-        "holes": [
-          0,
-          1,
-          2,
-          3
-        ]
-      },
-      "verdict": "keep",
-      "reasons": []
-    },
-    "v5_crossbowbrace": {
-      "urls": [
-        "https://backblaze.pixellab.ai/file/pixellab-characters/af7def4e-5692-4b18-9246-874d5382befb/b70ab8be-fccf-40e3-b75a-9470b24977ca/rotations/south.png?t=1785492760",
-        "https://backblaze.pixellab.ai/file/pixellab-characters/af7def4e-5692-4b18-9246-874d5382befb/b70ab8be-fccf-40e3-b75a-9470b24977ca/rotations/east.png?t=1785492760",
-        "https://backblaze.pixellab.ai/file/pixellab-characters/af7def4e-5692-4b18-9246-874d5382befb/b70ab8be-fccf-40e3-b75a-9470b24977ca/rotations/north.png?t=1785492760",
-        "https://backblaze.pixellab.ai/file/pixellab-characters/af7def4e-5692-4b18-9246-874d5382befb/b70ab8be-fccf-40e3-b75a-9470b24977ca/rotations/west.png?t=1785492760",
-        "https://backblaze.pixellab.ai/file/pixellab-characters/af7def4e-5692-4b18-9246-874d5382befb/b70ab8be-fccf-40e3-b75a-9470b24977ca/rotations/south-east.png?t=1785492760",
-        "https://backblaze.pixellab.ai/file/pixellab-characters/af7def4e-5692-4b18-9246-874d5382befb/b70ab8be-fccf-40e3-b75a-9470b24977ca/rotations/north-east.png?t=1785492760",
-        "https://backblaze.pixellab.ai/file/pixellab-characters/af7def4e-5692-4b18-9246-874d5382befb/b70ab8be-fccf-40e3-b75a-9470b24977ca/rotations/north-west.png?t=1785492760",
-        "https://backblaze.pixellab.ai/file/pixellab-characters/af7def4e-5692-4b18-9246-874d5382befb/b70ab8be-fccf-40e3-b75a-9470b24977ca/rotations/south-west.png?t=1785492760"
-      ],
-      "fetched": "2026-07-31T17:32:34+00:00",
-      "files": [
-        "east.png",
-        "north-east.png",
-        "north-west.png",
-        "north.png",
-        "south-east.png",
-        "south-west.png",
-        "south.png",
-        "west.png"
-      ],
-      "measured": {
-        "canvas": [
-          88,
-          88
-        ],
-        "content": [
-          39,
-          44
-        ],
-        "aspect": 0.8863636363636364,
-        "solidity": 0.5646853146853147,
-        "asymmetry": 0.5944272445820433,
-        "holes": 0,
-        "hole_px": 0,
-        "luma_mean": 0.2493148764645177,
-        "luma_p95": 0.600092549019608,
-        "opaque": 969,
-        "distinct": 43,
-        "off_ramp": 969,
-        "binary_alpha": true
-      },
-      "band": {
-        "aspect": [
-          0.7954545454545454,
-          0.9090909090909091
-        ],
-        "solidity": [
-          0.5068181818181818,
-          0.5850649350649351
-        ],
-        "asymmetry": [
-          0.5850945494994438,
-          0.7985948477751756
-        ],
-        "holes": [
-          0,
-          1,
-          2
-        ]
-      },
-      "verdict": "keep",
-      "reasons": []
-    },
-    "v6_slingwhirl": {
-      "urls": [
-        "https://backblaze.pixellab.ai/file/pixellab-characters/af7def4e-5692-4b18-9246-874d5382befb/67825c70-c423-4b58-a9e8-7a3b5844d1a7/rotations/south.png?t=1785492781",
-        "https://backblaze.pixellab.ai/file/pixellab-characters/af7def4e-5692-4b18-9246-874d5382befb/67825c70-c423-4b58-a9e8-7a3b5844d1a7/rotations/east.png?t=1785492781",
-        "https://backblaze.pixellab.ai/file/pixellab-characters/af7def4e-5692-4b18-9246-874d5382befb/67825c70-c423-4b58-a9e8-7a3b5844d1a7/rotations/north.png?t=1785492781",
-        "https://backblaze.pixellab.ai/file/pixellab-characters/af7def4e-5692-4b18-9246-874d5382befb/67825c70-c423-4b58-a9e8-7a3b5844d1a7/rotations/west.png?t=1785492781",
-        "https://backblaze.pixellab.ai/file/pixellab-characters/af7def4e-5692-4b18-9246-874d5382befb/67825c70-c423-4b58-a9e8-7a3b5844d1a7/rotations/south-east.png?t=1785492781",
-        "https://backblaze.pixellab.ai/file/pixellab-characters/af7def4e-5692-4b18-9246-874d5382befb/67825c70-c423-4b58-a9e8-7a3b5844d1a7/rotations/north-east.png?t=1785492781",
-        "https://backblaze.pixellab.ai/file/pixellab-characters/af7def4e-5692-4b18-9246-874d5382befb/67825c70-c423-4b58-a9e8-7a3b5844d1a7/rotations/north-west.png?t=1785492781",
-        "https://backblaze.pixellab.ai/file/pixellab-characters/af7def4e-5692-4b18-9246-874d5382befb/67825c70-c423-4b58-a9e8-7a3b5844d1a7/rotations/south-west.png?t=1785492781"
-      ],
-      "fetched": "2026-07-31T17:32:40+00:00",
-      "files": [
-        "east.png",
-        "north-east.png",
-        "north-west.png",
-        "north.png",
-        "south-east.png",
-        "south-west.png",
-        "south.png",
-        "west.png"
-      ],
-      "measured": {
-        "canvas": [
-          88,
-          88
-        ],
-        "content": [
-          47,
-          48
-        ],
-        "aspect": 0.9791666666666666,
-        "solidity": 0.4800531914893617,
-        "asymmetry": 0.34533702677746997,
-        "holes": 1,
-        "hole_px": 301,
-        "luma_mean": 0.22767241830065357,
-        "luma_p95": 0.5734345098039215,
-        "opaque": 1083,
-        "distinct": 46,
-        "off_ramp": 1083,
-        "binary_alpha": true
-      },
-      "band": {
-        "aspect": [
-          0.7954545454545454,
-          0.9791666666666666
-        ],
-        "solidity": [
-          0.46448863636363635,
-          0.5785714285714286
-        ],
-        "asymmetry": [
-          0.2206896551724138,
-          0.8417508417508418
-        ],
-        "holes": [
-          1,
-          2,
-          3
-        ]
-      },
-      "verdict": "keep",
-      "reasons": []
-    }
+ "family": "archer-medieval",
+ "variants": {
+  "v1_narrowstrung": {
+   "urls": [
+    "https://backblaze.pixellab.ai/file/pixellab-characters/af7def4e-5692-4b18-9246-874d5382befb/15ab79ec-7d69-40a3-b662-9e1f6b5d349d/rotations/south.png?t=1785492741",
+    "https://backblaze.pixellab.ai/file/pixellab-characters/af7def4e-5692-4b18-9246-874d5382befb/15ab79ec-7d69-40a3-b662-9e1f6b5d349d/rotations/east.png?t=1785492741",
+    "https://backblaze.pixellab.ai/file/pixellab-characters/af7def4e-5692-4b18-9246-874d5382befb/15ab79ec-7d69-40a3-b662-9e1f6b5d349d/rotations/north.png?t=1785492741",
+    "https://backblaze.pixellab.ai/file/pixellab-characters/af7def4e-5692-4b18-9246-874d5382befb/15ab79ec-7d69-40a3-b662-9e1f6b5d349d/rotations/west.png?t=1785492741",
+    "https://backblaze.pixellab.ai/file/pixellab-characters/af7def4e-5692-4b18-9246-874d5382befb/15ab79ec-7d69-40a3-b662-9e1f6b5d349d/rotations/south-east.png?t=1785492741",
+    "https://backblaze.pixellab.ai/file/pixellab-characters/af7def4e-5692-4b18-9246-874d5382befb/15ab79ec-7d69-40a3-b662-9e1f6b5d349d/rotations/north-east.png?t=1785492741",
+    "https://backblaze.pixellab.ai/file/pixellab-characters/af7def4e-5692-4b18-9246-874d5382befb/15ab79ec-7d69-40a3-b662-9e1f6b5d349d/rotations/north-west.png?t=1785492741",
+    "https://backblaze.pixellab.ai/file/pixellab-characters/af7def4e-5692-4b18-9246-874d5382befb/15ab79ec-7d69-40a3-b662-9e1f6b5d349d/rotations/south-west.png?t=1785492741"
+   ],
+   "fetched": "2026-07-31T17:32:10+00:00",
+   "files": [
+    "east.png",
+    "north-east.png",
+    "north-west.png",
+    "north.png",
+    "south-east.png",
+    "south-west.png",
+    "south.png",
+    "west.png"
+   ],
+   "measured": {
+    "canvas": [
+     88,
+     88
+    ],
+    "content": [
+     28,
+     46
+    ],
+    "aspect": 0.6086956521739131,
+    "solidity": 0.7430124223602484,
+    "asymmetry": 0.2361546499477534,
+    "holes": 1,
+    "hole_px": 11,
+    "luma_mean": 0.18550604298563728,
+    "luma_p95": 0.5857160784313725,
+    "opaque": 957,
+    "distinct": 37,
+    "off_ramp": 957,
+    "binary_alpha": true
+   },
+   "band": {
+    "aspect": [
+     0.5909090909090909,
+     0.6976744186046512
+    ],
+    "solidity": [
+     0.6708754208754208,
+     0.7465116279069768
+    ],
+    "asymmetry": [
+     0.205607476635514,
+     0.4894409937888199
+    ],
+    "holes": [
+     0,
+     1
+    ]
+   },
+   "verdict": "keep",
+   "reasons": [
+    "luma 0.186 -- not automatically wrong (SKILL.md), but the outline is doing all the work"
+   ],
+   "retired": {
+    "task": 128,
+    "date": "2026-07-31",
+    "reason": "RETIRED FROM THE ATLAS by task-128, 2026-07-31. Owner instruction, looking at the shipped frame: \"I want all these states as archers. The knight armor ones can be a single variant but not every.\" This look is a steel-helmeted knight holding a bow -- so is every other keep in this family -- and against eleven steel-helmeted knights holding a spear, at a 56px cell in a near-black frame, the bow was the only difference and it is a thin dark arc. That is the root cause task-127 (size) and task-130 (contrast) were both pushing against from the render side. The archer sub-table is now twelve hooded, cloaked and distinctly-kitted owner-supplied looks (docs/data/art/families/pathfinder-line/family.json) plus v2_bowextended as the single surviving knight-armored archer. NOT A REJECTION OF THIS ART and NOT a deletion: the verdict below stands, the PNGs stay on disk under RawArt/Renders/archer-medieval/raw/, and this entry is kept whole as the historical record. Re-packing any of these is a frame_map edit in docs/data/art/requests/team-units.json plus a weights entry -- no regeneration and no credits."
+   }
   },
-  "judged": "2026-07-31T17:34:43+00:00"
+  "v2_bowextended": {
+   "urls": [
+    "https://backblaze.pixellab.ai/file/pixellab-characters/af7def4e-5692-4b18-9246-874d5382befb/949d8d5d-a626-4741-97a1-31d585cf8846/rotations/south.png?t=1785492786",
+    "https://backblaze.pixellab.ai/file/pixellab-characters/af7def4e-5692-4b18-9246-874d5382befb/949d8d5d-a626-4741-97a1-31d585cf8846/rotations/east.png?t=1785492786",
+    "https://backblaze.pixellab.ai/file/pixellab-characters/af7def4e-5692-4b18-9246-874d5382befb/949d8d5d-a626-4741-97a1-31d585cf8846/rotations/north.png?t=1785492786",
+    "https://backblaze.pixellab.ai/file/pixellab-characters/af7def4e-5692-4b18-9246-874d5382befb/949d8d5d-a626-4741-97a1-31d585cf8846/rotations/west.png?t=1785492786",
+    "https://backblaze.pixellab.ai/file/pixellab-characters/af7def4e-5692-4b18-9246-874d5382befb/949d8d5d-a626-4741-97a1-31d585cf8846/rotations/south-east.png?t=1785492786",
+    "https://backblaze.pixellab.ai/file/pixellab-characters/af7def4e-5692-4b18-9246-874d5382befb/949d8d5d-a626-4741-97a1-31d585cf8846/rotations/north-east.png?t=1785492786",
+    "https://backblaze.pixellab.ai/file/pixellab-characters/af7def4e-5692-4b18-9246-874d5382befb/949d8d5d-a626-4741-97a1-31d585cf8846/rotations/north-west.png?t=1785492786",
+    "https://backblaze.pixellab.ai/file/pixellab-characters/af7def4e-5692-4b18-9246-874d5382befb/949d8d5d-a626-4741-97a1-31d585cf8846/rotations/south-west.png?t=1785492786"
+   ],
+   "fetched": "2026-07-31T17:32:16+00:00",
+   "files": [
+    "east.png",
+    "north-east.png",
+    "north-west.png",
+    "north.png",
+    "south-east.png",
+    "south-west.png",
+    "south.png",
+    "west.png"
+   ],
+   "measured": {
+    "canvas": [
+     88,
+     88
+    ],
+    "content": [
+     40,
+     46
+    ],
+    "aspect": 0.8695652173913043,
+    "solidity": 0.5152173913043478,
+    "asymmetry": 0.5949367088607594,
+    "holes": 2,
+    "hole_px": 77,
+    "luma_mean": 0.21165516670803342,
+    "luma_p95": 0.5679019607843138,
+    "opaque": 948,
+    "distinct": 40,
+    "off_ramp": 948,
+    "binary_alpha": true
+   },
+   "band": {
+    "aspect": [
+     0.7291666666666666,
+     0.8695652173913043
+    ],
+    "solidity": [
+     0.4765886287625418,
+     0.5238095238095238
+    ],
+    "asymmetry": [
+     0.5948372615039281,
+     0.7410714285714286
+    ],
+    "holes": [
+     2
+    ]
+   },
+   "verdict": "keep",
+   "reasons": [
+    "externally referenced by docs/data/art/provenance.json -- keep despite: aspect target 1.50 falls outside the measured 0.73-0.87 band across all 8 rotations"
+   ],
+   "retired": null,
+   "atlas_status": "KEPT by task-128 as the ONE surviving knight-armored archer, at archer sub-table index 1 (atlas variant 12) of thirteen. Chosen as the default so the owner did not have to pick: it is the only archer look already proven to read in a shipped capture, docs/perf/evidence/task126/02-skewed-bowextended-vs-midguard.png. The owner may swap it for another -- doing so is a frame_map edit plus a repack, no regeneration. Its 'flag' verdict below (missed the 1.50 aspect target, measured band 0.73-0.87) still stands and was already knowingly accepted on 2026-07-31."
+  },
+  "v3_loosingarm": {
+   "urls": [
+    "https://backblaze.pixellab.ai/file/pixellab-characters/af7def4e-5692-4b18-9246-874d5382befb/181c847e-5182-4915-9260-418f4d149692/rotations/south.png?t=1785492745",
+    "https://backblaze.pixellab.ai/file/pixellab-characters/af7def4e-5692-4b18-9246-874d5382befb/181c847e-5182-4915-9260-418f4d149692/rotations/east.png?t=1785492745",
+    "https://backblaze.pixellab.ai/file/pixellab-characters/af7def4e-5692-4b18-9246-874d5382befb/181c847e-5182-4915-9260-418f4d149692/rotations/north.png?t=1785492745",
+    "https://backblaze.pixellab.ai/file/pixellab-characters/af7def4e-5692-4b18-9246-874d5382befb/181c847e-5182-4915-9260-418f4d149692/rotations/west.png?t=1785492745",
+    "https://backblaze.pixellab.ai/file/pixellab-characters/af7def4e-5692-4b18-9246-874d5382befb/181c847e-5182-4915-9260-418f4d149692/rotations/south-east.png?t=1785492745",
+    "https://backblaze.pixellab.ai/file/pixellab-characters/af7def4e-5692-4b18-9246-874d5382befb/181c847e-5182-4915-9260-418f4d149692/rotations/north-east.png?t=1785492745",
+    "https://backblaze.pixellab.ai/file/pixellab-characters/af7def4e-5692-4b18-9246-874d5382befb/181c847e-5182-4915-9260-418f4d149692/rotations/north-west.png?t=1785492745",
+    "https://backblaze.pixellab.ai/file/pixellab-characters/af7def4e-5692-4b18-9246-874d5382befb/181c847e-5182-4915-9260-418f4d149692/rotations/south-west.png?t=1785492745"
+   ],
+   "fetched": "2026-07-31T17:32:22+00:00",
+   "files": [
+    "east.png",
+    "north-east.png",
+    "north-west.png",
+    "north.png",
+    "south-east.png",
+    "south-west.png",
+    "south.png",
+    "west.png"
+   ],
+   "measured": {
+    "canvas": [
+     88,
+     88
+    ],
+    "content": [
+     38,
+     47
+    ],
+    "aspect": 0.8085106382978723,
+    "solidity": 0.5677491601343785,
+    "asymmetry": 0.777120315581854,
+    "holes": 0,
+    "hole_px": 0,
+    "luma_mean": 0.23472886491085587,
+    "luma_p95": 0.600092549019608,
+    "opaque": 1014,
+    "distinct": 44,
+    "off_ramp": 1014,
+    "binary_alpha": true
+   },
+   "band": {
+    "aspect": [
+     0.6595744680851063,
+     0.8085106382978723
+    ],
+    "solidity": [
+     0.5677491601343785,
+     0.6202614379084967
+    ],
+    "asymmetry": [
+     0.6090621707060063,
+     0.777120315581854
+    ],
+    "holes": [
+     0,
+     2,
+     3
+    ]
+   },
+   "verdict": "keep",
+   "reasons": [],
+   "retired": {
+    "task": 128,
+    "date": "2026-07-31",
+    "reason": "RETIRED FROM THE ATLAS by task-128, 2026-07-31. Owner instruction, looking at the shipped frame: \"I want all these states as archers. The knight armor ones can be a single variant but not every.\" This look is a steel-helmeted knight holding a bow -- so is every other keep in this family -- and against eleven steel-helmeted knights holding a spear, at a 56px cell in a near-black frame, the bow was the only difference and it is a thin dark arc. That is the root cause task-127 (size) and task-130 (contrast) were both pushing against from the render side. The archer sub-table is now twelve hooded, cloaked and distinctly-kitted owner-supplied looks (docs/data/art/families/pathfinder-line/family.json) plus v2_bowextended as the single surviving knight-armored archer. NOT A REJECTION OF THIS ART and NOT a deletion: the verdict below stands, the PNGs stay on disk under RawArt/Renders/archer-medieval/raw/, and this entry is kept whole as the historical record. Re-packing any of these is a frame_map edit in docs/data/art/requests/team-units.json plus a weights entry -- no regeneration and no credits."
+   }
+  },
+  "v4_quiverreach": {
+   "urls": [
+    "https://backblaze.pixellab.ai/file/pixellab-characters/af7def4e-5692-4b18-9246-874d5382befb/28b38d42-55a4-4848-9c84-b282d062614d/rotations/south.png?t=1785492753",
+    "https://backblaze.pixellab.ai/file/pixellab-characters/af7def4e-5692-4b18-9246-874d5382befb/28b38d42-55a4-4848-9c84-b282d062614d/rotations/east.png?t=1785492753",
+    "https://backblaze.pixellab.ai/file/pixellab-characters/af7def4e-5692-4b18-9246-874d5382befb/28b38d42-55a4-4848-9c84-b282d062614d/rotations/north.png?t=1785492753",
+    "https://backblaze.pixellab.ai/file/pixellab-characters/af7def4e-5692-4b18-9246-874d5382befb/28b38d42-55a4-4848-9c84-b282d062614d/rotations/west.png?t=1785492753",
+    "https://backblaze.pixellab.ai/file/pixellab-characters/af7def4e-5692-4b18-9246-874d5382befb/28b38d42-55a4-4848-9c84-b282d062614d/rotations/south-east.png?t=1785492753",
+    "https://backblaze.pixellab.ai/file/pixellab-characters/af7def4e-5692-4b18-9246-874d5382befb/28b38d42-55a4-4848-9c84-b282d062614d/rotations/north-east.png?t=1785492753",
+    "https://backblaze.pixellab.ai/file/pixellab-characters/af7def4e-5692-4b18-9246-874d5382befb/28b38d42-55a4-4848-9c84-b282d062614d/rotations/north-west.png?t=1785492753",
+    "https://backblaze.pixellab.ai/file/pixellab-characters/af7def4e-5692-4b18-9246-874d5382befb/28b38d42-55a4-4848-9c84-b282d062614d/rotations/south-west.png?t=1785492753"
+   ],
+   "fetched": "2026-07-31T17:32:28+00:00",
+   "files": [
+    "east.png",
+    "north-east.png",
+    "north-west.png",
+    "north.png",
+    "south-east.png",
+    "south-west.png",
+    "south.png",
+    "west.png"
+   ],
+   "measured": {
+    "canvas": [
+     88,
+     88
+    ],
+    "content": [
+     42,
+     44
+    ],
+    "aspect": 0.9545454545454546,
+    "solidity": 0.5800865800865801,
+    "asymmetry": 0.5783582089552238,
+    "holes": 3,
+    "hole_px": 19,
+    "luma_mean": 0.24109991878841086,
+    "luma_p95": 0.600092549019608,
+    "opaque": 1072,
+    "distinct": 47,
+    "off_ramp": 1072,
+    "binary_alpha": true
+   },
+   "band": {
+    "aspect": [
+     0.8636363636363636,
+     1.0
+    ],
+    "solidity": [
+     0.43388429752066116,
+     0.5800865800865801
+    ],
+    "asymmetry": [
+     0.40476190476190477,
+     0.9016216216216216
+    ],
+    "holes": [
+     0,
+     1,
+     2,
+     3
+    ]
+   },
+   "verdict": "keep",
+   "reasons": [],
+   "retired": {
+    "task": 128,
+    "date": "2026-07-31",
+    "reason": "RETIRED FROM THE ATLAS by task-128, 2026-07-31. Owner instruction, looking at the shipped frame: \"I want all these states as archers. The knight armor ones can be a single variant but not every.\" This look is a steel-helmeted knight holding a bow -- so is every other keep in this family -- and against eleven steel-helmeted knights holding a spear, at a 56px cell in a near-black frame, the bow was the only difference and it is a thin dark arc. That is the root cause task-127 (size) and task-130 (contrast) were both pushing against from the render side. The archer sub-table is now twelve hooded, cloaked and distinctly-kitted owner-supplied looks (docs/data/art/families/pathfinder-line/family.json) plus v2_bowextended as the single surviving knight-armored archer. NOT A REJECTION OF THIS ART and NOT a deletion: the verdict below stands, the PNGs stay on disk under RawArt/Renders/archer-medieval/raw/, and this entry is kept whole as the historical record. Re-packing any of these is a frame_map edit in docs/data/art/requests/team-units.json plus a weights entry -- no regeneration and no credits."
+   }
+  },
+  "v5_crossbowbrace": {
+   "urls": [
+    "https://backblaze.pixellab.ai/file/pixellab-characters/af7def4e-5692-4b18-9246-874d5382befb/b70ab8be-fccf-40e3-b75a-9470b24977ca/rotations/south.png?t=1785492760",
+    "https://backblaze.pixellab.ai/file/pixellab-characters/af7def4e-5692-4b18-9246-874d5382befb/b70ab8be-fccf-40e3-b75a-9470b24977ca/rotations/east.png?t=1785492760",
+    "https://backblaze.pixellab.ai/file/pixellab-characters/af7def4e-5692-4b18-9246-874d5382befb/b70ab8be-fccf-40e3-b75a-9470b24977ca/rotations/north.png?t=1785492760",
+    "https://backblaze.pixellab.ai/file/pixellab-characters/af7def4e-5692-4b18-9246-874d5382befb/b70ab8be-fccf-40e3-b75a-9470b24977ca/rotations/west.png?t=1785492760",
+    "https://backblaze.pixellab.ai/file/pixellab-characters/af7def4e-5692-4b18-9246-874d5382befb/b70ab8be-fccf-40e3-b75a-9470b24977ca/rotations/south-east.png?t=1785492760",
+    "https://backblaze.pixellab.ai/file/pixellab-characters/af7def4e-5692-4b18-9246-874d5382befb/b70ab8be-fccf-40e3-b75a-9470b24977ca/rotations/north-east.png?t=1785492760",
+    "https://backblaze.pixellab.ai/file/pixellab-characters/af7def4e-5692-4b18-9246-874d5382befb/b70ab8be-fccf-40e3-b75a-9470b24977ca/rotations/north-west.png?t=1785492760",
+    "https://backblaze.pixellab.ai/file/pixellab-characters/af7def4e-5692-4b18-9246-874d5382befb/b70ab8be-fccf-40e3-b75a-9470b24977ca/rotations/south-west.png?t=1785492760"
+   ],
+   "fetched": "2026-07-31T17:32:34+00:00",
+   "files": [
+    "east.png",
+    "north-east.png",
+    "north-west.png",
+    "north.png",
+    "south-east.png",
+    "south-west.png",
+    "south.png",
+    "west.png"
+   ],
+   "measured": {
+    "canvas": [
+     88,
+     88
+    ],
+    "content": [
+     39,
+     44
+    ],
+    "aspect": 0.8863636363636364,
+    "solidity": 0.5646853146853147,
+    "asymmetry": 0.5944272445820433,
+    "holes": 0,
+    "hole_px": 0,
+    "luma_mean": 0.2493148764645177,
+    "luma_p95": 0.600092549019608,
+    "opaque": 969,
+    "distinct": 43,
+    "off_ramp": 969,
+    "binary_alpha": true
+   },
+   "band": {
+    "aspect": [
+     0.7954545454545454,
+     0.9090909090909091
+    ],
+    "solidity": [
+     0.5068181818181818,
+     0.5850649350649351
+    ],
+    "asymmetry": [
+     0.5850945494994438,
+     0.7985948477751756
+    ],
+    "holes": [
+     0,
+     1,
+     2
+    ]
+   },
+   "verdict": "keep",
+   "reasons": [],
+   "retired": {
+    "task": 128,
+    "date": "2026-07-31",
+    "reason": "RETIRED FROM THE ATLAS by task-128, 2026-07-31. Owner instruction, looking at the shipped frame: \"I want all these states as archers. The knight armor ones can be a single variant but not every.\" This look is a steel-helmeted knight holding a bow -- so is every other keep in this family -- and against eleven steel-helmeted knights holding a spear, at a 56px cell in a near-black frame, the bow was the only difference and it is a thin dark arc. That is the root cause task-127 (size) and task-130 (contrast) were both pushing against from the render side. The archer sub-table is now twelve hooded, cloaked and distinctly-kitted owner-supplied looks (docs/data/art/families/pathfinder-line/family.json) plus v2_bowextended as the single surviving knight-armored archer. NOT A REJECTION OF THIS ART and NOT a deletion: the verdict below stands, the PNGs stay on disk under RawArt/Renders/archer-medieval/raw/, and this entry is kept whole as the historical record. Re-packing any of these is a frame_map edit in docs/data/art/requests/team-units.json plus a weights entry -- no regeneration and no credits."
+   }
+  },
+  "v6_slingwhirl": {
+   "urls": [
+    "https://backblaze.pixellab.ai/file/pixellab-characters/af7def4e-5692-4b18-9246-874d5382befb/67825c70-c423-4b58-a9e8-7a3b5844d1a7/rotations/south.png?t=1785492781",
+    "https://backblaze.pixellab.ai/file/pixellab-characters/af7def4e-5692-4b18-9246-874d5382befb/67825c70-c423-4b58-a9e8-7a3b5844d1a7/rotations/east.png?t=1785492781",
+    "https://backblaze.pixellab.ai/file/pixellab-characters/af7def4e-5692-4b18-9246-874d5382befb/67825c70-c423-4b58-a9e8-7a3b5844d1a7/rotations/north.png?t=1785492781",
+    "https://backblaze.pixellab.ai/file/pixellab-characters/af7def4e-5692-4b18-9246-874d5382befb/67825c70-c423-4b58-a9e8-7a3b5844d1a7/rotations/west.png?t=1785492781",
+    "https://backblaze.pixellab.ai/file/pixellab-characters/af7def4e-5692-4b18-9246-874d5382befb/67825c70-c423-4b58-a9e8-7a3b5844d1a7/rotations/south-east.png?t=1785492781",
+    "https://backblaze.pixellab.ai/file/pixellab-characters/af7def4e-5692-4b18-9246-874d5382befb/67825c70-c423-4b58-a9e8-7a3b5844d1a7/rotations/north-east.png?t=1785492781",
+    "https://backblaze.pixellab.ai/file/pixellab-characters/af7def4e-5692-4b18-9246-874d5382befb/67825c70-c423-4b58-a9e8-7a3b5844d1a7/rotations/north-west.png?t=1785492781",
+    "https://backblaze.pixellab.ai/file/pixellab-characters/af7def4e-5692-4b18-9246-874d5382befb/67825c70-c423-4b58-a9e8-7a3b5844d1a7/rotations/south-west.png?t=1785492781"
+   ],
+   "fetched": "2026-07-31T17:32:40+00:00",
+   "files": [
+    "east.png",
+    "north-east.png",
+    "north-west.png",
+    "north.png",
+    "south-east.png",
+    "south-west.png",
+    "south.png",
+    "west.png"
+   ],
+   "measured": {
+    "canvas": [
+     88,
+     88
+    ],
+    "content": [
+     47,
+     48
+    ],
+    "aspect": 0.9791666666666666,
+    "solidity": 0.4800531914893617,
+    "asymmetry": 0.34533702677746997,
+    "holes": 1,
+    "hole_px": 301,
+    "luma_mean": 0.22767241830065357,
+    "luma_p95": 0.5734345098039215,
+    "opaque": 1083,
+    "distinct": 46,
+    "off_ramp": 1083,
+    "binary_alpha": true
+   },
+   "band": {
+    "aspect": [
+     0.7954545454545454,
+     0.9791666666666666
+    ],
+    "solidity": [
+     0.46448863636363635,
+     0.5785714285714286
+    ],
+    "asymmetry": [
+     0.2206896551724138,
+     0.8417508417508418
+    ],
+    "holes": [
+     1,
+     2,
+     3
+    ]
+   },
+   "verdict": "keep",
+   "reasons": [],
+   "retired": {
+    "task": 128,
+    "date": "2026-07-31",
+    "reason": "RETIRED FROM THE ATLAS by task-128, 2026-07-31. Owner instruction, looking at the shipped frame: \"I want all these states as archers. The knight armor ones can be a single variant but not every.\" This look is a steel-helmeted knight holding a bow -- so is every other keep in this family -- and against eleven steel-helmeted knights holding a spear, at a 56px cell in a near-black frame, the bow was the only difference and it is a thin dark arc. That is the root cause task-127 (size) and task-130 (contrast) were both pushing against from the render side. The archer sub-table is now twelve hooded, cloaked and distinctly-kitted owner-supplied looks (docs/data/art/families/pathfinder-line/family.json) plus v2_bowextended as the single surviving knight-armored archer. NOT A REJECTION OF THIS ART and NOT a deletion: the verdict below stands, the PNGs stay on disk under RawArt/Renders/archer-medieval/raw/, and this entry is kept whole as the historical record. Re-packing any of these is a frame_map edit in docs/data/art/requests/team-units.json plus a weights entry -- no regeneration and no credits."
+   }
+  }
+ },
+ "judged": "2026-07-31T18:54:55+00:00",
+ "note_task_128": "Five of the six keeps here retired from T_Team_2bit on 2026-07-31 (task-128); v2_bowextended survives. See per-variant 'retired' blocks. The family is not deprecated -- it is simply no longer the whole archer line."
 }

@@ -752,8 +752,8 @@ namespace
 		TEXT("Swarm.RetinueSizeScale and Swarm.SpriteSize. 1 = no bump (the pre-task-127 look,\n")
 		TEXT("archers sized identically to spearmen and effectively invisible at default\n")
 		TEXT("Swarm.ArcherVariantWeights). Default 1.4 is a modest bump, enough to separate an\n")
-		TEXT("archer's silhouette from the spearmen mass without the six-way archer sub-table\n")
-		TEXT("needing its weights reshuffled (rung 3 of the ladder) or a contrast pass (rung 2).\n")
+		TEXT("archer's silhouette from the spearmen mass without the archer sub-table needing\n")
+		TEXT("its weights reshuffled (rung 3 of the ladder) or a contrast pass (rung 2).\n")
 		TEXT("Useful range ~1.2-2: below 1.2 does not clear the bar, above ~2 an archer starts\n")
 		TEXT("reading as a different-sized creature rather than the same soldier with a bow.\n")
 		TEXT("Clamped to [1, 3] -- this dial only ever makes archers BIGGER, never smaller."),
@@ -862,7 +862,7 @@ namespace
 		{
 			Emit(0, TEXT("spearmen (atlas rows 0-21)"), TEXT("Swarm.TeamVariantWeights"),
 				SwarmSheet::Team::SpearVariants);
-			Emit(1, TEXT("archers (atlas rows 22-33)"), TEXT("Swarm.ArcherVariantWeights"),
+			Emit(1, TEXT("archers (atlas rows 22-47)"), TEXT("Swarm.ArcherVariantWeights"),
 				SwarmSheet::Team::ArcherVariants);
 		}
 		else
@@ -880,7 +880,8 @@ namespace
 	FAutoConsoleCommandWithWorld GCmdTeamVariantReport(
 		TEXT("Swarm.TeamVariantReport"),
 		TEXT("Log how many live retinue/knights wear each of the eleven spearman looks, and how\n")
-		TEXT("many archers wear each of the six archer looks -- two lines, one per sub-table."),
+		TEXT("many archers wear each of the thirteen archer looks -- two lines, one per\n")
+		TEXT("sub-table."),
 		FConsoleCommandWithWorldDelegate::CreateLambda(
 			[](UWorld* World) { LogVariantHistogram(World, /*bTeam=*/true); }));
 
@@ -1843,7 +1844,7 @@ void ASwarmRenderActor::Tick(float DeltaSeconds)
 		// size roll, 12-16 the facing and 21-24 the variant (SwarmRenderPack); all three
 		// would decode as garbage anim state without it. The size roll is no longer thrown
 		// away here — it goes out in Sizes above — and the variant picks the atlas ROW PAIR,
-		// which is what turns one look into seventeen (team) or nine (enemy) on one draw call.
+		// which is what turns one look into twenty-four (team) or nine (enemy) on one draw call.
 		//
 		// task-126: the team atlas has TWO blocks and the variant field has only four bits,
 		// so what arrives here is a WITHIN-BLOCK index and this is where the archer block's

@@ -5,19 +5,42 @@
   "description": "The contract between the art director's prose spec and the PixelLab generation pipeline. One file per subject in docs/data/art/requests/<id>.json. Authored by pixel-art-director; consumed by Scripts/art/pixelpipe.py and the /sprite skill. Structural rules live here; canon rules (retired hexes, palette existence, spec-file resolution) are enforced by pixelpipe.py validate, which JSON Schema cannot express.",
   "type": "object",
   "additionalProperties": false,
-
-  "comment_composite": "Two shapes of request exist. A SUBJECT request (no 'composite' key) describes one thing to generate and requires the full prompt/pixellab/anchor/canon/budget set. A COMPOSITE request generates nothing — it packs frames other requests already produced into one shared texture — so those blocks are meaningless for it and are not required. The conditional below is why the root 'required' list is expressed as if/then rather than a flat array.",
-  "if": { "required": ["composite"] },
-  "then": { "required": ["id", "revision", "subject", "output", "composite"] },
-  "else": { "required": ["id", "revision", "subject", "canon", "prompt", "pixellab", "anchor", "output", "budget"] },
-
+  "comment_composite": "Two shapes of request exist. A SUBJECT request (no 'composite' key) describes one thing to generate and requires the full prompt/pixellab/anchor/canon/budget set. A COMPOSITE request generates nothing \u2014 it packs frames other requests already produced into one shared texture \u2014 so those blocks are meaningless for it and are not required. The conditional below is why the root 'required' list is expressed as if/then rather than a flat array.",
+  "if": {
+    "required": [
+      "composite"
+    ]
+  },
+  "then": {
+    "required": [
+      "id",
+      "revision",
+      "subject",
+      "output",
+      "composite"
+    ]
+  },
+  "else": {
+    "required": [
+      "id",
+      "revision",
+      "subject",
+      "canon",
+      "prompt",
+      "pixellab",
+      "anchor",
+      "output",
+      "budget"
+    ]
+  },
   "properties": {
-
     "composite": {
       "type": "object",
       "additionalProperties": false,
-      "required": ["sources"],
-      "description": "Marks this as a composite request: one texture assembled from SEVERAL subjects. Added 2026-07-25 because the swarm atlas (T_Swarm_2bit) holds both teams in one sheet — the Niagara emitter has a single sprite renderer with a single material, so splitting it into one texture per subject would need a renderer change and would lose the single-index SubUV decode in SwarmSheet::CellForBits. Nothing here is generated; frame_map keys become '<prefix>:<direction>.<state>'.",
+      "required": [
+        "sources"
+      ],
+      "description": "Marks this as a composite request: one texture assembled from SEVERAL subjects. Added 2026-07-25 because the swarm atlas (T_Swarm_2bit) holds both teams in one sheet \u2014 the Niagara emitter has a single sprite renderer with a single material, so splitting it into one texture per subject would need a renderer change and would lose the single-index SubUV decode in SwarmSheet::CellForBits. Nothing here is generated; frame_map keys become '<prefix>:<direction>.<state>'.",
       "properties": {
         "sources": {
           "type": "array",
@@ -26,7 +49,9 @@
           "items": {
             "type": "object",
             "additionalProperties": false,
-            "required": ["prefix"],
+            "required": [
+              "prefix"
+            ],
             "properties": {
               "prefix": {
                 "type": "string",
@@ -34,16 +59,27 @@
                 "description": "Namespace for this source's frame keys in frame_map, e.g. 'retinue' -> 'retinue:south.walk1'."
               },
               "request": {
-                "type": ["string", "null"],
+                "type": [
+                  "string",
+                  "null"
+                ],
                 "default": null,
                 "description": "id of a pipeline-managed subject request whose quantized frames to draw from. Its own quantize stage must have run.",
                 "pattern": "^[a-z0-9]+(-[a-z0-9]+)*$"
               },
               "frames": {
-                "type": ["object", "null"],
+                "type": [
+                  "object",
+                  "null"
+                ],
                 "default": null,
                 "description": "UNMANAGED source: an explicit frame-key -> repo-relative PNG map, for placeholder art that did not come through the pipeline. Recorded in the manifest as provenance 'placeholder' and flagged by report, so a sheet can ship with a stand-in without the manifest claiming it was generated here.",
-                "patternProperties": { "^[a-z-]+\\.[a-z0-9]+$": { "type": "string", "minLength": 1 } },
+                "patternProperties": {
+                  "^[a-z-]+\\.[a-z0-9]+$": {
+                    "type": "string",
+                    "minLength": 1
+                  }
+                },
                 "additionalProperties": false
               },
               "quantize": {
@@ -53,48 +89,70 @@
               },
               "note": {
                 "type": "string",
-                "description": "Why this source is shaped the way it is — especially why an unmanaged source is still a placeholder."
+                "description": "Why this source is shaped the way it is \u2014 especially why an unmanaged source is still a placeholder."
               }
             }
           }
         }
       }
     },
-    "$schema": { "type": "string" },
-
+    "$schema": {
+      "type": "string"
+    },
     "id": {
       "type": "string",
       "pattern": "^[a-z0-9]+(-[a-z0-9]+)*$",
-      "description": "Stable kebab-case slug. Names the render folder (RawArt/Renders/<id>/) and must never change once generations have been spent against it — the manifest is keyed on it."
+      "description": "Stable kebab-case slug. Names the render folder (RawArt/Renders/<id>/) and must never change once generations have been spent against it \u2014 the manifest is keyed on it."
     },
-
     "revision": {
       "type": "integer",
       "minimum": 1,
       "description": "Bump on ANY change to prompt or pixellab params. Each revision gets its own r<n>/ folder so old generations are never overwritten (retention rule)."
     },
-
     "subject": {
       "type": "object",
       "additionalProperties": false,
-      "required": ["title", "kind", "spec"],
+      "required": [
+        "title",
+        "kind",
+        "spec"
+      ],
       "properties": {
-        "title": { "type": "string", "minLength": 1 },
+        "title": {
+          "type": "string",
+          "minLength": 1
+        },
         "kind": {
-          "enum": ["hero", "retinue", "npc", "monster", "prop", "ui"],
+          "enum": [
+            "hero",
+            "retinue",
+            "npc",
+            "monster",
+            "prop",
+            "ui"
+          ],
           "description": "Drives defaults and validation. 'ui' is the only kind exempt from the 48px cell rule and from 2x2 dither enforcement."
         },
         "faction": {
           "type": "string",
           "default": "none",
-          "description": "Free-form, and normally 'none'. Current canon (docs/narrative/FLAME-FOUNDATION.md §5) deliberately names NO factions — the 2026-07-22 reset discarded the Still Legion, the Quiet and the Unwitnessed, and replacements are held back until the prototype answers what the world needs to contain. Naming one here is a canon proposal, not a lookup."
+          "description": "Free-form, and normally 'none'. Current canon (docs/narrative/FLAME-FOUNDATION.md \u00a75) deliberately names NO factions \u2014 the 2026-07-22 reset discarded the Still Legion, the Quiet and the Unwitnessed, and replacements are held back until the prototype answers what the world needs to contain. Naming one here is a canon proposal, not a lookup."
         },
         "class_tie": {
-          "enum": ["Vanguard", "Relickeeper", "Pathfinder", "Lampbearer", "none"],
+          "enum": [
+            "Vanguard",
+            "Relickeeper",
+            "Pathfinder",
+            "Lampbearer",
+            "none"
+          ],
           "default": "none"
         },
         "brief": {
-          "type": ["string", "null"],
+          "type": [
+            "string",
+            "null"
+          ],
           "description": "Optional path to the originating brief, relative to this file's directory. This file lives in docs/data/art/requests/, so docs/briefs/ is THREE levels up: ../../../briefs/brief-00N-slug.md",
           "default": null
         },
@@ -104,12 +162,18 @@
         }
       }
     },
-
     "canon": {
       "type": "object",
       "additionalProperties": false,
-      "required": ["palette", "value_dominance", "pale_usage", "silhouette", "reads_as", "moving"],
-      "description": "The art-direction constraints the pipeline enforces mechanically. Not suggestions to the model — checks run against the output.",
+      "required": [
+        "palette",
+        "value_dominance",
+        "pale_usage",
+        "silhouette",
+        "reads_as",
+        "moving"
+      ],
+      "description": "The art-direction constraints the pipeline enforces mechanically. Not suggestions to the model \u2014 checks run against the output.",
       "properties": {
         "palette": {
           "type": "string",
@@ -117,12 +181,24 @@
           "description": "Key into docs/data/art/palette.json 'palettes'. Anything other than demichrome-4 requires an explicit owner exception."
         },
         "value_dominance": {
-          "enum": ["dark", "steel", "bone", "pale", "mixed"],
-          "description": "Which of the four values should dominate the sprite. Feeds the disjointness audit in docs/art/npc-silhouette-brief.md — with hue gone, value dominance is one of only three channels separating factions. The QC report flags a sprite whose actual histogram contradicts this."
+          "enum": [
+            "dark",
+            "steel",
+            "bone",
+            "pale",
+            "mixed"
+          ],
+          "description": "Which of the four values should dominate the sprite. Feeds the disjointness audit in docs/art/npc-silhouette-brief.md \u2014 with hue gone, value dominance is one of only three channels separating factions. The QC report flags a sprite whose actual histogram contradicts this."
         },
         "pale_usage": {
-          "enum": ["none", "eyes", "mark", "halo", "banner"],
-          "description": "How this subject is allowed to spend the single bright value. 'none' means the QC report flags ANY pale pixel — that is how the Still Legion's no-bright rule is enforced. Non-'none' values should match the subject's shape-carrier in palette.json."
+          "enum": [
+            "none",
+            "eyes",
+            "mark",
+            "halo",
+            "banner"
+          ],
+          "description": "How this subject is allowed to spend the single bright value. 'none' means the QC report flags ANY pale pixel \u2014 that is how the Still Legion's no-bright rule is enforced. Non-'none' values should match the subject's shape-carrier in palette.json."
         },
         "silhouette": {
           "type": "string",
@@ -141,16 +217,17 @@
         "light_shift_variant": {
           "type": "boolean",
           "default": false,
-          "description": "Emit a second sheet with every value shifted one step brighter, for the Lampbearer's lamp radius. Uses palette.json light_shift.map — no new hexes, no regeneration."
+          "description": "Emit a second sheet with every value shifted one step brighter, for the Lampbearer's lamp radius. Uses palette.json light_shift.map \u2014 no new hexes, no regeneration."
         }
       }
     },
-
     "prompt": {
       "type": "object",
       "additionalProperties": false,
-      "required": ["description"],
-      "description": "Prompt INPUTS, not the final string. pixelpipe.py prompt composes the string deterministically from these plus canon plus palette.json. Never hand-type a description at call time — deterministic composition is what substitutes for PixelLab's missing seed.",
+      "required": [
+        "description"
+      ],
+      "description": "Prompt INPUTS, not the final string. pixelpipe.py prompt composes the string deterministically from these plus canon plus palette.json. Never hand-type a description at call time \u2014 deterministic composition is what substitutes for PixelLab's missing seed.",
       "properties": {
         "description": {
           "type": "string",
@@ -160,142 +237,332 @@
         },
         "must_include": {
           "type": "array",
-          "items": { "type": "string", "minLength": 1 },
+          "items": {
+            "type": "string",
+            "minLength": 1
+          },
           "default": [],
           "description": "Silhouette carriers that must survive to the final sprite. Composed into the prompt AND printed on the stage-D review checklist so the human gate knows what to look for."
         },
         "must_avoid": {
           "type": "array",
-          "items": { "type": "string", "minLength": 1 },
+          "items": {
+            "type": "string",
+            "minLength": 1
+          },
           "default": [],
-          "description": "Composed as negative guidance. The composer always appends the house set (saturated colour, gradients, anti-aliasing) — list only subject-specific additions here."
+          "description": "Composed as negative guidance. The composer always appends the house set (saturated colour, gradients, anti-aliasing) \u2014 list only subject-specific additions here."
         },
         "style_mode": {
-          "enum": ["flat", "depth"],
+          "enum": [
+            "flat",
+            "depth"
+          ],
           "default": "flat",
-          "description": "Which house style clause the composer appends. 'flat' is the locked look (aesthetic-direction.md Direction A): adds 'flat unlit pixel art, hard pixel edges, dither for any intermediate tone' and forbids gradients/anti-aliasing/soft shading. 'depth' is a RENDER-TREATMENT EXPERIMENT ONLY: it drops the flat clause and lifts those three negatives so a shading param above 'flat shading' is not fighting its own prompt. It does NOT lift the palette — output is still quantized to the 4-value ramp. No shipping asset may use 'depth' without an explicit owner exception."
+          "description": "Which house style clause the composer appends. 'flat' is the locked look (aesthetic-direction.md Direction A): adds 'flat unlit pixel art, hard pixel edges, dither for any intermediate tone' and forbids gradients/anti-aliasing/soft shading. 'depth' is a RENDER-TREATMENT EXPERIMENT ONLY: it drops the flat clause and lifts those three negatives so a shading param above 'flat shading' is not fighting its own prompt. It does NOT lift the palette \u2014 output is still quantized to the 4-value ramp. No shipping asset may use 'depth' without an explicit owner exception."
         }
       }
     },
-
     "pixellab": {
       "type": "object",
       "additionalProperties": false,
-      "required": ["mode", "size", "view"],
-      "description": "Literal create_character arguments. Mirrors the MCP tool schema — keep in sync if PixelLab changes it. Note there is NO seed field: create_character does not accept one.",
+      "required": [
+        "mode",
+        "size",
+        "view"
+      ],
+      "description": "Literal create_character arguments. Mirrors the MCP tool schema \u2014 keep in sync if PixelLab changes it. Note there is NO seed field: create_character does not accept one.",
       "properties": {
         "mode": {
-          "enum": ["standard", "pro", "v3"],
+          "enum": [
+            "standard",
+            "pro",
+            "v3"
+          ],
           "default": "standard",
           "description": "Use 'standard' for a text-to-sprite anchor: it is the ONLY mode that honours shading, proportions and text_guidance_scale, and it costs 1 generation instead of 2. v3 silently ignores all three (plus n_directions) -- its strength is the rotation pass, where style comes from reference_image_base64 rather than from params. Measured on hero-vanguard r1: a v3 anchor discarded 'chibi' and 'flat shading' and failed the spec on five counts."
         },
-        "size": { "type": "integer", "minimum": 16, "maximum": 256, "default": 48 },
-        "view": { "enum": ["low top-down", "high top-down", "side", "oblique"], "default": "low top-down" },
-        "n_directions": { "enum": [4, 8], "default": 8, "description": "Ignored by pro and v3 (always 8). Kept for standard-mode anchors." },
-        "outline": { "enum": ["single color black outline", "single color outline", "selective outline", "lineless"], "default": "single color black outline" },
-        "detail": { "enum": ["low detail", "medium detail", "high detail"], "default": "low detail" },
-        "shading": { "enum": ["flat shading", "basic shading", "medium shading", "detailed shading"], "default": "flat shading", "description": "Ignored by v3 and pro. Kept because a standard-mode anchor honours it as soft guidance." },
+        "size": {
+          "type": "integer",
+          "minimum": 16,
+          "maximum": 256,
+          "default": 48
+        },
+        "view": {
+          "enum": [
+            "low top-down",
+            "high top-down",
+            "side",
+            "oblique"
+          ],
+          "default": "low top-down"
+        },
+        "n_directions": {
+          "enum": [
+            4,
+            8
+          ],
+          "default": 8,
+          "description": "Ignored by pro and v3 (always 8). Kept for standard-mode anchors."
+        },
+        "outline": {
+          "enum": [
+            "single color black outline",
+            "single color outline",
+            "selective outline",
+            "lineless"
+          ],
+          "default": "single color black outline"
+        },
+        "detail": {
+          "enum": [
+            "low detail",
+            "medium detail",
+            "high detail"
+          ],
+          "default": "low detail"
+        },
+        "shading": {
+          "enum": [
+            "flat shading",
+            "basic shading",
+            "medium shading",
+            "detailed shading"
+          ],
+          "default": "flat shading",
+          "description": "Ignored by v3 and pro. Kept because a standard-mode anchor honours it as soft guidance."
+        },
         "proportions": {
           "type": "object",
           "description": "Serialized to a JSON string at call time. The chibi ruling of 2026-07-11 stands for combat-scale heroes, retinue and Legion; Unwitnessed titans are non-chibi.",
           "properties": {
-            "type": { "enum": ["preset", "custom"] },
-            "name": { "enum": ["default", "chibi", "cartoon", "stylized", "realistic_male", "realistic_female", "heroic"] }
+            "type": {
+              "enum": [
+                "preset",
+                "custom"
+              ]
+            },
+            "name": {
+              "enum": [
+                "default",
+                "chibi",
+                "cartoon",
+                "stylized",
+                "realistic_male",
+                "realistic_female",
+                "heroic"
+              ]
+            }
           }
         },
-        "text_guidance_scale": { "type": "number", "minimum": 1, "maximum": 20, "default": 8, "description": "Ignored by v3. Raise on a standard-mode anchor to push harder toward the description." },
-        "body_type": { "enum": ["humanoid", "quadruped"], "default": "humanoid" },
-        "template": { "type": ["string", "null"], "default": null, "description": "Required when body_type is quadruped: bear, cat, dog, horse, lion." }
+        "text_guidance_scale": {
+          "type": "number",
+          "minimum": 1,
+          "maximum": 20,
+          "default": 8,
+          "description": "Ignored by v3. Raise on a standard-mode anchor to push harder toward the description."
+        },
+        "body_type": {
+          "enum": [
+            "humanoid",
+            "quadruped"
+          ],
+          "default": "humanoid"
+        },
+        "template": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "default": null,
+          "description": "Required when body_type is quadruped: bear, cat, dog, horse, lion."
+        }
       }
     },
-
     "anchor": {
       "type": "object",
       "additionalProperties": false,
-      "required": ["strategy"],
+      "required": [
+        "strategy"
+      ],
       "description": "How style consistency is achieved. PixelLab enforces no palette and offers no seed, so the anchor IS the style contract: one quantized frame fed back via v3 reference_image_base64 propagates our exact ramp to every rotation and animation frame.",
       "properties": {
         "strategy": {
-          "enum": ["text-only", "quantized-self", "authored", "shared-anchor"],
+          "enum": [
+            "text-only",
+            "quantized-self",
+            "authored",
+            "shared-anchor"
+          ],
           "default": "authored",
           "description": "authored: render the prose spec's own ASCII pixel map as the anchor via 'pixelpipe.py authored' -- zero generations, on-palette by construction, and it cannot come back missing the subject's defining prop (the failure that killed hero-vanguard r2). Prefer this whenever the spec has a silhouette guide. quantized-self: generate an anchor from text, quantize it, feed it back as the v3 reference. text-only: no reference image at all, lowest fidelity, use only to explore. shared-anchor: reuse another request's approved anchor so a group shares one style source."
         },
         "source_direction": {
-          "enum": ["south", "south-west", "west", "north-west", "north", "north-east", "east", "south-east"],
+          "enum": [
+            "south",
+            "south-west",
+            "west",
+            "north-west",
+            "north",
+            "north-east",
+            "east",
+            "south-east"
+          ],
           "default": "south",
           "description": "Which rotation becomes the anchor. v3 expects a south-facing sprite; changing this is unusual."
         },
         "shared_anchor_id": {
-          "type": ["string", "null"],
+          "type": [
+            "string",
+            "null"
+          ],
           "default": null,
           "description": "Required when strategy is shared-anchor: the id of the request whose approved anchor to reuse."
         },
         "approved": {
           "type": "boolean",
           "default": false,
-          "description": "Set true by a human at the stage-D gate. The pipeline refuses to run the rotation pass until this is true — everything downstream inherits the anchor, so an unapproved anchor wastes the whole batch."
+          "description": "Set true by a human at the stage-D gate. The pipeline refuses to run the rotation pass until this is true \u2014 everything downstream inherits the anchor, so an unapproved anchor wastes the whole batch."
         }
       }
     },
-
     "animations": {
       "type": "array",
       "default": [],
       "items": {
         "type": "object",
         "additionalProperties": false,
-        "required": ["name"],
+        "required": [
+          "name"
+        ],
         "properties": {
-          "name": { "type": "string", "pattern": "^[a-z0-9]+(-[a-z0-9]+)*$" },
-          "mode": { "enum": ["template", "v3", "pro"], "default": "template" },
+          "name": {
+            "type": "string",
+            "pattern": "^[a-z0-9]+(-[a-z0-9]+)*$"
+          },
+          "mode": {
+            "enum": [
+              "template",
+              "v3",
+              "pro"
+            ],
+            "default": "template"
+          },
           "template_animation_id": {
-            "type": ["string", "null"],
+            "type": [
+              "string",
+              "null"
+            ],
             "default": null,
             "description": "Required when mode is template. Cheapest route at 1 generation/direction. Common: walk, walking-4-frames, running-4-frames, breathing-idle."
           },
-          "action_description": { "type": ["string", "null"], "default": null, "description": "Required when mode is v3 or pro. Movement/pose only — no environment." },
-          "frame_count": { "type": "integer", "minimum": 4, "maximum": 16, "default": 8, "description": "Honoured only in v3 mode; must be even. Template mode uses the template's count; pro mode fixes it by size." },
+          "action_description": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "default": null,
+            "description": "Required when mode is v3 or pro. Movement/pose only \u2014 no environment."
+          },
+          "frame_count": {
+            "type": "integer",
+            "minimum": 4,
+            "maximum": 16,
+            "default": 8,
+            "description": "Honoured only in v3 mode; must be even. Template mode uses the template's count; pro mode fixes it by size."
+          },
           "directions": {
             "type": "array",
-            "items": { "enum": ["south", "south-west", "west", "north-west", "north", "north-east", "east", "south-east"] },
+            "items": {
+              "enum": [
+                "south",
+                "south-west",
+                "west",
+                "north-west",
+                "north",
+                "north-east",
+                "east",
+                "south-east"
+              ]
+            },
             "description": "Omit to animate all character directions in template mode. v3 defaults to south only."
           }
         }
       }
     },
-
     "portrait": {
       "type": "object",
       "additionalProperties": false,
-      "default": { "enabled": false },
-      "description": "Optional bust portrait via create_portrait_character(direction=character_to_portrait). There is no text-to-portrait tool — a portrait is always derived from a finished sprite.",
+      "default": {
+        "enabled": false
+      },
+      "description": "Optional bust portrait via create_portrait_character(direction=character_to_portrait). There is no text-to-portrait tool \u2014 a portrait is always derived from a finished sprite.",
       "properties": {
-        "enabled": { "type": "boolean", "default": false },
-        "result_size": { "enum": [16, 32, 48, 64, 128, 160], "default": 128, "description": "128 and 160 render at 2K for extra detail and cost 25 generations; 16-64 cost 20." },
-        "source_direction": { "enum": ["south", "south-west", "west", "north-west", "north", "north-east", "east", "south-east"], "default": "south" }
+        "enabled": {
+          "type": "boolean",
+          "default": false
+        },
+        "result_size": {
+          "enum": [
+            16,
+            32,
+            48,
+            64,
+            128,
+            160
+          ],
+          "default": 128,
+          "description": "128 and 160 render at 2K for extra detail and cost 25 generations; 16-64 cost 20."
+        },
+        "source_direction": {
+          "enum": [
+            "south",
+            "south-west",
+            "west",
+            "north-west",
+            "north",
+            "north-east",
+            "east",
+            "south-east"
+          ],
+          "default": "south"
+        }
       }
     },
-
     "output": {
       "type": "object",
       "additionalProperties": false,
-      "required": ["cell", "grid", "texture", "content_path"],
+      "required": [
+        "cell",
+        "grid",
+        "texture",
+        "content_path"
+      ],
       "properties": {
         "cell": {
           "type": "integer",
-          "description": "Sprite cell size in px. Locked to 48 for every kind except ui (owner decision, 2026-07-25). pixelpipe.py validate enforces this — the schema cannot express the conditional."
+          "description": "Sprite cell size in px. Locked to 48 for every kind except ui (owner decision, 2026-07-25). pixelpipe.py validate enforces this \u2014 the schema cannot express the conditional."
         },
         "grid": {
           "type": "array",
-          "items": { "type": "integer", "minimum": 1, "maximum": 16 },
+          "items": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 64
+          },
           "minItems": 2,
           "maxItems": 2,
-          "description": "[columns, rows]. Both must be powers of two — the Niagara SubUV requirement from ELVTR/SETUP-EDITOR.md. The texture itself need not be power-of-two (4x4 x 48 = 192x192 is fine)."
+          "description": "[columns, rows]. Columns must be a power of two; ROWS NEED NOT BE. The repo's old 'Niagara needs power-of-two grids on both axes' rule is folklore -- the Sprite Renderer's Sub UV is a float ratio, so the 8x20 swarm atlas (task-059, nine brood variants at Row = Variant*2 + WalkFrame) decodes exactly as well as 8x16 and rounding up to 8x32 would have cost 1.6MB of transparent texels. The texture itself need not be power-of-two either (4x4 x 48 = 192x192 is fine)."
         },
         "frame_map": {
           "type": "object",
-          "description": "Cell index (as a string) -> frame key of the form <direction>.<state>, e.g. \"0\": \"south.idle\", \"1\": \"south.walk1\". Cells are numbered left-to-right, top-to-bottom. Unlisted cells are left transparent. Keys must resolve to frames the pipeline actually produced — validated at pack time, not schema time.",
-          "patternProperties": { "^[0-9]+$": { "type": "string", "minLength": 3 } },
+          "description": "Cell index (as a string) -> frame key of the form <direction>.<state>, e.g. \"0\": \"south.idle\", \"1\": \"south.walk1\". Cells are numbered left-to-right, top-to-bottom. Unlisted cells are left transparent. Keys must resolve to frames the pipeline actually produced \u2014 validated at pack time, not schema time.",
+          "patternProperties": {
+            "^[0-9]+$": {
+              "type": "string",
+              "minLength": 3
+            }
+          },
           "additionalProperties": false
         },
         "texture": {
@@ -312,14 +579,23 @@
           "type": "boolean",
           "default": true,
           "description": "sRGB on for colour sheets; false for mask-only textures, per docs/ui/UI-PROTOTYPE-PLAN.md."
+        },
+        "cell_note": {
+          "type": "string",
+          "description": "Why output.cell is what it is, when it deviates from the 48px lock. Present in the committed swarm-units.json since 2026-07-28 but not in the schema until 2026-07-29, so validate rejected the request outright on 'additional properties'."
+        },
+        "frame_map_note": {
+          "type": "string",
+          "description": "Why the frame_map is laid out the way it is -- especially which OTHER places have to agree about the grid (C++ constants, the Niagara Sub UV field). Same story as cell_note: in use since 2026-07-28, schema'd 2026-07-29."
         }
       }
     },
-
     "budget": {
       "type": "object",
       "additionalProperties": false,
-      "required": ["max_generations"],
+      "required": [
+        "max_generations"
+      ],
       "properties": {
         "max_generations": {
           "type": "integer",

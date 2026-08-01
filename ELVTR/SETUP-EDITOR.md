@@ -72,10 +72,10 @@ instead, set those four yourself — Nearest is the one that silently ruins pixe
 
 **Sheet layout — SUPERSEDED by the task-085 split; kept only to date the cell change.**
 The 8×20 / 448×1120 combined `T_Swarm_2bit` sheet this paragraph described is retired.
-Live as of task-126: **`T_Enemy_2bit` 448×1008 (8×18)** and **`T_Team_2bit` 448×1904
-(8×34)**, per the table at the top of this file. Rows are deliberately NOT a power of two
-on either sheet: `SubImageSize` is a float ratio, so 18 or 34 rows decode exactly as well
-as 16, and rounding up would cost megabytes of transparent texels. The cell grew because
+Live as of task-128: **`T_Enemy_2bit` 448×1008 (8×18)** and **`T_Team_2bit` 448×2688
+(8×48)**, per the table at the top of this file. Rows are deliberately NOT a power of two
+on either sheet: `SubImageSize` is a float ratio, so 18 or 48 rows decode exactly as well
+as 16 or 64, and rounding up would cost megabytes of transparent texels. The cell grew because
 the retinue character that
 replaced the knight measures 41×49 and `pixelpipe pack` refuses to scale pixel art — see
 `docs/data/art/requests/swarm-units.json` `output.cell_note`. Only `T_Swarm_2bit` moved;
@@ -135,8 +135,9 @@ repointed. Same graph, same Emissive/Opacity wiring, otherwise.**
 and `Team` (new). Every step below happens ONCE PER EMITTER, with its own User
 parameter names (`User.Positions/SubImages/Colors/Sizes/Count` for `Swarm`,
 `User.TeamPositions/TeamSubImages/TeamColors/TeamSizes/TeamCount` for `Team`) and its
-own Sub UV (8×18 vs 8×34 — the team grid grew from 8×22 in task-126, which appended the
-six archer looks as rows 22-33). See docs/perf/niagara-sprite-path.md §1-§5 for the full
+own Sub UV (8×18 vs 8×48 — the team grid grew from 8×22 in task-126, which appended a
+six-look archer block at rows 22-33, then to 8×48 in task-128, which REPLACED that block
+with thirteen looks at rows 22-47). See docs/perf/niagara-sprite-path.md §1-§5 for the full
 table and the exact parameter/dynamic-input chain each field needs.**
 
 **CPUSim is not negotiable on either emitter** — GPUComputeSim was tried and drew
@@ -172,7 +173,7 @@ nothing (docs/perf/niagara-sprite-path.md §6).
    - **Two emitters, two Sub UVs, one per sheet — each matches its OWN texture's row
      count, not the row range the C++ addresses.** Emitter `Swarm` (enemy): Material =
      `M_Swarm` → `T_Enemy_2bit` (448×1008), **Sub UV = 8 × 18**. Emitter `Team`: Material
-     = `M_Swarm_Team` → `T_Team_2bit` (448×1904), **Sub UV = 8 × 34**. Both Alignment =
+     = `M_Swarm_Team` → `T_Team_2bit` (448×2688), **Sub UV = 8 × 48**. Both Alignment =
      Unaligned, Facing Mode = Face Camera.
    - The old **8 × 20** value recorded here was for the retired combined `T_Swarm_2bit`
      and is no longer live on either emitter (corrected 2026-07-31, task-126). Do not
@@ -182,8 +183,8 @@ nothing (docs/perf/niagara-sprite-path.md §6).
    - This field **can** be set from script, but only through the Niagara MCP toolset
      (`NiagaraToolset_System.SetRendererData`), not editor Python — see the sprite
      skill's "Niagara Sub UV" note for the exact calls and the save trap. It was set to
-     8 × 4 that way on 2026-07-26, 8 × 20 on 2026-07-29, and the Team emitter to 8 × 34 on
-     2026-07-31, read back to confirm each time.
+     8 × 4 that way on 2026-07-26, 8 × 20 on 2026-07-29, and the Team emitter to 8 × 34 and
+     then 8 × 48 on 2026-07-31 (task-126 then task-128), read back to confirm each time.
    - Adding a new User ARRAY parameter is a different story and the MCP route does NOT work
      for it — `AddUserVariables` returns success and silently does nothing for data-interface
      types. Use the `Swarm.NiagaraEnsureArrays` console command instead

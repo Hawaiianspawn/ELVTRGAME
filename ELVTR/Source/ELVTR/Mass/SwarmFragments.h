@@ -82,8 +82,14 @@ namespace SwarmAnim
  *       not move), indices 1-10 are the ten knight keeps task-085 landed (see
  *       docs/data/art/team-variants.json for which index is which silhouette —
  *       task-095 binds combat stats to this exact ordering, so it is not a free re-sort).
- *     - rows 22-33, variants 11-16, the ARCHER block: archer-medieval v1-v6, landed by
- *       task-126 so a unit that spawns as EUnitType::Archers stops drawing as a knight.
+ *     - rows 22-47, variants 11-23, the ARCHER block: the twelve owner-supplied
+ *       pathfinder-line looks plus the one surviving knight-armored archer
+ *       (archer-medieval v2_bowextended). task-126 landed this block so a unit that
+ *       spawns as EUnitType::Archers stops drawing as a knight; task-128 REPLACED its
+ *       contents, because all six of task-126's looks were steel-helmeted knights
+ *       holding a bow and an archer therefore still read as a spearman at a 56px cell.
+ *       Thirteen is the ceiling on this block, not an arbitrary count — see the
+ *       four-bit note below.
  *   Row = Variant*2 + WalkFrame, same formula as Enemy, different variant count.
  *
  * WHICH variant an entity wears is not this namespace's business — it comes in on bits
@@ -94,9 +100,9 @@ namespace SwarmAnim
  * weight to 0, which is why every variant on a side is packed rather than a chosen
  * subset: retiring one costs no repack.
  *
- * The variant field is FOUR BITS and stops at 15, so seventeen team rows do not fit a
+ * The variant field is FOUR BITS and stops at 15, so twenty-four team looks do not fit a
  * flat index. They do not have to: the field carries the WITHIN-BLOCK index (0-10 for
- * spearmen, 0-5 for archers) and SwarmRenderActor.cpp's pack loop adds
+ * spearmen, 0-12 for archers) and SwarmRenderActor.cpp's pack loop adds
  * Team::ArcherVariantBase when the entity is an archer. The atlas can therefore grow
  * past sixteen looks per side without ever repacking the render int32.
  *
@@ -141,9 +147,9 @@ namespace SwarmSheet
 
 	/**
 	 * TEAM atlas (T_Team_2bit) — the retinue base look (variant 0), the ten judged knight
-	 * keeps task-085 landed (variants 1-10), and the six archer keeps task-126 landed
-	 * (variants 11-16). Independent of Enemy above: this grid never moves because the
-	 * enemy roster churns.
+	 * keeps task-085 landed (variants 1-10), and the thirteen archer looks task-128 put in
+	 * the block task-126 opened (variants 11-23). Independent of Enemy above: this grid
+	 * never moves because the enemy roster churns.
 	 */
 	namespace Team
 	{
@@ -154,10 +160,10 @@ namespace SwarmSheet
 		// two blocks ever share an index space, because the 4-bit render field cannot
 		// hold a flat 0-16.
 		constexpr int32 SpearVariants = 11;
-		constexpr int32 ArcherVariants = 6;
+		constexpr int32 ArcherVariants = 13;
 		constexpr int32 ArcherVariantBase = SpearVariants;	// 11
-		constexpr int32 Variants = SpearVariants + ArcherVariants;	// 17
-		constexpr int32 Rows = Variants * 2;	// 34
+		constexpr int32 Variants = SpearVariants + ArcherVariants;	// 24
+		constexpr int32 Rows = Variants * 2;	// 48
 
 		/**
 		 * Sheet cell for an anim byte, an already-resolved direction column, and a team
@@ -339,11 +345,11 @@ namespace SwarmRenderPack
 	constexpr int32 SquadMask = SwarmSquad::IdMask | SwarmSquad::TypeBit; // 4 bits, 0-15
 
 	// Bits 21-24: which atlas look this body wears -- SwarmSheet::Enemy (0-8), team
-	// spearmen (0-10) or team archers (0-5), picked by TeamBit plus the squad byte's unit
+	// spearmen (0-10) or team archers (0-12), picked by TeamBit plus the squad byte's unit
 	// type (task-085 split one variant field into two independent tables sharing the same
 	// bits, since the two sides are never both live for a given entity; task-126 added a
 	// third table the same way, WITHIN-BLOCK, with the +11 archer row offset applied in
-	// SwarmRenderActor.cpp so seventeen team rows still index through four bits).
+	// SwarmRenderActor.cpp so twenty-four team looks still index through four bits).
 	// Same "free bits in an array that already exists" reasoning as Size/Facing/Squad above,
 	// and the reason this feature needed no new fragment field, no new array, and no
 	// class-layout change — which matters more than usual here, because a layout change on
@@ -403,7 +409,7 @@ namespace SwarmRenderPack
 	 * Shared by all three tables — the caller passes the brood table
 	 * (Swarm.BroodVariantWeights, 9 entries) for enemies, the spearman table
 	 * (Swarm.TeamVariantWeights, 11 entries) for retinue/knights, or the archer table
-	 * (Swarm.ArcherVariantWeights, 6 entries, task-126); nothing here cares which, it
+	 * (Swarm.ArcherVariantWeights, 13 entries, task-126/128); nothing here cares which, it
 	 * just walks whatever Cum/Num it is handed. What it returns is always a WITHIN-TABLE
 	 * index — the archer row offset is the render bridge's business, not this function's.
 	 *

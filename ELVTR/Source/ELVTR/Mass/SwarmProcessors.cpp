@@ -182,19 +182,36 @@ namespace
 	// task-126: the third table, over the ARCHER block of the same team atlas. Archers were
 	// fully simulated and completely invisible -- they wore whichever of the eleven spearman
 	// looks their phase happened to land on, so the player could not see their own ranged
-	// line. Flat weights to start: unlike the team table this one has no owner verdict on
-	// the mix yet, and six looks that all read as "archer" is the point.
+	// line.
+	//
+	// task-128 replaced what that block CONTAINS. Every one of task-126's six looks was a
+	// steel-helmeted knight holding a bow, so against eleven steel-helmeted knights holding
+	// a spear the only difference at a 56px cell was a thin dark arc -- which is why the
+	// archer line still read as spearmen after size (task-127) and contrast (task-130) had
+	// both been spent on it. The block is now twelve hooded, cloaked and distinctly-kitted
+	// owner-supplied looks plus ONE surviving knight-armored archer at index 1, per the
+	// owner 2026-07-31: "I want all these states as archers. The knight armor ones can be a
+	// single variant but not every."
+	//
+	// Weights stay FLAT at thirteen ways. Deliberately: the knight-armored look is meant to
+	// be one archer in thirteen rather than the whole line, and flat is what makes that
+	// true without a mix verdict the owner has not given yet.
 	TAutoConsoleVariable<FString> CVarArcherVariantWeights(
-		TEXT("Swarm.ArcherVariantWeights"), TEXT("16,16,16,16,16,16"),
-		TEXT("How often each of the six ARCHER looks appears, comma-separated integer weights\n")
-		TEXT("in archer-block order: v1_narrowstrung, v2_bowextended, v3_loosingarm,\n")
-		TEXT("v4_quiverreach, v5_crossbowbrace, v6_slingwhirl. Same cumulative-sum pick as\n")
-		TEXT("Swarm.TeamVariantWeights, over the archer half of the SAME team atlas (rows\n")
-		TEXT("22-33; the +11 row offset is applied in the render bridge, not stored). A weight\n")
-		TEXT("of 0 retires a look with no repack. Does NOT touch combat: archers read the\n")
-		TEXT("Swarm.Archers* stats and never the knight sub-type table, so skewing this is a\n")
-		TEXT("pure look change. Defaults documented in docs/data/art/team-variants.json.\n")
-		TEXT("Try 0,0,0,0,0,100 to put the whole ranged line on slings."),
+		TEXT("Swarm.ArcherVariantWeights"), TEXT("16,16,16,16,16,16,16,16,16,16,16,16,16"),
+		TEXT("How often each of the thirteen ARCHER looks appears, comma-separated integer\n")
+		TEXT("weights in archer-block order: hoodedbow, v2_bowextended (the one knight-armored\n")
+		TEXT("archer left), ghilliecloak, hollowmask, stoutbeard, crystalstaff, arcbow,\n")
+		TEXT("riflecrouch, rocketshoulder, twincannon, domedhelm, turretnest, carbinesuit.\n")
+		TEXT("Same cumulative-sum pick as Swarm.TeamVariantWeights, over the archer half of\n")
+		TEXT("the SAME team atlas (rows 22-47; the +11 row offset is applied in the render\n")
+		TEXT("bridge, not stored). A weight of 0 retires a look with no repack. Entries past\n")
+		TEXT("thirteen are DROPPED (capped at SwarmSheet::Team::ArcherVariants), and sixteen\n")
+		TEXT("is the hard ceiling this block can ever reach -- the render int32's variant\n")
+		TEXT("field is four bits wide. Does NOT touch combat: archers\n")
+		TEXT("read the Swarm.Archers* stats and never the knight sub-type table, so skewing\n")
+		TEXT("this is a pure look change. Defaults documented in\n")
+		TEXT("docs/data/art/team-variants.json. Try 0,100,0,0,0,0,0,0,0,0,0,0,0 to put the\n")
+		TEXT("whole ranged line back in knight armour, or 100,0,... for all hooded bows."),
 		ECVF_Default);
 
 	/** Cumulative display weights, so a per-entity roll becomes a variant with one scan. */
@@ -1110,7 +1127,7 @@ void USwarmIntegrateProcessor::Execute(FMassEntityManager& EntityManager, FMassE
 	// read ArcherVariants, picked per-entity below on TeamBit plus the squad byte's unit
 	// type. The team pair index the same atlas — the archer block's +11 row offset is added
 	// in SwarmRenderActor.cpp's pack loop, not here, because the render int32's variant
-	// field is four bits and seventeen looks do not fit a flat index (SwarmSheet::Team).
+	// field is four bits and twenty-four looks do not fit a flat index (SwarmSheet::Team).
 	const FVariantTable EnemyVariants = ParseVariantTable(
 		CVarBroodVariantWeights.GetValueOnGameThread(), SwarmSheet::Enemy::Variants);
 	const FVariantTable TeamVariants = ParseVariantTable(

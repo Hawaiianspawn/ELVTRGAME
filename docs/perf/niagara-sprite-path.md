@@ -36,10 +36,13 @@ hand-rolling UV math in the shader to save 0.001ms of already-free render cost).
 | 1 | `SwarmFragments.h` — `SwarmSheet::Team::Variants`/`Rows` | `SwarmSheet::Enemy::Variants`/`Rows` |
 | 2 | `docs/data/art/requests/team-units.json` `output.grid` + `frame_map` | `.../enemy-units.json` |
 | 3 | imported texture `T_Team_2bit` | `T_Enemy_2bit` |
-| 4 | `NS_Swarm` → emitter **Team** → Sprite Renderer → `SubImageSize` = **{8, 34}** | emitter **Swarm** → `SubImageSize` = **{8, 18}** |
+| 4 | `NS_Swarm` → emitter **Team** → Sprite Renderer → `SubImageSize` = **{8, 48}** | emitter **Swarm** → `SubImageSize` = **{8, 18}** |
 
-The team grid went 8×22 → **8×34** in task-126 (the six archer keeps). The enemy grid is
-untouched — that independence is the whole point of the split.
+The team grid went 8×22 → 8×34 in task-126 (a six-look archer block appended at rows
+22-33) → **8×48** in task-128, which REPLACED that block with thirteen looks at rows
+22-47: all six of task-126's were a steel-helmeted knight holding a bow, so an archer
+still read as a spearman at a 56px cell. The enemy grid is untouched — that independence
+is the whole point of the split.
 
 `Scripts/art/check_brood_variants.py` checks 1 against 2, for BOTH sides, and prints
 what each Sub UV field has to hold. It cannot read 4 — verify that one by reading it
@@ -235,6 +238,29 @@ identifiable by bow silhouette; `03-diagnostic-overhead-full-retinue.png`
 (`Dist 1700, Pitch -45, Fov 60, OffsetZ 0`) gets the whole formation in frame and makes the
 archer block unmistakable — the front several ranks are visibly bow-carrying, distinct from
 the shield-and-spear ranks behind.
+
+**`Swarm.ArcherColorLift` is NOT redundant after task-128 — it got MORE load-bearing.**
+The task-128 brief expected the opposite: that once archers stopped being knight-shaped,
+the 0.15 additive lift task-130 added could come out. Measured instead, by A/B'ing the
+same shot at `Swarm.ArcherColorLift 0.15` and `0`
+(`docs/perf/evidence/task128/05-colorlift-015-above-000-below.png`): at 0 the archer block
+falls away to near-black. The looks task-130 was lifting were bright STEEL, which carried
+itself; the twelve that replaced them are dark hooded cloth, and in a near-black frame the
+only parts that survive without the lift are the self-lit props (the cyan arc bow, the
+purple crystal staff, the ghillie green). **Do not remove it.** If anything the useful
+range moved up — the "reads as struck above ~0.3" ceiling in the CVar help was written
+against steel and has not been re-tested against cloth.
+
+**Framing correction, task-128:** `Dist 1700, Pitch -45, Fov 60, OffsetZ 0` still clips the
+front archer rank against the bottom edge (compare `03-diagnostic-overhead-full-retinue.png`
+— the nearest rank runs off frame). The missing dial is `OffsetX`. At `Pitch -45` with
+`Yaw 0` the camera basis is `Forward = (0.707, 0, -0.707)`, `Up = (0.707, 0, 0.707)`, so
+world **+X projects onto camera-up at 0.707** — moving the focus forward pushes the army
+DOWN the frame, and a NEGATIVE `OffsetX` lifts it. `Dist 1900, Pitch -45, Fov 60,
+OffsetX -600, OffsetZ 0` puts the whole retinue in frame with the flame pool visible and
+nothing clipped, at `Swarm.SpawnRetinue 300` on top of the game mode's 120
+(`docs/perf/evidence/task128/01-before-six-knight-archers.png` and `02-...png`, a matched
+pair). Diagnostic only — the shipped exec-file camera block was restored afterwards.
 
 That capture also settles a formation-geometry question the brief raised: **archers are
 NOT hidden behind the spear line.** `Swarm.Formation.Archers.Forward` defaults to 40uu

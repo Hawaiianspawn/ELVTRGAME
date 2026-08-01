@@ -1,0 +1,23 @@
+{
+ "group": "e2702eb6-248d-4b6b-b8dc-fedc1290e059",
+ "base": "b3163cdf-6434-4390-8417-721a80797dcf",
+ "canvas": [
+  92,
+  92
+ ],
+ "source": "pixellab group download 2026-07-31, 0 credits \u2014 states pre-existed",
+ "state_ids": {
+  "Merle_Pathfinder": "b3163cdf-6434-4390-8417-721a80797dcf",
+  "One_with_Hollow_blac": "021462fb-4d5a-4838-ba63-6c653781917e",
+  "Cyborg_with_Crossbow": "ea1d8c8e-5fe1-4dbb-abd9-ff5ed9f81e4c",
+  "RPG_launcher": "2ea3e998-7d06-4341-ba0b-f70f84f36348",
+  "Convert_to_Mage": "43a4c25c-3ea0-444b-89bf-b2f27234c079",
+  "Can_we_have_one_cove": "22304a7a-ec54-4eb8-b000-bbb6c87128b0",
+  "Bump_helmet_ontop_of": "0fe7dcff-4211-49a7-836f-3a95132404d2",
+  "dwarf_version_which": "52be7e9a-8316-4cb0-a5dc-66bc27639fe1",
+  "ArtilleryCannons_on": "991e6e1e-4f7b-449b-9eb3-c579d913277b",
+  "Lets_so_secret_servi": "72626024-39d2-4162-8df7-33c1b27f98ab",
+  "Replace_the_bow_with": "d703623f-7322-460c-adf1-cb661f73744c",
+  "Can_you_make_a_Turre": "a2fa80b1-07d8-4ac6-938e-9ef262f85041"
+ }
+}

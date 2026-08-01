@@ -1,541 +1,562 @@
 {
-  "note": "Cross-asset provenance log for sprites that did NOT go through the normal per-request /sprite pipeline (docs/data/art/requests/<id>.json + RawArt/Renders/<id>/r<rev>/manifest.json). Assets generated through that pipeline record their own provenance there instead -- this file exists for the exceptions, so a reader doesn't have to guess why one texture in Content/Sprites has no matching request.",
-  "ramp_departure": "T_Soldier_Knight and T_Soldier_Archer are, as of task-050 rev 4, a DELIBERATE, OWNER-DIRECTED departure from the locked 4-value Demichrome ramp (docs/art/aesthetic-direction.md, locked 2026-07-10) -- full PixelLab colour, no quantize pass, for the Unit Cam panel specifically. This is NOT drift and should NOT be 'corrected' back to the ramp by a future pass. Owner's words: 'use the full color models we have on pixel lab.' Scope of the departure, stated precisely so it isn't over-read: it applies ONLY to these two Unit Cam retinue textures. It does NOT apply to T_Swarm_2bit, T_Hero_Vanguard, T_Unit_Retinue, the six retired T_Soldier_01..06 militia variants, or anything the world renderer draws -- those still render through M_PP_Demichrome and are quantized by the post-process pass regardless of their own source pixels. The reason full colour is viable here at all: the Unit Cam panel is UMG and draws AFTER post-processing, so nothing downstream quantizes it -- which is exactly why every sprite in it had to be PRE-quantized before this change, and exactly why removing that pre-quantize now displays PixelLab's output as-authored. This file, not docs/art/**, is the record of the decision -- docs/art/** is the art director's and a canon ramp change is the owner's call, made verbally, not a file either of the last two task-050 rounds was authorized to edit.",
-  "history": [
-    "task-050 rev 1 (2026-07-27): built six 48px soldier-roster variants (T_Soldier_01..06, docs/art/soldier-roster-v1.md) into the Unit Cam retinue, plus this archer proxy at 48px to match, quantized to the Demichrome ramp.",
-    "task-050 rev 2 (2026-07-27): fixed the archer's Dark-dominance via a shadow lift (still ramp-quantized, still 48px).",
-    "task-050 rev 3 (2026-07-27/28): owner rejected the 48px approach on sight -- 'we degraded with the units again. I only want my high resolution units for the retinue. So the archer model and the knight model we had.' The six variants were dropped from the panel (files kept, unreferenced by UnitCamProjector.cpp) and replaced with exactly two high-resolution units, still ramp-quantized: this archer repacked at native resolution with the same shadow lift, and a new knight.",
-    "task-050 rev 4 (2026-07-28): owner reviewed the rev-3 capture and diagnosed it as still reading mushy/soft-edged. Direction: 'use the full color models we have on pixel lab' -- drop quantization entirely for these two units. This revision removes the shadow lift, pixelpipe.quantize_array, and the pale-to-bone safety clamp from both; the sheets are now the raw PixelLab rotations with only a crop/centre/pack step, no recolouring at all. See ramp_departure above and each entry's conversion/qc sections below.",
-    "task-050 rev 5 (2026-07-28): owner, on the rev-4 capture: 'the units they are a little scaled oddly. Can they be more broad?' Root cause found in the PACKING, not the draw code: every rotation's real alpha content measures only ~23-46px per side (max 43x46 across both characters, all directions), inside an 88-92px source canvas that PixelLab renders with a large, roughly-symmetric transparent margin on all sides -- the rev 3/4 cell (96x96, sized to the source canvas) therefore left real content filling only ~45-48% of the cell, drawn at the same on-screen box size as the blank padding around it. Fixed by shrinking the cell to 56x60 (fits the measured max content with >=10px margin on every side) -- a crop, not a resize: no content pixel is scaled or resampled, only the amount of surrounding blank canvas kept in the packed sheet changes. Also added a new live CVar, Emberkeep.UnitCamProj.SoldierAspect (width-only multiplier, default 1, in Saved/SwarmExecOnPlay.txt), for further taste-tuning on top of the fix -- left at 1 because the packing fix alone already reads broad and crisp in a capture; the dial exists for the owner to keep adjusting without a rebuild, not because 1 was a guess.",
-    "task-055 (2026-07-27/28): owner, on task-046's new type/state selection mechanism -- 'sorry variants I mean states. This gives us variety of the character type.' Downloaded (get_character, read-only, 0 generations spent) and packed EVERY remaining state in both PixelLab groups: 5 additional knight states (group 2cc3ab61-4230-4786-98fa-b94da9e99218, 6 states total, state 1 = the existing T_Soldier_Knight/'Hallam (Vanguard)') and 4 additional archer states (group e2702eb6-248d-4b6b-b8dc-fedc1290e059, 5 states total, state 1 = the existing T_Soldier_Archer/'Merle (Pathfinder)'). Each new state packed to the SAME 56x60-cell, 5x2, 280x120 grid task-050 rev 5 established (measured max content across every new state: 40x45 knight, 43x46 archer -- both still comfortably inside the rev-5 cell, no repack needed) and imported as its own fresh texture asset, named by role+index per the owner's retired-hero-names decision (never the PixelLab prompt-fragment name), e.g. T_Soldier_Knight_02..06, T_Soldier_Archer_02..05. See the new entries below for what each one visually is. Two findings surfaced and are disclosed rather than silently fixed: (1) knight states 5 and 6 ('chibi helm' and its '(copy)') are BYTE-IDENTICAL across all 8 source rotations (max pixel diff 0) -- state 6 contributes zero visual variety, it is a true duplicate, not just a similar design; (2) archer states 4 and 5 ('RPG launcher' and 'Convert to Mage') do not carry a bow at all -- state 4 holds a rocket-launcher-style weapon, state 5 holds a glowing mage staff/orb -- so on their own they would read as a different unit archetype, not as an archer variant, if a rank of archers rolled onto them. Packed anyway per the owner's 'pack them all' direction; flagged here for a keep/drop call. WIRING: initially withheld -- this task's brief listed ELVTR/Source/** DO-NOT-TOUCH (task-046 owned it), so packing stopped short of the array edit and escalated instead. Superseded same day: task-046 had closed `done` on 2026-07-27, releasing its lock, and the owner made the explicit keep/drop call. task-055's owns: was widened (scoped to exactly the two function bodies, SpearmenStatePaths()/ArcherStatePaths()) and the arrays now hold 5 of the knight's 6 states + 3 of the archer's 5 states, live. Withheld: knight state 6 (byte-identical duplicate of state 5) and archer states 4-5 (neither carries a bow -- one holds a rocket launcher, one a mage staff). All three stay packed and documented, just excluded from the live arrays -- see their own entries.",
-    "task-126 (2026-07-31): packed task-125's six archer keeps into the TEAM atlas (rows 22-33, grid 8x22 -> 8x34) and branched the render path on unit type so an EUnitType::Archers entity draws from them. Before this, SwarmProcessors.cpp picked a sprite variant from the jitter phase and the team bit alone -- archers had been fully simulated since task-046/task-049 and drew as one of the eleven knight looks, so the player could not see their own ranged line. The render int32's variant field stayed FOUR BITS: it carries a within-block index (0-10 spearmen, 0-5 archers) and the +11 archer row offset is applied in SwarmRenderActor.cpp's pack loop, so the atlas can grow past sixteen looks a side without repacking the int32. Zero generations spent -- the art was already on disk."
-  ],
-  "entries": [
+ "note": "Cross-asset provenance log for sprites that did NOT go through the normal per-request /sprite pipeline (docs/data/art/requests/<id>.json + RawArt/Renders/<id>/r<rev>/manifest.json). Assets generated through that pipeline record their own provenance there instead -- this file exists for the exceptions, so a reader doesn't have to guess why one texture in Content/Sprites has no matching request.",
+ "ramp_departure": "T_Soldier_Knight and T_Soldier_Archer are, as of task-050 rev 4, a DELIBERATE, OWNER-DIRECTED departure from the locked 4-value Demichrome ramp (docs/art/aesthetic-direction.md, locked 2026-07-10) -- full PixelLab colour, no quantize pass, for the Unit Cam panel specifically. This is NOT drift and should NOT be 'corrected' back to the ramp by a future pass. Owner's words: 'use the full color models we have on pixel lab.' Scope of the departure, stated precisely so it isn't over-read: it applies ONLY to these two Unit Cam retinue textures. It does NOT apply to T_Swarm_2bit, T_Hero_Vanguard, T_Unit_Retinue, the six retired T_Soldier_01..06 militia variants, or anything the world renderer draws -- those still render through M_PP_Demichrome and are quantized by the post-process pass regardless of their own source pixels. The reason full colour is viable here at all: the Unit Cam panel is UMG and draws AFTER post-processing, so nothing downstream quantizes it -- which is exactly why every sprite in it had to be PRE-quantized before this change, and exactly why removing that pre-quantize now displays PixelLab's output as-authored. This file, not docs/art/**, is the record of the decision -- docs/art/** is the art director's and a canon ramp change is the owner's call, made verbally, not a file either of the last two task-050 rounds was authorized to edit.",
+ "history": [
+  "task-050 rev 1 (2026-07-27): built six 48px soldier-roster variants (T_Soldier_01..06, docs/art/soldier-roster-v1.md) into the Unit Cam retinue, plus this archer proxy at 48px to match, quantized to the Demichrome ramp.",
+  "task-050 rev 2 (2026-07-27): fixed the archer's Dark-dominance via a shadow lift (still ramp-quantized, still 48px).",
+  "task-050 rev 3 (2026-07-27/28): owner rejected the 48px approach on sight -- 'we degraded with the units again. I only want my high resolution units for the retinue. So the archer model and the knight model we had.' The six variants were dropped from the panel (files kept, unreferenced by UnitCamProjector.cpp) and replaced with exactly two high-resolution units, still ramp-quantized: this archer repacked at native resolution with the same shadow lift, and a new knight.",
+  "task-050 rev 4 (2026-07-28): owner reviewed the rev-3 capture and diagnosed it as still reading mushy/soft-edged. Direction: 'use the full color models we have on pixel lab' -- drop quantization entirely for these two units. This revision removes the shadow lift, pixelpipe.quantize_array, and the pale-to-bone safety clamp from both; the sheets are now the raw PixelLab rotations with only a crop/centre/pack step, no recolouring at all. See ramp_departure above and each entry's conversion/qc sections below.",
+  "task-050 rev 5 (2026-07-28): owner, on the rev-4 capture: 'the units they are a little scaled oddly. Can they be more broad?' Root cause found in the PACKING, not the draw code: every rotation's real alpha content measures only ~23-46px per side (max 43x46 across both characters, all directions), inside an 88-92px source canvas that PixelLab renders with a large, roughly-symmetric transparent margin on all sides -- the rev 3/4 cell (96x96, sized to the source canvas) therefore left real content filling only ~45-48% of the cell, drawn at the same on-screen box size as the blank padding around it. Fixed by shrinking the cell to 56x60 (fits the measured max content with >=10px margin on every side) -- a crop, not a resize: no content pixel is scaled or resampled, only the amount of surrounding blank canvas kept in the packed sheet changes. Also added a new live CVar, Emberkeep.UnitCamProj.SoldierAspect (width-only multiplier, default 1, in Saved/SwarmExecOnPlay.txt), for further taste-tuning on top of the fix -- left at 1 because the packing fix alone already reads broad and crisp in a capture; the dial exists for the owner to keep adjusting without a rebuild, not because 1 was a guess.",
+  "task-055 (2026-07-27/28): owner, on task-046's new type/state selection mechanism -- 'sorry variants I mean states. This gives us variety of the character type.' Downloaded (get_character, read-only, 0 generations spent) and packed EVERY remaining state in both PixelLab groups: 5 additional knight states (group 2cc3ab61-4230-4786-98fa-b94da9e99218, 6 states total, state 1 = the existing T_Soldier_Knight/'Hallam (Vanguard)') and 4 additional archer states (group e2702eb6-248d-4b6b-b8dc-fedc1290e059, 5 states total, state 1 = the existing T_Soldier_Archer/'Merle (Pathfinder)'). Each new state packed to the SAME 56x60-cell, 5x2, 280x120 grid task-050 rev 5 established (measured max content across every new state: 40x45 knight, 43x46 archer -- both still comfortably inside the rev-5 cell, no repack needed) and imported as its own fresh texture asset, named by role+index per the owner's retired-hero-names decision (never the PixelLab prompt-fragment name), e.g. T_Soldier_Knight_02..06, T_Soldier_Archer_02..05. See the new entries below for what each one visually is. Two findings surfaced and are disclosed rather than silently fixed: (1) knight states 5 and 6 ('chibi helm' and its '(copy)') are BYTE-IDENTICAL across all 8 source rotations (max pixel diff 0) -- state 6 contributes zero visual variety, it is a true duplicate, not just a similar design; (2) archer states 4 and 5 ('RPG launcher' and 'Convert to Mage') do not carry a bow at all -- state 4 holds a rocket-launcher-style weapon, state 5 holds a glowing mage staff/orb -- so on their own they would read as a different unit archetype, not as an archer variant, if a rank of archers rolled onto them. Packed anyway per the owner's 'pack them all' direction; flagged here for a keep/drop call. WIRING: initially withheld -- this task's brief listed ELVTR/Source/** DO-NOT-TOUCH (task-046 owned it), so packing stopped short of the array edit and escalated instead. Superseded same day: task-046 had closed `done` on 2026-07-27, releasing its lock, and the owner made the explicit keep/drop call. task-055's owns: was widened (scoped to exactly the two function bodies, SpearmenStatePaths()/ArcherStatePaths()) and the arrays now hold 5 of the knight's 6 states + 3 of the archer's 5 states, live. Withheld: knight state 6 (byte-identical duplicate of state 5) and archer states 4-5 (neither carries a bow -- one holds a rocket launcher, one a mage staff). All three stay packed and documented, just excluded from the live arrays -- see their own entries.",
+  "task-126 (2026-07-31): packed task-125's six archer keeps into the TEAM atlas (rows 22-33, grid 8x22 -> 8x34) and branched the render path on unit type so an EUnitType::Archers entity draws from them. Before this, SwarmProcessors.cpp picked a sprite variant from the jitter phase and the team bit alone -- archers had been fully simulated since task-046/task-049 and drew as one of the eleven knight looks, so the player could not see their own ranged line. The render int32's variant field stayed FOUR BITS: it carries a within-block index (0-10 spearmen, 0-5 archers) and the +11 archer row offset is applied in SwarmRenderActor.cpp's pack loop, so the atlas can grow past sixteen looks a side without repacking the int32. Zero generations spent -- the art was already on disk."
+ ],
+ "entries": [
+  {
+   "texture": "T_Soldier_Archer",
+   "content_path": "/Game/Sprites/Units/T_Soldier_Archer",
+   "status": "PROXY -- owner-flagged for replacement, task-050. Full colour as of rev 4 (see ramp_departure).",
+   "created": "2026-07-27",
+   "updated": "2026-07-28 (rev 4: full colour, no quantize -- see ramp_departure)",
+   "why_not_the_normal_pipeline": "This is an existing, already-completed PixelLab character the owner supplied directly (not generated by this pipeline), explicitly as a stand-in: 'use this one for now. we may have to swap but we can get up the structure with this proxy.' No docs/data/art/requests/soldier-archer.json exists because nothing was generated -- only downloaded and locally packed.",
+   "source": {
+    "pixellab_character_id": "b3163cdf-6434-4390-8417-721a80797dcf",
+    "pixellab_character_name": "Merle (Pathfinder) -- NAME RETIRED, do not carry into this project's assets/code/docs (hero-naming-philosophy: classes are ID'd by role only)",
+    "directions": 8,
+    "source_size_px": "92x92",
+    "view": "low top-down",
+    "animations": "none -- character has 8 rotations only, no walk/attack/hit frames",
+    "generations_spent": 0,
+    "calls_made": [
+     "get_character (read-only)"
+    ],
+    "calls_explicitly_NOT_made": [
+     "create_character",
+     "animate_character",
+     "create_character_state"
+    ],
+    "raw_download_dir": "RawArt/Renders/archer-proxy/raw/ -- retained permanently per the PixelLab-retention rule, never deleted regardless of keep/reject"
+   },
+   "resolution_change": "No downscaling, unchanged since rev 3. Cell size DID change in rev 5: 96x96 (rev 3/4) -> 56x60 (rev 5) -- tighter to the measured content, not a resize of the content itself. See history's rev 5 entry for the measurement and reasoning.",
+   "conversion": {
+    "script": "one-off, run from the session scratchpad, not committed to Scripts/ -- rev 4 stripped rev 3's quantize/lift/clamp steps; rev 5 additionally split the single CELL constant into CELL_W=56/CELL_H=60",
+    "steps": [
+     "crop each 92x92 rotation to its alpha bbox, centre on a transparent 56x60 canvas -- NO resize (rev 5: was 96x96)",
+     "verify alpha is already strictly binary (0/255) in the raw source before packing -- CHECKED, not assumed (see qc.alpha below): 0 partial-alpha pixels found across every direction sampled, so alpha is copied through unchanged, no thresholding needed",
+     "pack the 8 rotations into cells 0-7 of a 280x120, 5-col x 2-row, 56x60px-cell sheet, south-first counter-clockwise (S,SE,E,NE,N,NW,W,SW). Cells 8-9 (the south-only walk toggle UnitCamProjector.cpp selects via the sim's walk-cycle bit) duplicate the south idle -- this character has no animation source at all, so it is a frozen toggle, not a real walk cycle.",
+     "NO quantize, NO shadow lift, NO normalize, NO pale-to-bone clamp -- removed in rev 4. They existed only to fit/protect the locked 4-value ramp, which does not apply to this texture any more (see ramp_departure)."
+    ]
+   },
+   "qc": {
+    "alpha": "verified strictly binary (0/255, 0 partial-alpha px) in the raw PixelLab source across every direction and the walk frames sampled -- checked before deciding no threshold was needed, not assumed. Copied through unchanged into the packed sheet.",
+    "palette": "N/A as of rev 4 -- full PixelLab colour, not constrained to the 4-value ramp. See ramp_departure. (rev 1-3 QC data, now superseded: the shadow-lift fix that resolved this texture's Dark-dominance under quantization is preserved in git history / the previous version of this file, not repeated here since it no longer applies to what ships.)",
+    "content_bbox": "measured max 43w x 46h across all 8 directions; cell is 56x60 (rev 5) -- >=10px margin on every side, by construction, no resize"
+   },
+   "in_panel_lighting_finding": "Reported honestly per the owner's ask, not fixed unilaterally: the Unit Cam panel applies its own per-body grey-multiply lighting (flame-distance falloff, a facing-based front/back term, a retinue floor of 0.28x) UNDERNEATH whatever texture is bound -- this was designed against the old 4-value quantized sprites, where even the dimmest tint still lands on a legible palette step. Against full-colour source art, the SAME multiply compounds with the source's own dark values (hood, leather, armor recesses) and can crush a body toward near-black at typical panel framing distances, well short of full PixelLab saturation. A unit close to the bearer and facing the flame reads clearly; one further out or facing away reads dim and detail-poor. This is a property of the existing lighting model meeting full-colour art for the first time, not of this texture -- flagged for a deliberate decision (e.g. a higher floor or a lighter multiply for these two sprite sets specifically), not changed here since it wasn't asked for and touches shading shared with brood. UPDATE, rev 5: the cell-size fix (see history) made units read noticeably better in the SAME lighting -- more of each drawn box is now real content rather than padding, so a dim tint has more actual pixels to be visible on. This softened the practical impact of the finding but did not address its cause; the finding itself still stands and the same follow-up is still open.",
+   "import": {
+    "route": "headless -run=pythonscript commandlet (unreal.EditorAssetLibrary) -- the running editor's MCP AssetTools.delete/.move both silently no-op (return false, asset unchanged) for existing assets in this session, confirmed broken independent of path format and even against a guaranteed-free destination, so MCP's import_file 'replace existing' path was unreachable. Used in every task-050 round that needed to overwrite this asset in place (rev 2, rev 3, rev 4), confirmed via ELVTR.log each time, not just a return code.",
+    "settings": "filter=TF_Nearest mipGenSettings=TMGS_NoMipmaps compressionSettings=TC_EditorIcon sRGB=true -- matches T_Soldier_Knight and T_Hero_Vanguard, verified by read-back",
+    "saved": true
+   },
+   "swap_path": "Replacing this is a texture import + this manifest entry, NOT a code change. UnitCamProjector.cpp loads /Game/Sprites/Units/T_Soldier_Archer.T_Soldier_Archer by content path and slices it as a 5x2, 8-direction+2-walk sheet identically to T_Soldier_Knight (RetinueSheetColumns/Rows in the anonymous namespace) -- the code reads the cell aspect from the TEXTURE itself (Tex size / grid), not a hardcoded pixel size, so any replacement authored to that same grid, direction order and alpha discipline drops in with zero C++ changes regardless of its own cell pixel dimensions.",
+   "does_not_animate": "One idle pose per direction, plus a frozen (non-animating) south walk toggle -- no real walk cycle, no attack, no hit. A real animated archer would need generation, which costs real credits the owner has not approved spending on this proxy."
+  },
+  {
+   "texture": "T_Soldier_Knight",
+   "content_path": "/Game/Sprites/Units/T_Soldier_Knight",
+   "status": "OWNER-CHOSEN high-resolution retinue look, task-050 rev 3. Full colour as of rev 4 (see ramp_departure).",
+   "created": "2026-07-28",
+   "updated": "2026-07-28 (rev 4: full colour, no quantize -- see ramp_departure)",
+   "why_not_the_normal_pipeline": "Same situation as the archer: an existing, already-completed PixelLab character the owner named directly by ID and asked to be used as-is -- 'the archer model and the knight model we had.' No docs/data/art/requests/soldier-knight.json exists because nothing was generated here, only downloaded and locally packed.",
+   "source": {
+    "pixellab_character_id": "1c935515-0ea3-459b-8c63-e7f8cf368272",
+    "pixellab_character_name": "Hallam (Vanguard) -- NAME RETIRED, do not carry into this project's assets/code/docs (hero-naming-philosophy: classes are ID'd by role only). Referred to as 'the knight' throughout this task.",
+    "directions": 8,
+    "source_size_px": "88x88",
+    "view": "low top-down",
+    "subject": "armored, helmed, carries a shield and a polearm",
+    "animations": "4 groups already generated (all south-direction only): walk (4 frames), attack (5f, 'swinging the polearm downward'), attack_v2 (5f, 'stepping forward and thrusting'), hit (5f, 'recoiling from a blow')",
+    "generations_spent": 0,
+    "calls_made": [
+     "get_character (read-only) -- returned direct per-frame animation URLs, no zip/download-endpoint round trip needed"
+    ],
+    "calls_explicitly_NOT_made": [
+     "create_character",
+     "animate_character",
+     "create_character_state"
+    ],
+    "raw_download_dir": "RawArt/Renders/knight/raw/ -- rotations/ (8 idle frames) and anim/{walk,attack,attack_v2,hit}/ (all 4 animation groups downloaded and archived even though only walk is used in this pass, since they were already generated at zero additional cost and the retention rule says never delete a generation)"
+   },
+   "what_was_assembled": "8-direction idle (cells 0-7 of the sheet, one real rotation per direction) plus a south-only 2-frame walk toggle (cells 8-9, real frames 0 and 2 of the 4-frame generated walk cycle) selected in UnitCamProjector.cpp via the sim's existing per-entity walk-cycle bit whenever the resolved facing is south. See what_was_not_assembled for attack/attack_v2/hit.",
+   "what_was_not_assembled": "attack, attack_v2 and hit are downloaded and archived but NOT wired into the sheet or the C++ selection logic. They are south-only, and the panel's camera orbits freely -- integrating them would mean either (a) snapping a unit to a south-facing attack pose regardless of which way the camera is actually looking at it (a visible, wrong-looking direction pop), or (b) building a combat-state-aware selection path (reading SwarmAnim::AttackBit/HitFlashBit) scoped to south only, real added complexity with an inconsistent payoff (7/8 directions still would not attack-animate). Left unintegrated rather than half-built, same call as rev 3 -- unaffected by the full-colour change. Flagged as a real, cheap-to-reach follow-up: the frames already exist, spent, and archived.",
+   "resolution_change": "No downscaling, unchanged since rev 3. Cell size DID change in rev 5: 96x96 (rev 3/4) -> 56x60 (rev 5) -- tighter to the measured content, not a resize of the content itself. See the top-level history's rev 5 entry for the measurement (real content maxes out at 35w x 46h for this character) and reasoning.",
+   "conversion": {
+    "script": "same one-off script as the archer (pack_fullcolor_retinue.py in the session scratchpad), run against both units together so they share one code path and one set of grid constants",
+    "steps": [
+     "crop each 88x88 rotation (and the 2 chosen walk frames) to its alpha bbox, centre on a transparent 56x60 canvas -- NO resize (rev 5: was 96x96)",
+     "verify alpha is already strictly binary in the raw source -- CHECKED, not assumed: 0 partial-alpha pixels found",
+     "pack into cells 0-7 (8 rotations) + cells 8-9 (south walk toggle, real frames) of the same 280x120, 5x2, 56x60px-cell grid as the archer",
+     "NO quantize, NO shadow lift, NO clamp -- removed in rev 4, same reasoning as the archer entry"
+    ]
+   },
+   "qc": {
+    "alpha": "verified strictly binary (0/255, 0 partial-alpha px) in the raw source, copied through unchanged",
+    "palette": "N/A as of rev 4 -- full PixelLab colour. See ramp_departure. (rev 3's per-direction shadow-lift tuning, which fixed a marginal Dark-dominance under quantization, is preserved in git history, not repeated here since quantization no longer applies.)",
+    "content_bbox": "measured max 35w x 46h across all 8 directions + the 2 walk frames; cell is 56x60 (rev 5) -- real margin on every side, no resize"
+   },
+   "in_panel_lighting_finding": "Same finding as the archer entry, cross-referenced rather than duplicated: the panel's existing distance/facing grey-multiply, designed for 4-value quantized sprites, compounds with full-colour source detail and can read dim/detail-poor at typical framing distances despite the source art itself being crisp and saturated. See the archer entry's in_panel_lighting_finding for the full explanation, including the rev-5 update -- it applies identically to this texture, and both units were observed sitting in the SAME dim-to-bright family under it, so the 'reads as one army' requirement holds even though absolute brightness varies by distance.",
+   "import": {
+    "route": "rev 3 (initial import): MCP import_file, fresh asset path, no collision, worked on the first call. Rev 4 (overwrite in place): headless -run=pythonscript commandlet, same reasoning as the archer entry -- MCP delete/move do not work on an existing asset in this session.",
+    "settings": "filter=TF_Nearest mipGenSettings=TMGS_NoMipmaps compressionSettings=TC_EditorIcon sRGB=true -- matches T_Soldier_Archer and T_Hero_Vanguard, verified by read-back",
+    "saved": true
+   },
+   "swap_path": "Same shape as the archer: UnitCamProjector.cpp loads /Game/Sprites/Units/T_Soldier_Knight.T_Soldier_Knight by content path and slices it as a 5x2, 8-direction+2-walk sheet -- the code reads cell aspect from the texture itself, not a hardcoded size, so any replacement authored to that same grid, direction order and alpha discipline drops in with zero C++ changes regardless of its own cell pixel dimensions.",
+   "animation_status": "8-direction idle is real. South-facing walk toggles between two real generated walk frames. All other directions are a static idle -- no walk when not facing south, no attack/hit animation at all (see what_was_not_assembled)."
+  },
+  {
+   "texture_family": "T_Soldier_Knight_02..06 -- task-046 STATE variants of T_Soldier_Knight",
+   "status": "PACKED, IMPORTED AND WIRED (5 of 6 states -- see swap_path for which one is withheld and why), task-055. Full colour, no quantize (ramp_departure applies to this whole family, same as T_Soldier_Knight).",
+   "created": "2026-07-28",
+   "why_not_the_normal_pipeline": "Same reason as T_Soldier_Knight above: existing, already-completed PixelLab renders (the owner's own PixelLab 'states' of the same character group, 2cc3ab61-4230-4786-98fa-b94da9e99218), downloaded and packed, nothing generated. get_character(1c935515) resolved the group id; get_character(37636e11) confirmed a sibling; the group's download endpoint (https://api.pixellab.ai/mcp/characters/1c935515.../download) returned a zip bundling all 6 states plus metadata.json (the source of every character_id recorded below), one call, no per-state fetch needed.",
+   "generations_spent": 0,
+   "calls_made": [
+    "get_character (read-only) x2, on 1c935515 and 37636e11",
+    "one group-download fetch (bundles all 6 states + metadata.json)"
+   ],
+   "calls_explicitly_NOT_made": [
+    "create_character",
+    "animate_character",
+    "create_character_state"
+   ],
+   "raw_download_dir": "RawArt/Renders/knight/raw/state0N_<descriptor>/rotations/ -- retained permanently per the PixelLab-retention rule, one folder per new state; state 1 (Hallam/Vanguard) keeps its pre-existing raw/rotations/ location, untouched",
+   "states": [
     {
-      "texture": "T_Soldier_Archer",
-      "content_path": "/Game/Sprites/Units/T_Soldier_Archer",
-      "status": "PROXY -- owner-flagged for replacement, task-050. Full colour as of rev 4 (see ramp_departure).",
-      "created": "2026-07-27",
-      "updated": "2026-07-28 (rev 4: full colour, no quantize -- see ramp_departure)",
-      "why_not_the_normal_pipeline": "This is an existing, already-completed PixelLab character the owner supplied directly (not generated by this pipeline), explicitly as a stand-in: 'use this one for now. we may have to swap but we can get up the structure with this proxy.' No docs/data/art/requests/soldier-archer.json exists because nothing was generated -- only downloaded and locally packed.",
-      "source": {
-        "pixellab_character_id": "b3163cdf-6434-4390-8417-721a80797dcf",
-        "pixellab_character_name": "Merle (Pathfinder) -- NAME RETIRED, do not carry into this project's assets/code/docs (hero-naming-philosophy: classes are ID'd by role only)",
-        "directions": 8,
-        "source_size_px": "92x92",
-        "view": "low top-down",
-        "animations": "none -- character has 8 rotations only, no walk/attack/hit frames",
-        "generations_spent": 0,
-        "calls_made": [
-          "get_character (read-only)"
-        ],
-        "calls_explicitly_NOT_made": [
-          "create_character",
-          "animate_character",
-          "create_character_state"
-        ],
-        "raw_download_dir": "RawArt/Renders/archer-proxy/raw/ -- retained permanently per the PixelLab-retention rule, never deleted regardless of keep/reject"
-      },
-      "resolution_change": "No downscaling, unchanged since rev 3. Cell size DID change in rev 5: 96x96 (rev 3/4) -> 56x60 (rev 5) -- tighter to the measured content, not a resize of the content itself. See history's rev 5 entry for the measurement and reasoning.",
-      "conversion": {
-        "script": "one-off, run from the session scratchpad, not committed to Scripts/ -- rev 4 stripped rev 3's quantize/lift/clamp steps; rev 5 additionally split the single CELL constant into CELL_W=56/CELL_H=60",
-        "steps": [
-          "crop each 92x92 rotation to its alpha bbox, centre on a transparent 56x60 canvas -- NO resize (rev 5: was 96x96)",
-          "verify alpha is already strictly binary (0/255) in the raw source before packing -- CHECKED, not assumed (see qc.alpha below): 0 partial-alpha pixels found across every direction sampled, so alpha is copied through unchanged, no thresholding needed",
-          "pack the 8 rotations into cells 0-7 of a 280x120, 5-col x 2-row, 56x60px-cell sheet, south-first counter-clockwise (S,SE,E,NE,N,NW,W,SW). Cells 8-9 (the south-only walk toggle UnitCamProjector.cpp selects via the sim's walk-cycle bit) duplicate the south idle -- this character has no animation source at all, so it is a frozen toggle, not a real walk cycle.",
-          "NO quantize, NO shadow lift, NO normalize, NO pale-to-bone clamp -- removed in rev 4. They existed only to fit/protect the locked 4-value ramp, which does not apply to this texture any more (see ramp_departure)."
-        ]
-      },
-      "qc": {
-        "alpha": "verified strictly binary (0/255, 0 partial-alpha px) in the raw PixelLab source across every direction and the walk frames sampled -- checked before deciding no threshold was needed, not assumed. Copied through unchanged into the packed sheet.",
-        "palette": "N/A as of rev 4 -- full PixelLab colour, not constrained to the 4-value ramp. See ramp_departure. (rev 1-3 QC data, now superseded: the shadow-lift fix that resolved this texture's Dark-dominance under quantization is preserved in git history / the previous version of this file, not repeated here since it no longer applies to what ships.)",
-        "content_bbox": "measured max 43w x 46h across all 8 directions; cell is 56x60 (rev 5) -- >=10px margin on every side, by construction, no resize"
-      },
-      "in_panel_lighting_finding": "Reported honestly per the owner's ask, not fixed unilaterally: the Unit Cam panel applies its own per-body grey-multiply lighting (flame-distance falloff, a facing-based front/back term, a retinue floor of 0.28x) UNDERNEATH whatever texture is bound -- this was designed against the old 4-value quantized sprites, where even the dimmest tint still lands on a legible palette step. Against full-colour source art, the SAME multiply compounds with the source's own dark values (hood, leather, armor recesses) and can crush a body toward near-black at typical panel framing distances, well short of full PixelLab saturation. A unit close to the bearer and facing the flame reads clearly; one further out or facing away reads dim and detail-poor. This is a property of the existing lighting model meeting full-colour art for the first time, not of this texture -- flagged for a deliberate decision (e.g. a higher floor or a lighter multiply for these two sprite sets specifically), not changed here since it wasn't asked for and touches shading shared with brood. UPDATE, rev 5: the cell-size fix (see history) made units read noticeably better in the SAME lighting -- more of each drawn box is now real content rather than padding, so a dim tint has more actual pixels to be visible on. This softened the practical impact of the finding but did not address its cause; the finding itself still stands and the same follow-up is still open.",
-      "import": {
-        "route": "headless -run=pythonscript commandlet (unreal.EditorAssetLibrary) -- the running editor's MCP AssetTools.delete/.move both silently no-op (return false, asset unchanged) for existing assets in this session, confirmed broken independent of path format and even against a guaranteed-free destination, so MCP's import_file 'replace existing' path was unreachable. Used in every task-050 round that needed to overwrite this asset in place (rev 2, rev 3, rev 4), confirmed via ELVTR.log each time, not just a return code.",
-        "settings": "filter=TF_Nearest mipGenSettings=TMGS_NoMipmaps compressionSettings=TC_EditorIcon sRGB=true -- matches T_Soldier_Knight and T_Hero_Vanguard, verified by read-back",
-        "saved": true
-      },
-      "swap_path": "Replacing this is a texture import + this manifest entry, NOT a code change. UnitCamProjector.cpp loads /Game/Sprites/Units/T_Soldier_Archer.T_Soldier_Archer by content path and slices it as a 5x2, 8-direction+2-walk sheet identically to T_Soldier_Knight (RetinueSheetColumns/Rows in the anonymous namespace) -- the code reads the cell aspect from the TEXTURE itself (Tex size / grid), not a hardcoded pixel size, so any replacement authored to that same grid, direction order and alpha discipline drops in with zero C++ changes regardless of its own cell pixel dimensions.",
-      "does_not_animate": "One idle pose per direction, plus a frozen (non-animating) south walk toggle -- no real walk cycle, no attack, no hit. A real animated archer would need generation, which costs real credits the owner has not approved spending on this proxy."
+     "content_path": "/Game/Sprites/Units/T_Soldier_Knight_02",
+     "pixellab_character_id": "37636e11-bdcf-4e82-a205-328fd653f4ca",
+     "pixellab_state_name": "Add a face shield th -- NAME RETIRED, not carried into assets/code/docs",
+     "raw_dir": "RawArt/Renders/knight/raw/state02_faceshield/rotations/",
+     "visual": "Same knight silhouette (shield + polearm), closed-visor helmet replacing state 1's open-faced helm -- no face showing.",
+     "disposition": "keeper -- clearly distinct from state 1 at panel scale"
     },
     {
-      "texture": "T_Soldier_Knight",
-      "content_path": "/Game/Sprites/Units/T_Soldier_Knight",
-      "status": "OWNER-CHOSEN high-resolution retinue look, task-050 rev 3. Full colour as of rev 4 (see ramp_departure).",
-      "created": "2026-07-28",
-      "updated": "2026-07-28 (rev 4: full colour, no quantize -- see ramp_departure)",
-      "why_not_the_normal_pipeline": "Same situation as the archer: an existing, already-completed PixelLab character the owner named directly by ID and asked to be used as-is -- 'the archer model and the knight model we had.' No docs/data/art/requests/soldier-knight.json exists because nothing was generated here, only downloaded and locally packed.",
-      "source": {
-        "pixellab_character_id": "1c935515-0ea3-459b-8c63-e7f8cf368272",
-        "pixellab_character_name": "Hallam (Vanguard) -- NAME RETIRED, do not carry into this project's assets/code/docs (hero-naming-philosophy: classes are ID'd by role only). Referred to as 'the knight' throughout this task.",
-        "directions": 8,
-        "source_size_px": "88x88",
-        "view": "low top-down",
-        "subject": "armored, helmed, carries a shield and a polearm",
-        "animations": "4 groups already generated (all south-direction only): walk (4 frames), attack (5f, 'swinging the polearm downward'), attack_v2 (5f, 'stepping forward and thrusting'), hit (5f, 'recoiling from a blow')",
-        "generations_spent": 0,
-        "calls_made": [
-          "get_character (read-only) -- returned direct per-frame animation URLs, no zip/download-endpoint round trip needed"
-        ],
-        "calls_explicitly_NOT_made": [
-          "create_character",
-          "animate_character",
-          "create_character_state"
-        ],
-        "raw_download_dir": "RawArt/Renders/knight/raw/ -- rotations/ (8 idle frames) and anim/{walk,attack,attack_v2,hit}/ (all 4 animation groups downloaded and archived even though only walk is used in this pass, since they were already generated at zero additional cost and the retention rule says never delete a generation)"
-      },
-      "what_was_assembled": "8-direction idle (cells 0-7 of the sheet, one real rotation per direction) plus a south-only 2-frame walk toggle (cells 8-9, real frames 0 and 2 of the 4-frame generated walk cycle) selected in UnitCamProjector.cpp via the sim's existing per-entity walk-cycle bit whenever the resolved facing is south. See what_was_not_assembled for attack/attack_v2/hit.",
-      "what_was_not_assembled": "attack, attack_v2 and hit are downloaded and archived but NOT wired into the sheet or the C++ selection logic. They are south-only, and the panel's camera orbits freely -- integrating them would mean either (a) snapping a unit to a south-facing attack pose regardless of which way the camera is actually looking at it (a visible, wrong-looking direction pop), or (b) building a combat-state-aware selection path (reading SwarmAnim::AttackBit/HitFlashBit) scoped to south only, real added complexity with an inconsistent payoff (7/8 directions still would not attack-animate). Left unintegrated rather than half-built, same call as rev 3 -- unaffected by the full-colour change. Flagged as a real, cheap-to-reach follow-up: the frames already exist, spent, and archived.",
-      "resolution_change": "No downscaling, unchanged since rev 3. Cell size DID change in rev 5: 96x96 (rev 3/4) -> 56x60 (rev 5) -- tighter to the measured content, not a resize of the content itself. See the top-level history's rev 5 entry for the measurement (real content maxes out at 35w x 46h for this character) and reasoning.",
-      "conversion": {
-        "script": "same one-off script as the archer (pack_fullcolor_retinue.py in the session scratchpad), run against both units together so they share one code path and one set of grid constants",
-        "steps": [
-          "crop each 88x88 rotation (and the 2 chosen walk frames) to its alpha bbox, centre on a transparent 56x60 canvas -- NO resize (rev 5: was 96x96)",
-          "verify alpha is already strictly binary in the raw source -- CHECKED, not assumed: 0 partial-alpha pixels found",
-          "pack into cells 0-7 (8 rotations) + cells 8-9 (south walk toggle, real frames) of the same 280x120, 5x2, 56x60px-cell grid as the archer",
-          "NO quantize, NO shadow lift, NO clamp -- removed in rev 4, same reasoning as the archer entry"
-        ]
-      },
-      "qc": {
-        "alpha": "verified strictly binary (0/255, 0 partial-alpha px) in the raw source, copied through unchanged",
-        "palette": "N/A as of rev 4 -- full PixelLab colour. See ramp_departure. (rev 3's per-direction shadow-lift tuning, which fixed a marginal Dark-dominance under quantization, is preserved in git history, not repeated here since quantization no longer applies.)",
-        "content_bbox": "measured max 35w x 46h across all 8 directions + the 2 walk frames; cell is 56x60 (rev 5) -- real margin on every side, no resize"
-      },
-      "in_panel_lighting_finding": "Same finding as the archer entry, cross-referenced rather than duplicated: the panel's existing distance/facing grey-multiply, designed for 4-value quantized sprites, compounds with full-colour source detail and can read dim/detail-poor at typical framing distances despite the source art itself being crisp and saturated. See the archer entry's in_panel_lighting_finding for the full explanation, including the rev-5 update -- it applies identically to this texture, and both units were observed sitting in the SAME dim-to-bright family under it, so the 'reads as one army' requirement holds even though absolute brightness varies by distance.",
-      "import": {
-        "route": "rev 3 (initial import): MCP import_file, fresh asset path, no collision, worked on the first call. Rev 4 (overwrite in place): headless -run=pythonscript commandlet, same reasoning as the archer entry -- MCP delete/move do not work on an existing asset in this session.",
-        "settings": "filter=TF_Nearest mipGenSettings=TMGS_NoMipmaps compressionSettings=TC_EditorIcon sRGB=true -- matches T_Soldier_Archer and T_Hero_Vanguard, verified by read-back",
-        "saved": true
-      },
-      "swap_path": "Same shape as the archer: UnitCamProjector.cpp loads /Game/Sprites/Units/T_Soldier_Knight.T_Soldier_Knight by content path and slices it as a 5x2, 8-direction+2-walk sheet -- the code reads cell aspect from the texture itself, not a hardcoded size, so any replacement authored to that same grid, direction order and alpha discipline drops in with zero C++ changes regardless of its own cell pixel dimensions.",
-      "animation_status": "8-direction idle is real. South-facing walk toggles between two real generated walk frames. All other directions are a static idle -- no walk when not facing south, no attack/hit animation at all (see what_was_not_assembled)."
+     "content_path": "/Game/Sprites/Units/T_Soldier_Knight_03",
+     "pixellab_character_id": "3b498716-8375-4794-8bc0-90224301c658",
+     "pixellab_state_name": "Can the helmet be 60 -- NAME RETIRED",
+     "raw_dir": "RawArt/Renders/knight/raw/state03_roundhelm/rotations/",
+     "visual": "Larger, fully-rounded closed helmet, slightly bigger head-to-body proportion than states 1-2.",
+     "disposition": "keeper -- similar theme to state 4 (both big rounded helms) but pixel-diffs distinctly (~13% of the south frame differs), not a duplicate"
     },
     {
-      "texture_family": "T_Soldier_Knight_02..06 -- task-046 STATE variants of T_Soldier_Knight",
-      "status": "PACKED, IMPORTED AND WIRED (5 of 6 states -- see swap_path for which one is withheld and why), task-055. Full colour, no quantize (ramp_departure applies to this whole family, same as T_Soldier_Knight).",
-      "created": "2026-07-28",
-      "why_not_the_normal_pipeline": "Same reason as T_Soldier_Knight above: existing, already-completed PixelLab renders (the owner's own PixelLab 'states' of the same character group, 2cc3ab61-4230-4786-98fa-b94da9e99218), downloaded and packed, nothing generated. get_character(1c935515) resolved the group id; get_character(37636e11) confirmed a sibling; the group's download endpoint (https://api.pixellab.ai/mcp/characters/1c935515.../download) returned a zip bundling all 6 states plus metadata.json (the source of every character_id recorded below), one call, no per-state fetch needed.",
-      "generations_spent": 0,
-      "calls_made": [
-        "get_character (read-only) x2, on 1c935515 and 37636e11",
-        "one group-download fetch (bundles all 6 states + metadata.json)"
-      ],
-      "calls_explicitly_NOT_made": [
-        "create_character",
-        "animate_character",
-        "create_character_state"
-      ],
-      "raw_download_dir": "RawArt/Renders/knight/raw/state0N_<descriptor>/rotations/ -- retained permanently per the PixelLab-retention rule, one folder per new state; state 1 (Hallam/Vanguard) keeps its pre-existing raw/rotations/ location, untouched",
-      "states": [
-        {
-          "content_path": "/Game/Sprites/Units/T_Soldier_Knight_02",
-          "pixellab_character_id": "37636e11-bdcf-4e82-a205-328fd653f4ca",
-          "pixellab_state_name": "Add a face shield th -- NAME RETIRED, not carried into assets/code/docs",
-          "raw_dir": "RawArt/Renders/knight/raw/state02_faceshield/rotations/",
-          "visual": "Same knight silhouette (shield + polearm), closed-visor helmet replacing state 1's open-faced helm -- no face showing.",
-          "disposition": "keeper -- clearly distinct from state 1 at panel scale"
-        },
-        {
-          "content_path": "/Game/Sprites/Units/T_Soldier_Knight_03",
-          "pixellab_character_id": "3b498716-8375-4794-8bc0-90224301c658",
-          "pixellab_state_name": "Can the helmet be 60 -- NAME RETIRED",
-          "raw_dir": "RawArt/Renders/knight/raw/state03_roundhelm/rotations/",
-          "visual": "Larger, fully-rounded closed helmet, slightly bigger head-to-body proportion than states 1-2.",
-          "disposition": "keeper -- similar theme to state 4 (both big rounded helms) but pixel-diffs distinctly (~13% of the south frame differs), not a duplicate"
-        },
-        {
-          "content_path": "/Game/Sprites/Units/T_Soldier_Knight_04",
-          "pixellab_character_id": "a3b21ad8-f8e4-4afa-9ab5-4132c60cee05",
-          "pixellab_state_name": "I need the body to b -- NAME RETIRED",
-          "raw_dir": "RawArt/Renders/knight/raw/state04_bulkyhelm/rotations/",
-          "visual": "Also a big rounded closed helm, bulkier body/shoulder read than state 3.",
-          "disposition": "keeper -- distinct from state 3 by pixel diff, though the two are the closest-themed pair in the set (both 'bigger helmet' iterations)"
-        },
-        {
-          "content_path": "/Game/Sprites/Units/T_Soldier_Knight_05",
-          "pixellab_character_id": "904eb4ba-9cad-4852-8f72-25bc43028bd8",
-          "pixellab_state_name": "Make more chibi helm -- NAME RETIRED",
-          "raw_dir": "RawArt/Renders/knight/raw/state05_chibihelm/rotations/",
-          "visual": "Oversized 'chibi' helmet-to-body ratio, distinct read from states 1-4.",
-          "disposition": "keeper"
-        },
-        {
-          "content_path": "/Game/Sprites/Units/T_Soldier_Knight_06",
-          "pixellab_character_id": "4a4f106a-bd2c-4ed4-934b-227e6884592a",
-          "pixellab_state_name": "Make more chibi helm (copy) -- NAME RETIRED",
-          "raw_dir": "RawArt/Renders/knight/raw/state06_chibihelm_dup/rotations/",
-          "visual": "Identical to state 5.",
-          "disposition": "DUPLICATE, not just similar -- verified byte-for-byte: every one of the 8 source rotation PNGs diffs at 0 max pixel delta against state 5's corresponding rotation (checked programmatically, not eyeballed). Packed anyway per the owner's 'pack them all' instruction, but this state contributes ZERO visual variety on top of state 5 -- flagged for the owner to drop rather than silently omitted. OWNER DECISION (2026-07-28): packed but deliberately NOT wired into SpearmenStatePaths() (UnitCamProjector.cpp) -- it cannot contribute variety, so it does not go in the live array. Asset, raw download and this entry all stay on disk/in the repo per the retention rule; only excluded from the array a soldier actually draws from."
-        }
-      ],
-      "resolution_change": "No downscaling. Measured max content across all 5 new states, all directions: 40w x 46h -- inside the existing 56x60 cell (task-050 rev 5) with real margin, so the established cell size did not need to change.",
-      "conversion": {
-        "script": "one-off, session scratchpad, not committed -- same crop-to-alpha-bbox / centre-on-transparent-56x60-canvas / no-resize steps as task-050 rev 5, reused rather than re-derived",
-        "steps": [
-          "crop each rotation to its alpha bbox, centre on a transparent 56x60 canvas, no resize",
-          "verify alpha strictly binary (0/255) in the raw source before packing -- CHECKED: 0 partial-alpha pixels found across all 5 new states, all 8 directions each",
-          "pack cells 0-7 (8 rotations, S,SE,E,NE,N,NW,W,SW) + cells 8-9 (south walk toggle) into the same 280x120, 5x2, 56x60px grid as T_Soldier_Knight",
-          "cells 8-9: none of the 5 new states have an animation source (only state 1/Hallam had a generated walk cycle) -- both cells duplicate the south idle, a frozen toggle exactly like T_Soldier_Archer's existing convention, disclosed rather than presented as real animation"
-        ]
-      },
-      "qc": {
-        "alpha": "verified strictly binary (0/255) across all 5 new states x 8 directions, copied through unchanged",
-        "palette": "N/A -- full PixelLab colour, no quantize. See ramp_departure.",
-        "content_bbox": "measured max 40w x 46h across the 5 new states' 8 directions; cell remains 56x60, unchanged from task-050 rev 5"
-      },
-      "import": {
-        "route": "MCP TextureTools.import_file -- all 5 fresh asset paths, no existing-asset collision, so the AssetTools delete/move unreliability noted for T_Soldier_Knight/Archer's own overwrite history did not apply here",
-        "settings": "Filter=TF_Nearest MipGenSettings=TMGS_NoMipmaps CompressionSettings=TC_EditorIcon SRGB=true -- set via ObjectTools.set_properties and verified by read-back (not just trusting the true return value) against every asset, matching T_Soldier_Knight/Archer/T_Hero_Vanguard",
-        "saved": true
-      },
-      "swap_path": "WIRED, 2026-07-28. task-046 had closed as done the day before, releasing its lock on ELVTR/Source/**, and the owner made the keep/drop call -- task-055's owns: was widened (scoped to these two function bodies only) to add states 2-5 to SpearmenStatePaths() in UnitCamProjector.cpp. State 6 (the byte-identical duplicate) stays out of the array; see its own entry above."
+     "content_path": "/Game/Sprites/Units/T_Soldier_Knight_04",
+     "pixellab_character_id": "a3b21ad8-f8e4-4afa-9ab5-4132c60cee05",
+     "pixellab_state_name": "I need the body to b -- NAME RETIRED",
+     "raw_dir": "RawArt/Renders/knight/raw/state04_bulkyhelm/rotations/",
+     "visual": "Also a big rounded closed helm, bulkier body/shoulder read than state 3.",
+     "disposition": "keeper -- distinct from state 3 by pixel diff, though the two are the closest-themed pair in the set (both 'bigger helmet' iterations)"
     },
     {
-      "texture_family": "T_Soldier_Archer_02..05 -- task-046 STATE variants of T_Soldier_Archer",
-      "status": "PACKED, IMPORTED AND WIRED (3 of 5 states -- see swap_path for which two are withheld and why), task-055. Full colour, no quantize (ramp_departure applies to this whole family, same as T_Soldier_Archer).",
-      "created": "2026-07-28",
-      "why_not_the_normal_pipeline": "Same reason as T_Soldier_Archer above: existing, already-completed PixelLab renders (states of group e2702eb6-248d-4b6b-b8dc-fedc1290e059), downloaded and packed, nothing generated.",
-      "generations_spent": 0,
-      "calls_made": [
-        "get_character (read-only) on b3163cdf, plus the group download URL"
-      ],
-      "calls_explicitly_NOT_made": [
-        "create_character",
-        "animate_character",
-        "create_character_state"
-      ],
-      "raw_download_dir": "RawArt/Renders/archer-proxy/raw/state0N_<descriptor>/ -- retained permanently per the PixelLab-retention rule, one folder per new state, flat (matching T_Soldier_Archer's own flat raw/ layout rather than knight's raw/rotations/ subfolder); state 1 (Merle/Pathfinder) keeps its pre-existing raw/ location, untouched",
-      "states": [
-        {
-          "content_path": "/Game/Sprites/Units/T_Soldier_Archer_02",
-          "pixellab_character_id": "021462fb-4d5a-4838-ba63-6c653781917e",
-          "pixellab_state_name": "One with Hollow blac[k] -- NAME RETIRED",
-          "raw_dir": "RawArt/Renders/archer-proxy/raw/state02_hollowmask/",
-          "visual": "Same hooded archer silhouette and bow as state 1, with a pale hollow-eyed mask/face swap instead of state 1's visible face.",
-          "disposition": "keeper -- reads unmistakably as the archer type (bow held the same way as state 1), variety is in the face only"
-        },
-        {
-          "content_path": "/Game/Sprites/Units/T_Soldier_Archer_03",
-          "pixellab_character_id": "ea1d8c8e-5fe1-4dbb-abd9-ff5ed9f81e4c",
-          "pixellab_state_name": "Cyborg with Crossbow -- NAME RETIRED",
-          "raw_dir": "RawArt/Renders/archer-proxy/raw/state03_crossbow/",
-          "visual": "Same hooded silhouette, holds a glowing teal crossbow raised and aimed forward (a held ranged weapon, but a different pose from states 1-2's slung bow).",
-          "disposition": "keeper, with a caveat -- still unmistakably a ranged fighter, but the sci-fi glow and forward-aimed pose is a bigger visual jump than states 1-2's face-only variation; worth an owner glance"
-        },
-        {
-          "content_path": "/Game/Sprites/Units/T_Soldier_Archer_04",
-          "pixellab_character_id": "2ea3e998-7d06-4341-ba0b-f70f84f36348",
-          "pixellab_state_name": "RPG launcher -- NAME RETIRED",
-          "raw_dir": "RawArt/Renders/archer-proxy/raw/state04_blade/",
-          "visual": "Same hooded silhouette, but holds a green rocket-launcher/bazooka-style tube weapon over the shoulder, gripped two-handed -- no bow at all.",
-          "disposition": "FLAGGED -- does not read as an archer on its own. Verified at 6x zoom: it is a launcher tube, not a bladed weapon and not a bow. If a rank of archers rolls onto this state it will show a soldier holding a rocket launcher standing among bow-wielders. Packed per the owner's 'pack them all' direction. OWNER DECISION (2026-07-28): packed but deliberately NOT wired into ArcherStatePaths() (UnitCamProjector.cpp) -- confirmed as breaking the type read (rocket launcher, not a bow), which is the one failure mode this mechanism exists to prevent. Asset, raw download and this entry all stay on disk/in the repo per the retention rule."
-        },
-        {
-          "content_path": "/Game/Sprites/Units/T_Soldier_Archer_05",
-          "pixellab_character_id": "43a4c25c-3ea0-444b-89bf-b2f27234c079",
-          "pixellab_state_name": "Convert to Mage -- NAME RETIRED",
-          "raw_dir": "RawArt/Renders/archer-proxy/raw/state05_mage/",
-          "visual": "Same hooded silhouette, holds a staff topped with a glowing purple orb -- a mage's implement, no bow.",
-          "disposition": "FLAGGED -- same issue as state 4: reads as a spellcaster, not an archer, if it lands in a rank on its own. Packed per the owner's direction. OWNER DECISION (2026-07-28): packed but deliberately NOT wired into ArcherStatePaths() (UnitCamProjector.cpp) -- confirmed as breaking the type read (mage staff, not a bow). Asset, raw download and this entry all stay on disk/in the repo per the retention rule."
-        }
-      ],
-      "resolution_change": "No downscaling. Measured max content across all 4 new states, all directions: 43w x 46h -- identical to the original T_Soldier_Archer's own measured max, still inside the existing 56x60 cell with real margin.",
-      "conversion": {
-        "script": "same one-off script as the knight states above, same steps",
-        "steps": [
-          "crop each rotation to its alpha bbox, centre on a transparent 56x60 canvas, no resize",
-          "verify alpha strictly binary (0/255) in the raw source before packing -- CHECKED: 0 partial-alpha pixels found across all 4 new states, all 8 directions each",
-          "pack cells 0-7 (8 rotations) + cells 8-9 (south walk toggle, duplicated south idle -- none of these states have an animation source, matching T_Soldier_Archer's own frozen-toggle precedent) into the same 280x120, 5x2, 56x60px grid"
-        ]
-      },
-      "qc": {
-        "alpha": "verified strictly binary (0/255) across all 4 new states x 8 directions, copied through unchanged",
-        "palette": "N/A -- full PixelLab colour, no quantize. See ramp_departure.",
-        "content_bbox": "measured max 43w x 46h across the 4 new states' 8 directions; cell remains 56x60, unchanged from task-050 rev 5"
-      },
-      "import": {
-        "route": "MCP TextureTools.import_file -- all 4 fresh asset paths, no existing-asset collision",
-        "settings": "Filter=TF_Nearest MipGenSettings=TMGS_NoMipmaps CompressionSettings=TC_EditorIcon SRGB=true -- set via ObjectTools.set_properties and verified by read-back against every asset, matching T_Soldier_Knight/Archer/T_Hero_Vanguard",
-        "saved": true
-      },
-      "swap_path": "PARTIALLY WIRED, 2026-07-28. States 2 and 3 added to ArcherStatePaths() in UnitCamProjector.cpp (task-055's owns: widened once task-046 released its lock, per the owner's keep/drop call). States 4 and 5 stay OUT of the array -- see their own entries above for why (neither carries a bow)."
+     "content_path": "/Game/Sprites/Units/T_Soldier_Knight_05",
+     "pixellab_character_id": "904eb4ba-9cad-4852-8f72-25bc43028bd8",
+     "pixellab_state_name": "Make more chibi helm -- NAME RETIRED",
+     "raw_dir": "RawArt/Renders/knight/raw/state05_chibihelm/rotations/",
+     "visual": "Oversized 'chibi' helmet-to-body ratio, distinct read from states 1-4.",
+     "disposition": "keeper"
     },
     {
-      "texture_family": "T_Swarm_2bit brood rows -- the NINE brood-ooze variants (task-059)",
-      "status": "PACKED, IMPORTED AND WIRED, 2026-07-29. All nine ride rows 0-17 of the 8x20 atlas (Row = Variant*2 + WalkFrame) and are selected per entity by the display-weight table in docs/data/art/brood-variants.json. Full colour, quantize false -- the 4-value lock was superseded 2026-07-28.",
-      "created": "2026-07-29",
-      "why_not_the_normal_pipeline": "These are OWNER-SUPPLIED PixelLab states from group 8b4b9811-dcf3-4e9d-baa6-2cb3f8901d0b that were already on disk before this task started: 'lets not create any new stuff but utilize some of the good skins we have.' They have no request of their own -- they are consumed as UNMANAGED sources (explicit path maps) by the composite request docs/data/art/requests/swarm-units.json, one source per variant. Recorded here so a reader who finds RawArt/Renders/brood-ooze/ does not have to guess where it is used.",
-      "generations_spent": 0,
-      "calls_made": [],
-      "calls_explicitly_NOT_made": [
-        "create_character",
-        "create_character_state",
-        "animate_character",
-        "edit_image"
-      ],
-      "raw_download_dir": "RawArt/Renders/brood-ooze/raw/state00_base..state08_slug/rotations/ -- 8 rotations each (south, south-east, east, north-east, north, north-west, west, south-west), 88x88 source, retained permanently per the PixelLab-retention rule",
-      "animation_status": "NO WALK ANIMATION on any of the nine: walk0 and walk1 point at the same static rotation, so rows 2N and 2N+1 are identical. The walk axis is kept anyway -- collapsing it would force a second atlas layout change the day an animate_character walk lands.",
-      "qc": "Content bboxes measured across all 16 frames per variant at pack time, widest 53x44 (sump/ridge), narrowest 28x46 (stalk) -- a 1.9x width spread, and every one inside the existing 56px cell, so pixelpipe did not have to scale anything. VISIBILITY CAVEAT: the ooze body measures RGB 0-35 per channel, so at the gameplay camera these read as white teeth in the dark rather than as nine distinguishable silhouettes. The variety is real and measurable (Swarm.BroodVariantReport) but is not legible in a screenshot; see docs/perf/niagara-sprite-path.md section 8.",
-      "states": [
-        {
-          "variant_index": 0,
-          "atlas_rows": [
-            0,
-            1
-          ],
-          "raw_dir": "RawArt/Renders/brood-ooze/raw/state00_base/rotations/",
-          "request_prefix": "brood0-base",
-          "visual": "Limbed, upright, the most humanoid of the nine",
-          "default_weight": 14
-        },
-        {
-          "variant_index": 1,
-          "atlas_rows": [
-            2,
-            3
-          ],
-          "raw_dir": "RawArt/Renders/brood-ooze/raw/state01_sump/rotations/",
-          "request_prefix": "brood1-sump",
-          "visual": "Broad hooded mass, widest silhouette (53px content)",
-          "default_weight": 40
-        },
-        {
-          "variant_index": 2,
-          "atlas_rows": [
-            4,
-            5
-          ],
-          "raw_dir": "RawArt/Renders/brood-ooze/raw/state02_bell/rotations/",
-          "request_prefix": "brood2-bell",
-          "visual": "Bell-shaped, flared skirt, tall crown",
-          "default_weight": 12
-        },
-        {
-          "variant_index": 3,
-          "atlas_rows": [
-            6,
-            7
-          ],
-          "raw_dir": "RawArt/Renders/brood-ooze/raw/state03_stalk/rotations/",
-          "request_prefix": "brood3-stalk",
-          "visual": "Narrow column, 28px content -- half the width of sump",
-          "default_weight": 8
-        },
-        {
-          "variant_index": 4,
-          "atlas_rows": [
-            8,
-            9
-          ],
-          "raw_dir": "RawArt/Renders/brood-ooze/raw/state04_wedge/rotations/",
-          "request_prefix": "brood4-wedge",
-          "visual": "Hard triangular wedge, wide flat base",
-          "default_weight": 10
-        },
-        {
-          "variant_index": 5,
-          "atlas_rows": [
-            10,
-            11
-          ],
-          "raw_dir": "RawArt/Renders/brood-ooze/raw/state05_ridge/rotations/",
-          "request_prefix": "brood5-ridge",
-          "visual": "Low horizontal ridge, reads as crawling",
-          "default_weight": 4
-        },
-        {
-          "variant_index": 6,
-          "atlas_rows": [
-            12,
-            13
-          ],
-          "raw_dir": "RawArt/Renders/brood-ooze/raw/state06_crown/rotations/",
-          "request_prefix": "brood6-crown",
-          "visual": "Spiked crown, tallest content (47px)",
-          "default_weight": 2
-        },
-        {
-          "variant_index": 7,
-          "atlas_rows": [
-            14,
-            15
-          ],
-          "raw_dir": "RawArt/Renders/brood-ooze/raw/state07_twin/rotations/",
-          "request_prefix": "brood7-twin",
-          "visual": "Two heads on one body -- notched top edge",
-          "default_weight": 6
-        },
-        {
-          "variant_index": 8,
-          "atlas_rows": [
-            16,
-            17
-          ],
-          "raw_dir": "RawArt/Renders/brood-ooze/raw/state08_slug/rotations/",
-          "request_prefix": "brood8-slug",
-          "visual": "Hunched slug, heavy forward lean",
-          "default_weight": 4
-        }
-      ]
-    },
-    {
-      "texture_family": "brood-tongues -- SIX new PixelLab states off 'Made of tongues' (task-104). NOT packed, NOT imported, NOT wired into any atlas.",
-      "status": "GENERATED AND JUDGED, 2026-07-30. Awaiting the owner's keep/cull verdict off the contact sheet. No request file consumes these yet; /variants ends at the verdict and /sprite owns packing and import.",
-      "created": "2026-07-30",
-      "why_not_the_normal_pipeline": "This IS the normal pipeline -- Scripts/art/variantpipe.py plan/fetch/judge/report against docs/data/art/families/brood-tongues/family.json. Recorded here because provenance.json is the register of every generation spent, packed or not.",
-      "base_character_id": "4daf02e5-178c-454e-b0a6-7b48050ad7a1",
-      "base_note": "'Made of tongues', 88x88, group 8b4b9811-dcf3-4e9d-baa6-2cb3f8901d0b -- the same group as brood-ooze. Picked as the best SURFACE in the legacy brood batch, which had spent no real silhouette axis.",
-      "generations_spent": "NOT EXACTLY RECORDED. Six create_character_state calls at 88px, which SKILL.md costs at ~20-40 generations each, so ~120-240. The dispatching session did not capture a before/after balance and this entry will not invent one.",
-      "calls_made": [
-        "create_character_state x6"
-      ],
-      "calls_explicitly_NOT_made": [
-        "create_character",
-        "animate_character",
-        "edit_image"
-      ],
-      "raw_download_dir": "RawArt/Renders/brood-tongues/raw/tongue01_column|tongue02_spill|tongue03_trail|tongue04_lean|tongue05_loop|tongue06_knot/rotations/ -- 8 rotations each, 88x88, retained permanently per the PixelLab-retention rule",
-      "contact_sheet": "https://claude.ai/code/artifact/68be6086-bef3-4368-adf2-5d4457dfef0e (source: docs/data/art/families/brood-tongues/report.html)",
-      "qc": "aspect spread 0.49-0.96 (2.0x) across six variants; width 22-46px (2.1x). judge: 4 keep, 2 flag, 0 reject -- no two variants share an outline. FLAGGED: tongue02_spill asked for aspect 1.60 and measured 0.94-1.07 across all 8 rotations; tongue03_trail asked for 2.50 and measured 0.68-0.86. Both undershot their wide targets, i.e. the amorphous base did NOT reproduce brood-ooze's 1.56 here. tongue03/04/05/06 cluster at aspect 0.84-0.86 and separate only on solidity/asymmetry, which is thin. luma runs 0.175-0.195 on all six, so the outline is load-bearing for every one of them.",
-      "states": [
-        {
-          "slug": "tongue01_column",
-          "silhouette_target": 0.5,
-          "raw_dir": "RawArt/Renders/brood-tongues/raw/tongue01_column/rotations/"
-        },
-        {
-          "slug": "tongue02_spill",
-          "silhouette_target": 1.6,
-          "raw_dir": "RawArt/Renders/brood-tongues/raw/tongue02_spill/rotations/"
-        },
-        {
-          "slug": "tongue03_trail",
-          "silhouette_target": 2.5,
-          "raw_dir": "RawArt/Renders/brood-tongues/raw/tongue03_trail/rotations/"
-        },
-        {
-          "slug": "tongue04_lean",
-          "silhouette_target": "asymmetry > 0.5, not an aspect target -- a clear front and back that do not mirror, checked against the whole 8-rotation band",
-          "raw_dir": "RawArt/Renders/brood-tongues/raw/tongue04_lean/rotations/"
-        },
-        {
-          "slug": "tongue05_loop",
-          "silhouette_target": "a real enclosed hole (>=19px, closed on every side) -- not an aspect target",
-          "raw_dir": "RawArt/Renders/brood-tongues/raw/tongue05_loop/rotations/"
-        },
-        {
-          "slug": "tongue06_knot",
-          "silhouette_target": "squat, high solidity, unbroken outline -- not an aspect target",
-          "raw_dir": "RawArt/Renders/brood-tongues/raw/tongue06_knot/rotations/"
-        }
-      ]
-    },
-    {
-      "texture_family": "T_Team_2bit archer rows -- the SIX archer-medieval variants (generated by task-125, packed and wired by task-126)",
-      "status": "PACKED, IMPORTED AND WIRED, 2026-07-31. All six ride rows 22-33 of the 8x34 team atlas (Row = Variant*2 + WalkFrame, atlas variants 11-16) and are selected per entity by Swarm.ArcherVariantWeights, documented in docs/data/art/team-variants.json 'archer_variants'. Full colour, quantize false -- the 4-value lock was superseded 2026-07-28.",
-      "created": "2026-07-31",
-      "why_not_the_normal_pipeline": "The GENERATION went through /variants (task-125) and is recorded in docs/data/art/families/archer-medieval/manifest.json with measured silhouette axes and a per-variant verdict; it produced no request of its own. task-126 consumes the results as UNMANAGED sources (explicit path maps) in the composite request docs/data/art/requests/team-units.json, one source per variant, and generated NOTHING. Recorded here so a reader who finds RawArt/Renders/archer-medieval/ does not have to guess where it is used.",
-      "generations_spent": 0,
-      "calls_made": [],
-      "calls_explicitly_NOT_made": [
-        "create_character",
-        "create_character_state",
-        "animate_character",
-        "edit_image"
-      ],
-      "raw_download_dir": "RawArt/Renders/archer-medieval/raw/v1_narrowstrung..v6_slingwhirl/rotations/ -- 8 rotations each (south, south-east, east, north-east, north, north-west, west, south-west), 88x88 source, retained permanently per the PixelLab-retention rule",
-      "animation_status": "NO WALK ANIMATION on any of the six: walk0 and walk1 point at the same static rotation, so rows 2N and 2N+1 are identical. Same convention as every other source in this atlas.",
-      "qc": "Content bboxes measured across all 16 frames per variant at pack time, widest 49x48 (bowextended) / 49x44 (quiverreach), narrowest 34x46 (narrowstrung) -- every one inside the existing 56px cell, so pixelpipe scaled nothing and the cell did not have to move. Unlike the brood rows these ARE legible at the gameplay camera: the art is the same pale steel register as the knights, and the bow/crossbow/sling props break the outline, which is what makes an archer read as an archer at a glance.",
-      "owner_decision": "v2_bowextended carries a 'flag' verdict in the family manifest -- it missed its 1.50 aspect target (measured band 0.73-0.87 across all 8 rotations). Owner decided 2026-07-31 to keep it anyway, so all six are packed.",
-      "stats_note": "These rows drive LOOKS ONLY. task-095 binds the SPEARMAN variant index (0-10) to a melee stat row; archers short-circuit that at SwarmProcessors.cpp's bArcher branch and read the Swarm.Archers* CVars instead, so Swarm.ArcherVariantWeights is combat-neutral.",
-      "states": [
-        {
-          "variant_index": 11,
-          "table_index": 0,
-          "atlas_rows": [
-            22,
-            23
-          ],
-          "raw_dir": "RawArt/Renders/archer-medieval/raw/v1_narrowstrung/rotations/",
-          "request_prefix": "archer-v1",
-          "visual": "Hooded, bow strung and held close -- the tightest archer silhouette",
-          "content_bbox_16frames": "34x46",
-          "family_verdict": "keep",
-          "default_weight": 16
-        },
-        {
-          "variant_index": 12,
-          "table_index": 1,
-          "atlas_rows": [
-            24,
-            25
-          ],
-          "raw_dir": "RawArt/Renders/archer-medieval/raw/v2_bowextended/rotations/",
-          "request_prefix": "archer-v2",
-          "visual": "Longbow at full extension, limb breaking the outline on one side -- widest reach",
-          "content_bbox_16frames": "49x48",
-          "family_verdict": "flag",
-          "default_weight": 16
-        },
-        {
-          "variant_index": 13,
-          "table_index": 2,
-          "atlas_rows": [
-            26,
-            27
-          ],
-          "raw_dir": "RawArt/Renders/archer-medieval/raw/v3_loosingarm/rotations/",
-          "request_prefix": "archer-v3",
-          "visual": "Mid-loose, draw arm back and bow arm forward -- most asymmetric of the six",
-          "content_bbox_16frames": "41x47",
-          "family_verdict": "keep",
-          "default_weight": 16
-        },
-        {
-          "variant_index": 14,
-          "table_index": 3,
-          "atlas_rows": [
-            28,
-            29
-          ],
-          "raw_dir": "RawArt/Renders/archer-medieval/raw/v4_quiverreach/rotations/",
-          "request_prefix": "archer-v4",
-          "visual": "Reaching back to the quiver, arrows fanning above the shoulder",
-          "content_bbox_16frames": "49x44",
-          "family_verdict": "keep",
-          "default_weight": 16
-        },
-        {
-          "variant_index": 15,
-          "table_index": 4,
-          "atlas_rows": [
-            30,
-            31
-          ],
-          "raw_dir": "RawArt/Renders/archer-medieval/raw/v5_crossbowbrace/rotations/",
-          "request_prefix": "archer-v5",
-          "visual": "Crossbow braced level at the waist -- a horizontal bar across the body",
-          "content_bbox_16frames": "45x44",
-          "family_verdict": "keep",
-          "default_weight": 16
-        },
-        {
-          "variant_index": 16,
-          "table_index": 5,
-          "atlas_rows": [
-            32,
-            33
-          ],
-          "raw_dir": "RawArt/Renders/archer-medieval/raw/v6_slingwhirl/rotations/",
-          "request_prefix": "archer-v6",
-          "visual": "Sling whirling overhead, a large enclosed loop -- the biggest hole in the set",
-          "content_bbox_16frames": "48x48",
-          "family_verdict": "keep",
-          "default_weight": 16
-        }
-      ]
+     "content_path": "/Game/Sprites/Units/T_Soldier_Knight_06",
+     "pixellab_character_id": "4a4f106a-bd2c-4ed4-934b-227e6884592a",
+     "pixellab_state_name": "Make more chibi helm (copy) -- NAME RETIRED",
+     "raw_dir": "RawArt/Renders/knight/raw/state06_chibihelm_dup/rotations/",
+     "visual": "Identical to state 5.",
+     "disposition": "DUPLICATE, not just similar -- verified byte-for-byte: every one of the 8 source rotation PNGs diffs at 0 max pixel delta against state 5's corresponding rotation (checked programmatically, not eyeballed). Packed anyway per the owner's 'pack them all' instruction, but this state contributes ZERO visual variety on top of state 5 -- flagged for the owner to drop rather than silently omitted. OWNER DECISION (2026-07-28): packed but deliberately NOT wired into SpearmenStatePaths() (UnitCamProjector.cpp) -- it cannot contribute variety, so it does not go in the live array. Asset, raw download and this entry all stay on disk/in the repo per the retention rule; only excluded from the array a soldier actually draws from."
     }
-  ]
+   ],
+   "resolution_change": "No downscaling. Measured max content across all 5 new states, all directions: 40w x 46h -- inside the existing 56x60 cell (task-050 rev 5) with real margin, so the established cell size did not need to change.",
+   "conversion": {
+    "script": "one-off, session scratchpad, not committed -- same crop-to-alpha-bbox / centre-on-transparent-56x60-canvas / no-resize steps as task-050 rev 5, reused rather than re-derived",
+    "steps": [
+     "crop each rotation to its alpha bbox, centre on a transparent 56x60 canvas, no resize",
+     "verify alpha strictly binary (0/255) in the raw source before packing -- CHECKED: 0 partial-alpha pixels found across all 5 new states, all 8 directions each",
+     "pack cells 0-7 (8 rotations, S,SE,E,NE,N,NW,W,SW) + cells 8-9 (south walk toggle) into the same 280x120, 5x2, 56x60px grid as T_Soldier_Knight",
+     "cells 8-9: none of the 5 new states have an animation source (only state 1/Hallam had a generated walk cycle) -- both cells duplicate the south idle, a frozen toggle exactly like T_Soldier_Archer's existing convention, disclosed rather than presented as real animation"
+    ]
+   },
+   "qc": {
+    "alpha": "verified strictly binary (0/255) across all 5 new states x 8 directions, copied through unchanged",
+    "palette": "N/A -- full PixelLab colour, no quantize. See ramp_departure.",
+    "content_bbox": "measured max 40w x 46h across the 5 new states' 8 directions; cell remains 56x60, unchanged from task-050 rev 5"
+   },
+   "import": {
+    "route": "MCP TextureTools.import_file -- all 5 fresh asset paths, no existing-asset collision, so the AssetTools delete/move unreliability noted for T_Soldier_Knight/Archer's own overwrite history did not apply here",
+    "settings": "Filter=TF_Nearest MipGenSettings=TMGS_NoMipmaps CompressionSettings=TC_EditorIcon SRGB=true -- set via ObjectTools.set_properties and verified by read-back (not just trusting the true return value) against every asset, matching T_Soldier_Knight/Archer/T_Hero_Vanguard",
+    "saved": true
+   },
+   "swap_path": "WIRED, 2026-07-28. task-046 had closed as done the day before, releasing its lock on ELVTR/Source/**, and the owner made the keep/drop call -- task-055's owns: was widened (scoped to these two function bodies only) to add states 2-5 to SpearmenStatePaths() in UnitCamProjector.cpp. State 6 (the byte-identical duplicate) stays out of the array; see its own entry above."
+  },
+  {
+   "texture_family": "T_Soldier_Archer_02..05 -- task-046 STATE variants of T_Soldier_Archer",
+   "status": "PACKED, IMPORTED AND WIRED (3 of 5 states -- see swap_path for which two are withheld and why), task-055. Full colour, no quantize (ramp_departure applies to this whole family, same as T_Soldier_Archer).",
+   "created": "2026-07-28",
+   "why_not_the_normal_pipeline": "Same reason as T_Soldier_Archer above: existing, already-completed PixelLab renders (states of group e2702eb6-248d-4b6b-b8dc-fedc1290e059), downloaded and packed, nothing generated.",
+   "generations_spent": 0,
+   "calls_made": [
+    "get_character (read-only) on b3163cdf, plus the group download URL"
+   ],
+   "calls_explicitly_NOT_made": [
+    "create_character",
+    "animate_character",
+    "create_character_state"
+   ],
+   "raw_download_dir": "RawArt/Renders/archer-proxy/raw/state0N_<descriptor>/ -- retained permanently per the PixelLab-retention rule, one folder per new state, flat (matching T_Soldier_Archer's own flat raw/ layout rather than knight's raw/rotations/ subfolder); state 1 (Merle/Pathfinder) keeps its pre-existing raw/ location, untouched",
+   "states": [
+    {
+     "content_path": "/Game/Sprites/Units/T_Soldier_Archer_02",
+     "pixellab_character_id": "021462fb-4d5a-4838-ba63-6c653781917e",
+     "pixellab_state_name": "One with Hollow blac[k] -- NAME RETIRED",
+     "raw_dir": "RawArt/Renders/archer-proxy/raw/state02_hollowmask/",
+     "visual": "Same hooded archer silhouette and bow as state 1, with a pale hollow-eyed mask/face swap instead of state 1's visible face.",
+     "disposition": "keeper -- reads unmistakably as the archer type (bow held the same way as state 1), variety is in the face only"
+    },
+    {
+     "content_path": "/Game/Sprites/Units/T_Soldier_Archer_03",
+     "pixellab_character_id": "ea1d8c8e-5fe1-4dbb-abd9-ff5ed9f81e4c",
+     "pixellab_state_name": "Cyborg with Crossbow -- NAME RETIRED",
+     "raw_dir": "RawArt/Renders/archer-proxy/raw/state03_crossbow/",
+     "visual": "Same hooded silhouette, holds a glowing teal crossbow raised and aimed forward (a held ranged weapon, but a different pose from states 1-2's slung bow).",
+     "disposition": "keeper, with a caveat -- still unmistakably a ranged fighter, but the sci-fi glow and forward-aimed pose is a bigger visual jump than states 1-2's face-only variation; worth an owner glance"
+    },
+    {
+     "content_path": "/Game/Sprites/Units/T_Soldier_Archer_04",
+     "pixellab_character_id": "2ea3e998-7d06-4341-ba0b-f70f84f36348",
+     "pixellab_state_name": "RPG launcher -- NAME RETIRED",
+     "raw_dir": "RawArt/Renders/archer-proxy/raw/state04_blade/",
+     "visual": "Same hooded silhouette, but holds a green rocket-launcher/bazooka-style tube weapon over the shoulder, gripped two-handed -- no bow at all.",
+     "disposition": "FLAGGED -- does not read as an archer on its own. Verified at 6x zoom: it is a launcher tube, not a bladed weapon and not a bow. If a rank of archers rolls onto this state it will show a soldier holding a rocket launcher standing among bow-wielders. Packed per the owner's 'pack them all' direction. OWNER DECISION (2026-07-28): packed but deliberately NOT wired into ArcherStatePaths() (UnitCamProjector.cpp) -- confirmed as breaking the type read (rocket launcher, not a bow), which is the one failure mode this mechanism exists to prevent. Asset, raw download and this entry all stay on disk/in the repo per the retention rule."
+    },
+    {
+     "content_path": "/Game/Sprites/Units/T_Soldier_Archer_05",
+     "pixellab_character_id": "43a4c25c-3ea0-444b-89bf-b2f27234c079",
+     "pixellab_state_name": "Convert to Mage -- NAME RETIRED",
+     "raw_dir": "RawArt/Renders/archer-proxy/raw/state05_mage/",
+     "visual": "Same hooded silhouette, holds a staff topped with a glowing purple orb -- a mage's implement, no bow.",
+     "disposition": "FLAGGED -- same issue as state 4: reads as a spellcaster, not an archer, if it lands in a rank on its own. Packed per the owner's direction. OWNER DECISION (2026-07-28): packed but deliberately NOT wired into ArcherStatePaths() (UnitCamProjector.cpp) -- confirmed as breaking the type read (mage staff, not a bow). Asset, raw download and this entry all stay on disk/in the repo per the retention rule."
+    }
+   ],
+   "resolution_change": "No downscaling. Measured max content across all 4 new states, all directions: 43w x 46h -- identical to the original T_Soldier_Archer's own measured max, still inside the existing 56x60 cell with real margin.",
+   "conversion": {
+    "script": "same one-off script as the knight states above, same steps",
+    "steps": [
+     "crop each rotation to its alpha bbox, centre on a transparent 56x60 canvas, no resize",
+     "verify alpha strictly binary (0/255) in the raw source before packing -- CHECKED: 0 partial-alpha pixels found across all 4 new states, all 8 directions each",
+     "pack cells 0-7 (8 rotations) + cells 8-9 (south walk toggle, duplicated south idle -- none of these states have an animation source, matching T_Soldier_Archer's own frozen-toggle precedent) into the same 280x120, 5x2, 56x60px grid"
+    ]
+   },
+   "qc": {
+    "alpha": "verified strictly binary (0/255) across all 4 new states x 8 directions, copied through unchanged",
+    "palette": "N/A -- full PixelLab colour, no quantize. See ramp_departure.",
+    "content_bbox": "measured max 43w x 46h across the 4 new states' 8 directions; cell remains 56x60, unchanged from task-050 rev 5"
+   },
+   "import": {
+    "route": "MCP TextureTools.import_file -- all 4 fresh asset paths, no existing-asset collision",
+    "settings": "Filter=TF_Nearest MipGenSettings=TMGS_NoMipmaps CompressionSettings=TC_EditorIcon SRGB=true -- set via ObjectTools.set_properties and verified by read-back against every asset, matching T_Soldier_Knight/Archer/T_Hero_Vanguard",
+    "saved": true
+   },
+   "swap_path": "PARTIALLY WIRED, 2026-07-28. States 2 and 3 added to ArcherStatePaths() in UnitCamProjector.cpp (task-055's owns: widened once task-046 released its lock, per the owner's keep/drop call). States 4 and 5 stay OUT of the array -- see their own entries above for why (neither carries a bow)."
+  },
+  {
+   "texture_family": "T_Swarm_2bit brood rows -- the NINE brood-ooze variants (task-059)",
+   "status": "PACKED, IMPORTED AND WIRED, 2026-07-29. All nine ride rows 0-17 of the 8x20 atlas (Row = Variant*2 + WalkFrame) and are selected per entity by the display-weight table in docs/data/art/brood-variants.json. Full colour, quantize false -- the 4-value lock was superseded 2026-07-28.",
+   "created": "2026-07-29",
+   "why_not_the_normal_pipeline": "These are OWNER-SUPPLIED PixelLab states from group 8b4b9811-dcf3-4e9d-baa6-2cb3f8901d0b that were already on disk before this task started: 'lets not create any new stuff but utilize some of the good skins we have.' They have no request of their own -- they are consumed as UNMANAGED sources (explicit path maps) by the composite request docs/data/art/requests/swarm-units.json, one source per variant. Recorded here so a reader who finds RawArt/Renders/brood-ooze/ does not have to guess where it is used.",
+   "generations_spent": 0,
+   "calls_made": [],
+   "calls_explicitly_NOT_made": [
+    "create_character",
+    "create_character_state",
+    "animate_character",
+    "edit_image"
+   ],
+   "raw_download_dir": "RawArt/Renders/brood-ooze/raw/state00_base..state08_slug/rotations/ -- 8 rotations each (south, south-east, east, north-east, north, north-west, west, south-west), 88x88 source, retained permanently per the PixelLab-retention rule",
+   "animation_status": "NO WALK ANIMATION on any of the nine: walk0 and walk1 point at the same static rotation, so rows 2N and 2N+1 are identical. The walk axis is kept anyway -- collapsing it would force a second atlas layout change the day an animate_character walk lands.",
+   "qc": "Content bboxes measured across all 16 frames per variant at pack time, widest 53x44 (sump/ridge), narrowest 28x46 (stalk) -- a 1.9x width spread, and every one inside the existing 56px cell, so pixelpipe did not have to scale anything. VISIBILITY CAVEAT: the ooze body measures RGB 0-35 per channel, so at the gameplay camera these read as white teeth in the dark rather than as nine distinguishable silhouettes. The variety is real and measurable (Swarm.BroodVariantReport) but is not legible in a screenshot; see docs/perf/niagara-sprite-path.md section 8.",
+   "states": [
+    {
+     "variant_index": 0,
+     "atlas_rows": [
+      0,
+      1
+     ],
+     "raw_dir": "RawArt/Renders/brood-ooze/raw/state00_base/rotations/",
+     "request_prefix": "brood0-base",
+     "visual": "Limbed, upright, the most humanoid of the nine",
+     "default_weight": 14
+    },
+    {
+     "variant_index": 1,
+     "atlas_rows": [
+      2,
+      3
+     ],
+     "raw_dir": "RawArt/Renders/brood-ooze/raw/state01_sump/rotations/",
+     "request_prefix": "brood1-sump",
+     "visual": "Broad hooded mass, widest silhouette (53px content)",
+     "default_weight": 40
+    },
+    {
+     "variant_index": 2,
+     "atlas_rows": [
+      4,
+      5
+     ],
+     "raw_dir": "RawArt/Renders/brood-ooze/raw/state02_bell/rotations/",
+     "request_prefix": "brood2-bell",
+     "visual": "Bell-shaped, flared skirt, tall crown",
+     "default_weight": 12
+    },
+    {
+     "variant_index": 3,
+     "atlas_rows": [
+      6,
+      7
+     ],
+     "raw_dir": "RawArt/Renders/brood-ooze/raw/state03_stalk/rotations/",
+     "request_prefix": "brood3-stalk",
+     "visual": "Narrow column, 28px content -- half the width of sump",
+     "default_weight": 8
+    },
+    {
+     "variant_index": 4,
+     "atlas_rows": [
+      8,
+      9
+     ],
+     "raw_dir": "RawArt/Renders/brood-ooze/raw/state04_wedge/rotations/",
+     "request_prefix": "brood4-wedge",
+     "visual": "Hard triangular wedge, wide flat base",
+     "default_weight": 10
+    },
+    {
+     "variant_index": 5,
+     "atlas_rows": [
+      10,
+      11
+     ],
+     "raw_dir": "RawArt/Renders/brood-ooze/raw/state05_ridge/rotations/",
+     "request_prefix": "brood5-ridge",
+     "visual": "Low horizontal ridge, reads as crawling",
+     "default_weight": 4
+    },
+    {
+     "variant_index": 6,
+     "atlas_rows": [
+      12,
+      13
+     ],
+     "raw_dir": "RawArt/Renders/brood-ooze/raw/state06_crown/rotations/",
+     "request_prefix": "brood6-crown",
+     "visual": "Spiked crown, tallest content (47px)",
+     "default_weight": 2
+    },
+    {
+     "variant_index": 7,
+     "atlas_rows": [
+      14,
+      15
+     ],
+     "raw_dir": "RawArt/Renders/brood-ooze/raw/state07_twin/rotations/",
+     "request_prefix": "brood7-twin",
+     "visual": "Two heads on one body -- notched top edge",
+     "default_weight": 6
+    },
+    {
+     "variant_index": 8,
+     "atlas_rows": [
+      16,
+      17
+     ],
+     "raw_dir": "RawArt/Renders/brood-ooze/raw/state08_slug/rotations/",
+     "request_prefix": "brood8-slug",
+     "visual": "Hunched slug, heavy forward lean",
+     "default_weight": 4
+    }
+   ]
+  },
+  {
+   "texture_family": "brood-tongues -- SIX new PixelLab states off 'Made of tongues' (task-104). NOT packed, NOT imported, NOT wired into any atlas.",
+   "status": "GENERATED AND JUDGED, 2026-07-30. Awaiting the owner's keep/cull verdict off the contact sheet. No request file consumes these yet; /variants ends at the verdict and /sprite owns packing and import.",
+   "created": "2026-07-30",
+   "why_not_the_normal_pipeline": "This IS the normal pipeline -- Scripts/art/variantpipe.py plan/fetch/judge/report against docs/data/art/families/brood-tongues/family.json. Recorded here because provenance.json is the register of every generation spent, packed or not.",
+   "base_character_id": "4daf02e5-178c-454e-b0a6-7b48050ad7a1",
+   "base_note": "'Made of tongues', 88x88, group 8b4b9811-dcf3-4e9d-baa6-2cb3f8901d0b -- the same group as brood-ooze. Picked as the best SURFACE in the legacy brood batch, which had spent no real silhouette axis.",
+   "generations_spent": "NOT EXACTLY RECORDED. Six create_character_state calls at 88px, which SKILL.md costs at ~20-40 generations each, so ~120-240. The dispatching session did not capture a before/after balance and this entry will not invent one.",
+   "calls_made": [
+    "create_character_state x6"
+   ],
+   "calls_explicitly_NOT_made": [
+    "create_character",
+    "animate_character",
+    "edit_image"
+   ],
+   "raw_download_dir": "RawArt/Renders/brood-tongues/raw/tongue01_column|tongue02_spill|tongue03_trail|tongue04_lean|tongue05_loop|tongue06_knot/rotations/ -- 8 rotations each, 88x88, retained permanently per the PixelLab-retention rule",
+   "contact_sheet": "https://claude.ai/code/artifact/68be6086-bef3-4368-adf2-5d4457dfef0e (source: docs/data/art/families/brood-tongues/report.html)",
+   "qc": "aspect spread 0.49-0.96 (2.0x) across six variants; width 22-46px (2.1x). judge: 4 keep, 2 flag, 0 reject -- no two variants share an outline. FLAGGED: tongue02_spill asked for aspect 1.60 and measured 0.94-1.07 across all 8 rotations; tongue03_trail asked for 2.50 and measured 0.68-0.86. Both undershot their wide targets, i.e. the amorphous base did NOT reproduce brood-ooze's 1.56 here. tongue03/04/05/06 cluster at aspect 0.84-0.86 and separate only on solidity/asymmetry, which is thin. luma runs 0.175-0.195 on all six, so the outline is load-bearing for every one of them.",
+   "states": [
+    {
+     "slug": "tongue01_column",
+     "silhouette_target": 0.5,
+     "raw_dir": "RawArt/Renders/brood-tongues/raw/tongue01_column/rotations/"
+    },
+    {
+     "slug": "tongue02_spill",
+     "silhouette_target": 1.6,
+     "raw_dir": "RawArt/Renders/brood-tongues/raw/tongue02_spill/rotations/"
+    },
+    {
+     "slug": "tongue03_trail",
+     "silhouette_target": 2.5,
+     "raw_dir": "RawArt/Renders/brood-tongues/raw/tongue03_trail/rotations/"
+    },
+    {
+     "slug": "tongue04_lean",
+     "silhouette_target": "asymmetry > 0.5, not an aspect target -- a clear front and back that do not mirror, checked against the whole 8-rotation band",
+     "raw_dir": "RawArt/Renders/brood-tongues/raw/tongue04_lean/rotations/"
+    },
+    {
+     "slug": "tongue05_loop",
+     "silhouette_target": "a real enclosed hole (>=19px, closed on every side) -- not an aspect target",
+     "raw_dir": "RawArt/Renders/brood-tongues/raw/tongue05_loop/rotations/"
+    },
+    {
+     "slug": "tongue06_knot",
+     "silhouette_target": "squat, high solidity, unbroken outline -- not an aspect target",
+     "raw_dir": "RawArt/Renders/brood-tongues/raw/tongue06_knot/rotations/"
+    }
+   ]
+  },
+  {
+   "texture_family": "T_Team_2bit archer rows -- the SIX archer-medieval variants (generated by task-125, packed and wired by task-126)",
+   "status": "SUPERSEDED BY task-128, 2026-07-31. Five of the six (v1_narrowstrung, v3_loosingarm, v4_quiverreach, v5_crossbowbrace, v6_slingwhirl) RETIRED from T_Team_2bit the same day they landed; v2_bowextended survives as the single knight-armored archer at archer sub-table index 1. See the task-128 entry below. This entry is kept whole as the record of where the art came from -- the PNGs are still on disk and nothing was deleted.",
+   "created": "2026-07-31",
+   "why_not_the_normal_pipeline": "The GENERATION went through /variants (task-125) and is recorded in docs/data/art/families/archer-medieval/manifest.json with measured silhouette axes and a per-variant verdict; it produced no request of its own. task-126 consumes the results as UNMANAGED sources (explicit path maps) in the composite request docs/data/art/requests/team-units.json, one source per variant, and generated NOTHING. Recorded here so a reader who finds RawArt/Renders/archer-medieval/ does not have to guess where it is used.",
+   "generations_spent": 0,
+   "calls_made": [],
+   "calls_explicitly_NOT_made": [
+    "create_character",
+    "create_character_state",
+    "animate_character",
+    "edit_image"
+   ],
+   "raw_download_dir": "RawArt/Renders/archer-medieval/raw/v1_narrowstrung..v6_slingwhirl/rotations/ -- 8 rotations each (south, south-east, east, north-east, north, north-west, west, south-west), 88x88 source, retained permanently per the PixelLab-retention rule",
+   "animation_status": "NO WALK ANIMATION on any of the six: walk0 and walk1 point at the same static rotation, so rows 2N and 2N+1 are identical. Same convention as every other source in this atlas.",
+   "qc": "Content bboxes measured across all 16 frames per variant at pack time, widest 49x48 (bowextended) / 49x44 (quiverreach), narrowest 34x46 (narrowstrung) -- every one inside the existing 56px cell, so pixelpipe scaled nothing and the cell did not have to move. Unlike the brood rows these ARE legible at the gameplay camera: the art is the same pale steel register as the knights, and the bow/crossbow/sling props break the outline, which is what makes an archer read as an archer at a glance.",
+   "owner_decision": "v2_bowextended carries a 'flag' verdict in the family manifest -- it missed its 1.50 aspect target (measured band 0.73-0.87 across all 8 rotations). Owner decided 2026-07-31 to keep it anyway, so all six are packed.",
+   "stats_note": "These rows drive LOOKS ONLY. task-095 binds the SPEARMAN variant index (0-10) to a melee stat row; archers short-circuit that at SwarmProcessors.cpp's bArcher branch and read the Swarm.Archers* CVars instead, so Swarm.ArcherVariantWeights is combat-neutral.",
+   "states": [
+    {
+     "variant_index": 11,
+     "table_index": 0,
+     "atlas_rows": [
+      22,
+      23
+     ],
+     "raw_dir": "RawArt/Renders/archer-medieval/raw/v1_narrowstrung/rotations/",
+     "request_prefix": "archer-v1",
+     "visual": "Hooded, bow strung and held close -- the tightest archer silhouette",
+     "content_bbox_16frames": "34x46",
+     "family_verdict": "keep",
+     "default_weight": 16
+    },
+    {
+     "variant_index": 12,
+     "table_index": 1,
+     "atlas_rows": [
+      24,
+      25
+     ],
+     "raw_dir": "RawArt/Renders/archer-medieval/raw/v2_bowextended/rotations/",
+     "request_prefix": "archer-v2",
+     "visual": "Longbow at full extension, limb breaking the outline on one side -- widest reach",
+     "content_bbox_16frames": "49x48",
+     "family_verdict": "flag",
+     "default_weight": 16
+    },
+    {
+     "variant_index": 13,
+     "table_index": 2,
+     "atlas_rows": [
+      26,
+      27
+     ],
+     "raw_dir": "RawArt/Renders/archer-medieval/raw/v3_loosingarm/rotations/",
+     "request_prefix": "archer-v3",
+     "visual": "Mid-loose, draw arm back and bow arm forward -- most asymmetric of the six",
+     "content_bbox_16frames": "41x47",
+     "family_verdict": "keep",
+     "default_weight": 16
+    },
+    {
+     "variant_index": 14,
+     "table_index": 3,
+     "atlas_rows": [
+      28,
+      29
+     ],
+     "raw_dir": "RawArt/Renders/archer-medieval/raw/v4_quiverreach/rotations/",
+     "request_prefix": "archer-v4",
+     "visual": "Reaching back to the quiver, arrows fanning above the shoulder",
+     "content_bbox_16frames": "49x44",
+     "family_verdict": "keep",
+     "default_weight": 16
+    },
+    {
+     "variant_index": 15,
+     "table_index": 4,
+     "atlas_rows": [
+      30,
+      31
+     ],
+     "raw_dir": "RawArt/Renders/archer-medieval/raw/v5_crossbowbrace/rotations/",
+     "request_prefix": "archer-v5",
+     "visual": "Crossbow braced level at the waist -- a horizontal bar across the body",
+     "content_bbox_16frames": "45x44",
+     "family_verdict": "keep",
+     "default_weight": 16
+    },
+    {
+     "variant_index": 16,
+     "table_index": 5,
+     "atlas_rows": [
+      32,
+      33
+     ],
+     "raw_dir": "RawArt/Renders/archer-medieval/raw/v6_slingwhirl/rotations/",
+     "request_prefix": "archer-v6",
+     "visual": "Sling whirling overhead, a large enclosed loop -- the biggest hole in the set",
+     "content_bbox_16frames": "48x48",
+     "family_verdict": "keep",
+     "default_weight": 16
+    }
+   ]
+  },
+  {
+   "texture_family": "T_Team_2bit archer rows -- the THIRTEEN-look archer sub-table (twelve owner-supplied pathfinder-line states + archer-medieval's v2_bowextended)",
+   "status": "PACKED, IMPORTED AND WIRED, 2026-07-31 (task-128). Rows 22-47 of the 8x48 team atlas (Row = Variant*2 + WalkFrame, atlas variants 11-23), selected per entity by Swarm.ArcherVariantWeights over thirteen flat weights, documented in docs/data/art/team-variants.json 'archer_variants'. Full colour, quantize false. Replaced the six-look block task-126 landed.",
+   "created": "2026-07-31",
+   "why": "Every look in task-126's archer block was a steel-helmeted knight holding a bow -- the same body as the eleven spearman looks. At a 56px cell in a near-black frame the bow is a thin dark arc, so an archer still read as a spearman no matter how much size (task-127) or contrast (task-130) was spent on it. Owner, 2026-07-31, looking at the shipped frame: \"I want all these states as archers. The knight armor ones can be a single variant but not every.\"",
+   "why_not_the_normal_pipeline": "NOTHING WAS GENERATED. The twelve new looks are OWNER-SUPPLIED PixelLab states that already existed server-side in group e2702eb6-248d-4b6b-b8dc-fedc1290e059; task-128 downloaded the group whole and consumed the PNGs as UNMANAGED sources (explicit path maps) in the composite request docs/data/art/requests/team-units.json, one source per look. There is no /variants run, no silhouette band and no per-variant keep/flag verdict for these -- the owner's ask was the verdict. The only gate applied is the 56px atlas-cell bbox check, run by pixelpipe pack; all twelve pass. Slugs, folder->slug mapping and measurements are in docs/data/art/families/pathfinder-line/family.json.",
+   "generations_spent": 0,
+   "credits_spent": 0,
+   "calls_made": [],
+   "calls_explicitly_NOT_made": [
+    "create_character",
+    "create_character_state",
+    "animate_character",
+    "edit_image",
+    "create_object_state"
+   ],
+   "raw_download_dir": "RawArt/Renders/pathfinder-line/raw/<state>/rotations/ -- 96 PNGs, 8 rotations x 12 states, 92x92 source canvas, retained permanently per the PixelLab-retention rule. Group/base/state-id map in RawArt/Renders/pathfinder-line/source.json. The folder names are truncated prompt fragments, not shipped names.",
+   "animation_status": "NO WALK ANIMATION. walk0 and walk1 point at the same static rotation for all thirteen, the same convention every other source in this atlas uses.",
+   "retired_here": "archer-medieval's v1_narrowstrung, v3_loosingarm, v4_quiverreach, v5_crossbowbrace and v6_slingwhirl left the atlas. Their manifest entries in docs/data/art/families/archer-medieval/manifest.json carry a 'retired' block with the reason and their PNGs are untouched -- a roster change, not a deletion of evidence.",
+   "kit_note": "Several of these carry firearms, an RPG launcher, shoulder cannons, a mounted turret, a cyborg energy bow and a mage staff. Deliberate: the owner ruled the arms-and-kit register OPEN on 2026-07-31. Canon never banned any of it -- the ban was an inference drawn from the pitch-dark premise that later got cited back as canon."
+  }
+ ]
 }

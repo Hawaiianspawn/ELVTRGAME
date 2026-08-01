@@ -155,7 +155,9 @@ namespace
 		ECVF_Default);
 	/**
 	 * task-130 rung 3: BALANCE CHANGE, not a render dial. task-127 measured that 20% split
-	 * six ways over Swarm.ArcherVariantWeights puts any one archer look at ~3% of the army --
+	 * six ways over Swarm.ArcherVariantWeights puts any one archer look at ~3% of the army
+	 * (task-128 has since made that thirteen ways, so any one look is ~1.2% -- the spread
+	 * argument below is unchanged, only the arithmetic moved) --
 	 * too thin, on its own, to read as a line even with task-127's size bump and task-130's
 	 * rung 2 colour lift, both of which change how ONE archer looks, not how MANY there are.
 	 * 0.4 roughly doubles archer presence so archers stop being a rare find in the mass;

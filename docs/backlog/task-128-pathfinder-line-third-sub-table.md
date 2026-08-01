@@ -1,9 +1,9 @@
 ---
 id: 128
 title: Replace the archer sub-table with the twelve owner-supplied looks — one knight-armored archer survives, the other five retire
-status: proposed
+status: done
 agent: claude
-model: ""
+model: opus
 owns: ["ELVTR/Source/ELVTR/Mass/SwarmFragments.h", "ELVTR/Source/ELVTR/Mass/SwarmProcessors.cpp", "ELVTR/Source/ELVTR/Rendering/SwarmRenderActor.cpp", "RawArt/Sheets/T_Team_2bit.png", "ELVTR/Content/Spike1/**", "docs/data/art/requests/team-units.json", "docs/data/art/team-variants.json", "docs/data/art/provenance.json", "docs/data/art/families/pathfinder-line/**", "docs/data/art/families/archer-medieval/**", "RawArt/Renders/pathfinder-line/**", "ELVTR/SETUP-EDITOR.md", "docs/perf/evidence/task128/**"]
 resources: ["unreal-editor", "mcp-9000"]
 depends-on: [130]
@@ -13,8 +13,8 @@ epic: ""                  # sequel to the archers-on-the-field epic, not a sibli
 evidence: A PIE screenshot at gameplay density in which the archer line is visibly a mix of the twelve owner-supplied looks and reads as a different kind of soldier from the spearmen, plus Swarm.TeamVariantReport showing the resized archer sub-table and a frame-time row at 10k/40k against docs/perf/evidence/task126/SwarmBench-task126.csv with the draw-call count unchanged.
 score: {feel: 3, risk: 2, cost: 2}
 source: user
-teammate: ""
-decided: ""
+teammate: archer-atlas-swap
+decided: "2026-07-31 done"
 ---
 
 ## Why now

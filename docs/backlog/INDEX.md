@@ -10,7 +10,7 @@ not a re-read.
 
 | proposed | approved | in-progress | needs-review | done | rejected | parked |
 |---|---|---|---|---|---|---|
-| 42 | 1 | 0 | 0 | 80 | 0 | 8 |
+| 41 | 1 | 0 | 0 | 81 | 0 | 8 |
 
 ## Audit queue — top 7 awaiting your verdict
 
@@ -49,7 +49,7 @@ Approve with `py Scripts/backlog.py approve <ids>` (or `/backlog approve <ids>`)
 
 A fan is approved in one batch and dispatched one teammate per task. `⨝` joins own the shared writes and wait on their siblings — see `py Scripts/backlog.py epic <slug>`.
 
-## proposed (42)
+## proposed (41)
 
 | id | score | task | agent | owns | source |
 |---|---|---|---|---|---|
@@ -60,7 +60,6 @@ A fan is approved in one batch and dispatched one teammate per task. `⨝` joins
 | `030` | 3.0 | [Answer CAMERA-SCALE §4's six open questions](task-030-camera-scale-six-open-questions.md) | claude | `docs/design/CAMERA-SCALE-HANDOFF.md` | `docs/design/CAMERA-SCALE-HANDOFF.md:89` |
 | `054` | 3.0 | [Build the feeding-distraction mechanic in Mass — corpses, kill attribution, and the three-slot feed](task-054-build-feeding-distraction-in-mass.md) | claude | `ELVTR/Source/ELVTR/Mass/SwarmCombat.h`, `ELVTR/Source/ELVTR/Mass/SwarmCombatProcessors.cpp`, `ELVTR/Source/ELVTR/Mass/SwarmCombatProcessors.h`, `ELVTR/Source/ELVTR/Mass/SwarmFragments.h`, `ELVTR/Source/ELVTR/Mass/SwarmSubsystem.h`, `ELVTR/Config/SwarmExecOnPlay.canonical.txt`, `ELVTR/Saved/SwarmExecOnPlay.txt` | `user` |
 | `108` | 3.0 | [Measure frame time at the three-act populations, and price the Elite/Boss actors](task-108-measure-the-late-wave-population.md) | performance-director | `docs/perf/three-act-scale.md` | `user, 2026-07-30 — the scale half of "an effective way to test them"` |
-| `128` | 3.0 | [Replace the archer sub-table with the twelve owner-supplied looks — one knight-armored archer survives, the other five retire](task-128-pathfinder-line-third-sub-table.md) | claude | `ELVTR/Source/ELVTR/Mass/SwarmFragments.h`, `ELVTR/Source/ELVTR/Mass/SwarmProcessors.cpp`, `ELVTR/Source/ELVTR/Rendering/SwarmRenderActor.cpp`, `RawArt/Sheets/T_Team_2bit.png`, `ELVTR/Content/Spike1/**`, `docs/data/art/requests/team-units.json`, `docs/data/art/team-variants.json`, `docs/data/art/provenance.json`, `docs/data/art/families/pathfinder-line/**`, `docs/data/art/families/archer-medieval/**`, `RawArt/Renders/pathfinder-line/**`, `ELVTR/SETUP-EDITOR.md`, `docs/perf/evidence/task128/**` | `user` |
 | `042` | 2.0 | [Trial rust-gold and eulbink as LUT rows against the locked demichrome](task-042-trial-candidate-palettes-as-lut-rows.md) | pixel-art-director | `docs/art/palette-trials.md` | `user` |
 | `065` | 2.0 | [Land the hit flash, retire the stale header, and fix the black late-session capture](task-065-sprite-path-evidence-trio.md) | claude | `ELVTR/Source/ELVTR/Mass/SwarmFragments.h`, `ELVTR/Source/ELVTR/Rendering/SwarmRenderActor.cpp`, `ELVTR/Source/ELVTR/Rendering/SwarmRenderActor.h`, `ELVTR/Content/Spike1/**` | `user` |
 | `074` | 2.0 | [Scope the archer dead-zone hatch per-brood, not per-archer](task-074-per-brood-dead-zone-hatch.md) | claude | `ELVTR/Source/ELVTR/Mass/SwarmCombatProcessors.cpp`, `ELVTR/Source/ELVTR/Mass/SwarmProcessors.cpp` | `user` |
@@ -102,7 +101,7 @@ A fan is approved in one batch and dispatched one teammate per task. `⨝` joins
 |---|---|---|---|---|---|
 | `031` | 2.0 | [Check the shipped leash system against RTS-VERTICAL-SLICE §2's spec](task-031-leash-system-conformance-check.md) | claude | `docs/RTS-VERTICAL-SLICE.md` | `docs/RTS-VERTICAL-SLICE.md:97` |
 
-## done (80)
+## done (81)
 
 | id | score | task | agent | owns | source |
 |---|---|---|---|---|---|
@@ -116,7 +115,6 @@ A fan is approved in one batch and dispatched one teammate per task. `⨝` joins
 | `024` | 6.0 | [Extend the run structure from waves to three floors plus a boss](task-024-run-structure-three-floors-and-boss.md) | gameplay-director | `docs/design/run-structure.md` | `docs/RTS-VERTICAL-SLICE.md:101` |
 | `043` | 6.0 | [Put a live palette-preset dial on the Breadboard](task-043-live-palette-dial-on-the-breadboard.md) | claude | `ELVTR/Content/PostProcess/M_PP_Demichrome**`, `ELVTR/Content/PostProcess/MPC_Flame**`, `ELVTR/Source/ELVTR/Rendering/SwarmRenderActor.cpp`, `.claude/skills/cvars/SKILL.md`, `docs/data/art/palette.json` | `user` |
 | `101` | 6.0 | [Reconcile supply capacity with retinue size, and make provision bind](task-101-supply-capacity-collides-with-retinue-size.md) | gameplay-director | `docs/data/economy.json`, `docs/data/growth-sites.json`, `docs/design/retinue-economy.md` | `task-096 + task-097 handbacks, 2026-07-30` |
-| `130` | 4.0 | [Spend the contrast and mix rungs task-127 left — a visible archer block, not one findable archer](task-130-archer-contrast-and-mix.md) | claude | `ELVTR/Source/ELVTR/Rendering/SwarmRenderActor.cpp`, `ELVTR/Source/ELVTR/Mass/SwarmCombatProcessors.cpp`, `docs/perf/niagara-sprite-path.md`, `docs/perf/evidence/task130/**` | `user` |
 | `029` | 3.0 | [Spec the minimal audio set — hits, deaths, stance confirmations](task-029-minimal-audio-readability-set.md) | gameplay-director | `docs/design/audio-minimal.md` | `docs/RTS-VERTICAL-SLICE.md:113` |
 | `050` | 3.0 | [Draw the real sprite set in the Unit Cam — six soldier variants, the hero, and an archer proxy](task-050-wire-real-sprites-into-the-unit-cam.md) | claude | `ELVTR/Source/ELVTR/UI/UnitCamProjector.cpp`, `ELVTR/Source/ELVTR/UI/UnitCamProjector.h`, `ELVTR/Content/Sprites/**`, `RawArt/Renders/archer-proxy/**`, `RawArt/Sheets/T_Soldier_Archer.png`, `docs/data/art/provenance.json` | `user` |
 | `057` | 3.0 | [Take the colour gate off — a bypass and an N-value quantizer, live on the Breadboard](task-057-scene-look-rig-bypass-the-colour-gate.md) | claude | `ELVTR/Content/PostProcess/**`, `ELVTR/Source/ELVTR/Rendering/SwarmRenderActor.cpp`, `ELVTR/Source/ELVTR/Rendering/SwarmRenderActor.h`, `ELVTR/Saved/SwarmExecOnPlay.txt`, `docs/RENDERING-LIGHTING.md`, `.claude/skills/cvars/SKILL.md`, `docs/data/art/palette.json` | `user` |
@@ -127,6 +125,7 @@ A fan is approved in one batch and dispatched one teammate per task. `⨝` joins
 | `098` | 3.0 | [Open the armour gate so more than three weapon archetypes are worth taking](task-098-open-the-armour-gate.md) | gameplay-director | `docs/data/hero-builds.json`, `docs/design/hero-build-variety.md`, `docs/sim/DIFFERENTIATION.md` | `user` |
 | `102` | 3.0 | [Spec the three waves as early / mid / late game — retinue size, unique units, and the scale ceiling](task-102-three-act-wave-scaling.md) | gameplay-director | `docs/design/wave-scaling-three-act.md`, `docs/data/wave-scaling.json` | `user` |
 | `118` | 3.0 | [Credit kills to the squad that landed them, and give the Breather long enough to read](task-118-squad-kill-attribution-and-breather-length.md) | claude | `Source/ELVTR/Mass/SwarmSubsystem.h`, `Source/ELVTR/Mass/SwarmCombatProcessors.cpp`, `Source/ELVTR/Mass/SwarmProcessors.cpp`, `Source/ELVTR/Spike/Spike1GameMode.h`, `Source/ELVTR/Spike/Spike1GameMode.cpp` | `docs/ui/end-of-wave-showcase.md §5` |
+| `128` | 3.0 | [Replace the archer sub-table with the twelve owner-supplied looks — one knight-armored archer survives, the other five retire](task-128-pathfinder-line-third-sub-table.md) | claude | `ELVTR/Source/ELVTR/Mass/SwarmFragments.h`, `ELVTR/Source/ELVTR/Mass/SwarmProcessors.cpp`, `ELVTR/Source/ELVTR/Rendering/SwarmRenderActor.cpp`, `RawArt/Sheets/T_Team_2bit.png`, `ELVTR/Content/Spike1/**`, `docs/data/art/requests/team-units.json`, `docs/data/art/team-variants.json`, `docs/data/art/provenance.json`, `docs/data/art/families/pathfinder-line/**`, `docs/data/art/families/archer-medieval/**`, `RawArt/Renders/pathfinder-line/**`, `ELVTR/SETUP-EDITOR.md`, `docs/perf/evidence/task128/**` | `user` |
 | `001` | 2.0 | [Correct the stale blockers in GDD-TODO.md and point it at the backlog](task-001-correct-stale-gdd-todo-tracker.md) | claude | `docs/GDD-TODO.md` | `docs/GDD-TODO.md:46` |
 | `009` | 2.0 | [Run the Vanguard sprite acceptance checklist against the packed sheet](task-009-vanguard-sheet-acceptance-pass.md) | pixel-art-director | `docs/art/vanguard.md` | `docs/art/vanguard.md:351` |
 | `018` | 2.0 | [Repoint the director agents off superseded WORLD.md onto current narrative canon](task-018-director-agents-point-at-superseded-world.md) | claude | `.claude/agents/**` | `.claude/agents/gameplay-director.md:17` |
@@ -165,6 +164,7 @@ A fan is approved in one batch and dispatched one teammate per task. `⨝` joins
 | `126` | 2.0 | [Make an archer look like an archer on the battlefield — pack the family into the team atlas and branch the render path on unit type](task-126-land-archers-in-the-team-atlas.md) | claude | `ELVTR/Source/ELVTR/Mass/SwarmFragments.h`, `ELVTR/Source/ELVTR/Mass/SwarmProcessors.cpp`, `ELVTR/Source/ELVTR/Rendering/SwarmRenderActor.cpp`, `RawArt/Sheets/T_Team_2bit.png`, `ELVTR/Content/Spike1/**`, `docs/data/art/requests/team-units.json`, `docs/data/art/team-variants.json`, `docs/data/art/provenance.json`, `ELVTR/SETUP-EDITOR.md`, `docs/perf/niagara-sprite-path.md` | `user` |
 | `127` | 2.0 | [Make an archer readable at default weights — the render branch works but the bow disappears into the mass](task-127-make-the-archer-read-at-default-weights.md) | claude | `ELVTR/Source/ELVTR/Rendering/SwarmRenderActor.cpp`, `ELVTR/Source/ELVTR/Mass/SwarmProcessors.cpp`, `docs/perf/evidence/task127/**`, `docs/perf/niagara-sprite-path.md` | `user` |
 | `129` | 2.0 | [Show the volley — an arcing cue on an archer's SwingBit so the ranged line visibly shoots](task-129-volley-arcs-on-swingbit.md) | claude | `ELVTR/Source/ELVTR/Rendering/VolleySubsystem.h`, `ELVTR/Source/ELVTR/Rendering/VolleySubsystem.cpp`, `ELVTR/Content/Gore/**`, `docs/perf/volley-vfx.md`, `docs/perf/evidence/task129/**` | `user` |
+| `130` | 2.0 | [Spend the contrast and mix rungs task-127 left — a visible archer block, not one findable archer](task-130-archer-contrast-and-mix.md) | claude | `ELVTR/Source/ELVTR/Rendering/SwarmRenderActor.cpp`, `ELVTR/Source/ELVTR/Mass/SwarmCombatProcessors.cpp`, `docs/perf/niagara-sprite-path.md`, `docs/perf/evidence/task130/**` | `user` |
 | `068` | 1.5 | [Teach the wave-attrition model arrival timing, and re-run the GATE1 calibration check](task-068-teach-the-wave-model-arrival-timing.md) | sim-director | `Scripts/sim/**`, `docs/sim/**`, `docs/data/scenarios/**` | `user` |
 | `046` | 1.33 | [Build the typed-unit command layer in Mass — sticky type, per-type stance, per-type allocation, published centroids](task-046-squad-command-layer-in-mass.md) | claude | `ELVTR/Source/ELVTR/Mass/**`, `ELVTR/Source/ELVTR/UI/UnitCamProjector.cpp`, `ELVTR/Source/ELVTR/UI/UnitCamProjector.h`, `ELVTR/Source/ELVTR/UI/UnitCamDirector.cpp`, `ELVTR/Source/ELVTR/UI/UnitCamDirector.h` | `docs/design/squad-group-system.md` |
 | `085` | 1.33 | [Split the horde into a team atlas and an enemy atlas, and land the knight family in the team half](task-085-split-team-and-enemy-atlases-with-knight-family.md) | claude | `ELVTR/Source/ELVTR/Mass/SwarmFragments.h`, `ELVTR/Source/ELVTR/Mass/SwarmSubsystem.h`, `ELVTR/Source/ELVTR/Rendering/SwarmRenderActor.cpp`, `ELVTR/Source/ELVTR/Rendering/SwarmRenderActor.h`, `ELVTR/Content/Spike1/**`, `ELVTR/SETUP-EDITOR.md`, `RawArt/Sheets/T_Swarm*.png`, `RawArt/Sheets/T_Team*.png`, `RawArt/Sheets/T_Enemy*.png`, `docs/data/art/requests/swarm-units.json`, `docs/data/art/requests/team-units.json`, `docs/data/art/requests/enemy-units.json`, `docs/data/art/brood-variants.json`, `docs/data/art/team-variants.json`, `docs/data/art/provenance.json`, `docs/data/art/sprite-request.schema.json`, `Scripts/art/pixelpipe.py`, `Scripts/art/check_brood_variants.py`, `docs/perf/niagara-sprite-path.md` | `user` |

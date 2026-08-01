@@ -1,7 +1,7 @@
 {
   "id": "team-variants",
-  "revision": 4,
-  "note": "task-085. Companion to brood-variants.json, same mechanism, other side of the split atlas: how often each of the eleven team looks (retinue base + ten judged knight keeps) shows up. Owner, 2026-07-29: 'can we implement the knight family into the group... use that for materials as the enemies will change from time to time.' Nothing parses this JSON at runtime -- the compiled CVar default is the document of record, checked against this file by Scripts/art/check_brood_variants.py. task-126 added the ARCHER block: the same file now documents TWO sub-tables over one atlas -- 'variants' (Swarm.TeamVariantWeights, spearmen, atlas variants 0-10) and 'archer_variants' (Swarm.ArcherVariantWeights, atlas variants 11-16). Archers were fully simulated and invisible before it: with no unit-type branch in the render path they rolled a KNIGHT look, so the player could not see their own ranged line.",
+  "revision": 5,
+  "note": "task-085. Companion to brood-variants.json, same mechanism, other side of the split atlas: how often each of the eleven team looks (retinue base + ten judged knight keeps) shows up. Owner, 2026-07-29: 'can we implement the knight family into the group... use that for materials as the enemies will change from time to time.' Nothing parses this JSON at runtime -- the compiled CVar default is the document of record, checked against this file by Scripts/art/check_brood_variants.py. task-126 added the ARCHER block: the same file now documents TWO sub-tables over one atlas -- 'variants' (Swarm.TeamVariantWeights, spearmen, atlas variants 0-10) and 'archer_variants' (Swarm.ArcherVariantWeights, atlas variants 11-23, resized from six to thirteen by task-128). Archers were fully simulated and invisible before it: with no unit-type branch in the render path they rolled a KNIGHT look, so the player could not see their own ranged line.",
   "cvar": "Swarm.TeamVariantWeights",
   "weight_note": "Integer weights, any scale -- mapped through the cumulative sum exactly like Swarm.BroodVariantWeights. weight 0 retires a look with no repack.\n\nRETUNED 2026-07-30 (revision 3) into a BELL CURVE OVER BODY SIZE. Owner, after seeing the flat mix at gameplay density: \"i want at most 5% of the army to be super small like this. They are outliers and not the average or part of a bell curve.\"\n\nSizes were re-measured across ALL EIGHT rotations for this. The family manifests in docs/data/art/families/*/manifest.json record ONE frame each, and they rank these looks differently and misleadingly -- do not reweight off those numbers. See measured_8rot on each entry; median mass across the eleven is 953.\n\nv11_midguard (index 9) is the REALISTIC SMALLEST normal soldier: narrow at 34px but mass dead on the median. Below it the break is clean -- v1_narrowguard (26px, 0.86x), v7_barestance (28px, 0.88x) and v6_simplecolumn (29px, 0.93x) are the only looks under 30px wide AND under 0.95x mass, with nothing between 29 and 34. Those three are the small tail at 2 each = 4.9% combined. v8_heavycloak (1242, 1.30x) gets the same weight at the large end so BOTH tails are rare, not just the one that was complained about.\n\nNOT judged on mass alone: v10_bracedstaff is light (904, 0.95x) but 46px wide, so it reads as a big footprint rather than a small unit. Mass alone would have wrongly demoted it.\n\nSince task-095 this table also drives STATS (variant index -> melee stat row), so any reweight shifts the army's combat mix too. This one was checked and is very nearly combat-neutral: average retinue HP 132.7 -> 132.6, DPS 30.71 -> 31.13. Re-check if these move again -- see docs/perf/knight-subtype-binding.md.",
   "index_note": "index IS the value carried in bits 21-24 of the render int32 (SwarmRenderPack::VariantShift, shared with the enemy side -- the TeamBit says which table applies) AND the team atlas row pair (Row = index*2 + WalkFrame in SwarmSheet::Team). task-095 binds per-sub-type combat stats to exactly this index -- reordering this list without repacking BOTH the sheet and task-095's stat table swaps every knight's stats onto a different skin.",
@@ -141,21 +141,20 @@
     }
   ],
   "archer_cvar": "Swarm.ArcherVariantWeights",
-  "archer_note": "Six archer-medieval keeps from task-125, packed into rows 22-33 of T_Team_2bit by task-126. index is the ATLAS variant (11-16); table_index is what the render int32's 4-bit variant field actually carries (0-5) and what position a weight occupies in Swarm.ArcherVariantWeights. The +11 offset between them is applied in SwarmRenderActor.cpp's pack loop, keyed on the squad byte's unit type -- an archer can never draw a knight row and vice versa. UNLIKE the spearman table this one does NOT drive stats: archers short-circuit task-095's knight sub-type binding and read the Swarm.Archers* CVars, so reweighting here is a pure look change. Weights start FLAT -- there is no owner verdict on the archer mix yet, and unlike the knights there is no small-outlier complaint to answer; all six read as archers, which is the point. v2_bowextended carries a 'flag' verdict in the family manifest (it missed its 1.50 aspect target, measured band 0.73-0.87) -- owner decided 2026-07-31 to keep it anyway.",
+  "archer_note": "THIRTEEN archer looks in rows 22-47 of T_Team_2bit. task-126 opened this block with six archer-medieval keeps; task-128 REPLACED its contents on owner instruction 2026-07-31, looking at the shipped frame: \"I want all these states as archers. The knight armor ones can be a single variant but not every.\" WHY: all six of task-126's looks were a steel-helmeted knight holding a bow. Against eleven steel-helmeted knights holding a spear, at a 56px cell in a near-black frame, the bow was the only difference and it is a thin dark arc -- so task-127 (size) and task-130 (contrast) were both pushing against a silhouette that was never different. Twelve hooded, cloaked and distinctly-kitted looks are. RETIRED FROM THE ATLAS by this task: archer-medieval's v1_narrowstrung, v3_loosingarm, v4_quiverreach, v5_crossbowbrace and v6_slingwhirl. Their family manifest entries stay on disk -- this is a roster change, not a deletion of evidence. v2_bowextended survives as the single knight-armored archer (table_index 1), chosen because it is the one archer look already proven to read in a shipped capture, docs/perf/evidence/task126/02-skewed-bowextended-vs-midguard.png. THE KIT IS DELIBERATE: several of these carry guns, an RPG launcher, shoulder cannons, a mounted turret, a cyborg energy bow and a mage staff. The arms-and-kit register was ruled OPEN by the owner on 2026-07-31 -- canon never banned them; the ban was an inference that got cited back as canon (see docs/data/art/families/archer-medieval/family.json's correction). index is the ATLAS variant (11-23); table_index is what the render int32's 4-bit variant field actually carries (0-12) and what position a weight occupies in Swarm.ArcherVariantWeights. The +11 offset between them is applied in SwarmRenderActor.cpp's pack loop, keyed on the squad byte's unit type -- an archer can never draw a knight row and vice versa. Sixteen is the hard ceiling on this block (four bits); thirteen is what fits with room to spare. UNLIKE the spearman table this one does NOT drive stats: archers short-circuit task-095's knight sub-type binding and read the Swarm.Archers* CVars, so reweighting here is a pure look change. Weights are FLAT at thirteen ways, deliberately -- the knight-armored look is meant to be one archer in thirteen rather than the whole line, and flat is what makes that true without a mix verdict the owner has not given yet. measured_bbox_8rot is the max content box across all 8 rotations, as pixelpipe pack measured it while assembling the sheet; every entry is inside the 56px cell, which is the gate that killed the ranged-roster family in task-085. Note two of the twelve measure WIDER than the task-128 brief's table claimed (riflecrouch and turretnest at 53 against a claimed 45) -- still inside 56, but with 3px of margin rather than 11.",
   "archer_variants": [
     {
       "index": 11,
       "table_index": 0,
-      "id": "archer-v1",
-      "state": "v1_narrowstrung",
-      "source": "RawArt/Renders/archer-medieval/raw/v1_narrowstrung/rotations",
+      "id": "archer-hoodedbow",
+      "state": "Merle_Pathfinder",
+      "source": "RawArt/Renders/pathfinder-line/raw/Merle_Pathfinder/rotations",
       "weight": 16,
-      "look": "Hooded, bow strung and held close -- the tightest archer silhouette, and the only one that reads as a lurker rather than a shooter.",
-      "measured": {
-        "aspect": 0.609,
-        "solidity": 0.743,
-        "holes": 1
-      }
+      "look": "Hood up, cloak closed, longbow held down at one side, fletched arrows over the far shoulder. The plainest of the twelve and the block's index 0 -- the look everything else in the block is a variation on, the same role variant 0 plays for the spearmen.",
+      "measured_bbox_8rot": [
+        46,
+        46
+      ]
     },
     {
       "index": 12,
@@ -164,68 +163,154 @@
       "state": "v2_bowextended",
       "source": "RawArt/Renders/archer-medieval/raw/v2_bowextended/rotations",
       "weight": 16,
-      "look": "Longbow held out at full extension -- the widest reach of the six, bow limb breaking the outline on one side.",
-      "measured": {
-        "aspect": 0.87,
-        "solidity": 0.515,
-        "holes": 2
-      }
+      "look": "Steel helm, longbow at full extension to one side -- the widest reach in the block. THE ONE SURVIVING KNIGHT-ARMORED ARCHER.",
+      "measured_bbox_8rot": [
+        49,
+        48
+      ]
     },
     {
       "index": 13,
       "table_index": 2,
-      "id": "archer-v3",
-      "state": "v3_loosingarm",
-      "source": "RawArt/Renders/archer-medieval/raw/v3_loosingarm/rotations",
+      "id": "archer-ghilliecloak",
+      "state": "Can_we_have_one_cove",
+      "source": "RawArt/Renders/pathfinder-line/raw/Can_we_have_one_cove/rotations",
       "weight": 16,
-      "look": "Mid-loose, draw arm back and bow arm forward -- the most asymmetric of the six.",
-      "measured": {
-        "aspect": 0.809,
-        "solidity": 0.568,
-        "holes": 0
-      }
+      "look": "Head-to-knee foliage ghillie cloak over the bow silhouette -- a ragged, fringed outline, the only broken-edge look in the block.",
+      "measured_bbox_8rot": [
+        46,
+        47
+      ]
     },
     {
       "index": 14,
       "table_index": 3,
-      "id": "archer-v4",
-      "state": "v4_quiverreach",
-      "source": "RawArt/Renders/archer-medieval/raw/v4_quiverreach/rotations",
+      "id": "archer-hollowmask",
+      "state": "One_with_Hollow_blac",
+      "source": "RawArt/Renders/pathfinder-line/raw/One_with_Hollow_blac/rotations",
       "weight": 16,
-      "look": "Reaching back to the quiver, arrows fanning above the shoulder.",
-      "measured": {
-        "aspect": 0.955,
-        "solidity": 0.58,
-        "holes": 3
-      }
+      "look": "Hood up over a bone-white mask with one large hollow eye -- the highest-contrast head in the block, a bright disc where every other look is dark.",
+      "measured_bbox_8rot": [
+        46,
+        46
+      ]
     },
     {
       "index": 15,
       "table_index": 4,
-      "id": "archer-v5",
-      "state": "v5_crossbowbrace",
-      "source": "RawArt/Renders/archer-medieval/raw/v5_crossbowbrace/rotations",
+      "id": "archer-stoutbeard",
+      "state": "dwarf_version_which",
+      "source": "RawArt/Renders/pathfinder-line/raw/dwarf_version_which/rotations",
       "weight": 16,
-      "look": "Crossbow braced level at the waist -- a horizontal bar across the body, unlike every bow pose.",
-      "measured": {
-        "aspect": 0.886,
-        "solidity": 0.565,
-        "holes": 0
-      }
+      "look": "Short and broad under a hood, heavy forked beard filling the chest, a tool in each hand -- the only squat proportion in the block.",
+      "measured_bbox_8rot": [
+        48,
+        47
+      ]
     },
     {
       "index": 16,
       "table_index": 5,
-      "id": "archer-v6",
-      "state": "v6_slingwhirl",
-      "source": "RawArt/Renders/archer-medieval/raw/v6_slingwhirl/rotations",
+      "id": "archer-crystalstaff",
+      "state": "Convert_to_Mage",
+      "source": "RawArt/Renders/pathfinder-line/raw/Convert_to_Mage/rotations",
       "weight": 16,
-      "look": "Sling whirling overhead, a large enclosed loop above the head -- the biggest hole in the set.",
-      "measured": {
-        "aspect": 0.979,
-        "solidity": 0.48,
-        "holes": 1
-      }
+      "look": "Hooded and mantled, a tall staff held vertical with a lit crystal at the top -- a vertical bar plus a bright point well above the head.",
+      "measured_bbox_8rot": [
+        48,
+        46
+      ]
+    },
+    {
+      "index": 17,
+      "table_index": 6,
+      "id": "archer-arcbow",
+      "state": "Cyborg_with_Crossbow",
+      "source": "RawArt/Renders/pathfinder-line/raw/Cyborg_with_Crossbow/rotations",
+      "weight": 16,
+      "look": "Hooded, one optic implant lit, a cyan energy bow drawn across the body -- the brightest whole-weapon silhouette in the block.",
+      "measured_bbox_8rot": [
+        46,
+        46
+      ]
+    },
+    {
+      "index": 18,
+      "table_index": 7,
+      "id": "archer-riflecrouch",
+      "state": "Replace_the_bow_with",
+      "source": "RawArt/Renders/pathfinder-line/raw/Replace_the_bow_with/rotations",
+      "weight": 16,
+      "look": "Dropped into a low crouch behind a long rifle held level -- the only crouched profile in the block, a horizontal bar low across the body.",
+      "measured_bbox_8rot": [
+        53,
+        46
+      ]
+    },
+    {
+      "index": 19,
+      "table_index": 8,
+      "id": "archer-rocketshoulder",
+      "state": "RPG_launcher",
+      "source": "RawArt/Renders/pathfinder-line/raw/RPG_launcher/rotations",
+      "weight": 16,
+      "look": "Hooded, a launcher tube shouldered diagonally with a fat warhead clearing the head -- a thick diagonal crossing the whole silhouette.",
+      "measured_bbox_8rot": [
+        46,
+        46
+      ]
+    },
+    {
+      "index": 20,
+      "table_index": 9,
+      "id": "archer-twincannon",
+      "state": "ArtilleryCannons_on",
+      "source": "RawArt/Renders/pathfinder-line/raw/ArtilleryCannons_on/rotations",
+      "weight": 16,
+      "look": "The hooded bow look with two barrels mounted on the shoulders, one projecting each side -- the widest shoulder line in the block.",
+      "measured_bbox_8rot": [
+        46,
+        46
+      ]
+    },
+    {
+      "index": 21,
+      "table_index": 10,
+      "id": "archer-domedhelm",
+      "state": "Bump_helmet_ontop_of",
+      "source": "RawArt/Renders/pathfinder-line/raw/Bump_helmet_ontop_of/rotations",
+      "weight": 16,
+      "look": "Heavy domed helm and goggles instead of a hood, twin muzzles at the shoulders, coiled cable at the hip -- the heaviest, most enclosed head.",
+      "measured_bbox_8rot": [
+        53,
+        50
+      ]
+    },
+    {
+      "index": 22,
+      "table_index": 11,
+      "id": "archer-turretnest",
+      "state": "Can_you_make_a_Turre",
+      "source": "RawArt/Renders/pathfinder-line/raw/Can_you_make_a_Turre/rotations",
+      "weight": 16,
+      "look": "Hooded and seated low behind a mounted turret emplacement -- a wide horizontal base under a small head, the only look with ground furniture.",
+      "measured_bbox_8rot": [
+        53,
+        50
+      ]
+    },
+    {
+      "index": 23,
+      "table_index": 12,
+      "id": "archer-carbinesuit",
+      "state": "Lets_so_secret_servi",
+      "source": "RawArt/Renders/pathfinder-line/raw/Lets_so_secret_servi/rotations",
+      "weight": 16,
+      "look": "No hood: black tactical suit, bare dark hair, compact carbine held two-handed at the waist -- the narrowest and darkest look in the block.",
+      "measured_bbox_8rot": [
+        39,
+        46
+      ]
     }
   ]
 }

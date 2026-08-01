@@ -357,3 +357,7 @@ Rejected and parked tasks keep their files — this records why.
 - 2026-07-31 · `task-130` · approved → **in-progress** · Spend the contrast and mix rungs task-127 left — a visible archer block, not one findable archer — dispatched to teammate `archer-block` at model `sonnet`
 - 2026-07-31 · `task-130` · in-progress → **needs-review** · Spend the contrast and mix rungs task-127 left — a visible archer block, not one findable archer
 - 2026-07-31 · `task-130` · needs-review → **done** · Spend the contrast and mix rungs task-127 left — a visible archer block, not one findable archer
+- 2026-07-31 · `task-128` · proposed → **approved** · Replace the archer sub-table with the twelve owner-supplied looks — one knight-armored archer survives, the other five retire
+- 2026-07-31 · `task-128` · approved → **in-progress** · Replace the archer sub-table with the twelve owner-supplied looks — one knight-armored archer survives, the other five retire — dispatched to teammate `archer-atlas-swap` at model `opus`
+- 2026-07-31 · `task-128` · in-progress → **needs-review** · Replace the archer sub-table with the twelve owner-supplied looks — one knight-armored archer survives, the other five retire
+- 2026-07-31 · `task-128` · needs-review → **done** · Replace the archer sub-table with the twelve owner-supplied looks — one knight-armored archer survives, the other five retire
