@@ -7,7 +7,6 @@
 #   SwarmConsoleVariablesAsset  — everything (all tuning CVars)
 #   CVP_Lighting                — flame + dither + unit shading (the look)
 #   CVP_Combat                  — HP/DPS/melee + spawn distance + hit reaction (feel)
-#   CVP_UnitCam                 — the projection Unit Cam camera dials
 # These mirror the canonical groups in the cvars skill; edit VALUES/PRESETS below to
 # change the set, the baked values, or to add a scenario preset with custom values.
 #
@@ -41,12 +40,12 @@ VALUES = {
     "Swarm.DitherWorldAnchor": "1",
     "Swarm.WorldDitherScale": "8",
     "Swarm.DitherBandWidth": "0.5",
-    "Swarm.DitherThreshold1": "0.4",
-    "Swarm.DitherThreshold2": "0.5",
-    "Swarm.DitherThreshold3": "0.75",
     # Per-unit shading
-    "Swarm.UnitBackShade": "0.32",
     "Swarm.UnitLightFloor": "0.28",
+    # Brood visibility — the additive floor that makes the tide legible, and the near-camera
+    # band that dissolves it back to authored art up close (task-084/089)
+    "Swarm.BroodAdd": "0.05",
+    "Swarm.RawNear": "420",
     # Enemy / combat
     "Swarm.BroodMaxHP": "60",
     "Swarm.BroodDPS": "35",
@@ -81,48 +80,9 @@ VALUES = {
     "Swarm.BroodWalkHz": "6",
     # Horde arrival — where the tide comes from and how ragged it lands
     "Swarm.BroodSpawnRadiusMin": "2500",
-    "Swarm.BroodSpawnRadiusMax": "4000",
     "Swarm.BroodSpawnArc": "360",
     "Swarm.BroodSpawnArcCenter": "0",
     "Swarm.BroodSpeedJitter": "0.15",
-    # Unit Cam — projection close-up
-    "Kindled.UnitCamProj.Focus": "0",
-    "Kindled.UnitCamProj.FollowSpeed": "6",
-    "Kindled.UnitCamProj.SoldierScale": "0.75",
-    "Kindled.UnitCamProj.BroodScale": "1",
-    # 1 = bodies stand on their projected ground point. Below 1 they draw half-buried and
-    # every size multiplier digs downward as much as upward.
-    # Units now pick their own cell of the 4x2 T_Swarm_2bit grid per body (SpriteCell is
-    # gone); this is the one remaining override — the reserved-red wash over brood sprites.
-    "Kindled.UnitCamProj.NearFade": "150",
-    "Kindled.UnitCamProj.NearPlane": "10",
-    "Kindled.UnitCamProj.Fov": "40",
-    "Kindled.UnitCamProj.Dist": "320",
-    "Kindled.UnitCamProj.Height": "200",
-    "Kindled.UnitCamProj.Pitch": "-20",
-    "Kindled.UnitCamProj.Yaw": "35",
-    "Kindled.UnitCamProj.AutoLook": "2",
-    "Kindled.UnitCamProj.LookLerp": "3",
-    "Kindled.UnitCamProj.CombatScan": "1200",
-    "Kindled.UnitCamProj.CastFocusSpeed": "12",
-    "Kindled.UnitCamProj.CastZoom": "0.7",
-    "Kindled.UnitCamProj.Range": "1400",
-    "Kindled.UnitCamProj.Scale": "1",
-    # Hero proxy — the bearer drawn in the panel (he is a pawn, not a Mass entity)
-    "Kindled.UnitCamProj.Hero": "1",
-    "Kindled.UnitCamProj.HeroScale": "1.6",
-    "Kindled.UnitCamProj.HeroCell": "6",  # retinue ATTACK; 0 is now a brood frame
-    # Panel framing — the HUD command rectangle scales off the cam
-    "Kindled.UnitCamProj.SizeMax": "620",
-    "Kindled.UnitCamProj.SizeMin": "300",
-    "Kindled.UnitCamProj.SizeBodies": "1500",
-    # Weighted by YOUR headcount: a full retinue shrinks the cam, attrition grows it back.
-    "Kindled.UnitCamProj.SizeRetinueWeight": "10",
-    "Kindled.UnitCamProj.SizeBroodWeight": "0.25",
-    "Kindled.UnitCamProj.SizeCurve": "1",
-    "Kindled.UnitCamProj.Aspect": "1.35",
-    "Kindled.UnitCamProj.ThreatTint": "1",
-    "Kindled.UI.Muster.WingRatio": "0.5",
     # Game camera — slides to keep the hero centred in the strip the HUD doesn't cover
     "Kindled.Cam.HudBias": "1",
     "Kindled.Cam.HudBiasLerp": "6",
@@ -130,11 +90,11 @@ VALUES = {
 
 LIGHTING = [k for k in VALUES if k.startswith("Swarm.Flame")
             or k.startswith("Swarm.Dither") or k == "Swarm.WorldDitherScale"
-            or k.startswith("Swarm.Unit")]
+            or k.startswith("Swarm.Unit")
+            or k in ("Swarm.BroodAdd", "Swarm.RawNear")]
 COMBAT = ["Swarm.BroodMaxHP", "Swarm.BroodDPS", "Swarm.RetinueMaxHP", "Swarm.RetinueDPS",
           "Swarm.MeleeRange", "Swarm.MaxAttackersPerUnit", "Swarm.HeroMaxHP", "Swarm.HeroDPS",
-          "Swarm.HeroMeleeRange", "Swarm.BroodSpawnRadiusMin", "Swarm.BroodSpawnRadiusMax",
-          "Swarm.RetinueTargetsPerHit", "Swarm.BroodTargetsPerHit"]
+          "Swarm.HeroMeleeRange", "Swarm.BroodSpawnRadiusMin", "Swarm.RetinueTargetsPerHit", "Swarm.BroodTargetsPerHit"]
 # Hit reaction rides on the Combat preset: you tune how a blow FEELS in the same sitting
 # as how much it hurts, and SwingInterval is the seam between the two.
 HITREACTION = ["Swarm.SwingInterval", "Swarm.SwingStrikeAt", "Swarm.SwingLunge",
@@ -144,19 +104,11 @@ COMBAT = COMBAT + HITREACTION
 # and arrives, plus the brood stat block it is judged by. Deliberately overlaps COMBAT on
 # the brood stats — you cannot tell whether BroodSpeed is right without BroodDPS in reach.
 HORDE = ["Swarm.BroodMaxHP", "Swarm.BroodDPS", "Swarm.BroodTargetsPerHit",
-         # BroodScale is the same size call in the panel, where the difference is legible.
          "Swarm.BroodSizeJitter", "Swarm.RetinueSizeJitter",
-         "Kindled.UnitCamProj.BroodScale",
          "Swarm.BroodSpeed", "Swarm.BroodAggroRange", "Swarm.BroodSeparation",
          "Swarm.BroodSeparationWeight", "Swarm.BroodSeparationCap", "Swarm.BroodWalkHz",
-         "Swarm.BroodSpawnRadiusMin", "Swarm.BroodSpawnRadiusMax", "Swarm.BroodSpawnArc",
+         "Swarm.BroodSpawnRadiusMin", "Swarm.BroodSpawnArc",
          "Swarm.BroodSpawnArcCenter", "Swarm.BroodSpeedJitter"]
-# The wing ratio lives under a different prefix but frames the same rectangle, so it
-# belongs on the Unit Cam preset with the panel-size dials it pairs with.
-UNITCAM = ([k for k in VALUES if k.startswith("Kindled.UnitCamProj.")]
-           + ["Kindled.UI.Muster.WingRatio",
-              # The camera bias is driven BY the HUD's size, so it is tuned in the same sitting.
-              "Kindled.Cam.HudBias", "Kindled.Cam.HudBiasLerp"])
 EVERYTHING = list(VALUES.keys())
 
 # Preset asset name -> ordered list of CVar names (values pulled from VALUES).
@@ -165,7 +117,6 @@ PRESETS = {
     "CVP_Lighting": LIGHTING,
     "CVP_Combat": COMBAT,
     "CVP_Horde": HORDE,
-    "CVP_UnitCam": UNITCAM,
 }
 
 lib = unreal.ConsoleVariablesEditorFunctionLibrary

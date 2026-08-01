@@ -54,9 +54,6 @@ Swarm.FlameDamping 0.6     ; damping ratio; 1.0 = no overshoot, <1.0 overshoots 
 Swarm.DitherWorldAnchor 1  ; 1 = world-anchored (sticks to floor), 0 = screen; anti-vignette #1
 Swarm.WorldDitherScale 8   ; (owner-tuned, src 12) world uu per dither texel; lower = finer
 Swarm.DitherBandWidth 0.5  ; (owner-tuned, src 0.326) Bayer transition width; live-tune 0.4-0.9
-Swarm.DitherThreshold1 0.4  ; luminance where value 0 -> 1. Keep 1 < 2 < 3 ordered
-Swarm.DitherThreshold2 0.5  ; luminance where value 1 -> 2 (the mid split)
-Swarm.DitherThreshold3 0.75 ; luminance where value 2 -> 3; higher keeps the pool at Bone
 
 # ============================================================
 # PALETTE — which 4-value ramp the demichrome pass outputs   @tab Debug
@@ -119,7 +116,6 @@ Swarm.RetinueSizeJitter 0.15   ; [0..0.6] per-soldier size variation, applied as
 # ============================================================
 # PER-UNIT SHADING — flame falloff applied per sprite in the Niagara push   @tab Unit
 # ============================================================
-Swarm.UnitBackShade 0.32   ; darkness of the dark-facing half, fraction of the lit side
 Swarm.UnitLightFloor 0.28  ; [0..1] min brightness at the pool edge so the horde stays visible
                            ; (G5). RETINUE ONLY — brood use the two dials below
 Swarm.BroodLightFloor 0    ; [0..0.3] brood-only floor. 0 = a brood at the outer edge is drawn
@@ -139,148 +135,12 @@ Swarm.RawNear 420          ; [0..1000] camera distance, uu, inside which BroodAd
                            ; instead of a flat grey lift. Fades back in by 2x this distance. Only
                            ; darkens toward the authored art — cannot blow anything out. 0 disables
 
-# ============================================================
-# UNIT CAM — projection close-up (docs/RENDERING-LIGHTING.md §4d)   @tab Camera
-# NOTE: the whole panel is OFF in the shipped layout (Kindled.UI.Cams 0, one-camera mode —
-# see HUD LAYOUT below). At Cams 0 the Unit Cam is never even BUILT, so nothing in this section
-# does anything until you set Cams 1. Kept on the surface because the machinery is intact.
-# NB prose belongs INSIDE the banner pair like this: a comment line AFTER the closing banner is
-# read as a new section title, and silently drops every dial below it onto the "Other" tab.
-# ============================================================
-Kindled.UnitCamProj.Enable 1        ; master switch for the projector. 0 collapses the panel and
-                                      ; skips its per-frame projection — the honest "this camera
-                                      ; costs nothing" state the bench measures against
-Kindled.UnitCamProj.Fullscreen 0    ; 1 = blow the Unit Cam up to fill the viewport, to judge the
-                                      ; projector as the game's ONE camera rather than a corner
-                                      ; panel. A REAL PERF DIAL, not just framing: the projector
-                                      ; culls to Range and its own frustum, so full-screen draws a
-                                      ; far larger share of the field. Overrides SizeMin/SizeMax
-Kindled.UnitCamProj.Focus 0         ; 0 = HERO centre-frame (default), 1 = follow a soldier
-Kindled.UnitCamProj.FollowSpeed 6   ; follow smoothing; lower = laggier, 0 = frozen
-Kindled.UnitCamProj.SoldierScale 0.75 ; unit sprite size (framing dial)
-Kindled.UnitCamProj.SoldierAspect 1  ; width-only stretch on every billboard, after the sheet's
-                                      ; own cell aspect. task-050: owner said the knight/archer read
-                                      ; "a little scaled oddly... more broad?" -- real cause was the
-                                      ; PACKING (cells were 96x96 but the actual content only measured
-                                      ; ~23-46px per side, so half of every cell was blank padding
-                                      ; drawn at full size), fixed at the source with tighter 56x60
-                                      ; cells, not with this dial. 1 (no extra stretch) already reads
-                                      ; broad and crisp against that fix -- left at 1 on purpose, not
-                                      ; because the dial doesn't work. Raise it live here for further
-                                      ; taste on top of the fix; past ~1.2 it visibly distorts the
-                                      ; pixel art sideways instead of just filling the cell more
-Kindled.UnitCamProj.FullColorFloor 0.55 ; min brightness for the knight/archer sprite sets ONLY
-                                      ; (Swarm.UnitLightFloor 0.28 still governs brood/hero/world --
-                                      ; untouched). task-050: full-colour art already carries its own
-                                      ; hood shadows and armour recesses, so the SAME model that was
-                                      ; fine on flat 4-value art crushed it toward black. 0.55 chosen
-                                      ; by looking at a typical-combat-distance capture, not guessed --
-                                      ; verified the panel no longer reads as near-black speckle there
-Kindled.UnitCamProj.FullColorDimStrength 0.5 ; how much of the shared flame-distance/facing falloff
-                                      ; still applies to the knight/archer sprite sets before the
-                                      ; floor above takes over. 1 = full strength (same as brood);
-                                      ; 0 = no falloff at all -- DO NOT set 0, it deletes the
-                                      ; flame-distance read for these two units, which is the one
-                                      ; thing this change must not do. 0.5 keeps a real, visible
-                                      ; near/far gradient while keeping the far end well short of
-                                      ; crushed -- see docs/data/art/provenance.json
-                                      ; in_panel_lighting_finding for the capture that drove this
-Kindled.UnitCamProj.NearFade 150    ; near-plane fade-in band, uu; 0 = hard pop
-Kindled.UnitCamProj.NearPlane 10    ; near clip distance of the fake camera, uu
-Kindled.UnitCamProj.Fov 45.6        ; virtual-camera HORIZONTAL FOV, degrees (owner-tuned)
-Kindled.UnitCamProj.Dist 320        ; camera distance behind the focus, uu
-Kindled.UnitCamProj.Height 100      ; camera height above the focus, uu (owner-tuned: was 200 —
-                                      ; dropping to eye level is what puts the ranks in rows)
-Kindled.UnitCamProj.Pitch -9.2      ; lens tilt, deg; negative = angle UP toward eye level
-                                      ; (owner-tuned: was -20; flatter lens = less foreshortening,
-                                      ; so back ranks stay readable instead of stacking up)
-Kindled.UnitCamProj.Yaw 35          ; camera azimuth (used only when AutoLook 0)
-Kindled.UnitCamProj.AutoLook 2      ; 0 manual, 1 look outward, 2 outward+toward the fight
-Kindled.UnitCamProj.LookLerp 1.5    ; auto-look rotation easing speed. Was 3 here, which was
-                                      ; OVERRIDING the new 1.5 code default from task-045 — the
-                                      ; halved damping never actually took effect in play
-Kindled.UnitCamProj.YawClampDeg 30  ; [0..180] hard envelope, degrees either side of the base
-                                      ; heading, that AutoLook 2's pull toward the enemy centroid
-                                      ; may swing within. THE fix for "the camera swings too much":
-                                      ; that pull had damping but no ceiling. Clamped BEFORE
-                                      ; LookLerp eases it, so the edge reads as the pan running out
-                                      ; of steam, not a hard stop
-Kindled.UnitCamProj.CombatScan 1200 ; radius, uu, AutoLook 2 scans for enemies to aim at
-Kindled.UnitCamProj.CastFocusSpeed 12 ; how fast focus punches to a spell cast
-Kindled.UnitCamProj.CastZoom 0.7    ; camera distance x while a cast is focused (<1 = punch in)
-Kindled.UnitCamProj.Range 1400      ; how far around the focus units are included, uu. A FLOOR in
-                                      ; Unit/Squad View — the framing dials below may widen the
-                                      ; effective range past it, never below
-Kindled.UnitCamProj.Scale 1         ; billboard world half-size multiplier
 
 # --- group framing: what the shot must fit before it is allowed to crop ---
-Kindled.UnitCamProj.SelectedSquad -1 ; [-1..7] which squad the cam frames on. -1 = none, so Army
-                                      ; View (aggregate squad blocks). 0-7 switches the same panel
-                                      ; to Unit/Squad View on that squad. PLACEHOLDER input surface
-                                      ; standing in for the muster-card click until that is wired.
-                                      ; Latches — it does not decay back to Army View
-Kindled.UnitCamProj.SelectSpeed 10  ; [0..30] how fast the camera travels when the selection
-                                      ; changes. Above FollowSpeed 6 so a selection reads decisive,
-                                      ; under CastFocusSpeed 12 so a cast punch still wins
-Kindled.UnitCamProj.FrameFraction 0.6 ; [0..1] minimum fraction of the framed population that must
-                                      ; fit before the camera stops widening. The shot pulls BACK
-                                      ; to obey this rather than cropping the squad
-Kindled.UnitCamProj.FrameFloor 6    ; [1..40] body-count floor that overrides FrameFraction at low
-                                      ; counts — a 5-soldier squad shows all 5, not 60% of 5
-Kindled.UnitCamProj.ArmyRingRadius 700 ; [100..3000] Army View only: radius uu of the ring the <=8
-                                      ; squad blocks are arranged on. FAKE positioning — a stand-in
-                                      ; until the Mass layer publishes real per-squad centroids
-Kindled.UnitCamProj.ArmyBlockScale 1 ; [0.2..4] Army View only: overall bigness of a squad block,
-                                      ; on top of its own scaling with standing
 
 # --- panel lighting (the panel draws AFTER the demichrome pass, so it lights itself) ---
-Kindled.UnitCamProj.DirShade 1      ; 1 = shade each unit by WHICH SIDE the lens can see, so a
-                                      ; unit between the lens and the flame is a backlit
-                                      ; silhouette. This is what makes the panel read as bodies
-                                      ; walking INTO the light. 0 = distance only
-Kindled.UnitCamProj.BroodFloor 0.05 ; [0..0.5] min brightness for BROOD in this panel, replacing
-                                      ; Swarm.UnitLightFloor. Far below it on purpose: the shared
-                                      ; floor pins every distant brood at one flat mid-grey and
-                                      ; they read as fog instead of something coming out of the dark
-Kindled.UnitCamProj.BroodCeil 0.7   ; [0.3..1] brightest a brood is ever drawn, even in the flame.
-                                      ; Under 1 keeps them a step below retinue at every distance.
-                                      ; 1 = the old flat-grey look
-Kindled.UnitCamProj.LightSteps 5    ; [0..12] quantise the light into this many tiers. Steps the
-                                      ; LIGHT, not the pixels — snapping sprites to palette entries
-                                      ; is what collapsed the old SceneCapture close-up to one flat
-                                      ; value. 0 or 1 = continuous; 4-6 reads as 2-bit
-# --- hero proxy (the bearer, drawn in the panel; he is a pawn, not a Mass entity) ---
-Kindled.UnitCamProj.Hero 1          ; draw the bearer in the Unit Cam; 0 = swarm only
-Kindled.UnitCamProj.HeroScale 1.6   ; hero billboard size as a multiple of a soldier's
-Kindled.UnitCamProj.HeroCell 6      ; sheet cell for the hero (placeholder): 6 = retinue attack pose
-
-# --- panel framing (the HUD command rectangle) ---
-# Panel size is driven by YOUR force, not by how crowded the field is: a full retinue shrinks
-# the cam (commanding a mass, no one body matters), and attrition grows it back until the cam
-# is the primary view. Brood only nudge it — see the weights below.
-Kindled.UnitCamProj.SizeMax 620     ; panel HEIGHT px when your army is gone (individual matters)
-Kindled.UnitCamProj.SizeMin 300     ; panel height px at full strength (mass)
-Kindled.UnitCamProj.SizeBodies 1500 ; WEIGHTED total to reach SizeMin (not a headcount)
-Kindled.UnitCamProj.SizeRetinueWeight 10   ; each soldier's pull on the panel size
-Kindled.UnitCamProj.SizeBroodWeight 0.25   ; each enemy's pull; 0 = size purely on your retinue
-Kindled.UnitCamProj.SizeCurve 1     ; ramp shape; <1 = dramatic late swell, >1 = holds large longer
-Kindled.UnitCamProj.Aspect 1.35     ; panel width as a multiple of height; 1 = square
-Kindled.UnitCamProj.ThreatTint 1    ; frame bleeds red as brood outnumber the host
-Kindled.UI.Muster.WingRatio 0.5     ; retinue wing width as a fraction of the cam's width
-
 # --- HUD layout — these MOVE THE GAME CAMERA, because the HUD bias measures the band ---
-Kindled.UI.Cams 0                   ; ONE-CAMERA MODE. Briefly 1 on 2026-07-28 so the Unit Cam
-                                      ; panel could sit beside the main view as the reference shot
-                                      ; while the pinned eye-level camera was matched to it; the
-                                      ; owner called it good and closed the panel again the same
-                                      ; session. The main camera now carries that framing on its
-                                      ; own, so the reference is no longer needed.
-                                      ; 0 = your viewport is the only camera and the band is a
-                                      ; single centred muster shelf; the Unit Cam is never built —
-                                      ; nothing projects, captures or ticks.
-                                      ; 1 = the three-column rectangle, wing | Unit Cam | wing.
-                                      ; Set 1 again to re-open the A/B against the projector
-Kindled.UI.BandHeight 190           ; [80..600] ONE-CAMERA MODE ONLY: height px of the muster
+Kindled.UI.BandHeight 190           ; [80..600] height px of the muster
                                       ; shelf along the bottom. Scaling is down-only, so a small
                                       ; roster sits at natural size. Raising this PUSHES THE VIEW
                                       ; UP — PublishHudOcclusion measures the real height and
@@ -435,10 +295,6 @@ Swarm.BroodSizeJitter 0.4072   ; [0..0.6] PER-UNIT variation: each body draws at
                                ; stops the tide reading as one repeated stamp. 0 = the old
                                ; identical-bodies look. Quantised to 16 steps, so past ~0.5 the
                                ; banding shows. Honoured by both the Niagara push and the Unit Cam
-Kindled.UnitCamProj.BroodScale 1 ; [0.2..4] the same call for the UNIT CAM panel, as a multiple
-                               ; of a soldier's billboard. The panel is where the difference is
-                               ; actually legible — the world view is boxes from above — so move
-                               ; this with BroodSize or the two views disagree about a brood
 
 # ============================================================
 # HORDE MOVEMENT — how the tide crosses the dark   @tab Horde
@@ -471,10 +327,10 @@ Swarm.BroodWalkHz 6            ; [0..20] brood walk-cycle rate, full frames/sec.
 # Raised 2200 -> 4500 on 2026-07-28 with the pinned eye-level shot (Cam.Pitch -8.2). At -55
 # the camera saw ~1650uu of ground and 2200 covered it with margin. At -8.2 it looks very
 # nearly ALONG the ground: a body at 5000uu is still ~18px tall at Fov 45.6 on a 1920 view,
-# and the brood spawn ring is at 2500-4000uu (BroodSpawnRadiusMin/Max) — so the ENTIRE
-# incoming wave used to spawn outside the boundary, fully visible, striding.
-# 4500 clears BroodSpawnRadiusMax 4000 with margin. It is not free: far more bodies now count
-# as "near" and steer every frame, so the 34k entity ceiling measured at 2200 no longer holds
+# and the brood spawn ring starts at 2500uu (BroodSpawnRadiusMin) and runs deeper as a wave
+# grows — so the ENTIRE incoming wave used to spawn outside the boundary, fully visible,
+# striding. 4500 covers a typical wave with margin. It is not free: far more bodies now count
+# as "near" and steer every frame, so the entity ceiling measured at 2200 no longer holds
 # and wants re-measuring with -SwarmBench. Lower it only alongside a steeper Cam.Pitch.
 # ============================================================
 Swarm.SimLOD.NearRadius 4500   ; [500..8000] distance from the bearer, uu, inside which a brood
@@ -549,10 +405,6 @@ Swarm.BroodSpawnRadiusMin 1200       ; [0..8000] inner radius of the spawn ring,
                                      ; before reaching the line, so waves reach real combat sooner.
                                      ; Still comfortably under Swarm.SimLOD.NearRadius (4500), so
                                      ; nothing spawns already strided
-Swarm.BroodSpawnRadiusMax 2200       ; [0..8000] outer radius, uu — reference depth a typical wave
-                                     ; is sized to fit within (BroodFormation.RankSpacing); not a
-                                     ; hard bound, a bigger wave just recedes further back. DOWN
-                                     ; from 4000, same iteration-speed reasoning as RadiusMin
 Swarm.BroodSpawnArc 120              ; [0..360] DEGREES of arrival, AND the sweep the brood rank
                                      ; formation fans its columns across. 360 = surrounded (used to
                                      ; be the default); ~90 = one flank; ~30 = a column down one
@@ -604,13 +456,6 @@ Swarm.DebugRender 0        ; 0 = Niagara sprites (the only world renderer). 2 = 
                            ; and 22x at 20,000, and every "we can't hit the entity gate" claim in
                            ; this repo was measured against it
 Swarm.DebugPlainView 0     ; 1 = disable post-process (drops the demichrome dither)
-Kindled.UnitCamProj.DebugFrustum 0 ; draw the Unit Cam's virtual camera in the MAIN world view —
-                           ; position, FOV pyramid, aim line and the Range ring on the ground. The
-                           ; way to SEE where that camera is before tuning its numbers
-Kindled.UnitCamProj.CountLog 0 ; log how many billboards the Unit Cam actually drew, every N
-                           ; seconds; 0 = off. "The panel costs nothing" and "the panel drew
-                           ; nothing" are the same number in a benchmark — a cost claimed for this
-                           ; panel with no non-zero count beside it is not a measurement
 Swarm.DebugShotAfter 0     ; screenshot N seconds after BeginPlay; 0 disables
 Swarm.SpacingLogInterval 0 ; seconds between auto spacing reports; 0 disables
 

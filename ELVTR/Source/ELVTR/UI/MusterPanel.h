@@ -1,7 +1,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "UI/KindledWidget.h"
+#include "Blueprint/UserWidget.h"
 #include "UI/KindledUITypes.h"
 #include "MusterPanel.generated.h"
 
@@ -21,14 +21,14 @@ enum class EKindledMusterFlow : uint8
 
 /**
  * The Muster (menu spec §2/§5a): the company readout — a standing meter over a row of
- * square squad cards. This is the well content shared by the menu and the combat HUD.
- * M1 uses mock data (UseMockData); M2 binds to USwarmSubsystem squad state.
+ * square squad cards. This is the well content shared by the menu and the combat HUD,
+ * fed from USwarmSubsystem squad state via UKindledHud::PushLiveMuster.
  *
- * In the combat HUD two of these are used as the left/right wings of the command rectangle,
- * with their own chrome suppressed (SetChrome) so the band's frame is the only visible edge.
+ * The combat HUD hosts one of these as the band's centred shelf, with its own chrome
+ * suppressed (SetChrome) so the band's frame is the only visible edge.
  */
 UCLASS()
-class ELVTR_API UMusterPanel : public UKindledWidget
+class ELVTR_API UMusterPanel : public UUserWidget
 {
 	GENERATED_BODY()
 
@@ -40,14 +40,7 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "Muster")
 	void SetSquads(const TArray<FKindledSquad>& InSquads);
 
-	/** Fill with the mockup's roster (2x Shield, Vets, Spearmen wide, Banner). */
-	UFUNCTION(BlueprintCallable, Category = "Muster")
-	void UseMockData();
-
-	/** The mockup roster itself, so hosts that split it across panels build the same one. */
-	static TArray<FKindledSquad> MakeMockSquads();
-
-	/** Row (menu shelf) vs Column (HUD wing beside the Unit Cam). */
+	/** Row (menu shelf) vs Column (a tall, narrow host slot). */
 	void SetFlow(EKindledMusterFlow InFlow);
 
 	/** Draw our own Steel border + Dark ground (standalone), or nothing (embedded in a band

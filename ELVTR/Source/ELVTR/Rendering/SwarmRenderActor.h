@@ -92,42 +92,6 @@ public:
 	UPROPERTY(EditAnywhere, Category = "Swarm|Benchmark")
 	TArray<int32> BenchmarkBroodCounts = { 1000, 5000, 10000, 20000, 30000, 40000 };
 
-	/**
-	 * Renderer configurations to sweep, each one measured across EVERY entry in
-	 * BenchmarkBroodCounts — so the harness answers "which renderer scales best", not just
-	 * "how does today's renderer scale". Format per entry:
-	 *
-	 *     Name|command;command;command
-	 *
-	 * The commands are exec'd once at the top of the config, before the first count runs.
-	 * An entry with no '|' is treated as a name with no setup. Empty array = one unnamed
-	 * config using whatever CVars the exec file / command line already set, which is the
-	 * pre-2026-07-27 behaviour.
-	 *
-	 * Defaults are the one-camera comparison the owner asked for (docs/perf/one-camera-bench.md):
-	 * the isolation baseline, the Niagara renderer, and the Unit Cam projector standing alone as
-	 * a full-screen "simulated camera" with no world render underneath it.
-	 */
-	UPROPERTY(EditAnywhere, Category = "Swarm|Benchmark")
-	TArray<FString> BenchmarkConfigs = {
-		// Every row states every switch explicitly rather than relying on defaults. Configs are
-		// exec'd in sequence into one running session, so an unstated CVar keeps whatever the
-		// PREVIOUS config set it to — the classic way a sweep like this silently measures the
-		// wrong thing.
-		TEXT("SIM-ONLY|Swarm.DebugRender 2;Kindled.UnitCamProj.Enable 0;Swarm.SimLOD.Stride 1"),
-		// Range 2400 matches the main view's ground coverage (GetLiveViewWidthUU), so the
-		// projector is culling the same population the viewport rows have to draw. Left at the
-		// 1400 default it would frame less ground, win on cost, and the comparison would be a
-		// measurement of two different shots rather than of two renderers.
-		TEXT("UNITCAM-FULL|Swarm.DebugRender 2;Kindled.UnitCamProj.Enable 1;Kindled.UnitCamProj.Fullscreen 1;Kindled.UnitCamProj.Range 2400;Swarm.SimLOD.Stride 1"),
-		TEXT("UNITCAM+NIAGARA|Swarm.DebugRender 0;Kindled.UnitCamProj.Enable 1;Kindled.UnitCamProj.Fullscreen 1;Kindled.UnitCamProj.Range 2400;Swarm.SimLOD.Stride 1"),
-		// The LOD ladder. Stride 1 is the control and must reproduce run 1's VIEWPORT-NIAGARA
-		// column; if it doesn't, the machine moved under us and the 2/4 rows mean nothing.
-		TEXT("NIAGARA-LOD1|Swarm.DebugRender 0;Kindled.UnitCamProj.Enable 0;Swarm.SimLOD.Stride 1"),
-		TEXT("NIAGARA-LOD2|Swarm.DebugRender 0;Kindled.UnitCamProj.Enable 0;Swarm.SimLOD.Stride 2"),
-		TEXT("NIAGARA-LOD4|Swarm.DebugRender 0;Kindled.UnitCamProj.Enable 0;Swarm.SimLOD.Stride 4")
-	};
-
 	UPROPERTY(EditAnywhere, Category = "Swarm|Benchmark")
 	int32 BenchmarkRetinueCount = 100;
 
@@ -143,12 +107,8 @@ private:
 	void BenchExec(const FString& Cmd);
 	void BenchStartStep();
 	void BenchTick(float DeltaSeconds);
-	/** Exec the current config's setup commands and reset the count sweep to its first entry. */
-	void BenchStartConfig();
 	/** Append one measured row to Saved/SwarmBench.csv, creating it with a header if absent. */
 	void BenchWriteCsvRow(const FString& Row);
-	/** Display name of the config currently being swept, or "default" when none are configured. */
-	FString BenchConfigName() const;
 
 	void TickSpacingLog(float DeltaSeconds);
 	void TickFlame(float DeltaSeconds);
@@ -187,7 +147,6 @@ private:
 
 	EBenchPhase BenchPhase = EBenchPhase::Off;
 	int32 BenchStep = 0;
-	int32 BenchConfigIndex = 0;
 	bool bBenchCsvStarted = false;
 	float BenchTimer = 0.f;
 	int32 BenchFrames = 0;

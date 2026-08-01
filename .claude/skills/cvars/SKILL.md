@@ -41,9 +41,10 @@ add one here only if the owner asks.)
 - **Lighting:** `Swarm.Flame`, `Swarm.FlameRadius`, `Swarm.FlameCoreRadius`,
   `Swarm.FlameFalloff`, `Swarm.FlameIntensity`, `Swarm.FlameFlicker`,
   `Swarm.FlameStiffness`, `Swarm.FlameDamping`
-- **Dither:** `Swarm.DitherWorldAnchor`, `Swarm.WorldDitherScale`, `Swarm.DitherBandWidth`,
-  `Swarm.DitherThreshold1`, `Swarm.DitherThreshold2`, `Swarm.DitherThreshold3` — the last
-  four route through `MPC_Flame` into `M_PP_Demichrome`
+- **Dither:** `Swarm.DitherWorldAnchor`, `Swarm.WorldDitherScale`, `Swarm.DitherBandWidth`
+  — `DitherBandWidth` routes through `MPC_Flame` into `M_PP_Demichrome`. The three step
+  thresholds are compile-time constants (`LockedThreshold1..3`), not dials: they ARE the
+  locked N=4 look, and the game ships at `Kindled.Quantize 0` where nothing posterises
 - **Palette:** `Kindled.Palette` — which 4-value ramp the demichrome pass outputs
   (`0` demichrome / `1` eulbink-4 / `2` rust-gold-4), added 2026-07-26 by task-043. Defined in
   `Rendering/SwarmRenderActor.cpp`; the four colours ride `MPC_Flame` as `Palette0..3` into
@@ -68,7 +69,7 @@ add one here only if the owner asks.)
   N=4 numbers. `MPC_Flame` gained matching `Threshold4..7` and `Palette4..7` parameters and
   `M_PP_Demichrome`'s Custom node loops over them instead of unrolling three comparisons —
   same **judging dial, not canon** status as `Kindled.Palette`, and UMG still does not follow
-- **Unit shading:** `Swarm.UnitShading`, `Swarm.UnitBackShade`, `Swarm.UnitLightFloor`
+- **Unit shading:** `Swarm.UnitShading`, `Swarm.UnitLightFloor`
 - **Body size:** `Swarm.BroodSize`, `Swarm.RetinueSize`, `Swarm.BodyHeight` — defined in
   `Rendering/SwarmRenderActor.cpp`, added 2026-07-26. These **override** the placed
   `ASwarmRenderActor`'s `BroodDebugPointSize`/`RetinueDebugPointSize` UPROPERTYs, which were
@@ -76,8 +77,7 @@ add one here only if the owner asks.)
   of **0 means "don't override"**, so the level keeps its design-time default and these stay
   a live experiment on top of it — the exec file writes explicit positive values so the
   breadboard rows show real numbers rather than a sentinel. They drive the **debug-box**
-  renderer, which is the shipping path while `Swarm.DebugRender` is 1. Pair `BroodSize` with
-  `Kindled.UnitCamProj.BroodScale` (the panel counterpart) and with `Swarm.BroodSeparation`
+  renderer, which is the shipping path while `Swarm.DebugRender` is 1. Pair `BroodSize` with `Swarm.BroodSeparation`
   — separation holds bodies apart with no idea how big they are, so size outgrowing it
   interpenetrates
 - **Per-unit size variation:** `Swarm.BroodSizeJitter` (0.2), `Swarm.RetinueSizeJitter` (0) —
@@ -117,37 +117,11 @@ add one here only if the owner asks.)
   larger values read the same — raising it past that needs a wider neighbour query, not a
   bigger number. The retinue equivalents stay compile-time on purpose: your line is what the
   *stances* are meant to move
-- **Horde arrival:** `Swarm.BroodSpawnRadiusMin`, `Swarm.BroodSpawnRadiusMax`,
-  `Swarm.BroodSpawnArc`, `Swarm.BroodSpawnArcCenter`, `Swarm.BroodSpeedJitter` — defined in
+- **Horde arrival:** `Swarm.BroodSpawnRadiusMin`, `Swarm.BroodSpawnArc`, `Swarm.BroodSpawnArcCenter`, `Swarm.BroodSpeedJitter` — defined in
   `Mass/SwarmCommands.cpp`. The arc pair (added 2026-07-26) is what lets a wave arrive as a
   FRONT rather than a full encirclement; 360 (the old hard-coded behaviour) is the
   surrounded case and was the only one the spike could stage
-- **Unit Cam (projection close-up, §4d):** `Kindled.UnitCamProj.Focus`,
-  `Kindled.UnitCamProj.FollowSpeed`, `Kindled.UnitCamProj.SoldierScale`,
-  `Kindled.UnitCamProj.BroodScale`, `Kindled.UnitCamProj.FootAnchor`,
-  `Kindled.UnitCamProj.BroodTint`, `Kindled.UnitCamProj.NearFade`,
-  `Kindled.UnitCamProj.NearPlane`, `Kindled.UnitCamProj.Fov`, `Kindled.UnitCamProj.Dist`,
-  `Kindled.UnitCamProj.Height`, `Kindled.UnitCamProj.Pitch`, `Kindled.UnitCamProj.Yaw`,
-  `Kindled.UnitCamProj.AutoLook`, `Kindled.UnitCamProj.LookLerp`,
-  `Kindled.UnitCamProj.CombatScan`, `Kindled.UnitCamProj.CastFocusSpeed`,
-  `Kindled.UnitCamProj.CastZoom`, `Kindled.UnitCamProj.Range`, `Kindled.UnitCamProj.Scale`,
-  `Kindled.UnitCamProj.SizeMax`, `Kindled.UnitCamProj.SizeMin`,
-  `Kindled.UnitCamProj.SizeBodies`, `Kindled.UnitCamProj.SizeRetinueWeight`,
-  `Kindled.UnitCamProj.SizeBroodWeight`, `Kindled.UnitCamProj.SizeCurve`,
-  `Kindled.UnitCamProj.Aspect`,
-  `Kindled.UnitCamProj.ThreatTint`, `Kindled.UnitCamProj.Hero`,
-  `Kindled.UnitCamProj.HeroScale`, `Kindled.UnitCamProj.HeroCell`
-  — split across two files since 2026-07-25: the **direction** dials (`Focus`, `FollowSpeed`,
-  `Yaw`, `AutoLook`, `LookLerp`, `CombatScan`, `CastFocusSpeed`, `CastZoom`) live in
-  `UI/UnitCamDirector.cpp` beside the camera manager they steer; the **lens/panel/hero-proxy**
-  dials stay in `UI/UnitCamProjector.cpp` (owner added to the surface 2026-07-24).
-  **`FootAnchor` is a correctness dial, not a taste one** (added 2026-07-26): the point a body
-  projects to is its GROUND contact — the sim is 2D, every transform sits on the floor plane —
-  so the old centre-anchored sprite was drawn half-buried, and every size multiplier
-  (`SoldierScale`, `HeroScale`, `BroodScale`, `Swarm.BroodSizeJitter`) grew a unit downward
-  through the floor exactly as much as upward. That is what "scaling sinks them through the
-  floor" means. 1 plants the feet; 0 reproduces the old look for an A/B, and re-framing
-  `Pitch`/`Height` after moving it is expected, since 1 lifts every body half its height
+
 - **Game camera (the shot):** `Kindled.Cam.HudBias`, `Kindled.Cam.HudBiasLerp`,
   `Kindled.Cam.Ortho`, `Kindled.Cam.OrthoWidth`, `Kindled.Cam.Fov`, `Kindled.Cam.Dist`,
   `Kindled.Cam.Pitch`, `Kindled.Cam.Yaw`, `Kindled.Cam.YawInput`,
@@ -186,12 +160,11 @@ point of this file being the single source of truth.
 
 ## What to do when invoked
 
-1. **Read current defaults from source.** The CVar definitions live in seven files —
+1. **Read current defaults from source.** The CVar definitions live in five files —
    lighting/dither/unit-shading in `Rendering/SwarmRenderActor.cpp`, combat in
    `Mass/SwarmCombatProcessors.cpp`, horde movement in `Mass/SwarmProcessors.cpp`,
    horde arrival (spawn ring/arc/jitter) in `Mass/SwarmCommands.cpp`,
-   Unit Cam lens/panel in `UI/UnitCamProjector.cpp`, Unit Cam direction in
-   `UI/UnitCamDirector.cpp`, the HUD rectangle in `UI/KindledHud.cpp`.
+   the HUD band in `UI/KindledHud.cpp`.
    Grep each for the CVar names in the canonical set; take the default value and first
    line of help text. If a name isn't found in any of them, flag it (renamed or removed)
    rather than emitting a stale line.
@@ -342,7 +315,6 @@ Two facts, both verified 2026-07-23:
 | `CVP_Lighting` | flame + dither + unit shading | the spotlight look |
 | `CVP_Combat` | HP/DPS/melee + hit reaction | fight balance |
 | `CVP_Horde` | brood stat block + movement + arrival | how the tide behaves |
-| `CVP_UnitCam` | the 13 `Kindled.UnitCamProj.*` dials | the Unit Cam / camera work |
 
 The subset presets mirror the canonical groups above. To add a **scenario** preset (a
 named config with non-default values), add an entry to `PRESETS` with its own baked values.

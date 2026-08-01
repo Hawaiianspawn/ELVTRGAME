@@ -351,13 +351,6 @@ namespace
 		TEXT("fatter wedges. A soldier is ~22uu across; 45 casts a readable wedge."),
 		ECVF_Default);
 
-	TAutoConsoleVariable<int32> CVarSwarmFlameShadowCount(
-		TEXT("Swarm.FlameShadowCount"),
-		8,
-		TEXT("Max soldiers that cast a shadow at once (the nearest to the flame win).\n")
-		TEXT("Hard-capped at 8 by the number of occluder slots in MPC_Flame."),
-		ECVF_Default);
-
 	TAutoConsoleVariable<float> CVarSwarmDitherWorldAnchor(
 		TEXT("Swarm.DitherWorldAnchor"),
 		1.f,
@@ -422,27 +415,13 @@ namespace
 		TEXT("more sudden value change. 0 = no dithering (pure hard posterise)."),
 		ECVF_Default);
 
-	TAutoConsoleVariable<float> CVarSwarmDitherThreshold1(
-		TEXT("Swarm.DitherThreshold1"),
-		0.40f,
-		TEXT("Luminance where the palette steps from value 0 (darkest) to value 1. Lower\n")
-		TEXT("pushes more of the image into the darker value. Keep 1 < 2 < 3 ordered."),
-		ECVF_Default);
-
-	TAutoConsoleVariable<float> CVarSwarmDitherThreshold2(
-		TEXT("Swarm.DitherThreshold2"),
-		0.50f,
-		TEXT("Luminance where the palette steps from value 1 to value 2 (the mid split).\n")
-		TEXT("Keep 1 < 2 < 3 ordered."),
-		ECVF_Default);
-
-	TAutoConsoleVariable<float> CVarSwarmDitherThreshold3(
-		TEXT("Swarm.DitherThreshold3"),
-		0.75f,
-		TEXT("Luminance where the palette steps from value 2 to value 3 (brightest). Raising\n")
-		TEXT("it keeps the body of the lit pool at Bone so the white core reads (§4b.8).\n")
-		TEXT("Keep 1 < 2 < 3 ordered."),
-		ECVF_Default);
+	// The locked, owner-tuned N=4 thresholds. Constants, not CVars: the game ships at
+	// Kindled.Quantize 0 (full colour, 2026-07-28), so nothing posterises at all, and even
+	// with the gate back on these are the values the look is DEFINED by. Any other count
+	// derives its own spacing (GetEvenThreshold) rather than reusing these.
+	constexpr float LockedThreshold1 = 0.40f; // value 0 (darkest) -> value 1
+	constexpr float LockedThreshold2 = 0.50f; // value 1 -> value 2 (the mid split)
+	constexpr float LockedThreshold3 = 0.75f; // value 2 -> value 3 (brightest)
 
 	// --- colour gate toggle (task-057, owner 2026-07-28) ---------------------
 	// "resolving the palette swap choices" (task-043) assumed the value-collapse itself was
@@ -565,16 +544,6 @@ namespace
 		ECVF_Default);
 
 	// --- per-unit flame shading (docs/RENDERING-LIGHTING.md §4a) -------------
-
-	// Registered here, read only by UnitCamProjector (by name, via ReadCVarFloat) — the world
-	// renderer's own front/back split went with the debug-box path. Kept in this file so the
-	// Swarm.* shading dials stay in one place.
-	TAutoConsoleVariable<float> CVarSwarmUnitBackShade(
-		TEXT("Swarm.UnitBackShade"),
-		0.32f,
-		TEXT("How dark a unit's flame-averted side draws, as a fraction of the lit side, in the\n")
-		TEXT("Unit Cam panel. 0 = black back (hard shading), 1 = no front/back difference."),
-		ECVF_Default);
 
 	TAutoConsoleVariable<float> CVarSwarmUnitLightFloor(
 		TEXT("Swarm.UnitLightFloor"),
@@ -1039,81 +1008,10 @@ void ASwarmRenderActor::BeginPlay()
 		}
 		BenchExec(TEXT("t.MaxFPS 0"));
 		BenchExec(TEXT("r.VSync 0"));
-		// Optional override file, so a measurement run can be re-aimed without a rebuild.
-		// Same "Name|cmd;cmd" format as the BenchmarkConfigs default, one per line, # comments.
-		//
-		// This is what isolated runs use. Some things genuinely cannot be A/B'd inside one
-		// session — the Unit Cam widget is the known case: any switch that stops Slate laying
-		// it out also stops its tick, so it can never turn itself back on, and a config that
-		// re-enables it silently measures a dead widget (docs/perf/one-camera-bench.md §4).
-		// The fix is one config per launch, which this file makes cheap.
-		FString ConfigFileContents;
-		if (FFileHelper::LoadFileToString(ConfigFileContents,
-			*(FPaths::ProjectSavedDir() / TEXT("SwarmBenchConfigs.txt"))))
-		{
-			TArray<FString> Lines;
-			ConfigFileContents.ParseIntoArrayLines(Lines);
-			TArray<FString> Parsed;
-			for (FString& Line : Lines)
-			{
-				Line.TrimStartAndEndInline();
-				if (!Line.IsEmpty() && !Line.StartsWith(TEXT("#")))
-				{
-					Parsed.Add(Line);
-				}
-			}
-			if (Parsed.Num() > 0)
-			{
-				BenchmarkConfigs = MoveTemp(Parsed);
-				UE_LOG(LogTemp, Display,
-					TEXT("SwarmBench: using %d config(s) from Saved/SwarmBenchConfigs.txt"),
-					BenchmarkConfigs.Num());
-			}
-		}
 
-		BenchConfigIndex = 0;
-		BenchStartConfig();
+		BenchStep = 0;
+		BenchStartStep();
 	}
-}
-
-FString ASwarmRenderActor::BenchConfigName() const
-{
-	if (!BenchmarkConfigs.IsValidIndex(BenchConfigIndex))
-	{
-		return TEXT("default");
-	}
-	const FString& Entry = BenchmarkConfigs[BenchConfigIndex];
-	FString Name, Commands;
-	return Entry.Split(TEXT("|"), &Name, &Commands) ? Name.TrimStartAndEnd() : Entry.TrimStartAndEnd();
-}
-
-void ASwarmRenderActor::BenchStartConfig()
-{
-	// An empty config list still runs one pass, so the harness keeps working exactly as it
-	// did before configs existed — the command line / exec file supplies the CVars instead.
-	if (BenchmarkConfigs.IsValidIndex(BenchConfigIndex))
-	{
-		const FString& Entry = BenchmarkConfigs[BenchConfigIndex];
-		FString Name, Commands;
-		if (Entry.Split(TEXT("|"), &Name, &Commands))
-		{
-			TArray<FString> Cmds;
-			Commands.ParseIntoArray(Cmds, TEXT(";"), true);
-			for (FString& Cmd : Cmds)
-			{
-				Cmd.TrimStartAndEndInline();
-				if (!Cmd.IsEmpty())
-				{
-					BenchExec(Cmd);
-				}
-			}
-		}
-		UE_LOG(LogTemp, Display, TEXT("SwarmBench: === config %d/%d: %s ==="),
-			BenchConfigIndex + 1, BenchmarkConfigs.Num(), *BenchConfigName());
-	}
-
-	BenchStep = 0;
-	BenchStartStep();
 }
 
 void ASwarmRenderActor::BenchWriteCsvRow(const FString& Row)
@@ -1125,7 +1023,7 @@ void ASwarmRenderActor::BenchWriteCsvRow(const FString& Row)
 		// Overwrite rather than append: a run's CSV should describe THAT run, not accumulate
 		// silently across runs until nobody can tell which rows came from which build.
 		FFileHelper::SaveStringToFile(
-			TEXT("config,brood,retinue,frame_ms,game_ms,draw_ms,gpu_ms,fps\n"), *CsvPath);
+			TEXT("brood,retinue,frame_ms,game_ms,draw_ms,gpu_ms,fps\n"), *CsvPath);
 	}
 	FFileHelper::SaveStringToFile(Row + TEXT("\n"), *CsvPath,
 		FFileHelper::EEncodingOptions::AutoDetect, &IFileManager::Get(), EFileWrite::FILEWRITE_Append);
@@ -1143,15 +1041,6 @@ void ASwarmRenderActor::BenchStartStep()
 {
 	if (BenchStep >= BenchmarkBroodCounts.Num())
 	{
-		// This config is finished — advance to the next one rather than ending the run, so a
-		// single launch produces the whole comparison matrix instead of one renderer's column.
-		++BenchConfigIndex;
-		if (BenchConfigIndex < BenchmarkConfigs.Num())
-		{
-			BenchStartConfig();
-			return;
-		}
-
 		BenchExec(TEXT("Swarm.Clear"));
 		BenchPhase = EBenchPhase::Off;
 		UE_LOG(LogTemp, Display, TEXT("SwarmBench: DONE — %s"),
@@ -1198,15 +1087,14 @@ void ASwarmRenderActor::BenchTick(float DeltaSeconds)
 	if (BenchTimer >= BenchmarkSampleSeconds && BenchFrames > 0)
 	{
 		const double Inv = 1.0 / BenchFrames;
-		const FString Config = BenchConfigName();
 		const double FrameMs = BenchFrameMs * Inv;
 		UE_LOG(LogTemp, Display,
-			TEXT("SwarmBench: config=%s brood=%d retinue=%d frame=%.2fms game=%.2fms draw=%.2fms gpu=%.2fms fps=%.1f"),
-			*Config, BenchmarkBroodCounts[BenchStep], BenchmarkRetinueCount,
+			TEXT("SwarmBench: brood=%d retinue=%d frame=%.2fms game=%.2fms draw=%.2fms gpu=%.2fms fps=%.1f"),
+			BenchmarkBroodCounts[BenchStep], BenchmarkRetinueCount,
 			FrameMs, BenchGameMs * Inv, BenchRenderMs * Inv, BenchGpuMs * Inv,
 			1000.0 / FrameMs);
-		BenchWriteCsvRow(FString::Printf(TEXT("%s,%d,%d,%.3f,%.3f,%.3f,%.3f,%.2f"),
-			*Config, BenchmarkBroodCounts[BenchStep], BenchmarkRetinueCount,
+		BenchWriteCsvRow(FString::Printf(TEXT("%d,%d,%.3f,%.3f,%.3f,%.3f,%.2f"),
+			BenchmarkBroodCounts[BenchStep], BenchmarkRetinueCount,
 			FrameMs, BenchGameMs * Inv, BenchRenderMs * Inv, BenchGpuMs * Inv,
 			1000.0 / FrameMs));
 		++BenchStep;
@@ -1461,9 +1349,9 @@ void ASwarmRenderActor::TickFlame(float DeltaSeconds)
 
 	if (Steps == 4)
 	{
-		SetScalar(TEXT("Threshold1"), CVarSwarmDitherThreshold1.GetValueOnGameThread());
-		SetScalar(TEXT("Threshold2"), CVarSwarmDitherThreshold2.GetValueOnGameThread());
-		SetScalar(TEXT("Threshold3"), CVarSwarmDitherThreshold3.GetValueOnGameThread());
+		SetScalar(TEXT("Threshold1"), LockedThreshold1);
+		SetScalar(TEXT("Threshold2"), LockedThreshold2);
+		SetScalar(TEXT("Threshold3"), LockedThreshold3);
 		// Threshold4-7 are dead at Steps==4 (the shader's loop bound is Steps-1 == 3, so it
 		// never reads them) but are still given a valid, monotonically-increasing value so
 		// a mid-drag frame that reads stale data from a previous Steps!=4 session can't leave

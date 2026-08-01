@@ -1,6 +1,5 @@
 // Preview + auto-show for the M1 UI over the running Spike map.
-//   Kindled.UI.Hud       — bottom band: Muster (centre) + Unit Cam (projection, right)
-//   Kindled.UI.Muster    — muster band only (no cam)
+//   Kindled.UI.Hud       — spawn the bottom muster band
 //   Kindled.UI.Clear     — remove UI added by these helpers
 //   Kindled.UI.AutoShow  — cvar (default 1): show the HUD automatically on Play
 //
@@ -18,21 +17,7 @@
 
 static TAutoConsoleVariable<int32> CVarUIAutoShow(
 	TEXT("Kindled.UI.AutoShow"), 1,
-	TEXT("Auto-show the combat HUD when a play session starts. 1=on (default), 0=off.\n")
-	TEXT("Whether that HUD carries cam panels is Kindled.UI.Cams, below."),
-	ECVF_Default);
-
-static TAutoConsoleVariable<int32> CVarUICams(
-	TEXT("Kindled.UI.Cams"), 0,
-	TEXT("Does the auto-shown combat HUD carry CAMERA PANELS at all?\n")
-	TEXT("  0 = ONE-CAMERA MODE (default, owner call 2026-07-28): the viewport is the only\n")
-	TEXT("      camera and the band is one centred muster shelf holding the whole roster.\n")
-	TEXT("      The Unit Cam is never built, not merely hidden.\n")
-	TEXT("  1 = the three-column rectangle: muster wing | Unit Cam | muster wing.\n")
-	TEXT("Why 0: the projector draws billboards on the game thread (100% of frame cost) while\n")
-	TEXT("the viewport's Niagara path draws on an idle GPU, and it caps ~24%% lower on entity\n")
-	TEXT("count before LOD, ~53%% after — docs/perf/one-camera-bench.md section 6.\n")
-	TEXT("`Kindled.UI.Hud` forces it on for a one-off look without changing this default."),
+	TEXT("Auto-show the combat HUD when a play session starts. 1=on (default), 0=off."),
 	ECVF_Default);
 
 namespace
@@ -72,7 +57,7 @@ namespace
 
 }
 
-void KindledUI::ShowCombatHud(UWorld* Passed, bool bWithCams)
+void KindledUI::ShowCombatHud(UWorld* Passed)
 {
 	UWorld* World = FindPlayWorld(Passed);
 	APlayerController* PC = World ? World->GetFirstPlayerController() : nullptr;
@@ -88,17 +73,10 @@ void KindledUI::ShowCombatHud(UWorld* Passed, bool bWithCams)
 	{
 		return;
 	}
-	Hud->AddToViewport(100); // build the widget tree first, then feed it
-
-	// No captures any more: the hero cam is gone and the Unit Cam is the capture-free projection
-	// (UUnitCamProjector, docs/RENDERING-LIGHTING.md §4d), hosted directly in the band. bWithCams
-	// just decides whether the Unit Cam shows (muster-only preview passes false).
-	Hud->Setup(bWithCams);
-	Hud->UseMockData();
+	Hud->AddToViewport(100);
 	GSpawnedDebugWidgets.Add(Hud);
 
-	UE_LOG(LogTemp, Display, TEXT("Kindled.UI: band added (%s)."),
-		bWithCams ? TEXT("with cams") : TEXT("muster only"));
+	UE_LOG(LogTemp, Display, TEXT("Kindled.UI: muster band added."));
 }
 
 void KindledUI::ClearHud()
@@ -111,22 +89,13 @@ void KindledUI::ClearHud()
 		}
 	}
 	GSpawnedDebugWidgets.Reset();
-
-	for (const TWeakObjectPtr<AActor>& Weak : GSpawnedDebugActors)
-	{
-		if (AActor* Actor = Weak.Get())
-		{
-			Actor->Destroy();
-		}
-	}
-	GSpawnedDebugActors.Reset();
 }
 
 void KindledUI::AutoShowIfEnabled(UWorld* World)
 {
 	if (CVarUIAutoShow.GetValueOnGameThread() != 0)
 	{
-		ShowCombatHud(World, /*bWithCams*/ CVarUICams.GetValueOnGameThread() != 0);
+		ShowCombatHud(World);
 	}
 }
 
@@ -134,15 +103,10 @@ void KindledUI::AutoShowIfEnabled(UWorld* World)
 
 static FAutoConsoleCommandWithWorld GShowHudCmd(
 	TEXT("Kindled.UI.Hud"),
-	TEXT("Spawn the combat-HUD bottom band with live Hero/Unit cam feeds. Requires an active play session."),
-	FConsoleCommandWithWorldDelegate::CreateLambda([](UWorld* World) { KindledUI::ShowCombatHud(World, true); }));
-
-static FAutoConsoleCommandWithWorld GShowMusterCmd(
-	TEXT("Kindled.UI.Muster"),
-	TEXT("Spawn the muster band only, no cams. Requires an active play session."),
-	FConsoleCommandWithWorldDelegate::CreateLambda([](UWorld* World) { KindledUI::ShowCombatHud(World, false); }));
+	TEXT("Spawn the combat-HUD bottom muster band. Requires an active play session."),
+	FConsoleCommandWithWorldDelegate::CreateLambda([](UWorld* World) { KindledUI::ShowCombatHud(World); }));
 
 static FAutoConsoleCommandWithWorld GClearUICmd(
 	TEXT("Kindled.UI.Clear"),
-	TEXT("Remove UI and capture actors added by the Kindled.UI helpers."),
+	TEXT("Remove UI added by the Kindled.UI helpers."),
 	FConsoleCommandWithWorldDelegate::CreateLambda([](UWorld* /*World*/) { KindledUI::ClearHud(); }));

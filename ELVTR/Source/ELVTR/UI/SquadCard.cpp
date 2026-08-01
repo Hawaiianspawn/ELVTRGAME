@@ -92,8 +92,8 @@ void USquadCard::Refresh()
 
 	Grid->SetMuster(Squad.Size, Squad.Standing, Squad.Columns);
 
-	// In the M1 mock, a squad's chip always reads as its active order (Pale fill / Dark text).
+	// A squad's chip reads as its active order (Pale fill / Dark text).
 	Chip->SetBrushColor(Demichrome::Pale());
 	ChipText->SetColorAndOpacity(FSlateColor(Demichrome::Dark()));
-	ChipText->SetText(FText::FromString(KindledStanceToString(Squad.Stance)));
+	ChipText->SetText(FText::FromString(LexToString(Squad.Stance)));
 }

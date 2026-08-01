@@ -14,8 +14,9 @@
  * as fast — and it is the cheapest thing that can answer the design question.
  */
 
-/** Whole-retinue intent. Mirrors GDD.md §4 "v1 stance set". */
-UENUM()
+/** Whole-retinue intent. Mirrors GDD.md §4 "v1 stance set". BlueprintType because the HUD's
+ *  FKindledSquad carries one as a BlueprintReadWrite property. */
+UENUM(BlueprintType)
 enum class ESwarmStance : uint8
 {
 	Follow	UMETA(DisplayName = "Follow"),

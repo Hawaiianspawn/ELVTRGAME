@@ -24,13 +24,13 @@ public class ELVTR : ModuleRules
 			"RenderCore",
 			"RHI",
 
-			// UI (M1 prototype — docs/ui/UI-PROTOTYPE-PLAN.md)
+			// UI (M1 prototype — docs/ui/UI-PROTOTYPE-PLAN.md). Plain UUserWidget: nothing here
+			// uses CommonUI's activatable stacks or input routing, so CommonUI/CommonInput/
+			// GameplayTags are not linked. Re-add them with the base class when a screen stack
+			// actually needs them.
 			"UMG",
 			"Slate",
-			"SlateCore",
-			"CommonUI",
-			"CommonInput",
-			"GameplayTags"
+			"SlateCore"
 		});
 	}
 }

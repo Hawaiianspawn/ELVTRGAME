@@ -1,7 +1,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "UI/KindledWidget.h"
+#include "Blueprint/UserWidget.h"
 #include "StitchMeter.generated.h"
 
 class UHorizontalBox;
@@ -12,7 +12,7 @@ class UHorizontalBox;
  * Built entirely in C++.
  */
 UCLASS()
-class ELVTR_API UStitchMeter : public UKindledWidget
+class ELVTR_API UStitchMeter : public UUserWidget
 {
 	GENERATED_BODY()
 

@@ -54,35 +54,6 @@ void UMusterPanel::SetShowCompany(bool bInShow)
 	}
 }
 
-TArray<FKindledSquad> UMusterPanel::MakeMockSquads()
-{
-	auto MakeSquad = [](const TCHAR* Name, int32 Size, int32 Standing, int32 Cols, bool bWide)
-	{
-		FKindledSquad S;
-		S.DisplayName = FText::FromString(Name);
-		S.Size = Size;
-		S.Standing = Standing;
-		S.Columns = Cols;
-		S.bWide = bWide;
-		S.Stance = EKindledStance::Follow;
-		return S;
-	};
-
-	TArray<FKindledSquad> Mock;
-	Mock.Add(MakeSquad(TEXT("Shield"), 24, 24, 6, false));
-	Mock.Add(MakeSquad(TEXT("Shield"), 24, 18, 6, false)); // one wounded squad, to show fallen pips
-	Mock.Add(MakeSquad(TEXT("Vets"), 20, 20, 5, false));
-	Mock.Add(MakeSquad(TEXT("Spearmen"), 50, 50, 10, true));
-	Mock.Add(MakeSquad(TEXT("Banner"), 2, 2, 2, false));
-	return Mock;
-}
-
-void UMusterPanel::UseMockData()
-{
-	Squads = MakeMockSquads();
-	Rebuild();
-}
-
 TSharedRef<SWidget> UMusterPanel::RebuildWidget()
 {
 	if (!Panel)

@@ -32,14 +32,6 @@ namespace
 		TEXT("Inner radius (uu) of the ring brood spawn in, measured from the hero. Also the\n")
 		TEXT("radius of the FRONT rank in the brood formation below (Swarm.BroodFormation.*)\n")
 		TEXT("— the line that leads the wave and arrives first."), ECVF_Default);
-	TAutoConsoleVariable<float> CVarBroodSpawnRadiusMax(
-		TEXT("Swarm.BroodSpawnRadiusMax"), 4000.f,
-		TEXT("Outer radius (uu) of the brood spawn ring — kept as the REFERENCE depth a\n")
-		TEXT("typical wave is sized to fit within (see BroodFormation.RankSpacing), not a\n")
-		TEXT("hard bound: a bigger spawn's back ranks simply run past it, deeper into the\n")
-		TEXT("dark, which reads fine since there is no distance culling on the renderer.\n")
-		TEXT("Keep >= BroodSpawnRadiusMin."), ECVF_Default);
-
 	// A full 360 ring is the "surrounded" case and it is the only one the spike could
 	// stage. An arc is what lets a wave arrive as a FRONT — which is the situation the
 	// stances are actually about, since Hold only means something if there is a

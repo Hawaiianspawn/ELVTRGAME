@@ -8,10 +8,10 @@ class UWorld;
  *  game mode's auto-show on play. */
 namespace KindledUI
 {
-	/** Add the combat-HUD bottom band to the play world's viewport (bWithCams => live cam feeds). */
-	void ShowCombatHud(UWorld* World, bool bWithCams);
+	/** Add the combat-HUD bottom muster band to the play world's viewport. */
+	void ShowCombatHud(UWorld* World);
 
-	/** Remove any HUD + capture actors these helpers spawned. */
+	/** Remove any HUD these helpers spawned. */
 	void ClearHud();
 
 	/** Show the HUD if the Kindled.UI.AutoShow cvar is on (default on). */

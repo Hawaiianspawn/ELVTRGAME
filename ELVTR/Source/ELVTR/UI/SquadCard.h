@@ -1,7 +1,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "UI/KindledWidget.h"
+#include "Blueprint/UserWidget.h"
 #include "UI/KindledUITypes.h"
 #include "SquadCard.generated.h"
 
@@ -15,7 +15,7 @@ class UMusterGrid;
  * Steel; selected jumps to Pale. Bound to one squad's state only. Built entirely in C++.
  */
 UCLASS()
-class ELVTR_API USquadCard : public UKindledWidget
+class ELVTR_API USquadCard : public UUserWidget
 {
 	GENERATED_BODY()
 
