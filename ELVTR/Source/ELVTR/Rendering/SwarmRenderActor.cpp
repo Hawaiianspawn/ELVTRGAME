@@ -759,6 +759,29 @@ namespace
 		TEXT("Clamped to [1, 3] -- this dial only ever makes archers BIGGER, never smaller."),
 		ECVF_Default);
 
+	/**
+	 * task-130 rung 2: size alone (task-127) makes one archer findable, not a readable line.
+	 * M_Swarm_Team's Emissive = SubUV.RGB * ParticleColor.RGB + ParticleColor.A (task-084) --
+	 * verified by reading the graph back before adding this (get_property_input /
+	 * get_expression_inputs on M_Swarm_Team: MP_EmissiveColor <- Add(Multiply(SubUV.RGB,
+	 * ParticleColor.RGB), ParticleColor.A), same ParticleColor node feeding both terms) rather
+	 * than assumed, per the material-must-read-particle-color history where M_Swarm silently
+	 * discarded a per-particle colour once already. Rides the same alpha/add channel
+	 * Swarm.BroodAdd uses for the brood's white lift, applied to archers only so it stacks with
+	 * the per-particle distance dimming above rather than replacing it.
+	 */
+	TAutoConsoleVariable<float> CVarSwarmArcherColorLift(
+		TEXT("Swarm.ArcherColorLift"),
+		0.15f,
+		TEXT("Additive brightness lift for ARCHER sprites only, in linear colour, same channel\n")
+		TEXT("Swarm.BroodAdd uses. 0 = no lift (the pre-task-130 look, archers coloured exactly\n")
+		TEXT("like spearmen). Unlike Swarm.ArcherSizeScale this reads even where the per-particle\n")
+		TEXT("multiply is already saturated near the flame, because it adds rather than scales.\n")
+		TEXT("Useful range ~0.1-0.3: below 0.1 is hard to tell from spearmen at gameplay density,\n")
+		TEXT("above ~0.3 an archer starts reading as struck (a hit flash briefly forces the same\n")
+		TEXT("channel to 1) rather than merely brighter. Clamped to [0, 1]."),
+		ECVF_Default);
+
 	TAutoConsoleVariable<float> CVarSwarmSpriteSize(
 		TEXT("Swarm.SpriteSize"),
 		48.f,
@@ -1668,6 +1691,7 @@ void ASwarmRenderActor::Tick(float DeltaSeconds)
 	const float BrdFloor = FMath::Clamp(CVarSwarmBroodLightFloor.GetValueOnGameThread(), 0.f, 1.f);
 	const float BrdCeil = FMath::Clamp(CVarSwarmBroodLightCeil.GetValueOnGameThread(), BrdFloor, 1.f);
 	const float BrdAdd = FMath::Max(CVarSwarmBroodAdd.GetValueOnGameThread(), 0.f);
+	const float ArcherLift = FMath::Clamp(CVarSwarmArcherColorLift.GetValueOnGameThread(), 0.f, 1.f);
 
 	// Swarm.RawNear's camera-space band. Measured to the CAMERA, so this is the one term in
 	// the loop that does not care where the flame is. Read from the camera cache rather than
@@ -1738,11 +1762,15 @@ void ASwarmRenderActor::Tick(float DeltaSeconds)
 			const float T = FMath::Clamp(D / FlameR, 0.f, 1.f);
 			const float Atten = 1.f - FMath::Pow(T, FlameFall);
 			float Lit = FMath::Lerp(bRet ? RetFloor : BrdFloor, bRet ? 1.f : BrdCeil, Atten);
+			// task-130 rung 2: archers take a small additive lift on the same channel BrdAdd
+			// below rides, applied here rather than to Lit because Lit saturates to 1.0 near
+			// the flame (see RetFloor..1.f above) where an RGB-only bump would read as nothing
+			// exactly where the army clusters. The add always shows, distance from the flame or not.
 			// NOT * Atten. Owner 2026-07-29: "You turned something on and off." Atten rises
 			// toward the flame, Swarm.RawNear's RawT falls toward the camera, and the flame sits
 			// on the hero the camera is looking at — so they are the SAME axis and their product
 			// is a band. A brood walking in lit up and then went out again. One ramp only.
-			float Add = bRet ? 0.f : BrdAdd;
+			float Add = bRet ? (bArcher ? ArcherLift : 0.f) : BrdAdd;
 
 			// Swarm.RawNear: fade the ADDITIVE lift out for anything in the camera's face, so a
 			// brood that fills the screen shows its authored body instead of a flat grey lump.
@@ -1766,10 +1794,14 @@ void ASwarmRenderActor::Tick(float DeltaSeconds)
 				Add *= FMath::Clamp(CamD / RawNear - 1.f, 0.f, 1.f);
 			}
 
-			// RGB multiplies, A adds — see the block above. Retinue take no additive term:
+			// RGB multiplies, A adds — see the block above. Spearmen take no additive term:
 			// their art is bright enough that the multiply alone reads, and giving them one
 			// would close the deliberate gap that keeps a soldier reading as the lit one
 			// beside a brood (CVarSwarmBroodLightCeil's comment explains why that gap exists).
+			// Archers are the one retinue exception (task-130, ArcherLift above), and the same
+			// Swarm.RawNear fade applies to their lift as to brood's -- close to the camera an
+			// archer shows its authored robe colour, and the lift only carries at the ranges
+			// the shipped camera actually fights at, which is where the "block" needs to read.
 			// The add is monotonic in CAMERA distance only (see above). The multiply still
 			// carries Atten, so distant brood lose their authored colour toward the pool edge
 			// even though the additive floor does not fade with it.

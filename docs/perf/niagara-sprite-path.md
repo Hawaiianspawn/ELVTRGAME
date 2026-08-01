@@ -191,6 +191,63 @@ Stacks with the existing `bArcher` unit-type test the archer row offset already 
 render-size dial — does not touch `Swarm.Archers*` combat stats, the weight tables, or
 the atlas. See `docs/perf/evidence/task127/` for the before/after capture.
 
+**task-130: rung 1 alone still read "mostly by robe colour", not as a block.** Spent the
+next two rungs of the same ladder, in order, both:
+
+- **Rung 2, contrast.** `Swarm.ArcherColorLift` (`SwarmRenderActor.cpp`, default 0.15,
+  range [0,1]) — an additive brightness lift on the SAME channel `Swarm.BroodAdd` rides
+  (`M_Swarm_Team`'s `Emissive = SubUV.RGB * ParticleColor.RGB + ParticleColor.A`, task-084),
+  applied to archers only, in the pack loop's existing per-particle colour branch. Verified
+  the material actually reads it BEFORE writing the CVar: `get_property_input`/
+  `get_expression_inputs` on `M_Swarm_Team` read back `MP_EmissiveColor <-
+  Add(Multiply(ParticleSubUV.RGB, ParticleColor.RGB), ParticleColor.A)` — the node is there
+  and wired to both terms, so this isn't the material-silently-discarding-colour trap again.
+  Chosen as an ADD rather than a bump to `Lit` because `Lit` saturates to 1.0 near the flame
+  (where the army actually stands), so a multiplicative lift would read as nothing exactly
+  where it matters; the additive term always shows. Rides the same `Swarm.RawNear` camera-
+  distance fade as `Swarm.BroodAdd`, so a close-up archer still shows authored robe colour
+  rather than a flat lift.
+- **Rung 3, mix — a BALANCE CHANGE, not a render dial.** `Swarm.ArcherGrowthWeight`
+  (`SwarmCombatProcessors.cpp`) default raised **0.2 -> 0.4**: archers were 20% of recruits
+  split six ways (~3% per look), too thin for a block even with size + contrast fixing how
+  ONE archer reads. 0.4 roughly doubles the ranged share of the army; Spearmen still claim
+  the majority (0.6). This changes gameplay, not just the look — Archers carry
+  `Swarm.ArchersMaxHP` 70 against a Spearman's 130 and fight at range instead of melee
+  cleave, so a bigger archer share measurably softens the line's HP total. Flagged for the
+  owner to argue with, not buried as a free lever.
+
+Both rungs were spent (not just rung 2) because the maths said rung 2 alone couldn't clear
+the bar: brightening one archer doesn't create more of them, and the "block" ask is a
+population-density read as much as a per-unit-legibility one. `docs/perf/evidence/task130/`
+has the before/after pair at DEFAULT settings, same camera and density as task-127's
+baseline, plus three camera-diagnostic captures (see the framing note below).
+
+**Framing finding, task-130 (owner ask, not part of the ladder):** the shipped pinned
+eye-level camera (`Kindled.Cam.Dist 323`, `Pitch -8.2`, `Fov 45.6`, `OffsetZ 54`) crops the
+retinue tight against the bottom edge — only the front rank or two are ever in frame, no
+matter how big or bright an archer draws. **Pulling `Dist` back alone does not fix this**
+(`docs/perf/evidence/task130/05-diagnostic-dist-only-insufficient.png`, `Dist 900` at the
+shipped `Pitch -8.2`): at a grazing eye-level angle the ground plane is nearly edge-on to
+the lens, so distance alone just shrinks everyone inside the same thin band rather than
+revealing depth. `Pitch` has to open up too — `04-diagnostic-moderate-pitch.png`
+(`Dist 900, Pitch -20, Fov 55, OffsetZ 30`) gets two ranks in frame with archers still
+identifiable by bow silhouette; `03-diagnostic-overhead-full-retinue.png`
+(`Dist 1700, Pitch -45, Fov 60, OffsetZ 0`) gets the whole formation in frame and makes the
+archer block unmistakable — the front several ranks are visibly bow-carrying, distinct from
+the shield-and-spear ranks behind.
+
+That capture also settles a formation-geometry question the brief raised: **archers are
+NOT hidden behind the spear line.** `Swarm.Formation.Archers.Forward` defaults to 40uu
+against `Swarm.Formation.Forward`'s ~150-250uu for Spearmen — archers sit CLOSER to the
+bearer (and so closer to a camera positioned behind him) than Spearmen do, not farther.
+In every diagnostic capture the front-most, camera-nearest rank is the archers, not the
+spearmen. The original "archer is invisible" problem (task-126/127) was never occlusion;
+it was too few of them, too small, too low-contrast, in a camera crop too tight to show
+more than one or two ranks regardless of who stood where. These `Kindled.Cam.*` values are
+diagnostic only — the shipped exec-file camera block was restored byte-for-byte afterward
+(`ELVTR/Saved/SwarmExecOnPlay.txt` vs the lines above); this task does not own the camera
+rig and did not retune it.
+
 `check_brood_variants.py` fails if either compiled CVar default and its weights file
 disagree. `Swarm.BroodVariantReport` / `Swarm.TeamVariantReport` log the live histogram
 plus the weight string it came from — both fire automatically alongside

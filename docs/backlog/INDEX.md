@@ -10,7 +10,7 @@ not a re-read.
 
 | proposed | approved | in-progress | needs-review | done | rejected | parked |
 |---|---|---|---|---|---|---|
-| 42 | 1 | 1 | 0 | 79 | 0 | 8 |
+| 42 | 1 | 0 | 0 | 80 | 0 | 8 |
 
 ## Audit queue — top 7 awaiting your verdict
 
@@ -31,7 +31,7 @@ Approve with `py Scripts/backlog.py approve <ids>` (or `/backlog approve <ids>`)
 
 | epic | progress | tasks | joins | next move |
 |---|---|---|---|---|
-| `archers-on-the-field` | 4/6 closed | [`125`](task-125-medieval-archer-variant-family.md), [`126`](task-126-land-archers-in-the-team-atlas.md), [`127`](task-127-make-the-archer-read-at-default-weights.md), [`129`](task-129-volley-arcs-on-swingbit.md), [`130`](task-130-archer-contrast-and-mix.md), [`131`](task-131-muster-panel-archer-count.md) | `126` | approve `131` |
+| `archers-on-the-field` | 5/6 closed | [`125`](task-125-medieval-archer-variant-family.md), [`126`](task-126-land-archers-in-the-team-atlas.md), [`127`](task-127-make-the-archer-read-at-default-weights.md), [`129`](task-129-volley-arcs-on-swingbit.md), [`130`](task-130-archer-contrast-and-mix.md), [`131`](task-131-muster-panel-archer-count.md) | `126` | approve `131` |
 | `build-space-differentiates` | 2/2 closed | [`090`](task-090-weapon-projectile-pairing.md), [`091`](task-091-build-space-differentiation.md) | `091` | complete |
 | `emberkeep-purge` | 2/3 closed | [`092`](task-092-emberkeep-docs-purge.md), [`093`](task-093-emberkeep-cvar-rename.md), [`117`](task-117-prose-that-cites-the-old-cvar-names.md) | `117` | approve `117` |
 | `feeding-distraction` | 2/3 closed | [`053`](task-053-feeding-distraction-mechanic-spec.md), [`054`](task-054-build-feeding-distraction-in-mass.md), [`061`](task-061-persistent-corpses-and-walk-up-feeding.md) | `054`, `061` | approve `54` |
@@ -102,13 +102,7 @@ A fan is approved in one batch and dispatched one teammate per task. `⨝` joins
 |---|---|---|---|---|---|
 | `031` | 2.0 | [Check the shipped leash system against RTS-VERTICAL-SLICE §2's spec](task-031-leash-system-conformance-check.md) | claude | `docs/RTS-VERTICAL-SLICE.md` | `docs/RTS-VERTICAL-SLICE.md:97` |
 
-## in-progress (1)
-
-| id | score | task | agent | owns | source |
-|---|---|---|---|---|---|
-| `130` | 4.0 | [Spend the contrast and mix rungs task-127 left — a visible archer block, not one findable archer](task-130-archer-contrast-and-mix.md) | claude | `ELVTR/Source/ELVTR/Rendering/SwarmRenderActor.cpp`, `ELVTR/Source/ELVTR/Mass/SwarmCombatProcessors.cpp`, `docs/perf/niagara-sprite-path.md`, `docs/perf/evidence/task130/**` | `user` |
-
-## done (79)
+## done (80)
 
 | id | score | task | agent | owns | source |
 |---|---|---|---|---|---|
@@ -122,6 +116,7 @@ A fan is approved in one batch and dispatched one teammate per task. `⨝` joins
 | `024` | 6.0 | [Extend the run structure from waves to three floors plus a boss](task-024-run-structure-three-floors-and-boss.md) | gameplay-director | `docs/design/run-structure.md` | `docs/RTS-VERTICAL-SLICE.md:101` |
 | `043` | 6.0 | [Put a live palette-preset dial on the Breadboard](task-043-live-palette-dial-on-the-breadboard.md) | claude | `ELVTR/Content/PostProcess/M_PP_Demichrome**`, `ELVTR/Content/PostProcess/MPC_Flame**`, `ELVTR/Source/ELVTR/Rendering/SwarmRenderActor.cpp`, `.claude/skills/cvars/SKILL.md`, `docs/data/art/palette.json` | `user` |
 | `101` | 6.0 | [Reconcile supply capacity with retinue size, and make provision bind](task-101-supply-capacity-collides-with-retinue-size.md) | gameplay-director | `docs/data/economy.json`, `docs/data/growth-sites.json`, `docs/design/retinue-economy.md` | `task-096 + task-097 handbacks, 2026-07-30` |
+| `130` | 4.0 | [Spend the contrast and mix rungs task-127 left — a visible archer block, not one findable archer](task-130-archer-contrast-and-mix.md) | claude | `ELVTR/Source/ELVTR/Rendering/SwarmRenderActor.cpp`, `ELVTR/Source/ELVTR/Mass/SwarmCombatProcessors.cpp`, `docs/perf/niagara-sprite-path.md`, `docs/perf/evidence/task130/**` | `user` |
 | `029` | 3.0 | [Spec the minimal audio set — hits, deaths, stance confirmations](task-029-minimal-audio-readability-set.md) | gameplay-director | `docs/design/audio-minimal.md` | `docs/RTS-VERTICAL-SLICE.md:113` |
 | `050` | 3.0 | [Draw the real sprite set in the Unit Cam — six soldier variants, the hero, and an archer proxy](task-050-wire-real-sprites-into-the-unit-cam.md) | claude | `ELVTR/Source/ELVTR/UI/UnitCamProjector.cpp`, `ELVTR/Source/ELVTR/UI/UnitCamProjector.h`, `ELVTR/Content/Sprites/**`, `RawArt/Renders/archer-proxy/**`, `RawArt/Sheets/T_Soldier_Archer.png`, `docs/data/art/provenance.json` | `user` |
 | `057` | 3.0 | [Take the colour gate off — a bypass and an N-value quantizer, live on the Breadboard](task-057-scene-look-rig-bypass-the-colour-gate.md) | claude | `ELVTR/Content/PostProcess/**`, `ELVTR/Source/ELVTR/Rendering/SwarmRenderActor.cpp`, `ELVTR/Source/ELVTR/Rendering/SwarmRenderActor.h`, `ELVTR/Saved/SwarmExecOnPlay.txt`, `docs/RENDERING-LIGHTING.md`, `.claude/skills/cvars/SKILL.md`, `docs/data/art/palette.json` | `user` |

@@ -153,13 +153,27 @@ namespace
 		TEXT("Archer march speed as a fraction of SwarmTuning::RetinueSpeed (450uu/s). Slightly\n")
 		TEXT("slower than Spearmen -- a firing line doesn't need to close distance. [0..2]"),
 		ECVF_Default);
+	/**
+	 * task-130 rung 3: BALANCE CHANGE, not a render dial. task-127 measured that 20% split
+	 * six ways over Swarm.ArcherVariantWeights puts any one archer look at ~3% of the army --
+	 * too thin, on its own, to read as a line even with task-127's size bump and task-130's
+	 * rung 2 colour lift, both of which change how ONE archer looks, not how MANY there are.
+	 * 0.4 roughly doubles archer presence so archers stop being a rare find in the mass;
+	 * Spearmen still claim the majority (0.6), preserving their CLASSES.md primary-identity
+	 * role. This is a real gameplay change: Archers carry Swarm.ArchersMaxHP 70 against a
+	 * Spearman's 130 and fight at range instead of melee cleave, so a bigger archer share
+	 * measurably softens the line's HP total and reshapes how a wave is fought, not just how
+	 * it looks. Flagged for the owner rather than treated as a free render-only lever.
+	 */
 	TAutoConsoleVariable<float> CVarArcherGrowthWeight(
-		TEXT("Swarm.ArcherGrowthWeight"), 0.2f,
+		TEXT("Swarm.ArcherGrowthWeight"), 0.4f,
 		TEXT("Fraction of each new recruit rolled Archer rather than Spearman (docs/data/\n")
-		TEXT("unit-types.json growth_source_weight). Spearmen claim the rest (0.8 default) --\n")
-		TEXT("the class's primary identity, per CLASSES.md. v1 has no real growth-site system,\n")
-		TEXT("so this stands in for a generator-tagged site (§1.4): every recruit rolls\n")
-		TEXT("independently against this weight. [0..1]"), ECVF_Default);
+		TEXT("unit-types.json growth_source_weight). Spearmen claim the rest (0.6 default) --\n")
+		TEXT("still the class's primary identity per CLASSES.md, but archers are no longer a\n")
+		TEXT("rare find (task-130 rung 3, up from the task-095-era 0.2 -- BALANCE CHANGE, see\n")
+		TEXT("the comment above). v1 has no real growth-site system, so this stands in for a\n")
+		TEXT("generator-tagged site (§1.4): every recruit rolls independently against this\n")
+		TEXT("weight. [0..1]"), ECVF_Default);
 
 	// --- knight sub-types (task-095) --------------------------------------------------
 	// Nine stat rows backing the eleven team-atlas looks (docs/data/art/team-variants.json)

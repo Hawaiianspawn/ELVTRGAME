@@ -353,3 +353,7 @@ Rejected and parked tasks keep their files — this records why.
 - 2026-07-31 · `task-129` · approved → **in-progress** · Show the volley — an arcing cue on an archer's SwingBit so the ranged line visibly shoots — dispatched to teammate `volley-arcs` at model `opus`
 - 2026-07-31 · `task-129` · in-progress → **needs-review** · Show the volley — an arcing cue on an archer's SwingBit so the ranged line visibly shoots
 - 2026-07-31 · `task-129` · needs-review → **done** · Show the volley — an arcing cue on an archer's SwingBit so the ranged line visibly shoots
+- 2026-07-31 · `task-130` · proposed → **approved** · Spend the contrast and mix rungs task-127 left — a visible archer block, not one findable archer
+- 2026-07-31 · `task-130` · approved → **in-progress** · Spend the contrast and mix rungs task-127 left — a visible archer block, not one findable archer — dispatched to teammate `archer-block` at model `sonnet`
+- 2026-07-31 · `task-130` · in-progress → **needs-review** · Spend the contrast and mix rungs task-127 left — a visible archer block, not one findable archer
+- 2026-07-31 · `task-130` · needs-review → **done** · Spend the contrast and mix rungs task-127 left — a visible archer block, not one findable archer

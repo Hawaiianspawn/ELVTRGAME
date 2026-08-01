@@ -1,7 +1,7 @@
 ---
 id: 130
 title: Spend the contrast and mix rungs task-127 left — a visible archer block, not one findable archer
-status: in-progress
+status: done
 agent: claude
 model: sonnet
 owns: ["ELVTR/Source/ELVTR/Rendering/SwarmRenderActor.cpp", "ELVTR/Source/ELVTR/Mass/SwarmCombatProcessors.cpp", "docs/perf/niagara-sprite-path.md", "docs/perf/evidence/task130/**"]
@@ -12,7 +12,7 @@ evidence: A PIE capture at gameplay density and DEFAULT settings in which the ar
 score: {feel: 2, risk: 1, cost: 1}
 source: user
 teammate: archer-block
-decided: "2026-07-31 in-progress"
+decided: "2026-07-31 done"
 ---
 
 ## Why now
