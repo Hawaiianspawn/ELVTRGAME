@@ -130,10 +130,15 @@ These are real design risks in the premise. Named here so they get playtested, n
 written around.
 
 1. **"Stand in the circle" stagnation.** If light = safety = leash, the dominant
-   strategy is to never move and let the army grind. The prototype already shows
-   the zero-input baseline *nearly wins* — that's a warning. Fire needs to demand
-   movement: fuel is elsewhere, the fire dims where it sits, the dark closes in on
-   a static flame. **Unsolved. This is the first thing to test.**
+   strategy is to never move and let the army grind. The prototype shows the
+   zero-input baseline *narrowly loses* — wave 3, by 4-13 brood
+   (`docs/data/economy.json` → `slice_targets.design_intent`, measured in
+   `docs/GATE1-FUN-PROTOTYPE.md` §3). That is still the warning: the standing-still
+   line is only a handful of bodies short of winning, so any growth that accrues
+   while the player does nothing closes the gap and standing still becomes optimal.
+   Fire needs to demand movement: fuel is elsewhere, the fire dims where it sits,
+   the dark closes in on a static flame. **Unsolved. This is the first thing to
+   test.**
 2. **Is being worshipped in tone?** The good-guys framing (GDD §5) is intact — you
    are saving people — but a congregation that throws itself into the dark for you
    is genuinely uncomfortable. That discomfort is probably the best thing in the

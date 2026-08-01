@@ -23,6 +23,7 @@
   },
 
   "embers": {
+    "retired": "RETIRED 2026-07-31 (Embers deleted) — history, not a live dial. See docs/design/DIRECTION-2026-07-31.md.",
     "note": "Embers are the SPEND currency for the RECRUIT / PROMOTE / PROVISION triangle and for items / hero nodes. Tuned so a player reaches each growth site with ~30-40 Embers — enough for 2-3 actions, never all of them. Scarcity IS the decision.",
     "income": {
       "per_brood_killed": 0.1,

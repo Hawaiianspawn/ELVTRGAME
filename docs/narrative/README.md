@@ -1,8 +1,10 @@
 # Narrative expansions
 
 Deliverables from the `narrative-director` agent — quest lines, NPC dialogue, barks,
-faction lore, decision events. Canon (`GDD.md`, `WORLD.md`, `CLASSES.md` at repo root)
-is the source of truth; files here extend it and propose changes, never override it.
+faction lore, decision events. Canon (`GDD.md` and `CLASSES.md` at repo root, plus
+`FLAME-FOUNDATION.md` in this directory) is the source of truth; files here extend it
+and propose changes, never override it. `WORLD.md` is **not** canon — it was superseded
+in full by the 2026-07-22 narrative reset and is kept only as history.
 Visual subjects hand off to `../briefs/`.
 
 ## Index

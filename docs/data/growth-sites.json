@@ -1,5 +1,5 @@
 {
-  "$schema_note": "The growth site — where the run's meaningful decisions happen. It is the same breadth/depth/sustain axis as the GDD §6 fork events, at a continuous grain. Decisions + rationale in SYSTEMS.md §4/§7. PROTOTYPE DIALS.",
+  "$schema_note": "RETIRED 2026-07-31 — the growth-site triangle (and the Embers it spent) was deleted. Kept as history, not a live dial. See docs/design/DIRECTION-2026-07-31.md. [Original note] The growth site — where the run's meaningful decisions happen. It is the same breadth/depth/sustain axis as the GDD §6 fork events, at a continuous grain. Decisions + rationale in SYSTEMS.md §4/§7. PROTOTYPE DIALS.",
   "version": "0.1-vslice",
   "last_updated": "2026-07-24",
 

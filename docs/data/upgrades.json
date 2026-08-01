@@ -1,10 +1,10 @@
 {
-  "$schema_note": "Tuned numbers for the three upgrade layers: unit-tier ladder (depth), stacking run-items (spice), hero ability nodes. Decisions + rationale in SYSTEMS.md §1/§3/§8. PROTOTYPE DIALS — re-tune in play.",
+  "$schema_note": "RETIRED 2026-07-31 — Embers deleted and tiers are no longer run-scoped (persistent army). Kept as history, not a live dial. See docs/design/DIRECTION-2026-07-31.md. [Original note] Tuned numbers for the three upgrade layers: unit-tier ladder (depth), stacking run-items (spice), hero ability nodes. Decisions + rationale in SYSTEMS.md §1/§3/§8. PROTOTYPE DIALS — re-tune in play.",
   "version": "0.1-vslice",
   "last_updated": "2026-07-24",
 
   "tier_ladder": {
-    "note": "The Liberated ladder from CLASSES.md §1. RECRUIT adds bodies at FREED (weak). PROMOTE (depth) spends Embers to move units up a tier — adds NO upkeep, so it is the upkeep-efficient path. MILITIA = the gate-1 prototype unit (130 HP / 30 DPS) and the balance anchor. All tiers are RUN-SCOPED (reset each run — roguelike purity, GDD §3).",
+    "note": "The Liberated ladder from CLASSES.md §1. RECRUIT adds bodies at FREED (weak). PROMOTE (depth) spends Embers to move units up a tier — adds NO upkeep, so it is the upkeep-efficient path. MILITIA = the gate-1 prototype unit (130 HP / 30 DPS) and the balance anchor. SUPERSEDED 2026-07-31: the sentence that stood here — 'All tiers are RUN-SCOPED (reset each run — roguelike purity, GDD §3)' — is retired. Tiers are NOT run-scoped; the army persists across runs, and the GDD §3 citation now points at text that says the opposite. See docs/design/DIRECTION-2026-07-31.md.",
     "tiers": [
       { "id": "freed",     "hp": 90,  "dps": 20, "upkeep": 1, "traits": ["improvised weapons", "routs under pressure"] },
       { "id": "militia",   "hp": 130, "dps": 30, "upkeep": 1, "traits": ["armed", "BALANCE ANCHOR — the gate-1 unit"] },
