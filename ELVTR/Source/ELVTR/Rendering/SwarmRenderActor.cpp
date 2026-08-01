@@ -560,9 +560,8 @@ namespace
 	// distant brood at one flat mid-value so they popped into being at the pool edge
 	// as fully-formed shapes, and it let the near ones ride the full albedo into the
 	// top of the ramp and blow out. Brood now get their own window — near-black at
-	// spawn distance, held below the retinue at contact — which is the same split
-	// Kindled.UnitCamProj.BroodFloor/BroodCeil already makes in the close-up panel
-	// (docs/RENDERING-LIGHTING.md §4d finding 2/3). Keep the two roughly in step.
+	// spawn distance, held below the retinue at contact
+	// (docs/RENDERING-LIGHTING.md §4d finding 2/3).
 	TAutoConsoleVariable<float> CVarSwarmBroodLightFloor(
 		TEXT("Swarm.BroodLightFloor"),
 		0.f,
@@ -1570,7 +1569,8 @@ void ASwarmRenderActor::Tick(float DeltaSeconds)
 	// Alpha was free to take this because the material's OpacityMask reads the TEXTURE's
 	// alpha, not the particle's, so nothing else was ever looking at this channel.
 	//
-	// The Unit Cam panel (UnitCamProjector.cpp) still runs the multiply-only model. It is
+	// (The Unit Cam panel used to run the multiply-only model here; it was deleted with the
+	// one-camera cut, so this is now the only shading model in the build.) It is
 	// disabled in the shipped one-camera build; if it is ever switched back on it needs the
 	// same additive term or the horde will change appearance between the world and the panel.
 	const FVector FlameP = bFlameInitialized ? SmoothedFlamePos : Swarm->GetAttractor();

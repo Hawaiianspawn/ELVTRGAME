@@ -188,31 +188,6 @@ namespace SwarmSheet
 		}
 	}
 
-	/**
-	 * PRE-task-085 combined layout (T_Swarm_2bit) — nine brood variants then two
-	 * retinue rows, one shared grid, TeamBit picking which half. Retained ONLY for
-	 * UnitCamProjector.cpp's SwarmAtlas billboard path, which still slices that one
-	 * texture and is disabled in the shipped one-camera build
-	 * (Kindled.UnitCamProj.Enable 0) — outside this task's scope to rebuild. Do not
-	 * extend this; new variety belongs in Team or Enemy above, not here.
-	 */
-	namespace Legacy
-	{
-		constexpr int32 BroodVariants = 9;
-		constexpr int32 RowRetinueWalk0 = BroodVariants * 2;		// 18
-		constexpr int32 RowRetinueWalk1 = RowRetinueWalk0 + 1;	// 19
-		constexpr int32 Rows = RowRetinueWalk1 + 1;				// 20
-
-		FORCEINLINE int32 CellFor(uint8 Bits, int32 DirColumn, int32 Variant = 0)
-		{
-			const int32 Col = FMath::Clamp(DirColumn, 0, Columns - 1);
-			const bool bRetinue = (Bits & SwarmAnim::TeamBit) != 0;
-			const int32 Frame1 = (Bits & SwarmAnim::FrameBit) != 0 ? 1 : 0;
-			const int32 Row = bRetinue ? RowRetinueWalk0 + Frame1
-									   : FMath::Clamp(Variant, 0, BroodVariants - 1) * 2 + Frame1;
-			return Col + Row * Columns;
-		}
-	}
 }
 
 /**
@@ -220,11 +195,10 @@ namespace SwarmSheet
  *
  * Why 32 and not 8: the sheet has eight columns, but the SIM must not be the thing that
  * knows that. Camera yaw is a live CVar (Kindled.Cam.Yaw) that spins the map under the
- * player, and the Unit Cam looks from somewhere else entirely — so a facing baked to
- * eight screen-relative steps in the sim would be wrong for one of them and would snap
- * visibly when the view rotated. Storing a WORLD angle at 4x the sheet's resolution lets
- * each view apply its own yaw and quantise independently, and leaves headroom for a
- * 16-column sheet without touching the sim or the packing.
+ * player, so a facing baked to eight screen-relative steps in the sim would snap visibly
+ * when the view rotated. Storing a WORLD angle at 4x the sheet's resolution lets the view
+ * apply its own yaw and quantise independently, and leaves headroom for a 16-column sheet
+ * without touching the sim or the packing.
  *
  * Screen convention at the default top-down camera (Pitch -90, Yaw 0): screen-up is +X
  * and screen-right is +Y, so "south" — the unit facing the player — is -X.
