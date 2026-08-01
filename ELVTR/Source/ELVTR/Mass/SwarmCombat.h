@@ -161,9 +161,43 @@ namespace SwarmCombatTuning
 	// average throughput is unchanged and the Gate 1 tuning still reads true. What
 	// changed is that there is now an instant to react to.
 	float SwingInterval();
+	float ArcherSwingInterval();
+	float SwingIntervalJitter();
 	float SwingStrikeAt();
 	float SwingLunge();
 	float HitFlashTime();
+
+	/**
+	 * THIS unit's swing interval — its type's base cadence, spread per-unit by the
+	 * jitter phase it was spawned with.
+	 *
+	 * Two things were wrong before this existed. A whole rank engages on the same frame,
+	 * every SwingTime started at exactly 0, and one global interval advanced all of them
+	 * by the same DeltaTime — so the line fired as one animal, forever. And a bow is not
+	 * a spear jab: archers had no cadence of their own at all.
+	 *
+	 * CALLERS MUST PAIR THIS WITH THE BLOW. One blow is DPS * interval, so a unit whose
+	 * interval is jittered 20% fast and whose blow is not would deal 20% more DPS than
+	 * its stat block says. Both the grid publish (SwarmProcessors.cpp) and the swing
+	 * clock (the integrate pass) resolve the interval through THIS function and multiply
+	 * the type's DPS by the value it returns — that is what keeps the jitter cosmetic.
+	 *
+	 * Derived, not stored: no fragment grows a field. The multiplier is a different
+	 * irrational than the size roll (0.618) and the glance clock (0.382) so a unit's
+	 * cadence does not correlate with how big it is or when it turns its head.
+	 */
+	FORCEINLINE float SwingIntervalFor(bool bArcher, float Phase)
+	{
+		const float Base = bArcher ? ArcherSwingInterval() : SwingInterval();
+		const float Spread = SwingIntervalJitter();
+		if (Spread <= 0.f)
+		{
+			return Base;
+		}
+		// Frac(Phase * irrational) -> [0,1) -> [-1,+1], stable for this unit's lifetime.
+		const float Roll = FMath::Frac(Phase * 0.7548776662f) * 2.f - 1.f;
+		return FMath::Max(Base * (1.f + Roll * Spread), 0.05f);
+	}
 
 	/** How far a struck unit is shoved, in uu, and over how long. */
 	float KnockbackDistance();

@@ -300,11 +300,24 @@ namespace
 	 * A unit's world facing step for this frame.
 	 *
 	 * The rule, in priority order:
-	 *   1. MOVING  — face where you are going. A soldier crossing the field looking
+	 *   1. FIGHTING — face what you are fighting. Highest priority because it is the
+	 *      only rule that can contradict the sprite's own pose: the swing lunge shoves
+	 *      the published position along TargetDir, so any other facing draws a soldier
+	 *      leaning east while rendered pointing west. It reads worst on archers, who
+	 *      shoot from a standstill and so never earn rule 2 — before this rule existed
+	 *      a whole ranged line loosed sideways at nothing while its arrows flew east.
+	 *      All eight columns are already authored, so this costs nothing but the branch.
+	 *   2. MOVING  — face where you are going. A soldier crossing the field looking
 	 *      sideways reads as broken no matter how good the fiction is.
-	 *   2. GLANCING — a resting soldier periodically turns and looks at the bearer.
-	 *   3. AT REST — face radially AWAY from the bearer. The army standing in the only
+	 *   3. GLANCING — a resting soldier periodically turns and looks at the bearer.
+	 *   4. AT REST — face radially AWAY from the bearer. The army standing in the only
 	 *      light in the world forms a ring watching the dark it came out of.
+	 *
+	 * TargetDir is FSwarmStrikeFragment::Facing — a unit vector at whatever this unit is
+	 * fighting, zero if nothing, already accumulated by the combat pass's neighbour walk.
+	 * It is NOT the velocity direction and cannot be replaced by it: in contact the
+	 * separation force pushes a unit away from the enemy it is hitting, so velocity
+	 * points backwards exactly when the pose points forwards.
 	 *
 	 * Outward-and-glance are retinue-only. The brood is not gathered around the flame,
 	 * it is coming for it, so its facing is simply its heading and it holds the last one
@@ -313,13 +326,17 @@ namespace
 	 * gains rotations nothing here changes.)
 	 */
 	FORCEINLINE uint8 ResolveFacing(uint8 Current, const FVector& Location, const FVector& Velocity,
-		const FVector& HeroLocation, bool bRetinue, float Phase, float TimeSeconds,
-		const FFacingParams& P)
+		const FVector2f& TargetDir, const FVector& HeroLocation, bool bRetinue, float Phase,
+		float TimeSeconds, const FFacingParams& P)
 	{
 		const FVector2f Vel2((float)Velocity.X, (float)Velocity.Y);
 		FVector2f Dir = Vel2;
 
-		if (Vel2.SizeSquared() <= P.MoveSpeedSq && bRetinue)
+		if (!TargetDir.IsNearlyZero())
+		{
+			Dir = TargetDir;
+		}
+		else if (Vel2.SizeSquared() <= P.MoveSpeedSq && bRetinue)
 		{
 			const FVector2f Outward((float)(Location.X - HeroLocation.X),
 									(float)(Location.Y - HeroLocation.Y));
@@ -549,9 +566,14 @@ void USwarmGridBuildProcessor::Execute(FMassEntityManager& EntityManager, FMassE
 	// aren't all one type any more, so "one shared blow value per TEAM" (the old
 	// assumption) can't stand; a Spearman and an Archer striking the same victim this
 	// frame must not deal the same damage. Snapshotted once per pass, same as the K's.
+	//
+	// DPS is snapshotted; the INTERVAL is not, because it is now per-unit
+	// (SwarmCombatTuning::SwingIntervalFor — type cadence plus a per-unit spread). Blow
+	// value has to be resolved inside the loop from the same interval that unit's swing
+	// clock runs on, or the cadence spread would move DPS instead of just the rhythm.
 	const float SwingInterval = SwarmCombatTuning::SwingInterval();
-	const float ArchersBlow = SwarmCombatTuning::ArchersDPS() * SwingInterval;
-	const float BroodBlow = SwarmCombatTuning::BroodDPS() * SwingInterval;
+	const float ArchersDPS = SwarmCombatTuning::ArchersDPS();
+	const float BroodDPS = SwarmCombatTuning::BroodDPS();
 
 	// A Spearman's own K and blow value now come from the knight sub-type row its team-
 	// atlas variant (SwarmSheet::Team) maps to (task-095), instead of one flat
@@ -559,7 +581,7 @@ void USwarmGridBuildProcessor::Execute(FMassEntityManager& EntityManager, FMassE
 	// SwarmCombatTuning::FKnightSubtypeTables (SwarmCombat.h).
 	const SwarmCombatTuning::FKnightSubtypeTables KnightTables = SwarmCombatTuning::GetKnightSubtypeTables();
 
-	EntityQuery.ForEachEntityChunk(Context, [Swarm, ArchersTargets, BroodTargets, ArchersBlow, BroodBlow, SwingInterval, KnightTables](FMassExecutionContext& ChunkContext)
+	EntityQuery.ForEachEntityChunk(Context, [Swarm, ArchersTargets, BroodTargets, ArchersDPS, BroodDPS, SwingInterval, KnightTables](FMassExecutionContext& ChunkContext)
 	{
 		const TConstArrayView<FTransformFragment> Transforms = ChunkContext.GetFragmentView<FTransformFragment>();
 		const TConstArrayView<FSwarmAnimFragment> Anim = ChunkContext.GetFragmentView<FSwarmAnimFragment>();
@@ -574,17 +596,22 @@ void USwarmGridBuildProcessor::Execute(FMassEntityManager& EntityManager, FMassE
 			const bool bRetinue = (Anim[i].Bits & SwarmAnim::TeamBit) != 0;
 			const bool bArcher = bRetinue && SwarmSquad::UnitType(Anim[i].SquadId) == EUnitType::Archers;
 
+			// This unit's own cadence — the SAME value its swing clock advances against in
+			// the integrate pass, so blow = DPS * interval holds per unit and the spread
+			// stays a rhythm change rather than a damage change.
+			const float MyInterval = SwarmCombatTuning::SwingIntervalFor(bArcher, Jitter[i].Phase);
+
 			int32 MyTargets;
 			float MyBlow;
 			if (!bRetinue)
 			{
 				MyTargets = BroodTargets;
-				MyBlow = BroodBlow;
+				MyBlow = BroodDPS * MyInterval;
 			}
 			else if (bArcher)
 			{
 				MyTargets = ArchersTargets;
-				MyBlow = ArchersBlow;
+				MyBlow = ArchersDPS * MyInterval;
 			}
 			else
 			{
@@ -592,7 +619,7 @@ void USwarmGridBuildProcessor::Execute(FMassEntityManager& EntityManager, FMassE
 					Jitter[i].Phase, KnightTables.TeamVariantCum, KnightTables.NumTeamVariants);
 				const int32 Row = SwarmCombatTuning::KnightSubtypeRowFor(KnightTables, Variant);
 				MyTargets = KnightTables.Targets[Row];
-				MyBlow = KnightTables.DPS[Row] * SwingInterval;
+				MyBlow = KnightTables.DPS[Row] * MyInterval;
 			}
 
 			Swarm->AddToGrid(
@@ -1091,15 +1118,14 @@ void USwarmIntegrateProcessor::Execute(FMassEntityManager& EntityManager, FMassE
 	const float TimeSeconds = Context.GetWorld()->GetTimeSeconds();
 
 	// Swing / hit-reaction tunables, snapshotted once per pass.
-	const float SwingInterval = SwarmCombatTuning::SwingInterval();
-	const float StrikeAt = SwingInterval * SwarmCombatTuning::SwingStrikeAt();
+	//
+	// Only the FRACTIONS are pass-wide now. The interval itself is per-unit
+	// (SwarmCombatTuning::SwingIntervalFor: type cadence + per-unit spread), and strike
+	// point and pose window are both fractions OF that interval — so resolving them out
+	// here against one global value would put every unit's blow and lean back on the
+	// shared metronome this change exists to break.
+	const float StrikeAtFrac = SwarmCombatTuning::SwingStrikeAt();
 	const float Lunge = SwarmCombatTuning::SwingLunge();
-
-	// The attack POSE window, not the whole interval. A single attack frame held for a
-	// short beat either side of the blow reads as a jab — lean in, connect, snap back.
-	// Holding it for the full interval would just look like a unit permanently leaning.
-	const float PoseStart = StrikeAt * 0.5f;
-	const float PoseEnd = FMath::Min(StrikeAt + SwingInterval * 0.18f, SwingInterval);
 
 	// Knockback decays exponentially with time constant KnockbackTime, which is what
 	// makes the total displacement exactly Speed x KnockbackTime (see the combat pass)
@@ -1135,7 +1161,7 @@ void USwarmIntegrateProcessor::Execute(FMassEntityManager& EntityManager, FMassE
 	const FVariantTable ArcherVariants = ParseVariantTable(
 		CVarArcherVariantWeights.GetValueOnGameThread(), SwarmSheet::Team::ArcherVariants);
 
-	EntityQuery.ForEachEntityChunk(Context, [Swarm, DeltaTime, TimeSeconds, SwingInterval, StrikeAt, PoseStart, PoseEnd, Lunge, KnockDecay, BroodWalkHz, Facing, HeroLocation, EnemyVariants, TeamVariants, ArcherVariants](FMassExecutionContext& ChunkContext)
+	EntityQuery.ForEachEntityChunk(Context, [Swarm, DeltaTime, TimeSeconds, StrikeAtFrac, Lunge, KnockDecay, BroodWalkHz, Facing, HeroLocation, EnemyVariants, TeamVariants, ArcherVariants](FMassExecutionContext& ChunkContext)
 	{
 		const TArrayView<FTransformFragment> Transforms = ChunkContext.GetMutableFragmentView<FTransformFragment>();
 		const TConstArrayView<FMassVelocityFragment> Velocities = ChunkContext.GetFragmentView<FMassVelocityFragment>();
@@ -1165,6 +1191,20 @@ void USwarmIntegrateProcessor::Execute(FMassEntityManager& EntityManager, FMassE
 			bool bStrike = false;
 			bool bSwinging = false;
 
+			// This unit's own cadence. The grid publish resolves the SAME value for its
+			// blow damage, which is what keeps the spread cosmetic — see SwingIntervalFor.
+			const bool bArcherUnit = (Anim[i].Bits & SwarmAnim::TeamBit) != 0
+				&& SwarmSquad::UnitType(Anim[i].SquadId) == EUnitType::Archers;
+			const float MyInterval = SwarmCombatTuning::SwingIntervalFor(bArcherUnit, Jitter[i].Phase);
+			const float MyStrikeAt = MyInterval * StrikeAtFrac;
+
+			// The attack POSE window, not the whole interval. A single attack frame held
+			// for a short beat either side of the blow reads as a jab — lean in, connect,
+			// snap back. Holding it for the full interval would just look like a unit
+			// permanently leaning.
+			const float MyPoseStart = MyStrikeAt * 0.5f;
+			const float MyPoseEnd = FMath::Min(MyStrikeAt + MyInterval * 0.18f, MyInterval);
+
 			if (bWasAttacking)
 			{
 				const float Previous = S.SwingTime;
@@ -1172,18 +1212,24 @@ void USwarmIntegrateProcessor::Execute(FMassEntityManager& EntityManager, FMassE
 
 				// Edge-triggered: true on exactly the one frame the clock crosses the
 				// strike point, so a blow lands once no matter the frame rate.
-				bStrike = (Previous < StrikeAt && S.SwingTime >= StrikeAt);
+				bStrike = (Previous < MyStrikeAt && S.SwingTime >= MyStrikeAt);
 
-				bSwinging = (S.SwingTime >= PoseStart && S.SwingTime < PoseEnd);
+				bSwinging = (S.SwingTime >= MyPoseStart && S.SwingTime < MyPoseEnd);
 
-				if (S.SwingTime >= SwingInterval)
+				if (S.SwingTime >= MyInterval)
 				{
-					S.SwingTime = FMath::Fmod(S.SwingTime, SwingInterval);
+					S.SwingTime = FMath::Fmod(S.SwingTime, MyInterval);
 				}
 			}
 			else
 			{
-				S.SwingTime = 0.f;
+				// Disengaged units park at a DESYNCED point in the cycle, not at 0.
+				// Parking everyone at 0 was the other half of the lockstep bug: a rank
+				// that closes on a wave together all started their windup on the same
+				// frame and stayed in phase for the rest of the fight, so the whole line
+				// loosed as one animal. Seeded from the spawn phase, so it is stable for
+				// this unit and costs no stored state.
+				S.SwingTime = FMath::Frac(Jitter[i].Phase * 0.6180339887f) * MyInterval;
 			}
 			S.bStrikeFrame = bStrike;
 
@@ -1215,8 +1261,15 @@ void USwarmIntegrateProcessor::Execute(FMassEntityManager& EntityManager, FMassE
 			// Facing is resolved from the TRUE velocity and the TRUE position, not the
 			// published ones: the lunge is a pose offset, and letting it feed back into
 			// the direction would make a unit appear to turn every time it swung.
+			//
+			// S.Facing (the direction of the thing being fought) is a different matter and
+			// IS fed in — it is the input the lunge itself uses, so passing it here is what
+			// makes the sprite point where the body leans. Only while actually engaged, so
+			// a disengaged unit falls back to heading/glance/outward as before rather than
+			// staring at a corpse.
+			const FVector2f TargetDir = bWasAttacking ? S.Facing : FVector2f::ZeroVector;
 			Anim[i].Facing = ResolveFacing(Anim[i].Facing, Transform.GetTranslation(),
-				Velocity, HeroLocation, (Anim[i].Bits & SwarmAnim::TeamBit) != 0,
+				Velocity, TargetDir, HeroLocation, (Anim[i].Bits & SwarmAnim::TeamBit) != 0,
 				Jitter[i].Phase, TimeSeconds, Facing);
 
 			// Size roll and atlas variant both ride along in the same int32, and both are
@@ -1231,10 +1284,10 @@ void USwarmIntegrateProcessor::Execute(FMassEntityManager& EntityManager, FMassE
 				// What goes into the int32 is the within-table index; the archer block's row
 				// offset is added by the render bridge (SwarmSheet::Team::ArcherVariantBase).
 				const bool bTeamEntity = (Anim[i].Bits & SwarmAnim::TeamBit) != 0;
-				const bool bArcherEntity = bTeamEntity
-					&& SwarmSquad::UnitType(Anim[i].SquadId) == EUnitType::Archers;
+				// bArcherUnit was already resolved for the swing clock above — same byte,
+				// same test, so reuse it rather than let a second copy drift.
 				const FVariantTable& MyVariants = bTeamEntity
-					? (bArcherEntity ? ArcherVariants : TeamVariants)
+					? (bArcherUnit ? ArcherVariants : TeamVariants)
 					: EnemyVariants;
 				Swarm->PushRenderEntry(Published, Anim[i].Bits, Anim[i].SquadId,
 					SwarmRenderPack::BucketFromPhase(Jitter[i].Phase), Anim[i].Facing,

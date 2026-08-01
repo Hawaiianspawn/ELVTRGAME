@@ -355,6 +355,14 @@ Swarm.MaxAttackersPerUnit 4    ; SAFETY CLAMP ONLY on blows counted in one frame
 # changing how damage is parcelled (one blow = DPS x interval).
 # ============================================================
 Swarm.SwingInterval 0.9        ; seconds between blows; very short = back to a continuous bleed
+Swarm.ArcherSwingInterval 1.5  ; seconds between ARCHER shots. A bow is a longer beat than a
+                                 ; spear jab. NOT a balance dial: one arrow removes ArchersDPS
+                                 ; x this, so a slower rate is fewer, bigger hits at the same DPS
+Swarm.SwingIntervalJitter 0.2  ; [0..0.9] per-unit spread on the interval, fraction of the type
+                                 ; base. Fixed per unit from its spawn phase. This is what stops
+                                 ; a rank that engaged together firing in lockstep forever.
+                                 ; 0 = one metronome per type. DPS unchanged: each unit's blow
+                                 ; is its OWN DPS x its OWN interval
 Swarm.SwingStrikeAt 0.35       ; fraction of the interval where the blow lands; before = windup
 Swarm.SwingLunge 12            ; uu a unit leans toward its target while swinging (cosmetic)
 Swarm.HitFlashTime 0.1         ; seconds a struck unit flashes white (light-exempt)

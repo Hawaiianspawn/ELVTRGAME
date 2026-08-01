@@ -61,6 +61,8 @@ VALUES = {
     "Swarm.HeroMeleeRange": "190",
     # Hit reaction — swing cadence / flash / knockback (GATE1 §3b)
     "Swarm.SwingInterval": "0.9",
+    "Swarm.ArcherSwingInterval": "1.5",
+    "Swarm.SwingIntervalJitter": "0.2",
     "Swarm.SwingStrikeAt": "0.35",
     "Swarm.SwingLunge": "12",
     "Swarm.HitFlashTime": "0.1",
@@ -97,7 +99,8 @@ COMBAT = ["Swarm.BroodMaxHP", "Swarm.BroodDPS", "Swarm.RetinueMaxHP", "Swarm.Ret
           "Swarm.HeroMeleeRange", "Swarm.BroodSpawnRadiusMin", "Swarm.RetinueTargetsPerHit", "Swarm.BroodTargetsPerHit"]
 # Hit reaction rides on the Combat preset: you tune how a blow FEELS in the same sitting
 # as how much it hurts, and SwingInterval is the seam between the two.
-HITREACTION = ["Swarm.SwingInterval", "Swarm.SwingStrikeAt", "Swarm.SwingLunge",
+HITREACTION = ["Swarm.SwingInterval", "Swarm.ArcherSwingInterval",
+               "Swarm.SwingIntervalJitter", "Swarm.SwingStrikeAt", "Swarm.SwingLunge",
                "Swarm.HitFlashTime", "Swarm.KnockbackDistance", "Swarm.KnockbackTime"]
 COMBAT = COMBAT + HITREACTION
 # The horde is now its own sitting: everything about how the tide moves, packs, targets

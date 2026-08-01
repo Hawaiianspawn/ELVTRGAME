@@ -60,6 +60,24 @@ namespace
 		TEXT("Seconds between blows. One blow removes DPS * this, so raising it makes\n")
 		TEXT("combat slower and heavier-hitting without changing average throughput.\n")
 		TEXT("Very short intervals collapse back toward the old continuous bleed."), ECVF_Default);
+	TAutoConsoleVariable<float> CVarArcherSwingInterval(
+		TEXT("Swarm.ArcherSwingInterval"), 1.5f,
+		TEXT("Seconds between ARCHER shots, the ranged counterpart to Swarm.SwingInterval.\n")
+		TEXT("A bow is not a spear jab: nocking, drawing and loosing is a longer, heavier\n")
+		TEXT("beat than a melee line's, and until this existed archers borrowed the melee\n")
+		TEXT("cadence and the whole ranged rank read as a single firing machine.\n")
+		TEXT("DPS IS UNCHANGED BY THIS: one arrow removes Swarm.ArchersDPS * this, so a\n")
+		TEXT("slower rate simply lands fewer, bigger hits. It is a FEEL dial, not balance."),
+		ECVF_Default);
+	TAutoConsoleVariable<float> CVarSwingIntervalJitter(
+		TEXT("Swarm.SwingIntervalJitter"), 0.2f,
+		TEXT("Per-unit spread on the swing/fire interval, as a fraction of the type's base.\n")
+		TEXT("0.2 means each unit's own cadence sits somewhere in +/-20%% of its type's,\n")
+		TEXT("fixed for its lifetime and derived from its spawn phase (no stored state).\n")
+		TEXT("This is what stops a rank that engaged on the same frame firing in lockstep\n")
+		TEXT("forever. 0 = every unit of a type shares one metronome (the old behaviour).\n")
+		TEXT("DPS IS UNCHANGED: each unit's blow is its OWN DPS * its OWN interval."),
+		ECVF_Default);
 	TAutoConsoleVariable<float> CVarSwingStrikeAt(
 		TEXT("Swarm.SwingStrikeAt"), 0.35f,
 		TEXT("Fraction of the swing interval at which the blow lands, 0-1. Everything\n")
@@ -261,6 +279,8 @@ namespace SwarmCombatTuning
 	// unit that strikes every frame. StrikeAt is clamped inside the interval so the
 	// windup and the recovery both always exist.
 	float SwingInterval()       { return FMath::Max(CVarSwingInterval.GetValueOnAnyThread(), 0.05f); }
+	float ArcherSwingInterval() { return FMath::Max(CVarArcherSwingInterval.GetValueOnAnyThread(), 0.05f); }
+	float SwingIntervalJitter() { return FMath::Clamp(CVarSwingIntervalJitter.GetValueOnAnyThread(), 0.f, 0.9f); }
 	float SwingStrikeAt()       { return FMath::Clamp(CVarSwingStrikeAt.GetValueOnAnyThread(), 0.f, 0.99f); }
 	float SwingLunge()          { return CVarSwingLunge.GetValueOnAnyThread(); }
 	float HitFlashTime()        { return FMath::Max(CVarHitFlashTime.GetValueOnAnyThread(), 0.f); }
@@ -394,12 +414,13 @@ void USwarmCombatProcessor::Execute(FMassEntityManager& EntityManager, FMassExec
 	// bleed, which is what keeps the Gate 1 balance numbers meaningful — but the HP
 	// now comes off in steps you can see, and each step is something to react to.
 	//
-	// BroodBlow survives as a flat value (brood aren't typed — §11 Assumption 7) for the
-	// hero-exchange path below. The damage a RETINUE striker deals no longer has one flat
-	// per-team value — see FGridEntry::BlowDamage, published per-attacker at grid-build
-	// time from its own type, and accumulated per-claim in the loop below instead.
+	// NOBODY in the swarm has a flat blow value any more. Type gave retinue strikers their
+	// own (FGridEntry::BlowDamage, published per-attacker at grid-build time), and per-unit
+	// swing cadence (SwarmCombatTuning::SwingIntervalFor) now does the same to brood — so
+	// the hero-exchange path reads the attacker's published BlowDamage too rather than a
+	// team constant. HeroBlow stays flat because the hero is a pawn, not a Mass entity: he
+	// has no jitter phase to spread a cadence with and swings on the base interval.
 	const float SwingInterval = SwarmCombatTuning::SwingInterval();
-	const float BroodBlow = SwarmCombatTuning::BroodDPS() * SwingInterval;
 	const float HeroBlow = SwarmCombatTuning::HeroDPS() * SwingInterval;
 
 	const float FlashTime = SwarmCombatTuning::HitFlashTime();
@@ -422,7 +443,7 @@ void USwarmCombatProcessor::Execute(FMassEntityManager& EntityManager, FMassExec
 	int32 KilledBySquad[USwarmSubsystem::MaxSquads] = {};
 	int32 HeroKilled = 0;
 
-	EntityQuery.ForEachEntityChunk(Context, [Swarm, HeroLocation, bHeroAlive, bHeroStriking, MeleeRangeSq, ArchersRangeSq, ArchersMinRangeSq, HeroMeleeRangeSq, BroodBlow, HeroBlow, MaxAttackers, ArchersTargets, BroodTargets, KnightTables, FlashTime, KnockSpeed, &HeroDamage, &DamageToRetinue, &DamageToBrood, &KilledBySquad, &HeroKilled](FMassExecutionContext& ChunkContext)
+	EntityQuery.ForEachEntityChunk(Context, [Swarm, HeroLocation, bHeroAlive, bHeroStriking, MeleeRangeSq, ArchersRangeSq, ArchersMinRangeSq, HeroMeleeRangeSq, HeroBlow, MaxAttackers, ArchersTargets, BroodTargets, KnightTables, FlashTime, KnockSpeed, &HeroDamage, &DamageToRetinue, &DamageToBrood, &KilledBySquad, &HeroKilled](FMassExecutionContext& ChunkContext)
 	{
 		const TConstArrayView<FTransformFragment> Transforms = ChunkContext.GetFragmentView<FTransformFragment>();
 		const TArrayView<FSwarmHealthFragment> Health = ChunkContext.GetMutableFragmentView<FSwarmHealthFragment>();
@@ -680,7 +701,12 @@ void USwarmCombatProcessor::Execute(FMassEntityManager& EntityManager, FMassExec
 						if (OwnEntry && OwnEntry->BlowsClaimed < OwnEntry->TargetsPerHit)
 						{
 							++OwnEntry->BlowsClaimed;
-							HeroDamage += BroodBlow;
+							// This brood's OWN blow, not a flat team value: swing intervals
+							// are per-unit now (SwingIntervalFor), and blow = DPS * interval.
+							// Paying a flat blow while striking on a jittered clock would hand
+							// a fast-rolled brood more DPS than its stat block says — against
+							// the hero only, which is the worst place to hide it.
+							HeroDamage += OwnEntry->BlowDamage;
 						}
 					}
 
