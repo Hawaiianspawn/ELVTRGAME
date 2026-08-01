@@ -76,7 +76,7 @@ struct FSwarmFightRecord
 };
 
 UCLASS()
-class USwarmTelemetrySubsystem : public UTickableWorldSubsystem
+class ELVTR_API USwarmTelemetrySubsystem : public UTickableWorldSubsystem
 {
 	GENERATED_BODY()
 

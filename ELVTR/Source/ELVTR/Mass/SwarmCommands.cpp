@@ -177,7 +177,14 @@ namespace
 		const TSharedRef<FMassEntityManager::FEntityCreationContext> CreationContext =
 			EntityManager.BatchCreateEntities(Archetype, Params.Count, Entities);
 
-		const FVector Center = Swarm->GetAttractor();
+		// Flattened to the ground plane, and that Z=0 is load-bearing. The attractor is
+		// SpikeHeroPawn's GetActorLocation(), which is a CHARACTER CAPSULE CENTRE sitting
+		// 92uu above the floor -- not its feet. Both spawn branches below add only an XY
+		// offset, and steering never touches Z, so an inherited 92 would float the entire
+		// horde for its whole life, uniformly and independently of sprite size. That float
+		// is what Swarm.SpriteGroundOffset's -72 was really cancelling (task-110): two
+		// errors hiding each other, which is why removing one made the other visible.
+		const FVector Center = FVector(Swarm->GetAttractor().X, Swarm->GetAttractor().Y, 0.f);
 		FRandomStream Rand(FPlatformTime::Cycles());
 
 		// Spearmen's formation (== today's retinue). Archers read their own independent
@@ -204,6 +211,13 @@ namespace
 		}
 
 		const float BroodMaxHP = SwarmCombatTuning::BroodMaxHP();
+
+		// task-095: a Spearman's HP now comes from the knight sub-type row its own
+		// team-atlas variant maps to, not one flat Swarm.RetinueMaxHP for the whole line —
+		// baked in once here (below) from the SAME phase that later decides its look
+		// (SwarmProcessors.cpp), so HP and look can never disagree. Snapshotted once per
+		// spawn batch, same as everything else in this function.
+		const SwarmCombatTuning::FKnightSubtypeTables KnightTables = SwarmCombatTuning::GetKnightSubtypeTables();
 
 		// Retinue keeps the original fixed +/-15%: your line's raggedness isn't a dial
 		// anyone has asked to move, and the formation slots already stagger it.
@@ -235,6 +249,12 @@ namespace
 			float MaxHP = BroodMaxHP;
 			float TypeSpeedScale = 1.f;
 
+			// Rolled here, once, rather than inline where JitterFragment.Phase used to be
+			// set below — a Spearman's HP (right below) needs the SAME phase its look will
+			// later resolve from, not a second independent draw that could pick a
+			// different knight for the HP than the one it ends up wearing.
+			const float Phase = Rand.FRandRange(0.f, 10.f);
+
 			if (Params.bBrood)
 			{
 				// Rank/column slot on the spawn arc (SwarmFormation::BroodSlotOffset).
@@ -252,8 +272,19 @@ namespace
 				const int32 TypeIdx = (int32)Type;
 				const uint8 SquadByte = Swarm->AssignRecruit(Type, RecruitedThisBatch[TypeIdx]++);
 
-				MaxHP = (Type == EUnitType::Archers) ? SwarmCombatTuning::ArchersMaxHP() : SwarmCombatTuning::RetinueMaxHP();
-				TypeSpeedScale = (Type == EUnitType::Archers) ? SwarmCombatTuning::ArchersMoveSpeedScale() : 1.f;
+				if (Type == EUnitType::Archers)
+				{
+					MaxHP = SwarmCombatTuning::ArchersMaxHP();
+					TypeSpeedScale = SwarmCombatTuning::ArchersMoveSpeedScale();
+				}
+				else
+				{
+					const int32 Variant = SwarmRenderPack::VariantFromPhase(
+						Phase, KnightTables.TeamVariantCum, KnightTables.NumTeamVariants);
+					const int32 Row = SwarmCombatTuning::KnightSubtypeRowFor(KnightTables, Variant);
+					MaxHP = KnightTables.HP[Row];
+					TypeSpeedScale = 1.f;
+				}
 
 				// Only the index is stored — the offset below is just where to drop the
 				// unit on frame one. The steering pass re-derives its place every frame
@@ -273,7 +304,7 @@ namespace
 
 			FSwarmJitterFragment& JitterFragment = View.GetFragmentData<FSwarmJitterFragment>();
 			JitterFragment.SpeedScale = TypeSpeedScale * Rand.FRandRange(1.f - SpeedJitter, 1.f + SpeedJitter);
-			JitterFragment.Phase = Rand.FRandRange(0.f, 10.f);
+			JitterFragment.Phase = Phase;
 
 			FSwarmHealthFragment& HealthFragment = View.GetFragmentData<FSwarmHealthFragment>();
 			HealthFragment.MaxHP = MaxHP;
@@ -284,7 +315,7 @@ namespace
 			// zero would make the whole front line strike on the same frame, which
 			// reads as one pulsing organism rather than a mêlée.
 			View.GetFragmentData<FSwarmStrikeFragment>().SwingTime =
-				FMath::Fmod(JitterFragment.Phase, SwarmCombatTuning::SwingInterval());
+				FMath::Fmod(Phase, SwarmCombatTuning::SwingInterval());
 		}
 
 		Swarm->TrackSpawned(Entities);

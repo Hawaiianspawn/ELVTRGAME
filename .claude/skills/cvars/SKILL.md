@@ -14,9 +14,12 @@ run so this never drifts from the code.
 
 Before promising anything, know what MCP **cannot** do here:
 
-- The only CVar-related MCP tool is **read-only** (`EditorAppToolset.SearchCVars`).
-  There is **no set-CVar tool** and **no tool that edits the Console Variables Editor
-  panel**.
+- **Setting** a CVar over MCP is solved — `KindledConsoleToolset.SetCVar` (project
+  toolset, `ELVTR/Source/ELVTREditor/Toolsets/`) writes one at `ECVF_SetByConsole` and
+  reads the value back. `EditorAppToolset.SearchCVars` is still the read/discovery side.
+  That only sets a *live* value; the rest of this skill — the exec file, the paste
+  list, the panel preset — is about what survives a relaunch, and still applies.
+- There is still **no tool that edits the Console Variables Editor panel**.
 - The MCP Python sandbox (`ProgrammaticToolset`) allows only `re/json/copy/math/
   datetime/time` and **cannot `import unreal`** — so the plugin's own API is unreachable.
 - `AssetTools` can **duplicate/load/save/delete** assets but **cannot create** one from

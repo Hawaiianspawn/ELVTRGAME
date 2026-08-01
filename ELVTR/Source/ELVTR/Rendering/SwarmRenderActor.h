@@ -11,11 +11,15 @@ class UTextureRenderTarget2D;
 
 /**
  * Bridges Mass -> Niagara. Place one in the map with NS_Swarm assigned.
- * Each tick, pushes the swarm's packed positions + sprite frames into the
- * Niagara system's user parameter arrays:
- *   User.Positions (Position array), User.SubImages (Float array), User.Count (int)
- * SubImage index = walk frame (bit 0) + 2 * team (bit 3) — decoded here so the
- * Niagara graph stays a dumb array lookup.
+ *
+ * Each tick, splits the swarm's packed entities by SwarmAnim::TeamBit and pushes each
+ * side into its OWN set of the Niagara system's user parameter arrays (task-085 — two
+ * emitters inside NS_Swarm, one per side, each with its own Sub UV grid):
+ *   Team:  User.TeamPositions, User.TeamSubImages, User.TeamColors, User.TeamSizes, User.TeamCount
+ *   Enemy: User.Positions, User.SubImages, User.Colors, User.Sizes, User.Count (unchanged names —
+ *          this is the emitter that already existed before the split)
+ * SubImage index is decoded here (SwarmSheet::Team::CellFor / ::Enemy::CellFor) so the
+ * Niagara graph stays a dumb array lookup on both emitters.
  */
 UCLASS()
 class ASwarmRenderActor : public AActor
@@ -159,7 +163,13 @@ private:
 	UPROPERTY(Transient)
 	TObjectPtr<UTextureRenderTarget2D> DebugCaptureRT;
 
-	TArray<float> SubImageScratch;
+	// task-085: one SubImage array per side, kept as members (not file-static like the other
+	// per-tick scratch below) because TakeDebugShot reads them back after Tick to log which
+	// atlas rows each emitter was actually handed. Splitting this pair IS a class-layout
+	// change, so unlike the file-static arrays in SwarmRenderActor.cpp this needs the full
+	// editor-closed rebuild (Stop-Editor; Build-Editor; Start-Editor) rather than Live Coding.
+	TArray<float> TeamSubImageScratch;
+	TArray<float> EnemySubImageScratch;
 	float FlameSeed = 0.f;
 
 	// Damped-spring state for the flame (see TickFlame). Not a UPROPERTY — plain

@@ -7,7 +7,8 @@ public class ELVTR : ModuleRules
 		PCHUsage = PCHUsageMode.UseExplicitOrSharedPCHs;
 
 		// Flat module layout (no Public/Private): allow module-root-relative includes.
-		PrivateIncludePaths.Add(ModuleDirectory);
+		// Public, not private: ELVTREditor's MCP toolsets include Mass/SwarmSubsystem.h.
+		PublicIncludePaths.Add(ModuleDirectory);
 
 		PublicDependencyModuleNames.AddRange(new string[]
 		{

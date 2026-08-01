@@ -173,9 +173,54 @@ namespace SwarmCombatTuning
 	// GDD §4 "hero relevance" warns about — the hero must matter as a commander,
 	// not as the damage. He survives long enough to reposition the line; he
 	// cannot replace it.
-	float HeroMaxHP();
+	ELVTR_API float HeroMaxHP();	// exported: the editor toolset's swarm snapshot reports hp/maxHp
 	float HeroDPS();
 	float HeroMeleeRange();
+
+	// --- knight sub-types (task-095, docs/design/retinue-melee-subtypes.md) -----------
+	// Binds the team-atlas VARIANT INDEX a Spearman already wears (SwarmSheet::Team,
+	// task-085) to a stat row, so a knight's look and its fight can never disagree and no
+	// new per-entity state is stored — see docs/perf/knight-subtype-binding.md. Archers are
+	// untouched; they stay on the Archers* getters above. Brood are untouched too.
+
+	inline constexpr int32 MaxKnightSubtypeRows = 16;      // headroom past today's 9 rows
+	inline constexpr int32 MaxKnightSubtypeVariants = 16;  // SwarmRenderPack's 4-bit variant field
+
+	/**
+	 * Everything the melee sub-type binding needs, snapshotted ONCE PER PROCESSOR PASS
+	 * (see SwarmProcessors.cpp's FVariantTable for why a per-pass Atoi pass is fine next to
+	 * a 30k-entity sim and a per-entity one is not) and captured by value into a per-chunk
+	 * lambda — small enough (~200 bytes) for that, same idiom the render bridge already
+	 * uses for its own variant table.
+	 *
+	 * TeamVariantCum is the SAME cumulative Swarm.TeamVariantWeights table the render
+	 * bridge resolves a look from (owned by SwarmProcessors.cpp's translation unit; read
+	 * by name here, not redeclared — the idiom SwarmRenderActor.cpp's LogVariantHistogram
+	 * already uses to log it). Feeding it into the SAME SwarmRenderPack::VariantFromPhase
+	 * formula with a unit's own Jitter phase is what guarantees a combat lookup here always
+	 * agrees with the sprite on screen — nothing about "which knight is this" is decided
+	 * twice.
+	 */
+	struct FKnightSubtypeTables
+	{
+		float HP[MaxKnightSubtypeRows] = {};
+		float DPS[MaxKnightSubtypeRows] = {};
+		float Engage[MaxKnightSubtypeRows] = {};
+		int32 Targets[MaxKnightSubtypeRows] = {};	// clamped 1-8 at parse time — see the .cpp
+		int32 NumRows = 0;
+
+		int32 Map[MaxKnightSubtypeVariants] = {};	// variant index (0-10) -> row index
+		int32 NumVariants = 0;
+
+		int32 TeamVariantCum[MaxKnightSubtypeVariants] = {};
+		int32 NumTeamVariants = 0;
+	};
+
+	FKnightSubtypeTables GetKnightSubtypeTables();
+
+	/** Row for a team-atlas variant index, via Tables.Map — clamped both ways so a short or
+	 * malformed CVar list falls back to row 0 instead of reading garbage. */
+	int32 KnightSubtypeRowFor(const FKnightSubtypeTables& Tables, int32 VariantIndex);
 }
 
 namespace SwarmLeash

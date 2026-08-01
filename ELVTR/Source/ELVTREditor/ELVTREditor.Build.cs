@@ -14,6 +14,9 @@ public class ELVTREditor : ModuleRules
 			"Core",
 			"CoreUObject",
 			"Engine",
+			"ELVTR",                  // the runtime module, for the swarm snapshot toolset
+			"Json",                   // that snapshot's output
+			"ToolsetRegistry",        // MCP toolsets (Toolsets/KindledToolsets.h)
 			"Slate",
 			"SlateCore",
 			"UnrealEd",              // editor module boilerplate + asset/editor services

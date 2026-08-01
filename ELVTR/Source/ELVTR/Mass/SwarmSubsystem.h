@@ -20,7 +20,7 @@
  * bottleneck, replace with measurement in hand — not before.
  */
 UCLASS()
-class USwarmSubsystem : public UWorldSubsystem
+class ELVTR_API USwarmSubsystem : public UWorldSubsystem
 {
 	GENERATED_BODY()
 

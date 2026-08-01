@@ -981,7 +981,7 @@ void UUnitCamProjector::NativeTick(const FGeometry& MyGeometry, float DeltaTime)
 
 		TArray<TArray<FSlateBrush>> Sets;
 		Sets.SetNum(UnitCamSprite::SpearmenStateBase + NumSpearmenStatesLoaded + NumArcherStatesLoaded);
-		Sets[UnitCamSprite::SwarmAtlas] = BuildBrushSet(SwarmAtlas, SwarmSheet::Columns, SwarmSheet::Rows);
+		Sets[UnitCamSprite::SwarmAtlas] = BuildBrushSet(SwarmAtlas, SwarmSheet::Columns, SwarmSheet::Legacy::Rows);
 		Sets[UnitCamSprite::Hero] = BuildBrushSet(HeroTexture, HeroSheetColumns, HeroSheetRows);
 		for (int32 i = 0; i < NumSpearmenStatesLoaded; ++i)
 		{
@@ -1395,7 +1395,7 @@ void UUnitCamProjector::NativeTick(const FGeometry& MyGeometry, float DeltaTime)
 			// repurposed rather than deleted — see SpriteSetForSoldier's doc comment. DirCol IS
 			// the flat cell index into any state's 5x2 grid (RetinueSheetColumns divides 8
 			// evenly for the direction cells), so no further row math is needed the way
-			// SwarmSheet::CellFor needs for the 8x4 atlas.
+			// SwarmSheet::Legacy::CellFor needs for the 8x4 atlas.
 			B.SpriteSet = SpriteSetForSoldier(AnimBits[i], NumSpearmenStatesLoaded, NumArcherStatesLoaded);
 			// South-only walk toggle (RetinueSouthWalkCellA/B): the two high-res sheets carry a
 			// two-frame walk cycle ONLY for south (the knight's real generated walk frames 0
@@ -1415,7 +1415,9 @@ void UUnitCamProjector::NativeTick(const FGeometry& MyGeometry, float DeltaTime)
 			// body's own walk instead of freezing everyone on one global frame. Brood live on
 			// rows 0-1 of the atlas, retinue (when drawn from here) on rows 2-3.
 			B.SpriteSet = UnitCamSprite::SwarmAtlas;
-			B.Cell = SwarmAtlas ? SwarmSheet::CellFor((uint8)AnimBits[i], DirCol) : INDEX_NONE;
+			// Legacy: this panel still slices the pre-task-085 combined T_Swarm_2bit atlas,
+			// not either of the split Team/Enemy sheets (see SwarmSheet::Legacy's doc comment).
+			B.Cell = SwarmAtlas ? SwarmSheet::Legacy::CellFor((uint8)AnimBits[i], DirCol) : INDEX_NONE;
 		}
 		const bool bSprite = B.Cell != INDEX_NONE;
 		if ((AnimBits[i] & SwarmAnim::HitFlashBit) != 0)

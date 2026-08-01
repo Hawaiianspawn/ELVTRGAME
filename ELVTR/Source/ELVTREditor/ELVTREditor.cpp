@@ -5,6 +5,8 @@
 #include "Framework/Docking/TabManager.h"
 #include "HAL/IConsoleManager.h"
 #include "Modules/ModuleManager.h"
+#include "Toolsets/KindledToolsets.h"
+#include "ToolsetRegistry/UToolsetRegistry.h"
 #include "Widgets/Docking/SDockTab.h"
 #include "WorkspaceMenuStructure.h"
 #include "WorkspaceMenuStructureModule.h"
@@ -35,10 +37,18 @@ void FELVTREditorModule::StartupModule()
 		.SetTooltipText(LOCTEXT("BreadboardTabTooltip",
 			"ELVTR tuning dials: every CVar in Saved/SwarmExecOnPlay.txt as a live field."))
 		.SetGroup(WorkspaceMenu::GetMenuStructure().GetToolsCategory());
+
+	// MCP surface: console write access and a live swarm read, both of which the
+	// engine's own toolsets leave out.
+	UToolsetRegistry::RegisterToolsetClass(UKindledConsoleToolset::StaticClass());
+	UToolsetRegistry::RegisterToolsetClass(UKindledSwarmToolset::StaticClass());
 }
 
 void FELVTREditorModule::ShutdownModule()
 {
+	UToolsetRegistry::UnregisterToolsetClass(UKindledSwarmToolset::StaticClass());
+	UToolsetRegistry::UnregisterToolsetClass(UKindledConsoleToolset::StaticClass());
+
 	if (FSlateApplication::IsInitialized())
 	{
 		FGlobalTabmanager::Get()->UnregisterNomadTabSpawner(BreadboardTabName);
