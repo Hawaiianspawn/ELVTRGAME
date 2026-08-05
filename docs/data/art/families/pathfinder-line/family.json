@@ -35,7 +35,7 @@
   },
   "axis": {
     "name": "mixed",
-    "description": "task-139. The twelve legacy states above spend headgear/kit only (separation_rationale) and never touch aspect or topology -- they were owner-supplied, not generated through this axis-first pipeline. These six new states spend the axes the legacy batch skipped, in SKILL.md's order: stilthauler and harpoonreach move aspect (extreme narrow-tall via stilt-legs versus wide-via-rigid-extension, the proven skeletal-base recipe); droneleash, kneebrace and wingflare move topology (a tethered drone held clear of the body for a real enclosed hole; a kneeling tripod-braced stance for a low wide-based profile distinct from riflecrouch's standing crouch and turretnest's seated furniture; swept jump-pack vanes that make the front and back views read differently); hazmatbulk spends interior/kit last, as a rounded-vs-everything-else tiebreaker, per the rule to never open with interior."
+    "description": "task-139. The twelve legacy states above spend headgear/kit only (separation_rationale) and never touch aspect or topology -- they were owner-supplied, not generated through this axis-first pipeline. These six new states spend the axes the legacy batch skipped, in SKILL.md's order: stilthauler and harpoonreach move aspect (extreme narrow-tall via stilt-legs versus wide-via-rigid-extension, the proven skeletal-base recipe); droneleash, kneebrace and wingflare move topology (a tethered drone held clear of the body for a real enclosed hole; a kneeling tripod-braced stance for a low wide-based profile distinct from riflecrouch's standing crouch and turretnest's seated furniture; swept jump-pack vanes that make the front and back views read differently); hazmatbulk spends interior/kit last, as a rounded-vs-everything-else tiebreaker, per the rule to never open with interior. task-140 (round 2): six character TROPES as the concept seed, per the owner's brief -- the trope choice itself is the variety lever, not a longer edit_description (PixelLab's own agent_help guidance). gunslinger and buccaneer move topology via the body/coat shape itself (a bell-flared coat hem; genuine left-right limb asymmetry from a peg-leg and a hook, not from a held prop, which every prior asymmetric state in this family used); shinobi moves aspect narrow plus a topology peak (crossed blade hilts above the shoulders, distinguishing it from stilthauler's plain-hooded narrow top); berserker moves topology (broad fur pauldrons plus a vertical axe overhead, a broad-shouldered echo of crystalstaff's slim-body vertical spike); trenchcoat spends topology toward a rectangular primitive (hands hidden in pockets, no arm break) as the geometric opposite of hazmatbulk's rounded primitive; tinkerer spends interior/kit last, an asymmetric mechanical crane-arm as the tiebreaker. Mounts, vehicles and anything that stops reading as a person on foot are explicitly out of scope for this round."
   },
   "constant": "Base character b3163cdf-6434-4390-8417-721a80797dcf (group e2702eb6-248d-4b6b-b8dc-fedc1290e059), inherited palette via use_color_palette_from_reference (no new hues), 92px canvas, full colour per aesthetic-direction.md's 2026-07-28 amendment, glow explicitly banned in every prompt, hooded/cloaked-kit register (firearms/energy/mounted-weapon arms, not archer-medieval's bows-and-leather), every variant nameable as a Pathfinder-line soldier from its outline alone.",
   "variants": [
@@ -85,6 +85,42 @@
       "slug": "hazmatbulk",
       "silhouette_target": "a smooth, rounded containment suit with no protrusions or gaps -- the highest-solidity, roundest silhouette in the block, the interior/kit tiebreaker spent last",
       "edit_description": "A smooth, heavily padded rounded containment suit -- thick rounded torso and a sealed rounded helmet, arms held close against the body, no antenna, no weapon, no protruding gear. The outline should be soft and rounded with no gaps or sharp points. Match the existing color palette exactly, no new colors, no glowing parts.",
+      "source": "generated"
+    },
+    {
+      "slug": "gunslinger",
+      "silhouette_target": "a duster coat flaring into a wide triangular bell at the hem -- a bottom-heavy topology none of the existing eighteen looks use, every current cloak hangs straight",
+      "edit_description": "A gunslinger: long duster coat that flares out into a wide triangular bell at the hem, wide-brimmed hat instead of a hood, a holstered pistol at each hip. Keep the head and legs clearly visible below the flared coat. Match the existing color palette exactly, no new colors, no glowing parts.",
+      "source": "generated"
+    },
+    {
+      "slug": "shinobi",
+      "silhouette_target": "a narrow, tightly wrapped body topped by twin blade hilts crossed in a rigid X above the shoulders -- narrow like stilthauler but with a spiked peak stilthauler's plain hood lacks",
+      "edit_description": "A shinobi: body tightly wrapped and narrow head to foot, twin sword hilts crossed in an X above the shoulders, hood wrapped low over the face, no bow or firearm. Roughly half as wide as tall. Keep the head and legs clearly visible. Match the existing color palette exactly, no new colors, no glowing parts.",
+      "source": "generated"
+    },
+    {
+      "slug": "berserker",
+      "silhouette_target": "broad fur pauldrons doubling the shoulder width plus a two-handed axe raised straight up overhead -- a broad-shouldered base with a vertical spike, distinct from crystalstaff's slim body plus vertical staff",
+      "edit_description": "A berserker: broad fur-mantled pauldrons doubling the shoulder width, a heavy two-handed axe gripped and raised straight up overhead. Hood down, wild hair visible. Keep the head and legs clearly visible below the wide shoulders. Match the existing color palette exactly, no new colors, no glowing parts.",
+      "source": "generated"
+    },
+    {
+      "slug": "buccaneer",
+      "silhouette_target": "genuine left-right body asymmetry -- a rigid peg-leg on one side, a hook in place of one hand -- rather than asymmetry from a held prop, which every prior asymmetric state in this family used",
+      "edit_description": "A buccaneer: tricorn hat, long open coat, one leg replaced by a rigid wooden peg-leg noticeably different in shape from the other leg, one hand replaced by a curved hook. Keep the head clearly visible. Match the existing color palette exactly, no new colors, no glowing parts.",
+      "source": "generated"
+    },
+    {
+      "slug": "trenchcoat",
+      "silhouette_target": "a rigid rectangular block silhouette, hands hidden in pockets so no arm breaks the outline -- the geometric opposite of hazmatbulk's rounded dome primitive",
+      "edit_description": "A noir detective: long trench coat with a popped collar hanging straight down in a rigid rectangular block, wide-brim hat, both hands hidden in coat pockets so no arm breaks the outline. Keep the head and the coat's hem-line legs clearly visible. Match the existing color palette exactly, no new colors, no glowing parts.",
+      "source": "generated"
+    },
+    {
+      "slug": "tinkerer",
+      "silhouette_target": "a rigid mechanical crane-arm jutting asymmetrically from a bulky backpack -- the interior/kit tiebreaker spent last, per the rule to never open with interior",
+      "edit_description": "A steampunk tinkerer: bulky mechanical backpack with pipes and a small jointed crane-arm jutting out to one side, brass goggles pushed up on the hood, tool belt at the waist. Keep the head and legs clearly visible. Match the existing color palette exactly, no new colors, no glowing parts.",
       "source": "generated"
     }
   ],
