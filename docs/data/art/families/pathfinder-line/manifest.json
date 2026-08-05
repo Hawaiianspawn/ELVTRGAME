@@ -1,0 +1,931 @@
+{
+  "family": "pathfinder-line",
+  "variants": {
+    "stilthauler": {
+      "urls": [
+        "https://backblaze.pixellab.ai/file/pixellab-characters/af7def4e-5692-4b18-9246-874d5382befb/ade6fc64-8d84-4ba9-a3f4-ce3b159fbe28/rotations/south.png?t=1785895182",
+        "https://backblaze.pixellab.ai/file/pixellab-characters/af7def4e-5692-4b18-9246-874d5382befb/ade6fc64-8d84-4ba9-a3f4-ce3b159fbe28/rotations/east.png?t=1785895182",
+        "https://backblaze.pixellab.ai/file/pixellab-characters/af7def4e-5692-4b18-9246-874d5382befb/ade6fc64-8d84-4ba9-a3f4-ce3b159fbe28/rotations/north.png?t=1785895182",
+        "https://backblaze.pixellab.ai/file/pixellab-characters/af7def4e-5692-4b18-9246-874d5382befb/ade6fc64-8d84-4ba9-a3f4-ce3b159fbe28/rotations/west.png?t=1785895182",
+        "https://backblaze.pixellab.ai/file/pixellab-characters/af7def4e-5692-4b18-9246-874d5382befb/ade6fc64-8d84-4ba9-a3f4-ce3b159fbe28/rotations/south-east.png?t=1785895182",
+        "https://backblaze.pixellab.ai/file/pixellab-characters/af7def4e-5692-4b18-9246-874d5382befb/ade6fc64-8d84-4ba9-a3f4-ce3b159fbe28/rotations/north-east.png?t=1785895182",
+        "https://backblaze.pixellab.ai/file/pixellab-characters/af7def4e-5692-4b18-9246-874d5382befb/ade6fc64-8d84-4ba9-a3f4-ce3b159fbe28/rotations/north-west.png?t=1785895182",
+        "https://backblaze.pixellab.ai/file/pixellab-characters/af7def4e-5692-4b18-9246-874d5382befb/ade6fc64-8d84-4ba9-a3f4-ce3b159fbe28/rotations/south-west.png?t=1785895182"
+      ],
+      "fetched": "2026-08-05T02:01:13+00:00",
+      "files": [
+        "east.png",
+        "north-east.png",
+        "north-west.png",
+        "north.png",
+        "south-east.png",
+        "south-west.png",
+        "south.png",
+        "west.png"
+      ],
+      "measured": {
+        "canvas": [
+          92,
+          92
+        ],
+        "content": [
+          26,
+          51
+        ],
+        "aspect": 0.5098039215686274,
+        "solidity": 0.6455505279034691,
+        "asymmetry": 0.0,
+        "holes": 0,
+        "hole_px": 0,
+        "luma_mean": 0.19756998900494777,
+        "luma_p95": 0.5260070588235294,
+        "opaque": 856,
+        "distinct": 25,
+        "off_ramp": 856,
+        "binary_alpha": true
+      },
+      "band": {
+        "aspect": [
+          0.42,
+          0.52
+        ],
+        "solidity": [
+          0.6361904761904762,
+          0.6909090909090909
+        ],
+        "asymmetry": [
+          0.0,
+          0.281437125748503
+        ],
+        "holes": [
+          0
+        ]
+      },
+      "verdict": "keep",
+      "reasons": [
+        "luma 0.198 -- not automatically wrong (SKILL.md), but the outline is doing all the work"
+      ]
+    },
+    "harpoonreach": {
+      "urls": [
+        "https://backblaze.pixellab.ai/file/pixellab-characters/af7def4e-5692-4b18-9246-874d5382befb/5eb3fa3b-0fc8-46f9-8d8f-f72aced4350f/rotations/south.png?t=1785895170",
+        "https://backblaze.pixellab.ai/file/pixellab-characters/af7def4e-5692-4b18-9246-874d5382befb/5eb3fa3b-0fc8-46f9-8d8f-f72aced4350f/rotations/east.png?t=1785895170",
+        "https://backblaze.pixellab.ai/file/pixellab-characters/af7def4e-5692-4b18-9246-874d5382befb/5eb3fa3b-0fc8-46f9-8d8f-f72aced4350f/rotations/north.png?t=1785895170",
+        "https://backblaze.pixellab.ai/file/pixellab-characters/af7def4e-5692-4b18-9246-874d5382befb/5eb3fa3b-0fc8-46f9-8d8f-f72aced4350f/rotations/west.png?t=1785895170",
+        "https://backblaze.pixellab.ai/file/pixellab-characters/af7def4e-5692-4b18-9246-874d5382befb/5eb3fa3b-0fc8-46f9-8d8f-f72aced4350f/rotations/south-east.png?t=1785895170",
+        "https://backblaze.pixellab.ai/file/pixellab-characters/af7def4e-5692-4b18-9246-874d5382befb/5eb3fa3b-0fc8-46f9-8d8f-f72aced4350f/rotations/north-east.png?t=1785895170",
+        "https://backblaze.pixellab.ai/file/pixellab-characters/af7def4e-5692-4b18-9246-874d5382befb/5eb3fa3b-0fc8-46f9-8d8f-f72aced4350f/rotations/north-west.png?t=1785895170",
+        "https://backblaze.pixellab.ai/file/pixellab-characters/af7def4e-5692-4b18-9246-874d5382befb/5eb3fa3b-0fc8-46f9-8d8f-f72aced4350f/rotations/south-west.png?t=1785895170"
+      ],
+      "fetched": "2026-08-05T02:01:44+00:00",
+      "files": [
+        "east.png",
+        "north-east.png",
+        "north-west.png",
+        "north.png",
+        "south-east.png",
+        "south-west.png",
+        "south.png",
+        "west.png"
+      ],
+      "measured": {
+        "canvas": [
+          92,
+          92
+        ],
+        "content": [
+          43,
+          46
+        ],
+        "aspect": 0.9347826086956522,
+        "solidity": 0.4949443882709808,
+        "asymmetry": 0.7660878447395302,
+        "holes": 0,
+        "hole_px": 0,
+        "luma_mean": 0.19043902822007247,
+        "luma_p95": 0.705956862745098,
+        "opaque": 979,
+        "distinct": 36,
+        "off_ramp": 979,
+        "binary_alpha": true
+      },
+      "band": {
+        "aspect": [
+          0.8043478260869565,
+          0.9777777777777777
+        ],
+        "solidity": [
+          0.459866220735786,
+          0.517626321974148
+        ],
+        "asymmetry": [
+          0.7660878447395302,
+          1.3406060606060606
+        ],
+        "holes": [
+          0
+        ]
+      },
+      "verdict": "flag",
+      "reasons": [
+        "aspect target 1.60 falls outside the measured 0.80-0.98 band across all 8 rotations",
+        "luma 0.190 -- not automatically wrong (SKILL.md), but the outline is doing all the work"
+      ]
+    },
+    "wingflare": {
+      "urls": [
+        "https://backblaze.pixellab.ai/file/pixellab-characters/af7def4e-5692-4b18-9246-874d5382befb/97b9227d-71f2-4ac9-bc73-e7300ce74a48/rotations/south.png?t=1785895190",
+        "https://backblaze.pixellab.ai/file/pixellab-characters/af7def4e-5692-4b18-9246-874d5382befb/97b9227d-71f2-4ac9-bc73-e7300ce74a48/rotations/east.png?t=1785895190",
+        "https://backblaze.pixellab.ai/file/pixellab-characters/af7def4e-5692-4b18-9246-874d5382befb/97b9227d-71f2-4ac9-bc73-e7300ce74a48/rotations/north.png?t=1785895190",
+        "https://backblaze.pixellab.ai/file/pixellab-characters/af7def4e-5692-4b18-9246-874d5382befb/97b9227d-71f2-4ac9-bc73-e7300ce74a48/rotations/west.png?t=1785895190",
+        "https://backblaze.pixellab.ai/file/pixellab-characters/af7def4e-5692-4b18-9246-874d5382befb/97b9227d-71f2-4ac9-bc73-e7300ce74a48/rotations/south-east.png?t=1785895190",
+        "https://backblaze.pixellab.ai/file/pixellab-characters/af7def4e-5692-4b18-9246-874d5382befb/97b9227d-71f2-4ac9-bc73-e7300ce74a48/rotations/north-east.png?t=1785895190",
+        "https://backblaze.pixellab.ai/file/pixellab-characters/af7def4e-5692-4b18-9246-874d5382befb/97b9227d-71f2-4ac9-bc73-e7300ce74a48/rotations/north-west.png?t=1785895190",
+        "https://backblaze.pixellab.ai/file/pixellab-characters/af7def4e-5692-4b18-9246-874d5382befb/97b9227d-71f2-4ac9-bc73-e7300ce74a48/rotations/south-west.png?t=1785895190"
+      ],
+      "fetched": "2026-08-05T02:01:49+00:00",
+      "files": [
+        "east.png",
+        "north-east.png",
+        "north-west.png",
+        "north.png",
+        "south-east.png",
+        "south-west.png",
+        "south.png",
+        "west.png"
+      ],
+      "measured": {
+        "canvas": [
+          92,
+          92
+        ],
+        "content": [
+          48,
+          46
+        ],
+        "aspect": 1.0434782608695652,
+        "solidity": 0.49682971014492755,
+        "asymmetry": 0.10756608933454877,
+        "holes": 0,
+        "hole_px": 0,
+        "luma_mean": 0.189807708009366,
+        "luma_p95": 0.7087090196078432,
+        "opaque": 1097,
+        "distinct": 41,
+        "off_ramp": 1097,
+        "binary_alpha": true
+      },
+      "band": {
+        "aspect": [
+          0.7391304347826086,
+          1.0434782608695652
+        ],
+        "solidity": [
+          0.49682971014492755,
+          0.5402813299232737
+        ],
+        "asymmetry": [
+          0.05357142857142857,
+          1.0153846153846153
+        ],
+        "holes": [
+          0
+        ]
+      },
+      "verdict": "keep",
+      "reasons": [
+        "luma 0.190 -- not automatically wrong (SKILL.md), but the outline is doing all the work"
+      ]
+    },
+    "hazmatbulk": {
+      "urls": [
+        "https://backblaze.pixellab.ai/file/pixellab-characters/af7def4e-5692-4b18-9246-874d5382befb/73268b52-2415-4ac5-85c1-82c96f27d0ab/rotations/south.png?t=1785895171",
+        "https://backblaze.pixellab.ai/file/pixellab-characters/af7def4e-5692-4b18-9246-874d5382befb/73268b52-2415-4ac5-85c1-82c96f27d0ab/rotations/east.png?t=1785895171",
+        "https://backblaze.pixellab.ai/file/pixellab-characters/af7def4e-5692-4b18-9246-874d5382befb/73268b52-2415-4ac5-85c1-82c96f27d0ab/rotations/north.png?t=1785895171",
+        "https://backblaze.pixellab.ai/file/pixellab-characters/af7def4e-5692-4b18-9246-874d5382befb/73268b52-2415-4ac5-85c1-82c96f27d0ab/rotations/west.png?t=1785895171",
+        "https://backblaze.pixellab.ai/file/pixellab-characters/af7def4e-5692-4b18-9246-874d5382befb/73268b52-2415-4ac5-85c1-82c96f27d0ab/rotations/south-east.png?t=1785895171",
+        "https://backblaze.pixellab.ai/file/pixellab-characters/af7def4e-5692-4b18-9246-874d5382befb/73268b52-2415-4ac5-85c1-82c96f27d0ab/rotations/north-east.png?t=1785895171",
+        "https://backblaze.pixellab.ai/file/pixellab-characters/af7def4e-5692-4b18-9246-874d5382befb/73268b52-2415-4ac5-85c1-82c96f27d0ab/rotations/north-west.png?t=1785895171",
+        "https://backblaze.pixellab.ai/file/pixellab-characters/af7def4e-5692-4b18-9246-874d5382befb/73268b52-2415-4ac5-85c1-82c96f27d0ab/rotations/south-west.png?t=1785895171"
+      ],
+      "fetched": "2026-08-05T02:01:54+00:00",
+      "files": [
+        "east.png",
+        "north-east.png",
+        "north-west.png",
+        "north.png",
+        "south-east.png",
+        "south-west.png",
+        "south.png",
+        "west.png"
+      ],
+      "measured": {
+        "canvas": [
+          92,
+          92
+        ],
+        "content": [
+          34,
+          46
+        ],
+        "aspect": 0.7391304347826086,
+        "solidity": 0.6930946291560103,
+        "asymmetry": 0.025830258302583026,
+        "holes": 0,
+        "hole_px": 0,
+        "luma_mean": 0.25687323710295923,
+        "luma_p95": 0.6118745098039216,
+        "opaque": 1084,
+        "distinct": 35,
+        "off_ramp": 1084,
+        "binary_alpha": true
+      },
+      "band": {
+        "aspect": [
+          0.5217391304347826,
+          0.7555555555555555
+        ],
+        "solidity": [
+          0.6930946291560103,
+          0.7391304347826086
+        ],
+        "asymmetry": [
+          0.0,
+          0.25
+        ],
+        "holes": [
+          0
+        ]
+      },
+      "verdict": "keep",
+      "reasons": []
+    },
+    "droneleash": {
+      "urls": [
+        "https://backblaze.pixellab.ai/file/pixellab-characters/af7def4e-5692-4b18-9246-874d5382befb/09bc7f83-b670-42bf-a8ae-2f6d7b4aa39e/rotations/south.png?t=1785895222",
+        "https://backblaze.pixellab.ai/file/pixellab-characters/af7def4e-5692-4b18-9246-874d5382befb/09bc7f83-b670-42bf-a8ae-2f6d7b4aa39e/rotations/east.png?t=1785895222",
+        "https://backblaze.pixellab.ai/file/pixellab-characters/af7def4e-5692-4b18-9246-874d5382befb/09bc7f83-b670-42bf-a8ae-2f6d7b4aa39e/rotations/north.png?t=1785895222",
+        "https://backblaze.pixellab.ai/file/pixellab-characters/af7def4e-5692-4b18-9246-874d5382befb/09bc7f83-b670-42bf-a8ae-2f6d7b4aa39e/rotations/west.png?t=1785895222",
+        "https://backblaze.pixellab.ai/file/pixellab-characters/af7def4e-5692-4b18-9246-874d5382befb/09bc7f83-b670-42bf-a8ae-2f6d7b4aa39e/rotations/south-east.png?t=1785895222",
+        "https://backblaze.pixellab.ai/file/pixellab-characters/af7def4e-5692-4b18-9246-874d5382befb/09bc7f83-b670-42bf-a8ae-2f6d7b4aa39e/rotations/north-east.png?t=1785895222",
+        "https://backblaze.pixellab.ai/file/pixellab-characters/af7def4e-5692-4b18-9246-874d5382befb/09bc7f83-b670-42bf-a8ae-2f6d7b4aa39e/rotations/north-west.png?t=1785895222",
+        "https://backblaze.pixellab.ai/file/pixellab-characters/af7def4e-5692-4b18-9246-874d5382befb/09bc7f83-b670-42bf-a8ae-2f6d7b4aa39e/rotations/south-west.png?t=1785895222"
+      ],
+      "fetched": "2026-08-05T02:02:12+00:00",
+      "files": [
+        "east.png",
+        "north-east.png",
+        "north-west.png",
+        "north.png",
+        "south-east.png",
+        "south-west.png",
+        "south.png",
+        "west.png"
+      ],
+      "measured": {
+        "canvas": [
+          92,
+          92
+        ],
+        "content": [
+          49,
+          46
+        ],
+        "aspect": 1.065217391304348,
+        "solidity": 0.42635314995563445,
+        "asymmetry": 0.3517169614984391,
+        "holes": 1,
+        "hole_px": 73,
+        "luma_mean": 0.18083226622594925,
+        "luma_p95": 0.7087090196078432,
+        "opaque": 961,
+        "distinct": 36,
+        "off_ramp": 961,
+        "binary_alpha": true
+      },
+      "band": {
+        "aspect": [
+          0.7608695652173914,
+          1.065217391304348
+        ],
+        "solidity": [
+          0.42635314995563445,
+          0.5422360248447204
+        ],
+        "asymmetry": [
+          0.3517169614984391,
+          1.0588235294117647
+        ],
+        "holes": [
+          0,
+          1,
+          2
+        ]
+      },
+      "verdict": "keep",
+      "reasons": [
+        "luma 0.181 -- not automatically wrong (SKILL.md), but the outline is doing all the work"
+      ]
+    },
+    "kneebrace": {
+      "urls": [
+        "https://backblaze.pixellab.ai/file/pixellab-characters/af7def4e-5692-4b18-9246-874d5382befb/4ca8b3c9-be21-4582-8d34-44e7b0ca9944/rotations/south.png?t=1785895340",
+        "https://backblaze.pixellab.ai/file/pixellab-characters/af7def4e-5692-4b18-9246-874d5382befb/4ca8b3c9-be21-4582-8d34-44e7b0ca9944/rotations/east.png?t=1785895340",
+        "https://backblaze.pixellab.ai/file/pixellab-characters/af7def4e-5692-4b18-9246-874d5382befb/4ca8b3c9-be21-4582-8d34-44e7b0ca9944/rotations/north.png?t=1785895340",
+        "https://backblaze.pixellab.ai/file/pixellab-characters/af7def4e-5692-4b18-9246-874d5382befb/4ca8b3c9-be21-4582-8d34-44e7b0ca9944/rotations/west.png?t=1785895340",
+        "https://backblaze.pixellab.ai/file/pixellab-characters/af7def4e-5692-4b18-9246-874d5382befb/4ca8b3c9-be21-4582-8d34-44e7b0ca9944/rotations/south-east.png?t=1785895340",
+        "https://backblaze.pixellab.ai/file/pixellab-characters/af7def4e-5692-4b18-9246-874d5382befb/4ca8b3c9-be21-4582-8d34-44e7b0ca9944/rotations/north-east.png?t=1785895340",
+        "https://backblaze.pixellab.ai/file/pixellab-characters/af7def4e-5692-4b18-9246-874d5382befb/4ca8b3c9-be21-4582-8d34-44e7b0ca9944/rotations/north-west.png?t=1785895340",
+        "https://backblaze.pixellab.ai/file/pixellab-characters/af7def4e-5692-4b18-9246-874d5382befb/4ca8b3c9-be21-4582-8d34-44e7b0ca9944/rotations/south-west.png?t=1785895340"
+      ],
+      "fetched": "2026-08-05T02:02:50+00:00",
+      "files": [
+        "east.png",
+        "north-east.png",
+        "north-west.png",
+        "north.png",
+        "south-east.png",
+        "south-west.png",
+        "south.png",
+        "west.png"
+      ],
+      "measured": {
+        "canvas": [
+          92,
+          92
+        ],
+        "content": [
+          29,
+          49
+        ],
+        "aspect": 0.5918367346938775,
+        "solidity": 0.6523574947220268,
+        "asymmetry": 0.043149946062567425,
+        "holes": 0,
+        "hole_px": 0,
+        "luma_mean": 0.18385065126805844,
+        "luma_p95": 0.6118745098039216,
+        "opaque": 927,
+        "distinct": 32,
+        "off_ramp": 927,
+        "binary_alpha": true
+      },
+      "band": {
+        "aspect": [
+          0.5918367346938775,
+          0.9565217391304348
+        ],
+        "solidity": [
+          0.5223958333333333,
+          0.6523574947220268
+        ],
+        "asymmetry": [
+          0.043149946062567425,
+          0.8530465949820788
+        ],
+        "holes": [
+          0,
+          1
+        ]
+      },
+      "verdict": "reject",
+      "reasons": [
+        "identical opaque count (927 px) to 'Bump_helmet_ontop_of' -- same outline, differs on the interior only"
+      ]
+    },
+    "ArtilleryCannons_on": {
+      "measured": {
+        "canvas": [
+          92,
+          92
+        ],
+        "content": [
+          46,
+          46
+        ],
+        "aspect": 1.0,
+        "solidity": 0.5855387523629489,
+        "asymmetry": 0.4213075060532688,
+        "holes": 1,
+        "hole_px": 46,
+        "luma_mean": 0.16237888303343936,
+        "luma_p95": 0.6717301960784314,
+        "opaque": 1239,
+        "distinct": 72,
+        "off_ramp": 1239,
+        "binary_alpha": true
+      },
+      "band": {
+        "aspect": [
+          0.6956521739130435,
+          1.0
+        ],
+        "solidity": [
+          0.562929061784897,
+          0.6464194373401535
+        ],
+        "asymmetry": [
+          0.28439519852262235,
+          0.52994555353902
+        ],
+        "holes": [
+          0,
+          1,
+          2
+        ]
+      },
+      "verdict": "keep",
+      "reasons": [
+        "luma 0.162 -- not automatically wrong (SKILL.md), but the outline is doing all the work"
+      ]
+    },
+    "Bump_helmet_ontop_of": {
+      "measured": {
+        "canvas": [
+          92,
+          92
+        ],
+        "content": [
+          36,
+          44
+        ],
+        "aspect": 0.8181818181818182,
+        "solidity": 0.5852272727272727,
+        "asymmetry": 0.20064724919093851,
+        "holes": 0,
+        "hole_px": 0,
+        "luma_mean": 0.1521235196818749,
+        "luma_p95": 0.4728023529411764,
+        "opaque": 927,
+        "distinct": 78,
+        "off_ramp": 927,
+        "binary_alpha": true
+      },
+      "band": {
+        "aspect": [
+          0.62,
+          1.358974358974359
+        ],
+        "solidity": [
+          0.4164749194661758,
+          0.5961290322580645
+        ],
+        "asymmetry": [
+          0.19696969696969696,
+          0.9639727361246349
+        ],
+        "holes": [
+          0
+        ]
+      },
+      "verdict": "keep",
+      "reasons": [
+        "luma 0.152 -- not automatically wrong (SKILL.md), but the outline is doing all the work"
+      ]
+    },
+    "Can_we_have_one_cove": {
+      "measured": {
+        "canvas": [
+          92,
+          92
+        ],
+        "content": [
+          43,
+          46
+        ],
+        "aspect": 0.9347826086956522,
+        "solidity": 0.5824064711830131,
+        "asymmetry": 0.609375,
+        "holes": 1,
+        "hole_px": 39,
+        "luma_mean": 0.19652985362200434,
+        "luma_p95": 0.4979105882352941,
+        "opaque": 1152,
+        "distinct": 66,
+        "off_ramp": 1152,
+        "binary_alpha": true
+      },
+      "band": {
+        "aspect": [
+          0.5319148936170213,
+          0.9555555555555556
+        ],
+        "solidity": [
+          0.5824064711830131,
+          0.6827445652173914
+        ],
+        "asymmetry": [
+          0.35294117647058826,
+          0.609375
+        ],
+        "holes": [
+          0,
+          1
+        ]
+      },
+      "verdict": "keep",
+      "reasons": [
+        "luma 0.197 -- not automatically wrong (SKILL.md), but the outline is doing all the work"
+      ]
+    },
+    "Can_you_make_a_Turre": {
+      "measured": {
+        "canvas": [
+          92,
+          92
+        ],
+        "content": [
+          37,
+          50
+        ],
+        "aspect": 0.74,
+        "solidity": 0.6859459459459459,
+        "asymmetry": 0.07407407407407407,
+        "holes": 0,
+        "hole_px": 0,
+        "luma_mean": 0.22658695591711864,
+        "luma_p95": 0.6736423529411765,
+        "opaque": 1269,
+        "distinct": 21,
+        "off_ramp": 1269,
+        "binary_alpha": true
+      },
+      "band": {
+        "aspect": [
+          0.74,
+          0.9375
+        ],
+        "solidity": [
+          0.6162037037037037,
+          0.7012061403508771
+        ],
+        "asymmetry": [
+          0.03596559812353401,
+          0.4865269461077844
+        ],
+        "holes": [
+          0,
+          1
+        ]
+      },
+      "verdict": "keep",
+      "reasons": []
+    },
+    "Convert_to_Mage": {
+      "measured": {
+        "canvas": [
+          92,
+          92
+        ],
+        "content": [
+          35,
+          46
+        ],
+        "aspect": 0.7608695652173914,
+        "solidity": 0.7024844720496894,
+        "asymmetry": 0.40495137046861185,
+        "holes": 1,
+        "hole_px": 28,
+        "luma_mean": 0.17295590922487472,
+        "luma_p95": 0.6680070588235293,
+        "opaque": 1131,
+        "distinct": 72,
+        "off_ramp": 1131,
+        "binary_alpha": true
+      },
+      "band": {
+        "aspect": [
+          0.6739130434782609,
+          0.8695652173913043
+        ],
+        "solidity": [
+          0.5385869565217392,
+          0.7024844720496894
+        ],
+        "asymmetry": [
+          0.40495137046861185,
+          0.8963474827245804
+        ],
+        "holes": [
+          0,
+          1
+        ]
+      },
+      "verdict": "keep",
+      "reasons": [
+        "luma 0.173 -- not automatically wrong (SKILL.md), but the outline is doing all the work"
+      ]
+    },
+    "Cyborg_with_Crossbow": {
+      "measured": {
+        "canvas": [
+          92,
+          92
+        ],
+        "content": [
+          42,
+          46
+        ],
+        "aspect": 0.9130434782608695,
+        "solidity": 0.5936853002070394,
+        "asymmetry": 0.6015693112467306,
+        "holes": 1,
+        "hole_px": 43,
+        "luma_mean": 0.2000885173598646,
+        "luma_p95": 0.7574541176470588,
+        "opaque": 1147,
+        "distinct": 75,
+        "off_ramp": 1147,
+        "binary_alpha": true
+      },
+      "band": {
+        "aspect": [
+          0.5434782608695652,
+          0.9130434782608695
+        ],
+        "solidity": [
+          0.5058754406580493,
+          0.6495652173913044
+        ],
+        "asymmetry": [
+          0.34002677376171353,
+          0.9489685124864278
+        ],
+        "holes": [
+          0,
+          1
+        ]
+      },
+      "verdict": "keep",
+      "reasons": []
+    },
+    "dwarf_version_which": {
+      "measured": {
+        "canvas": [
+          92,
+          92
+        ],
+        "content": [
+          39,
+          46
+        ],
+        "aspect": 0.8478260869565217,
+        "solidity": 0.6566332218506131,
+        "asymmetry": 0.21561969439728354,
+        "holes": 1,
+        "hole_px": 12,
+        "luma_mean": 0.19550321249042907,
+        "luma_p95": 0.5796101960784313,
+        "opaque": 1178,
+        "distinct": 68,
+        "off_ramp": 1178,
+        "binary_alpha": true
+      },
+      "band": {
+        "aspect": [
+          0.5652173913043478,
+          0.9565217391304348
+        ],
+        "solidity": [
+          0.5449604743083004,
+          0.7040133779264214
+        ],
+        "asymmetry": [
+          0.21561969439728354,
+          0.7897664071190211
+        ],
+        "holes": [
+          0,
+          1
+        ]
+      },
+      "verdict": "keep",
+      "reasons": [
+        "luma 0.196 -- not automatically wrong (SKILL.md), but the outline is doing all the work"
+      ]
+    },
+    "Lets_so_secret_servi": {
+      "measured": {
+        "canvas": [
+          92,
+          92
+        ],
+        "content": [
+          30,
+          46
+        ],
+        "aspect": 0.6521739130434783,
+        "solidity": 0.6333333333333333,
+        "asymmetry": 0.4073226544622426,
+        "holes": 0,
+        "hole_px": 0,
+        "luma_mean": 0.14222710997442453,
+        "luma_p95": 0.6859474509803921,
+        "opaque": 874,
+        "distinct": 47,
+        "off_ramp": 874,
+        "binary_alpha": true
+      },
+      "band": {
+        "aspect": [
+          0.6086956521739131,
+          0.6956521739130435
+        ],
+        "solidity": [
+          0.5599700149925038,
+          0.6475155279503105
+        ],
+        "asymmetry": [
+          0.4073226544622426,
+          1.0066934404283803
+        ],
+        "holes": [
+          0
+        ]
+      },
+      "verdict": "keep",
+      "reasons": [
+        "luma 0.142 -- not automatically wrong (SKILL.md), but the outline is doing all the work"
+      ]
+    },
+    "Merle_Pathfinder": {
+      "measured": {
+        "canvas": [
+          92,
+          92
+        ],
+        "content": [
+          43,
+          46
+        ],
+        "aspect": 0.9347826086956522,
+        "solidity": 0.5530839231547017,
+        "asymmetry": 0.6946983546617916,
+        "holes": 1,
+        "hole_px": 46,
+        "luma_mean": 0.1933991647847439,
+        "luma_p95": 0.7045557254901955,
+        "opaque": 1094,
+        "distinct": 881,
+        "off_ramp": 1094,
+        "binary_alpha": true
+      },
+      "band": {
+        "aspect": [
+          0.5,
+          0.9555555555555556
+        ],
+        "solidity": [
+          0.5436692506459948,
+          0.7022684310018904
+        ],
+        "asymmetry": [
+          0.3149394347240915,
+          0.6946983546617916
+        ],
+        "holes": [
+          0,
+          1
+        ]
+      },
+      "verdict": "keep",
+      "reasons": [
+        "luma 0.193 -- not automatically wrong (SKILL.md), but the outline is doing all the work"
+      ]
+    },
+    "One_with_Hollow_blac": {
+      "measured": {
+        "canvas": [
+          92,
+          92
+        ],
+        "content": [
+          43,
+          46
+        ],
+        "aspect": 0.9347826086956522,
+        "solidity": 0.5510616784630941,
+        "asymmetry": 0.689908256880734,
+        "holes": 1,
+        "hole_px": 46,
+        "luma_mean": 0.1758164425256341,
+        "luma_p95": 0.7005992156862746,
+        "opaque": 1090,
+        "distinct": 66,
+        "off_ramp": 1090,
+        "binary_alpha": true
+      },
+      "band": {
+        "aspect": [
+          0.5,
+          0.9555555555555556
+        ],
+        "solidity": [
+          0.5421188630490956,
+          0.7107750472589792
+        ],
+        "asymmetry": [
+          0.28191489361702127,
+          0.689908256880734
+        ],
+        "holes": [
+          0,
+          1
+        ]
+      },
+      "verdict": "keep",
+      "reasons": [
+        "luma 0.176 -- not automatically wrong (SKILL.md), but the outline is doing all the work"
+      ]
+    },
+    "Replace_the_bow_with": {
+      "measured": {
+        "canvas": [
+          92,
+          92
+        ],
+        "content": [
+          43,
+          46
+        ],
+        "aspect": 0.9347826086956522,
+        "solidity": 0.5222446916076845,
+        "asymmetry": 0.6698935140367861,
+        "holes": 0,
+        "hole_px": 0,
+        "luma_mean": 0.17823757341077767,
+        "luma_p95": 0.6694690196078431,
+        "opaque": 1033,
+        "distinct": 82,
+        "off_ramp": 1033,
+        "binary_alpha": true
+      },
+      "band": {
+        "aspect": [
+          0.8913043478260869,
+          1.0
+        ],
+        "solidity": [
+          0.48179979777553084,
+          0.5222446916076845
+        ],
+        "asymmetry": [
+          0.6698935140367861,
+          1.255863539445629
+        ],
+        "holes": [
+          0
+        ]
+      },
+      "verdict": "keep",
+      "reasons": [
+        "luma 0.178 -- not automatically wrong (SKILL.md), but the outline is doing all the work"
+      ]
+    },
+    "RPG_launcher": {
+      "measured": {
+        "canvas": [
+          92,
+          92
+        ],
+        "content": [
+          43,
+          46
+        ],
+        "aspect": 0.9347826086956522,
+        "solidity": 0.5283114256825076,
+        "asymmetry": 0.37894736842105264,
+        "holes": 0,
+        "hole_px": 0,
+        "luma_mean": 0.1712941281546111,
+        "luma_p95": 0.7040448627450963,
+        "opaque": 1045,
+        "distinct": 77,
+        "off_ramp": 1045,
+        "binary_alpha": true
+      },
+      "band": {
+        "aspect": [
+          0.6521739130434783,
+          0.9347826086956522
+        ],
+        "solidity": [
+          0.5283114256825076,
+          0.6615942028985508
+        ],
+        "asymmetry": [
+          0.37894736842105264,
+          0.9366786140979689
+        ],
+        "holes": [
+          0
+        ]
+      },
+      "verdict": "keep",
+      "reasons": [
+        "luma 0.171 -- not automatically wrong (SKILL.md), but the outline is doing all the work"
+      ]
+    }
+  },
+  "judged": "2026-08-05T02:03:07+00:00"
+}

@@ -33,6 +33,61 @@
       "why": "The one surviving knight-armored archer, carried over unchanged from task-126. It sits at table_index 1 -- between hoodedbow and ghilliecloak -- rather than at the end, so the two looks a reader is most likely to compare (the new default and the one that used to be the whole block) are adjacent in every report Swarm.TeamVariantReport prints."
     }
   },
+  "axis": {
+    "name": "mixed",
+    "description": "task-139. The twelve legacy states above spend headgear/kit only (separation_rationale) and never touch aspect or topology -- they were owner-supplied, not generated through this axis-first pipeline. These six new states spend the axes the legacy batch skipped, in SKILL.md's order: stilthauler and harpoonreach move aspect (extreme narrow-tall via stilt-legs versus wide-via-rigid-extension, the proven skeletal-base recipe); droneleash, kneebrace and wingflare move topology (a tethered drone held clear of the body for a real enclosed hole; a kneeling tripod-braced stance for a low wide-based profile distinct from riflecrouch's standing crouch and turretnest's seated furniture; swept jump-pack vanes that make the front and back views read differently); hazmatbulk spends interior/kit last, as a rounded-vs-everything-else tiebreaker, per the rule to never open with interior."
+  },
+  "constant": "Base character b3163cdf-6434-4390-8417-721a80797dcf (group e2702eb6-248d-4b6b-b8dc-fedc1290e059), inherited palette via use_color_palette_from_reference (no new hues), 92px canvas, full colour per aesthetic-direction.md's 2026-07-28 amendment, glow explicitly banned in every prompt, hooded/cloaked-kit register (firearms/energy/mounted-weapon arms, not archer-medieval's bows-and-leather), every variant nameable as a Pathfinder-line soldier from its outline alone.",
+  "variants": [
+    { "slug": "Merle_Pathfinder", "source": "legacy" },
+    { "slug": "Can_we_have_one_cove", "source": "legacy" },
+    { "slug": "One_with_Hollow_blac", "source": "legacy" },
+    { "slug": "dwarf_version_which", "source": "legacy" },
+    { "slug": "Convert_to_Mage", "source": "legacy" },
+    { "slug": "Cyborg_with_Crossbow", "source": "legacy" },
+    { "slug": "Replace_the_bow_with", "source": "legacy" },
+    { "slug": "RPG_launcher", "source": "legacy" },
+    { "slug": "ArtilleryCannons_on", "source": "legacy" },
+    { "slug": "Bump_helmet_ontop_of", "source": "legacy" },
+    { "slug": "Can_you_make_a_Turre", "source": "legacy" },
+    { "slug": "Lets_so_secret_servi", "source": "legacy" },
+    {
+      "slug": "stilthauler",
+      "silhouette_target": 0.45,
+      "edit_description": "Standing tall on a pair of thin mechanical stilt-legs beneath the cloak, hood up, arms tucked close against the torso, no weapon held. Legs together and very long, body kept slim above them, roughly twice as tall as wide overall. Keep the head clearly visible at the top. Match the existing color palette exactly, no new colors, no glowing parts.",
+      "source": "generated"
+    },
+    {
+      "slug": "harpoonreach",
+      "silhouette_target": 1.6,
+      "edit_description": "A long harpoon launcher held rigidly out to one side at shoulder height, arm fully extended so the weapon reaches well past the body's edge. Body kept narrow and compact behind it, other arm close to the torso, hood up. Roughly one and a half times wider than tall overall. Keep the head and legs clearly visible. Match the existing color palette exactly, no new colors, no glowing parts.",
+      "source": "generated"
+    },
+    {
+      "slug": "droneleash",
+      "silhouette_target": "one arm extended out to the side gripping a tether to a small drone held well clear of the body, the cable and drone fully enclosing a gap between the arm and the torso -- SKILL.md's 'hold an object away from the body' recipe for a hole that survives downsampling",
+      "edit_description": "One arm extended out to the side gripping a thin tether cable to a small hovering drone orb held well clear of the body, the cable and drone fully enclosing a gap between the arm and the torso. Other arm close to the hip, hood up. Keep the head and legs clearly visible. Match the existing color palette exactly, no new colors, no glowing parts.",
+      "source": "generated"
+    },
+    {
+      "slug": "kneebrace",
+      "silhouette_target": "kneeling on one knee bracing a weapon on a small ground tripod -- a low, base-heavy profile distinct from riflecrouch's standing crouch and turretnest's wide seated furniture",
+      "edit_description": "Kneeling on one knee, both arms braced forward gripping a heavy weapon mounted on a small folding tripod planted on the ground ahead. Hood up, other leg planted for balance. The overall silhouette is low and compact, wider at the base than at the shoulders. Match the existing color palette exactly, no new colors, no glowing parts.",
+      "source": "generated"
+    },
+    {
+      "slug": "wingflare",
+      "silhouette_target": "a jump-jet pack with two rigid vanes swept outward from the shoulders like small wings, visible from the back but not the front -- a front/back asymmetry read no other state in the block uses",
+      "edit_description": "A compact jump-jet pack on the back with two rigid vane-like exhaust fins swept outward and back from the shoulders like small wings. Front stays plain and hooded with no vanes visible, so the front and back views read clearly differently. Arms held close, no weapon carried. Match the existing color palette exactly, no new colors, no glowing parts.",
+      "source": "generated"
+    },
+    {
+      "slug": "hazmatbulk",
+      "silhouette_target": "a smooth, rounded containment suit with no protrusions or gaps -- the highest-solidity, roundest silhouette in the block, the interior/kit tiebreaker spent last",
+      "edit_description": "A smooth, heavily padded rounded containment suit -- thick rounded torso and a sealed rounded helmet, arms held close against the body, no antenna, no weapon, no protruding gear. The outline should be soft and rounded with no gaps or sharp points. Match the existing color palette exactly, no new colors, no glowing parts.",
+      "source": "generated"
+    }
+  ],
   "measurement": {
     "gate": "max content bbox across all 8 rotations, both walk frames, against the 56px atlas cell",
     "source": "measured by Scripts/art/pixelpipe.py pack while assembling RawArt/Sheets/T_Team_2bit.png, 2026-07-31 -- not re-derived by hand",
