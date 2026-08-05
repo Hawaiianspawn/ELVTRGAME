@@ -1,43 +1,55 @@
 # Scripts
 
-## Backlog — `backlog.py`, `backlog_guard.py`
+## Backlog — `paca.py`, `paca_guard.py`
 
-The mechanical half of the host. Judgment lives in `.claude/skills/backlog/` (sweep
-the repo), `.claude/skills/host/` (a goal the owner brings) and
-`.claude/agents/host.md`; anything deterministic lives here.
+**The backlog is [Paca](https://github.com/Paca-AI/paca)** — self-hosted at
+<http://localhost:8090>, project **Kindled**, stack in `C:\Projects\paca`. It holds
+the tasks, the board, the statuses and the history. Reach it three ways: the web board,
+the `paca` MCP server (`/paca`, `/paca-prioritize`, …), or `paca.py`.
+
+`docs/backlog/` is a frozen archive of the 81 tasks that closed before the move on
+2026-08-01. Tasks keep their `task-NNN` handle in Paca's `Legacy ID` field, so every id
+in the repo's prose still resolves.
+
+`paca.py` is deliberately thin. It exists only for the things Paca has no opinion about
+— **this project's locks and this project's approval gate** — and reimplements nothing
+Paca already does:
 
 ```bash
-py Scripts/backlog.py list --top 7      # the audit queue, ranked
-py Scripts/backlog.py validate          # schema, dup ids, dangling deps, lock conflicts
-py Scripts/backlog.py reindex           # regenerate docs/backlog/INDEX.md
-py Scripts/backlog.py show 12           # one task with its resolved score
-py Scripts/backlog.py next-id           # next free 3-digit id
-py Scripts/backlog.py sweep-report --json   # raw ingest surface
-py Scripts/backlog.py start|review <ids>    # agents may run these
-py Scripts/backlog.py approve|done|reject|park <ids>   # owner's verdict — prompts
-py Scripts/backlog.py dispatch 44 --teammate flame-flicker   # approved -> in-progress
+py Scripts/paca.py list --status proposed     # ranked by score
+py Scripts/paca.py list --epic wave-measurement
+py Scripts/paca.py validate                   # lock conflicts, cycles, dangling deps
+py Scripts/paca.py waves 63,64,65             # what can run at once, and what waits
+py Scripts/paca.py next-id                    # next free 3-digit legacy id
+py Scripts/paca.py sweep-report --json        # raw ingest surface, read from the repo
+py Scripts/paca.py new spec.json              # file a proposed task
+py Scripts/paca.py review <ids>               # agents may run this
+py Scripts/paca.py approve|done|reject|park <ids>   # owner's verdict — prompts
+py Scripts/paca.py dispatch 44 --teammate flame-flicker   # approved -> in-progress
 ```
 
-`dispatch` is `start` with the spawned teammate recorded. It refuses unless the task
-is `approved` with every dependency closed, so `/host` cannot spawn a teammate onto
-work the owner never saw — run it *before* the spawn and a refusal costs nothing. One
+`dispatch` refuses unless the task is `approved` with every dependency closed and no
+in-flight task holding a conflicting lock, so `/host` cannot spawn a teammate onto work
+the owner never saw — run it *before* the spawn and a refusal costs nothing. One
 teammate per task; the name must match the Agent tool's own `[A-Za-z0-9][\w-]{0,63}`
 constraint so it stays addressable by `SendMessage`.
 
-Score is `(gate × risk × unblocks) ÷ cost`; `unblocks` is computed from open
-dependents, so closing a task re-ranks everything downstream on the next `reindex`.
+Score is `(feel × risk × perf × unblocks) ÷ cost`; `unblocks` is computed from open
+dependents, so closing a task re-ranks everything downstream.
 
-`backlog_guard.py` is a PreToolUse hook (wired in `.claude/settings.json`, matcher
-`Edit|Write|MultiEdit|Bash|PowerShell`). It **denies** any file edit that sets a task
-to `approved`/`done`/`rejected`/`parked`, denies hand-edits to the generated
-`INDEX.md` and append-only `LOG.md`, and **asks** before any `backlog.py` privileged
-verb. The ask has to be enforced by the hook rather than by omission from an
-allowlist, because `.claude/settings.local.json` carries a blanket `Bash(py *)` rule.
+`paca_guard.py` is a PreToolUse hook (wired in `.claude/settings.json`, matcher
+`Edit|Write|MultiEdit|Bash|PowerShell`). It **asks** before any `paca.py` privileged
+verb — `approve`, `reject`, `park`, `done` — and **denies** edits to the frozen records
+in `docs/backlog/` (`INDEX.md`, the signpost, is exempt). The ask has to be enforced by
+the hook rather than by omission from an allowlist, because `.claude/settings.local.json`
+carries a blanket `Bash(py *)` rule, and a hook `ask` overrides an allow rule.
 
-Two gotchas the script already handles, worth not re-discovering: PyYAML is YAML 1.1,
-where `id: 010` parses as **octal 8** — ids are read from the raw frontmatter, never
-from the YAML load. And Windows consoles are cp1252, which cannot encode the arrows
-in task titles, so stdout is reconfigured to UTF-8 before any print.
+Credentials live in `Scripts/.paca.json` (gitignored) or `PACA_API_URL` /
+`PACA_API_KEY` / `PACA_PROJECT_ID`. If the stack is down, bring it up with
+`docker compose --env-file .env up -d --scale ai-agent=0` from `C:\Projects\paca`.
+
+One gotcha worth not re-discovering: Windows consoles are cp1252 and cannot encode the
+em-dashes in task titles, so stdout is reconfigured to UTF-8 before any print.
 
 ---
 

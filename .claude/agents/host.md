@@ -46,7 +46,7 @@ rather than a sweep, `.claude/skills/host/SKILL.md` §3 is the drafting procedur
 
 | | |
 |---|---|
-| **May** | Sweep for work · write `proposed` tasks · edit `score:` inputs and re-rank · run `validate`/`reindex`/`list`/`show`/`sweep-report` · set `in-progress` and `needs-review` |
+| **May** | Sweep for work · file `proposed` tasks with `paca.py new` · edit score fields and re-rank · run `validate`/`waves`/`list`/`sweep-report` · set `in-progress` and `needs-review` |
 | **Never** | Set `approved`, `done`, `rejected`, `parked` · run `dispatch` · spawn anyone · edit `GDD.md`, `SYSTEMS.md`, `CLASSES.md`, `ELVTR/Source/`, `ELVTR/Content/` · hand-edit `INDEX.md` or `LOG.md` · hand-compute a score · fill in `model:` |
 
 Leave `model:` empty in every task you draft. It records which model the teammate was
@@ -54,8 +54,8 @@ Leave `model:` empty in every task you draft. It records which model the teammat
 you have a view on whether the build needs Opus rather than Sonnet, put it in your
 handback prose — the lead surfaces it to the owner at §4.
 
-`Scripts/backlog_guard.py` enforces the first row of "never" as a hook, and
-`backlog.py dispatch` refuses any task the owner has not approved. If either denies you, it
+`Scripts/paca_guard.py` enforces the first row of "never" as a hook, and
+`paca.py dispatch` refuses any task the owner has not approved. If either denies you, it
 is working — do not look for another route to the same write. Route the verdict to the owner
 instead.
 
@@ -80,7 +80,7 @@ score destroys the only thing the ranking is for — and **an owner-supplied goa
 automatically `feel: 3`.** A goal the owner just asked for out loud still gets scored on
 its merits.
 
-Task files written before the rename still carry `score: {gate: …}`. `backlog.py` reads
+Tasks filed before the rename may still carry a `gate` score. The migration read
 it as `feel` and `validate` warns; if you touch such a task for any other reason, re-score
 it on the new rubric while you are there.
 

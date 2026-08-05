@@ -25,23 +25,30 @@ it came from; it is that decision continuing, not a new interruption. Prose answ
 always accepted, never required, and "what would you like to do about it?" is a question
 you should have already turned into options.
 
-Judgment lives here. Everything mechanical lives in `Scripts/backlog.py` — id allocation,
+Judgment lives here. Everything mechanical lives in `Scripts/paca.py` — id allocation,
 validation, score math, INDEX regeneration, lock conflicts, status transitions, LOG
 appends. Same split as `/sprite` ↔ `Scripts/art/pixelpipe.py`. Never hand-compute a score
-or hand-write `INDEX.md`.
+or hand-set a status the script owns.
+
+**The backlog is Paca** — self-hosted at <http://localhost:8090>, project **Kindled**,
+reachable as the `paca` MCP server and through `/paca`. Tasks keep their `task-NNN`
+handle in the `Legacy ID` field. `docs/backlog/` is a frozen archive of the 81 tasks
+that closed before the move; the hook denies edits to it. Reading — listing, searching,
+showing, commenting — is the MCP server or the web board; `paca.py` exists only for the
+locks, the scheduling and the owner's verdict.
 
 ## Commands
 
 | Invocation | Do this |
 |---|---|
-| `/backlog` | `py Scripts/backlog.py list --status proposed --top 7`, present the audit queue, and ask for the verdicts as a question |
+| `/backlog` | `py Scripts/paca.py list --status proposed`, take the top 7, present the audit queue, and ask for the verdicts as a question |
 | `/backlog sweep` | Full ingest pass — see below |
-| `/backlog approve 3,5` | `py Scripts/backlog.py approve 3,5` |
-| `/backlog reject 4 <reason>` | `py Scripts/backlog.py reject 4 -r "<reason>"` |
-| `/backlog park 9 <reason>` | `py Scripts/backlog.py park 9 -r "<reason>"` |
-| `/backlog add <description>` | Write one new task file, then `validate` + `reindex` |
-| `/backlog show 12` | `py Scripts/backlog.py show 12` |
-| `/backlog epic <slug>` | `py Scripts/backlog.py epic <slug>` — a threaded project's fan and what moves next |
+| `/backlog approve 3,5` | `py Scripts/paca.py approve 3,5` |
+| `/backlog reject 4 <reason>` | `py Scripts/paca.py reject 4 --reason "<reason>"` |
+| `/backlog park 9 <reason>` | `py Scripts/paca.py park 9 --reason "<reason>"` |
+| `/backlog add <description>` | Draft one spec, `py Scripts/paca.py new <spec.json>`, then `validate` |
+| `/backlog show 12` | The `paca` MCP server's task read, or the board at <http://localhost:8090> |
+| `/backlog epic <slug>` | `py Scripts/paca.py list --epic <slug>` — a threaded project's fan and what moves next |
 
 Approve / reject / park / done will raise a permission prompt. That prompt **is** the
 approval gate — never try to route around it, and never suggest allowlisting these
@@ -65,7 +72,7 @@ they should not have to type ids. Seven items do not fit one question, so split 
 - Q2 `Ranks 5–7` — same shape.
 
 Two questions, one dialog, one round trip. Then run the whole answer as a single
-`py Scripts/backlog.py approve 3,5,6` — one command, one prompt, one batched `LOG.md`
+`py Scripts/paca.py approve 3,5,6` — one command, one prompt, one batched
 write. Never approve them one at a time: four prompts for one decision trains the owner to
 wave the gate through, which is the one thing the gate cannot survive.
 
@@ -80,15 +87,15 @@ a format.
 
 Then stop and wait. Do not start work, do not spawn anyone, do not assume approval from
 enthusiasm. **`AskUserQuestion` is not the gate** — the permission prompt that
-`Scripts/backlog_guard.py` raises on `approve` is what records the verdict. The click is the
+`Scripts/paca_guard.py` raises on `approve` is what records the verdict. The click is the
 decision, that prompt is the signature, and both happen.
 
-If the owner disagrees with a score, edit the task's `score:` inputs and re-run `reindex`.
+If the owner disagrees with a score, edit the task's score fields in Paca.
 Score edits are not privileged — argue freely.
 
 ## Sweeping
 
-`py Scripts/backlog.py sweep-report --json` returns the raw surface: unchecked boxes across
+`py Scripts/paca.py sweep-report --json` returns the raw surface: unchecked boxes across
 all docs, non-✅ rows in the GDD §12 table, pending briefs, TODO/FIXME markers under
 `ELVTR/Source`, and every already-filed task's `source`. The script finds candidates; you
 decide what is real work.
@@ -116,8 +123,9 @@ Dedupe against `existing_sources` in the report before writing anything.
 
 ## Writing a task
 
-Copy `docs/backlog/TEMPLATE.md` below its `═══` line. Get the id from
-`py Scripts/backlog.py next-id`. Then:
+Draft the spec as JSON and file it with `py Scripts/paca.py new <spec.json>`, which
+allocates the id and lands it at `proposed`. The field rules are unchanged —
+`docs/backlog/TEMPLATE.md` still holds the scoring rubric and the evidence bar. Then:
 
 - **`agent:`** — one of the six directors, or `claude`. Match the definition's actual
   scope: `pixel-art-director` writes specs and never image files; `ui-director` has no
@@ -158,19 +166,20 @@ Copy `docs/backlog/TEMPLATE.md` below its `═══` line. Get the id from
 on the rest. `task-038` exists for exactly that reason. When those tasks are siblings in an
 `epic:`, that split-out task is the fan's **join**, and `validate` treats a sibling overlap
 as an error rather than waiting for `approve` to refuse it. See `/host` §3a for how to cut
-one; `py Scripts/backlog.py epic <slug>` for where a running fan stands.
+one; `py Scripts/paca.py list --epic <slug>` for where a running fan stands.
 
 **Recommending a park is a real outcome.** An agent cannot set `parked`, so file it as
-`proposed` with the recommended `backlog.py park` command in the body and let the owner run
+`proposed` with the recommended `paca.py park` command in the body and let the owner run
 it. Tasks 033–037 are the pattern.
 
 ## Commit and push
 
 **A queue that only exists in a working tree is not a queue.** Whenever this skill writes —
-new task files from a sweep, a re-score, a verdict that moved `INDEX.md` and `LOG.md` —
+tasks filed from a sweep, a re-score, a verdict — all of that now lives in Paca, so a
+sweep may leave the working tree clean. Commit whatever repo files the pass did touch —
 commit and push in the same turn. No question, this is part of the write, not a decision:
 
-    git add docs/backlog/                     # plus any tracker file you corrected
+    git add <the tracker files you corrected>
     <commit with the `caveman-commit` skill, per CLAUDE.md>
     git push
 
@@ -179,7 +188,7 @@ Rules that bite:
 - **Stage the backlog paths, never `git add -A`.** The tree is shared with other sessions
   (`concurrent-sessions-share-the-tree`) and carries unrelated modified assets.
 - **One commit per pass** — a whole sweep is one commit, a batch of verdicts is one commit.
-- Commit *after* the `approve`/`reject`/`park` command, so `LOG.md` and the frontmatter go
+- Commit *after* the `approve`/`reject`/`park` command, so the repo and Paca go
   in together. A commit that records a task without the verdict that moved it is a lie.
 - If the push is refused — protected branch, no upstream, conflict — say so in one line and
   hand the owner the fix. Do not force, do not rebase the shared branch unasked.
@@ -192,7 +201,7 @@ living only in one session's working tree is not a process improvement.
 
 Re-rank when a task closes, not on a timer. `unblocks` is computed from open dependents, so
 closing a task changes the scores of everything downstream automatically — just run
-`reindex`. A backlog that re-ranks on a schedule becomes a nag; one that re-ranks on
+a sweep. A backlog that re-ranks on a schedule becomes a nag; one that re-ranks on
 landings stays useful.
 
 ## Never
@@ -200,7 +209,10 @@ landings stays useful.
 - Set `approved`, `done`, `rejected`, or `parked` by editing a file. The hook denies it and
   denying it is correct.
 - Edit `GDD.md`, `SYSTEMS.md`, or `CLASSES.md` from this skill. Propose; the owner decides.
-- Hand-edit `INDEX.md` or `LOG.md`.
+- Set `approved`, `done`, `rejected` or `parked` through the Paca API, the MCP tools or
+  the web UI. Those four go through `paca.py`, behind the hook prompt — that prompt is
+  the owner's signature.
+- Edit anything under `docs/backlog/` except `INDEX.md`. It is a frozen archive.
 - Put a decision in prose, or ask the owner to type a reason a button could have carried.
 - Leave filed tasks or recorded verdicts uncommitted, `git add -A` in a shared tree, or
   edit this skill without committing and pushing that edit.
