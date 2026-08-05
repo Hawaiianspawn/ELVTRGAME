@@ -11,7 +11,7 @@ the independent ones at once.**
 
     /host "flame flicker scales with army size; also the retinue cap needs tuning"
       → split the ask into features, one task each, and research each (§1)
-      → clarify only what would change the work — at most one question (§2)
+      → clarify only what would change the work — as many rounds as it takes (§2)
       → draft a task per feature, validated and lock-checked (§3)
       → ask `waves` what can run at once, if there is more than one task (§3a)
       → present the plan and ask for the one verdict (§4, §5) — then stop
@@ -26,22 +26,23 @@ the independent ones at once.**
 |---|---|
 | `/host <feature>` | The full flow above |
 | `/host <feature A>; also <feature B>` | Same flow, split at §1, scheduled at §3a |
-| `/host` *(nothing)* | **Do not open an empty prompt.** Run `py Scripts/backlog.py list --status in-progress,needs-review` and `waves --approved-only` first. If anything is running, post the board (§6) — that is almost always what was meant. If nothing is running, name the top 3 approved-or-proposed tasks by score and ask which, as one `AskUserQuestion` |
+| `/host` *(nothing)* | **Do not open an empty prompt.** Run `py Scripts/paca.py list --status in-progress,needs-review` and `waves --approved-only` first. If anything is running, post the board (§6) — that is almost always what was meant. If nothing is running, name the top 3 approved-or-proposed tasks by score and ask which, as one `AskUserQuestion` |
 | `/host status` | The board, from the script — see §`/host status` |
 | `/host dispatch NNN` | The task is already approved: skip §1–§5 entirely, go straight to §6 |
 | `/host models` | Ask, write `.claude/host-models.json`, stop |
 
 ## The interruption budget
 
-This is the constraint the rest of the skill serves. **One `/host` run costs the owner at
-most three questions and two permission prompts, and never more:**
+This is the constraint the rest of the skill serves. **Verdict and close together cost the
+owner at most two questions and two permission prompts, and never more. Clarify (§2) sits
+outside that cap — ask as many rounds as the plan genuinely needs:**
 
 | | What | When |
 |---|---|---|
-| Question 1 | Clarify — *optional*, and the good case is skipping it | §2 |
-| Question 2 | **The verdict.** Build this, or not | §5 |
+| Clarify | Uncapped — the good case is still skipping it entirely | §2 |
+| Question 1 | **The verdict.** Build this, or not | §5 |
 | Prompt 1 | `approve <ids>` — the signature on that verdict | §5 |
-| Question 3 | **The close.** Did the evidence clear the bar | §7 |
+| Question 2 | **The close.** Did the evidence clear the bar | §7 |
 | Prompt 2 | `done <ids>` — the signature that it landed | §7 |
 
 **Every decision is a button, never typing.** If the owner has to choose — the plan gate
@@ -62,14 +63,21 @@ them to pick a score. Take the default, say which default you took in one line, 
 them correct you.
 
 **Independence is computed, not judged.** Two tasks may run at once when they write
-disjoint paths and share no resource — `py Scripts/backlog.py waves` decides that from
+disjoint paths and share no resource — `py Scripts/paca.py waves` decides that from
 the `owns:` and `resources:` you declared. Never eyeball it; a wave you reasoned your way
 to is a wave `approve` may refuse.
 
-Judgment lives here. Everything mechanical lives in `Scripts/backlog.py` — id allocation,
-score math, lock conflicts, wave packing, status transitions, `INDEX.md`, `LOG.md`. Never
-hand-compute a score, hand-write `INDEX.md`, hand-edit a status the script owns, or
-hand-plan a wave.
+**The backlog is Paca** — self-hosted at <http://localhost:8090>, project **Kindled**,
+reachable as the `paca` MCP server and through `/paca`. Tasks keep their `task-NNN`
+handle in the `Legacy ID` field, so every id in this skill and in the repo's prose still
+resolves. `docs/backlog/` is a frozen archive of the 81 tasks that closed before the
+move; the hook denies edits to it.
+
+Judgment lives here. Everything mechanical lives in `Scripts/paca.py` — id allocation,
+score math, lock conflicts, wave packing, and the privileged status transitions. Never
+hand-compute a score, hand-set a status the script owns, or hand-plan a wave. Reading —
+listing, searching, showing a task, comments — is the `paca` MCP server; `paca.py` exists
+only for the parts Paca has no opinion about.
 
 **This skill runs in the lead session and nowhere else.** A subagent cannot ask the owner
 a question and cannot spawn a teammate (`docs/AGENT-TEAMS.md` §5, no nested teams). The
@@ -96,7 +104,8 @@ The test is the one the scheduler uses: **would these write the same files?**
 
 Then, per feature, spend a few tool calls before drafting:
 
-- `py Scripts/backlog.py sweep-report --json` → check `existing_sources` and filed titles.
+- Search Paca for the goal before drafting it — the `paca` MCP server's task search, or
+  `py Scripts/paca.py list` and read the titles.
   **If the goal is already a task, say so and stop drafting.** Put the real choices up as
   an `AskUserQuestion`, header `Already filed` — re-score it, dispatch it if approved,
   supersede it deliberately. That question replaces §2; it is not an extra one.
@@ -112,15 +121,17 @@ territory this session has not read at all — and when you do, pass it what the
 knows that the repo does not, because it cannot ask.
 
 **Researching several features in parallel is fine — allocating their ids in parallel is
-not.** `next-id` reads the directory, so two agents drafting at once will both be told `063`
-and one will silently overwrite the other. If you fan the research out, **run `next-id` in
-the lead, once, and tell each agent the exact id and filename to write.**
+not.** `paca.py new` allocates from the highest id in Paca, so two agents filing at once
+will both be told `134` and one id will be reused. If you fan the research out, **have the
+agents hand back drafts and file them from the lead, one at a time.**
 
-## 2 · Clarify — once, or not at all
+## 2 · Clarify — ask what the plan needs
 
-**At most one `AskUserQuestion`, covering every feature.** Not one round per feature. If
-four features each need clarifying, the ask was too big to plan in one pass — say that
-instead of opening a second round.
+**No cap on rounds.** One `AskUserQuestion` per feature that is genuinely ambiguous, and
+another round on the same feature if the first answer opens a new question. Batch
+independent ambiguities into one question when they fit together, but do not force
+unrelated features into a single question just to keep the count down — a forced merge
+produces answers that do not map cleanly back to the feature they were about.
 
 Ask only where different answers produce materially different tasks:
 
@@ -132,13 +143,24 @@ Ask only where different answers produce materially different tasks:
 | Editor / credits | `resources:`, a hard mutex that serialises a wave |
 
 Do not ask what the repo can answer. Do not ask the owner to pick a score. **If everything
-is already unambiguous, skip this step entirely and say you skipped it** — that is the
-good case, and it means the owner sees exactly one question all run.
+is already unambiguous, skip this step entirely and say you skipped it** — that is still
+the good case; asking more only when the plan actually needs it.
 
 ## 3 · Draft one task per feature
 
-`py Scripts/backlog.py next-id`, then write `docs/backlog/task-NNN-<slug>.md` from
-`docs/backlog/TEMPLATE.md`, at `status: proposed`. Field rules are in
+Write the draft to a JSON spec and file it with `py Scripts/paca.py new <spec.json>`,
+which allocates the id and lands it at `proposed`. The spec is the old frontmatter, as
+JSON — put the `## Why now` / `## Done when` prose in `body`:
+
+```json
+{"title": "…", "agent": "claude", "owns": ["docs/perf/**"],
+ "resources": ["unreal-editor"], "depends-on": [8], "epic": "flame-and-retinue",
+ "evidence": "…", "score": {"feel": 2, "risk": 1, "perf": 1, "cost": 2},
+ "source": "user, 2026-08-01", "body": "## Why now\n…\n\n## Done when\n…"}
+```
+
+The spawn prompt goes in `body` too, under a `## Spawn prompt` heading — §6 reads it
+back from the task. Field rules are in `docs/backlog/TEMPLATE.md` and
 `.claude/skills/backlog/SKILL.md` §Writing a task; the ones that bite here:
 
 - **`agent:`** must match what the definition can actually do. `pixel-art-director` writes
@@ -159,15 +181,15 @@ good case, and it means the owner sees exactly one question all run.
   changes the moment-to-moment feel or gameplay — and the rubric is in `TEMPLATE.md`. An
   owner-brought feature is not automatically `feel: 3`; tooling and doc work that never
   shows up in play is `feel: 1` even when the owner asked for it out loud.
-- **`model:`** leave it `""`. `dispatch --model` stamps it in §6, so the frontmatter records
+- **`model`** is not yours to set. `dispatch --model` stamps it in §6, so the task records
   what was actually spawned rather than what was intended.
 - **Spawn prompt** — self-contained and paste-ready. The teammate loads `CLAUDE.md` and the
   repo but **not this conversation**, so everything clarified with the owner has to be
   written into the prompt, along with the canon warnings and an explicit list of what it
   must not touch.
 
-Then `py Scripts/backlog.py validate` and `reindex`. If validate reports a lock conflict,
-fix it before presenting — narrow `owns:`, or add a `depends-on` and say so in the plan.
+Then `py Scripts/paca.py validate`. If it reports a lock conflict, fix it before
+presenting — narrow `owns:`, or add a `depends-on` and say so in the plan.
 
 Give the batch a shared `epic:` slug when the features came in as one ask. It is what
 `epic <slug>` rolls up afterwards, and it costs nothing.
@@ -179,7 +201,7 @@ schedule", and go to §4.** Running `waves` on a single id is ceremony.
 
 For two or more, **ask the scheduler, do not reason about it**:
 
-    py Scripts/backlog.py waves 63,64,65,66
+    py Scripts/paca.py waves 63,64,65,66
 
 It packs the batch into waves — wave 1 is everything dispatchable now, wave 2 is what
 becomes dispatchable when wave 1 closes — and for every task that missed wave 1 it names
@@ -214,7 +236,7 @@ Show one block per task. Everything needed to disagree in a sentence, nothing el
 score arithmetic.** The owner brought this feature; it is not being ranked against a queue.
 
 ```
-task-044 · Flame flicker scales with army size          docs/backlog/task-044-….md
+task-044 · Flame flicker scales with army size                 localhost:8090 · KIND
   you get     <the artifact that lands, in one line>
   agent       claude · sonnet builds
   touches     ELVTR/Source/ELVTR/Rendering/**, docs/perf/flame-flicker.md
@@ -299,8 +321,8 @@ you actually recommend it.** If the honest read is `Revise first`, that carries 
 extra steps.
 
 The click is the owner's decision. **The record is still the hook.** `py
-Scripts/backlog.py approve NNN` raises a permission prompt from `Scripts/backlog_guard.py`,
-and **that prompt writes the verdict to `docs/backlog/LOG.md`**. `AskUserQuestion` sits in
+Scripts/paca.py approve NNN` raises a permission prompt from `Scripts/paca_guard.py`,
+and **that prompt is the verdict** — Paca's activity log records who changed it. `AskUserQuestion` sits in
 front of that gate and never replaces it — never route around the prompt, never suggest
 allowlisting it. Two clicks for an approval is the correct cost: the first is the decision,
 the second is the signature.
@@ -309,22 +331,22 @@ If the owner answers in prose — "approve 1,3, park 2" — take it. The questio
 make deciding cheap, not to insist on a format.
 
 **A batch approves as one command** — `approve 63,64,65,66`, every task in the plan
-including later waves. One prompt, one dry-run against the lock table, one batched `LOG.md`
-write. Approving one at a time trains the owner to wave the gate through, which is the one
+including later waves. One prompt, one dry-run against the lock table, one batched
+transition. Approving one at a time trains the owner to wave the gate through, which is the one
 thing the gate cannot survive.
 
 Approving a wave-2 task is safe and is the point — `approved` is permission, `dispatch` is
 the schedule, and `dispatch` refuses anything whose dependencies are still open.
 
-If the owner changes a score input instead, edit `score:` and re-run `reindex`. Score edits
+If the owner changes a score input instead, edit the task's score fields in Paca. Score edits
 are not privileged — argue freely.
 
 ## 6 · Dispatch, then post the board
 
 Approval is the go signal here (unlike `/backlog`, where the owner spawns). Per task:
 
-1. `py Scripts/backlog.py dispatch NNN --teammate <name> --model <build>` — records the
-   teammate and model, moves to `in-progress`, logs it. It **refuses** unless the task is
+1. `py Scripts/paca.py dispatch NNN --teammate <name> --model <build>` — records the
+   teammate and model and moves the task to `in-progress`. It **refuses** unless the task is
    `approved` with every dependency closed. Run it *before* spawning: if it refuses,
    nothing has been spent.
 2. Spawn with `Agent`: `subagent_type` = the task's `agent:`, `name` = the same `<name>`
@@ -371,7 +393,7 @@ or, when it missed:
 
     task-064 ✗ missed the bar — wrote the table but no simulation · sent it back
 
-Read what it produced, check it against `evidence:`, run `py Scripts/backlog.py review NNN`,
+Read what it produced, check it against `evidence:`, run `py Scripts/paca.py review NNN`,
 and if it missed, `SendMessage` the teammate rather than filing a second task. **Do not
 present the full evidence yet, and do not paste the teammate's report.** The receipt is
 the whole interruption.
@@ -401,7 +423,7 @@ Offer `Re-run NNN on Opus` as a fifth option only when a miss is wrong-in-kind, 
 standing furniture.
 
 A sibling that is `done` releases its `owns:` lock, which is what lets the join dispatch —
-so close siblings as they land even though you present them together. `epic <slug>` carries
+so close siblings as they land even though you present them together. `list --epic <slug>` carries
 the running state in the meantime.
 
 **A miss is evidence about the model, not just the task.** When a Sonnet teammate hands
@@ -415,7 +437,7 @@ sentence too: it is what keeps the default honest.
 **Closed work that is not pushed did not land.** After `done <ids>` clears, commit and push
 in the same turn — no extra question, this is part of the close, not a decision:
 
-    git add <the closed tasks' owns: paths + docs/backlog/>
+    git add <the closed tasks' owns: paths>
     <commit with the `caveman-commit` skill, per CLAUDE.md>
     git push
 
@@ -453,9 +475,9 @@ line. Filing is cheap; planning them here is not. See the `new-work-new-session`
 Any turn the owner asks what is running — or says `/host status` — answer from the script,
 not from memory:
 
-    py Scripts/backlog.py list --status in-progress,needs-review
-    py Scripts/backlog.py waves --approved-only        # what could start now
-    py Scripts/backlog.py epic <slug>                  # if the batch is an epic
+    py Scripts/paca.py list --status in-progress,needs-review
+    py Scripts/paca.py waves --approved-only           # what could start now
+    py Scripts/paca.py list --epic <slug>              # if the batch is an epic
 
 Print the §6 board shape from that output. It costs one turn and it is the answer to "what
 is going on" — never reconstruct it from what you remember spawning, because `/resume` does
@@ -489,18 +511,21 @@ clarify round to repair the assumptions it made. Use `/model` if you want to pla
 
 ## Never
 
-- Ask the owner more than three questions in one run, or ask about anything other than a
-  clarification (§2), the verdict (§5) and the close (§7) — plus the follow-up a refusal or
-  a partial close opens, which spends the same slot. Take the default and say which default
-  you took.
+- Ask about anything other than a clarification (§2), the verdict (§5) and the close (§7)
+  — plus the follow-up a refusal or a partial close opens, which spends the same slot as
+  the gate it follows. Verdict and close stay capped at one question each; clarify is
+  uncapped but still only for what changes the work. Take the default and say which
+  default you took.
 - Put a decision in prose. Every owner choice in this skill is an `AskUserQuestion` with
   the real options as buttons — the gates, the clarify, and every follow-up off them.
   Prose answers are accepted, never required, and "what would you like me to change?" is
   a question you should have already turned into options.
 - Spawn a teammate on a task that is not `approved`. `dispatch` enforces it; do not work
   around it by calling `Agent` first.
-- Set `approved`, `done`, `rejected`, or `parked` by editing a file. The hook denies it and
-  denying it is correct.
+- Set `approved`, `done`, `rejected`, or `parked` straight through the Paca API, the MCP
+  tools, or the web UI. Those four go through `paca.py`, behind the hook prompt — that
+  prompt is the owner's signature, and routing around it is the one thing the gate
+  cannot survive.
 - Present a plan and start building in the same turn.
 - Paste a teammate's full report into the lead. Receipt now, evidence at the close (§7).
 - Give two live teammates overlapping `owns:` globs or the same resource. `validate` catches
