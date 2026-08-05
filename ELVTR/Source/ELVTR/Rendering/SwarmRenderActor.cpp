@@ -740,7 +740,7 @@ namespace
 	 */
 	TAutoConsoleVariable<float> CVarSwarmArcherColorLift(
 		TEXT("Swarm.ArcherColorLift"),
-		0.15f,
+		0.f,
 		TEXT("Additive brightness lift for ARCHER sprites only, in linear colour, same channel\n")
 		TEXT("Swarm.BroodAdd uses. 0 = no lift (the pre-task-130 look, archers coloured exactly\n")
 		TEXT("like spearmen). Unlike Swarm.ArcherSizeScale this reads even where the per-particle\n")
