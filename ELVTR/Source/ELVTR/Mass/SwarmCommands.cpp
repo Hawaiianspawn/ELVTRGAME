@@ -3,6 +3,8 @@
 //   Swarm.SpawnRetinue <N>  - spawn N retinue in formation slots around the hero
 //   Swarm.Clear             - destroy all swarm entities
 //   Swarm.Stance <name>     - Follow | Charge | Hold | Rally
+//   Kindled.Adapt <u> <ladder> <rung> - put one unit on an Adaptation rung
+//                             (docs/design/adaptation.md)
 
 #include "SwarmSpawn.h"
 
@@ -210,6 +212,10 @@ namespace
 		// (SwarmProcessors.cpp), so HP and look can never disagree. Snapshotted once per
 		// spawn batch, same as everything else in this function.
 		const SwarmCombatTuning::FKnightSubtypeTables KnightTables = SwarmCombatTuning::GetKnightSubtypeTables();
+		// Adaptation: a recruit joining an already-adapted unit is BORN on that rung — the
+		// alternative (only new units adapt) would leave a unit permanently mixed, and
+		// adaptation.md §6 rules that a rung belongs to the branch, not to the body.
+		const SwarmCombatTuning::FTierTable Tiers = SwarmCombatTuning::GetTierTable();
 
 		// Retinue keeps the original fixed +/-15%: your line's raggedness isn't a dial
 		// anyone has asked to move, and the formation slots already stagger it.
@@ -263,18 +269,20 @@ namespace
 				const EUnitType Type = (Rand.FRand() < ArcherWeight) ? EUnitType::Archers : EUnitType::Spearmen;
 				const int32 TypeIdx = (int32)Type;
 				const uint8 SquadByte = Swarm->AssignRecruit(Type, RecruitedThisBatch[TypeIdx]++);
+				const int32 MyUnit = SwarmSquad::UnitIndex(SquadByte);
+				const int32 MyTier = Swarm->GetSquadTier(MyUnit);
 
 				if (Type == EUnitType::Archers)
 				{
-					MaxHP = SwarmCombatTuning::ArchersMaxHP();
+					MaxHP = SwarmCombatTuning::TierHPOr(Tiers, MyTier, SwarmCombatTuning::ArchersMaxHP());
 					TypeSpeedScale = SwarmCombatTuning::ArchersMoveSpeedScale();
 				}
 				else
 				{
-					const int32 Variant = SwarmRenderPack::VariantFromPhase(
+					const int32 Variant = SwarmRenderPack::VariantFor(Swarm->GetSquadVariant(MyUnit),
 						Phase, KnightTables.TeamVariantCum, KnightTables.NumTeamVariants);
 					const int32 Row = SwarmCombatTuning::KnightSubtypeRowFor(KnightTables, Variant);
-					MaxHP = KnightTables.HP[Row];
+					MaxHP = SwarmCombatTuning::TierHPOr(Tiers, MyTier, KnightTables.HP[Row]);
 					TypeSpeedScale = 1.f;
 				}
 
@@ -493,6 +501,250 @@ namespace
 				}
 				UE_LOG(LogTemp, Display, TEXT("Swarm.LogSquadRoster: %d entit%s logged."),
 					Logged, Logged == 1 ? TEXT("y") : TEXT("ies"));
+			}));
+
+	// --- Adaptation (docs/design/adaptation.md) ---------------------------------------
+	// The ladder table, transcribed from docs/data/unit-types.json `adaptation.ladders[]`.
+	// A CVar and not a JSON read, for the same reason every other table in this module is
+	// one: nothing in the runtime loads docs/data (the SIM owns that file), and a CVar can
+	// be retuned mid-PIE without a rebuild — which matters more than usual here, because
+	// this module cannot be Live Coded at all. Keep the two in step BY HAND; the numbers
+	// below are the FLAT 0-23 team-atlas indices the data speaks, and rung order IS tier
+	// order (adaptation.md §3), so a rung index and a Swarm.TierHP row index are one number.
+	TAutoConsoleVariable<FString> CVarAdaptationLadders(
+		TEXT("Kindled.Adaptation.Ladders"),
+		TEXT("spearmen-line:0,1,3,7;archer-scout:11,13,15,14;archer-gunner:11,20,18,21;archer-siege:11,23,22,19"),
+		TEXT("Adaptation ladders: <id>:<flat atlas index per rung, comma-separated>, with\n")
+		TEXT("ladders separated by ';'. Rung order is freed, militia, veteran, bannerman —\n")
+		TEXT("the same order as Swarm.TierHP / Swarm.TierDPS, because a rung index IS a tier\n")
+		TEXT("index (adaptation.md §3: rank is array order, never the atlas index).\n")
+		TEXT("Spearman ladders must use indices 0-10 and archer ladders 11-23; Kindled.Adapt\n")
+		TEXT("refuses a rung whose atlas block disagrees with the unit's own type, because\n")
+		TEXT("the render bridge picks the sub-table off that type and would draw the wrong\n")
+		TEXT("row. Transcribed from docs/data/unit-types.json adaptation.ladders[]."),
+		ECVF_Default);
+
+	struct FAdaptLadder
+	{
+		FString Id;
+		TArray<int32> Rungs;	// FLAT team-atlas indices, one per rung, in rung order
+	};
+
+	TArray<FAdaptLadder> ParseAdaptationLadders()
+	{
+		TArray<FAdaptLadder> Out;
+		TArray<FString> Entries;
+		CVarAdaptationLadders.GetValueOnGameThread().ParseIntoArray(Entries, TEXT(";"), true);
+		for (const FString& Entry : Entries)
+		{
+			FString Id, Csv;
+			if (!Entry.Split(TEXT(":"), &Id, &Csv))
+			{
+				continue;
+			}
+			FAdaptLadder Ladder;
+			Ladder.Id = Id.TrimStartAndEnd();
+			TArray<FString> Parts;
+			Csv.ParseIntoArray(Parts, TEXT(","), true);
+			for (const FString& Part : Parts)
+			{
+				Ladder.Rungs.Add(FCString::Atoi(*Part.TrimStartAndEnd()));
+			}
+			if (!Ladder.Id.IsEmpty() && Ladder.Rungs.Num() > 0)
+			{
+				Out.Add(MoveTemp(Ladder));
+			}
+		}
+		return Out;
+	}
+
+	/**
+	 * Re-stat the bodies already standing in a unit.
+	 *
+	 * DPS, cleave and reach need none of this — they are read live off the tier table and
+	 * the look every pass, so they move the instant the rung is assigned. HP does not:
+	 * MaxHP is baked into FSwarmHealthFragment once at spawn (it is a running total combat
+	 * decrements, not a per-frame lookup), so without this pass a unit would adapt into a
+	 * new look and new damage while keeping the old tier's health, and the difference
+	 * would show up as a wrong-feeling fight nobody could trace to a stale field.
+	 *
+	 * CURRENT HP is scaled by the same ratio rather than refilled: adapting is a promotion,
+	 * not a heal, and a wounded veteran should stay wounded. Returns bodies touched.
+	 */
+	int32 ReStatUnit(UWorld* World, int32 UnitIndex, float NewMaxHP)
+	{
+		UMassEntitySubsystem* MassSubsystem = World ? World->GetSubsystem<UMassEntitySubsystem>() : nullptr;
+		USwarmSubsystem* Swarm = World ? World->GetSubsystem<USwarmSubsystem>() : nullptr;
+		if (!MassSubsystem || !Swarm || NewMaxHP <= 0.f)
+		{
+			return 0;
+		}
+		FMassEntityManager& EntityManager = MassSubsystem->GetMutableEntityManager();
+		int32 Touched = 0;
+		for (const FMassEntityHandle& Handle : Swarm->GetTrackedEntities())
+		{
+			if (!EntityManager.IsEntityValid(Handle))
+			{
+				continue;
+			}
+			FMassEntityView View(EntityManager, Handle);
+			const FSwarmAnimFragment* Anim = View.GetFragmentDataPtr<FSwarmAnimFragment>();
+			if (!Anim || (Anim->Bits & SwarmAnim::TeamBit) == 0
+				|| SwarmSquad::UnitIndex(Anim->SquadId) != UnitIndex)
+			{
+				continue;	// brood carry no unit; other units are not this order's business
+			}
+			FSwarmHealthFragment& Health = View.GetFragmentData<FSwarmHealthFragment>();
+			const float Fraction = Health.MaxHP > 0.f ? FMath::Clamp(Health.HP / Health.MaxHP, 0.f, 1.f) : 1.f;
+			Health.MaxHP = NewMaxHP;
+			Health.HP = NewMaxHP * Fraction;
+			++Touched;
+		}
+		return Touched;
+	}
+
+	/**
+	 * Assign one unit a rung on a ladder — the input surface for Adaptation, and a
+	 * stand-in one, exactly like Swarm.UnitStance is for addressed orders. The player-
+	 * facing branch pick and the shop (adaptation.md §7) are a separate pass; what this
+	 * proves is that a rung actually lands: the unit re-skins, re-forms as one detachment,
+	 * and fights on its tier's numbers.
+	 *
+	 * Scope, stated so it is not mistaken for the whole system: this is items 4-and-a-half
+	 * of adaptation.md §6. A branch here is an EXISTING command handle, not a new
+	 * EUnitType — §6 items 1, 2 and 3 (the one-bit type, the eight consumed handles, D14's
+	 * unimplemented dispatch) are untouched and still open. The captain rung assigns
+	 * bannerman's look and stats; it does NOT field a retinue (A4), which is its own pass.
+	 */
+	FAutoConsoleCommandWithWorldAndArgs GAdaptCmd(
+		TEXT("Kindled.Adapt"),
+		TEXT("Assign a unit an Adaptation rung. Usage:\n")
+		TEXT("  Kindled.Adapt                       — list ladders and current assignments\n")
+		TEXT("  Kindled.Adapt <0-7> <ladder> <rung> — e.g. Kindled.Adapt 0 spearmen-line 2\n")
+		TEXT("  Kindled.Adapt <0-7> clear           — back to the phase roll and stock stats"),
+		FConsoleCommandWithWorldAndArgsDelegate::CreateStatic(
+			[](const TArray<FString>& Args, UWorld* World)
+			{
+				USwarmSubsystem* Swarm = World ? World->GetSubsystem<USwarmSubsystem>() : nullptr;
+				if (!Swarm)
+				{
+					return;
+				}
+				const TArray<FAdaptLadder> Ladders = ParseAdaptationLadders();
+				const SwarmCombatTuning::FTierTable Tiers = SwarmCombatTuning::GetTierTable();
+
+				if (Args.Num() == 0)
+				{
+					UE_LOG(LogTemp, Display, TEXT("Kindled.Adapt: %d ladder(s), %d tier row(s)."),
+						Ladders.Num(), Tiers.NumRows);
+					for (const FAdaptLadder& Ladder : Ladders)
+					{
+						FString Rungs;
+						for (int32 r = 0; r < Ladder.Rungs.Num(); ++r)
+						{
+							Rungs += FString::Printf(TEXT("%s%d:atlas%d"), r ? TEXT(" ") : TEXT(""), r, Ladder.Rungs[r]);
+						}
+						UE_LOG(LogTemp, Display, TEXT("  %s -> %s"), *Ladder.Id, *Rungs);
+					}
+					for (int32 u = 0; u < USwarmSubsystem::MaxSquads; ++u)
+					{
+						if (!Swarm->IsSquadClaimed(u))
+						{
+							continue;
+						}
+						const int32 Tier = Swarm->GetSquadTier(u);
+						UE_LOG(LogTemp, Display, TEXT("  unit %d (%s, %d standing): %s"),
+							u, LexToString(Swarm->GetSquadType(u)), Swarm->GetSquadStanding(u),
+							Tier < 0 ? TEXT("unadapted")
+								: *FString::Printf(TEXT("rung %d, within-block look %d, %.0f HP / %.0f DPS"),
+									Tier, Swarm->GetSquadVariant(u),
+									SwarmCombatTuning::TierHPOr(Tiers, Tier, 0.f),
+									SwarmCombatTuning::TierDPSOr(Tiers, Tier, 0.f)));
+					}
+					return;
+				}
+
+				const int32 UnitIndex = FCString::Atoi(*Args[0]);
+				if (UnitIndex < 0 || UnitIndex >= USwarmSubsystem::MaxSquads)
+				{
+					UE_LOG(LogTemp, Warning, TEXT("Kindled.Adapt: unit must be 0-%d."), USwarmSubsystem::MaxSquads - 1);
+					return;
+				}
+				if (Args.Num() >= 2 && Args[1].Equals(TEXT("clear"), ESearchCase::IgnoreCase))
+				{
+					Swarm->ClearSquadRung(UnitIndex);
+					UE_LOG(LogTemp, Display, TEXT("Kindled.Adapt: unit %d back to the phase roll. "
+						"Standing bodies keep the HP they were adapted to — respawn to reset it."), UnitIndex);
+					return;
+				}
+				if (Args.Num() < 3)
+				{
+					UE_LOG(LogTemp, Warning, TEXT("Kindled.Adapt: usage <0-7> <ladder> <rung>, or <0-7> clear."));
+					return;
+				}
+				if (!Swarm->IsSquadClaimed(UnitIndex))
+				{
+					UE_LOG(LogTemp, Warning, TEXT("Kindled.Adapt: unit %d has no soldiers — "
+						"AssignRecruit has never opened it, so it has no type to check the rung against."), UnitIndex);
+					return;
+				}
+
+				const FAdaptLadder* Ladder = Ladders.FindByPredicate(
+					[&Args](const FAdaptLadder& L) { return L.Id.Equals(Args[1], ESearchCase::IgnoreCase); });
+				if (!Ladder)
+				{
+					UE_LOG(LogTemp, Warning, TEXT("Kindled.Adapt: no ladder '%s'. Run Kindled.Adapt with no args to list them."), *Args[1]);
+					return;
+				}
+				const int32 Rung = FCString::Atoi(*Args[2]);
+				if (Rung < 0 || Rung >= Ladder->Rungs.Num())
+				{
+					UE_LOG(LogTemp, Warning, TEXT("Kindled.Adapt: ladder '%s' has rungs 0-%d."),
+						*Ladder->Id, Ladder->Rungs.Num() - 1);
+					return;
+				}
+				if (Rung >= Tiers.NumRows)
+				{
+					UE_LOG(LogTemp, Warning, TEXT("Kindled.Adapt: rung %d has no tier row — "
+						"Swarm.TierHP/Swarm.TierDPS parse to %d row(s)."), Rung, Tiers.NumRows);
+					return;
+				}
+
+				// The atlas block has to match the unit's own type or the render bridge draws
+				// the wrong sheet rows: it picks the spearman or archer sub-table off the
+				// squad byte's type and then adds ArcherVariantBase itself, so a flat archer
+				// index handed to a spearman unit would land 11 rows early and silently.
+				const int32 Flat = Ladder->Rungs[Rung];
+				const EUnitType Type = Swarm->GetSquadType(UnitIndex);
+				int32 WithinBlock = INDEX_NONE;
+				if (Type == EUnitType::Archers)
+				{
+					if (Flat >= SwarmSheet::Team::ArcherVariantBase && Flat < SwarmSheet::Team::Variants)
+					{
+						WithinBlock = Flat - SwarmSheet::Team::ArcherVariantBase;
+					}
+				}
+				else if (Flat >= 0 && Flat < SwarmSheet::Team::SpearVariants)
+				{
+					WithinBlock = Flat;
+				}
+				if (WithinBlock == INDEX_NONE)
+				{
+					UE_LOG(LogTemp, Warning, TEXT("Kindled.Adapt: ladder '%s' rung %d is atlas index %d, "
+						"which is not in the %s block (spearmen 0-%d, archers %d-%d). Unit %d is %s."),
+						*Ladder->Id, Rung, Flat, LexToString(Type),
+						SwarmSheet::Team::SpearVariants - 1, SwarmSheet::Team::ArcherVariantBase,
+						SwarmSheet::Team::Variants - 1, UnitIndex, LexToString(Type));
+					return;
+				}
+
+				Swarm->SetSquadRung(UnitIndex, WithinBlock, Rung);
+				const float NewMaxHP = SwarmCombatTuning::TierHPOr(Tiers, Rung, 0.f);
+				const int32 Touched = ReStatUnit(World, UnitIndex, NewMaxHP);
+				UE_LOG(LogTemp, Display, TEXT("Kindled.Adapt: unit %d (%s) -> %s rung %d — "
+					"atlas %d (block index %d), %.0f HP / %.0f DPS, %d standing body(s) re-stated."),
+					UnitIndex, LexToString(Type), *Ladder->Id, Rung, Flat, WithinBlock,
+					NewMaxHP, SwarmCombatTuning::TierDPSOr(Tiers, Rung, 0.f), Touched);
 			}));
 }
 

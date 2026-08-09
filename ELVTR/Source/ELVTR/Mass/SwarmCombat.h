@@ -256,6 +256,47 @@ namespace SwarmCombatTuning
 	/** Row for a team-atlas variant index, via Tables.Map — clamped both ways so a short or
 	 * malformed CVar list falls back to row 0 instead of reading garbage. */
 	int32 KnightSubtypeRowFor(const FKnightSubtypeTables& Tables, int32 VariantIndex);
+
+	// --- Adaptation tiers (docs/design/adaptation.md §2) ------------------------------
+	// THE stat spine, and the only one: a rung is (unit_type, tier, variant_index) and
+	// `tier` keys docs/data/upgrades.json tier_ladder.tiers[]. Those four rows are
+	// TRANSCRIBED into Swarm.TierHP / Swarm.TierDPS below — not re-derived, not rescaled,
+	// and no fifth row is invented here (adaptation.md §4 / O6 bans exactly that).
+	//
+	// What this deliberately does NOT carry is engage range and cleave. The tier ladder
+	// has no such columns and inventing them would be a second stat ladder in all but
+	// name. An adapted unit keeps taking those from its LOOK — the knight sub-type row
+	// for Spearmen, the flat Archers* getters for Archers — which is coherent rather than
+	// a compromise: a rung IS a look, so reach and cleave still come from the body you
+	// can see, and only HP/DPS move along the tier spine.
+	//
+	// The bannerman row measures WORSE than veteran (160/35 against 190/45) and that is
+	// correct — its value is an aura, and adaptation.md §9 records at length why raising
+	// it to flatten the table would delete the captain rung's whole reason to exist.
+	// Scripts/sim/drift_check.py guards those four rows; keep these strings equal to them.
+
+	inline constexpr int32 MaxTierRows = 8;	// headroom past today's four
+
+	struct FTierTable
+	{
+		float HP[MaxTierRows] = {};
+		float DPS[MaxTierRows] = {};
+		int32 NumRows = 0;
+	};
+
+	/** Snapshotted once per processor pass, same contract as GetKnightSubtypeTables. */
+	FTierTable GetTierTable();
+
+	/** HP/DPS for a tier index, or the caller's fallback when the unit has not adapted
+	 *  (TierIndex < 0) or the CVar list is short. Never reads outside the parsed rows. */
+	FORCEINLINE float TierHPOr(const FTierTable& Tiers, int32 TierIndex, float Fallback)
+	{
+		return (TierIndex >= 0 && TierIndex < Tiers.NumRows) ? Tiers.HP[TierIndex] : Fallback;
+	}
+	FORCEINLINE float TierDPSOr(const FTierTable& Tiers, int32 TierIndex, float Fallback)
+	{
+		return (TierIndex >= 0 && TierIndex < Tiers.NumRows) ? Tiers.DPS[TierIndex] : Fallback;
+	}
 }
 
 namespace SwarmLeash

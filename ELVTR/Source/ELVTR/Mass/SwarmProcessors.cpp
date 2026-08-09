@@ -581,7 +581,16 @@ void USwarmGridBuildProcessor::Execute(FMassEntityManager& EntityManager, FMassE
 	// SwarmCombatTuning::FKnightSubtypeTables (SwarmCombat.h).
 	const SwarmCombatTuning::FKnightSubtypeTables KnightTables = SwarmCombatTuning::GetKnightSubtypeTables();
 
-	EntityQuery.ForEachEntityChunk(Context, [Swarm, ArchersTargets, BroodTargets, ArchersDPS, BroodDPS, SwingInterval, KnightTables](FMassExecutionContext& ChunkContext)
+	// Adaptation (docs/design/adaptation.md §2). THIS is where an adapted unit's DPS is
+	// decided, and the only place: BlowDamage published here is what every victim pulls
+	// from, so overriding it once here moves the whole unit's damage without a second
+	// opinion existing anywhere. Cleave and reach are NOT overridden — they keep coming
+	// from the look, per the tier ladder having no such columns.
+	const SwarmCombatTuning::FTierTable Tiers = SwarmCombatTuning::GetTierTable();
+	const int32* SquadVariants = Swarm->GetSquadVariants();
+	const int32* SquadTiers = Swarm->GetSquadTiers();
+
+	EntityQuery.ForEachEntityChunk(Context, [Swarm, ArchersTargets, BroodTargets, ArchersDPS, BroodDPS, SwingInterval, KnightTables, Tiers, SquadVariants, SquadTiers](FMassExecutionContext& ChunkContext)
 	{
 		const TConstArrayView<FTransformFragment> Transforms = ChunkContext.GetFragmentView<FTransformFragment>();
 		const TConstArrayView<FSwarmAnimFragment> Anim = ChunkContext.GetFragmentView<FSwarmAnimFragment>();
@@ -608,18 +617,26 @@ void USwarmGridBuildProcessor::Execute(FMassEntityManager& EntityManager, FMassE
 				MyTargets = BroodTargets;
 				MyBlow = BroodDPS * MyInterval;
 			}
-			else if (bArcher)
-			{
-				MyTargets = ArchersTargets;
-				MyBlow = ArchersDPS * MyInterval;
-			}
 			else
 			{
-				const int32 Variant = SwarmRenderPack::VariantFromPhase(
-					Jitter[i].Phase, KnightTables.TeamVariantCum, KnightTables.NumTeamVariants);
-				const int32 Row = SwarmCombatTuning::KnightSubtypeRowFor(KnightTables, Variant);
-				MyTargets = KnightTables.Targets[Row];
-				MyBlow = KnightTables.DPS[Row] * MyInterval;
+				// An adapted unit's DPS comes off the TIER spine; an un-adapted one reads
+				// exactly what it read before (TierDPSOr falls through on INDEX_NONE), so
+				// nothing about today's shipped balance moves until a rung is assigned.
+				const int32 MyUnit = SwarmSquad::UnitIndex(Anim[i].SquadId);
+				const int32 MyTier = SquadTiers[MyUnit];
+				if (bArcher)
+				{
+					MyTargets = ArchersTargets;
+					MyBlow = SwarmCombatTuning::TierDPSOr(Tiers, MyTier, ArchersDPS) * MyInterval;
+				}
+				else
+				{
+					const int32 Variant = SwarmRenderPack::VariantFor(SquadVariants[MyUnit],
+						Jitter[i].Phase, KnightTables.TeamVariantCum, KnightTables.NumTeamVariants);
+					const int32 Row = SwarmCombatTuning::KnightSubtypeRowFor(KnightTables, Variant);
+					MyTargets = KnightTables.Targets[Row];
+					MyBlow = SwarmCombatTuning::TierDPSOr(Tiers, MyTier, KnightTables.DPS[Row]) * MyInterval;
+				}
 			}
 
 			Swarm->AddToGrid(
@@ -1207,7 +1224,13 @@ void USwarmIntegrateProcessor::Execute(FMassEntityManager& EntityManager, FMassE
 	const FVariantTable ArcherVariants = ParseVariantTable(
 		CVarArcherVariantWeights.GetValueOnGameThread(), SwarmSheet::Team::ArcherVariants);
 
-	EntityQuery.ForEachEntityChunk(Context, [Swarm, DeltaTime, TimeSeconds, StrikeAtFrac, Lunge, KnockDecay, BroodWalkHz, Facing, HeroLocation, EnemyVariants, TeamVariants, ArcherVariants](FMassExecutionContext& ChunkContext)
+	// Adaptation: the assigned look wins over the weight roll, per unit. Read ONLY for
+	// team entities below — the squad byte is meaningless on a brood (they are never
+	// recruited, so it is a permanent 0), and indexing this table for them would re-skin
+	// the entire horde the moment unit 0 adapted.
+	const int32* SquadVariants = Swarm->GetSquadVariants();
+
+	EntityQuery.ForEachEntityChunk(Context, [Swarm, DeltaTime, TimeSeconds, StrikeAtFrac, Lunge, KnockDecay, BroodWalkHz, Facing, HeroLocation, EnemyVariants, TeamVariants, ArcherVariants, SquadVariants](FMassExecutionContext& ChunkContext)
 	{
 		const TArrayView<FTransformFragment> Transforms = ChunkContext.GetMutableFragmentView<FTransformFragment>();
 		const TConstArrayView<FMassVelocityFragment> Velocities = ChunkContext.GetFragmentView<FMassVelocityFragment>();
@@ -1335,9 +1358,14 @@ void USwarmIntegrateProcessor::Execute(FMassEntityManager& EntityManager, FMassE
 				const FVariantTable& MyVariants = bTeamEntity
 					? (bArcherUnit ? ArcherVariants : TeamVariants)
 					: EnemyVariants;
+				// Brood pass INDEX_NONE: they carry no unit, so they always roll (see the
+				// SquadVariants comment above this lambda).
+				const int32 MyAssigned = bTeamEntity
+					? SquadVariants[SwarmSquad::UnitIndex(Anim[i].SquadId)]
+					: INDEX_NONE;
 				Swarm->PushRenderEntry(Published, Anim[i].Bits, Anim[i].SquadId,
 					SwarmRenderPack::BucketFromPhase(Jitter[i].Phase), Anim[i].Facing,
-					SwarmRenderPack::VariantFromPhase(Jitter[i].Phase, MyVariants.Cum, MyVariants.Num));
+					SwarmRenderPack::VariantFor(MyAssigned, Jitter[i].Phase, MyVariants.Cum, MyVariants.Num));
 
 			// Consume AttackBit: it is an observation made THIS frame by the steering
 			// and combat passes, and it has to be re-observed next frame. Left set it

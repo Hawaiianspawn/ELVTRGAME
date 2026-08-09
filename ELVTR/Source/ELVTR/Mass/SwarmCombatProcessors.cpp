@@ -236,6 +236,28 @@ namespace
 		TEXT("ceiling, not a rebalance. See Swarm.KnightSubtypeMap for the row order."),
 		ECVF_Default);
 
+	// --- Adaptation tiers (docs/design/adaptation.md §2, SwarmCombat.h FTierTable) -----
+	// A verbatim transcription of docs/data/upgrades.json tier_ladder.tiers[], in array
+	// order — freed, militia, veteran, bannerman. Array order IS rung order (adaptation.md
+	// §3), so a rung index and a tier index are the same number and nothing maps between
+	// them. Only a unit that has actually adapted reads these; everyone else keeps the
+	// knight sub-type rows above / the flat Archers* values, unchanged.
+	TAutoConsoleVariable<FString> CVarTierHP(
+		TEXT("Swarm.TierHP"), TEXT("90,130,190,160"),
+		TEXT("Max HP per Adaptation TIER, comma-separated floats, in upgrades.json\n")
+		TEXT("tier_ladder order: freed, militia, veteran, bannerman. Baked into MaxHP at\n")
+		TEXT("spawn AND re-applied to standing bodies by Kindled.Adapt, since a unit that\n")
+		TEXT("adapts mid-wave has to actually get the HP. bannerman (160) is deliberately\n")
+		TEXT("below veteran (190): it is a support rung, not a fourth power rung."),
+		ECVF_Default);
+	TAutoConsoleVariable<FString> CVarTierDPS(
+		TEXT("Swarm.TierDPS"), TEXT("20,30,45,35"),
+		TEXT("Damage/sec per Adaptation TIER, read live every pass like Swarm.RetinueDPS.\n")
+		TEXT("Same row order as Swarm.TierHP. Replaces the knight sub-type row's DPS (or\n")
+		TEXT("Swarm.ArchersDPS) for an adapted unit ONLY — its engage range and cleave still\n")
+		TEXT("come from its look, because the tier ladder has no such columns and adding\n")
+		TEXT("them would be a second stat ladder."), ECVF_Default);
+
 	int32 ParseFloatCsv(const FString& Csv, float* Out, int32 MaxNum)
 	{
 		TArray<FString> Parts;
@@ -329,6 +351,17 @@ namespace SwarmCombatTuning
 		return T;
 	}
 
+	FTierTable GetTierTable()
+	{
+		FTierTable T;
+		T.NumRows = ParseFloatCsv(CVarTierHP.GetValueOnAnyThread(), T.HP, MaxTierRows);
+		const int32 NumDPS = ParseFloatCsv(CVarTierDPS.GetValueOnAnyThread(), T.DPS, MaxTierRows);
+		// A tier is only usable if BOTH stats parsed for it — a short DPS list would
+		// otherwise silently give the high tiers 0 DPS instead of falling back.
+		T.NumRows = FMath::Min(T.NumRows, NumDPS);
+		return T;
+	}
+
 	int32 KnightSubtypeRowFor(const FKnightSubtypeTables& Tables, int32 VariantIndex)
 	{
 		if (Tables.NumVariants <= 0 || Tables.NumRows <= 0)
@@ -409,6 +442,12 @@ void USwarmCombatProcessor::Execute(FMassEntityManager& EntityManager, FMassExec
 	// own doc comment (SwarmCombat.h) for why this is safe next to a 30k-entity sim.
 	const SwarmCombatTuning::FKnightSubtypeTables KnightTables = SwarmCombatTuning::GetKnightSubtypeTables();
 
+	// Adaptation: this unit's assigned look, or INDEX_NONE. Only the LOOK is needed here —
+	// an adapted unit's DPS comes off the tier spine at the grid publish (SwarmProcessors.cpp),
+	// which is where BlowDamage is decided; what this pass reads off the look is the engage
+	// range and the cleave, and adaptation.md leaves both with the body you can see.
+	const int32* SquadVariants = Swarm->GetSquadVariants();
+
 	// Damage is now parcelled into blows: one blow removes a whole interval's worth
 	// of DPS at once. Average throughput over time is identical to the old per-tick
 	// bleed, which is what keeps the Gate 1 balance numbers meaningful — but the HP
@@ -443,7 +482,7 @@ void USwarmCombatProcessor::Execute(FMassEntityManager& EntityManager, FMassExec
 	int32 KilledBySquad[USwarmSubsystem::MaxSquads] = {};
 	int32 HeroKilled = 0;
 
-	EntityQuery.ForEachEntityChunk(Context, [Swarm, HeroLocation, bHeroAlive, bHeroStriking, MeleeRangeSq, ArchersRangeSq, ArchersMinRangeSq, HeroMeleeRangeSq, HeroBlow, MaxAttackers, ArchersTargets, BroodTargets, KnightTables, FlashTime, KnockSpeed, &HeroDamage, &DamageToRetinue, &DamageToBrood, &KilledBySquad, &HeroKilled](FMassExecutionContext& ChunkContext)
+	EntityQuery.ForEachEntityChunk(Context, [Swarm, HeroLocation, bHeroAlive, bHeroStriking, MeleeRangeSq, ArchersRangeSq, ArchersMinRangeSq, HeroMeleeRangeSq, HeroBlow, MaxAttackers, ArchersTargets, BroodTargets, KnightTables, SquadVariants, FlashTime, KnockSpeed, &HeroDamage, &DamageToRetinue, &DamageToBrood, &KilledBySquad, &HeroKilled](FMassExecutionContext& ChunkContext)
 	{
 		const TConstArrayView<FTransformFragment> Transforms = ChunkContext.GetFragmentView<FTransformFragment>();
 		const TArrayView<FSwarmHealthFragment> Health = ChunkContext.GetMutableFragmentView<FSwarmHealthFragment>();
@@ -462,8 +501,9 @@ void USwarmCombatProcessor::Execute(FMassEntityManager& EntityManager, FMassExec
 			// table the render bridge resolves its look from (SwarmProcessors.cpp) -- so
 			// this can never disagree with the sprite on screen. Unused (0) for archers/brood.
 			const int32 MyKnightRow = bKnight
-				? SwarmCombatTuning::KnightSubtypeRowFor(KnightTables, SwarmRenderPack::VariantFromPhase(
-					Jitter[i].Phase, KnightTables.TeamVariantCum, KnightTables.NumTeamVariants))
+				? SwarmCombatTuning::KnightSubtypeRowFor(KnightTables, SwarmRenderPack::VariantFor(
+					SquadVariants[SwarmSquad::UnitIndex(Anim[i].SquadId)], Jitter[i].Phase,
+					KnightTables.TeamVariantCum, KnightTables.NumTeamVariants))
 				: 0;
 
 			// MY OWN candidate band this frame — Archers reach much further (§2.2) and

@@ -421,6 +421,38 @@ namespace SwarmRenderPack
 		}
 		return Num - 1;
 	}
+
+	/**
+	 * The look this body ACTUALLY wears — an ASSIGNED one if its unit has adapted
+	 * (docs/design/adaptation.md), otherwise the phase roll above.
+	 *
+	 * This function is the whole of adaptation.md §6 item 4 ("a unit's look cannot be
+	 * assigned — the hardest one"). The problem was never storage size: it was that the
+	 * variant was recomputed from spawn phase in FIVE places (spawn HP, the grid publish,
+	 * both halves of the formation repack, the render push, and the combat row), so
+	 * "this soldier adapted into look X" had five independent things to convince. Every
+	 * one of them now routes through here, which is what makes a single assignment move
+	 * a unit's sprite, its detachment, its stats and its reach together — the same
+	 * can't-disagree guarantee task-095 built between a knight's look and its fight.
+	 *
+	 * Assignment lives on the SUBSYSTEM, per unit (USwarmSubsystem::SetSquadRung), not on
+	 * a fragment: adaptation.md §6 is explicit that a branch is a command handle and a
+	 * rung is a look-and-stat move inside one, so there are eight of these numbers, not
+	 * thirty thousand. That also keeps FSwarmAnimFragment's layout untouched — the one
+	 * thing Live Coding cannot apply to this module at all (see the note above
+	 * FSwarmStrikeFragment).
+	 *
+	 * AssignedVariant is a WITHIN-BLOCK index, same space VariantFromPhase returns and
+	 * the same space the render bridge adds SwarmSheet::Team::ArcherVariantBase to — the
+	 * flat 0-23 atlas index the ladder data speaks is converted once, at the assignment
+	 * boundary. Negative means "not adapted", which is the shipped behaviour verbatim.
+	 */
+	FORCEINLINE int32 VariantFor(int32 AssignedVariant, float Phase, const int32* Cum, int32 Num)
+	{
+		return AssignedVariant >= 0
+			? FMath::Min(AssignedVariant, VariantMask)	// 4-bit render field; assignment already validated
+			: VariantFromPhase(Phase, Cum, Num);
+	}
 }
 
 USTRUCT()

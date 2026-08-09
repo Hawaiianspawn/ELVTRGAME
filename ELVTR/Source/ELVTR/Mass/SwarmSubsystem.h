@@ -492,6 +492,79 @@ public:
 		return (Index >= 0 && Index < MaxSquads) && SquadClaimed[Index];
 	}
 
+	// --- Adaptation (docs/design/adaptation.md) ---------------------------------------
+	/**
+	 * A unit's assigned RUNG. adaptation.md §2: a rung is the triple
+	 * (unit_type, tier, variant_index) — unit_type is already SquadType[] above, so what
+	 * has to land here is the other two.
+	 *
+	 * Per UNIT, not per soldier, and that is the design rather than a shortcut: §6 rules
+	 * that a command handle is a BRANCH and a rung is a look-and-stat move inside one, so
+	 * a whole unit adapts together. Eight ints instead of thirty thousand, no fragment
+	 * grows a field, and the formation's existing group-by-look repack turns an adapted
+	 * unit into one solid detachment for free.
+	 *
+	 * Variant is a WITHIN-BLOCK index (0-10 spearmen, 0-12 archers), the space
+	 * SwarmRenderPack::VariantFromPhase returns; the flat 0-23 atlas index the ladder data
+	 * speaks is converted at the Kindled.Adapt boundary, which is also where it is checked
+	 * against the unit's own type. Tier indexes Swarm.TierHP / Swarm.TierDPS, transcribed
+	 * from upgrades.json tier_ladder — THE stat spine, so no second HP/DPS ladder exists
+	 * (adaptation.md §2). -1 in either means "not adapted": today's phase roll and today's
+	 * knight-sub-type stats, unchanged, which is what every un-adapted unit still gets.
+	 *
+	 * NOT persisted across a run reset — ResetRunState clears both. Persistence is army
+	 * SIZE (D3/D4, automatic on kills); this is army SHAPE and has no save format yet.
+	 */
+	void SetSquadRung(int32 UnitIndex, int32 WithinBlockVariant, int32 TierIndex)
+	{
+		if (UnitIndex < 0 || UnitIndex >= MaxSquads) { return; }
+		SquadVariant[UnitIndex] = WithinBlockVariant;
+		SquadTier[UnitIndex] = TierIndex;
+		++AdaptationRevision;
+	}
+	void ClearSquadRung(int32 UnitIndex)
+	{
+		SetSquadRung(UnitIndex, INDEX_NONE, INDEX_NONE);
+	}
+	int32 GetSquadVariant(int32 Index) const
+	{
+		return (Index >= 0 && Index < MaxSquads) ? SquadVariant[Index] : INDEX_NONE;
+	}
+	int32 GetSquadTier(int32 Index) const
+	{
+		return (Index >= 0 && Index < MaxSquads) ? SquadTier[Index] : INDEX_NONE;
+	}
+
+	/**
+	 * The whole assignment table, for a processor to snapshot ONCE PER PASS and capture
+	 * into its per-chunk lambda — same idiom SwarmProcessors.cpp's FVariantTable and
+	 * SwarmCombat.h's FKnightSubtypeTables already use, and the reason a per-entity
+	 * subsystem call never appears in a hot loop. Stable for the world's lifetime.
+	 */
+	const int32* GetSquadVariants() const { return SquadVariant; }
+	const int32* GetSquadTiers() const { return SquadTier; }
+
+	/**
+	 * Bumped on every rung change. The formation repack groups soldiers BY LOOK, so
+	 * re-skinning a standing unit has to re-rank it the same frame or the block keeps
+	 * yesterday's detachments — exactly the case URetinueFormationProcessor's
+	 * `bLooksChanged` already handles for the weights CVars. A counter rather than a dirty
+	 * flag so the processor can hold its own last-seen value and no consumer has to
+	 * remember to clear it for the others.
+	 */
+	int32 GetAdaptationRevision() const { return AdaptationRevision; }
+
+	/**
+	 * World AABB over every standing retinue body, accumulated on the SAME PushRenderEntry
+	 * pass that already receives Location and the team bit — the third O(N) walk this would
+	 * otherwise need is exactly what SquadCentroidSum refused to write. Invalid (IsValid 0)
+	 * while nothing friendly is standing, so callers must check before reading extents.
+	 * Brood is deliberately NOT in it: the strategic camera contains YOUR army and lets the
+	 * tide run off every edge, because a frame wide enough to hold the horde makes a soldier
+	 * a smudge. Valid after integrate, same lifetime as GetSquadStanding.
+	 */
+	const FBox& GetRetinueBounds() const { return RetinueBounds; }
+
 	// --- live counts (valid from the end of the integrate pass) -----------
 	int32 GetAliveRetinue() const { return AliveRetinue; }
 	int32 GetAliveBrood() const { return AliveBrood; }
@@ -625,7 +698,10 @@ public:
 			UnitStanceAnchor[i] = FVector::ZeroVector;
 			SquadClaimed[i] = false;
 			SquadType[i] = EUnitType::Spearmen;
+			SquadVariant[i] = INDEX_NONE;
+			SquadTier[i] = INDEX_NONE;
 		}
+		++AdaptationRevision;
 		for (int32& P : PackedPoolByType) { P = -1; }
 		HeroContacts = 0;
 		HeroContactsThisFrame = 0;
@@ -668,6 +744,13 @@ private:
 	FVector UnitStanceAnchor[MaxSquads] = {};
 	int32 AlivePoolByType[NumUnitTypes] = {};                   // live standing per type, refilled each frame
 	int32 PackedPoolByType[NumUnitTypes] = { -1, -1 };          // pool as of each type's last formation repack
+
+	// Adaptation: this unit's assigned rung, INDEX_NONE = not adapted. See SetSquadRung.
+	int32 SquadVariant[MaxSquads] = { INDEX_NONE, INDEX_NONE, INDEX_NONE, INDEX_NONE,
+	                                  INDEX_NONE, INDEX_NONE, INDEX_NONE, INDEX_NONE };
+	int32 SquadTier[MaxSquads] = { INDEX_NONE, INDEX_NONE, INDEX_NONE, INDEX_NONE,
+	                               INDEX_NONE, INDEX_NONE, INDEX_NONE, INDEX_NONE };
+	int32 AdaptationRevision = 0;
 
 	int32 AliveRetinue = 0;
 	int32 AliveBrood = 0;
