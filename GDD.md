@@ -1,10 +1,19 @@
 # Game Design Document — *Kindled*
 
-**Version:** 0.5 (living document) · Companion docs: `CLASSES.md`, `docs/narrative/FLAME-FOUNDATION.md`
-**Last updated:** 2026-07-31
+**Version:** 0.5 (living document) · Companion docs: `CLASSES.md`, `docs/narrative/FLAME-FOUNDATION.md`, `docs/design/castle-layout.md`
+**Last updated:** 2026-08-13
 **Engine target:** Unreal Engine 5.8
 
 > ### Standing owner decisions, and what is still stale
+>
+> **-1. The 2026-08-13 castle pivot — MARKED, not absorbed.** The game is now a
+> **five-layer castle siege defended by seven named soldiers**, with the crowd as
+> the autonomous war around them. Canon: `docs/design/castle-layout.md` (D1–D4) +
+> `docs/design/intro-and-zones.md`; every open/closed decision:
+> `docs/OPEN-DECISIONS.md` (the register). §1–§4, §7–§9 and §11 below carry dated
+> supersession markers pointing there; the superseded text stays in place per
+> project convention. A full rewrite of this document against the pivot has not
+> happened — read the markers first.
 >
 > **0. The 2026-07-31 direction pass — absorbed.** Genre spine, meta-progression, run shape, win/loss,
 > command granularity and the performance picture were all re-decided on 2026-07-31 and are
@@ -31,6 +40,14 @@
 
 ## 1. High Concept
 
+> **Superseded in shape 2026-08-13 (castle pivot).** The crowd stays — as the
+> **war**: hundreds of allies and enemies fighting autonomously around a squad of
+> **seven named soldiers** under your command, inside a five-layer castle that
+> falls one gate at a time. The pitch: *the sim stalemates at every gate; the
+> enemy breaks stalemates with monsters that got that way by eating your army;
+> you are the seven sent to kill them before the gate goes.* See
+> `docs/design/castle-layout.md` §0–§1. The paragraphs below are the 07-31 record.
+
 An **incremental roguelite with crowds**. You command a hero and an army that carries
 between runs and only ever grows. The hook: **massive entity counts** — hundreds-to-thousands
 of units and enemies on screen at once. A run is 20–30 minutes long, and each one leaves the
@@ -53,6 +70,11 @@ framing is resolved separately in §9.
 ---
 
 ## 2. Design Pillars
+
+> **Amended 2026-08-13 (castle pivot):** pillar 1 inverts — you are *seven*, and
+> the many are the war around you (your output routes through the squad, register
+> Q13 = C). Pillar 2's ratchet splits in two: squad and keep (D3). Pillars 3 and 4
+> stand. Pillar 5's variety now comes from siege dynamics, not stage composition.
 
 1. **You are many.** The player's power is expressed through their retinue as much as
    their hero. Growth means more bodies, better bodies, and smarter formations.
@@ -79,6 +101,16 @@ framing is resolved separately in §9.
 ---
 
 ## 3. Core Loop
+
+> **Superseded 2026-08-13 (castle pivot).** The session is a **siege** (register
+> Q1 = A): the war compresses through five layers and ends when the Crown falls or
+> **another bearer answers your flame** (Q6 = C — relief, not conquest). Between
+> sieges the keep is repaired with what the last siege earned. **Two ratchets**
+> replace the single kills→army-level ratchet (D3): squad-credited kills pay the
+> seven's mid-fight rung climbs, war outcome pays keep repair (Q3 = C). A wipe is
+> cheap; a bad siege is expensive. Light fragments are gone (Q32 = A); gold and
+> the stash survive via the quartermaster (Q30 = B, §8). The text below is the
+> 07-31 record.
 
 ### Genre spine — DECIDED 2026-07-31: incremental roguelite with crowds
 The retention model is the **roguelite meta shape** (Hades, Risk of Rain): the run is the
@@ -202,6 +234,14 @@ meta-progression is the army, and there is nothing else.
 ---
 
 ## 4. The Niche: Massive Entity Retinues
+
+> **Superseded for the commanded force 2026-08-13 (castle pivot, D1).** The player
+> commands **seven** (mixed across the four archetypes, Q29 = A); command-by-type,
+> the stance set at army scale, and the headcount question all retire with the
+> 100–120 retinue. **The crowd does not retire — it becomes the war**, and every
+> measurement below stands for it. The leash survives on the seven and on fallen
+> (dark) ground (Q7 = A); Q27's leash-at-thousands worry is moot. Order issuing for
+> the seven is register Q26; the channel kit is Q23.
 
 The differentiator. Each player's class comes with **subjects/soldiers** — autonomous
 units that follow, fight, and grow with the player.
@@ -512,7 +552,15 @@ Deferred by design, but reserving the slot. Direction notes:
 
 ---
 
-## 9. Stage Structure — **PROCEDURAL GENERATION RETIRED 2026-07-31**
+## 9. Stage Structure — **PROCEDURAL GENERATION RETIRED 2026-07-31 · ARENA LADDER SUPERSEDED 2026-08-13**
+
+> **The arena ladder below is superseded by the castle** (`docs/design/castle-layout.md`,
+> which says so explicitly): the ladder is now spatial and inward — five layers, one-way
+> collapse, fronts and gates instead of stages and beats. Beats re-home: shop → the
+> quartermaster (Q30 = B), rescue → mid-fight pressure survives in kind (routing columns,
+> the intro's withdrawal), boss-with-adds → **the boss is the stalemate-breaker**, its
+> strongest form yet. The spawn-spike constraint (23.46ms/250) carries forward verbatim
+> into the gate-seam streaming rules (castle-layout §2.1).
 
 > **This section was "Procedural Generation" until 2026-07-31. It is retired here rather
 > than deleted, so that nobody re-derives it.** Dungeon crawling is cut: a run is
@@ -750,6 +798,12 @@ deliberately written so co-op stays *possible*, and those affordances cost nothi
 
 ## 11. Scope Guardrails (v1 targets)
 
+> **Superseded 2026-08-13 (castle pivot):** this table predates the pivot and has
+> not been redrawn. The v1 shape is now: one castle (five layers), seven soldiers
+> across four archetypes with no class select, the war sim, the intro
+> (`docs/design/intro-and-zones.md`), and the first slice per register Q28. Redraw
+> this table once Q23/Q14/Q15/Q16 close.
+
 **Revised 2026-07-27** for the single-player decision and the narrative reset, and
 **2026-07-31** for the persistent army, the stage ladder and the procgen retirement.
 
@@ -793,19 +847,21 @@ deliberately written so co-op stays *possible*, and those affordances cost nothi
 | 14 | v1 world-flag list + decision-event templates | ~~**15 flags / 8 templates — `WORLD.md` §7–8**~~ — **SUPERSEDED.** The world flags were discarded with the lore (§6a, §11) and `WORLD.md` is dead canon; meta-progression is answered instead by the persistent army (Q22). | ⏸ Superseded 2026-07-22 |
 | 11 | Final class names (per-class candidates in `CLASSES.md`) | Working names in use | Naming pass later |
 | 24 | How light fragments are gathered | ~~Undecided. The conversion is decided — enough fragments in one place become a **healer unit**, and boss fragments drop as **modifiers** rather than bodies (Q22) — but the gathering method is not.~~ **SUPERSEDED: fragments retire entirely with the castle pivot** (`docs/OPEN-DECISIONS.md` Q32 = A) — healing is the Guided-light archetype among the seven plus the garrison's triage anchors. | ⏸ Superseded 2026-08-13 |
-| 25 | Which wave curve is canon | Undecided, and the two live curves conflict: `SYSTEMS.md` §2 locks **250 / 450 / 700** as a dated decision record, while `docs/data/wave-scaling.json` proposes **120 / 400 / 20,000** with retinue 60 → 120 → 600. `encounter-budget.json`, `scaling-curve.json` and `retinue-vanguard.json` all derive from the old curve, so picking the new one re-derives three files. The direction needs one picked; deliberately not picked unilaterally. | Open |
-| 26 | Gold's drop rate and sources | Undecided. Gold is the shop currency (Q23) and drops in-run, but neither the rate nor which drops pay it has been set. | Open |
-| 27 | Does the leash survive an army in the thousands, commanded by type? | Undecided, and unasked. §4's leash rule ("hero relevance enforced by rule, not tuning") was written for a retinue of hundreds under whole-army stances; a four-digit army commanded by unit *type* (Q29) is new, and the rule has not been re-checked against it. | Open |
+| 25 | Which wave curve is canon | Undecided, and the two live curves conflict: `SYSTEMS.md` §2 locks **250 / 450 / 700** as a dated decision record, while `docs/data/wave-scaling.json` proposes **120 / 400 / 20,000** with retinue 60 → 120 → 600. `encounter-budget.json`, `scaling-curve.json` and `retinue-vanguard.json` all derive from the old curve, so picking the new one re-derives three files. The direction needs one picked; deliberately not picked unilaterally. **Recontextualised 2026-08-13:** "waves" are now front populations in the war sim — the curve question survives as *per-layer population and pressure tuning* (castle pivot; the front ledger's units are register-flagged as not inferable). | Open |
+| 26 | Gold's drop rate and sources | Undecided. Gold survives the pivot (register Q30 = B — the quartermaster, war-coupled stock), but neither the rate nor which drops pay it has been set. | Open |
+| 27 | Does the leash survive an army in the thousands, commanded by type? | **MOOT — the castle pivot removed both terms** (2026-08-13): the commanded force is seven, and the leash's new job is decided (register Q7 = A — it governs the seven and fallen dark ground; `LeashRadius` needs a squad-scale retune, not a redesign). | ⏸ Moot 2026-08-13 |
 | 28 | Puzzle combat as a later direction | **RECORDED, not scoped.** Runs could later become puzzle combat: stat guidance where certain unit types dominate certain factions, making stash and army composition a puzzle to solve rather than a pure power check. Not specced, no tasks filed. | ⏸ Recorded 2026-07-31 — future direction |
-| 29 | Command granularity (how many handles, and what they address) | **Command by unit TYPE, not by group** — "all archers" / "all spearmen" / "all healers" (§4). Handle count scales with the number of unit types, so it never folds. **Supersedes the fixed `MaxSquads = 8` group model** (`docs/design/squad-group-system.md` §4.2-§4.3, `SwarmSubsystem.h:46`), which folds recruits into unit 0 at roughly 730 retinue — a projection, UNVERIFIED, and disqualifying anyway under a persistent army that only grows (Q22). **AMENDED 2026-08-08 (Q31):** an Adaptation **branch** is a type under this rule and earns a handle; a **rung** is a look-and-stat move inside a type and does not. A captain plus its retinue is one handle, not one per body. | ✅ Decided 2026-07-31 · amended 2026-08-08 |
+| 29 | Command granularity (how many handles, and what they address) | **Command by unit TYPE, not by group** — "all archers" / "all spearmen" / "all healers" (§4). Handle count scales with the number of unit types, so it never folds. **Supersedes the fixed `MaxSquads = 8` group model** (`docs/design/squad-group-system.md` §4.2-§4.3, `SwarmSubsystem.h:46`), which folds recruits into unit 0 at roughly 730 retinue — a projection, UNVERIFIED, and disqualifying anyway under a persistent army that only grows (Q22). **AMENDED 2026-08-08 (Q31):** an Adaptation **branch** is a type under this rule and earns a handle; a **rung** is a look-and-stat move inside a type and does not. A captain plus its retinue is one handle, not one per body. **SUPERSEDED 2026-08-13:** the commanded force is seven (castle pivot D1); how orders are issued to them is register Q26, blocked on the Q23 kit. | ⏸ Superseded 2026-08-13 |
 | 31 | Army **shape** between runs — how a unit changes, not how many | **Adaptation.** Every character template has an evolution ladder; a rung is `(unit_type, tier, variant_index)` keyed on §1's existing four-tier ladder, so no second stat ladder exists. **The player picks from a branch, and Adaptations are also shop stock** — the shop offers rungs on branches the pick did not grant. **The top rung is a captain** fielding its own retinue of ≤ 8 (`bannerman` reused; its existing "item/event reward only" line makes the captain the one rung the shop cannot sell). **One command handle per branch, not per rung** (amends Q29). Friendly side only for v1; the rung triple is unchanged for enemies. Fills the promotion slot D4 vacated — amends Q22 on the *shape* axis only. Spec: `docs/design/adaptation.md`. | ✅ Decided 2026-08-08 |
 | 32 | Rung count per Adaptation ladder | Undecided. Default is the four tiers that already exist; a fifth rung means inventing an HP/DPS row, which is the inference this project bans. Owner not asked. | Open |
 | 33 | How many captains a run supports, and whether captain retinue draws Supply upkeep | Undecided. The ≤ 8 retinue cap is a legibility call (half `TypeLegibilityCeiling`, `SwarmSubsystem.h:59`); neither the captain count nor the upkeep question was put to the owner. | Open |
 | 34 | Adaptation shop price | Undecided, and **blocked on Q26** — nothing can be priced before gold's rate and sources exist. Recorded as an explicit `null` in `unit-types.json` rather than guessed. | Open |
-| 30 | End-of-run headcount target | Deliberately **not a design question** — answered by measurement (§4). Every friendly-army figure the project owns sits at 100–120, and only because that is the harness cap; task-108 must sweep retinue past 120 and set it. Until then every end-of-run headcount in this repo is UNVERIFIED. | ⏸ Deferred to measurement 2026-07-31 |
+| 30 | End-of-run headcount target | Deliberately **not a design question** — answered by measurement (§4). Every friendly-army figure the project owns sits at 100–120, and only because that is the harness cap; task-108 must sweep retinue past 120 and set it. Until then every end-of-run headcount in this repo is UNVERIFIED. **Re-scoped 2026-08-13:** the commanded force is fixed at seven; the sweep now prices the *allied garrison* (the war), where the measurements still bind. | ⏸ Deferred to measurement 2026-07-31 · re-scoped 2026-08-13 |
 
 ---
 
-*Next revision should: spec the boss fight beyond its stat block (§9), settle the wave
-curve (Q25), and detail the remaining classes' kits and stance variants. The game is named
-(Q10) and the world-flag list is dead canon — both dropped from this list 2026-07-31.*
+*Next revision should (reset 2026-08-13 for the castle pivot): absorb the pivot into
+§1–§4/§9/§11 properly once the register's intro-blocking set (Q23/Q14/Q15/Q16) closes;
+spec the boss fight beyond its stat block — now the stalemate-breaker, the most
+load-bearing content in the game; and re-derive the wave curve (Q25) as per-layer
+front populations. The classes' kits question became the Q23 channel kit (Q29 = A).*
