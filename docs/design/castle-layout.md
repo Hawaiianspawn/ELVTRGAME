@@ -543,11 +543,15 @@ standing orders persist and improve. This is what the player spends on between
 sieges, and per §4.1's recommended shape it is what determines the state the next
 siege opens in.
 
-> **Open (Q3):** what happens to the automatic kills→army-level ratchet
-> (`GDD.md` §3, shipped in C++ — per-squad and per-hero attribution in
-> `Mass/SwarmSubsystem.h`). It is built and it works. It may feed the squad
-> ratchet, feed the keep ratchet, feed both, or retire. **Not decided.** Note
-> that the kill-attribution code is live and cheap to keep pointed somewhere.
+> **CLOSED 2026-08-13 — Q3 = C, both ratchets, split by attribution**
+> (`docs/OPEN-DECISIONS.md` Q3). Kills credited to the seven and to the player's
+> channelled abilities pay the **squad ratchet** — the mid-fight rung climbs
+> Q29 = A introduced. The **keep ratchet** is paid by *war outcome* — fronts and
+> layers held — normalised, **not** by raw garrison body count: garrison kills are
+> huge numbers from a sim the player does not control, and raw count would be
+> noise. The shipped per-squad / per-hero attribution split
+> (`Mass/SwarmSubsystem.h`) maps 1:1 onto the squad side. **Rates, thresholds and
+> the exact war-outcome formula are tuning, not decided — do not infer.**
 
 ---
 
@@ -579,7 +583,7 @@ owner call, not by a later doc quietly assuming an answer.
 |---|---|---|
 | ~~Q1~~ | What a siege is, and what persists between sieges (§4.1) | **CLOSED 2026-08-13 — A: the siege is the session.** §4.1 is now a decision. The *relief condition* inside it is still open (Q6). |
 | **Q2** | Composition of the 7 — fixed roles, chosen loadout, or survivors (§6.3) | D3 implies persistence, not structure. **Q13 = C makes it load-bearing** — your only output cannot be interchangeable. |
-| **Q3** | Fate of the automatic kills→army-level ratchet (§8) | It is shipped code. Retiring it and repointing it are both defensible and cost differently. **Promoted by Q1 = A** — repair is a spend, so the keep ratchet now has a sink and no source. |
+| ~~Q3~~ | Fate of the automatic kills→army-level ratchet (§8) | **CLOSED 2026-08-13 — C: both, split by attribution.** Squad-credited kills pay rung climbs; war outcome (fronts/layers held, normalised) pays keep repair. Rates are tuning. |
 | **Q4** | Real planner vs. authored strategy set for the enemy (§5.3) | Cost difference is large; slice-indistinguishable. An engineering call the owner should make. |
 | **Q5** | The `Breaking`→`Fallen` window — how long the player has to respond | This is *the* pacing number for the entire game and there is no basis for it yet. Measure it. |
 | **Q6** | Whether the war can be won, or only survived | D2 says the castle only falls. It does not say the *war* is unwinnable. Tone-defining. **Q1 = A left the relief condition explicitly unwritten; this is now where it lives.** |

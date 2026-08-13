@@ -1,7 +1,7 @@
 # Open decisions — the register
 
-**Opened:** 2026-08-13 · **Status:** 25 open, 4 closed
-**Last closed:** Q29 (the four classes become the seven's archetypes) — 2026-08-13
+**Opened:** 2026-08-13 · **Status:** 24 open, 5 closed
+**Last closed:** Q3 (kills feed both ratchets, split by attribution) — 2026-08-13
 **Sources consolidated here:** `docs/design/castle-layout.md` §10 (Q1–Q7),
 `docs/design/intro-and-zones.md` §E (Q8–Q12), Q13–Q22 raised 2026-08-13, and
 **Q24–Q28 raised in `docs/PREFLIGHT.md` §3** — the pre-implementation pass.
@@ -50,7 +50,7 @@ call, not by a later doc quietly assuming an answer.
 | Q4 | Enemy: real planner or authored strategy set | 2 | — | — | open |
 | Q10 | Does the withdrawal count persist? | 2 | Q9 | — | open |
 | Q19 | Where the game saves | 2 | *unblocked* | — | open |
-| Q3 | Fate of the kills → army-level ratchet | 3 | *unblocked* | — | open |
+| ~~Q3~~ | Fate of the kills → army-level ratchet | 3 | — | — | **CLOSED — C** |
 | Q6 | Can the war be won, or only survived? | 3 | *unblocked* | — | open |
 | Q11 | Zoom range vs. the flame pool and dither | 3 | *unblocked* | — | open |
 | Q20 | Fate of `squad-group-system.md` | 3 | — | — | open |
@@ -562,21 +562,27 @@ zone graph thrashes.
 
 # TIER 3 — scope and cleanup
 
-## Q3 — Fate of the kills → army-level ratchet
+## Q3 — Fate of the kills → army-level ratchet · **CLOSED**
 
-**Blocks:** — · **Blocked by:** ~~Q1~~ *(closed — A)* · **Verdict:** ________ · **Date:** ________
+**Blocks:** — · **Blocked by:** ~~Q1~~ *(closed — A)* · **Verdict: C** · **Date: 2026-08-13**
 
 > **Promoted by Q1 = A.** Repair between sieges is a *spend*, so the keep ratchet now has a
-> sink and no source. This stopped being housekeeping and became load-bearing: there is
-> shipped attribution code and, for the first time, an obvious thing for it to pay for.
+> sink and no source. **Q29 = A added a second sink** — the seven's mid-fight rung climbs
+> need a driver.
 
 It is **shipped, working C++** — per-squad and per-hero attribution in `Mass/SwarmSubsystem.h`.
 
 - [ ] **A · Feeds the squad ratchet.**  - [ ] **B · Feeds the keep ratchet.**
-- [ ] **C · Feeds both.**  - [ ] **D · Retires.**
+- [x] **C · Feeds both — split by attribution.**  - [ ] **D · Retires.**
 
-> Retiring working code and repointing it cost differently. The attribution path is cheap to
-> keep aimed somewhere.
+> **TAKEN — C, 2026-08-13.** Kills credited to the seven and to the player's channelled
+> abilities pay the **squad ratchet** (the Q29 rung climbs). The **keep ratchet** is paid
+> by **war outcome — fronts and layers held, normalised — not raw garrison body count**,
+> which is a huge number from a sim the player does not control and would be noise. The
+> per-squad / per-hero attribution split maps 1:1 onto the squad side; the hero channel
+> becomes "kills channelled through you," Q13 = C made mechanical. Written to
+> `castle-layout.md` §8 and §10. **Rates, thresholds and the war-outcome formula are
+> tuning, not decided.**
 
 ---
 
@@ -691,3 +697,7 @@ Marks (`castle-layout.md` §6.1) currently attach to Boss only.
   `CLASSES.md` (banner) and `GDD.md` §5 (marker). Narrows Q2 (palette fixed, split open)
   and Q14 (depth axis settled), sources Q23 from the four hero kits. The climb mechanism
   is deliberately unspecified — do not infer.
+- **2026-08-13 · Q3 = C** — kills feed both ratchets, split by attribution: squad-credited
+  kills (incl. the hero channel) pay rung climbs; war outcome (fronts/layers held,
+  normalised) pays keep repair. Written to `castle-layout.md` §8 and §10. Answers the
+  climb-mechanism gap Q29 left open; rates and formulas are tuning.
