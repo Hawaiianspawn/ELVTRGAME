@@ -202,16 +202,29 @@ however good its aspect number is.
    variant with drift over 0.45 as the *reference* another variant gets compared against, for
    the same reason: its huge natural range would otherwise swallow siblings that plainly
    read as different shapes.
-7. **Publish a contact sheet.** `--out sheet.html`, then the `Artifact` tool. Each variant
-   renders next to its flat outline, because for a dark unit the outline is what a player
-   actually receives. Per project convention, big work is handed over as on-screen evidence,
-   never as a written "it works". `variantpipe.py report <family>` writes this sheet with
-   each card's verdict and reason stamped on it.
+7. **Hand over a contact sheet.** Each variant renders next to its flat outline, because
+   for a dark unit the outline is what a player actually receives. Per project convention,
+   big work is handed over as on-screen evidence, never as a written "it works".
+
+   Two routes, same measurements:
+   - **`py Scripts/art/forge.py --family <family>`** — the live page. Prefer this whenever
+     the owner is at the machine: verdicts are clicked rather than typed back in chat, they
+     land in the manifest as structured data, and the owner can re-roll a near-miss without
+     spending a turn. Anything you generated over MCP and landed with `fetch` is already
+     on it — same folder, same layout, no sync step.
+   - **`variantpipe.py report <family>`** → `--out sheet.html` → the `Artifact` tool — the
+     static sheet, for an async handover or a record to link from a task.
 8. **Report with the numbers and name the failures.** State which variants landed, which
    undershot their target, and which to reroll or drop. A variant that missed is a finding,
    not something to quietly omit. `judge` automates the unambiguous half of this (§Judging);
    it flags rather than decides everything it can't check by measurement alone (lost a prop,
    stopped reading as the unit type) — that verdict is still yours to make off the sheet.
+
+   **Read `variants.<slug>.owner` before re-deciding anything.** `verdict` in that manifest
+   is judge's measurement call and it is rewritten on every run; `owner` is the human's and
+   it is not. Where the two disagree, the owner's stands — a variant judge calls redundant
+   can still be the one that reads best in a crowd. Never overwrite the `owner` block, and
+   never present a judge verdict as the owner's.
 
 ## Judging — thresholds that have held up
 

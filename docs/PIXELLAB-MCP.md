@@ -159,6 +159,34 @@ generations on rotations or animations.
    guarantee bit-perfect palette preservation."* Every animation frame must be re-quantized,
    never trusted because its reference frame was on-ramp.
 
+### `create_character_state` cannot fix a named rotation (measured 2026-08-08)
+
+A state edit is a SUBJECT edit. Asking one to correct per-rotation geometry does nothing,
+and this is now measured rather than suspected.
+
+`pavisewall` (a pavise shield planted in front of the body) came back correct facing south
+and wrong from behind: in north, north-east and north-west the shield drifts to one side and
+leaves the soldier exposed, and the hood collapses into a featureless ball. A state was made
+from that character — not from the family base — asking, in plain terms, that the shield stay
+centred in front of the torso in all eight rotations and the hood keep its peak.
+
+Opaque-pixel counts, parent → refined, per rotation:
+
+| | south | s-e | east | n-e | north | n-w | west | s-w |
+|---|---|---|---|---|---|---|---|---|
+| `pavisewall` | 1368 | 1370 | 1252 | 1411 | 1523 | 1331 | 1253 | 1316 |
+| `pavisewall-r2` | 1420 | 1342 | **998** | **1411** | **1523** | **1331** | **985** | 1274 |
+
+**The three rotations named in the request are byte-identical — untouched.** The two that did
+move, east and west, got *worse*: the shield turned edge-on and lost a fifth of its mass. 20
+generations for a net regression.
+
+So the rule: **refine for what the subject IS, not for how a facing looks.** "Give it a taller
+hood", "drop the arrows", "make the coat longer" are state edits. "The spear vanishes at
+north-east" is not — the fix for that is the anchor-and-rotate path (`standard` → quantize →
+`v3` + `reference_image_base64`), where a corrected south frame propagates to all eight, which
+is what `/sprite` already does and what `create_character_state` structurally cannot.
+
 ### The bigger win nobody has spent yet
 
 Eight rotations are generated and **one** is used. `SwarmAnim::FlipBit` only mirrors in X, so
@@ -177,4 +205,18 @@ changes the read of the whole field more than any per-sprite quality work would.
 
 - Platform docs: `pixellab://docs/overview` (MCP resources), incl. engine guides (Godot/Unity/Python for tilesets). No Unreal guide — our import discipline is `ELVTR/SETUP-EDITOR.md`.
 - API v2 reference: https://api.pixellab.ai/v2/llms.txt · Setup: https://pixellab.ai/vibe-coding
-- Principle from the docs: these are MCP tools, not REST endpoints — don't curl the API.
+- Principle from the docs: these are MCP tools, not REST endpoints — **when an agent is
+  doing the generating, don't curl the API.** That covers everything in this document and
+  every skill that drives it: `pixelpipe.py` and `variantpipe.py` have no HTTP client by
+  design, and the agent goes through `mcp__pixellab__*`.
+
+  The one exception is `Scripts/art/forge.py`, the local page the owner drives with no
+  agent in the loop. It has no MCP client to use, so it calls the v2 REST API directly
+  (`/create-character-state`, `/characters/{id}`, `/balance`), with field names pinned
+  against `https://api.pixellab.ai/v2/openapi.json` rather than guessed. Two facts that
+  document does not make obvious and this pipeline needed:
+  - **`create_character_state` accepts `state_name`.** Not sending it is why the account
+    holds ~135 states named from truncated prompts. Forge always sends a slug.
+  - **`GET /characters/{id}` answers "done?" and "where are the PNGs?" in one call** —
+    it carries both the terminal `status` and `rotation_urls` — so polling it is more
+    robust than polling `/background-jobs/{id}`, whose status enum the spec leaves open.

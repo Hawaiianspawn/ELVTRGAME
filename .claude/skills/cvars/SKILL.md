@@ -132,15 +132,19 @@ add one here only if the owner asks.)
   for `Yaw`**: movement is world-axis WASD, so without it a yawed camera leaves W pushing
   sideways relative to the screen. Added 2026-07-25.
   **These five — `Ortho`, `OrthoWidth`, `Fov`, `Dist`, `Pitch` — are INERT while
-  `Kindled.Cam.Scale` is 1**, which is how the exec file ships: `TickCamera`'s `bScale`
-  branch overwrites all five from the army-scale pair dials every frame. Any row that a
-  `Scale`-on run cannot move must say so in its help text, or the breadboard is a panel of
-  dials that quietly do nothing. `Yaw`, `YawInput`, `OffsetX/Y/Z`, `Lerp` and the HUD bias
-  apply in both modes
-- **Army-scale camera (WHERE THE CAMERA ACTUALLY IS while `Cam.Scale` 1):** `Kindled.Cam.Scale`,
-  `ScaleWidthFull`, `ScaleWidthAlone`, `ScalePitchFull`, `ScalePitchAlone`, `ScaleDistFull`,
-  `ScaleDistAlone`, `ScaleSwapAt`, `ScaleRetinueWeight`, `ScaleBroodWeight`, `ScaleBodies`,
-  `ScaleCurve`, `ScaleStiffness`, `ScaleDamping`, `ScaleLerp`, `ScaleStages`, `ScaleRatchet`
+  `Kindled.Cam.Scale` is 1 or 2**, which is how the exec file ships (default `Scale 2` as of
+  2026-08-03): `TickCamera`'s `bScale` branch overwrites all five from the army-scale/strategic
+  dials every frame. Any row that a `Scale`-on run cannot move must say so in its help text, or
+  the breadboard is a panel of dials that quietly do nothing. `Yaw`, `YawInput`, `OffsetX/Y/Z`,
+  `Lerp` and the HUD bias apply in every mode
+- **Army-scale / strategic camera (WHERE THE CAMERA ACTUALLY IS while `Cam.Scale` is 1 or 2,
+  the shipped default):** `Kindled.Cam.Scale`, `ScaleWidthFull`, `ScaleWidthAlone`,
+  `ScalePitchFull`, `ScalePitchAlone`, `ScaleDistFull`, `ScaleDistAlone`, `ScaleSwapAt`,
+  `ScaleRetinueWeight`, `ScaleBroodWeight`, `ScaleBodies`, `ScaleCurve`, `ScaleStiffness`,
+  `ScaleDamping`, `ScaleLerp`, `ScaleStages`, `ScaleRatchet`, plus the **strategic-fit-only**
+  group `FitWidthMax`, `FitMargin`, `FitFloor`, `FitLog` (added 2026-08-01/04, read only while
+  `Cam.Scale` is 2 — `FitWidthMax` replaces `ScaleWidthFull` as the width lerp's far end under
+  strategic, so `ScaleWidthFull` itself goes inert at `Scale 2`)
   — all in `Spike/SpikeHeroPawn.cpp`, design in `docs/design/CAMERA-SCALE.md`. One scalar (how
   much army is left, 1 = full, 0 = alone) lerps width/pitch/distance between a FULL and an ALONE
   end and hard-swaps the projection at `SwapAt`. **So every framing dial is a pair** — set both
@@ -182,15 +186,27 @@ point of this file being the single source of truth.
    value and mark it `; (owner-tuned, src <default>)`. As of 2026-07-25 those are
    `WorldDitherScale 8`, `DitherBandWidth 0.5`, `FlameShadows 1`, `FlameShadowStrength 0.4`.
 
-   **The pinned eye-level camera (owner call 2026-07-28) is owner-tuned as a SET, and source
-   defaults would silently undo it:** `Cam.Scale 0`, `Cam.Ortho 0`, `Cam.Fov 45.6`,
-   `Cam.Pitch -8.2`, `Cam.Dist 323`, `Cam.OffsetZ 54`, `UI.Cams 1`,
-   `Swarm.SimLOD.NearRadius 4500`. Every one differs from its source default, and writing any
-   of them back to source restores the top-down ortho map. They are one shot, not eight dials —
-   `Pitch` without `OffsetZ` puts the lens 46uu off the ground; `Ortho 1` flattens the
-   convergence the angle exists for; `Scale 1` makes four of them inert again; and
-   `NearRadius 2200` leaves the whole 2500-4000uu brood spawn ring visibly striding at this
-   pitch. Derivation and the pitch/NearRadius pairing are written into the file's own comments.
+   **The default camera mode (owner call 2026-08-03) is `Cam.Scale 2` (STRATEGIC), and source
+   defaults would silently undo it:** source default for `Cam.Scale` is `0`. Writing it back
+   reverts to the raw hand dials with no framing math at all — not even the pinned eye-level
+   shot, which itself needs `Cam.Scale 0` PLUS the five-CVar set below to reproduce. The
+   strategic-fit dials it depends on (`FitWidthMax 7000`, `FitMargin 1.15`, `FitFloor 0`) are
+   already at their source defaults, so nothing there needs protecting from a source-default
+   revert — only `Cam.Scale` itself is the deliberate override.
+
+   **The pinned eye-level camera (owner call 2026-07-28, superseded 2026-08-03 as the default
+   but kept as an alternate shot reachable via `Cam.Scale 0`) is still owner-tuned as a SET, and
+   source defaults would silently undo it:** `Cam.Ortho 0`, `Cam.Fov 45.6`, `Cam.Pitch -8.2`,
+   `Cam.Dist 323`, `Cam.OffsetZ 54`. Every one differs from its source default, and writing any
+   of them back to source breaks reproducing that shot when someone flips `Cam.Scale` back to
+   `0` to use it. They are one shot, not five dials — `Pitch` without `OffsetZ` puts the lens
+   46uu off the ground; `Ortho 1` flattens the convergence the angle exists for. `UI.Cams` is
+   **stale — the Unit Cam it referred to was cut**; drop it from this list rather than carrying
+   it forward. `Swarm.SimLOD.NearRadius 4500` is unchanged and still owner-tuned, but its
+   original reason (pairing with `Cam.Pitch -8.2`) no longer matches the live default pitch
+   (`Cam.Scale 2` lerps -55..-22) — flagged in the file's own comment as safe-but-unmeasured,
+   not re-tuned here. Derivation and the pitch/NearRadius pairing are written into the file's
+   own comments.
    Sections outside the canonical set that the file already carries (flame shadows, debug
    /render/capture) are kept as configured — `Swarm.DebugRender 1` in particular is load-
    bearing for the current renderer. Only take the source default when the *code* default

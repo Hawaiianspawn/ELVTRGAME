@@ -40,3 +40,14 @@ __pycache__/
 # instead leaves published/ re-includable.
 docs/sim/runs/*
 !docs/sim/runs/published/
+
+# Paca API credentials — never commit
+Scripts/.paca.json
+
+# Ad-hoc MCP/PIE capture scratch dropped next to the scripts that made it.
+# Evidence worth keeping goes to docs/perf/evidence/, not here.
+Scripts/shot-*.png
+Scripts/snap*.json
+Scripts/snap*.txt
+Scripts/slate-snapshot.txt
+_to_delete/

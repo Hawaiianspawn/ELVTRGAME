@@ -151,7 +151,7 @@ lead's conversation history.
 
 The backlog also mechanises the two rules in this document that actually bite:
 
-- **§3, disjoint files.** Every task declares `owns:` globs. `py Scripts/backlog.py validate`
+- **§3, disjoint files.** Every task declares `owns:` globs. `py Scripts/paca.py validate`
   fails if two simultaneously-active tasks claim overlapping paths, and `approve` refuses a
   transition that would create the collision. This is why `task-038` exists as its own task:
   five design specs each wanted to write `SYSTEMS.md`, so the shared write was split out.
@@ -175,7 +175,7 @@ dispatch 47 --teammate fold      refused until 44-46 close — that refusal is t
 
 `approve` takes the fan at once because approval is a judgment over the whole plan.
 `dispatch` deliberately takes one id, because a teammate name identifies one spawned agent.
-`py Scripts/backlog.py epic <slug>` prints where the fan stands and which siblings are
+`py Scripts/paca.py list --epic <slug>` prints where the fan stands and which siblings are
 dispatchable right now.
 
 The width is capped by §5, not by ambition: `unreal-editor`, `mcp-9000` and
@@ -184,7 +184,7 @@ together. Specs fan wide; build work belongs in the join. And since teammates ca
 teammates, the lead carries every dispatch and handback — 3–4 threads is the practical
 ceiling, same as §3's sizing.
 
-Dispatch is gated by `py Scripts/backlog.py dispatch <id> --teammate <name>`, which records
+Dispatch is gated by `py Scripts/paca.py dispatch <id> --teammate <name>`, which records
 which teammate holds which task and **refuses any task that is not `approved` with its
 dependencies closed**. Run it before spawning: if it refuses, no tokens have been spent. The
 `teammate:` stamp is what lets a resumed session tell a live teammate from a §5 ghost.
@@ -197,7 +197,7 @@ Two workflows, one task store:
 | `/host "<goal>"` | a goal the owner brings → clarify → one drafted task → plan presented → owner approves | the lead, immediately on approval |
 
 The `host` agent proposes, ranks and drafts; it never approves and never spawns. Spawning
-belongs to the lead session, always after an approval that `backlog_guard.py` prompted on.
+belongs to the lead session, always after an approval that `paca_guard.py` prompted on.
 
 ## 7. When *not* to use a team
 

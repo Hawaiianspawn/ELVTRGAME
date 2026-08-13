@@ -7,7 +7,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "py C:/Projects/ELVTRGAME/Scripts/backlog_guard.py",
+            "command": "py C:/Projects/ELVTRGAME/Scripts/paca_guard.py",
             "timeout": 10
           }
         ]
