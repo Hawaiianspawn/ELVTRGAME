@@ -213,7 +213,7 @@ Swarm.HeroProxy 0              ; 0 = HIDE the bearer's placeholder cube (owner c
                                ; GetActorLocation, collision already off). 1 = show it again to
                                ; check where he is standing
 Swarm.HeroMaxHP 500            ; hero/bearer HP
-Swarm.HeroDPS 55               ; hero damage/sec to brood in reach
+Swarm.HeroDPS 0                ; RETIRED 2026-08-13 — castle-layout.md §6.4 / Q13 = C
 Swarm.HeroMeleeRange 190       ; hero melee reach, uu
 
 # ============================================================

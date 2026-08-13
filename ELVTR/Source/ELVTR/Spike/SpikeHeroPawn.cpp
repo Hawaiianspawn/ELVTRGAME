@@ -1043,10 +1043,14 @@ void ASpikeHeroPawn::DrawHUD() const
 	{
 		const USwarmSubsystem::FBossState& Boss = Swarm->GetBoss();
 		const float BossFrac = Boss.MaxHP > 0.f ? Boss.HP / Boss.MaxHP : 0.f;
+		// Marks and HP only. The attacker count deliberately is NOT here: blows are spread
+		// over each unit's own swing cadence, so the per-frame count reads 0 on almost every
+		// frame while forty soldiers are visibly hacking at the thing, and a HUD that says 0
+		// during a melee is worse than no number. Kindled.Boss.Report prints the peak.
 		GEngine->AddOnScreenDebugMessage(10, 0.f,
 			BossFrac > 0.5f ? FColor(255, 120, 90) : FColor(255, 60, 40),
-			FString::Printf(TEXT("BOSS  %s   %.0f / %.0f   (%d striking it)"),
-				*ASpikeBossActor::MarksToString(Boss.Marks), Boss.HP, Boss.MaxHP, Swarm->GetBossAttackers()));
+			FString::Printf(TEXT("BOSS  %s   %.0f / %.0f"),
+				*ASpikeBossActor::MarksToString(Boss.Marks), Boss.HP, Boss.MaxHP));
 	}
 
 	// --- the seven -------------------------------------------------------

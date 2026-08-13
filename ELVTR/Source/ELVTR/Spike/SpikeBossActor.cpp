@@ -87,8 +87,14 @@ namespace
 uint8 ASpikeBossActor::ParseMarks(const FString& CommaSeparated)
 {
 	uint8 Marks = 0;
+	// '+' and whitespace are accepted alongside ',' for two concrete reasons, not for taste.
+	// A comma cannot survive -ExecCmds — the engine splits that argument on commas, so
+	// `-ExecCmds="Kindled.Boss.AutoMarks quilled,ram"` arrives as two separate commands and
+	// the boss silently comes out carrying only Quilled. And '+' is what MarksToString PRINTS,
+	// so accepting it means a mark list can be copied straight back out of a log line.
+	const TCHAR* Separators[] = { TEXT(","), TEXT("+"), TEXT(" ") };
 	TArray<FString> Parts;
-	CommaSeparated.ParseIntoArray(Parts, TEXT(","), true);
+	CommaSeparated.ParseIntoArray(Parts, Separators, UE_ARRAY_COUNT(Separators), true);
 	for (const FString& Part : Parts)
 	{
 		const FString Token = Part.TrimStartAndEnd();
@@ -233,13 +239,45 @@ void ASpikeBossActor::Tick(float DeltaSeconds)
 
 	// --- move ------------------------------------------------------------------
 	const float MeleeRange = SwarmCombatTuning::BossMeleeRange();
+	const float ReachSq = FMath::Square(MeleeRange);
 	const FVector Target = ResolveTarget(*Swarm);
 	FVector Here = GetActorLocation();
 	const FVector ToTarget = FVector(Target.X - Here.X, Target.Y - Here.Y, 0.f);
 	const float Dist = ToTarget.Size2D();
-	// Stop just inside its own reach rather than walking onto the target: closing all the way
-	// would put the body centre inside the line and make the surround read unreadable.
-	if (Dist > MeleeRange * 0.75f)
+
+	// --- when to stop walking ---------------------------------------------------
+	// IT STOPS ON CONTACT, NOT ON THE TARGET POINT — and the difference was measured, not
+	// assumed. ResolveTarget returns a unit CENTROID, and a unit's centroid is the average of
+	// a formation block that can be over a thousand uu deep; parking on it left the boss
+	// standing in a thin part of the line with a peak of 1-3 soldiers ever inside its reach,
+	// against entity-tiers.md §4's surround cap of 45. That made the cap untestable, which is
+	// the one thing §5 asks a real implementation to produce a measurement for.
+	//
+	// So it walks until at least one soldier is genuinely within its reach. The grid query is
+	// the same 3x3 neighbourhood everything else uses — cheap, and by the time it matters the
+	// boss is close enough for that reach to be meaningful; far out it simply finds nothing
+	// and keeps marching.
+	//
+	// RAM DOES NOT STOP FOR BODIES. §6.1: it prefers gates over bodies, so contact with the
+	// line is not a reason to stand still — it keeps going until it reaches what it came for.
+	const bool bRam = HasMark(Boss.Marks, EBossMark::Ram);
+	bool bStop = false;
+	if (bRam)
+	{
+		bStop = Dist <= MeleeRange * 0.75f;
+	}
+	else
+	{
+		Swarm->QueryNeighbors(Here, [&bStop, &Here, ReachSq](const USwarmSubsystem::FGridEntry& Entry)
+		{
+			if (!bStop && Entry.bRetinue && FVector::DistSquared2D(Entry.Location, Here) <= ReachSq)
+			{
+				bStop = true;
+			}
+		});
+	}
+
+	if (!bStop && Dist > 1.f)
 	{
 		Here += ToTarget.GetSafeNormal2D() * FMath::Min(SwarmCombatTuning::BossSpeed() * DeltaSeconds, Dist);
 		SetActorLocation(Here);

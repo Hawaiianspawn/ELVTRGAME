@@ -50,8 +50,9 @@ public:
 	/** Destroy the standing boss, if any, and clear the subsystem's state. */
 	static void ClearBoss(UWorld* World);
 
-	/** "quilled,ram,sated" / "none" -> an EBossMark bitmask. Unknown tokens warn and are
-	 *  ignored, so a typo in an exec file cannot silently produce an unmarked boss. */
+	/** "quilled,ram,sated" / "quilled+ram" / "none" -> an EBossMark bitmask. Comma, '+' and
+	 *  space all separate — a comma cannot survive -ExecCmds, which splits on it. Unknown
+	 *  tokens warn and are ignored, so a typo cannot silently produce an unmarked boss. */
 	static uint8 ParseMarks(const FString& CommaSeparated);
 
 	/** The bitmask back as "QUILLED+RAM" / "unmarked", for logs and the HUD. */
