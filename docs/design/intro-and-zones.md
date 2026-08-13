@@ -145,6 +145,19 @@ A warden on the wall gives the objective in one shouted line, and it is not *kil
 
 > **You can't stop it. Get them out.**
 
+> **Two Tier-0 decisions landed on this beat, 2026-08-13.**
+>
+> **Q7 = A — the castle has its own light**, so the Outworks beyond a fallen gate are the
+> only ground in the opening the castle no longer holds. **A7 is therefore the first and
+> only place in the intro where the leash matters** (`LeashRadius`, break latch,
+> `LeashWarnBit` — shipped). That is not a coincidence to be smoothed over; it is the beat
+> teaching what your flame is for, on the one piece of ground where the answer is visible.
+>
+> **Q13 = C — your entire output is the seven.** "Commit the squad" is literal here: you
+> have no independent attack worth using, so intercepting the Ram is something the seven do
+> and you direct. The ability kit that makes this possible does not exist yet
+> (`docs/OPEN-DECISIONS.md` Q23), and **A7 is the beat that will expose whether it works.**
+
 ### What you are actually scored on
 
 The Outworks are emptying. Wounded, non-combatants and a broken line are streaming from
@@ -387,7 +400,10 @@ belong to the Niagara sprite path and are untouched by this.
 
 ## E · Open questions — do not answer by inference
 
-Continues `castle-layout.md` §10's numbering.
+Continues `castle-layout.md` §10's numbering. **The full register is
+`docs/OPEN-DECISIONS.md`** — it consolidates these with §10's and with Q13–Q23, and it is
+where verdicts get recorded. Tier 0 (Q13, Q1, Q7) closed 2026-08-13; **Q23, opened by
+Q13's answer, is the one that most directly blocks building this document's Part A.**
 
 | Q | Question | Why it is not inferable |
 |---|---|---|
@@ -424,3 +440,8 @@ No file below was edited.
   adopted as a global rule (§A7). This doc.
 - **2026-08-13** — Zone model: Live / Warm / Cold with pre-warm promotion and lazy
   demotion, budgeted against 2026-07-28 measurements (§B). This doc.
+- **2026-08-13** — **Q13 = C, Q1 = A, Q7 = A** (owner). Q13 makes the seven the player's
+  entire output and opens **Q23**, the ability kit A7 depends on. Q7 makes the fallen
+  Outworks the one place in the opening the leash bites. Q1 gives A9's consequence a
+  boundary to persist across. Recorded in `docs/OPEN-DECISIONS.md`;
+  `castle-layout.md` §4.1, §6.4 and §10 carry the detail.

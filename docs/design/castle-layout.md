@@ -263,12 +263,11 @@ tended.**
    front forming is the siege's breathing room and the only place the run's
    pacing beats can live.
 
-### 4.1 What a siege *is*, and what comes after — **OPEN (Q1)**
+### 4.1 What a siege *is*, and what comes after — **DECIDED 2026-08-13 (Q1 = A)**
 
-D2 and D3 pull against each other and the tension is real: the castle only falls
-inward, but the keep persists across sieges. Something has to reset.
-
-The **recommended** shape, explicitly not decided:
+D2 and D3 pull against each other: the castle only falls inward, but the keep
+persists across sieges. The resolution — now an owner call rather than the
+recommendation this section used to carry:
 
 > A **siege** is the session — the war compresses through the five layers and
 > ends when the Crown falls, or when the defence holds to a relief condition.
@@ -277,11 +276,25 @@ The **recommended** shape, explicitly not decided:
 > what you spend on that repair. Losing L1 and L2 in siege N means siege N+1
 > opens with those rings damaged, cheaply held, or given up outright.
 
-That preserves one-way collapse *within* a siege and puts the keep ratchet on the
-between-siege clock where D3 implies it belongs. **It is not an owner decision and
-must not be treated as one.** Alternatives that were not ruled out: successive
-different castles as the war front retreats across a region; a single unbroken
-siege with no session boundary at all.
+One-way collapse holds *within* a siege; the keep ratchet sits on the between-siege
+clock. *Alternatives considered and not taken: successive castles as the front
+retreats across a region; one unbroken siege with no session boundary at all.*
+
+**Three consequences, none of them optional:**
+
+1. **A wipe is cheap; a bad siege is expensive.** Losing costs the siege. Losing
+   *early* costs the next one too, because the castle opens damaged. That is the
+   ratchet growing teeth without punishing a loss directly.
+2. **Repair is a spend, so the keep ratchet needs a source.** It now has a sink and
+   no income — which promotes the shipped kill-attribution economy from housekeeping
+   to load-bearing (`docs/OPEN-DECISIONS.md` Q3).
+3. **Layer state is save state.** Which gates stand at siege start is the persistent
+   set, and it changes wholesale exactly once per siege (Q19).
+
+> **Deliberately still unwritten: the relief condition.** "Ends when the Crown falls
+> **or when the defence holds to a relief condition**" is a placeholder, and Q1 did
+> not fill it. **What actually ends a siege in the player's favour is undecided (Q6),
+> and "survive N waves" is not to be inferred as the default.**
 
 ---
 
@@ -441,9 +454,44 @@ soldiers cannot stop. The reason that is not absurd:
   silhouette and picking the answer is the squad's tactical layer, and it is the
   thing the autonomous sim explicitly cannot do.
 
+### 6.4 What the player is, in that fight — **DECIDED 2026-08-13 (Q13 = C)**
+
+> **The player's entire output is the seven.** You are embodied, you carry the
+> flame, and you can be hit — but you have no independent attack worth using. Your
+> abilities act *through* the squad: focus fire, reposition, screen, raise.
+
+This closes the hero-relevance tension `GDD.md` §4 has carried since before the
+pivot, and it closes it from both directions at once. **You cannot become
+irrelevant**, because every point of damage the player side deals routes through
+you. **The seven cannot become decoration**, because they are the only thing you
+have.
+
+**What it changes in work that already ships:**
+
+- **`HeroDamage` retires as the player's damage.** The hero Actor and its
+  grid-bridge (`HeroMeleeRangeSq`, `FindOwnGridEntry`, `SwarmCombatProcessors.cpp`)
+  **stay** — the hero is still a body in the grid that can be struck, and
+  `entity-tiers.md` §1 still points at that bridge as the precedent for promoted
+  Actors. **The pattern survives; the number it carried does not.**
+- **§6.3's mark-reading becomes *the* tactical layer, not one of several.** A boss's
+  silhouette now tells you which of your seven to spend, and that is the whole
+  decision. If the answer were the same regardless of the marks, the marks would be
+  decoration.
+- **The seven cannot be interchangeable.** Each has to be a distinct verb, or "who
+  do I spend" is not a question. This lands hard on Q2 below and on Q14.
+- **The HUD's job changes** — from describing an army to describing seven
+  individuals and what each can currently do. Nothing has specced that.
+
+> **Opened by this decision — `docs/OPEN-DECISIONS.md` Q23: the ability kit does not
+> exist.** It is now the largest piece of undesigned content in the project, because
+> it *is* the player. Whether the kit lives on the player, in the soldiers, or both
+> is open, and **it should not be settled by whatever gets prototyped first.**
+
 > **Open (Q2):** the composition of the 7 — fixed roles, player-chosen loadout, or
 > whoever survived the last siege. D3 says they are named and persist, which
 > implies the third at least partly, but the slot structure is not decided.
+> **Q13 = C raises the stakes here:** if the seven are your only output, they have to
+> be genuinely distinct. This stopped being a flavour question.
 
 ---
 
@@ -529,20 +577,43 @@ owner call, not by a later doc quietly assuming an answer.
 
 | Q | Question | Why it is not inferable |
 |---|---|---|
-| **Q1** | What a siege is, and what persists between sieges (§4.1) | D2 and D3 genuinely pull against each other. §4.1's recommendation is a recommendation. |
-| **Q2** | Composition of the 7 — fixed roles, chosen loadout, or survivors (§6.3) | D3 implies persistence, not structure. |
-| **Q3** | Fate of the automatic kills→army-level ratchet (§8) | It is shipped code. Retiring it and repointing it are both defensible and cost differently. |
+| ~~Q1~~ | What a siege is, and what persists between sieges (§4.1) | **CLOSED 2026-08-13 — A: the siege is the session.** §4.1 is now a decision. The *relief condition* inside it is still open (Q6). |
+| **Q2** | Composition of the 7 — fixed roles, chosen loadout, or survivors (§6.3) | D3 implies persistence, not structure. **Q13 = C makes it load-bearing** — your only output cannot be interchangeable. |
+| **Q3** | Fate of the automatic kills→army-level ratchet (§8) | It is shipped code. Retiring it and repointing it are both defensible and cost differently. **Promoted by Q1 = A** — repair is a spend, so the keep ratchet now has a sink and no source. |
 | **Q4** | Real planner vs. authored strategy set for the enemy (§5.3) | Cost difference is large; slice-indistinguishable. An engineering call the owner should make. |
 | **Q5** | The `Breaking`→`Fallen` window — how long the player has to respond | This is *the* pacing number for the entire game and there is no basis for it yet. Measure it. |
-| **Q6** | Whether the war can be won, or only survived | D2 says the castle only falls. It does not say the *war* is unwinnable. Tone-defining. |
-| **Q7** | Whether a bearer's light still works the way `FLAME-FOUNDATION` says | The leash/light premise was built for a 120-unit congregation following one hero. With 7 under command and hundreds autonomous, the leash's job is unclear. **This is the largest unexamined consequence of the pivot.** |
+| **Q6** | Whether the war can be won, or only survived | D2 says the castle only falls. It does not say the *war* is unwinnable. Tone-defining. **Q1 = A left the relief condition explicitly unwritten; this is now where it lives.** |
+| ~~Q7~~ | Whether a bearer's light still works the way `FLAME-FOUNDATION` says | **CLOSED 2026-08-13 — A: the castle has its own light.** See below. |
+| **Q13** | What the player is (§6.4) | **CLOSED 2026-08-13 — C: the player's entire output is the seven.** **Opened Q23** — the ability kit. |
 
-**Q7 deserves emphasis.** The leash is *built* (`SwarmCombat.h`,
-`SwarmProcessors.cpp`, `LeashRadius`, break latch, `LeashWarnBit`) and the entire
-narrative foundation rests on "outside the light, the dark takes you." If the
-castle's garrison holds fronts across five layers without the player present,
-either they have their own light, or the light means something different now, or
-the premise changes. All three are viable. None is decided.
+### Q7, closed — the castle has its own light
+
+The leash is *built* (`SwarmCombat.h`, `SwarmProcessors.cpp`, `LeashRadius`, break
+latch, `LeashWarnBit`) and the narrative foundation rests on "outside the light, the
+dark takes you." That could not be literally true while the garrison held fronts
+across five layers without the player present.
+
+**Resolved 2026-08-13: the castle has fixed light of its own** — braziers, the
+Lantern Court, the gate-fires. Your flame is *portable* light in a place that
+already has light. `FLAME-FOUNDATION.md` needs no retraction.
+
+**Four things follow, and three of them are free:**
+
+1. **The leash survives unchanged in kind**, governing seven units instead of 120.
+   Nothing retires. But `LeashRadius` was tuned for a congregation and is almost
+   certainly wrong for a squad — **a tuning pass, not a redesign.**
+2. **A fallen layer goes dark.** The castle's light is the castle's; when a layer
+   falls, its fires go with it. So the ground behind the enemy is lethal dark — which
+   supplies the *in-fiction* reason the collapse is one-way, at no extra rule.
+3. **Your flame is the only light on ground the castle has lost.** Which means
+   **beat A7 at the Great Gate is the first and only place in the opening where the
+   leash matters**, because it is the only ground the castle no longer holds
+   (`docs/design/intro-and-zones.md` §A7).
+4. **Q15 gains a fiction it did not have.** Permanent squad death used to contradict
+   beat A2's "down is a state, not death." It no longer does: the castle's light is
+   what stands the *garrison* back up, and **you fight where that light does not
+   reach.** This does not decide Q15 — it removes the objection that ruled out one
+   of its options.
 
 ---
 
@@ -580,3 +651,13 @@ rather than discovered.
   This doc. **Untested.**
 - **2026-08-13** — Boss-by-accretion (marks) proposed as the stalemate-breaker
   and as the justification for offscreen simulation (§6). This doc.
+- **2026-08-13** — **Q1 = A.** A siege is the session; how deep the enemy got sets the
+  state the next one opens in (§4.1, promoted from recommendation to decision). The
+  relief condition inside it stays unwritten and moves to Q6. Owner.
+- **2026-08-13** — **Q7 = A.** The castle has its own light; your flame is portable
+  light in a place that has fixed light (§10). The leash survives at a new scale;
+  a fallen layer going dark becomes the in-fiction reason collapse is one-way. Owner.
+- **2026-08-13** — **Q13 = C.** The player's entire output routes through the seven
+  (§6.4). `HeroDamage` retires as a player-damage number; the Actor grid-bridge stays.
+  **Opened Q23** — the squad-channelled ability kit, now the largest piece of
+  undesigned content in the project. Owner.
