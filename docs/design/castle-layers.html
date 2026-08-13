@@ -1,0 +1,270 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Kindled — the Castle, five gated layers</title>
+<style>
+  :root{
+    --bg:#0d0b10; --panel:#15121a; --edge:#2a2431;
+    --stone:#5c5468; --stone-lit:#8b8199; --ink:#e8e3ee;
+    --dim:#9a92a8; --faint:#6b6379;
+    --flame:#f2b45c; --flame-soft:#c98a3e;
+    --threat:#c8506a; --threat-soft:#7a3044;
+    --hold:#6fae8a;
+  }
+  *{box-sizing:border-box}
+  body{
+    margin:0; background:var(--bg); color:var(--ink);
+    font:15px/1.6 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+    padding:36px 28px 60px;
+  }
+  .wrap{max-width:1180px;margin:0 auto}
+  header{margin-bottom:28px;border-bottom:1px solid var(--edge);padding-bottom:20px}
+  h1{margin:0 0 6px;font-size:23px;font-weight:620;letter-spacing:-.01em}
+  .sub{color:var(--dim);font-size:13.5px;margin:0}
+  .tag{display:inline-block;margin-top:10px;font-size:11px;letter-spacing:.09em;
+       text-transform:uppercase;color:var(--flame);border:1px solid var(--flame-soft);
+       border-radius:3px;padding:2px 8px;opacity:.85}
+  .grid{display:grid;grid-template-columns:1fr 1fr;gap:22px;margin-top:26px}
+  @media(max-width:900px){.grid{grid-template-columns:1fr}}
+  .panel{background:var(--panel);border:1px solid var(--edge);border-radius:8px;padding:18px}
+  .panel h2{margin:0 0 2px;font-size:13px;letter-spacing:.07em;text-transform:uppercase;color:var(--stone-lit);font-weight:600}
+  .panel p.note{margin:0 0 14px;font-size:12.5px;color:var(--faint)}
+  svg{display:block;width:100%;height:auto}
+  table{width:100%;border-collapse:collapse;margin-top:26px;font-size:13.5px}
+  th,td{text-align:left;padding:11px 12px;border-bottom:1px solid var(--edge);vertical-align:top}
+  th{font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--faint);font-weight:600}
+  td.ln{white-space:nowrap;font-weight:600}
+  td.gate{white-space:nowrap;color:var(--flame);font-size:13px}
+  td.cost{color:var(--dim)}
+  .swatch{display:inline-block;width:9px;height:9px;border-radius:2px;margin-right:8px;vertical-align:baseline}
+  .key{display:flex;flex-wrap:wrap;gap:18px;margin-top:20px;font-size:12.5px;color:var(--dim)}
+  .key span{display:flex;align-items:center;gap:7px}
+  .dot{width:10px;height:10px;border-radius:50%;display:inline-block}
+  footer{margin-top:34px;padding-top:18px;border-top:1px solid var(--edge);
+         font-size:12.5px;color:var(--faint)}
+  footer b{color:var(--dim);font-weight:600}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<header>
+  <h1>The Castle — five gated layers</h1>
+  <p class="sub">Concentric <em>and</em> tall. Five nested rings that also climb, each its own district, each behind its own gate. The siege only moves inward.</p>
+  <div class="tag">Kindled · design v0.1 · 2026-08-13</div>
+</header>
+
+<div class="grid">
+
+  <div class="panel">
+    <h2>Plan — nested rings</h2>
+    <p class="note">Gates are staggered, so there is no straight run to the Crown. Ring colour on each gatehouse is that front's state.</p>
+    <svg id="plan" viewBox="0 0 620 620" role="img" aria-label="Plan view of five concentric castle rings with staggered gates"></svg>
+  </div>
+
+  <div class="panel">
+    <h2>Elevation — the climb</h2>
+    <p class="note">The vertical budget is lumpy on purpose: <strong>the Ascent carries most of the height</strong>, which is why it cannot be taken by ordinary assault.</p>
+    <svg id="elev" viewBox="0 0 700 620" role="img" aria-label="Cross-section elevation showing five terraces climbing to the keep"></svg>
+  </div>
+
+</div>
+
+<div class="key">
+  <span><i class="dot" style="background:var(--hold)"></i> front <b style="color:var(--ink);font-weight:600">Holding</b> — the sim's default</span>
+  <span><i class="dot" style="background:#d9a13f"></i> <b style="color:var(--ink);font-weight:600">Straining</b></span>
+  <span><i class="dot" style="background:var(--threat)"></i> <b style="color:var(--ink);font-weight:600">Breaking</b> — the only real alarm</span>
+  <span><i class="dot" style="background:var(--stone)"></i> curtain wall</span>
+  <span style="color:var(--faint)">(states shown are one example siege state, not a fixed script)</span>
+</div>
+
+<table>
+  <thead>
+    <tr><th>Layer</th><th>Gate</th><th>Defensive problem — the design</th><th>What its fall costs</th></tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td class="ln"><span class="swatch" style="background:#4e4658"></span>L1 · The Outworks</td>
+      <td class="gate">the Great Gate</td>
+      <td><strong>Frontage.</strong> More wall than bodies to hold it. The garrison visibly thins one stretch to feed another. Highest entity count in the castle — the layer that justifies the crowd tech.</td>
+      <td class="cost">Mustering ground and outer wells. Reinforcement rate drops everywhere above.</td>
+    </tr>
+    <tr>
+      <td class="ln"><span class="swatch" style="background:#5a5166"></span>L2 · The Works</td>
+      <td class="gate">the Cart Gate</td>
+      <td><strong>Cover.</strong> Forge, granary, alleys, roofs. Ranged position-scores collapse; archers stop shooting and start relocating. The player watches their best asset stop working.</td>
+      <td class="cost">Supply. Upkeep degrades across every remaining layer.</td>
+    </tr>
+    <tr>
+      <td class="ln"><span class="swatch" style="background:#6a6078"></span>L3 · The Ascent</td>
+      <td class="gate">the Stair Gate</td>
+      <td><strong>The ground is too good.</strong> Switchbacks, a span over a cut, murder holes. Fronts here sit at Holding almost permanently — which is exactly why the enemy takes it with a boss instead of an army.</td>
+      <td class="cost">The castle's vertical advantage, in one stroke.</td>
+    </tr>
+    <tr>
+      <td class="ln"><span class="swatch" style="background:#7d7089"></span>L4 · The Lantern Court</td>
+      <td class="gate">the Lantern Gate</td>
+      <td><strong>It is full of people who are not soldiers.</strong> Healers, the wounded pulled up from below, the congregation. The root triage anchor for the whole defence lives here.</td>
+      <td class="cost">Healing, army-wide. After this, attrition is one-way.</td>
+    </tr>
+    <tr>
+      <td class="ln"><span class="swatch" style="background:var(--flame)"></span>L5 · The Crown</td>
+      <td class="gate">the Crown Gate</td>
+      <td><strong>Nowhere left</strong> — and that is the point. The hub: walkable, where the squad re-forms and the war is looked at from above. Visible from every layer below for the whole siege.</td>
+      <td class="cost">The siege.</td>
+    </tr>
+  </tbody>
+</table>
+
+<footer>
+  <b>Front states</b> — Holding (default: the sim stalemates by design) → Straining → Breaking → Fallen (one-way).
+  A front does not break because more enemies arrived; it breaks because something arrived that a line of soldiers cannot answer.
+  <b>Your seven</b> are the only force on the board that can be pulled off a line and sent at it.
+  <br><br>
+  <b>Names are provisional.</b> The defensive problems are not — those are the design.
+</footer>
+
+</div>
+
+<script>
+(function(){
+  const NS = "http://www.w3.org/2000/svg";
+  const el = (n,a)=>{const e=document.createElementNS(NS,n);for(const k in a)e.setAttribute(k,a[k]);return e;};
+  const txt=(p,a,s)=>{const t=el("text",Object.assign({"font-family":"inherit"},a));t.textContent=s;p.appendChild(t);return t;};
+
+  const CX=310, CY=300;
+  const pol=(r,d)=>[CX + r*Math.cos(d*Math.PI/180), CY + r*Math.sin(d*Math.PI/180)];
+
+  const HOLD="#6fae8a", STRAIN="#d9a13f", BREAK="#c8506a";
+
+  const L = [
+    {n:"L1 · THE OUTWORKS",  r:190, h:0,  gate:  90, col:"#4e4658", g:"GREAT GATE",   st:BREAK,  stn:"BREAKING"},
+    {n:"L2 · THE WORKS",     r:133, h:6,  gate:  20, col:"#5a5166", g:"CART GATE",    st:STRAIN, stn:"STRAINING"},
+    {n:"L3 · THE ASCENT",    r: 86, h:34, gate: -55, col:"#6a6078", g:"STAIR GATE",   st:HOLD,   stn:"HOLDING"},
+    {n:"L4 · LANTERN COURT", r: 53, h:48, gate: 190, col:"#7d7089", g:"LANTERN GATE", st:HOLD,   stn:"HOLDING"},
+    {n:"L5 · THE CROWN",     r: 29, h:62, gate: 135, col:"#f2b45c", g:"CROWN GATE",   st:HOLD,   stn:"HOLDING"}
+  ];
+
+  /* ===================== PLAN ===================== */
+  const plan = document.getElementById("plan");
+  const defs = el("defs");
+  const rg = el("radialGradient",{id:"glow",cx:"50%",cy:"50%",r:"50%"});
+  rg.appendChild(el("stop",{offset:"0%","stop-color":"#f2b45c","stop-opacity":"0.20"}));
+  rg.appendChild(el("stop",{offset:"100%","stop-color":"#f2b45c","stop-opacity":"0"}));
+  defs.appendChild(rg); plan.appendChild(defs);
+  plan.appendChild(el("circle",{cx:CX,cy:CY,r:120,fill:"url(#glow)"}));
+
+  // besieging force outside L1, heaviest at the Great Gate (south)
+  let seed=7; const rnd=()=>{seed=(seed*1103515245+12345)&0x7fffffff;return seed/0x7fffffff;};
+  for(let i=0;i<70;i++){
+    const d = 30 + rnd()*130;
+    const w = 1 - Math.abs(d-90)/95;                       // density falls off from the gate
+    if(rnd()>0.30+0.70*w) continue;
+    if(Math.abs(d-90)<17) continue;
+    const [x,y]=pol(206 + rnd()*74, d);
+    plan.appendChild(el("circle",{cx:x.toFixed(1),cy:y.toFixed(1),r:(1.3+rnd()*1.9).toFixed(1),
+      fill:BREAK,opacity:(0.22+rnd()*0.45).toFixed(2)}));
+  }
+
+  L.forEach((layer,i)=>{
+    const gap = 12;
+    const a0 = layer.gate + gap, a1 = layer.gate - gap + 360;
+    const [sx,sy]=pol(layer.r,a0), [ex,ey]=pol(layer.r,a1);
+    const arc = `M ${sx.toFixed(1)} ${sy.toFixed(1)} A ${layer.r} ${layer.r} 0 1 1 ${ex.toFixed(1)} ${ey.toFixed(1)}`;
+
+    plan.appendChild(el("path",{d:arc,fill:"none",stroke:layer.col,"stroke-width":i===4?6.5:5.5,"stroke-linecap":"round"}));
+    plan.appendChild(el("path",{d:arc,fill:"none",stroke:"#0d0b10","stroke-width":1.1,opacity:.45}));
+
+    // gatehouse towers, ringed in the front's state colour
+    [a0,a1].forEach(a=>{
+      const [gx,gy]=pol(layer.r,a);
+      plan.appendChild(el("circle",{cx:gx.toFixed(1),cy:gy.toFixed(1),r:5.2,
+        fill:"#15121a",stroke:layer.st,"stroke-width":2.1}));
+    });
+
+    // radial leader out past the outer wall, then the label — leaders never cross (distinct angles)
+    const rOut = 196, [lx0,ly0]=pol(layer.r+9,layer.gate), [lx1,ly1]=pol(rOut,layer.gate);
+    plan.appendChild(el("path",{d:`M ${lx0.toFixed(1)} ${ly0.toFixed(1)} L ${lx1.toFixed(1)} ${ly1.toFixed(1)}`,
+      stroke:layer.st,"stroke-width":1,opacity:.45,"stroke-dasharray":"3 4"}));
+
+    const c=Math.cos(layer.gate*Math.PI/180);
+    const anchor = c>0.35 ? "start" : (c<-0.35 ? "end" : "middle");
+    const [tx,ty]=pol(rOut+ (anchor==="middle"?16:9), layer.gate);
+    txt(plan,{x:tx.toFixed(1),y:(ty+3.5).toFixed(1),"text-anchor":anchor,fill:"#f2b45c",
+      "font-size":"10","letter-spacing":"1.1"}, layer.g);
+    txt(plan,{x:tx.toFixed(1),y:(ty+15.5).toFixed(1),"text-anchor":anchor,fill:layer.st,
+      "font-size":"8.5","letter-spacing":"1.3",opacity:".9"}, layer.stn);
+
+    // ring name, stacked along the clear north axis just outside each wall
+    txt(plan,{x:CX,y:(CY-layer.r-7).toFixed(1),"text-anchor":"middle",
+      fill:i===4?"#f2b45c":"#8b8199","font-size":"8.8","letter-spacing":"1.3",opacity:".82"}, layer.n);
+
+  });
+
+  plan.appendChild(el("circle",{cx:CX,cy:CY,r:13,fill:"#f2b45c",opacity:.16}));
+  plan.appendChild(el("circle",{cx:CX,cy:CY,r:5.5,fill:"#f2b45c"}));
+
+  /* ===================== ELEVATION ===================== */
+  const ev = document.getElementById("elev");
+  const GY=520, HS=5.4, EX=300;
+  const halfW=[225,158,102,64,35];
+
+  const d2=el("defs");
+  const lg=el("linearGradient",{id:"sky",x1:"0",y1:"0",x2:"0",y2:"1"});
+  lg.appendChild(el("stop",{offset:"0%","stop-color":"#f2b45c","stop-opacity":".09"}));
+  lg.appendChild(el("stop",{offset:"72%","stop-color":"#f2b45c","stop-opacity":"0"}));
+  d2.appendChild(lg); ev.appendChild(d2);
+  ev.appendChild(el("rect",{x:0,y:40,width:700,height:480,fill:"url(#sky)"}));
+
+  L.forEach((layer,i)=>{
+    const w=halfW[i], top=GY-layer.h*HS;
+    ev.appendChild(el("rect",{x:(EX-w).toFixed(1),y:top.toFixed(1),width:(w*2).toFixed(1),
+      height:(GY-top+2).toFixed(1),fill:layer.col}));
+    ev.appendChild(el("rect",{x:(EX-w).toFixed(1),y:top.toFixed(1),width:(w*2).toFixed(1),height:2,
+      fill:"#a99cb8",opacity:.45}));
+
+    [-1,1].forEach(s=>{
+      const bx=EX+s*w, wallH = i===2?32:22, x0 = s<0? bx-8 : bx-4;
+      ev.appendChild(el("rect",{x:x0.toFixed(1),y:(top-wallH).toFixed(1),width:12,height:wallH,fill:layer.col}));
+      for(let c=0;c<3;c++)
+        ev.appendChild(el("rect",{x:(x0+c*4.4).toFixed(1),y:(top-wallH-5).toFixed(1),width:2.8,height:5,fill:layer.col}));
+      ev.appendChild(el("circle",{cx:bx.toFixed(1),cy:(top-wallH-9.5).toFixed(1),r:2,fill:"#f2b45c",opacity:.8}));
+    });
+
+    // right-hand callout: leader from the terrace lip out to one shared column
+    const below = i===0;                                  // L1's lip is the ground line — go under it
+    const ly = below ? GY+20 : top - (i===2?12:8);
+    const xEdge = below ? EX+w+18 : EX+w+6, xLab = 548;
+    ev.appendChild(el("path",{d:`M ${xEdge} ${ly.toFixed(1)} L ${xLab-7} ${ly.toFixed(1)}`,
+      stroke:"#3a3444","stroke-width":1}));
+    txt(ev,{x:xLab,y:(ly+3.5).toFixed(1),fill:i===2?"#a99cb8":"#6b6379","font-size":"9.4",
+      "letter-spacing":"1.05"}, `${layer.n.split(" · ")[1]}   +${layer.h}m`);
+  });
+
+  // the keep and the flame
+  const kTop = GY - 62*HS;
+  ev.appendChild(el("rect",{x:EX-18,y:kTop-94,width:36,height:94,fill:"#8a7c66"}));
+  ev.appendChild(el("rect",{x:EX-23,y:kTop-102,width:46,height:10,fill:"#9d8d74"}));
+  for(let c=0;c<5;c++) ev.appendChild(el("rect",{x:EX-23+c*9.6,y:kTop-109,width:5,height:8,fill:"#9d8d74"}));
+  ev.appendChild(el("circle",{cx:EX,cy:kTop-122,r:26,fill:"#f2b45c",opacity:.13}));
+  ev.appendChild(el("circle",{cx:EX,cy:kTop-122,r:11,fill:"#f2b45c",opacity:.30}));
+  ev.appendChild(el("circle",{cx:EX,cy:kTop-122,r:4.5,fill:"#ffd89a"}));
+
+  // ground, and the besieging line beyond the Outworks
+  ev.appendChild(el("rect",{x:0,y:GY,width:700,height:4,fill:"#2a2431"}));
+  let s2=13; const r2=()=>{s2=(s2*1103515245+12345)&0x7fffffff;return s2/0x7fffffff;};
+  for(let i=0;i<64;i++){
+    const side=i%2?1:-1, x=EX+side*(248+r2()*56);
+    if(x<6||x>694) continue;
+    ev.appendChild(el("rect",{x:x.toFixed(1),y:(GY-4-r2()*7).toFixed(1),width:2.2,
+      height:(4+r2()*7).toFixed(1),fill:BREAK,opacity:(.28+r2()*.42).toFixed(2)}));
+  }
+
+  txt(ev,{x:300,y:596,"text-anchor":"middle",fill:"#6b6379","font-size":"10","letter-spacing":"1.3"},
+    "L3 CARRIES THE HEIGHT — WHICH IS WHY IT FALLS TO A BOSS, NOT AN ARMY");
+})();
+</script>
+</body>
+</html>

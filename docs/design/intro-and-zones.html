@@ -1,0 +1,272 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Kindled — the opening, and the zone model</title>
+<style>
+  :root{
+    --bg:#0d0b10; --panel:#15121a; --edge:#2a2431;
+    --ink:#e8e3ee; --dim:#9a92a8; --faint:#6b6379;
+    --flame:#f2b45c; --flame-mid:#c98a3e; --flame-deep:#a06d30;
+    --cold:#3a3444; --threat:#c8506a;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--ink);padding:36px 28px 60px;
+    font:15px/1.6 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif}
+  .wrap{max-width:1180px;margin:0 auto}
+  header{margin-bottom:26px;border-bottom:1px solid var(--edge);padding-bottom:20px}
+  h1{margin:0 0 6px;font-size:23px;font-weight:620;letter-spacing:-.01em}
+  .sub{color:var(--dim);font-size:13.5px;margin:0}
+  .tag{display:inline-block;margin-top:10px;font-size:11px;letter-spacing:.09em;text-transform:uppercase;
+    color:var(--flame);border:1px solid var(--flame-mid);border-radius:3px;padding:2px 8px;opacity:.85}
+  .panel{background:var(--panel);border:1px solid var(--edge);border-radius:8px;padding:20px;margin-top:22px}
+  .panel h2{margin:0 0 3px;font-size:13px;letter-spacing:.07em;text-transform:uppercase;color:#8b8199;font-weight:600}
+  .panel p.note{margin:0 0 16px;font-size:12.5px;color:var(--faint)}
+  svg{display:block;width:100%;height:auto;overflow:visible}
+  table{width:100%;border-collapse:collapse;font-size:13px;margin-top:4px}
+  th,td{text-align:left;padding:9px 11px;border-bottom:1px solid var(--edge);vertical-align:top}
+  th{font-size:10.5px;letter-spacing:.08em;text-transform:uppercase;color:var(--faint);font-weight:600}
+  td.b{white-space:nowrap;font-weight:600;color:var(--flame);font-size:12.5px}
+  td.z{white-space:nowrap;color:var(--dim);font-size:12.5px}
+  td.t{color:var(--dim)}
+  tr.turn td{border-top:1px solid var(--flame-deep)}
+  .key{display:flex;flex-wrap:wrap;gap:16px;margin-top:14px;font-size:12px;color:var(--dim);align-items:center}
+  .key i{width:20px;height:10px;border-radius:2px;display:inline-block;margin-right:6px;vertical-align:-1px}
+  .key span{display:flex;align-items:center}
+  #tip{position:fixed;pointer-events:none;opacity:0;transition:opacity .12s;background:#221d2b;
+    border:1px solid #3a3444;border-radius:5px;padding:7px 10px;font-size:12px;color:var(--ink);
+    box-shadow:0 6px 20px rgba(0,0,0,.5);z-index:9;max-width:240px}
+  #tip b{color:var(--flame);font-weight:600}
+  #tip em{color:var(--faint);font-style:normal;display:block;margin-top:3px;font-size:11px}
+  footer{margin-top:30px;padding-top:18px;border-top:1px solid var(--edge);font-size:12.5px;color:var(--faint)}
+  footer b{color:var(--dim);font-weight:600}
+</style>
+</head>
+<body>
+<div id="tip"></div>
+<div class="wrap">
+
+<header>
+  <h1>The opening — and the zone model that carries it</h1>
+  <p class="sub">Five minutes, no tutorial text. You start one layer <em>behind</em> the fighting and move outward to reach it — the only time in the game the war goes that direction.</p>
+  <div class="tag">Kindled · design v0.1 · 2026-08-13</div>
+</header>
+
+<div class="panel">
+  <h2>The route</h2>
+  <p class="note">Out and down to the Great Gate, then back in and up. Every beat teaches one thing by showing it.</p>
+  <svg id="route" viewBox="0 0 900 250" role="img" aria-label="The intro route: from the L2 infirmary yard outward to the Great Gate, then back inward to the Crown"></svg>
+
+  <table>
+    <thead><tr><th>Beat</th><th>Zone</th><th>What happens</th><th>What it teaches — without a word of text</th></tr></thead>
+    <tbody>
+      <tr><td class="b">A1</td><td class="z">L2 · Infirmary Yard</td><td>Thirty soldiers down and rendered dim. Two garrison mages working. The war is audible from below.</td><td class="t">You are behind the line, not in it.</td></tr>
+      <tr><td class="b">A2</td><td class="z">L2 · Infirmary Yard</td><td>A mage casts. A wide circle of light. The dim soldiers come back to full value, stand, form up, and walk out — without looking at you.</td><td class="t">Healers work in areas · down is a state, not death · the army is autonomous · <strong>the war works without you</strong>.</td></tr>
+      <tr><td class="b">A3</td><td class="z">L2 · Infirmary Yard</td><td>The yard empties. Seven don't leave. They turn, look at you, and fall in.</td><td class="t">These seven are mine; those hundreds are not. No roster screen needed.</td></tr>
+      <tr><td class="b">A4</td><td class="z">L2 · The Works</td><td>First slide. An archer bank on a roof is <em>relocating</em> — their firing positions stopped scoring.</td><td class="t">The Works kills your ranged advantage. Shown a minute in, never stated.</td></tr>
+      <tr><td class="b">A5</td><td class="z">L2 · Cart Gate</td><td>Entity count jumps an order of magnitude. A held line, grinding. The soldiers from A2 are in it.</td><td class="t">Stalemate is the default and it reads as stable, not broken.</td></tr>
+      <tr><td class="b">A6</td><td class="z">→ L1</td><td>The Great Gate's front goes <strong style="color:#c8506a">Breaking</strong>. First hard gate transition — descending.</td><td class="t">The alarm. Fronts have states and one of them is your problem.</td></tr>
+      <tr><td class="b">A7</td><td class="z">L1 · Great Gate</td><td>It is already through the outer portcullis. Marks visible: <strong>Ram</strong> and <strong>Quilled</strong>. <strong>No health bar.</strong> The warden shouts: <em>you can't stop it — get them out</em>.</td><td class="t">Read the silhouette · ranged has been tried · <strong>the objective is the withdrawal, and it is scored</strong>.</td></tr>
+      <tr class="turn"><td class="b">A8</td><td class="z">→ L2</td><td>The Great Gate falls on script. You get out. The Cart Gate shuts behind the last of the column. Slide, and <em>rise</em>.</td><td class="t">One-way collapse. And the direction the rest of the game moves.</td></tr>
+      <tr><td class="b">A9</td><td class="z">L5 · The Crown</td><td>Pull up. Four gates still standing, the host outside — and below, the thing that took the Outworks, now visibly larger.</td><td class="t">It ate whatever you didn't save. <strong>You set its strength.</strong></td></tr>
+    </tbody>
+  </table>
+</div>
+
+<div class="panel">
+  <h2>Crossing a seam</h2>
+  <p class="note">Nothing is allocated during the slide. The incoming zone is promoted while you're still walking, so it arrives already fighting.</p>
+  <svg id="timeline" viewBox="0 0 900 320" role="img" aria-label="Timeline of a seam crossing showing pre-warm, slide, and lazy demotion"></svg>
+  <div class="key">
+    <span><i style="background:var(--flame)"></i>Live — full sim, VFX, audio</span>
+    <span><i style="background:var(--flame-deep)"></i>Warm — resident &middot; <code>SimLOD.Stride&nbsp;4</code></span>
+    <span><i style="background:var(--cold)"></i>Cold — ledger only, no entities</span>
+  </div>
+</div>
+
+<div class="panel">
+  <h2>Frame cost — measured</h2>
+  <p class="note">Niagara path, standalone <code>-game</code>, 2026-07-28 (<code>docs/perf/one-camera-bench.md</code>). Zoning is what <em>buys</em> the mass: one Live zone spends the whole budget instead of five sharing it.</p>
+  <svg id="budget" viewBox="0 0 900 260" role="img" aria-label="Frame cost of each streaming scenario against the 16.6ms budget"></svg>
+  <div class="key">
+    <span><i style="background:var(--flame)"></i>highlighted — the model's worst moment</span>
+    <span><i style="background:var(--flame-deep)"></i>measured 2026-07-28</span>
+    <span><i id="hatchkey" style="background:var(--flame-deep)"></i>inferred, not measured</span>
+  </div>
+</div>
+
+<footer>
+  <b>The one rule that keeps this honest</b> — a boss's marks must be earned identically in all three states. A front resolving in the Cold ledger has to produce the same marks the Live sim would have, or A9's consequence is a lie and players find out the first time a distant fall yields an unmarked boss.
+  <br><br>
+  <b>What the measurements don't include</b> — flat field, no level geometry, no navmesh, no gates, no audio, single client. The shape of the argument survives; the specific milliseconds are a floor, not a forecast.
+</footer>
+
+</div>
+
+<script>
+(function(){
+const NS="http://www.w3.org/2000/svg";
+const el=(n,a)=>{const e=document.createElementNS(NS,n);for(const k in a)e.setAttribute(k,a[k]);return e};
+const txt=(p,a,s)=>{const t=el("text",Object.assign({"font-family":"inherit"},a));t.textContent=s;p.appendChild(t);return t};
+const FLAME="#f2b45c", DEEP="#a06d30", COLD="#3a3444", THREAT="#c8506a", FAINT="#6b6379", DIM="#9a92a8";
+
+const tip=document.getElementById("tip");
+function hover(node,html){
+  node.style.cursor="default";
+  node.addEventListener("mousemove",e=>{tip.innerHTML=html;tip.style.opacity=1;
+    tip.style.left=Math.min(e.clientX+14,innerWidth-260)+"px";tip.style.top=(e.clientY+16)+"px";});
+  node.addEventListener("mouseleave",()=>tip.style.opacity=0);
+}
+function hatch(svg,id,color){
+  const d=el("defs"),p=el("pattern",{id,width:6,height:6,patternUnits:"userSpaceOnUse",patternTransform:"rotate(45)"});
+  p.appendChild(el("rect",{width:6,height:6,fill:color,opacity:.45}));
+  p.appendChild(el("rect",{width:2.4,height:6,fill:color}));
+  d.appendChild(p);svg.appendChild(d);
+}
+
+/* ============ ROUTE ============ */
+(function(){
+  const s=document.getElementById("route"), CX=150, CY=125;
+  const R=[112,84,56,35,19];                       // L1..L5
+  const gate=[90,20,-55,190,135];
+  R.forEach((r,i)=>{
+    const a0=gate[i]+13,a1=gate[i]-13+360;
+    const P=(rr,d)=>[CX+rr*Math.cos(d*Math.PI/180),CY+rr*Math.sin(d*Math.PI/180)];
+    const[sx,sy]=P(r,a0),[ex,ey]=P(r,a1);
+    s.appendChild(el("path",{d:`M ${sx.toFixed(1)} ${sy.toFixed(1)} A ${r} ${r} 0 1 1 ${ex.toFixed(1)} ${ey.toFixed(1)}`,
+      fill:"none",stroke:i===4?FLAME:"#5a5166","stroke-width":i===4?4:3.2,"stroke-linecap":"round"}));
+  });
+  s.appendChild(el("circle",{cx:CX,cy:CY,r:11,fill:FLAME,opacity:.15}));
+
+  // stops: [x,y,label,detail]
+  const P=(rr,d)=>[CX+rr*Math.cos(d*Math.PI/180),CY+rr*Math.sin(d*Math.PI/180)];
+  const stops=[
+    [...P(70,205),"A1–A3","The Infirmary Yard, L2. You start here — one layer behind the fighting."],
+    [...P(70,140),"A4","The Works. First slide; the archers can't find firing positions."],
+    [...P(84,20),"A5","The Cart Gate. The war, at full entity count, holding."],
+    [...P(112,90),"A6–A8","The Great Gate, L1. The withdrawal. It falls on script."],
+    [CX,CY,"A9","The Crown. Four gates left, and the thing that took the Outworks is bigger."]
+  ];
+  // route line
+  let d="M "+stops.map(p=>`${p[0].toFixed(1)} ${p[1].toFixed(1)}`).join(" L ");
+  s.appendChild(el("path",{d,fill:"none",stroke:FLAME,"stroke-width":1.6,"stroke-dasharray":"5 5",opacity:.6}));
+
+  stops.forEach((p,i)=>{
+    const g=el("g");
+    g.appendChild(el("circle",{cx:p[0].toFixed(1),cy:p[1].toFixed(1),r:9,fill:"#15121a",stroke:FLAME,"stroke-width":2}));
+    txt(g,{x:p[0].toFixed(1),y:(p[1]+3.4).toFixed(1),"text-anchor":"middle",fill:FLAME,"font-size":"9","font-weight":"700"},String(i+1));
+    hover(g,`<b>${p[2]}</b>${p[3]}`);
+    s.appendChild(g);
+  });
+
+  // direction annotation
+  txt(s,{x:305,y:66,fill:THREAT,"font-size":"11","letter-spacing":".6"},"1 → 4   outward and down");
+  txt(s,{x:305,y:84,fill:FAINT,"font-size":"10.5"},"the only time the war moves this way");
+  txt(s,{x:305,y:116,fill:FLAME,"font-size":"11","letter-spacing":".6"},"4 → 5   inward and up");
+  txt(s,{x:305,y:134,fill:FAINT,"font-size":"10.5"},"the direction of travel for the rest of the game");
+  txt(s,{x:305,y:176,fill:DIM,"font-size":"11.5","letter-spacing":".4"},"You start as the reserve.");
+  txt(s,{x:305,y:194,fill:FAINT,"font-size":"10.5"},"That is the job description for the whole game: one squad,");
+  txt(s,{x:305,y:210,fill:FAINT,"font-size":"10.5"},"one layer behind, arriving late at somebody else's emergency.");
+})();
+
+/* ============ TIMELINE ============ */
+(function(){
+  const s=document.getElementById("timeline");
+  hatch(s,"warming",DEEP);
+  const X=t=>78+(t+4.8)*53.5, yA=92, yB=146, H=30;
+
+  // time axis
+  s.appendChild(el("line",{x1:X(-4.8),y1:196,x2:X(9.6),y2:196,stroke:"#2a2431","stroke-width":1}));
+  [[-4,"−4 s"],[0,"0"],[2,"+2 s"],[4,"+4 s"],[6,"+6 s"],[8,"+8 s"]].forEach(([t,l])=>{
+    s.appendChild(el("line",{x1:X(t),y1:196,x2:X(t),y2:201,stroke:"#3a3444"}));
+    txt(s,{x:X(t),y:213,"text-anchor":"middle",fill:FAINT,"font-size":"9.5"},l);
+  });
+
+  const band=(y,t0,t1,fill,label,tipHtml,textFill)=>{
+    const g=el("g");
+    g.appendChild(el("rect",{x:X(t0),y,width:(X(t1)-X(t0)).toFixed(1),height:H,fill,rx:3}));
+    if(label && X(t1)-X(t0)>46)
+      txt(g,{x:((X(t0)+X(t1))/2).toFixed(1),y:y+H/2+3.5,"text-anchor":"middle",
+        fill:textFill||"#15121a","font-size":"10","font-weight":"700","letter-spacing":".7"},label);
+    if(tipHtml) hover(g,tipHtml);
+    s.appendChild(g);
+  };
+
+  txt(s,{x:70,y:yA+H/2+3.5,"text-anchor":"end",fill:DIM,"font-size":"11","font-weight":"600"},"Zone A");
+  txt(s,{x:70,y:yB+H/2+3.5,"text-anchor":"end",fill:DIM,"font-size":"11","font-weight":"600"},"Zone B");
+
+  band(yA,-4.8,0.7,FLAME,"LIVE","<b>Zone A — Live</b>Full sim, VFX, audio. Stays Live right through the slide — the frame already carrying two zones does not also get a teardown.");
+  band(yA,0.7,8.7,DEEP,"WARM","<b>Zone A — Warm</b>Demoted after the slide, never during it. Entities stay resident for 8 s.<em>Hysteresis: a player pacing across a seam must not thrash promotion.</em>");
+  band(yA,8.7,9.6,COLD,"","<b>Zone A — Cold</b>Entities released. The front ledger keeps running: four numbers, no bodies.",DIM);
+
+  band(yB,-4.8,-4.0,COLD,"","<b>Zone B — Cold</b>No entities. Ledger only.");
+  band(yB,-4.0,-0.5,"url(#warming)","PROMOTING","<b>Cold → Warm, dripped</b>~10 entities/frame at a 1 ms budget. A 2,000-entity zone needs <b>~3.3 s</b> of lead.<em>Derived from the 23.46 ms / 250-entity spawn measurement — the one spike that must never land during a slide.</em>");
+  band(yB,-0.5,0,DEEP,"","<b>Zone B — Warm</b>Resident and ticking under SimLOD.Stride 4. Already fighting.");
+  band(yB,0,9.6,FLAME,"LIVE  —  arrives mid-battle","<b>Zone B — Live</b>Promoted as the slide starts. Units are already in contact when the camera lands — no pop, no spin-up.<em>This is the visible return on simulating what the player can't see.</em>");
+
+  // markers
+  const mark=(t,label,y2,color)=>{
+    s.appendChild(el("line",{x1:X(t),y1:52,x2:X(t),y2:y2,stroke:color,"stroke-width":1,"stroke-dasharray":"3 3",opacity:.75}));
+    txt(s,{x:X(t)+5,y:48,fill:color,"font-size":"9.5","letter-spacing":".5"},label);
+  };
+  mark(-4.0,"pre-warm volume entered",176,DEEP);
+  mark(0,"seam reached",176,FLAME);
+
+  // slide window
+  s.appendChild(el("rect",{x:X(0),y:52,width:(X(0.7)-X(0)).toFixed(1),height:124,fill:FLAME,opacity:.13,rx:2}));
+  const sg=el("g");
+  sg.appendChild(el("rect",{x:X(0),y:52,width:(X(0.7)-X(0)).toFixed(1),height:124,fill:"transparent"}));
+  hover(sg,"<b>The slide — 0.7 s</b>Exactly one screen of camera translation, eased. Both zones Live and rendered.<em>Peak cost ~6.1 ms of a 16.6 ms budget.</em>");
+  s.appendChild(sg);
+  txt(s,{x:X(0.35),y:34,"text-anchor":"middle",fill:FLAME,"font-size":"10.5","font-weight":"700","letter-spacing":".8"},"SLIDE");
+  txt(s,{x:X(0.35),y:20,"text-anchor":"middle",fill:FAINT,"font-size":"9"},"0.7 s · one screen");
+
+  txt(s,{x:78,y:252,fill:DIM,"font-size":"11.5"},"Peak frame cost is at the slide, when two zones are Live at once — about a third of the budget.");
+  txt(s,{x:78,y:270,fill:FAINT,"font-size":"10.5"},"If a player sprints and reaches the seam early, hold the slide for the remaining frames. A late camera start is invisible; a 23 ms frame is not.");
+})();
+
+/* ============ BUDGET ============ */
+(function(){
+  const s=document.getElementById("budget");
+  hatch(s,"inf",DEEP);
+  const X0=250, W=580, MAX=16.6, X=v=>X0+v/MAX*W, BAR=26, GAP=15;
+  const rows=[
+    ["Two Warm zones @ 2,000",       0.77,"inf",  "url(#inf)", "Inferred: ~0.75 ms per 1,000 of sim, divided by SimLOD.Stride 4. Not directly measured."],
+    ["One Live zone, 2,000",         3.06,"meas", DEEP,        "Measured 2026-07-28, Niagara path, standalone <code>-game</code>."],
+    ["One Live zone, 5,000",         5.02,"meas", DEEP,        "Measured. A dense front."],
+    ["Slide peak — two Live @ 2,000",6.12,"emph", FLAME,       "The worst moment in the entire model. Measured figures, summed."],
+    ["One Live zone, 10,000",        8.32,"meas", DEEP,        "Measured. A spectacle zone — and it still slides."]
+  ];
+
+  // the track IS the budget — each bar is a ratio against it
+  s.appendChild(el("line",{x1:X0+W,y1:22,x2:X0+W,y2:224,stroke:"#8b8199","stroke-width":1.5}));
+  txt(s,{x:X0+W,y:16,"text-anchor":"end",fill:"#8b8199","font-size":"10.5","font-weight":"600"},
+    "16.6 ms — the whole 60 fps frame budget →");
+
+  rows.forEach((r,i)=>{
+    const y=36+i*(BAR+GAP);
+    txt(s,{x:X0-14,y:y+BAR/2+4,"text-anchor":"end",fill:r[2]==="emph"?"#e8e3ee":DIM,
+      "font-size":"12","font-weight":r[2]==="emph"?"700":"400"},r[0]);
+    s.appendChild(el("rect",{x:X0,y,width:W,height:BAR,fill:"#1d1926",rx:3}));
+    const g=el("g");
+    g.appendChild(el("rect",{x:X0,y,width:Math.max(4,X(r[1])-X0).toFixed(1),height:BAR,fill:r[3],rx:3}));
+    hover(g,`<b>${r[0]} — ${r[1].toFixed(2)} ms</b>${r[4]}`);
+    s.appendChild(g);
+    txt(s,{x:X(r[1])+9,y:y+BAR/2+4,fill:r[2]==="emph"?FLAME:DIM,"font-size":"11.5",
+      "font-weight":r[2]==="emph"?"700":"600"},`${r[1].toFixed(2)} ms`);
+  });
+
+  txt(s,{x:X0,y:244,fill:FAINT,"font-size":"10.5"},
+    "Cold zones cost four numbers each and are not on this chart.");
+})();
+
+// hatch swatch in the legend
+(function(){
+  const k=document.getElementById("hatchkey");
+  k.style.background="repeating-linear-gradient(45deg,#a06d30 0 2px,rgba(160,109,48,.4) 2px 6px)";
+})();
+})();
+</script>
+</body>
+</html>
