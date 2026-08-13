@@ -1,0 +1,19 @@
+{
+  "Name": "seventy-militia-vs-boss-point-target",
+  "DisplayName": "Seventy vs Boss (Militia, same-tier control)",
+  "Kind": "point_target",
+  "Description": "task-143. Other half of castle-layout.md §6.3's baseline pair: 70 Militia Spearmen (same tier as seven-militia-vs-boss-point-target.json) vs the slice Boss stat block, clean, at the committed SurroundCapEstimate (45).",
+  "SourceRefs": [
+    "docs/design/castle-layout.md §6.3",
+    "docs/data/entity-tiers.json brood_boss row (MaxHP 6000, Armor 14, SurroundCapEstimate 45)",
+    "docs/data/upgrades.json tier_ladder militia row (130 HP / 30 DPS)"
+  ],
+  "HeroPresent": false,
+  "Target": { "EntityTier": "brood_boss" },
+  "Retinue": {
+    "Composition": [
+      { "UnitType": "spearmen", "Tier": "militia", "Count": 70 }
+    ]
+  },
+  "Notes": "Same tier, unit type and HeroPresent:false as seven-militia-vs-boss-point-target.json -- the ONLY variable that differs between the two scenarios is Count (7 vs 70), by design. 70 exceeds the Boss's SurroundCapEstimate (45), so only 45 of the 70 engage per army_ttk_vs_point_target's melee cap -- the other 25 queue and contribute nothing, per entity-tiers.md §4's own finding."
+}

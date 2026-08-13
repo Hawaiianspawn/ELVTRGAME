@@ -1,0 +1,19 @@
+{
+  "Name": "seven-ranged-veteran-vs-boss-point-target",
+  "DisplayName": "Seven Veteran ranged vs Boss (Quilled-vulnerable)",
+  "Kind": "point_target",
+  "Description": "task-143. All-ranged squad of 7 Veteran Archers vs the slice Boss, clean -- the 'countered BY Quilled' half of the mark-countering pair. See seven-melee-veteran-vs-boss-point-target.json's Notes for the harness's per-role-Armor limitation and why an Armor sweep against this pair is a proxy, not a literal Quilled implementation.",
+  "SourceRefs": [
+    "docs/design/castle-layout.md §6.3 (Quilled: 'wants melee, not the archers it is armoured against')",
+    "docs/data/entity-tiers.json brood_boss row",
+    "docs/data/upgrades.json tier_ladder veteran row (used to scale Archer stats per data_loader.retinue_fighter's stated assumption -- HP 102.3 / DPS 27.0 at Veteran)"
+  ],
+  "HeroPresent": false,
+  "Target": { "EntityTier": "brood_boss" },
+  "Retinue": {
+    "Composition": [
+      { "UnitType": "archers", "Tier": "veteran", "Count": 7 }
+    ]
+  },
+  "Notes": "Archers are role='ranged' (EngageRange 750 > 150, MinEngageRange 150 > 0) so army_ttk_vs_point_target does NOT surround-cap this group -- all 7 always engage, same as any archer count would. This means the surround-cap finding (item 1/2) does not apply to this pair at all; the only variable this scenario isolates is Armor sensitivity by attacker role, per the Quilled-proxy caveat in seven-melee-veteran-vs-boss-point-target.json's Notes."
+}

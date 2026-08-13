@@ -1,0 +1,20 @@
+{
+  "Name": "seven-melee-veteran-vs-boss-point-target",
+  "DisplayName": "Seven Veteran melee vs Boss (Quilled-counter / uniform composition)",
+  "Kind": "point_target",
+  "Description": "task-143. All-melee squad of 7 Veteran Spearmen vs the slice Boss, clean. Serves two of the task's questions: (1) as the 'counters Quilled' half of the mark-countering pair (paired with seven-ranged-veteran-vs-boss-point-target.json, swept over entity-tiers:tiers[Name=brood_boss].Armor as a Quilled proxy -- see the harness-limitations note below), and (2) as the 'seven identical bodies' control for the composition question (paired with seven-mixed-composition-vs-boss-point-target.json).",
+  "SourceRefs": [
+    "docs/design/castle-layout.md §6.3 (Quilled: 'wants melee, not the archers it is armoured against')",
+    "docs/design/castle-layout.md §6.1 (Quilled mark definition)",
+    "docs/data/entity-tiers.json brood_boss row",
+    "docs/data/upgrades.json tier_ladder veteran row (190 HP / 45 DPS)"
+  ],
+  "HeroPresent": false,
+  "Target": { "EntityTier": "brood_boss" },
+  "Retinue": {
+    "Composition": [
+      { "UnitType": "spearmen", "Tier": "veteran", "Count": 7 }
+    ]
+  },
+  "Notes": "Veteran tier (not Militia) here specifically -- this scenario models the 'seven specialists' framing (persistent, leveled individuals per D3), unlike the same-tier control pair (seven/seventy-militia-vs-boss-point-target.json) which deliberately held tier fixed. HARNESS LIMITATION, stated up front rather than discovered downstream: army_ttk_vs_point_target applies target['armor'] identically to every attacking group regardless of role (combat_model.py has no per-role/per-attacker-type Armor). Quilled is described in castle-layout.md §6.1 as armour that 'scales against ranged specifically' -- this harness cannot express a literal role-conditional Armor value. What CAN be measured with committed mechanics: bumping the Boss's single flat Armor value and comparing this all-melee squad's TTK degradation against seven-ranged-veteran-vs-boss-point-target.json's all-ranged squad's TTK degradation, since flat-subtraction Armor already blunts a low-Blow attacker (Archer) proportionally harder than a high-Blow one (Spearman) -- entity-tiers.md §2.2's own documented mechanism. That is a directional PROXY for 'ranged suffers more, melee shrugs it off' built entirely from the existing, committed Armor mechanic -- it is NOT a measurement of a literal Quilled implementation, and no Quilled-specific Armor magnitude is committed anywhere in docs/data. Any Armor value used in a sweep against this scenario is illustrative only, not a canon Quilled dial."
+}

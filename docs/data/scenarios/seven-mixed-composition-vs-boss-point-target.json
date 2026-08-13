@@ -1,0 +1,20 @@
+{
+  "Name": "seven-mixed-composition-vs-boss-point-target",
+  "DisplayName": "Seven split across archetypes vs Boss (distinctness cost)",
+  "Kind": "point_target",
+  "Description": "task-143. A 7-body squad split across the archetypes CLASSES.md's four hero identities survive as under the castle pivot (Q29=A) -- as many of them as this harness can express with committed stat blocks -- vs a uniform 7-body squad (seven-melee-veteran-vs-boss-point-target.json) at the same total headcount. Answers whether Q13=C's required distinctness costs boss-TTK or is a pure legibility argument.",
+  "SourceRefs": [
+    "docs/OPEN-DECISIONS.md Q29 = A (the four classes become the seven's archetypes)",
+    "CLASSES.md §1 Vanguard, §3 Pathfinder, §4 Lampbearer ('The Guided don't hold lines or deal real damage: they sustain')",
+    "docs/data/upgrades.json tier_ladder veteran row / docs/data/unit-types.json archers combat block"
+  ],
+  "HeroPresent": false,
+  "Target": { "EntityTier": "brood_boss" },
+  "Retinue": {
+    "Composition": [
+      { "UnitType": "spearmen", "Tier": "veteran", "Count": 4 },
+      { "UnitType": "archers", "Tier": "veteran", "Count": 2 }
+    ]
+  },
+  "Notes": "SIMPLIFICATION, stated plainly rather than hidden: only 2 of the 4 surviving archetypes have a committed combat stat block anywhere in docs/data -- melee Spearmen (proxying Vanguard) and ranged Archers (proxying Pathfinder). The Relickeeper (fortifier/prevention -- walls, wards, damage reduction) has NO committed HP/DPS/Armor number to stand in for and is not represented in this Count total at all, not even at zero -- omitted rather than invented. The Lampbearer (CLASSES.md §4: 'The Guided don't hold lines or deal real damage: they sustain') is represented as the MISSING 7th body -- 4+2=6, one squad slot deliberately left out of the DPS sum rather than invented a nonzero number for it, since CLASSES.md states its zero-damage design intent explicitly (not a number this doc is inventing). Read this scenario's TTK against seven-melee-veteran-vs-boss-point-target.json's 7-of-7-damaging-bodies TTK as 'what a 6-damaging-body, 2-role split costs relative to 7 uniform bodies of the same tier' -- NOT as a full 4-archetype roster, which this harness cannot build from committed data."
+}

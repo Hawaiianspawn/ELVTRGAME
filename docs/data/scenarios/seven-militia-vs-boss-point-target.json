@@ -1,0 +1,20 @@
+{
+  "Name": "seven-militia-vs-boss-point-target",
+  "DisplayName": "Seven vs Boss (Militia, same-tier control)",
+  "Kind": "point_target",
+  "Description": "task-143. Half of castle-layout.md §6.3's baseline pair: 7 Militia Spearmen vs the slice Boss stat block, clean, at the committed SurroundCapEstimate (45). Paired with seventy-militia-vs-boss-point-target.json (identical tier, 70 bodies) to isolate the surround-cap mechanic ALONE, with no quality/tier difference confounding the comparison.",
+  "SourceRefs": [
+    "docs/design/castle-layout.md §6.3 ('seven specialists inside the cap are not meaningfully worse than seventy')",
+    "docs/design/castle-layout.md D1 (the commanded force is seven)",
+    "docs/data/entity-tiers.json brood_boss row (MaxHP 6000, Armor 14, SurroundCapEstimate 45)",
+    "docs/data/upgrades.json tier_ladder militia row (130 HP / 30 DPS, the balance anchor)"
+  ],
+  "HeroPresent": false,
+  "Target": { "EntityTier": "brood_boss" },
+  "Retinue": {
+    "Composition": [
+      { "UnitType": "spearmen", "Tier": "militia", "Count": 7 }
+    ]
+  },
+  "Notes": "HeroPresent is FALSE, deliberately diverging from floor3-boss-point-target.json's HeroPresent:true: castle-layout.md §6.4 (Q13=C) retires HeroDamage as the player's damage entirely -- the player's whole output routes through the seven, so adding a separately-damaging Hero fighter here would double-count a mechanic the pivot removed. Militia (not Veteran) chosen deliberately for BOTH halves of this pair so the comparison isolates the surround-cap mechanic alone -- see seven-veteran-melee-vs-boss-point-target.json / seven-mixed-composition-vs-boss-point-target.json for where tier/composition quality is varied instead. All 7 are Spearmen (melee, EngageRange 95) -- well under the Boss's SurroundCapEstimate of 45, so every body engages."
+}
