@@ -717,6 +717,151 @@ LightSteps`. `SoldierScale` is the soldier framing-size dial; `Focus 0`
 drops back to the hero overview. The standalone `Kindled.UI.UnitCamProj` toggle still
 exists for isolated testing (it lands top-left, outside the HUD).
 
+## 4e. Additive vs multiplicative — how the brood became visible (task-084, 2026-07-29)
+
+**The decision: the brood surface ADDITIVELY and dim MULTIPLICATIVELY.** `M_Swarm` is now
+
+```
+Emissive   = SubUV.RGB * ParticleColor.RGB + ParticleColor.A
+OpacityMask = SubUV.A                       (unchanged)
+```
+
+with `SwarmRenderActor.cpp` driving both terms down the one `User.Colors` array — RGB the
+multiply, alpha the add. Evidence for everything below is in
+`docs/perf/evidence/task084/`.
+
+### The bug under the bug: the material had no colour term at all
+
+§4a.1 and task-059 both concluded that the brood could not be lit because *the colour path is
+a multiplier and the art is black*. That is true, and it is not the whole story. `M_Swarm`'s
+graph was **one `ParticleSubUV` node wired straight to Emissive, with no `ParticleColor` node
+anywhere in it.** Every per-particle colour the render actor computed reached the sprite
+renderer and was discarded by the shader.
+
+So the flame light model was dead code for **two independent reasons**, and fixing the Niagara
+half in task-059 could not have worked on its own. Three things were silently broken by this,
+not one:
+
+- brood never surfaced (the known symptom),
+- **the retinue never dimmed with distance** — `Swarm.UnitLightFloor 0.28` moved nothing,
+- **the hit flash never flashed.** It pushed `FLinearColor::White`, which under the material
+  that now exists is the multiply's *identity* — "draw the art as authored". The flash is now
+  `(0,0,0,1)`: kill the multiply, push the add to 1, get a white body.
+
+Anything that measured this horde's appearance before 2026-07-29 measured flat authored albedo
+at every distance, whatever the CVars said.
+
+### Why additive won, in numbers
+
+Measured across all nine ooze states' `south` frames (8955 body pixels):
+
+| quantity | value |
+|---|---|
+| median body luminance | **1–4 / 255** |
+| body under luminance 8/255 | **73.6%** |
+| body over luminance 96/255 (teeth/highlights) | 2.7–5.8% |
+| brightest body pixel | 221 / 255 |
+
+The art is a near-black mass with a few bright specks, so the two operations do **opposite
+things to a range that is already extreme**:
+
+- **Multiplying expands it.** Bringing the median body pixel to a readable ~48/255 needs a gain
+  of **~19x in linear space**, which drives the 221/255 highlights to **14x over white** —
+  clipped and blooming. The body stays dim and the teeth blow out. This is why no value of
+  `Swarm.BroodLightFloor` in `[0,1]` was ever going to work, and why raising its clamp would
+  not have helped either.
+- **Adding compresses it.** The same **+0.03 linear** lifts the median to ~49/255 and moves the
+  highlights from 221 to 226. Nothing clips.
+
+`Swarm.BroodAdd` (default `0.05`) is that additive floor. It rides the **particle alpha**, which
+was free: the material is `BLEND_Masked` off the *texture's* alpha and never looked at the
+particle's. No new array, no Niagara graph change, no second data interface.
+
+The add is scaled by the **same** `Atten` as the multiply, so it still reaches zero at
+`Swarm.FlameRadius` — the brood resolve out of the dark on approach rather than arriving
+fully formed, which is the §4a.1 intent preserved rather than traded away.
+
+Retinue get **no** additive term. Their art is bright enough that the multiply alone reads, and
+giving them one would close the deliberate brood-below-retinue gap that
+`CVarSwarmBroodLightCeil` exists to hold.
+
+### The alternative the owner was shown and did not have to take
+
+Route 2 was **lighter brood art** — the manual Dark→Steel body lift done in July 2026 and then
+retired. `06-route1-additive-vs-route2-lighter-art.png` renders both routes on all nine states
+at three attenuations over the measured floor checker, using the shipped shader maths and
+touching no asset. Both are legible. Route 2 is louder but the body goes cold blue-lilac
+(`#555568`) and **the pure-black-mass character is gone** — and it costs nine edited states.
+Route 1 keeps the art and the dark identity, so it is what shipped. Route 2 remains a
+one-parameter change away if the owner prefers it.
+
+### `Swarm.RawNear` — the light model gets out of the way up close
+
+Owner, 2026-07-29: *"is there a way to have the uncolored version when they are extremely close
+to camera."* Inside `Swarm.RawNear` (420uu) of the **camera**, the multiply is forced to 1 and
+the add to 0, blending back to the full model by 2x that distance. The additive floor is a
+legibility crutch for reading a black mass at range; at arm's length the silhouette is already
+unmistakable and the lift only costs you the authored art. Measured to the camera, not the
+flame — the only term in that loop that is.
+
+### The pool edge is inside the frame, and that is an open owner question
+
+`Swarm.FlameRadius 900` was dialed against a **2400uu top-down ortho** framing. The shipped
+camera is not that shot: `Kindled.Cam.Ortho 0`, `Fov 45.6`, `Dist 323`, `Pitch -8.2` — an
+eye-level perspective view whose ground plane runs to the horizon. Measured from the live
+camera cache (`z 180.5`, pitch `-8.2`, viewport aspect 2.13 → vertical half-FOV 11.15°), against
+a floor-brightness profile of an empty frame:
+
+| | screen row (of 596) | fraction down the frame |
+|---|---|---|
+| ground horizon (depression → 0) | ~80 | 13% |
+| `FlameRadius` 900uu from the flame | ~329 | 55% |
+| measured floor brightness at its dark floor | ~360 | 60% |
+
+So **~42% of the frame height is visible ground the flame cannot reach**, and the light dies
+55% of the way down the picture. Brood spawn at `Swarm.BroodSpawnRadiusMin/Max` 2500–4000uu, so
+they cross **64–78% of their approach in absolute blackness**, much of it on screen. The hard
+horizon in the task-059 captures where the horde stopped existing is `Atten = 0`, not fog and
+not draw distance.
+
+**Left as-is deliberately, pending an owner call.** Widening the pool is one CVar
+(`Swarm.FlameRadius`), but it is a look decision — a bearer whose light fills the frame is a
+different game from one whose light ends where you can still see ground. Not silently changed.
+
+### "When we get close it looks blown out" — it is the FLOOR, and it is `Swarm.FlameIntensity`
+
+Owner-reported 2026-07-29 with a screenshot. Two separate causes, one mine and one not.
+
+**Mine, and fixed:** `Swarm.RawNear`'s first version also lerped `Lit` toward 1. At the distances
+the band actually reaches, `Add` is still ~70% applied, so a close brood got the grey lift *and*
+a `1/BroodLightCeil` = **1.43x boost on its highlights simultaneously** — lifted flat body, hotter
+teeth. The band now fades only the additive and never touches the multiply, so it can only darken
+a sprite toward the authored art. `BroodLightCeil` holds the highlights at every distance, which
+is its job.
+
+**Not mine, and left alone:** the near floor. Measured on an empty frame, mean floor luminance by
+screen row, demichrome pass on vs `Swarm.DebugPlainView 1`:
+
+| screen row | pass ON | pass OFF |
+|---|---|---|
+| 300–540 (mid-field) | 22 | **0.1** |
+| 620 | 70 | 1.3 |
+| 860 (nearest camera) | **127** | 45 |
+
+So **the entire visible floor is the post-process lift**, not the level's own material, and it
+peaks nearest the camera because the flame sits at the hero. Sprites cannot be the source — they
+are stencil-exempt from the lift (§4b/`Swarm.UnitStencil`) and draw at authored albedo. What reads
+as blow-out is the *background* coming up and taking the contrast with it.
+
+`Swarm.FlameIntensity 0.30` measures near-floor 77/255 and p99 189 → 134, with the pool still
+legible. **Not changed** — pool brightness is the owner's look call.
+
+**And its stated rationale is stale, which is the strongest reason to retune it.** The CVar's own
+help said *"0.55 specifically because Threshold3 is 0.75 — it keeps the body of the pool at
+Demichrome Bone."* That is a claim about where the **quantizer** bins the lifted value, and the
+game ships at `Kindled.Quantize 0`, so nothing bins it. 0.55 is currently justified by a
+mechanism that is switched off. Help text corrected to say so.
+
 ## 5. Open decisions
 
 | # | Question | Lean |

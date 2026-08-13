@@ -1,0 +1,382 @@
+<title>Kindled — Battle Camera Framing</title>
+<style>
+  :root{
+    --ink:#eef0f4; --panel:#ffffff; --line:#c7cbd6; --grid:#e2e5ec;
+    --text:#1a1d24; --text-dim:#5b6070;
+    --amber:#b5761a; --retinue:#2b6f8f; --brood:#a13327;
+    --mono: ui-monospace,"Cascadia Mono","SF Mono","JetBrains Mono",Consolas,monospace;
+    --sans: ui-sans-serif,"Segoe UI","SF Pro Text",system-ui,sans-serif;
+    --disp: "Bahnschrift","Segoe UI Semibold",ui-sans-serif,system-ui,sans-serif;
+  }
+  @media (prefers-color-scheme:dark){
+    :root{
+      --ink:#12141a; --panel:#1b1e27; --line:#363b4a; --grid:#232733;
+      --text:#e7e9f0; --text-dim:#9198ac;
+      --amber:#e8a33d; --retinue:#63aed6; --brood:#e0645a;
+    }
+  }
+  :root[data-theme="dark"]{
+    --ink:#12141a; --panel:#1b1e27; --line:#363b4a; --grid:#232733;
+    --text:#e7e9f0; --text-dim:#9198ac;
+    --amber:#e8a33d; --retinue:#63aed6; --brood:#e0645a;
+  }
+  :root[data-theme="light"]{
+    --ink:#eef0f4; --panel:#ffffff; --line:#c7cbd6; --grid:#e2e5ec;
+    --text:#1a1d24; --text-dim:#5b6070;
+    --amber:#b5761a; --retinue:#2b6f8f; --brood:#a13327;
+  }
+
+  *{box-sizing:border-box;}
+  body{margin:0;}
+  ::selection{ background:var(--amber); color:var(--ink); }
+
+  .page{
+    min-height:100vh; background:var(--ink); color:var(--text);
+    font-family:var(--sans); -webkit-font-smoothing:antialiased;
+    padding:clamp(18px,3.4vw,46px);
+  }
+  .wrap{ max-width:1320px; margin:0 auto; }
+
+  /* ---- header ---- */
+  header{ margin-bottom:clamp(22px,3vw,36px); border-bottom:1px solid var(--line); padding-bottom:18px; }
+  .eyebrow{ font-family:var(--mono); font-size:11px; letter-spacing:.28em; text-transform:uppercase; color:var(--text-dim); }
+  h1{
+    font-family:var(--disp); font-weight:700; letter-spacing:.01em;
+    font-size:clamp(24px,3.2vw,34px); margin:.4em 0 .3em; text-wrap:balance;
+  }
+  .lede{ font-size:14px; line-height:1.65; color:var(--text-dim); max-width:76ch; }
+  .lede b{ color:var(--text); font-weight:600; }
+  .lede code{ font-family:var(--mono); font-size:12.5px; background:var(--grid); padding:.1em .35em; border-radius:2px; color:var(--text); }
+
+  /* ---- legend ---- */
+  .legend{ display:flex; gap:20px; flex-wrap:wrap; margin-top:14px; font-family:var(--mono); font-size:11px; color:var(--text-dim); }
+  .legend span{ display:inline-flex; align-items:center; gap:6px; }
+  .sw{ width:9px; height:9px; border-radius:2px; display:inline-block; }
+  .sw.hero{ background:var(--amber); box-shadow:0 0 6px 1px color-mix(in srgb, var(--amber) 60%, transparent); }
+  .sw.ret{ background:var(--retinue); }
+  .sw.brood{ background:var(--brood); }
+  .sw.frame{ border:1.5px solid var(--text-dim); background:transparent; }
+
+  /* ---- baseline strip ---- */
+  .baseline{
+    display:flex; gap:22px; align-items:center; flex-wrap:wrap;
+    background:var(--panel); border:1px solid var(--line); border-radius:6px;
+    padding:16px 20px; margin-bottom:clamp(20px,2.6vw,30px);
+  }
+  .baseline .tag{
+    font-family:var(--mono); font-size:10px; letter-spacing:.16em; text-transform:uppercase;
+    color:var(--brood); border:1px solid var(--brood); border-radius:3px; padding:3px 8px; white-space:nowrap;
+  }
+  .baseline .txt{ font-size:13px; line-height:1.55; color:var(--text-dim); max-width:56ch; }
+  .baseline .txt b{ color:var(--text); }
+  .baseline .diagram{ margin-left:auto; }
+
+  /* ---- cards row ---- */
+  .row{ display:flex; gap:clamp(14px,1.6vw,22px); flex-wrap:wrap; align-items:stretch; }
+  .card{
+    background:var(--panel); border:1px solid var(--line); border-radius:6px;
+    flex:1 1 300px; min-width:290px; display:flex; flex-direction:column;
+    overflow:hidden;
+  }
+  .card__bar{
+    display:flex; align-items:baseline; gap:9px; padding:12px 14px 10px;
+    border-bottom:1px solid var(--line);
+  }
+  .card__letter{
+    font-family:var(--disp); font-weight:700; font-size:13px; color:var(--ink);
+    background:var(--text); border-radius:3px; width:20px; height:20px;
+    display:inline-flex; align-items:center; justify-content:center; flex:none;
+  }
+  .card__name{ font-family:var(--disp); font-weight:700; font-size:14px; letter-spacing:.02em; }
+  .card__tag{ margin-left:auto; font-family:var(--mono); font-size:9.5px; letter-spacing:.1em; text-transform:uppercase; color:var(--text-dim); text-align:right; }
+
+  .card__stage{ padding:16px 14px; display:flex; justify-content:center; }
+
+  .card__stats{
+    font-family:var(--mono); font-size:11px; padding:0 14px 10px; color:var(--text-dim);
+    display:grid; grid-template-columns:1fr auto; gap:3px 10px;
+  }
+  .card__stats b{ color:var(--text); font-variant-numeric:tabular-nums; font-weight:600; }
+  .card__stats .warn{ color:var(--brood); }
+  .card__stats .ok{ color:var(--retinue); }
+
+  .card__px{
+    display:flex; align-items:flex-end; gap:10px; padding:8px 14px 14px; border-top:1px dashed var(--line);
+  }
+  .ruler{ width:12px; height:118px; border:1px solid var(--line); position:relative; background:
+      repeating-linear-gradient(0deg, transparent 0 9.8px, var(--grid) 9.8px 10.8px); flex:none; }
+  .ruler i{ position:absolute; left:0; right:0; bottom:0; background:var(--amber); display:block; }
+  .px__num{ font-family:var(--mono); }
+  .px__num b{ font-size:22px; font-weight:700; color:var(--text); font-variant-numeric:tabular-nums; display:block; line-height:1.1; }
+  .px__num span{ font-size:10px; letter-spacing:.06em; text-transform:uppercase; color:var(--text-dim); }
+
+  .card__cost{ font-size:12px; line-height:1.55; color:var(--text-dim); padding:0 14px 16px; border-top:1px solid var(--line); padding-top:10px; margin-top:auto; }
+  .card__cost b{ color:var(--text); }
+
+  /* ---- diagram box (built by JS, shared scale) ---- */
+  .diagram{ position:relative; background:
+      linear-gradient(var(--grid) 1px, transparent 1px) 0 0/16px 16px,
+      linear-gradient(90deg, var(--grid) 1px, transparent 1px) 0 0/16px 16px,
+      var(--ink);
+    border:1.5px solid var(--text-dim); border-radius:2px;
+  }
+  .diagram .esc{ position:absolute; border:1.5px dashed var(--brood); border-bottom:none; border-radius:2px 2px 0 0; opacity:.55; }
+  .dot{ position:absolute; border-radius:50%; transform:translate(-50%,-50%); }
+  .dot.brood{ background:var(--brood); }
+  .dot.brood.off{ opacity:.4; box-shadow:0 0 0 1px var(--brood); }
+  .dot.hero{ background:var(--amber); box-shadow:0 0 9px 3px color-mix(in srgb, var(--amber) 55%, transparent); }
+  .blk.ret{ position:absolute; background:var(--retinue); border-radius:1px; transform:translate(-50%,-100%); opacity:.9; }
+  .off-tag{ position:absolute; font-family:var(--mono); font-size:8px; letter-spacing:.08em; text-transform:uppercase; color:var(--brood); white-space:nowrap; }
+
+  .duo{ display:flex; gap:10px; align-items:flex-end; }
+  .duo .lbl{ font-family:var(--mono); font-size:9px; text-transform:uppercase; letter-spacing:.08em; color:var(--text-dim); text-align:center; margin-top:5px; }
+  .duo .arrow{ align-self:center; font-size:16px; color:var(--text-dim); }
+
+  /* ---- recommendation ---- */
+  .rec{
+    margin-top:clamp(22px,2.8vw,34px); background:var(--panel); border:1px solid var(--amber); border-radius:6px;
+    padding:20px 22px; display:flex; gap:18px; align-items:flex-start; flex-wrap:wrap;
+  }
+  .rec .card__letter{ background:var(--amber); }
+  .rec h2{ font-family:var(--disp); font-size:16px; margin:0 0 6px; }
+  .rec p{ font-size:13.5px; line-height:1.6; color:var(--text-dim); max-width:78ch; margin:0 0 8px; }
+  .rec p b{ color:var(--text); }
+  .rec .clamps{ font-family:var(--mono); font-size:11.5px; color:var(--text-dim); display:flex; gap:18px; flex-wrap:wrap; margin-top:6px; }
+  .rec .clamps b{ color:var(--amber); font-variant-numeric:tabular-nums; }
+
+  footer{ margin-top:26px; font-family:var(--mono); font-size:10.5px; color:var(--text-dim); line-height:1.7; }
+  footer a{ color:var(--text-dim); }
+
+  @media (prefers-reduced-motion:reduce){ *{ transition:none !important; } }
+</style>
+
+<div class="page"><div class="wrap">
+
+  <header>
+    <div class="eyebrow">Kindled · UI · task-132</div>
+    <h1>Battle camera framing — four ways to hold the whole fight</h1>
+    <p class="lede">
+      <code>Kindled.Cam.OrthoWidth 2400</code> shows about <b>1648uu</b> of ground ahead of the bearer, but
+      <code>Swarm.BroodSpawnArc</code> is <b>120°</b> (<code>SwarmCommands.cpp:56</code>) — the ring also spreads
+      <b>sideways</b>, and screen width gets no help from the camera's pitch the way depth does. At
+      <code>Swarm.BroodSpawnRadiusMax</code> 4000uu the sideways swing alone needs 6928uu of width, well past
+      what the depth math implies. Every option below is solved on <b>both</b> axes and drawn to one shared scale, so
+      the boxes you see are the actual relative size of the shot.
+    </p>
+    <div class="legend">
+      <span><i class="sw hero"></i>bearer + flame</span>
+      <span><i class="sw ret"></i>retinue block (500×1100uu, fixed)</span>
+      <span><i class="sw brood"></i>brood, at spawn radius</span>
+      <span><i class="sw frame"></i>camera footprint (to scale)</span>
+    </div>
+  </header>
+
+  <!-- baseline / the problem -->
+  <div class="baseline">
+    <span class="tag">today</span>
+    <div class="txt">
+      <b>OrthoWidth 2400</b> only contains a spawn ring out to <b>~1386uu</b> — the sideways swing of the 120° arc
+      binds before depth does. Against the real ring of <b>2500–4000uu</b>, that's an escape of <b>~2614uu</b> at the
+      ring's outer edge. Every dot outside the box is a soldier the player cannot see arrive.
+    </div>
+    <div class="diagram" id="dg-today" style="margin-left:auto;"></div>
+  </div>
+
+  <!-- 4 options -->
+  <div class="row" id="cards"></div>
+
+  <!-- recommendation -->
+  <div class="rec">
+    <span class="card__letter">D</span>
+    <div>
+      <h2>Recommendation — D, fit-to-bbox with named clamps</h2>
+      <p>
+        <b>Widen and tighten are both a fixed tax paid every frame, even in a lull with three brood left on
+        screen.</b> Fit-to-bbox only pays A's soldier-size cost while a wave is actually big enough to need it, and
+        it is the only option that touches zero gameplay CVars — <code>BroodSpawnRadiusMin/Max</code> stay exactly
+        where systems tuned them. It is also the first concrete step toward
+        <code>docs/design/CAMERA-SCALE.md</code>'s "army or a man" premise: a camera already driven by live
+        population, ready to extend toward the lone-survivor shot that doc asks for.
+      </p>
+      <div class="clamps">
+        <span>OrthoWidth clamp <b>2400 – 6928uu</b></span>
+        <span>solve target <b>live unit AABB + 10% pad</b></span>
+        <span>smoothing <b>~1.2s exponential</b></span>
+        <span>re-solve deadband <b>±5% of current width</b></span>
+      </div>
+    </div>
+  </div>
+
+  <footer>
+    Mockup — a scale reference for the owner's call, not shipping UI. Source math and full option table:
+    <code>docs/ui/composition-framing.md</code>. Sprite-height figures assume <code>Swarm.SpriteSize 48</code> billboarded
+    (screen-facing, so ground pitch does not change its own scale) at 1920×1080. Brood spawns on a 120° forward arc,
+    not a full ring — <code>Swarm.BroodSpawnArc</code>, shipped, <code>SwarmCommands.cpp:56</code> — and that arc
+    tracks the camera (<code>Swarm.BroodSpawnFaceCamera</code>, <code>SwarmCommands.cpp:71</code>), so it is always
+    centred on screen the way these diagrams draw it.
+  </footer>
+
+</div></div>
+
+<script>
+  // ---- shared world data (matches docs/ui/composition-framing.md) ----
+  const ASPECT = 16/9, PITCH_DEG = 55, SPRITE_UU = 48, SCREEN_W = 1920;
+  const ARC_DEG = 120, HALF_ARC_RAD = (ARC_DEG/2) * Math.PI/180; // Swarm.BroodSpawnArc, SwarmCommands.cpp:56
+  const groundDepth = ow => (ow/ASPECT) / Math.sin(PITCH_DEG*Math.PI/180);
+  const spritePx = ow => SPRITE_UU * (SCREEN_W/ow);
+
+  // OrthoWidth needed to contain a ring of the given radius, on EACH axis — pitch gives depth relief,
+  // nothing gives lateral relief, so lateral always binds harder at a 120deg arc. Take the max.
+  const depthRequired = radius => radius * Math.sin(PITCH_DEG*Math.PI/180) * ASPECT;
+  const lateralRequired = radius => 2 * radius * Math.sin(HALF_ARC_RAD);
+  const orthoWidthToContain = radius => Math.max(depthRequired(radius), lateralRequired(radius));
+  // Inverse: the largest ring radius a given OrthoWidth actually contains, both axes.
+  const containedRadius = ow => Math.min(groundDepth(ow), ow / (2*Math.sin(HALF_ARC_RAD)));
+
+  const RETINUE_W = 500, RETINUE_D = 1100; // fixed formation footprint, uu
+  const SPAWN_MIN0 = 2500, SPAWN_MAX0 = 4000; // canon, unchanged unless an option says otherwise
+  const SPAWN_RATIO = SPAWN_MIN0/SPAWN_MAX0;
+
+  const ORTHO_A = orthoWidthToContain(SPAWN_MAX0); // 6928uu, lateral-bound
+
+  const PXU = 0.045; // shared px-per-uu — every diagram box below is honestly to scale against every other
+
+  const OPTIONS = [
+    {
+      letter:"A", name:"Widen the view", tag:"camera only",
+      orthoWidth: ORTHO_A, spawnMin: SPAWN_MIN0, spawnMax: SPAWN_MAX0, bind:"lateral",
+      cost:"<b>Soldiers drop to ~35% of today's size, permanently</b> — even in a lull with no brood on screen. The sideways swing of the 120° arc is what forces this width, not depth. Formation legibility for the retinue block survives; individual reads (faces, hit flashes) do not."
+    },
+    {
+      letter:"B", name:"Tighten the arena", tag:"gameplay CVar",
+      orthoWidth: 2400,
+      spawnMax: containedRadius(2400), spawnMin: containedRadius(2400)*SPAWN_RATIO, bind:"lateral",
+      cost:"Soldier size untouched — best individual read. But the lateral bound (not depth) caps the ring at ~1386uu, so approach distance drops from 1500uu to ~520uu — entirely inside archer engage range (750uu). The tide-arriving beat is essentially gone. <b>Requires editing <code>Swarm.BroodSpawnRadiusMin/Max</code></b> — a balance change, not just a camera one."
+    },
+    {
+      letter:"C", name:"Hybrid", tag:"camera + gameplay CVar",
+      orthoWidth: 4000,
+      spawnMax: containedRadius(4000), spawnMin: containedRadius(4000)*SPAWN_RATIO, bind:"lateral",
+      cost:"Splits both costs in half: soldiers at ~57% size, approach distance cut from 1500uu to ~866uu (barely past archer engage range). Still edits <code>BroodSpawnRadiusMin/Max</code>, and still pays a size tax at all times, just a smaller one."
+    },
+    {
+      letter:"D", name:"Fit-to-bbox", tag:"camera only · dynamic", duo:true,
+      cost:"Pays A's size cost only while the live army bounding box is actually that big; returns to today's close shot the moment it isn't. Zero gameplay CVars touched. Needs the smoothing/deadband at right or it pumps every spawn/death — that is an implementation risk, not a design cost."
+    },
+  ];
+
+  function diagramBox(el, ow, gd, spawnMin, spawnMax, opts={}){
+    const w = ow*PXU, h = gd*PXU;
+    el.style.width = w+"px"; el.style.height = h+"px";
+    const heroX = w/2, heroY = h - 6;
+
+    // retinue block, just ahead of the hero
+    const ret = document.createElement("div");
+    ret.className = "blk ret";
+    ret.style.left = heroX+"px"; ret.style.bottom = "8px";
+    ret.style.width = Math.max(4,RETINUE_W*PXU)+"px"; ret.style.height = Math.max(6,RETINUE_D*PXU)+"px";
+    el.appendChild(ret);
+
+    // brood arc, spawnMin..spawnMax radius, Swarm.BroodSpawnArc's 120deg, face-camera so it centres up-screen
+    const RANKS = 5, PER_RANK = 14, ARC = ARC_DEG*Math.PI/180;
+    for(let r=0;r<RANKS;r++){
+      const rad = spawnMin + (spawnMax-spawnMin)*(r/(RANKS-1));
+      for(let i=0;i<PER_RANK;i++){
+        const a = -Math.PI/2 + (i/(PER_RANK-1)-0.5)*ARC;
+        const x = heroX + Math.sin(a)*rad*PXU, y = heroY - Math.cos(a)*rad*PXU;
+        const d = document.createElement("div");
+        const off = y < -2 || x < -2 || x > w+2; // past the top edge (depth) OR either side (lateral)
+        d.className = "dot brood"+(off?" off":"");
+        const sz = off ? 3 : 4.5;
+        d.style.width=d.style.height=sz+"px";
+        d.style.left = Math.min(Math.max(x,-6),w+6)+"px"; d.style.top = Math.max(y,-6)+"px";
+        el.appendChild(d);
+      }
+    }
+
+    // hero
+    const hero = document.createElement("div");
+    hero.className = "dot hero"; hero.style.width=hero.style.height="9px";
+    hero.style.left = heroX+"px"; hero.style.top = heroY+"px";
+    el.appendChild(hero);
+  }
+
+  // baseline (today) — spawn ring at canon 2500/4000 against a 2400 frame, escapes on purpose (lateral-bound)
+  (function(){
+    const ow = 2400, gd = groundDepth(ow), contained = containedRadius(ow);
+    const el = document.getElementById("dg-today");
+    diagramBox(el, ow, gd, SPAWN_MIN0, SPAWN_MAX0);
+    const tag = document.createElement("div");
+    tag.className = "off-tag"; tag.textContent = "ring escapes by " + Math.round(SPAWN_MAX0-contained) + "uu (lateral-bound)";
+    tag.style.left = "4px"; tag.style.top = "4px";
+    el.appendChild(tag);
+  })();
+
+  // 4 option cards
+  const cardsEl = document.getElementById("cards");
+  OPTIONS.forEach(o=>{
+    const card = document.createElement("section");
+    card.className = "card";
+
+    const gd = o.orthoWidth ? groundDepth(o.orthoWidth) : null;
+    const px = o.orthoWidth ? spritePx(o.orthoWidth) : null;
+
+    card.innerHTML = `
+      <div class="card__bar">
+        <span class="card__letter">${o.letter}</span>
+        <span class="card__name">${o.name}</span>
+        <span class="card__tag">${o.tag}</span>
+      </div>
+      <div class="card__stage"></div>
+      <div class="card__stats"></div>
+      <div class="card__px"></div>
+      <div class="card__cost">${o.cost}</div>
+    `;
+    cardsEl.appendChild(card);
+
+    const stage = card.querySelector(".card__stage");
+    const stats = card.querySelector(".card__stats");
+    const pxRow = card.querySelector(".card__px");
+
+    if(o.duo){
+      // D: two live states of the same rule — tight (small bbox) and wide (full ring)
+      const dTight = document.createElement("div"); dTight.className="diagram";
+      const dWide = document.createElement("div"); dWide.className="diagram";
+      diagramBox(dTight, 2400, groundDepth(2400), SPAWN_MIN0, SPAWN_MIN0*0.7); // bbox = retinue only, well inside
+      diagramBox(dWide, ORTHO_A, groundDepth(ORTHO_A), SPAWN_MIN0, SPAWN_MAX0);
+      const col = (node,label)=>{ const c=document.createElement("div"); c.appendChild(node);
+        const l=document.createElement("div"); l.className="lbl"; l.textContent=label; c.appendChild(l); return c; };
+      const duo = document.createElement("div"); duo.className="duo";
+      duo.appendChild(col(dTight,"bbox small"));
+      const arrow=document.createElement("div"); arrow.className="arrow"; arrow.textContent="⇄";
+      duo.appendChild(arrow);
+      duo.appendChild(col(dWide,"bbox = full ring"));
+      stage.appendChild(duo);
+
+      stats.innerHTML = `
+        <span>OrthoWidth clamp</span><b>2400 – ${Math.round(ORTHO_A)}uu</b>
+        <span>Ceiling binds on</span><b class="ok">lateral (120° arc), not depth</b>
+        <span>Spawn ring</span><b class="ok">2500 / 4000uu (unchanged)</b>
+      `;
+      pxRow.innerHTML = `
+        <div class="ruler"><i style="height:${(spritePx(ORTHO_A)/1080*118).toFixed(1)}px;opacity:.45"></i><i style="height:${(spritePx(2400)/1080*118).toFixed(1)}px"></i></div>
+        <div class="px__num"><b>${spritePx(ORTHO_A).toFixed(1)} – 38.4</b><span>px soldier height, dynamic</span></div>
+      `;
+    } else {
+      const d = document.createElement("div"); d.className="diagram";
+      diagramBox(d, o.orthoWidth, gd, o.spawnMin, o.spawnMax);
+      stage.appendChild(d);
+
+      stats.innerHTML = `
+        <span>OrthoWidth</span><b>${Math.round(o.orthoWidth)}uu</b>
+        <span>Depth-bound / lateral-bound</span><b>${Math.round(depthRequired(o.spawnMax))} / ${Math.round(lateralRequired(o.spawnMax))}uu</b>
+        <span>Binds on</span><b class="ok">${o.bind}</b>
+        <span>Spawn min / max</span><b class="ok">${Math.round(o.spawnMin)} / ${Math.round(o.spawnMax)}uu</b>
+      `;
+      pxRow.innerHTML = `
+        <div class="ruler"><i style="height:${(px/1080*118).toFixed(1)}px"></i></div>
+        <div class="px__num"><b>${px.toFixed(1)}</b><span>px soldier height</span></div>
+      `;
+    }
+  });
+</script>
