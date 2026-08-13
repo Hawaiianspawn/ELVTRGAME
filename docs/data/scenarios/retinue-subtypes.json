@@ -1,10 +1,10 @@
 {
-  "$schema_note": "task-086 CANDIDATE melee sub-type stat profiles, derived from task-082's five KEPT knight-melee-v1 silhouettes (docs/data/art/families/knight-melee-v1/manifest.json). These are EXPERIMENT INPUTS for Scripts/sim/variety.py's --mode subtypes, not shipped balance. docs/data/unit-types.json (spearmen/archers, gameplay-director-owned) is UNCHANGED and UNTOUCHED by this file -- if any profile here is worth adopting, that is a follow-on gameplay-director task, not an edit made here.",
-  "version": "0.1-candidate",
-  "status": "CANDIDATE, sim-director task-086. Not canon. Not reviewed by gameplay-director.",
+  "$schema_note": "task-086 CANDIDATE melee sub-type stat profiles. Started at task-082's five KEPT knight-melee-v1 silhouettes; task-094 extended the same file to all TEN kept knight silhouettes across knight-melee-v1 (task-082) and knight-melee-v2 (task-087) once task-087 landed five more keeps the same day. docs/data/art/families/knight-melee-v1/manifest.json and knight-melee-v2/manifest.json are the read-only sources. These are EXPERIMENT INPUTS for Scripts/sim/variety.py's --mode subtypes, not shipped balance. docs/data/unit-types.json (spearmen/archers, gameplay-director-owned) is UNCHANGED and UNTOUCHED by this file -- if any profile here is worth adopting, that is a follow-on gameplay-director task (task-088), not an edit made here.",
+  "version": "0.2-candidate",
+  "status": "CANDIDATE, sim-director task-086 (5-way) extended by task-094 (10-way). Not canon. Not reviewed by gameplay-director.",
 
   "baseline_anchor": {
-    "note": "The five candidates below are read as identity VARIANTS of the existing 'spearmen' melee_line type, not a new type -- so every derivation is stated as a multiplier against this exact anchor, the same numbers unit-types.json's spearmen.combat block and upgrades.json's militia tier row already both carry.",
+    "note": "The candidates below are read as identity VARIANTS of the existing 'spearmen' melee_line type, not a new type -- so every derivation is stated as a multiplier against this exact anchor, the same numbers unit-types.json's spearmen.combat block and upgrades.json's militia tier row already both carry.",
     "source": "docs/data/unit-types.json types.spearmen.combat + docs/data/upgrades.json tier_ladder militia row (both already agree: 130 HP / 30 DPS)",
     "max_hp": 130,
     "dps": 30,
@@ -15,64 +15,102 @@
   },
 
   "derivation_method": {
-    "note": "One formula, applied uniformly to all five silhouettes, then read off -- not five separate hand-tuned guesses. For each of 4 measured shape axes (aspect, solidity, asymmetry, mass -- 'holes' excluded, see below), norm(axis, x) = (x - mean_of_5_samples) / (max_of_5 - min_of_5), which lands every sample in roughly [-0.5, +0.5] by construction. Each norm feeds exactly one combat stat as a bounded percentage swing around the baseline_anchor value above. This is deliberately the MOST LITERAL shape-to-stat reading available, precisely so a reader can see where it agrees with task-086's own hand-wavy hypotheses and where it does not -- 'test the mapping, do not assume it' (task-086 brief).",
+    "note": "One formula, applied uniformly to all TEN real silhouettes, then read off -- not ten separate hand-tuned guesses. For each of 4 measured shape axes (aspect, solidity, asymmetry, mass -- 'holes' excluded, see below), norm(axis, x) = (x - mean_of_N_samples) / (max_of_N - min_of_N), which lands every sample in roughly [-0.5, +0.5] by construction. Each norm feeds exactly one combat stat as a bounded percentage swing around the baseline_anchor value above. This is deliberately the MOST LITERAL shape-to-stat reading available, precisely so a reader can see where it agrees with hand-wavy design hypotheses and where it does not -- 'test the mapping, do not assume it' (task-086 brief, carried forward by task-094).",
     "axis_to_stat": {
       "mass -> max_hp":            "max_hp = 130 * (1 + 0.4 * norm(mass, silhouette_opaque_px)). Bigger/heavier silhouette body = more HP. The most literal 'shape reads as size' mapping available.",
       "solidity -> targets_per_hit": "targets_per_hit = round(8 * (1 + 0.5 * norm(solidity))). A dense/filled silhouette (high solidity) reads as a wide, blocky sweeping mass -> more simultaneous cleave targets. A hollow/open silhouette (low solidity, e.g. a couched lance or a raised two-hander) reads as a single committed point of contact -> fewer. This directly resolves task-086's own stated v2_lanceout ambiguity ('fewer targets, or the reverse?') via the formula rather than by picking a side -- see v2_lanceout_alt_sweep below for the explicit reversed-hypothesis test.",
       "aspect -> engage_range":    "engage_range = 95 * (1 + 0.3 * norm(aspect)). A wider/flatter bounding box (weapon extended outward, e.g. a level lance or a raised overhead weapon) reads as reach.",
-      "asymmetry -> dps":          "dps = 30 * (1 + 0.4 * norm(asymmetry)). An asymmetric silhouette (weapon actively presented/committed, off the bilateral centerline) reads as offensive commitment -> more damage per swing. NOTE: this diverges from task-086's own hand-guess for v3_shieldbreak ('more HP, less DPS') -- applying this axis uniformly instead gives v3 the HIGHEST dps of the five, not the lowest. That disagreement is reported, not silently resolved either way; see docs/sim/SUBTYPE-VARIETY.md."
+      "asymmetry -> dps":          "dps = 30 * (1 + 0.4 * norm(asymmetry)). An asymmetric silhouette (weapon actively presented/committed, off the bilateral centerline) reads as offensive commitment -> more damage per swing. NOTE: this diverges from task-086's own hand-guess for v3_shieldbreak ('more HP, less DPS') -- applying this axis uniformly instead gives v3 one of the HIGHEST dps values, not the lowest. That disagreement is reported, not silently resolved either way; see docs/sim/SUBTYPE-VARIETY.md."
     },
-    "holes_excluded_from_the_normalized_formula": "Only v4_overhead has holes > 0 (2) of the five kept silhouettes -- a single nonzero sample has no spread to normalize against (mean/range would be defined by one point), so it cannot be folded into the same norm() formula as the other four axes without being arbitrary. It is NOT silently dropped: v4_overhead_holes_swap below is a second, explicitly-labelled candidate that tests task-086's own 'two-handed, high DPS low HP' hand-guess for v4 as an independent hp/dps swap on TOP of the 4-axis-formula result, so the report can compare 'what the uniform formula says' against 'what the two-handed-weapon intuition says' directly.",
-    "engage_range_targets_per_hit_interaction_note": "combat_model.melee_reach_per_exposed_unit() means a candidate's raw targets_per_hit is NOT its effective cleave -- effective cleave = min(targets_per_hit, reach(engage_range)). A short-engage_range / high-targets_per_hit candidate (v6_simplecolumn: engage 79.1, targets 10) can have most of its nominal cleave stat physically unreachable. This is a real, measured model interaction, not a derivation choice -- see docs/sim/SUBTYPE-VARIETY.md for the computed effective_cleave column."
+    "holes_excluded_from_the_normalized_formula": "At five samples only v4_overhead had holes > 0 (2), so it could not be normalized at all. At ten samples, two are now nonzero (v4_overhead=2, v13_maceraised=1) -- technically enough points to define a min/max range. It stays excluded anyway: task-094's brief is explicit that this task does NOT invent a better formula, and adding a 5th axis term now, just because population growth happens to make it arithmetically possible, is exactly the kind of per-run formula tuning task-086 and task-094 both forbid. v4_overhead_holes_swap below remains the one explicitly-labelled, separately-reported test of the holes-driven 'two-handed weapon' hypothesis; v13_maceraised (holes=1) gets no equivalent swap candidate -- it was not asked for, and adding one unasked-for would be inventing, not deriving.",
+    "engage_range_targets_per_hit_interaction_note": "combat_model.melee_reach_per_exposed_unit() means a candidate's raw targets_per_hit is NOT its effective cleave -- effective cleave = min(targets_per_hit, reach(engage_range)). A short-engage_range / high-targets_per_hit candidate (v6_simplecolumn: engage ~82, targets 10) can have most of its nominal cleave stat physically unreachable. This is a real, measured model interaction, not a derivation choice -- see docs/sim/SUBTYPE-VARIETY.md for the computed effective_cleave column.",
+    "normalization_population_note": "task-094: norm() is now computed over the population of all TEN real silhouettes (mean_of_10/range_of_10), not the five task-086 measured when only five silhouettes existed. This is the literal, uniform extension of the same formula to a larger population -- and it necessarily reshuffles the ORIGINAL five's derived combat stats too (e.g. v1_narrowguard's max_hp moves from 107.0 at n=5 to 114.5 at n=10), because norm() is relative to whatever population it's applied against, not an absolute per-silhouette constant. The task-086 5-sample numbers are NOT edited out of history -- docs/sim/SUBTYPE-VARIETY.md's seven-way section is left exactly as it was measured then, a frozen record, alongside the ten-way section using the numbers in this file today."
   },
 
   "candidates": {
     "v1_narrowguard": {
       "display_name": "Narrowguard",
       "silhouette_source": "docs/data/art/families/knight-melee-v1/manifest.json variants.v1_narrowguard.measured",
-      "measured_shape": { "aspect": 0.70, "solidity": 0.70, "asymmetry": 0.08, "holes": 0, "mass": 960 },
-      "derivation": "norm(mass)=-0.443, norm(solidity)=+0.339, norm(aspect)=-0.503, norm(asymmetry)=-0.379 -- narrow (low aspect), dense (high solidity), symmetric, lightest of the five. Reads as a compact, guarded, slightly-below-average-everything line unit.",
-      "combat": { "max_hp": 107.0, "dps": 25.5, "engage_range": 80.7, "min_engage_range": 0, "targets_per_hit": 9, "move_speed_scale": 1.0 }
+      "measured_shape": { "aspect": 0.7045, "solidity": 0.7038, "asymmetry": 0.0792, "holes": 0, "mass": 960 },
+      "derivation": "task-094, n=10: norm(mass)=-0.298, norm(solidity)=+0.296, norm(aspect)=-0.413, norm(asymmetry)=-0.408 -- narrow (low aspect), dense (high solidity), symmetric, lightest of the ten. Reads as a compact, guarded, below-average-everything line unit -- same qualitative read as task-086's 5-sample version, shifted numerically by the larger population.",
+      "combat": { "max_hp": 114.5, "dps": 25.1, "engage_range": 83.2, "min_engage_range": 0, "targets_per_hit": 9, "move_speed_scale": 1.0 }
     },
     "v2_lanceout": {
       "display_name": "Lanceout (reach reading)",
       "silhouette_source": "docs/data/art/families/knight-melee-v1/manifest.json variants.v2_lanceout.measured",
-      "measured_shape": { "aspect": 1.05, "solidity": 0.53, "asymmetry": 0.39, "holes": 0, "mass": 1081 },
-      "derivation": "norm(mass)=+0.295, norm(solidity)=-0.400, norm(aspect)=+0.443, norm(asymmetry)=+0.091 -- widest silhouette, low solidity (hollow/open, a single presented lance rather than a filled mass), heavier than baseline. PRIMARY reading of the formula: low solidity -> FEWER targets_per_hit (single committed point, not a sweep). See v2_lanceout_alt_sweep for the opposite reading, both explicitly asked for by task-086.",
-      "combat": { "max_hp": 145.3, "dps": 31.1, "engage_range": 107.6, "min_engage_range": 0, "targets_per_hit": 6, "move_speed_scale": 1.0 }
+      "measured_shape": { "aspect": 1.0455, "solidity": 0.5341, "asymmetry": 0.3867, "holes": 0, "mass": 1081 },
+      "derivation": "task-094, n=10: norm(mass)=+0.062, norm(solidity)=-0.295, norm(aspect)=+0.337, norm(asymmetry)=+0.012 -- wide silhouette, low solidity (hollow/open, a single presented lance rather than a filled mass), heavier than baseline. PRIMARY reading of the formula: low solidity -> FEWER targets_per_hit (single committed point, not a sweep). See v2_lanceout_alt_sweep for the opposite reading, both explicitly asked for by task-086.",
+      "combat": { "max_hp": 133.2, "dps": 30.1, "engage_range": 104.6, "min_engage_range": 0, "targets_per_hit": 7, "move_speed_scale": 1.0 }
     },
     "v2_lanceout_alt_sweep": {
       "display_name": "Lanceout (sweep reading -- alt hypothesis)",
+      "is_probe": true,
       "silhouette_source": "docs/data/art/families/knight-melee-v1/manifest.json variants.v2_lanceout.measured",
-      "derivation": "Identical hp/dps/engage_range to v2_lanceout (same 3 axes, unchanged). ONLY targets_per_hit differs: the solidity->targets_per_hit sign is flipped for this one candidate to test task-086's own explicitly-raised alternate hypothesis ('a level lance sweeps a line, so more targets?') against the primary reading. This is the ONE deliberate axis-sign reversal in this file, kept to exactly the ambiguity the brief named rather than reversing every axis speculatively.",
-      "combat": { "max_hp": 145.3, "dps": 31.1, "engage_range": 107.6, "min_engage_range": 0, "targets_per_hit": 10, "move_speed_scale": 1.0 }
+      "derivation": "Identical hp/dps/engage_range to v2_lanceout (same 3 axes, unchanged). ONLY targets_per_hit differs: the solidity->targets_per_hit sign is flipped for this one candidate to test task-086's own explicitly-raised alternate hypothesis ('a level lance sweeps a line, so more targets?') against the primary reading. This is the ONE deliberate axis-sign reversal in this file, kept to exactly the ambiguity the brief named rather than reversing every axis speculatively. NOT one of the ten real silhouettes -- a synthetic probe, reported in its own table by task-094.",
+      "combat": { "max_hp": 133.2, "dps": 30.1, "engage_range": 104.6, "min_engage_range": 0, "targets_per_hit": 9, "move_speed_scale": 1.0 }
     },
     "v3_shieldbreak": {
       "display_name": "Shieldbreak",
       "silhouette_source": "docs/data/art/families/knight-melee-v1/manifest.json variants.v3_shieldbreak.measured",
-      "measured_shape": { "aspect": 0.95, "solidity": 0.61, "asymmetry": 0.74, "holes": 0, "mass": 1124 },
-      "derivation": "norm(mass)=+0.557, norm(solidity)=-0.052, norm(aspect)=+0.173, norm(asymmetry)=+0.621 -- heaviest of the five AND the highest asymmetry by a wide margin (a braced, off-center shield-out stance). Under the uniform asymmetry->dps mapping this gives v3 the HIGHEST dps of all five candidates, not the lowest -- task-086's own hand-guess for this silhouette ('more HP, less DPS') is NOT what the shape-derived formula says once applied consistently across all five. Reported as a disagreement, not resolved either direction.",
-      "combat": { "max_hp": 159.0, "dps": 37.5, "engage_range": 99.9, "min_engage_range": 0, "targets_per_hit": 8, "move_speed_scale": 1.0 }
+      "measured_shape": { "aspect": 0.9545, "solidity": 0.6082, "asymmetry": 0.7402, "holes": 0, "mass": 1124 },
+      "derivation": "task-094, n=10: norm(mass)=+0.190, norm(solidity)=-0.037, norm(aspect)=+0.137, norm(asymmetry)=+0.496 -- among the heaviest and, by a wide margin, the highest asymmetry of the ten (a braced, off-center shield-out stance). Under the uniform asymmetry->dps mapping this gives v3 one of the HIGHEST dps values of all ten candidates, not the lowest -- task-086's own hand-guess for this silhouette ('more HP, less DPS') is NOT what the shape-derived formula says once applied consistently. Reported as a disagreement, not resolved either direction.",
+      "combat": { "max_hp": 139.9, "dps": 35.9, "engage_range": 98.9, "min_engage_range": 0, "targets_per_hit": 8, "move_speed_scale": 1.0 }
     },
     "v4_overhead": {
       "display_name": "Overhead (4-axis formula only)",
       "silhouette_source": "docs/data/art/families/knight-melee-v1/manifest.json variants.v4_overhead.measured",
-      "measured_shape": { "aspect": 1.05, "solidity": 0.52, "asymmetry": 0.17, "holes": 2, "mass": 1012 },
-      "derivation": "norm(mass)=-0.126, norm(solidity)=-0.443, norm(aspect)=+0.443, norm(asymmetry)=-0.242 -- wide (long weapon extended outward, tying v2 for the highest aspect), lowest solidity of the five (most open/hollow silhouette), but LOW asymmetry (0.17 -- the raised-overhead stance reads as roughly bilaterally symmetric, not committed to one side). The 4-axis formula alone gives v4 middling-below-baseline stats across the board, NOT the 'high DPS, low HP' two-hander read task-086's brief guessed -- the axis that guess actually depends on (holes=2, the enclosed-arm gap) has no numeric term in this formula at all (see derivation_method.holes_excluded_from_the_normalized_formula). See v4_overhead_holes_swap for the holes-driven test of that specific hypothesis.",
-      "combat": { "max_hp": 123.5, "dps": 27.1, "engage_range": 107.6, "min_engage_range": 0, "targets_per_hit": 6, "move_speed_scale": 1.0 }
+      "measured_shape": { "aspect": 1.0465, "solidity": 0.5230, "asymmetry": 0.1680, "holes": 2, "mass": 1012 },
+      "derivation": "task-094, n=10: norm(mass)=-0.143, norm(solidity)=-0.334, norm(aspect)=+0.339, norm(asymmetry)=-0.287 -- wide (long weapon extended outward), low solidity (open/hollow silhouette), but LOW asymmetry (the raised-overhead stance reads as roughly bilaterally symmetric, not committed to one side). The 4-axis formula alone gives v4 middling-below-baseline stats, NOT the 'high DPS, low HP' two-hander read task-086's brief guessed -- the axis that guess actually depends on (holes=2, the enclosed-arm gap) has no numeric term in this formula at all (see derivation_method.holes_excluded_from_the_normalized_formula). See v4_overhead_holes_swap for the holes-driven test of that specific hypothesis.",
+      "combat": { "max_hp": 122.6, "dps": 26.6, "engage_range": 104.7, "min_engage_range": 0, "targets_per_hit": 7, "move_speed_scale": 1.0 }
     },
     "v4_overhead_holes_swap": {
       "display_name": "Overhead (holes-driven two-hander reading -- alt hypothesis)",
+      "is_probe": true,
       "silhouette_source": "docs/data/art/families/knight-melee-v1/manifest.json variants.v4_overhead.measured",
-      "derivation": "Same engage_range/targets_per_hit as v4_overhead. hp and dps are the v4_overhead 4-axis-formula values with a flat +/-15% swap applied (hp x0.85, dps x1.15) as a stand-in for the 'two-handed weapon, commits fully, less time to guard' read task-086's brief proposed for the enclosed-arm hole in this silhouette -- an explicit, separately-labelled test of that specific named hypothesis, not folded into the main formula (holes has no normalizable spread across the 5 kept silhouettes; see derivation_method).",
-      "combat": { "max_hp": 105.0, "dps": 31.2, "engage_range": 107.6, "min_engage_range": 0, "targets_per_hit": 6, "move_speed_scale": 1.0 }
+      "derivation": "Same engage_range/targets_per_hit as v4_overhead. hp and dps are the v4_overhead 4-axis-formula values with a flat +/-15% swap applied (hp x0.85, dps x1.15) as a stand-in for the 'two-handed weapon, commits fully, less time to guard' read task-086's brief proposed for the enclosed-arm hole in this silhouette -- an explicit, separately-labelled test of that specific named hypothesis, not folded into the main formula (holes stays out of the normalized formula, see derivation_method). NOT one of the ten real silhouettes -- a synthetic probe, reported in its own table by task-094.",
+      "combat": { "max_hp": 104.2, "dps": 30.6, "engage_range": 104.7, "min_engage_range": 0, "targets_per_hit": 7, "move_speed_scale": 1.0 }
     },
     "v6_simplecolumn": {
       "display_name": "Simplecolumn",
       "silhouette_source": "docs/data/art/families/knight-melee-v1/manifest.json variants.v6_simplecolumn.measured",
-      "measured_shape": { "aspect": 0.68, "solidity": 0.75, "asymmetry": 0.27, "holes": 0, "mass": 986 },
-      "derivation": "norm(mass)=-0.284, norm(solidity)=+0.557, norm(aspect)=-0.557, norm(asymmetry)=-0.091 -- narrowest AND densest of the five (highest solidity), lightest engage_range. High nominal targets_per_hit (10, tied-highest) from its density, but the SHORTEST engage_range of any candidate (79.1) means combat_model.melee_reach_per_exposed_unit() caps its effective cleave well below that nominal value -- see docs/sim/SUBTYPE-VARIETY.md's effective_cleave column. Its raw stats alone read as 'durable anchor with a wide but mostly-wasted cleave stat,' not 'cheap filler.'",
-      "combat": { "max_hp": 115.2, "dps": 28.9, "engage_range": 79.1, "min_engage_range": 0, "targets_per_hit": 10, "move_speed_scale": 1.0 }
+      "measured_shape": { "aspect": 0.6818, "solidity": 0.7470, "asymmetry": 0.2677, "holes": 0, "mass": 986 },
+      "derivation": "task-094, n=10: norm(mass)=-0.221, norm(solidity)=+0.447, norm(aspect)=-0.463, norm(asymmetry)=-0.150 -- narrowest AND densest of the ten (highest solidity), shortest engage_range. High nominal targets_per_hit (10, joint-highest) from its density, but its short engage_range means combat_model.melee_reach_per_exposed_unit() caps its effective cleave well below that nominal value -- see docs/sim/SUBTYPE-VARIETY.md's effective_cleave column. Its raw stats alone read as 'durable anchor with a wide but mostly-wasted cleave stat,' not 'cheap filler.'",
+      "combat": { "max_hp": 118.5, "dps": 28.2, "engage_range": 81.8, "min_engage_range": 0, "targets_per_hit": 10, "move_speed_scale": 1.0 }
+    },
+    "v7_barestance": {
+      "display_name": "Barestance",
+      "silhouette_source": "docs/data/art/families/knight-melee-v2/manifest.json variants.v7_barestance.measured",
+      "measured_shape": { "aspect": 0.75, "solidity": 0.6522, "asymmetry": 0.0570, "holes": 0, "mass": 947 },
+      "derivation": "task-094: norm(mass)=-0.337, norm(solidity)=+0.116, norm(aspect)=-0.313, norm(asymmetry)=-0.438 -- lightest silhouette of all ten AND the most symmetric of all ten (asymmetry 0.057, barely above v1_narrowguard's 0.079). A plain, low-committed guard stance reads as the lowest-dps candidate in the whole set under the uniform formula -- an unremarkable, slightly-below-average-everything profile, close kin to v1_narrowguard's read but lighter still.",
+      "combat": { "max_hp": 112.5, "dps": 24.7, "engage_range": 86.1, "min_engage_range": 0, "targets_per_hit": 8, "move_speed_scale": 1.0 }
+    },
+    "v8_heavycloak": {
+      "display_name": "Heavycloak",
+      "silhouette_source": "docs/data/art/families/knight-melee-v2/manifest.json variants.v8_heavycloak.measured",
+      "measured_shape": { "aspect": 0.9773, "solidity": 0.6781, "asymmetry": 0.3804, "holes": 0, "mass": 1283 },
+      "derivation": "task-094: norm(mass)=+0.663, norm(solidity)=+0.207, norm(aspect)=+0.187, norm(asymmetry)=+0.004 -- by far the heaviest silhouette of all ten (1283 opaque px, next-heaviest v3_shieldbreak at 1124), giving it the highest max_hp of any candidate under the uniform formula. Asymmetry is almost exactly at the population mean (norm=+0.004), so dps lands almost exactly at the 30.0 baseline despite the mass extreme -- a 'big and tanky, average offense' read, the mass axis doing essentially all the work on its own.",
+      "combat": { "max_hp": 164.5, "dps": 30.0, "engage_range": 100.3, "min_engage_range": 0, "targets_per_hit": 9, "move_speed_scale": 1.0 }
+    },
+    "v10_bracedstaff": {
+      "display_name": "Bracedstaff",
+      "silhouette_source": "docs/data/art/families/knight-melee-v2/manifest.json variants.v10_bracedstaff.measured",
+      "measured_shape": { "aspect": 1.1364, "solidity": 0.46, "asymmetry": 0.5375, "holes": 0, "mass": 1012 },
+      "derivation": "task-094: norm(mass)=-0.143, norm(solidity)=-0.553, norm(aspect)=+0.537, norm(asymmetry)=+0.219 -- widest silhouette AND the lowest solidity of all ten (0.46, hollow/open like v2_lanceout but more so), giving it both the longest engage_range and the fewest targets_per_hit (6, lowest of the ten) of any candidate under the uniform formula. A braced two-handed staff reading as a single long committed point of contact, not a sweep -- the same solidity->targets_per_hit logic that shaped v2_lanceout's PRIMARY reading, pushed further by a more extreme silhouette.",
+      "combat": { "max_hp": 122.6, "dps": 32.6, "engage_range": 110.3, "min_engage_range": 0, "targets_per_hit": 6, "move_speed_scale": 1.0 }
+    },
+    "v11_midguard": {
+      "display_name": "Midguard",
+      "silhouette_source": "docs/data/art/families/knight-melee-v2/manifest.json variants.v11_midguard.measured",
+      "measured_shape": { "aspect": 0.7727, "solidity": 0.6912, "asymmetry": 0.3714, "holes": 0, "mass": 1034 },
+      "derivation": "task-094: norm(mass)=-0.078, norm(solidity)=+0.252, norm(aspect)=-0.263, norm(asymmetry)=-0.009 -- every one of its four norms sits close to zero (the smallest total deviation from baseline of any of the ten candidates), so every derived stat lands close to the spearmen anchor too. The formula's own most literal 'nothing distinctive about this shape' read -- see docs/sim/SUBTYPE-VARIETY.md for whether that makes it indistinguishable from its closest neighbors.",
+      "combat": { "max_hp": 126.0, "dps": 29.9, "engage_range": 87.5, "min_engage_range": 0, "targets_per_hit": 9, "move_speed_scale": 1.0 }
+    },
+    "v13_maceraised": {
+      "display_name": "Maceraised",
+      "silhouette_source": "docs/data/art/families/knight-melee-v2/manifest.json variants.v13_maceraised.measured",
+      "measured_shape": { "aspect": 0.8542, "solidity": 0.5904, "asymmetry": 0.7883, "holes": 1, "mass": 1162 },
+      "derivation": "task-094: norm(mass)=+0.303, norm(solidity)=-0.099, norm(aspect)=-0.084, norm(asymmetry)=+0.562 -- the single highest asymmetry of all ten (a raised, committed one-handed mace stance, edging out v3_shieldbreak's 0.740), and the second-heaviest. Under the uniform formula this gives it the highest dps of the whole ten-candidate set. Same directional disagreement with an 'off-hand-committed = defensive' intuitive read as v3_shieldbreak already flagged -- not resolved here either.",
+      "combat": { "max_hp": 145.8, "dps": 36.7, "engage_range": 92.6, "min_engage_range": 0, "targets_per_hit": 8, "move_speed_scale": 1.0 }
     }
   }
 }

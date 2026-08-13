@@ -1,0 +1,23 @@
+{
+  "Name": "three-act-early",
+  "DisplayName": "Three-act wave 1 — Early (task-102)",
+  "Kind": "wave_attrition",
+  "Description": "Wave 1 'Early' of task-102's three-act (early/mid/late) wave curve: 60 retinue (100% Spearmen, Militia) vs 120 enemy population (100% Fodder), the pure melee scrum wave that deliberately introduces no ranged units, no Elite, on either side. Population/army ratio 2.00, just under GATE1's own measured 250/120=2.08 'comfortable win' calibration point (docs/sim/LIMITATIONS.md §1 — read directionally, not as a survivor prediction).",
+  "SourceRefs": [
+    "docs/design/wave-scaling-three-act.md §0 (wave 1 table: retinue 60 / 100% Spearmen, enemy 120 / 100% Fodder, ratio 2.00) and §2 (deliberate 100% Fodder divergence from scaling-curve.md's floor-1 85/15 row)",
+    "docs/data/wave-scaling.json wave_definitions[wave1_early], retinue_composition[wave1_early_spearmen], enemy_composition[wave1_early_fodder]"
+  ],
+  "HeroPresent": false,
+  "TimeLimitSeconds": 300,
+  "Retinue": {
+    "Composition": [
+      { "UnitType": "spearmen", "Tier": "militia", "Count": 60 }
+    ]
+  },
+  "Enemy": {
+    "Composition": [
+      { "EntityTier": "brood_fodder", "Count": 120 }
+    ]
+  },
+  "Notes": "HeroPresent false to match the zero-input convention every fixture in this directory already uses. No ArrivalSeconds gating: docs/data/encounter-budget.json's rank_arrival_timing[] has no derived rows for a 60-retinue/120-enemy context (only the gate1-calibration-wave1 120-vs-250 context is derived) — inventing new per-rank timing for this population would violate scenarios.schema.md's 'never hand-typed' rule, so all 120 enemies are treated as in contact from t=0, same convention gate1-calibration-wave2/wave3 already use for their own untimed populations. This is the first wave-attrition fixture in this directory with NO ranged component and NO Elite/Boss on either side — see docs/sim/THREE-ACT-WAVES.md for how that changes at wave 2."
+}

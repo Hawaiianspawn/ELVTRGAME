@@ -1,0 +1,72 @@
+{
+  "$schema_note": "Vanguard-specific retinue tuning (task-005), closing the 'Vanguard retinue tuning: growth rate, attrition, per-floor cap' item in RTS-VERTICAL-SLICE.md §4 / SYSTEMS.md §6. Two new tables (danger_index, rescue_and_rally) are this doc's own additions, computed strictly from named cells in docs/data/encounter-budget.json and docs/data/entity-tiers.json (composition, DPS, risk-room bonus counts) plus one calibration anchor also cited from encounter-budget.json (rank_arrival_context.gate1_calibration_wave1). expected_losses[] and the three_floor_ledger[] derive from those two tables. starting_headcount is the one input sourced outside those two files (docs/data/economy.json slice_targets.start_units, cross-checked against encounter-budget.json's own peak_concurrency_check[0].RetinuePeak, which independently agrees at 40) -- see design doc §1 for why. growth_site_context[] is explicitly OUT of the strictly-sourced boundary (sourced from docs/data/growth-sites.json, unmodified, shown for comparison only, never substituted into three_floor_ledger[]). Decisions + rationale: docs/design/retinue-tuning-vanguard.md. Columns/units/ranges: retinue-vanguard.schema.md.",
+  "version": "0.1-vslice",
+  "last_updated": "2026-07-29",
+
+  "design_constants": {
+    "starting_headcount": 40,
+    "starting_headcount_source": "docs/data/economy.json slice_targets.start_units (Militia tier). Cross-checked, not re-derived: docs/data/encounter-budget.json peak_concurrency_check[0] (floor1_peak) RetinuePeak is also 40 -- independent agreement between two already-committed files.",
+    "starting_headcount_status": "SOURCED OUTSIDE encounter-budget.json/entity-tiers.json -- the one stated exception, see design doc §1.",
+
+    "rescue_conversion_rate": 0.25,
+    "rescue_conversion_rate_status": "JUDGMENT CALL, this doc's own first-pass dial -- same status as Swarm.PulseLullSeconds/Swarm.EliteLeadSeconds in encounter-budget.json. NOT derived from anything measured.",
+    "rescue_conversion_rate_note": "Proposed Vanguard.RescueConversionRate. Fraction of a cleared Risk Room's BonusFodderCount (encounter-budget.json risk_room_budget[]) converted to rescued Freed-tier retinue, reframing that room's existing pure-Fodder reward as guarded captives for the Vanguard specifically (CLASSES.md §1 'rescue sites... freeing them = recruiting them'). Additive to the room's existing loot/Ember reward -- does not change or replace it.",
+
+    "calibration_anchor": {
+      "source_cell": "docs/data/encounter-budget.json rank_arrival_context[0] (Name: gate1_calibration_wave1)",
+      "population_n": 250,
+      "retinue_n": 120,
+      "danger_index": 35.0,
+      "danger_index_source": "docs/data/entity-tiers.json tiers[brood_fodder].DPS -- the anchor scenario is pure Fodder (no Soldier tiers existed at GATE1 measurement time)",
+      "measured_losses_range": [9, 11],
+      "measured_losses_mean": 10,
+      "measured_losses_source": "docs/GATE1-FUN-PROTOTYPE.md §3b, 'shipped defaults, measured (4 zero-input runs)' row: 109-111 of 120 retinue survive wave 1. Required reading per task-005's brief, cited exactly, not re-simulated (docs/sim/LIMITATIONS.md §1 -- the harness cannot reproduce this baseline at its committed defaults)."
+    },
+
+    "expected_losses_formula": "DangerIndex(floor) = sum_tier(PulseCount_tier(floor) * DPS_tier) / Population(floor). ExpectedLosses(floor) = LossesAnchor * (Population(floor) * DangerIndex(floor)) / (PopulationAnchor * DangerIndexAnchor). PulseCount_tier(floor) sums docs/data/encounter-budget.json pulse_schedule[] rows for that floor; DPS_tier is docs/data/entity-tiers.json tiers[].DPS.",
+    "expected_losses_caveat": "Scales ABSOLUTE losses by total floor danger (population x per-capita DPS), not by defending headcount -- a stated limitation given exactly one measured calibration point exists (fitting a second free parameter for headcount-sensitivity would be curve-fitting noise, not data). See design doc §3.1 and §8 (bimodal caveat) -- likely optimistic at low headcount, not just imprecise."
+  },
+
+  "danger_index": [
+    { "Name": "floor1_danger_index", "Floor": 1, "Fodder": 212, "SoldierMelee": 38, "SoldierRanged": 0, "Population": 250, "DangerIndex": 36.064, "Sources": "encounter-budget.json pulse_schedule[floor1_pulse1]; entity-tiers.json tiers[brood_fodder,brood_soldier_melee].DPS" },
+    { "Name": "floor2_danger_index", "Floor": 2, "Fodder": 247, "SoldierMelee": 113, "SoldierRanged": 90, "Population": 450, "DangerIndex": 34.958, "Sources": "encounter-budget.json pulse_schedule[floor2_pulse1,floor2_pulse2] summed; entity-tiers.json tiers[*].DPS" },
+    { "Name": "floor3_danger_index", "Floor": 3, "Fodder": 314, "SoldierMelee": 174, "SoldierRanged": 212, "Population": 700, "DangerIndex": 34.014, "Sources": "encounter-budget.json pulse_schedule[floor3_pulse1..3] summed; entity-tiers.json tiers[*].DPS" }
+  ],
+
+  "expected_losses": [
+    { "Name": "floor1_expected_losses", "Floor": 1, "Population": 250, "DangerIndex": 36.064, "RawLosses": 10.304, "ExpectedLosses": 10 },
+    { "Name": "floor2_expected_losses", "Floor": 2, "Population": 450, "DangerIndex": 34.958, "RawLosses": 17.978, "ExpectedLosses": 18 },
+    { "Name": "floor3_expected_losses", "Floor": 3, "Population": 700, "DangerIndex": 34.014, "RawLosses": 27.211, "ExpectedLosses": 27 }
+  ],
+
+  "rescue_and_rally": [
+    { "Name": "floor1_rescue", "Floor": 1, "RiskRoomBonusFodder": 20, "Source": "encounter-budget.json risk_room_budget[floor1_risk_room].BonusFodderCount", "ConversionRate": 0.25, "RawRescued": 5.0, "RescuedFreed": 5 },
+    { "Name": "floor2_rescue", "Floor": 2, "RiskRoomBonusFodder": 35, "Source": "encounter-budget.json risk_room_budget[floor2_risk_room].BonusFodderCount", "ConversionRate": 0.25, "RawRescued": 8.75, "RescuedFreed": 9 },
+    { "Name": "floor3_rescue", "Floor": 3, "RiskRoomBonusFodder": 55, "Source": "encounter-budget.json risk_room_budget[floor3_risk_room].BonusFodderCount", "ConversionRate": 0.25, "RawRescued": 13.75, "RescuedFreed": 14 }
+  ],
+
+  "three_floor_ledger": [
+    { "Name": "floor1_ledger", "Floor": 1, "EnteringHeadcount": 40, "RescueReplenishment": 5, "HeadcountIntoArena": 45, "ExpectedLosses": 10, "ExitingHeadcount": 35 },
+    { "Name": "floor2_ledger", "Floor": 2, "EnteringHeadcount": 35, "RescueReplenishment": 9, "HeadcountIntoArena": 44, "ExpectedLosses": 18, "ExitingHeadcount": 26 },
+    { "Name": "floor3_ledger", "Floor": 3, "EnteringHeadcount": 26, "RescueReplenishment": 14, "HeadcountIntoArena": 40, "ExpectedLosses": 27, "ExitingHeadcount": 13 }
+  ],
+  "three_floor_ledger_verdict": "STARVE -- Rescue & Rally alone does not keep pace with combat losses (35 -> 26 -> 13 across the slice). By design a supplement, not a replacement, for the growth-site Recruit lane -- see growth_site_context[] below. Also see design doc §8: §3's loss model is likely optimistic (not conservative) at these headcounts, per GATE1-FUN-PROTOTYPE.md's own measured bimodal collapse behavior at gentler population ratios than floor 1 already starts at.",
+
+  "growth_site_context": {
+    "status": "OUT OF THE STRICTLY-SOURCED BOUNDARY -- sourced from docs/data/growth-sites.json (unmodified, existing SYSTEMS.md §7 economy). Shown for comparison only; never substituted into three_floor_ledger[] above. See design doc §5/§6b.",
+    "breadth_max_recruit_added": [
+      { "Name": "growth_A_breadth_max", "AfterFloor": 1, "EmbersOnArrival": 33, "Source": "growth-sites.json slice_placement[growth-A].embers_on_arrival_est", "RecruitActions": 2, "FreedAdded": 20 },
+      { "Name": "growth_B_breadth_max", "AfterFloor": 2, "EmbersOnArrival": 52, "Source": "growth-sites.json slice_placement[growth-B].embers_on_arrival_est", "RecruitActions": 4, "FreedAdded": 40 }
+    ],
+    "combined_ledger_for_comparison": [
+      { "Name": "floor1_combined", "Floor": 1, "EnteringHeadcount": 40, "RescueReplenishment": 5, "HeadcountIntoArena": 45, "ExpectedLosses": 10, "ExitingHeadcount": 35, "GrowthSiteRecruitAdded": 20, "NextFloorEntering": 55 },
+      { "Name": "floor2_combined", "Floor": 2, "EnteringHeadcount": 55, "RescueReplenishment": 9, "HeadcountIntoArena": 64, "ExpectedLosses": 18, "ExitingHeadcount": 46, "GrowthSiteRecruitAdded": 40, "NextFloorEntering": 86 },
+      { "Name": "floor3_combined", "Floor": 3, "EnteringHeadcount": 86, "RescueReplenishment": 14, "HeadcountIntoArena": 100, "ExpectedLosses": 27, "ExitingHeadcount": 73, "GrowthSiteRecruitAdded": 0, "NextFloorEntering": null }
+    ]
+  },
+
+  "per_floor_soft_cap": {
+    "rule": "No hard numeric cap (Design Law 2). Governed entirely by the existing Supply/upkeep degrade mechanic (economy.json, unchanged): rescued units draw the same uniform 1 upkeep/unit as any recruited unit but cost 0 Embers, so Rescue & Rally is a free version of the 'upkeep-hungry' Recruit lane (SYSTEMS.md §7). Practical per-floor ceiling on how much Rescue headcount is worth taking = wherever Supply capacity (Provision-funded, unchanged) runs out relative to demand -- a soft, play-driven ceiling, not a new number this doc adds.",
+    "worked_example": "Rescuing all three floors (5+9+14=28 units) without ever spending Embers on Provision adds 28 to Supply demand for zero Ember cost -- degrades the WHOLE army (uniform upkeep, economy.json) once demand exceeds capacity, not just the newly-rescued units."
+  }
+}

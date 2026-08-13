@@ -256,7 +256,8 @@ The rationale (lanes that genuinely oppose each other; hero nodes competing for 
 currency as the army, expressing the GDD §4 hero-vs-army tension as a spend choice) was
 sound and is superseded rather than disowned — as are **task-097** and **task-101**, the
 tuning passes that made the allocation non-inert. Not every lane died: **recruiting and
-Supply capacity are now merchant goods bought with gold**; **promotion's home is open**;
+Supply capacity are now merchant goods bought with gold**; ~~**promotion's home is open**~~
+— **CLOSED 2026-08-08: promotion's home is Adaptation**, see below;
 **hero nodes' route is open** (§8).
 
 ### Kills → army level — the automatic ratchet (**DECIDED 2026-07-31, D4**)
@@ -305,6 +306,39 @@ not**: army level, gold and the item stash persist. The GDD §3 line it leaned o
 power fully resets each run") is superseded by the same owner decision — flagged here,
 moved in `GDD.md`, never silently rewritten.
 
+### Adaptation — promotion's home, closed (**DECIDED 2026-08-08**)
+
+Spec: `docs/design/adaptation.md`. Data: `docs/data/unit-types.json` `adaptation`.
+
+The triangle's retirement left promotion homeless (above). **Adaptation is where it lands.**
+The split that keeps it from colliding with D3/D4: **army *size* stays automatic on kills;
+Adaptation is army *shape*.**
+
+- **Every character template has an evolution ladder.** A rung is the triple
+  `(unit_type, tier, variant_index)`. `tier` keys **§1's existing four-tier ladder**
+  (`upgrades.json` `tier_ladder`) — no second stat ladder is invented. Rank is array order.
+- **The player picks from a branch, and Adaptations are also shop stock.** Both. The stock
+  rule needs no number: the shop offers rungs on branches the player's pick did not grant.
+  **Price is OPEN (O8), blocked on O4.**
+- **The top rung is a captain** fielding its own retinue of ≤ 8. `bannerman` is reused as
+  that rung — its aura trait and its `rare` flag already fit, and its existing *"item/event
+  reward only, not a purchasable tier"* line makes the captain the one rung the shop cannot
+  sell. Captains are earned; everything below them is buyable.
+- **One command handle per branch, not per rung** (a branch is a type under §6's D14; a rung
+  is a look-and-stat move inside a type). A captain plus its retinue is one handle.
+- **Friendly side only for v1.** The rung triple is unchanged for enemies — swap `tier` to
+  `entity-tiers.json` — so the enemy pass needs no schema change.
+
+**The C++ cannot express this yet, and that is filed, not hidden.** `EUnitType` is one bit,
+all eight command handles are consumed at the shipped retinue cap, D14 itself is unimplemented,
+and a unit's look is recomputed from spawn phase every frame with nowhere to store an assigned
+variant. `adaptation.md` §6 carries the list with line numbers. The spec is authored so it
+adds **zero atlas repack debt** in the meantime.
+
+**Amends 2026-07-31's "no player spend on army power, ever"** (the kill-ratchet subsection
+above, and `GDD.md` Q22): that stands for army **size** and is amended for army **shape** — an
+Adaptation is buyable. The original sentence is not deleted.
+
 ## 8. Hero progression (slice)
 
 **DECIDED 2026-07-24 — the node catalog.** The Vanguard's three abilities (Banner Slam,
@@ -331,6 +365,9 @@ spend choice.
 | **O2** | **Which wave curve wins** — §2's 250/450/700 or `wave-scaling.json`'s 120/400/20,000 | Both live, both dated; picking one re-derives `encounter-budget.json`, `scaling-curve.json` and `retinue-vanguard.json`. Deliberately not picked here (C13). §2 |
 | **O4** | **Gold's drop rate and sources** | The shops are decided (§7); what fills the purse is not |
 | — | Where **hero ability nodes** are earned now that Embers and growth sites are gone | §8. The catalog stands; the purchase route does not. Owner not yet asked |
+| **O6** | **Rung count per Adaptation ladder** | Default is §1's existing four tiers. A fifth rung means inventing an HP/DPS row — the inference this project bans. Owner not asked. §7 |
+| **O7** | **How many captains a run supports**, and whether captain retinue draws Supply upkeep | The ≤ 8 retinue cap is a legibility call (half `TypeLegibilityCeiling`); neither the count nor the upkeep was decided. `upkeep_per_retinue_body` is an explicit `null`. §7 |
+| **O8** | **Adaptation shop price** | Blocked on **O4** — nothing can be priced before gold's rate and sources exist. §7 |
 
 *(O3 — end-of-run headcount — is deliberately deferred to task-108's measurement, not a
 design question. O5 — whether the leash survives an army in the thousands commanded by
@@ -356,3 +393,4 @@ type — is logged against `GDD.md` §4, not here.)*
 | 2026-07-31 | **Supply capacity = the merchant's headline good, bought with gold** (C7) | Keeps the size governor and the degrade formula untouched (zero re-tuning) while making the shops the thing that unlocks scale — the correct incremental shape | §7 · `economy.json` |
 | 2026-07-31 | **OPEN CONFLICT logged, not resolved: two live wave curves** (C13) | 250/450/700 (§2) vs. `wave-scaling.json`'s 120/400/20,000; three derived files hang off the old curve. Deliberately NOT picked | §2 · O2 |
 | 2026-07-31 | `WORLD.md` dropped as a companion doc (C5) | Superseded by the 2026-07-22 narrative reset; live narrative canon is `docs/narrative/FLAME-FOUNDATION.md` | header |
+| 2026-08-08 | **Adaptation** — every template gets an evolution ladder; player picks a branch and the shop stocks the rest; top rung is a captain with a ≤ 8 retinue; one handle per branch | Fills the promotion slot D4 vacated without touching the kill ratchet: army **size** stays automatic, Adaptation is army **shape**. Reuses §1's four-tier ladder as the stat spine and existing atlas rows as the looks, so it adds zero repack debt | §7 · `docs/design/adaptation.md` · `unit-types.json` `adaptation` |

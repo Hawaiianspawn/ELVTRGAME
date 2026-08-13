@@ -1,0 +1,26 @@
+{
+  "Name": "three-act-mid",
+  "DisplayName": "Three-act wave 2 — Mid (task-102)",
+  "Kind": "wave_attrition",
+  "Description": "Wave 2 'Mid' of task-102's three-act wave curve: 120 retinue (80% Spearmen / 20% Archers, Militia) vs 400 enemy population (55% Fodder / 25% Soldier-melee / 20% Soldier-ranged), the wave that introduces ranged combat and Soldier-melee simultaneously on both sides. Population/army ratio 3.333, between GATE1's 2.08 (wins) and 3.75 (wipes) calibration points — read directionally per docs/sim/LIMITATIONS.md §1, not as a survivor prediction. This wave_attrition fixture models the swarm portion ONLY: wave-scaling.json's elite_boss_schedule places 1 Elite ('wave2_elite_01', embedded_in_swarm) at this wave, but Elite/Titan/Boss are point_target-only entities per scenarios.schema.md and have no representation in a wave_attrition Composition — the Elite is deliberately absent from this fixture's population and outcome, not an oversight.",
+  "SourceRefs": [
+    "docs/design/wave-scaling-three-act.md §0 (wave 2 table: retinue 120 / 80% Spearmen/20% Archers, enemy 400 / 55% Fodder/25% Soldier-melee/20% Soldier-ranged, ratio 3.333) and §3 (what makes Mid 'unique' — Archers, Soldier-melee, Soldier-ranged, and the first Elite all new simultaneously)",
+    "docs/data/wave-scaling.json wave_definitions[wave2_mid], retinue_composition[wave2_mid_spearmen, wave2_mid_archers], enemy_composition[wave2_mid_fodder, wave2_mid_soldier_melee, wave2_mid_soldier_ranged], elite_boss_schedule[wave2_elite_01]"
+  ],
+  "HeroPresent": false,
+  "TimeLimitSeconds": 300,
+  "Retinue": {
+    "Composition": [
+      { "UnitType": "spearmen", "Tier": "militia", "Count": 96 },
+      { "UnitType": "archers", "Tier": "militia", "Count": 24 }
+    ]
+  },
+  "Enemy": {
+    "Composition": [
+      { "EntityTier": "brood_fodder", "Count": 220 },
+      { "EntityTier": "brood_soldier_melee", "Count": 100 },
+      { "EntityTier": "brood_soldier_ranged", "Count": 80 }
+    ]
+  },
+  "Notes": "HeroPresent false, same zero-input convention as every fixture in this directory. No ArrivalSeconds gating, same reason as three-act-early.json: no rank_arrival_timing[] rows exist for this population/retinue combination; all 400 enemies treated as in contact from t=0. The wave2_elite_01 instance from wave-scaling.json's elite_boss_schedule is NOT included here — modeling an Elite embedded in a live swarm simultaneously with a pooled wave_attrition fight is outside what either combat_model.py function does today (the point_target model assumes a clean 1-on-1 fight, no swarm contention — see docs/sim/LIMITATIONS.md §3); this fixture is the swarm-only lower bound on wave 2's difficulty, not the full encounter."
+}

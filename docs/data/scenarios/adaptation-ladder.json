@@ -1,0 +1,21 @@
+{
+  "Name": "adaptation-ladder",
+  "DisplayName": "Adaptation — one rung of the ladder against a fixed Elite",
+  "Kind": "point_target",
+  "Description": "The rung-separation gate for the Adaptation ladder (docs/design/adaptation.md). One retinue at one rung, fought clean against a single Elite. This file is a SWEEP BASE, not a standalone finding: run it once per Tier via sweep.py's Tier axis and read the four TTKs as a ladder. Answers the only question a ladder has to pass before anything is authored -- do adjacent rungs actually read apart, or is the ladder theatre? Kind is point_target DELIBERATELY: only the point-target model passes validation and reproduces entity-tiers.md §7; the wave-attrition model does not reproduce GATE1 and is directional only (docs/sim/README.md:11-16, docs/sim/LIMITATIONS.md). A ladder claim must not rest on the unvalidated model.",
+  "SourceRefs": [
+    "docs/design/adaptation.md §2 (a rung is (unit_type, tier, variant_index)) and §9 (the >=5.4% separation gate)",
+    "docs/data/upgrades.json tier_ladder.tiers[] -- the four rungs, the stat spine, unchanged by Adaptation",
+    "docs/data/unit-types.json adaptation.ladders[] -- the ladders this scenario is the gate for",
+    "docs/data/entity-tiers.json brood_elite row (MaxHP 900, Armor 12, SurroundCapEstimate 20)",
+    "docs/sim/SUBTYPE-VARIETY.md:401-403 -- the 5.4-23.2% band that sets the acceptance threshold"
+  ],
+  "HeroPresent": false,
+  "Target": { "EntityTier": "brood_elite" },
+  "Retinue": {
+    "Composition": [
+      { "UnitType": "spearmen", "Tier": "militia", "Count": 120 }
+    ]
+  },
+  "Notes": "SIMPLIFICATIONS, stated plainly per the schema's own convention. (1) Count 120 because that is where every friendly-army measurement this project owns sits -- and it sits there only because it is the harness cap, so 120 is a pinned convention here, not a chosen army size (GDD.md Q30 is deferred to task-108's sweep). (2) HeroPresent false, deliberately: the hero's flat DPS is a constant across every rung and would compress the percentage separation between them, which is the one number this scenario exists to measure. (3) Spearmen only -- archers have NO per-tier row anywhere in docs/data/, and Scripts/sim/data_loader.py:126-136 synthesises theirs by scaling the spearmen tier ratio with a stamped ASSUMED note (:149 also hardcodes armor 0.0). An archer ladder run through this scenario would be measuring that assumption, not the ladder. Recorded as a known gap in adaptation.md §9, not silently worked around. (4) The Tier field is what the sweep varies; the composition above is the militia baseline row, so an unswept single run of this file reproduces the existing balance anchor rather than a new claim. (5) brood_elite's SurroundCapEstimate (20) is a Fermi estimate, not measured (entity-tiers.json:89-90), so the ORDERING and the SEPARATION of the four TTKs are the finding -- never the absolute TTK. (6) Same lower-bound caveat as every point_target scenario: the target is fought clean, with no swarm around it (docs/sim/LIMITATIONS.md §3). ACCEPTANCE: adjacent rungs must separate by >=5.4%, and TTK must fall strictly monotonically across the POWER rungs (freed -> militia -> veteran). Anything tighter is the same rung and must merge; non-monotonic there is a bug in the rung-to-tier mapping, not a balance finding. THE CAPTAIN RUNG IS EXEMPT, measured 2026-08-08: freed 6.75s -> militia 2.70s (60.0% faster) -> veteran 1.42s (47.4% faster) -> bannerman 2.08s (46.5% SLOWER). The three power rungs pass by a wide margin. Bannerman inverts because it is 160/35 against veteran's 190/45 and was never authored as a power rung -- its value is upgrades.json's own trait, 'aura: +15% attack speed to Liberated within 400uu', and THIS MODEL HAS NO AURA PRIMITIVE: it sums one army's DPS against one target, so a buff to neighbouring units is structurally invisible. The 2.08s is a captain fighting alone and unbuffed, which is the one situation a captain is never in. Do NOT raise bannerman's stats to make this table monotonic -- that converts a support unit into a fourth power rung, deletes the captain rung's whole reason to exist, and moves a committed balance row drift_check.py guards. See docs/design/adaptation.md §9."
+}

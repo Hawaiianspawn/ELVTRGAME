@@ -1,0 +1,26 @@
+{
+  "Name": "three-act-late",
+  "DisplayName": "Three-act wave 3 — Late (task-102)",
+  "Kind": "wave_attrition",
+  "Description": "Wave 3 'Late' of task-102's three-act wave curve: 600 retinue (80% Spearmen / 20% Archers, Militia) vs 20,000 enemy population (45% Fodder / 25% Soldier-melee / 30% Soldier-ranged), the 'as far as the engine can be pushed' wave, argued in the design doc from the measured 34,000-entity perf ceiling rather than from any GATE1 ratio-calibration point (ratio 33.3 is far outside the 2.08-5.83 GATE1 calibration band). This wave_attrition fixture models the swarm portion ONLY: wave-scaling.json's elite_boss_schedule places 3 Elite + 1 Boss at this wave, all point_target-only entities per scenarios.schema.md with no representation in a wave_attrition Composition — deliberately absent from this fixture, not an oversight. This is also the largest population this harness has ever been run at by roughly two orders of magnitude; see docs/sim/THREE-ACT-WAVES.md for whether it completed and what the result means.",
+  "SourceRefs": [
+    "docs/design/wave-scaling-three-act.md §0 (wave 3 table: retinue 600 / 80% Spearmen/20% Archers, enemy 20,000 / 45% Fodder/25% Soldier-melee/30% Soldier-ranged, ratio 33.3) and §4 (the population argued against the measured 34k perf ceiling, not a survivor-count target)",
+    "docs/data/wave-scaling.json wave_definitions[wave3_late], retinue_composition[wave3_late_spearmen, wave3_late_archers], enemy_composition[wave3_late_fodder, wave3_late_soldier_melee, wave3_late_soldier_ranged], elite_boss_schedule[wave3_elite_01, wave3_elite_02, wave3_elite_03, wave3_boss_01]"
+  ],
+  "HeroPresent": false,
+  "TimeLimitSeconds": 300,
+  "Retinue": {
+    "Composition": [
+      { "UnitType": "spearmen", "Tier": "militia", "Count": 480 },
+      { "UnitType": "archers", "Tier": "militia", "Count": 120 }
+    ]
+  },
+  "Enemy": {
+    "Composition": [
+      { "EntityTier": "brood_fodder", "Count": 9000 },
+      { "EntityTier": "brood_soldier_melee", "Count": 5000 },
+      { "EntityTier": "brood_soldier_ranged", "Count": 6000 }
+    ]
+  },
+  "Notes": "HeroPresent false, same zero-input convention as every fixture in this directory. No ArrivalSeconds gating, same reason as the other two three-act fixtures: no rank_arrival_timing[] rows exist at this population; all 20,000 enemies treated as in contact from t=0 — itself a much larger simplification here than at wave 1/2, since wave-scaling-three-act.md §4 explicitly assumes a real pulsed arrival schedule would only ever LOWER peak concurrency below this all-at-once figure, never raise it. The 3 Elite + 1 Boss from elite_boss_schedule are NOT included, same reasoning as three-act-mid.json. RetinueStart 600 exceeds every economy.json-derived growth scenario in scaling-curve.json (balanced/recruit_max top out at 60-90 by floor 3) — this fixture uses wave-scaling.json's stated target count directly, per the design doc's own statement that it does not invent an economy mechanism to reach 600, only names the target."
+}

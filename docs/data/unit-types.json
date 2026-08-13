@@ -117,6 +117,120 @@
     }
   },
 
+  "adaptation": {
+    "note": "DECIDED 2026-08-08 (owner). Evolution ladders. Decision home docs/design/adaptation.md; columns docs/data/unit-types.schema.md v0.2; art mapping docs/art/adaptation-roster.md. A rung is the triple (unit_type, tier, variant_index). 'tier' keys upgrades.json tier_ladder.tiers[] -- THE STAT SPINE, deliberately not restated here, so no HP/DPS number appears anywhere in this block. 'variant_index' is the team-units.json atlas index, the same binding key melee_subtypes.variant_to_row[].index uses. RANK IS rungs[] ARRAY ORDER, never variant_index -- atlas order is arbitrary-by-history and frozen (Scripts/art/atlas.py:306-309). Every index below resolves to a row that ALREADY EXISTS in the 24-row team atlas, so Adaptation adds zero repack debt: py Scripts/art/atlas.py check --all must stay byte-identical. All values are PROTOTYPE DIALS (first pass, unmeasured) except where a note says CITED or MEASURED.",
+    "handle_rule": "One command handle per BRANCH, not per rung -- a branch is a type under GDD.md Q29/D14, a rung is a look-and-stat move inside a type. A captain plus its retinue is ONE handle, not one per body. Four branches below = four handles. NOT EXPRESSIBLE IN C++ TODAY: EUnitType is one bit (SwarmFragments.h:266), all 8 handles are consumed at the shipped RetinueCap 128, D14 itself is unimplemented, and a unit's look is recomputed every frame from spawn phase with nowhere to store an assigned variant (SwarmFragments.h:406-423). adaptation.md sec.6 carries the full list; filed as its own task.",
+    "separation_measured_note": "MEASURED 2026-08-08, the tier axis only: py Scripts/sim/sweep.py adaptation-ladder --axis \"scenario:Retinue.Composition[UnitType=spearmen].Tier=freed,militia,veteran,bannerman\" gives freed 6.75s -> militia 2.70s -> veteran 1.42s (60.0% and 47.4% separation against docs/sim/SUBTYPE-VARIETY.md:401-403's 5.4% floor) -> bannerman 2.08s, SLOWER. The captain inversion is CORRECT, not a defect: bannerman is 160/35 against veteran's 190/45 and its value is an aura the point-target model has no primitive for. Do not raise its stats to flatten the table. The SILHOUETTE axis is measured separately per branch below.",
+    "ladders": [
+      {
+        "id": "spearmen-line",
+        "side": "friendly",
+        "unit_type": "spearmen",
+        "families": ["knight-melee-v1", "knight-melee-v2"],
+        "families_note": "Two family folders, ONE body group -- both descend from PixelLab character 1c935515 / group 2cc3ab61, which is why this reads as one ladder rather than two. adaptation.md sec.8's 'one family's axis' rule is satisfied at the body-group level, not the folder level; recorded here because the folder split is an artefact of when the states were generated, not a design boundary.",
+        "single_branch_note": "Deliberately one branch. The ten knight looks never fork into distinct registers -- per knight-melee-v1/v2's own axis notes they are all one sword-and-shield identity. Seven unused looks (v2/v4/v6/v7/v10/v11/v13) could seed a reach/polearm second branch later; brief in docs/art/adaptation-roster.md, NOT built.",
+        "separation_note": "CITED from docs/sim/SUBTYPE-VARIETY.md (task-094)'s own ten-way ranking: militia -> veteran 60.8% gap, veteran -> bannerman 6.9% gap, both clearing that doc's cited 5.4% floor. Monotonic in the derived max_hp bulk proxy 114.5 -> 139.9 -> 164.5.",
+        "rungs": [
+          { "tier": "freed",     "variant_index": 0, "id": "retinue-base",
+            "note": "The pre-split shipped look. Carries no melee_subtypes row at all (task-088 addendum), which is why it has no bulk proxy -- qualitatively the unarmed baseline, not a measured rung." },
+          { "tier": "militia",   "variant_index": 1, "id": "narrowguard" },
+          { "tier": "veteran",   "variant_index": 3, "id": "shieldbreak" },
+          { "tier": "bannerman", "variant_index": 7, "id": "heavycloak", "captain": true,
+            "captain_grammar": "bulk -- the single largest/heaviest look in the branch",
+            "retinue": { "size": 8, "unit_type": "spearmen", "tier": "militia", "variant_index": 1 },
+            "retinue_note": "Escort wears the MILITIA rung's own look, so a captain visibly commands soldiers of its own gear tier rather than the base freed look.",
+            "retinue_size_note": "JUDGMENT CALL -- 8 is half TypeLegibilityCeiling (SwarmSubsystem.h:59). No measurement in this project gives a captain retinue size; the ceiling is the only legibility number it owns.",
+            "upkeep_per_retinue_body": null,
+            "upkeep_note": "OPEN (O7) -- whether captain retinue draws Supply upkeep was never put to the owner. Explicit null, not a guess." }
+        ],
+        "shop": {
+          "price_gold": null,
+          "price_note": "OPEN (O8), blocked on O4 -- gold's drop rate and sources are undecided (GDD.md Q26). Pricing before that is invention.",
+          "stock_rule": "Offers rungs on branches the player's pick did not grant.",
+          "captain_note": "The bannerman rung is NOT purchasable -- upgrades.json's own trait says 'item/event reward only, not a purchasable tier'. Captains are earned; everything below them is buyable."
+        }
+      },
+      {
+        "id": "archer-scout",
+        "side": "friendly",
+        "unit_type": "archers",
+        "families": ["pathfinder-line"],
+        "shared_freed_note": "All three archer branches share variant_index 11 as their freed rung -- one base archer look before the kit register diverges. This is also what makes the atlas budget work: 3 branches cost 10 rows, not 12.",
+        "separation_note": "WEAKEST LADDER OF THE FOUR, flagged rather than smoothed, with the exact margins pinned so nobody has to re-derive how thin they are. bbox 2162 (ghilliecloak) -> 2256 (+4.3%, stoutbeard) -> 2116 (-6.2%, hollowmask); opaque 1152 -> 1178 (+2.3%) -> 1090 (-7.5%). Both axes swing under ~6% and the bannerman rung goes DOWN on both. The three looks ARE three visibly different soldiers -- a ghillie cloak, a squat bearded build, a hollow mask -- but the separation is in pathfinder-line's own stated kit/headgear axis (family.json separation_rationale), which none of the four scalar silhouette measures can see. QUALITATIVE, NOT MEASURED. This does not block the ladder; it blocks a FUTURE claim that this branch is sim-validated the way spearmen-line is. Precedent for accepting a visual verdict over a metric: broken-machine/family.json checks_run[], where a visual pass correctly overruled the better-measuring pair.",
+        "rungs": [
+          { "tier": "freed",     "variant_index": 11, "id": "hoodedbow" },
+          { "tier": "militia",   "variant_index": 13, "id": "ghilliecloak" },
+          { "tier": "veteran",   "variant_index": 15, "id": "stoutbeard" },
+          { "tier": "bannerman", "variant_index": 14, "id": "hollowmask", "captain": true,
+            "captain_grammar": "salience -- highest-contrast/most-enclosed look, a 'point of glow' leader marker rather than the biggest body",
+            "retinue": { "size": 8, "unit_type": "archers", "tier": "militia", "variant_index": 11 },
+            "retinue_note": "Archer escorts reuse the shared FREED look, unlike spearmen. Archers have no per-branch equivalent of 'escort wears the militia look' because each archer branch's militia rung is branch-specific and distinct.",
+            "retinue_size_note": "JUDGMENT CALL -- see spearmen-line.",
+            "upkeep_per_retinue_body": null,
+            "upkeep_note": "OPEN (O7)." }
+        ],
+        "shop": {
+          "price_gold": null,
+          "price_note": "OPEN (O8), blocked on O4.",
+          "stock_rule": "Offers rungs on branches the player's pick did not grant.",
+          "captain_note": "bannerman rung not purchasable -- see spearmen-line."
+        }
+      },
+      {
+        "id": "archer-gunner",
+        "side": "friendly",
+        "unit_type": "archers",
+        "families": ["pathfinder-line"],
+        "separation_note": "Escalates on FOOTPRINT and reach while opaque mass FALLS: bbox 2116 -> 2438 (+15.2%) -> 2650 (+8.7%), opaque 1239 -> 1033 (-16.6%) -> 927 (-10.3%). Flagged, not smoothed over -- the ladder reads as a unit getting longer and more mechanical rather than bulkier, which is coherent for a gun register but means bulk is the WRONG proxy to judge this branch by.",
+        "rungs": [
+          { "tier": "freed",     "variant_index": 11, "id": "hoodedbow" },
+          { "tier": "militia",   "variant_index": 20, "id": "twincannon" },
+          { "tier": "veteran",   "variant_index": 18, "id": "riflecrouch" },
+          { "tier": "bannerman", "variant_index": 21, "id": "domedhelm", "captain": true,
+            "captain_grammar": "salience -- highest-contrast/most-enclosed look",
+            "retinue": { "size": 8, "unit_type": "archers", "tier": "militia", "variant_index": 11 },
+            "retinue_size_note": "JUDGMENT CALL -- see spearmen-line.",
+            "upkeep_per_retinue_body": null,
+            "upkeep_note": "OPEN (O7)." }
+        ],
+        "shop": {
+          "price_gold": null,
+          "price_note": "OPEN (O8), blocked on O4.",
+          "stock_rule": "Offers rungs on branches the player's pick did not grant.",
+          "captain_note": "bannerman rung not purchasable -- see spearmen-line."
+        }
+      },
+      {
+        "id": "archer-siege",
+        "side": "friendly",
+        "unit_type": "archers",
+        "families": ["pathfinder-line"],
+        "separation_note": "Strongest archer ladder BY MEASUREMENT through the veteran rung: bbox 1794 (carbinesuit) -> 2116 (+18.0%, rocketshoulder) -> 2650 (+25.3%, turretnest), opaque 874 -> 1045 (+19.6%) -> 1269 (+21.4%), every delta clearing the 5.4% floor by a wide margin. NOTE THE RUNG ORDER CHANGED 2026-08-08: those figures are the pre-swap ladder, when turretnest was the top rung. Post-swap the top two are transposed, so the branch now reads carbinesuit -> turretnest -> rocketshoulder and the final step DROPS ~20% on both axes. The three looks still separate by exactly the same margins -- only their order changed -- but this branch can no longer be cited as monotonic. See the bannerman rung's captain_flag.",
+        "rungs": [
+          { "tier": "freed",     "variant_index": 11, "id": "hoodedbow" },
+          { "tier": "militia",   "variant_index": 23, "id": "carbinesuit" },
+          { "tier": "veteran",   "variant_index": 22, "id": "turretnest",
+            "note": "DEMOTED from bannerman 2026-08-08. It is the single biggest silhouette in the whole archer block, which is exactly why it was the first pick -- but it is a seated ground emplacement, and furniture does not lead a moving retinue. Reads correctly as a heavy veteran emplacement." },
+          { "tier": "bannerman", "variant_index": 19, "id": "rocketshoulder", "captain": true,
+            "captain_grammar": "pose -- a standing, striding soldier shouldering a dramatic weapon, i.e. it reads as an INDIVIDUAL rather than as the largest object",
+            "captain_flag": "SOFTEST OF THE THREE CAPTAIN GRAMMARS. 'Dramatic weapon' is a weaker leadership tell than spearmen-line's raw bulk or archer-scout's lit-marker contrast. Promoted 2026-08-08 after turretnest was rejected; it is the best look ON DISK, not the right look. TRADE ACCEPTED AND STATED: the swap costs this branch its monotonic growth at the top rung -- veteran -> bannerman now DROPS ~20% on both footprint and mass instead of climbing. That is tolerated for the same reason the captain rung is exempt from the TTK monotonicity gate (adaptation.md sec.9): a captain is a role, not a bigger number. NAMED GAP, not a solved problem -- a purpose-generated 'gunnery sergeant, standing, pointing the retinue forward' look would beat this pick outright and is the one piece of new art this system actually wants.",
+            "retinue": { "size": 8, "unit_type": "archers", "tier": "militia", "variant_index": 11 },
+            "retinue_size_note": "JUDGMENT CALL -- see spearmen-line.",
+            "upkeep_per_retinue_body": null,
+            "upkeep_note": "OPEN (O7)." }
+        ],
+        "shop": {
+          "price_gold": null,
+          "price_note": "OPEN (O8), blocked on O4.",
+          "stock_rule": "Offers rungs on branches the player's pick did not grant.",
+          "captain_note": "bannerman rung not purchasable -- see spearmen-line."
+        }
+      }
+    ],
+    "unassigned_looks_note": "Named, not forced. Spearmen: 7 unused looks (indices 2/4/5/6/8/9/10) could seed a reach/polearm second branch. Archers: 3 unused (v2_bowextended, crystalstaff, arcbow) do NOT cohere into a fourth register on their own -- two arcane-ish looks is not a 3-rung branch. Briefs in docs/art/adaptation-roster.md; no art generated.",
+    "duplicate_constraint_note": "No two rungs on one ladder may be byte-identical twins. 13 byte-identical groups exist on disk and no tool in this repo compares sprites across families (adaptation.md sec.8). Checked: neither known duplicate group intersects the 14 distinct indices used above."
+  },
+
   "allocation": {
     "unit_claim_order": ["spearmen", "archers"],
     "unit_claim_order_note": "Spearmen claim their fair share of MaxSquads (docs/data/squads.json squad_manager.max_squads) first; Archers get the remainder. See squads.json squad_manager.typed_allocation for the formula this feeds."

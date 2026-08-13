@@ -1,0 +1,60 @@
+{
+  "$schema_note": "Floor-by-floor scaling schedule for the 3-floor vertical slice (task-003), closing the 'still open' scaling curve in SYSTEMS.md §2 / RTS-VERTICAL-SLICE.md §4. Population totals per floor are LOCKED from SYSTEMS.md §2 / economy.json (250/450/700) and are NOT re-declared as new numbers here -- this file only adds composition, Elite/Boss instance scheduling, and the retinue-growth-curve simulation results. Decisions + rationale: docs/design/scaling-curve.md. Columns/units/ranges: scaling-curve.schema.md. All values PROTOTYPE DIALS, unmeasured in-engine except where noted as reproducing GATE1-FUN-PROTOTYPE.md's measured baseline.",
+  "version": "0.1-vslice",
+  "last_updated": "2026-07-28",
+
+  "design_constants": {
+    "population_by_floor_note": "Locked in SYSTEMS.md §2 / economy.json scaling_curve.waves -- restated here only as a join key for floor_roster rows, not a new decision.",
+    "population_by_floor": { "1": 250, "2": 450, "3": 700 },
+    "militia_baseline_dps": 30,
+    "militia_baseline_dps_note": "Reference unit for the ArmyMultiplierVsMilitia column -- upgrades.json tier_ladder militia.dps, same reference the Armor system (entity-tiers.json RefBlow) already privileges.",
+    "gate1_calibration_note": "GATE1-FUN-PROTOTYPE.md 'shipped now' measured zero-input baseline, retinue flat-refilled to 120 before every wave. Used in scaling-curve.md §3 as the empirical calibration point for the population/army ratio comparison -- NOT re-measured here.",
+    "gate1_calibration": [
+      { "population": 250, "retinue_n": 120, "survivors_est": 110, "survival_rate": 0.92 },
+      { "population": 450, "retinue_n": 120, "survivors_est": 20, "survival_rate": 0.17 },
+      { "population": 700, "retinue_n": 120, "survivors_est": 0, "survival_rate": 0.0 }
+    ]
+  },
+
+  "floor_roster": [
+    { "Name": "floor1_fodder", "Floor": 1, "Tier": "Fodder", "PctOfPopulation": 85, "Count": 212 },
+    { "Name": "floor1_soldier_melee", "Floor": 1, "Tier": "Soldier_Melee", "PctOfPopulation": 15, "Count": 38 },
+    { "Name": "floor1_soldier_ranged", "Floor": 1, "Tier": "Soldier_Ranged", "PctOfPopulation": 0, "Count": 0 },
+
+    { "Name": "floor2_fodder", "Floor": 2, "Tier": "Fodder", "PctOfPopulation": 55, "Count": 248 },
+    { "Name": "floor2_soldier_melee", "Floor": 2, "Tier": "Soldier_Melee", "PctOfPopulation": 25, "Count": 112 },
+    { "Name": "floor2_soldier_ranged", "Floor": 2, "Tier": "Soldier_Ranged", "PctOfPopulation": 20, "Count": 90 },
+
+    { "Name": "floor3_fodder", "Floor": 3, "Tier": "Fodder", "PctOfPopulation": 45, "Count": 315 },
+    { "Name": "floor3_soldier_melee", "Floor": 3, "Tier": "Soldier_Melee", "PctOfPopulation": 25, "Count": 175 },
+    { "Name": "floor3_soldier_ranged", "Floor": 3, "Tier": "Soldier_Ranged", "PctOfPopulation": 30, "Count": 210 }
+  ],
+
+  "elite_boss_schedule": [
+    { "Name": "floor2_elite_01", "Floor": 2, "Tier": "Elite", "InstanceIndex": 1, "EncounterMode": "embedded_in_swarm" },
+    { "Name": "floor3_elite_01", "Floor": 3, "Tier": "Elite", "InstanceIndex": 1, "EncounterMode": "embedded_in_swarm" },
+    { "Name": "floor3_elite_02", "Floor": 3, "Tier": "Elite", "InstanceIndex": 2, "EncounterMode": "embedded_in_swarm" },
+    { "Name": "floor3_boss_01", "Floor": 3, "Tier": "Boss", "InstanceIndex": 1, "EncounterMode": "isolated_arena" }
+  ],
+
+  "retinue_growth_curve": [
+    { "Name": "balanced_floor1", "Scenario": "balanced", "Floor": 1, "TotalUnits": 40, "Archers": 8, "ArcherPct": 20, "SupplyCapacity": 60, "SupplyDemand": 40, "DegradeMultiplier": 1.0, "ArmyEffectiveDPS": 1104.0, "ArmyMultiplierVsMilitia": 36.8, "PopulationArmyRatio": 6.25 },
+    { "Name": "balanced_floor2", "Scenario": "balanced", "Floor": 2, "TotalUnits": 50, "Archers": 10, "ArcherPct": 20, "SupplyCapacity": 85, "SupplyDemand": 50, "DegradeMultiplier": 1.0, "ArmyEffectiveDPS": 1288.0, "ArmyMultiplierVsMilitia": 42.9, "PopulationArmyRatio": 9.0 },
+    { "Name": "balanced_floor3", "Scenario": "balanced", "Floor": 3, "TotalUnits": 60, "Archers": 12, "ArcherPct": 20, "SupplyCapacity": 110, "SupplyDemand": 60, "DegradeMultiplier": 1.0, "ArmyEffectiveDPS": 1702.0, "ArmyMultiplierVsMilitia": 56.7, "PopulationArmyRatio": 11.67 },
+
+    { "Name": "recruit_max_floor1", "Scenario": "recruit_max", "Floor": 1, "TotalUnits": 40, "Archers": 8, "ArcherPct": 20, "SupplyCapacity": 60, "SupplyDemand": 40, "DegradeMultiplier": 1.0, "ArmyEffectiveDPS": 1104.0, "ArmyMultiplierVsMilitia": 36.8, "PopulationArmyRatio": 6.25 },
+    { "Name": "recruit_max_floor2", "Scenario": "recruit_max", "Floor": 2, "TotalUnits": 60, "Archers": 12, "ArcherPct": 20, "SupplyCapacity": 60, "SupplyDemand": 60, "DegradeMultiplier": 1.0, "ArmyEffectiveDPS": 1472.0, "ArmyMultiplierVsMilitia": 49.1, "PopulationArmyRatio": 7.5 },
+    { "Name": "recruit_max_floor3", "Scenario": "recruit_max", "Floor": 3, "TotalUnits": 90, "Archers": 18, "ArcherPct": 20, "SupplyCapacity": 85, "SupplyDemand": 90, "DegradeMultiplier": 0.944, "ArmyEffectiveDPS": 1911.6, "ArmyMultiplierVsMilitia": 63.7, "PopulationArmyRatio": 7.78 }
+  ],
+
+  "elite_boss_ttk_sim": [
+    { "Name": "balanced_floor2_elite", "Scenario": "balanced", "Floor": 2, "Target": "Elite", "ArmyN": 50, "TTKSeconds": 2.43, "MeleeDPS": 293.3, "MeleeBodiesCapped": 20, "ArcherDPS": 34.7, "ArcherCount": 10, "HeroDPS": 41.7 },
+    { "Name": "recruit_max_floor2_elite", "Scenario": "recruit_max", "Floor": 2, "Target": "Elite", "ArmyN": 60, "TTKSeconds": 2.58, "MeleeDPS": 266.7, "MeleeBodiesCapped": 20, "ArcherDPS": 40.0, "ArcherCount": 12, "HeroDPS": 41.7 },
+
+    { "Name": "balanced_floor3_elite", "Scenario": "balanced", "Floor": 3, "Target": "Elite", "ArmyN": 60, "TTKSeconds": 1.98, "TTKSecondsForTwo": 3.97, "MeleeDPS": 350.0, "MeleeBodiesCapped": 20, "ArcherDPS": 62.0, "ArcherCount": 12, "HeroDPS": null },
+    { "Name": "recruit_max_floor3_elite", "Scenario": "recruit_max", "Floor": 3, "Target": "Elite", "ArmyN": 90, "TTKSeconds": 3.03, "TTKSecondsForTwo": 6.07, "MeleeDPS": 195.1, "MeleeBodiesCapped": 20, "ArcherDPS": 60.0, "ArcherCount": 18, "HeroDPS": null },
+
+    { "Name": "balanced_floor3_boss", "Scenario": "balanced", "Floor": 3, "Target": "Boss", "ArmyN": 60, "TTKSeconds": 7.82, "MeleeDPS": 687.5, "MeleeBodiesCapped": 45, "ArcherDPS": 40.0, "ArcherCount": 12, "HeroDPS": 39.4 },
+    { "Name": "recruit_max_floor3_boss", "Scenario": "recruit_max", "Floor": 3, "Target": "Boss", "ArmyN": 90, "TTKSeconds": 13.69, "MeleeDPS": 338.9, "MeleeBodiesCapped": 45, "ArcherDPS": 60.0, "ArcherCount": 18, "HeroDPS": 39.4 }
+  ]
+}

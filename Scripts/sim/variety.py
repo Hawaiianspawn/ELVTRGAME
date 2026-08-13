@@ -224,18 +224,20 @@ def build_enemy_groups(scenario: dict) -> list[cm.WaveGroup]:
 # ---------------------------------------------------------------------------
 # task-086: retinue sub-type identity mode. NOT a roll over a huge
 # combinatorial space like the hero-builds mode above — docs/data/scenarios/
-# retinue-subtypes.json is a small, FIXED set of 7 candidates, so this fields
-# all of them at once (every candidate present, one WaveGroup each) rather
-# than randomly sampling a subset. The scenario's 'spearmen' Composition
-# row(s) are replaced by that same total headcount split across the 7
-# candidates; every other row (e.g. Archers) is carried through UNCHANGED via
-# the normal retinue_fighter() path, and the Enemy side is untouched — a
-# like-for-like swap of the melee identity axis only, per task-086's scope
-# fence. `--seed` is OPTIONAL here (unlike hero-builds mode): omitted, the
-# split is EQUAL across all 7 (the primary, deterministic comparison); a seed
-# draws a random per-candidate headcount split instead (random.Random(seed)
-# only), a robustness check on whether the ranking holds regardless of how
-# the fixed total headcount happens to be portioned across candidates.
+# retinue-subtypes.json is a small, FIXED set of candidates (task-086: 5 real
+# silhouettes + 2 probes; task-094 extended this to 10 real silhouettes + the
+# same 2 probes), so this fields all of them at once (every candidate
+# present, one WaveGroup each) rather than randomly sampling a subset. The
+# scenario's 'spearmen' Composition row(s) are replaced by that same total
+# headcount split across every fielded candidate; every other row (e.g.
+# Archers) is carried through UNCHANGED via the normal retinue_fighter()
+# path, and the Enemy side is untouched — a like-for-like swap of the melee
+# identity axis only, per task-086's scope fence. `--seed` is OPTIONAL here
+# (unlike hero-builds mode): omitted, the split is EQUAL across every fielded
+# candidate (the primary, deterministic comparison); a seed draws a random
+# per-candidate headcount split instead (random.Random(seed) only), a
+# robustness check on whether the ranking holds regardless of how the fixed
+# total headcount happens to be portioned across candidates.
 # ---------------------------------------------------------------------------
 
 def random_split(total: float, n: int, rng: random.Random) -> list[float]:
@@ -305,12 +307,14 @@ def run_subtypes(scenario_name: str, seed: int | None) -> dict:
     total_dmg_dealt_by_retinue = result.get("total_damage_dealt", {}).get("enemy", 0.0)
 
     candidate_groups = {wg.name: wg for wg in retinue_groups if wg.name in candidate_ids}
-    # share_of_candidate_damage's denominator is the sum of the 7 candidates'
-    # OWN damage only, not total_dmg_dealt_by_retinue — floor1-swarm-wave also
-    # carries an unchanged Archers row through retinue_groups, which deals
-    # damage of its own and is correctly excluded from `ranked` (only the
-    # melee identity axis is under test), so it must also be excluded from
-    # this share's denominator or the 7 shares would never sum to 1.0.
+    subtype_defs = dl.load_retinue_subtypes()["candidates"]
+    # share_of_candidate_damage's denominator is the sum of ALL fielded
+    # candidates' (real silhouettes + probes) OWN damage only, not
+    # total_dmg_dealt_by_retinue — floor1-swarm-wave also carries an
+    # unchanged Archers row through retinue_groups, which deals damage of
+    # its own and is correctly excluded from `ranked` (only the melee
+    # identity axis is under test), so it must also be excluded from this
+    # share's denominator or the shares would never sum to 1.0.
     total_dmg_dealt_by_candidates = sum(dmg_by_group.get(cid, 0.0) for cid in candidate_ids)
     ranked = []
     for cid in candidate_ids:
@@ -327,6 +331,12 @@ def run_subtypes(scenario_name: str, seed: int | None) -> dict:
         )
         ranked.append({
             "candidate": cid,
+            # task-094: a probe (e.g. v2_lanceout_alt_sweep) is a synthetic
+            # alt-hypothesis test on top of a real silhouette's shape, not one
+            # of the kept, judged silhouettes itself — see retinue-subtypes.json
+            # candidates.*.is_probe. Threaded through so reporting can rank the
+            # real silhouettes in their own table without the probes in it.
+            "is_probe": bool(subtype_defs[cid].get("is_probe", False)),
             "max_hp": fighter["max_hp"], "dps": fighter["dps"], "engage_range": fighter["engage_range"],
             "targets_per_hit": fighter["targets_per_hit"],
             "effective_cleave": round(min(fighter["targets_per_hit"], reach), 2),
@@ -364,11 +374,30 @@ def run_subtypes(scenario_name: str, seed: int | None) -> dict:
     }
 
 
+def _print_subtype_table(rows: list[dict], n_fielded: int) -> None:
+    shr_label = f"shr-of-{n_fielded}"
+    header = (f"  {'#':>2} {'candidate':<32} {'hp':>6} {'dps':>6} {'engage':>7} {'tgt/hit':>7} "
+              f"{'eff.cleave':>10} {'count':>7} {'surv%':>6} {'dmg/unit':>9} {shr_label:>8} {'est kills':>9}")
+    print(header)
+    for rank, row in enumerate(rows, start=1):
+        print(f"  {rank:>2} {row['candidate']:<32} {row['max_hp']:>6.1f} {row['dps']:>6.1f} "
+              f"{row['engage_range']:>7.1f} {row['targets_per_hit']:>7} {row['effective_cleave']:>10.2f} "
+              f"{row['count_start']:>7.2f} {row['survival_rate']*100:>5.1f}% {row['damage_per_unit_committed']:>9.2f} "
+              f"{row['share_of_candidate_damage']*100:>7.1f}% {row['estimated_kills']:>9.2f}")
+    print(f"  {shr_label} = this candidate's share of ALL {n_fielded} fielded candidates' (real + probe) own "
+          "combined damage output (excludes any unchanged Archers row).")
+
+
 def print_subtype_report(data: dict) -> None:
     result = data["sim_result"]
-    print(f"\n=== Retinue sub-type identity roll (task-086): {data['scenario_display_name']} ({data['scenario']}) ===")
+    ranked = data["ranked_candidates"]
+    n_fielded = len(ranked)
+    real_rows = [r for r in ranked if not r["is_probe"]]
+    probe_rows = [r for r in ranked if r["is_probe"]]
+    print(f"\n=== Retinue sub-type identity roll: {data['scenario_display_name']} ({data['scenario']}) ===")
     print(f"  split={data['split']}  spearmen headcount replaced={data['spearmen_headcount_replaced']:.0f} "
-          f"(spread across {len(data['ranked_candidates'])} candidates from docs/data/scenarios/retinue-subtypes.json)")
+          f"(spread across {n_fielded} candidates from docs/data/scenarios/retinue-subtypes.json: "
+          f"{len(real_rows)} real silhouettes + {len(probe_rows)} synthetic probes, all fielded at once)")
     print()
     print("  --- WAVE-ATTRITION result. docs/sim/LIMITATIONS.md section 1: this model does NOT reproduce")
     print("  --- GATE1's measured survival at committed defaults. Ranks candidates RELATIVE TO EACH OTHER")
@@ -379,16 +408,13 @@ def print_subtype_report(data: dict) -> None:
     print(f"  Enemy ({data['scenario']}'s composition, unchanged): {result['enemy_start']:.0f} start -> "
           f"{result['enemy_survivors']:.1f} survivors")
     print()
-    header = (f"  {'#':>2} {'candidate':<26} {'hp':>6} {'dps':>6} {'engage':>7} {'tgt/hit':>7} "
-              f"{'eff.cleave':>10} {'count':>7} {'surv%':>6} {'dmg/unit':>9} {'shr-of-7':>8} {'est kills':>9}")
-    print(header)
-    for rank, row in enumerate(data["ranked_candidates"], start=1):
-        print(f"  {rank:>2} {row['candidate']:<26} {row['max_hp']:>6.1f} {row['dps']:>6.1f} "
-              f"{row['engage_range']:>7.1f} {row['targets_per_hit']:>7} {row['effective_cleave']:>10.2f} "
-              f"{row['count_start']:>7.2f} {row['survival_rate']*100:>5.1f}% {row['damage_per_unit_committed']:>9.2f} "
-              f"{row['share_of_candidate_damage']*100:>7.1f}% {row['estimated_kills']:>9.2f}")
-    print("  shr-of-7 = this candidate's share of the 7 candidates' own combined damage output "
-          "(excludes any unchanged Archers row).")
+    print(f"  --- {len(real_rows)} REAL SILHOUETTES, ranked (this is the comparison that matters) ---")
+    _print_subtype_table(real_rows, n_fielded)
+    if probe_rows:
+        print()
+        print(f"  --- {len(probe_rows)} PROBES (synthetic alt-hypothesis tests, NOT kept/judged silhouettes — ")
+        print("  --- shown for reference only, excluded from the real-silhouette ranking above) ---")
+        _print_subtype_table(probe_rows, n_fielded)
     print()
 
 

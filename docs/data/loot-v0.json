@@ -1,0 +1,85 @@
+{
+  "$schema_note": "Loot v0 for the vertical slice (RTS-VERTICAL-SLICE.md §4: 'unit orbs + healing + ~4-6 stacking items'). This file owns the NEW real-time battle-drop layer -- Unit Orb (units), Kindling Ember (healing), and Rally Ember (buffs) -- as flat, DataTable-importable tables. A fourth layer (4-6 permanent stacking run-items) is ALREADY DECIDED and lives in docs/data/upgrades.json (SYSTEMS.md §3, 2026-07-24); it is referenced here for a complete index, never redefined. Decisions + rationale: docs/design/loot-v0.md. Columns/units/ranges: loot-v0.schema.md. All values PROTOTYPE DIALS, unmeasured in-engine -- Monte Carlo only (loot-v0.md 'Simulation notes').",
+  "version": "0.2-vslice",
+  "last_updated": "2026-07-28",
+
+  "design_constants": {
+    "pickup_radius": 150,
+    "pickup_radius_note": "uu. Reuses feeding-distraction.md's Swarm.Feeding.ClaimRadius value and its rationale exactly: close enough to read as 'standing next to it' (Swarm.MeleeRange is 95uu), inside GridCellSize (250uu) so the pickup pass reuses the existing 3x3-cell neighbour scan. Proposed CVar: Swarm.Loot.PickupRadius.",
+    "heal_burst_radius": 250,
+    "heal_burst_radius_note": "uu. Kindling Ember only -- the AoE radius a heal burst applies in, centred on the drop's location at the moment of pickup. Set to exactly one GridCellSize so the burst query is the same cheap grid walk as everything else in this file. Proposed CVar: Swarm.Loot.HealBurstRadius.",
+    "drop_despawn_time": 20,
+    "drop_despawn_time_note": "Seconds an uncollected drop persists before it is removed. Generous relative to the measured mid-combat spacing (25-51uu median, GATE1-FUN-PROTOTYPE.md §3a) against a 150uu pickup radius -- most drops are collected in well under a second of spawning; this mainly exists to clear drops from kills that happen away from the main scrum (e.g. a lone archer picked off at range). Proposed CVar: Swarm.Loot.DespawnTime. All uncollected drops are also cleared at floor transition (no carry-over), matching feeding-distraction.md §5.6's round-end teardown precedent.",
+    "max_active_drops": 60,
+    "max_active_drops_note": "Shared population cap across both drop types, combined. Simulation (loot-v0.md) never produces more than ~19 drops concurrently spawned even at floor-3 peak rates, so this cap is a safety valve, not an expected-to-bind limit -- same 'graceful skip' posture as feeding.json's MaxCorpsesPerTeam: if a new drop would exceed the cap, the oldest uncollected drop is removed to make room, and if none is available (shouldn't happen at these volumes) the new drop simply isn't created. Proposed CVar: Swarm.Loot.MaxActiveDrops.",
+    "assumed_pickup_rate": 0.92,
+    "assumed_pickup_rate_note": "NOT measured in-engine -- a Fermi estimate used only for this doc's Monte Carlo, standing in for 'fraction of spawned drops that get collected before despawn/floor-end'. Justified by the 150uu pickup radius sitting well inside GATE1's measured mid-combat spacing (median 25-51uu) for kills that happen inside the main scrum; the ~8% miss rate represents kills at the fringe of the fight (an archer picked off alone, a kill just before a floor transition). Task-054-equivalent implementation should re-derive this once a real sim exists, the same caveat every other Fermi estimate in docs/data/ carries.",
+    "resolution_pattern_note": "All three drop types use the same 'drop-centric, notice-don't-seek' resolution as feeding-distraction.md's corpse claim pass (§5.2 of that spec): no unit ever breaks off its current behaviour to walk toward a drop. A drop is collected only as an incidental consequence of a friendly entity's existing combat/formation movement carrying it within PickupRadius. Implementation should reuse that exact pattern (and, where the corpse array precedent applies, the same small-POD-record-in-USwarmSubsystem shape) rather than inventing a second one -- see loot-v0.md 'Handoffs'.",
+    "buff_duration": 15,
+    "buff_duration_note": "Seconds a single Rally Ember application lasts. Picking up another Rally Ember while one is active refreshes the duration rather than adding a second, independent timer -- one global expiry clock, not N per-stack clocks (Design Law 5: no per-pickup bookkeeping). Proposed CVar: Swarm.Loot.BuffDuration.",
+    "buff_per_stack_pct": 0.10,
+    "buff_per_stack_pct_note": "DPS multiplier granted per stack, applied identically to the hero and every retinue unit (GDD §8's 'feeds both hero and retinue' twist). A global multiplier read at damage-application time -- the same shape the Supply degrade multiplier already uses (economy.json), not a new per-unit fragment. Proposed CVar: Swarm.Loot.BuffPerStackPct.",
+    "buff_max_stacks": 3,
+    "buff_max_stacks_note": "Hard cap on concurrent stacks (+30% DPS max). A diminishing-returns clamp on this one pickup, not a claim about the power curve's own cap -- Supply/upkeep remains the real governor (SYSTEMS.md §7); this cap only stops a single lucky drop cluster from producing an unbounded, unintended spike. A pickup beyond the cap still refreshes buff_duration on the existing stacks."
+  },
+
+  "drop_types": [
+    {
+      "Name": "unit_orb_working",
+      "DisplayName": "Freed Orb (working name)",
+      "WorkingNameOnly": true,
+      "Kind": "unit_recruit",
+      "CollectedBy": "any friendly entity (hero or retinue)",
+      "Effect": "Instantly adds +1 Freed-tier unit to the retinue, via the same spawn entry point growth-site Recruit already uses (SwarmSpawn.h). The new unit is NOT upkeep-exempt -- it adds +1 to Supply demand like any other Freed unit (economy.json upkeep_per_unit=1), so orbs stay inside the single existing definition of what a unit costs rather than creating a second one.",
+      "Notes": "Deliberately a single, unconditional effect -- no rarity tier, no roll table, no evolution. Out of scope per the task brief; the real loot/evolution system is still deferred (GDD §8)."
+    },
+    {
+      "Name": "kindling_ember_working",
+      "DisplayName": "Kindling Ember (working name)",
+      "WorkingNameOnly": true,
+      "Kind": "heal_burst",
+      "CollectedBy": "first friendly entity to come within PickupRadius (drop-centric pass)",
+      "Effect": "On pickup, applies a single AoE heal burst centred on the drop's location (radius = design_constants.heal_burst_radius): the hero, if inside the burst, is healed HeroHealAmount HP; every retinue unit inside the burst is healed RetinueHealAmount HP. A flat, uniform formula applied once per pickup -- no per-unit special-casing, no new per-tick system (Design Law 5).",
+      "HeroHealAmount": 25,
+      "RetinueHealAmount": 15,
+      "Notes": "HeroHealAmount is 5% of the hero's 500 MaxHP (GATE1-FUN-PROTOTYPE.md §3 tuning history). RetinueHealAmount (15) is a little over half a Militia blow (27 -- entity-tiers.json RefBlow) -- a real, felt save, not a full reset. Preventative only: cannot revive a dead unit, consistent with Vanguard Veteran permadeath (CLASSES.md §5/GDD §6) staying meaningful."
+    },
+    {
+      "Name": "rally_ember_working",
+      "DisplayName": "Rally Ember (working name)",
+      "WorkingNameOnly": true,
+      "Kind": "temp_buff",
+      "CollectedBy": "first friendly entity to come within PickupRadius (drop-centric pass)",
+      "Effect": "On pickup, applies one stack of a temporary DPS buff (design_constants.buff_per_stack_pct, default +10%) to the hero and the whole retinue simultaneously, for design_constants.buff_duration seconds (default 15s). Stacks additively up to design_constants.buff_max_stacks (3, i.e. +30% DPS cap); a pickup while already at the cap refreshes the duration instead of adding a fourth stack. One global multiplier and one global expiry clock -- no per-unit fragment, no per-stack bookkeeping (Design Law 5).",
+      "Notes": "The temporary, real-time counterpart to the growth-site 'Whetstone' item (upgrades.json), which grants a smaller PERMANENT +3 DPS/stack for an Ember spend. Rally Ember is free, automatic, and expires -- it is a mid-fight spike tool (Design Law 1's 'breakpoints and run-defining spikes'), not a build-shaping choice, and the two stack independently without double-counting (Rally Ember's %% multiplier applies on top of whatever flat DPS Whetstone stacks have already set). Named for the Vanguard's own 'Rescue & Rally' growth verb and 'To the Banner' rally stance (CLASSES.md §1) -- a battlefield fervor effect, deliberately NOT themed as 'the light flares', which is reserved narrative territory for the Lampbearer ('the light sustains', CLASSES.md §4)."
+    }
+  ],
+
+  "drop_sources": [
+    { "Name": "fodder_drops",          "Tier": "Fodder",         "UnitOrbChance": 0.0,   "KindlingEmberChance": 0.015, "BattleBuffChance": 0.0,   "UnitOrbGuaranteed": 0, "KindlingEmberGuaranteed": 0, "BattleBuffGuaranteed": 0 },
+    { "Name": "soldier_melee_drops",   "Tier": "Soldier_Melee",  "UnitOrbChance": 0.006, "KindlingEmberChance": 0.03,  "BattleBuffChance": 0.01,  "UnitOrbGuaranteed": 0, "KindlingEmberGuaranteed": 0, "BattleBuffGuaranteed": 0 },
+    { "Name": "soldier_ranged_drops",  "Tier": "Soldier_Ranged", "UnitOrbChance": 0.006, "KindlingEmberChance": 0.03,  "BattleBuffChance": 0.01,  "UnitOrbGuaranteed": 0, "KindlingEmberGuaranteed": 0, "BattleBuffGuaranteed": 0 },
+    { "Name": "elite_drops",           "Tier": "Elite",          "UnitOrbChance": 0.0,   "KindlingEmberChance": 0.0,   "BattleBuffChance": 0.0,   "UnitOrbGuaranteed": 1, "KindlingEmberGuaranteed": 1, "BattleBuffGuaranteed": 1 },
+    { "Name": "boss_drops",            "Tier": "Boss",           "UnitOrbChance": 0.0,   "KindlingEmberChance": 0.0,   "BattleBuffChance": 0.0,   "UnitOrbGuaranteed": 2, "KindlingEmberGuaranteed": 2, "BattleBuffGuaranteed": 1 }
+  ],
+  "drop_sources_note": "Fodder never drops a Unit Orb or a Rally Ember (Design Law 5 + Law 6: at 200-300+ fodder kills per floor, a per-fodder chance on either would flood the pickup pass and dilute the 'this is a special reward' read the tier is meant to carry -- see entity-tiers.md's own Fodder-vs-Soldier identity split). Fodder DOES drop Kindling Ember, since healing carries no economy or power-curve risk and a frequent low-stakes drop matches the task brief's VS-style cadence. Elite/Boss guarantees are a fixed count on the tier's death, not a per-kill chance -- they are single, embedded/isolated-arena instances (scaling-curve.json elite_boss_schedule), not part of the Mass-Entity population count.",
+
+  "stacking_items_reference": {
+    "note": "Loot v0's third component (RTS-VERTICAL-SLICE.md §4's '4-6 stacking items') is ALREADY DECIDED and is NOT redefined by this file -- SYSTEMS.md §3 (2026-07-24) closed it against docs/data/upgrades.json's items.catalog. Listed here only so loot-v0.json is a complete index of what 'Loot v0' means end to end, without creating a second source of truth for numbers this repo already owns elsewhere.",
+    "catalog_ids": ["muster_horn", "whetstone", "iron_rations", "war_drum", "field_standard", "oath_ledger"],
+    "source_of_truth": "docs/data/upgrades.json items.catalog",
+    "acquisition": "growth-site 'item' action (docs/data/growth-sites.json site.actions), offer-3-take-1 -- a discrete, curated choice at a breather. This is a different delivery mechanism from unit_orb_working/kindling_ember_working above, which are automatic, real-time battle pickups with no menu -- see loot-v0.md §1 for why Loot v0 is two delivery grains, not one."
+  },
+
+  "simulation_summary": {
+    "note": "Headline outputs of the Monte Carlo in loot-v0.md 'Simulation notes' (20,000-run binomial model over scaling-curve.json's floor_roster counts). Reproduced here as a quick-reference row set; the full method, assumptions, and the Supply-interaction check live in the design doc.",
+    "runs": 20000,
+    "assumed_pickup_rate": 0.92,
+    "per_floor_unit_orbs_collected_expected": { "floor1": 0.21, "floor2": 2.03, "floor3": 5.80 },
+    "cumulative_unit_orbs_collected_expected": 8.04,
+    "per_floor_kindling_embers_collected_expected": { "floor1": 4.00, "floor2": 9.92, "floor3": 18.65 },
+    "per_floor_rally_embers_collected_expected": { "floor1": 0.34, "floor2": 2.78, "floor3": 6.31 },
+    "floor1_zero_orb_probability": 0.794,
+    "floor1_zero_buff_probability": 0.686
+  }
+}
