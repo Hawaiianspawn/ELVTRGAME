@@ -5,9 +5,13 @@ Wired in .claude/settings.json. Reads the hook payload on stdin.
 
 ASK, on shell commands:
 
-  Any invocation of paca.py with a privileged verb — approve, reject, park, done.
+  Any invocation of paca.py with a verb only the owner signs — reject, park, done.
   These are the owner's verdicts on a task, and the prompt this raises IS the
   decision point: an agent must never authorise its own work.
+
+  `approve` is exempt: approval is gated by a fresh reviewer agent instead
+  (.claude/skills/host/SKILL.md §5), so it runs without a prompt. Paca's
+  activity log plus the reviewer's verdict is the audit trail.
 
   It has to be enforced here rather than by omission from an allowlist:
   .claude/settings.local.json carries a blanket `Bash(py *)` allow rule, so
@@ -39,7 +43,7 @@ import sys
 # about interpreter and path form — `py Scripts\paca.py`, `python3 C:/.../paca.py`
 # and `& paca.py` must all be caught.
 PRIVILEGED_CMD = re.compile(
-    r"paca\.py[\"']?\s+(approve|reject|park|done)\b", re.IGNORECASE)
+    r"paca\.py[\"']?\s+(reject|park|done)\b", re.IGNORECASE)
 
 
 def decide(decision: str, reason: str) -> None:

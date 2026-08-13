@@ -1,6 +1,6 @@
 ---
 name: host
-description: Take one or more features the owner wants built, turn each into a lock-checked task, work out which of them are independent, and dispatch the independent ones to teammates in parallel after a single approval. Use when the user runs /host, hands over a feature idea or a list of them to be planned and built, asks what can be worked on at the same time, asks to turn something into a task and get it started, asks to dispatch an already-approved backlog task, or asks what is currently running.
+description: Take one or more features the owner wants built, turn each into a lock-checked task, work out which of them are independent, and dispatch the independent ones to teammates in parallel once a reviewer agent passes the batch — no owner approval prompt. Use when the user runs /host, hands over a feature idea or a list of them to be planned and built, asks what can be worked on at the same time, asks to turn something into a task and get it started, asks to dispatch an already-approved backlog task, or asks what is currently running.
 ---
 
 # host — features in, parallel teammates out
@@ -14,8 +14,8 @@ the independent ones at once.**
       → clarify only what would change the work — as many rounds as it takes (§2)
       → draft a task per feature, validated and lock-checked (§3)
       → ask `waves` what can run at once, if there is more than one task (§3a)
-      → present the plan and ask for the one verdict (§4, §5) — then stop
-      → owner approves → dispatch wave 1, all at once, and post the board (§6)
+      → present the plan, then put it to the quality gate (§4, §5)
+      → gate passes → approve, dispatch wave 1, all at once, and post the board (§6)
       → one-line receipt as each lands; full evidence + a close button, once (§7)
       → commit and push what landed (§7a)
       → the run ends when the batch closes. Say so and stop (§8)
@@ -33,29 +33,28 @@ the independent ones at once.**
 
 ## The interruption budget
 
-This is the constraint the rest of the skill serves. **Verdict and close together cost the
-owner at most two questions and two permission prompts, and never more. Clarify (§2) sits
-outside that cap — ask as many rounds as the plan genuinely needs:**
+This is the constraint the rest of the skill serves. **The close costs the owner at most
+one question and one permission prompt, and never more. Approval costs zero — it is the
+quality gate's job (§5). Clarify (§2) sits outside that cap — ask as many rounds as the
+plan genuinely needs:**
 
 | | What | When |
 |---|---|---|
 | Clarify | Uncapped — the good case is still skipping it entirely | §2 |
-| Question 1 | **The verdict.** Build this, or not | §5 |
-| Prompt 1 | `approve <ids>` — the signature on that verdict | §5 |
-| Question 2 | **The close.** Did the evidence clear the bar | §7 |
-| Prompt 2 | `done <ids>` — the signature that it landed | §7 |
+| Question 1 | **The close.** Did the evidence clear the bar | §7 |
+| Prompt 1 | `done <ids>` — the signature that it landed | §7 |
 
-**Every decision is a button, never typing.** If the owner has to choose — the plan gate
-(§5), the close gate (§7), a clarification (§2), which follow-up path a refusal takes,
+**Every decision is a button, never typing.** If the owner has to choose — the close gate
+(§7), a clarification (§2), which follow-up path a refusal takes,
 what to do about a goal that is already filed — it arrives as an `AskUserQuestion` with
 the real options as buttons. The owner should never have to compose a verdict in prose or
 type an id list; the permission prompt behind a gate is the signature, not the decision.
 Prose answers are always accepted, never required.
 
-**A follow-up spends the same slot, not a new one.** When the owner clicks `Revise first`,
-`Don't build this` or `Close some`, the next question is that decision continuing — ask it
-as buttons and it does not breach the budget. Two questions to settle one verdict is fine;
-a second *independent* question is not.
+**A follow-up spends the same slot, not a new one.** When the owner clicks `Send NNN back`
+or `Close some`, the next question is that decision continuing — ask it as buttons and it
+does not breach the budget. Two questions to settle one close is fine; a second
+*independent* question is not.
 
 Anything else that wants an owner decision is a bug in the plan, not a question to ask.
 Do not ask about models, do not ask the owner to confirm a feature split, do not ask
@@ -230,7 +229,7 @@ exist over running eight teammates at once.
 generates serialises. Five design specs is a genuine five-wide wave; five things that all
 need the editor is a queue, and saying that plainly is more useful than dressing it as a fan.
 
-## 4 · Present, and stop
+## 4 · Present, then gate
 
 Show one block per task. Everything needed to disagree in a sentence, nothing else — **no
 score arithmetic.** The owner brought this feature; it is not being ranked against a queue.
@@ -250,12 +249,12 @@ task-044 · Flame flicker scales with army size                 localhost:8090 �
 **`confidence` is required and it is about the plan, not the outcome.** High means the
 scope, the `owns:` set and the evidence bar all survived contact with the repo. Medium or
 low means name what is soft — an unverified canon claim, an `owns:` glob you guessed, a
-teammate that may not have the tools. The owner approves with one click, so the line that
-tells them when *not* to is the one carrying its weight.
+teammate that may not have the tools. The reviewer (§5) reads this line first, and a soft
+spot named here is a soft spot it can check instead of rediscover.
 
 The `sonnet builds` half of the `agent` line is the last cheap moment to say "this one is
-too fiddly for Sonnet". If you think the default build model is wrong for this task, say so
-there and carry it into §5 as an option.
+too fiddly for Sonnet". If you think the default build model is wrong for this task, say
+so there — the owner can override in prose before dispatch.
 
 **For several features, group the blocks by wave** — the schedule is the headline:
 
@@ -278,68 +277,53 @@ you get back         <what lands when the epic closes>
 Name the serialisation in the owner's terms. **Never present a wave the scheduler did not
 produce** — if your prose and `waves` disagree, `waves` is right and the prose is a bug.
 
-The batch is approved or refused whole. A plan the owner can only half-approve was cut
-wrong — go back to §1 and re-split rather than offering per-task verdicts.
+The batch stands or falls whole. A plan that only half-passes the gate was cut wrong —
+go back to §1 and re-split rather than dispatching the passing half around the failure.
 
-Then ask for the verdict (§5) and **stop**. Do not start work. Do not spawn. Do not read
-approval into enthusiasm — "looks good" about the *shape* of a plan is not "go".
+Then run the quality gate (§5). Do not spawn anything until it passes — the presentation
+is the owner's window to interject, and a prose interjection overrides the gate both ways.
 
 If the honest recommendation is that this should not be built — already done, better
 waited on, needs a decision first — say that instead of presenting a plan, and still ask
 with `AskUserQuestion`: the recommendation first, the plan-anyway option second.
 Recommending work not happen is part of the job; making the owner argue back in prose is not.
 
-## 5 · The verdict — the plan gate
+## 5 · The quality gate — an agent approves, not a prompt
 
-**Ask with `AskUserQuestion`, in the same turn as the plan.** The owner should never have
-to type a verdict. One question, header `Verdict`, `multiSelect: false`:
+**The owner is not asked and no permission prompt fires.** Approval is earned from a
+fresh reviewer agent that judges the drafts cold, then recorded with `py Scripts/paca.py
+approve <ids>` — the hook exempts `approve`; `reject`, `park` and `done` still prompt.
 
-| Option | What it means | Then |
-|---|---|---|
-| `Approve all N & run wave 1` | go | §6, once per wave-1 task |
-| `Approve, hold dispatch` | approved, not spawning yet | run `approve`, then stop |
-| `Revise first` | the plan is wrong somewhere | one follow-up `AskUserQuestion` naming the *specific* soft spots you already flagged as options — scope, evidence bar, agent, model — then redraft and re-present |
-| `Don't build this` | `reject` or `park`, with a reason | one follow-up `AskUserQuestion`, header `Reject or park`, the likely reasons as options |
+Spawn **one reviewer for the batch** — `Agent`, `subagent_type: claude`, fresh context.
+It gets the task ids, the wave plan, and this bar; it does **not** get this conversation,
+because a reviewer that inherits the drafter's reasoning inherits its blind spots:
 
-**The follow-up is buttons too.** Never answer a `Revise first` click with "what would you
-like changed?" — you drafted the plan, so you know the two or three places it could be
-wrong. Put those up as options. `Other` is always there for the case you missed.
+- `validate` passes and the wave plan came from `waves`, not prose
+- `owns:` covers every path the spawn prompt tells the teammate to write — and no more
+- the evidence bar is checkable by reading the artifact, not by trusting the teammate's word
+- the spawn prompt is self-contained: canon warnings, clarified answers, an explicit
+  must-not-touch list
+- the feature is not already built — grep canon (`GDD.md`, `SYSTEMS.md`, `CLASSES.md`)
+  before passing this one
+- `agent:` can actually do the work — tools and shell per §3's table
 
-**The question is about the batch, not the tasks.** One click approves every task in the
-plan and starts every task in wave 1 — put the number in the option label so the owner
-knows how many teammates one click launches. Do not offer one option per task.
+The reviewer returns **pass or fail per task, with the failing reason**. All pass →
+`approve <ids>` as one batched command — every task in the plan including later waves —
+and go to §6. A fail → fix the draft, re-run the reviewer on that task only. A fail that
+needs the owner's *intent* to resolve — not a mechanical fix — is a §2 clarification, the
+one case that still asks.
 
-Name the build model in the recommended option's `description` — *dispatches to 3 Sonnet
-teammates* — so approving is also approving the model. If §4 flagged a task wanting a
-different model, that is a fifth option (`Approve & dispatch on Opus`), not something the
-owner has to type.
-
-Lead each option's `description` with your confidence and the reason for it — `High
-confidence: locks are clean, evidence is a runnable build.` **Only put approve first when
-you actually recommend it.** If the honest read is `Revise first`, that carries the
-`(Recommended)` tag — a question whose first option is always "yes" is a rubber stamp with
-extra steps.
-
-The click is the owner's decision. **The record is still the hook.** `py
-Scripts/paca.py approve NNN` raises a permission prompt from `Scripts/paca_guard.py`,
-and **that prompt is the verdict** — Paca's activity log records who changed it. `AskUserQuestion` sits in
-front of that gate and never replaces it — never route around the prompt, never suggest
-allowlisting it. Two clicks for an approval is the correct cost: the first is the decision,
-the second is the signature.
-
-If the owner answers in prose — "approve 1,3, park 2" — take it. The question exists to
-make deciding cheap, not to insist on a format.
-
-**A batch approves as one command** — `approve 63,64,65,66`, every task in the plan
-including later waves. One prompt, one dry-run against the lock table, one batched
-transition. Approving one at a time trains the owner to wave the gate through, which is the one
-thing the gate cannot survive.
+**The reviewer is never the lead.** The lead wrote the drafts; approving its own work is
+the thing the old prompt existed to prevent. The reviewer's verdict in the turn plus
+Paca's activity log is the audit trail the prompt used to be — quote the reviewer's
+per-task reasons in the turn that approves, so the record of *why* survives.
 
 Approving a wave-2 task is safe and is the point — `approved` is permission, `dispatch` is
 the schedule, and `dispatch` refuses anything whose dependencies are still open.
 
-If the owner changes a score input instead, edit the task's score fields in Paca. Score edits
-are not privileged — argue freely.
+An owner interjection in prose — "don't build 64", "hold dispatch" — overrides the gate
+in both directions, before or after it runs. If the owner changes a score input, edit the
+task's score fields in Paca. Score edits are not privileged — argue freely.
 
 ## 6 · Dispatch, then post the board
 
@@ -403,9 +387,8 @@ one block, with `done <ids>` as a single batched command and therefore a single 
 Big changes hand over as a runnable build or on-screen evidence, never a diff plus "it
 works" (`show-a-build-for-review`). The owner launches the editor for review.
 
-**Then ask for the close with `AskUserQuestion`, in the same turn as the evidence** — the
-mirror of §5, header `Close`, `multiSelect: false`. The owner clicks; they never type an
-id list:
+**Then ask for the close with `AskUserQuestion`, in the same turn as the evidence** —
+header `Close`, `multiSelect: false`. The owner clicks; they never type an id list:
 
 | Option | What it means | Then |
 |---|---|---|
@@ -414,7 +397,7 @@ id list:
 | `Close some` | mixed | one follow-up `AskUserQuestion`, `multiSelect: true`, one option per task — the owner ticks what clears. `done` those, hold the rest |
 | `Re-run NNN on Opus` | it missed *in kind*, not in detail | re-dispatch at Opus (§7 model note) |
 
-Same rules as §5: lead each `description` with what the evidence actually shows, and only
+Lead each `description` with what the evidence actually shows, and only
 put `Close all` first when you actually believe it cleared. A close question whose first
 option is always "yes" is the rubber stamp the bar exists to prevent. If the owner answers
 in prose instead — "close 63 and 65, 64 needs another pass" — take it.
@@ -511,11 +494,10 @@ clarify round to repair the assumptions it made. Use `/model` if you want to pla
 
 ## Never
 
-- Ask about anything other than a clarification (§2), the verdict (§5) and the close (§7)
-  — plus the follow-up a refusal or a partial close opens, which spends the same slot as
-  the gate it follows. Verdict and close stay capped at one question each; clarify is
-  uncapped but still only for what changes the work. Take the default and say which
-  default you took.
+- Ask about anything other than a clarification (§2) and the close (§7) — plus the
+  follow-up a partial close opens, which spends the same slot as the gate it follows.
+  The close stays capped at one question; clarify is uncapped but still only for what
+  changes the work. Take the default and say which default you took.
 - Put a decision in prose. Every owner choice in this skill is an `AskUserQuestion` with
   the real options as buttons — the gates, the clarify, and every follow-up off them.
   Prose answers are accepted, never required, and "what would you like me to change?" is
@@ -523,10 +505,11 @@ clarify round to repair the assumptions it made. Use `/model` if you want to pla
 - Spawn a teammate on a task that is not `approved`. `dispatch` enforces it; do not work
   around it by calling `Agent` first.
 - Set `approved`, `done`, `rejected`, or `parked` straight through the Paca API, the MCP
-  tools, or the web UI. Those four go through `paca.py`, behind the hook prompt — that
-  prompt is the owner's signature, and routing around it is the one thing the gate
-  cannot survive.
-- Present a plan and start building in the same turn.
+  tools, or the web UI. Those four go through `paca.py` — `approve` behind the reviewer
+  gate (§5), the rest behind the hook prompt that is the owner's signature. Routing
+  around either is the one thing the gate cannot survive.
+- Run `approve` before the reviewer agent has passed the batch, or spawn the reviewer
+  with the lead's conversation context.
 - Paste a teammate's full report into the lead. Receipt now, evidence at the close (§7).
 - Give two live teammates overlapping `owns:` globs or the same resource. `validate` catches
   it; heed it rather than loosening the declaration.
