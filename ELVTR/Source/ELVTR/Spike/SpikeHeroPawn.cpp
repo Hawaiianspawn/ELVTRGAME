@@ -2,14 +2,21 @@
 
 #include "Camera/CameraComponent.h"
 #include "Components/StaticMeshComponent.h"
+#include "DrawDebugHelpers.h"
 #include "Engine/Engine.h"
+#include "EnhancedInputComponent.h"
+#include "EnhancedInputSubsystems.h"
 #include "GameFramework/PlayerController.h"
+#include "InputAction.h"
+#include "InputMappingContext.h"
+#include "InputModifiers.h"
 #include "Kismet/GameplayStatics.h"
 #include "Mass/SwarmCombat.h"
 #include "Mass/SwarmSubsystem.h"
 #include "SevenRoster.h"
 #include "Spike1GameMode.h"
 #include "SpikeBossActor.h"
+#include "SquadAbilities.h"
 #include "Engine/GameViewportClient.h"
 #include "HAL/IConsoleManager.h"
 #include "UObject/ConstructorHelpers.h"
@@ -377,14 +384,37 @@ namespace
 	FVector GPrevHeroLoc = FVector::ZeroVector;
 	FVector GCamLead = FVector::ZeroVector;
 
-	// Edge-detect state for the numpad camera-mode keys. File-static rather than pawn members
-	// on purpose: adding a member to ASpikeHeroPawn is a class-layout change, which cannot go
-	// in over Live Coding and costs an editor-closed rebuild — and this is a tuning hotkey.
-	// ponytail: one shared set of flags, fine while there is exactly one local player pawn;
-	// move them onto the pawn if split-screen ever lands.
-	bool GWasDownCamHand = false;
-	bool GWasDownCamArmy = false;
-	bool GWasDownCamStrategic = false;
+	// --- the input map (task-137's migration, landed by task-144) --------------------------
+	// One row per binding. The old edge-detect latches for the numpad camera keys are gone with
+	// the polling that needed them: Enhanced Input delivers Started/Triggered/Completed, so
+	// "the frame a key went down" is a trigger event and not a bool compared against last frame.
+	enum EHeroAction : uint8
+	{
+		A_Move = 0,
+		A_Follow, A_Charge, A_Hold, A_Rally,	// the four stance orders, to all seven
+		A_Restart,
+		A_Cam0, A_Cam1, A_Cam2,
+		A_KitFlip,								// F — flip Q23 A <-> B, live, mid-fight
+		A_Wheel,								// Q (hold) — Q26 = D
+		A_Cast,									// LMB — target the armed verb / order the selected soldier
+		A_Direct,								// E — Q26 = A, one button, meaning from the cursor
+		A_Select0,								// Z X C V B N M — Q26 = B's select step, 7 rows
+		A_Num = A_Select0 + USwarmSubsystem::NamedSoldiers
+	};
+
+	/** Which verb each quarter of the wheel holds, by WORLD bearing. World and not screen on
+	 *  purpose: the labels are drawn at their own spoke ends, so the wheel stays self-describing
+	 *  whatever Kindled.Cam.Yaw is doing, and no sector can end up under the camera. */
+	constexpr ESquadVerb GWheelSectors[4] = {
+		ESquadVerb::Focus,	// +X
+		ESquadVerb::Screen,	// +Y
+		ESquadVerb::Raise,	// -X
+		ESquadVerb::Rally,	// -Y
+	};
+
+	/** Cursor must leave this radius, uu, before the wheel commits to a sector — so releasing Q
+	 *  without moving cancels instead of arming whatever the mouse happened to be nearest. */
+	constexpr float GWheelDeadzone = 120.f;
 }
 
 ASpikeHeroPawn::ASpikeHeroPawn()
@@ -435,14 +465,6 @@ void ASpikeHeroPawn::BeginPlay()
 	}
 }
 
-bool ASpikeHeroPawn::ConsumeKeyPress(const APlayerController& PC, const FKey& Key, bool& bWasDown) const
-{
-	const bool bIsDown = PC.IsInputKeyDown(Key);
-	const bool bPressed = bIsDown && !bWasDown;
-	bWasDown = bIsDown;
-	return bPressed;
-}
-
 bool ASpikeHeroPawn::GetCursorGroundLocation(FVector& OutLocation) const
 {
 	const APlayerController* PC = Cast<APlayerController>(GetController());
@@ -465,51 +487,162 @@ bool ASpikeHeroPawn::GetCursorGroundLocation(FVector& OutLocation) const
 	return true;
 }
 
-void ASpikeHeroPawn::TickStanceInput(const APlayerController& PC)
+FVector ASpikeHeroPawn::CursorOrAhead() const
 {
-	USwarmSubsystem* Swarm = GetWorld()->GetSubsystem<USwarmSubsystem>();
-	if (!Swarm)
+	FVector Cursor;
+	if (GetCursorGroundLocation(Cursor))
+	{
+		return Cursor;
+	}
+	// A deproject can fail with the mouse off-window or the viewport mid-resize, and every
+	// ability path needs a point. Silently doing nothing there would read as an input bug and
+	// would be counted as a refusal in the Q26 evidence, which would be a lie about the scheme.
+	return GetActorLocation() + FVector(1000.f, 0.f, 0.f);
+}
+
+void ASpikeHeroPawn::BuildInputMap()
+{
+	if (InputMap)
 	{
 		return;
 	}
+	InputMap = NewObject<UInputMappingContext>(this, TEXT("KindledInputMap"));
+	InputActions.SetNum(A_Num);
 
-	if (ConsumeKeyPress(PC, EKeys::One, bWasDownFollow))
+	// One helper for the whole table. Everything is a bool Digital except movement, which is
+	// the one axis in the game.
+	auto Make = [this](EHeroAction Slot, const TCHAR* Name, EInputActionValueType Type)
 	{
-		Swarm->SetStance(ESwarmStance::Follow, GetActorLocation());
+		UInputAction* Action = NewObject<UInputAction>(this, Name);
+		Action->ValueType = Type;
+		InputActions[Slot] = Action;
+		return Action;
+	};
+	auto Bind = [this](EHeroAction Slot, const FKey& Key) -> FEnhancedActionKeyMapping&
+	{
+		return InputMap->MapKey(InputActions[Slot], Key);
+	};
+
+	// --- movement ---------------------------------------------------------------------
+	// WASD onto one Axis2D, the standard modifier stack: a key press arrives as +1 on X, so
+	// Negate flips it and SwizzleAxis (YXZ) moves it onto Y. Order matters — Negate first, then
+	// Swizzle, or A ends up pushing the wrong way.
+	Make(A_Move, TEXT("IA_Move"), EInputActionValueType::Axis2D);
+	Bind(A_Move, EKeys::W);
+	Bind(A_Move, EKeys::S).Modifiers.Add(NewObject<UInputModifierNegate>(this));
+	Bind(A_Move, EKeys::D).Modifiers.Add(NewObject<UInputModifierSwizzleAxis>(this));
+	{
+		FEnhancedActionKeyMapping& Left = Bind(A_Move, EKeys::A);
+		Left.Modifiers.Add(NewObject<UInputModifierNegate>(this));
+		Left.Modifiers.Add(NewObject<UInputModifierSwizzleAxis>(this));
 	}
-	else if (ConsumeKeyPress(PC, EKeys::Two, bWasDownCharge))
+
+	// --- the four stance orders, unchanged in meaning ---------------------------------
+	// Still the number row, still to all seven and never to the garrison. Worth muscle memory,
+	// so the ability kit was given other keys rather than these.
+	Make(A_Follow, TEXT("IA_Follow"), EInputActionValueType::Boolean); Bind(A_Follow, EKeys::One);
+	Make(A_Charge, TEXT("IA_Charge"), EInputActionValueType::Boolean); Bind(A_Charge, EKeys::Two);
+	Make(A_Hold,   TEXT("IA_Hold"),   EInputActionValueType::Boolean); Bind(A_Hold,   EKeys::Three);
+	Make(A_Rally,  TEXT("IA_Rally"),  EInputActionValueType::Boolean); Bind(A_Rally,  EKeys::Four);
+
+	Make(A_Restart, TEXT("IA_Restart"), EInputActionValueType::Boolean); Bind(A_Restart, EKeys::R);
+
+	// Camera modes stay on the NUMPAD, deliberately away from the number row.
+	Make(A_Cam0, TEXT("IA_Cam0"), EInputActionValueType::Boolean); Bind(A_Cam0, EKeys::NumPadOne);
+	Make(A_Cam1, TEXT("IA_Cam1"), EInputActionValueType::Boolean); Bind(A_Cam1, EKeys::NumPadTwo);
+	Make(A_Cam2, TEXT("IA_Cam2"), EInputActionValueType::Boolean); Bind(A_Cam2, EKeys::NumPadThree);
+
+	// --- the ability kit --------------------------------------------------------------
+	// F is the whole Q23 comparison on one key, and it is deliberately somewhere a hand can
+	// reach mid-fight: the deliverable is a BACK-TO-BACK comparison against the same boss, and
+	// a flip you have to stop and type is a different experiment.
+	Make(A_KitFlip, TEXT("IA_KitFlip"), EInputActionValueType::Boolean); Bind(A_KitFlip, EKeys::F);
+	Make(A_Wheel,   TEXT("IA_Wheel"),   EInputActionValueType::Boolean); Bind(A_Wheel,   EKeys::Q);
+	Make(A_Cast,    TEXT("IA_Cast"),    EInputActionValueType::Boolean); Bind(A_Cast,    EKeys::LeftMouseButton);
+	Make(A_Direct,  TEXT("IA_Direct"),  EInputActionValueType::Boolean); Bind(A_Direct,  EKeys::E);
+
+	// Q26 = B's select step: seven adjacent keys under the left hand, in roster order, so
+	// "who acts" is one reachable row and not a modifier chord. They do nothing under Q23 = A,
+	// where there is no soldier to select — which is itself the shape difference, on the keyboard.
+	static const FKey SelectKeys[USwarmSubsystem::NamedSoldiers] = {
+		EKeys::Z, EKeys::X, EKeys::C, EKeys::V, EKeys::B, EKeys::N, EKeys::M };
+	for (int32 i = 0; i < USwarmSubsystem::NamedSoldiers; ++i)
 	{
-		// Aim at the cursor; fall back to straight ahead if the deproject fails.
-		FVector Target;
-		if (!GetCursorGroundLocation(Target))
+		const EHeroAction Slot = (EHeroAction)(A_Select0 + i);
+		Make(Slot, *FString::Printf(TEXT("IA_Select%d"), i), EInputActionValueType::Boolean);
+		Bind(Slot, SelectKeys[i]);
+	}
+}
+
+void ASpikeHeroPawn::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
+{
+	Super::SetupPlayerInputComponent(PlayerInputComponent);
+	BuildInputMap();
+
+	UEnhancedInputComponent* Input = Cast<UEnhancedInputComponent>(PlayerInputComponent);
+	APlayerController* PC = Cast<APlayerController>(GetController());
+	if (!Input || !PC)
+	{
+		// DefaultInput.ini already sets EnhancedInputComponent as the project's input component
+		// class, so this failing means something changed that — worth a line rather than a
+		// silent pawn that cannot be driven.
+		UE_LOG(LogTemp, Error, TEXT("SpikeHeroPawn: no EnhancedInputComponent — check "
+			"DefaultInput.ini's DefaultInputComponentClass."));
+		return;
+	}
+	if (ULocalPlayer* LP = PC->GetLocalPlayer())
+	{
+		if (UEnhancedInputLocalPlayerSubsystem* Sub =
+			LP->GetSubsystem<UEnhancedInputLocalPlayerSubsystem>())
 		{
-			Target = GetActorLocation() + FVector(1000.f, 0.f, 0.f);
+			Sub->AddMappingContext(InputMap, 0);
 		}
-		Swarm->SetStance(ESwarmStance::Charge, Target);
 	}
-	else if (ConsumeKeyPress(PC, EKeys::Three, bWasDownHold))
-	{
-		// Hold anchors where the hero stands when the order is given.
-		Swarm->SetStance(ESwarmStance::Hold, GetActorLocation());
-	}
-	else if (ConsumeKeyPress(PC, EKeys::Four, bWasDownRally))
-	{
-		Swarm->SetStance(ESwarmStance::Rally, GetActorLocation());
-	}
+	PC->bShowMouseCursor = true;
 
-	if (ConsumeKeyPress(PC, EKeys::R, bWasDownRestart))
-	{
-		if (ASpike1GameMode* GameMode = GetWorld()->GetAuthGameMode<ASpike1GameMode>())
+	// Every binding is a lambda over the action table above. That is the point of the table:
+	// a new key is one row in BuildInputMap and one lambda here, rather than a UFUNCTION, a
+	// declaration and a class-layout change that costs an editor-closed rebuild to try.
+	Input->BindActionValueLambda(InputActions[A_Move], ETriggerEvent::Triggered,
+		[this](const FInputActionValue& V) { MoveInput = V.Get<FVector2D>(); });
+	Input->BindActionValueLambda(InputActions[A_Move], ETriggerEvent::Completed,
+		[this](const FInputActionValue&) { MoveInput = FVector2D::ZeroVector; });
+
+	auto Swarm = [this]() { return GetWorld()->GetSubsystem<USwarmSubsystem>(); };
+
+	Input->BindActionValueLambda(InputActions[A_Follow], ETriggerEvent::Started,
+		[this, Swarm](const FInputActionValue&)
 		{
-			GameMode->RestartRun();
-		}
-	}
+			if (USwarmSubsystem* S = Swarm()) { S->SetStance(ESwarmStance::Follow, GetActorLocation()); }
+		});
+	Input->BindActionValueLambda(InputActions[A_Charge], ETriggerEvent::Started,
+		[this, Swarm](const FInputActionValue&)
+		{
+			if (USwarmSubsystem* S = Swarm()) { S->SetStance(ESwarmStance::Charge, CursorOrAhead()); }
+		});
+	Input->BindActionValueLambda(InputActions[A_Hold], ETriggerEvent::Started,
+		[this, Swarm](const FInputActionValue&)
+		{
+			// Hold anchors where the bearer stands when the order is given.
+			if (USwarmSubsystem* S = Swarm()) { S->SetStance(ESwarmStance::Hold, GetActorLocation()); }
+		});
+	Input->BindActionValueLambda(InputActions[A_Rally], ETriggerEvent::Started,
+		[this, Swarm](const FInputActionValue&)
+		{
+			if (USwarmSubsystem* S = Swarm()) { S->SetStance(ESwarmStance::Rally, GetActorLocation()); }
+		});
 
-	// --- camera modes on the numpad --------------------------------------
-	// Deliberately the NUMPAD and not the number row: 1-4 up there are the stance orders and
-	// are worth muscle memory, while these are a view toggle you flick during a fight.
-	// They write the CVar rather than shadowing it in a second piece of state, so the console,
-	// SwarmExecOnPlay.txt and these keys can never disagree about which mode is live.
+	Input->BindActionValueLambda(InputActions[A_Restart], ETriggerEvent::Started,
+		[this](const FInputActionValue&)
+		{
+			if (ASpike1GameMode* GameMode = GetWorld()->GetAuthGameMode<ASpike1GameMode>())
+			{
+				GameMode->RestartRun();
+			}
+		});
+
+	// The camera keys write the CVar rather than shadowing it in a second piece of state, so
+	// the console, SwarmExecOnPlay.txt and these keys can never disagree about the live mode.
 	auto SetCamMode = [](int32 Mode)
 	{
 		if (IConsoleVariable* CVar = IConsoleManager::Get().FindConsoleVariable(TEXT("Kindled.Cam.Scale")))
@@ -517,17 +650,176 @@ void ASpikeHeroPawn::TickStanceInput(const APlayerController& PC)
 			CVar->Set(Mode, ECVF_SetByConsole);
 		}
 	};
-	if (ConsumeKeyPress(PC, EKeys::NumPadOne, GWasDownCamHand))
+	for (int32 Mode = 0; Mode < 3; ++Mode)
 	{
-		SetCamMode(0);	// hand dials — the close shot
+		Input->BindActionValueLambda(InputActions[A_Cam0 + Mode], ETriggerEvent::Started,
+			[SetCamMode, Mode](const FInputActionValue&) { SetCamMode(Mode); });
 	}
-	else if (ConsumeKeyPress(PC, EKeys::NumPadTwo, GWasDownCamArmy))
+
+	// --- Q23: the flip ----------------------------------------------------------------
+	Input->BindActionValueLambda(InputActions[A_KitFlip], ETriggerEvent::Started,
+		[this](const FInputActionValue&)
+		{
+			IConsoleVariable* CVar = IConsoleManager::Get().FindConsoleVariable(TEXT("Kindled.Ability.Mode"));
+			if (!CVar) { return; }
+			const int32 Next = CVar->GetInt() == 0 ? 1 : 0;
+			CVar->Set(Next, ECVF_SetByConsole);
+			// Arming and selection belong to the shape that made them; carrying either across
+			// the flip would let a wheel-armed verb be fired by a select-then-order click.
+			ArmedVerb = ESquadVerb::None;
+			bWheelOpen = false;
+			if (USwarmSubsystem* S = GetWorld()->GetSubsystem<USwarmSubsystem>())
+			{
+				S->SetSelectedSoldier(INDEX_NONE);
+			}
+			UE_LOG(LogTemp, Display, TEXT("Kit: Q23 = %s now live (Kindled.Ability.Mode %d). "
+				"Standing effects keep the shape that cast them."), Next ? TEXT("B") : TEXT("A"), Next);
+		});
+
+	// --- Q26 = D: the verb wheel (Q23 = A's pairing) -----------------------------------
+	Input->BindActionValueLambda(InputActions[A_Wheel], ETriggerEvent::Started,
+		[this](const FInputActionValue&)
+		{
+			if (SwarmCombatTuning::AbilityMode() != 0)
+			{
+				UE_LOG(LogTemp, Warning, TEXT("Wheel: Q23 = B is live — the verb is the "
+					"soldier's, not yours. Select with ZXCVBNM, or press F to flip."));
+				return;
+			}
+			bWheelOpen = true;
+			WheelAnchor = CursorOrAhead();
+			WheelHover = ESquadVerb::None;
+		});
+	Input->BindActionValueLambda(InputActions[A_Wheel], ETriggerEvent::Completed,
+		[this](const FInputActionValue&)
+		{
+			if (!bWheelOpen) { return; }
+			bWheelOpen = false;
+			// Releasing inside the deadzone cancels rather than arming whatever the mouse was
+			// nearest — a radial that commits on a twitch is the thing everyone hates about them.
+			if (WheelHover != ESquadVerb::None)
+			{
+				ArmedVerb = WheelHover;
+				UE_LOG(LogTemp, Display, TEXT("Wheel: %s armed (%s) — LMB to target it."),
+					LexToString(ArmedVerb), SquadVerbSource(ArmedVerb));
+			}
+			WheelHover = ESquadVerb::None;
+		});
+
+	// --- the one click that fires something -------------------------------------------
+	// Under Q23 = A it targets the armed verb (the wheel's second stage). Under Q23 = B it is
+	// the ORDER half of select-then-order. One key, because in both shapes it is the same
+	// gesture: "do the thing I have already chosen, there."
+	Input->BindActionValueLambda(InputActions[A_Cast], ETriggerEvent::Started,
+		[this](const FInputActionValue&)
+		{
+			if (SwarmCombatTuning::AbilityMode() == 0)
+			{
+				CastArmed(INDEX_NONE, ArmedVerb, (uint8)SquadAbilities::EOrderScheme::Wheel);
+				return;
+			}
+			USwarmSubsystem* S = GetWorld()->GetSubsystem<USwarmSubsystem>();
+			const int32 Selected = S ? S->GetSelectedSoldier() : INDEX_NONE;
+			if (Selected == INDEX_NONE)
+			{
+				UE_LOG(LogTemp, Warning, TEXT("Order: nobody selected — ZXCVBNM picks one of "
+					"the seven, or E lets the cursor pick for you (Q26 = A)."));
+				return;
+			}
+			CastArmed(Selected, ESquadVerb::None, (uint8)SquadAbilities::EOrderScheme::SelectThenOrder);
+		});
+
+	// --- Q26 = A: direct target --------------------------------------------------------
+	Input->BindActionValueLambda(InputActions[A_Direct], ETriggerEvent::Started,
+		[this](const FInputActionValue&)
+		{
+			USwarmSubsystem* S = GetWorld()->GetSubsystem<USwarmSubsystem>();
+			if (!S) { return; }
+			if (SwarmCombatTuning::AbilityMode() != 1)
+			{
+				UE_LOG(LogTemp, Warning, TEXT("Direct target: Q23 = A is live — the kit is "
+					"yours, so there is no soldier for a click to pick. Use the wheel on Q."));
+				return;
+			}
+			ESquadVerb Verb = ESquadVerb::None;
+			const int32 Who = SquadAbilities::ResolveDirectTarget(*S, CursorOrAhead(), Verb);
+			if (Who == INDEX_NONE)
+			{
+				UE_LOG(LogTemp, Warning, TEXT("Direct target: that reads as %s and nobody "
+					"standing carries it."), LexToString(Verb));
+				return;
+			}
+			CastArmed(Who, Verb, (uint8)SquadAbilities::EOrderScheme::DirectTarget);
+		});
+
+	// --- Q26 = B: the select step ------------------------------------------------------
+	for (int32 i = 0; i < USwarmSubsystem::NamedSoldiers; ++i)
 	{
-		SetCamMode(1);	// army-weighted
+		Input->BindActionValueLambda(InputActions[A_Select0 + i], ETriggerEvent::Started,
+			[this, i](const FInputActionValue&)
+			{
+				USwarmSubsystem* S = GetWorld()->GetSubsystem<USwarmSubsystem>();
+				if (!S) { return; }
+				if (SwarmCombatTuning::AbilityMode() != 1)
+				{
+					UE_LOG(LogTemp, Warning, TEXT("Select: Q23 = A is live — the seven are the "
+						"TARGETS of your kit, not the holders of it. Press F to flip."));
+					return;
+				}
+				S->SetSelectedSoldier(i);
+			});
 	}
-	else if (ConsumeKeyPress(PC, EKeys::NumPadThree, GWasDownCamStrategic))
+}
+
+void ASpikeHeroPawn::CastArmed(int32 Caster, ESquadVerb Verb, uint8 Scheme)
+{
+	if (SquadAbilities::Cast(GetWorld(), Verb, Caster, CursorOrAhead(),
+		(SquadAbilities::EOrderScheme)Scheme))
 	{
-		SetCamMode(2);	// strategic — fits your army, lets the horde overflow
+		// Only a SUCCESSFUL wheel cast spends the armed verb, so a refusal (on cooldown,
+		// nobody in reach) leaves the choice standing and does not cost a second wheel open.
+		ArmedVerb = ESquadVerb::None;
+	}
+}
+
+void ASpikeHeroPawn::TickVerbWheel()
+{
+	if (!bWheelOpen)
+	{
+		return;
+	}
+	const FVector Cursor = CursorOrAhead();
+	const FVector Delta = Cursor - WheelAnchor;
+	const float Reach = (float)Delta.Size2D();
+
+	// Sector by WORLD bearing, quantised to quarters with a 45-degree offset so each verb owns
+	// the quadrant its own drawn label sits in.
+	WheelHover = ESquadVerb::None;
+	if (Reach >= GWheelDeadzone)
+	{
+		const float Degrees = FMath::RadiansToDegrees(FMath::Atan2((float)Delta.Y, (float)Delta.X));
+		const int32 Sector = ((int32)FMath::RoundToInt(Degrees / 90.f) % 4 + 4) % 4;
+		WheelHover = GWheelSectors[Sector];
+	}
+
+	if (SwarmCombatTuning::AbilityDraw() == 0)
+	{
+		return;
+	}
+	UWorld* World = GetWorld();
+	const FVector Up(0.f, 0.f, 40.f);
+	const float Radius = 520.f;
+	DrawDebugCircle(World, WheelAnchor + Up, Radius, 48, FColor(210, 210, 210), false, -1.f, 0, 6.f,
+		FVector(1, 0, 0), FVector(0, 1, 0), false);
+	for (int32 Sector = 0; Sector < 4; ++Sector)
+	{
+		const float Rad = FMath::DegreesToRadians(Sector * 90.f);
+		const FVector Spoke = WheelAnchor + Up + FVector(FMath::Cos(Rad), FMath::Sin(Rad), 0.f) * Radius;
+		const bool bHot = GWheelSectors[Sector] == WheelHover;
+		const FColor Colour = bHot ? FColor(255, 220, 120) : FColor(140, 140, 140);
+		DrawDebugLine(World, WheelAnchor + Up, Spoke, Colour, false, -1.f, 0, bHot ? 12.f : 5.f);
+		DrawDebugString(World, Spoke + FVector(0.f, 0.f, 60.f), LexToString(GWheelSectors[Sector]),
+			nullptr, Colour, 0.f, true);
 	}
 }
 
@@ -585,11 +877,7 @@ void ASpikeHeroPawn::Tick(float DeltaSeconds)
 
 	if (bAlive)
 	{
-		FVector Input = FVector::ZeroVector;
-		if (PC->IsInputKeyDown(EKeys::W)) { Input.X += 1.f; }
-		if (PC->IsInputKeyDown(EKeys::S)) { Input.X -= 1.f; }
-		if (PC->IsInputKeyDown(EKeys::D)) { Input.Y += 1.f; }
-		if (PC->IsInputKeyDown(EKeys::A)) { Input.Y -= 1.f; }
+		const FVector Input(MoveInput.X, MoveInput.Y, 0.f);
 
 		if (!Input.IsNearlyZero())
 		{
@@ -605,8 +893,9 @@ void ASpikeHeroPawn::Tick(float DeltaSeconds)
 		}
 	}
 
-	TickStanceInput(*PC);
 	TickHeroCombat(DeltaSeconds);
+	TickVerbWheel();
+	SquadAbilities::DrawActiveZones(GetWorld());
 
 	if (Swarm)
 	{
@@ -1054,9 +1343,16 @@ void ASpikeHeroPawn::DrawHUD() const
 	}
 
 	// --- the seven -------------------------------------------------------
-	// One line each, named, with its own health and its own standing order — the HUD change
-	// §6.4 asks for in as many words: "from describing an army to describing seven individuals
-	// and what each can currently do". What each can DO is deliberately absent; that is Q23.
+	// One line each, named, with its own health, its own standing order AND — new in task-144 —
+	// WHAT IT CAN CURRENTLY DO. That last column is the whole of the HUD change castle-layout.md
+	// §6.4 asks for: "from describing an army to describing seven individuals and what each can
+	// currently do". Under Q23 = A it is inert and says so, because under that shape a soldier
+	// carries nothing; under Q23 = B it is the readout you actually play off.
+	const float Now = GetWorld()->GetTimeSeconds();
+	const bool bModeB = SwarmCombatTuning::AbilityMode() == 1;
+	const USwarmSubsystem::FAbilityState& Abil = Swarm->GetAbilities();
+	const int32 Selected = Swarm->GetSelectedSoldier();
+
 	for (int32 i = 0; i < SevenRoster::Num; ++i)
 	{
 		const SevenRoster::FSoldier& S = SevenRoster::Get(i);
@@ -1069,11 +1365,56 @@ void ASpikeHeroPawn::DrawHUD() const
 		{
 			Colour = Frac > 0.5f ? FColor::White : (Frac > 0.25f ? FColor::Yellow : FColor::Red);
 		}
+		if (bModeB && i == Selected && !bDown)
+		{
+			Colour = FColor(255, 220, 120);	// the one you are about to order
+		}
+
+		// What this soldier can do, right now, in the shape that is live.
+		FString Can;
+		if (bDown)
+		{
+			Can = FString::Printf(TEXT("%s LOST"), LexToString(S.Verb));
+		}
+		else if (!bModeB)
+		{
+			const bool bInReach = FVector::DistSquared2D(Swarm->GetSquadCentroid(i),
+				Swarm->GetAttractor()) <= FMath::Square(SwarmCombatTuning::AbilityPlayerRange());
+			Can = bInReach ? TEXT("in reach") : TEXT("out of reach");
+		}
+		else
+		{
+			const float Wait = FMath::Max(Abil.SoldierReadyAt[i] - Now, 0.f);
+			Can = Wait > 0.f
+				? FString::Printf(TEXT("%s %.1fs"), LexToString(S.Verb), Wait)
+				: FString::Printf(TEXT("%s READY"), LexToString(S.Verb));
+		}
+
 		GEngine->AddOnScreenDebugMessage(20 + i, 0.f, Colour, bDown
-			? FString::Printf(TEXT("  [%d] %-6s %-12s   DOWN"), i, S.Name, S.Archetype)
-			: FString::Printf(TEXT("  [%d] %-6s %-12s %4.0f / %-4.0f  %s"),
+			? FString::Printf(TEXT("  [%d] %-6s %-12s   DOWN                %s"), i, S.Name, S.Archetype, *Can)
+			: FString::Printf(TEXT("%s[%d] %-6s %-12s %4.0f / %-4.0f  %-6s  %s"),
+				(bModeB && i == Selected) ? TEXT("> ") : TEXT("  "),
 				i, S.Name, S.Archetype, Swarm->GetSquadHP(i), Max,
-				LexToString(Swarm->GetUnitStance(i))));
+				LexToString(Swarm->GetUnitStance(i)), *Can));
+	}
+
+	// --- what the kit is doing right now ---------------------------------
+	{
+		FString Live;
+		if (Now < Abil.FocusUntil)
+		{
+			Live += FString::Printf(TEXT("FOCUS %.1fs (%d marking)   "),
+				Abil.FocusUntil - Now, (int32)FMath::CountBits(Abil.FocusUnits));
+		}
+		if (Now < Abil.ScreenUntil) { Live += FString::Printf(TEXT("SCREEN %.1fs   "), Abil.ScreenUntil - Now); }
+		if (Now < Abil.RaiseUntil && USwarmSubsystem::IsNamedUnit(Abil.RaiseUnit))
+		{
+			Live += FString::Printf(TEXT("RAISE %s %.1fs   "),
+				SevenRoster::Get(Abil.RaiseUnit).Name, Abil.RaiseUntil - Now);
+		}
+		if (Now < Abil.RallyUntil) { Live += FString::Printf(TEXT("RALLY %.1fs"), Abil.RallyUntil - Now); }
+		GEngine->AddOnScreenDebugMessage(30, 0.f, FColor(150, 220, 255),
+			Live.IsEmpty() ? TEXT("KIT  nothing standing") : *FString::Printf(TEXT("KIT  %s"), *Live));
 	}
 
 	// --- orders -----------------------------------------------------------
@@ -1086,11 +1427,22 @@ void ASpikeHeroPawn::DrawHUD() const
 	GEngine->AddOnScreenDebugMessage(5, 0.f, FColor::Silver,
 		TEXT("[WASD] move   [1] Follow  [2] Charge (at cursor)  [3] Hold  [4] Rally   [R] restart"));
 
-	// How ORDERS are issued is Q26 and is not this slice's to answer, so addressing one of the
-	// seven stays on the shipped console surface rather than getting an invented input scheme.
+	// --- Q23 and Q26, on the screen, both reachable -----------------------
+	// The register's standing rule is that an open question is closed by an owner call, so the
+	// HUD names both options rather than presenting one as the game's controls.
+	GEngine->AddOnScreenDebugMessage(31, 0.f, FColor(255, 220, 120), bModeB
+		? TEXT("Q23 = B   the verb lives in the SOLDIER — you choose who acts        [F] flip to A")
+		: TEXT("Q23 = A   a fixed kit on the BEARER — it acts through whoever is near [F] flip to B"));
+
+	GEngine->AddOnScreenDebugMessage(32, 0.f, FColor::Silver, bModeB
+		? TEXT("Q26 = B  [Z X C V B N M] select a soldier, [LMB] order them   |   "
+			"Q26 = A  [E] one click, the cursor picks")
+		: *FString::Printf(TEXT("Q26 = D  hold [Q], point, release to arm, [LMB] to target      ARMED: %s"),
+			LexToString(ArmedVerb)));
+
 	GEngine->AddOnScreenDebugMessage(7, 0.f, FColor::Silver,
-		TEXT("ONE SOLDIER:  Swarm.UnitStance <0-6> Follow|Charge|Hold|Rally      "
-			"BOSS:  Kindled.Boss.Marks quilled,ram,sated|none"));
+		TEXT("CONSOLE:  Kindled.Ability.Mode 0|1   Kindled.Ability.Use <0-6|verb>   "
+			"Kindled.Ability.Report   Kindled.Boss.Marks quilled+ram+sated|none"));
 
 	GEngine->AddOnScreenDebugMessage(6, 0.f, FColor::Silver,
 		FString::Printf(TEXT("CAMERA  [Num1] close  [Num2] army  [Num3] strategic      (mode %d)"),

@@ -1099,7 +1099,22 @@ void URetinueFollowProcessor::Execute(FMassEntityManager& EntityManager, FMassEx
 
 	int32 BrokenThisFrame = 0;
 
-	EntityQuery.ForEachEntityChunk(Context, [Swarm, Attractor, SpearmenFormation, ArchersFormation, ArchersRange, ArchersMinRange, &BrokenThisFrame](FMassExecutionContext& ChunkContext)
+	// Banner Slam's other half — "fights to the death (no retreat/flee behavior) while it
+	// stands" (CLASSES.md). Nothing in this sim routs, so there is no flee behaviour to
+	// suppress; the closest true reading is the LEASH, which is the only thing that ever drags
+	// a soldier off a fight against the player's order. A soldier inside a standing banner is
+	// exempt from it, exactly as the garrison is, for the run of the banner.
+	//
+	// That is not cosmetic: it is what lets one of the seven be sent past the 2000uu leash to
+	// intercept a Ram away from the bearer — §6.3's own named counter — instead of latching
+	// broken halfway there and running back to the flame.
+	const USwarmSubsystem::FAbilityState& RallyState = Swarm->GetAbilities();
+	const float RallyNow = Context.GetWorld()->GetTimeSeconds();
+	const bool bRallyUp = RallyNow < RallyState.RallyUntil;
+	const FVector RallyCentre = RallyState.RallyCentre;
+	const float RallyRadiusSq = FMath::Square(SwarmCombatTuning::AbilityRallyRadius());
+
+	EntityQuery.ForEachEntityChunk(Context, [Swarm, Attractor, SpearmenFormation, ArchersFormation, ArchersRange, ArchersMinRange, bRallyUp, RallyCentre, RallyRadiusSq, &BrokenThisFrame](FMassExecutionContext& ChunkContext)
 	{
 		const TConstArrayView<FTransformFragment> Transforms = ChunkContext.GetFragmentView<FTransformFragment>();
 		const TConstArrayView<FSwarmJitterFragment> Jitter = ChunkContext.GetFragmentView<FSwarmJitterFragment>();
@@ -1132,7 +1147,11 @@ void URetinueFollowProcessor::Execute(FMassEntityManager& EntityManager, FMassEx
 			// extra rule: the castle has fixed light of its own, so the garrison is standing in
 			// the castle's light and does not need yours. The SEVEN keep the leash unchanged.
 			const bool bGarrison = (UnitIndex == USwarmSubsystem::GarrisonUnit);
-			if (bGarrison)
+			// Banner Slam holds a soldier on the ground it was planted on — see this pass's
+			// snapshot for why the leash is the honest reading of "fights to the death".
+			const bool bBannered = bRallyUp
+				&& FVector::DistSquared2D(Location, RallyCentre) <= RallyRadiusSq;
+			if (bGarrison || bBannered)
 			{
 				Follow[i].bLeashBroken = false;
 			}
@@ -1164,7 +1183,8 @@ void URetinueFollowProcessor::Execute(FMassEntityManager& EntityManager, FMassEx
 			// Warn before breaking: breaking stance must never feel random. Nothing to warn
 			// about on a unit that cannot break, so the garrison never lights the bit — left
 			// in, the entire line would flash a leash warning for the whole siege.
-			const bool bWarn = !bGarrison && !Follow[i].bLeashBroken && HeroDistSq > SwarmLeash::WarnRadiusSq;
+			const bool bWarn = !bGarrison && !bBannered && !Follow[i].bLeashBroken
+				&& HeroDistSq > SwarmLeash::WarnRadiusSq;
 			Anim[i].Bits = bWarn ? (Anim[i].Bits | SwarmAnim::LeashWarnBit)
 								 : (Anim[i].Bits & ~SwarmAnim::LeashWarnBit);
 
@@ -1399,7 +1419,23 @@ void USwarmIntegrateProcessor::Execute(FMassEntityManager& EntityManager, FMassE
 	// branch entirely, so the wall system costs nothing until a scenario authors one.
 	const bool bHasWalls = Swarm->GetWalls().Num() > 0;
 
-	EntityQuery.ForEachEntityChunk(Context, [Swarm, DeltaTime, TimeSeconds, StrikeAtFrac, Lunge, KnockDecay, BroodWalkHz, Facing, HeroLocation, EnemyVariants, TeamVariants, ArcherVariants, SquadVariants, bHasWalls](FMassExecutionContext& ChunkContext)
+	// Banner Slam (task-144, docs/design/ability-kit.md): "retinue in radius gains attack
+	// speed". Attack speed IS the swing clock, and the swing clock lives in this pass, so the
+	// verb lands here rather than in the combat pass with the other three. Snapshotted once,
+	// same as every dial above; RallyHaste of 1 (or no standing banner) leaves the clock
+	// arithmetic byte-identical to what it was.
+	//
+	// The CLOCK is scaled, never the blow: one blow still removes exactly DPS x that unit's own
+	// interval, so a hasted soldier deals more damage per second by swinging more often — which
+	// is what the source text says and is also the only version of it that stays honest against
+	// a boss's flat Armor (a bigger blow would eat the Armor once; more blows eat it each time).
+	const USwarmSubsystem::FAbilityState& RallyState = Swarm->GetAbilities();
+	const bool bRallyUp = TimeSeconds < RallyState.RallyUntil;
+	const FVector RallyCentre = RallyState.RallyCentre;
+	const float RallyRadiusSq = FMath::Square(SwarmCombatTuning::AbilityRallyRadius());
+	const float RallyHaste = SwarmCombatTuning::AbilityRallyHaste();
+
+	EntityQuery.ForEachEntityChunk(Context, [Swarm, DeltaTime, TimeSeconds, StrikeAtFrac, Lunge, KnockDecay, BroodWalkHz, Facing, HeroLocation, EnemyVariants, TeamVariants, ArcherVariants, SquadVariants, bHasWalls, bRallyUp, RallyCentre, RallyRadiusSq, RallyHaste](FMassExecutionContext& ChunkContext)
 	{
 		const TArrayView<FTransformFragment> Transforms = ChunkContext.GetMutableFragmentView<FTransformFragment>();
 		const TConstArrayView<FMassVelocityFragment> Velocities = ChunkContext.GetFragmentView<FMassVelocityFragment>();
@@ -1452,10 +1488,19 @@ void USwarmIntegrateProcessor::Execute(FMassEntityManager& EntityManager, FMassE
 			const float MyPoseStart = MyStrikeAt * 0.5f;
 			const float MyPoseEnd = FMath::Min(MyStrikeAt + MyInterval * 0.18f, MyInterval);
 
+			// Banner Slam's haste. Retinue only — a banner that also sped up the tide standing
+			// under it would be a bug the player reads straight off the screen. Applies to the
+			// GARRISON as well as the seven, and that is deliberate: the banner is planted on a
+			// piece of ground, and §6.3's line is standing on that ground too.
+			const float MyDelta = (bRallyUp && (Anim[i].Bits & SwarmAnim::TeamBit) != 0
+				&& FVector::DistSquared2D(Transform.GetTranslation(), RallyCentre) <= RallyRadiusSq)
+				? DeltaTime * RallyHaste
+				: DeltaTime;
+
 			if (bWasAttacking)
 			{
 				const float Previous = S.SwingTime;
-				S.SwingTime += DeltaTime;
+				S.SwingTime += MyDelta;
 
 				// Edge-triggered: true on exactly the one frame the clock crosses the
 				// strike point, so a blow lands once no matter the frame rate.

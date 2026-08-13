@@ -334,6 +334,123 @@ public:
 		return Peak;
 	}
 
+	// --- the squad-channelled ability kit (task-144, docs/design/ability-kit.md) -----------
+	/**
+	 * Every live effect of the four verbs, in one struct, held by absolute DEADLINES rather
+	 * than by countdown timers.
+	 *
+	 * Deadlines because the subsystem has no tick of its own — the same reason CastFocusEndTime
+	 * above is an absolute world-second stamp. A reader (a Mass processor, the HUD, a console
+	 * report) compares against `World->GetTimeSeconds()` and needs nothing to have decremented
+	 * anything for it first, so there is no ordering question between the pass that would tick
+	 * a timer and the passes that read it.
+	 *
+	 * WHAT IS DELIBERATELY *NOT* HERE: which SHAPE of Q23 is live. That is
+	 * Kindled.Ability.Mode, a CVar, read fresh at every cast — so the mode can be flipped
+	 * mid-fight and the effects already standing keep behaving exactly as the shape that cast
+	 * them intended. Baking the mode into this struct would make a flip retroactive, which is
+	 * the one thing that would spoil a back-to-back comparison.
+	 *
+	 * NOTHING HERE CLOSES Q23 OR Q26. The two addressings and the three order schemes are all
+	 * reachable against the same state; picking one is an owner call.
+	 */
+	struct FAbilityState
+	{
+		/**
+		 * Mark Quarry. FocusUnits is a BIT PER NAMED SOLDIER, and that bitmask is the whole
+		 * mechanical difference between the two shapes of Q23:
+		 *   Q23 = A marks with whoever happened to be inside Kindled.Ability.PlayerRange;
+		 *   Q23 = B marks with the pack, per CLASSES.md's "the entire pack focus-fires it".
+		 * Which means the same verb, cast the two ways, produces a visibly different number of
+		 * soldiers turning onto the boss — the comparison, on screen, without a HUD readout.
+		 */
+		float FocusUntil = 0.f;
+		uint8 FocusUnits = 0;
+
+		/** Ward Circle. Centred on the cursor under Q23 = A (the bearer's own spell) and on the
+		 *  casting soldier under Q23 = B (the guardian inscribes it where they stand) — the
+		 *  second real difference between the shapes, and the one that makes a soldier's
+		 *  POSITION load-bearing under B and irrelevant under A. */
+		FVector ScreenCentre = FVector::ZeroVector;
+		float ScreenUntil = 0.f;
+
+		/** Kindle. One soldier at a time — a second cast retargets rather than stacking, which
+		 *  is what "channel onto a unit" means and also stops a mode flip leaving two channels
+		 *  running that nothing would ever clear. */
+		int32 RaiseUnit = INDEX_NONE;
+		float RaiseUntil = 0.f;
+
+		/** Banner Slam. Same centring rule as the Ward Circle above. */
+		FVector RallyCentre = FVector::ZeroVector;
+		float RallyUntil = 0.f;
+
+		/**
+		 * BOTH cooldown sets are kept live at once, on purpose: per-verb is what Q23 = A means
+		 * (four clocks on the bearer) and per-soldier is what Q23 = B means (seven clocks, one
+		 * each), and a session that flips between them mid-fight must never read the other
+		 * shape's clock and refuse a cast the live shape says is ready.
+		 */
+		float SoldierReadyAt[NamedSoldiers] = {};
+		float VerbReadyAt[NumSquadVerbs] = {};
+
+		/**
+		 * EVIDENCE, NOT MECHANISM. How many casts each order scheme actually delivered this
+		 * run, and how many it refused — indexed by SquadAbilities::EOrderScheme, whose last
+		 * slot is the console rather than a scheme. Nothing reads these to decide anything;
+		 * Kindled.Ability.Report prints them, because "which scheme did your hand actually
+		 * reach for once both were on the same keyboard" is a question a screenshot cannot
+		 * answer and recollection answers badly.
+		 *
+		 * The console gets its OWN slot rather than being folded into the nearest scheme: a
+		 * scripted run fires every verb from the console, and counting those as direct-target
+		 * clicks would make the one number this exists to produce a lie.
+		 */
+		static constexpr int32 NumOrderSchemes = 4;
+		int32 CastsByScheme[NumOrderSchemes] = {};
+		int32 RefusalsByScheme[NumOrderSchemes] = {};
+	};
+
+	const FAbilityState& GetAbilities() const { return Abilities; }
+	FAbilityState& GetMutableAbilities() { return Abilities; }
+
+	/**
+	 * The Ward Circle's multiplier on damage taken at P right now — 1 when no circle stands.
+	 *
+	 * For ACTOR call sites only (the bearer, and the boss's blow against him): two of them, off
+	 * the hot path. A Mass pass must snapshot ScreenCentre/ScreenUntil once and test inline
+	 * instead of calling this per body — see USwarmCombatProcessor::Execute for that idiom.
+	 */
+	float ScreenScaleAt(const FVector& P, float Now) const
+	{
+		if (Now >= Abilities.ScreenUntil)
+		{
+			return 1.f;
+		}
+		const float R = SwarmCombatTuning::AbilityScreenRadius();
+		return FVector::DistSquared2D(P, Abilities.ScreenCentre) <= R * R
+			? SwarmCombatTuning::AbilityScreenScale()
+			: 1.f;
+	}
+
+	/** Banner Slam: is P inside a standing banner? Same call-site rule as ScreenScaleAt. */
+	bool IsRalliedAt(const FVector& P, float Now) const
+	{
+		if (Now >= Abilities.RallyUntil)
+		{
+			return false;
+		}
+		const float R = SwarmCombatTuning::AbilityRallyRadius();
+		return FVector::DistSquared2D(P, Abilities.RallyCentre) <= R * R;
+	}
+
+	/** Which of the seven the player currently has selected — Q26 = B's first half. INDEX_NONE
+	 *  until something selects one. Purely an input-layer cursor; no sim pass reads it. */
+	int32 GetSelectedSoldier() const { return SelectedSoldier; }
+	void SetSelectedSoldier(int32 Index)
+	{
+		SelectedSoldier = IsNamedUnit(Index) ? Index : INDEX_NONE;
+	}
+
 	// --- spatial grid (rebuilt by USwarmGridBuildProcessor) ---------------
 	struct FGridEntry
 	{
@@ -877,6 +994,8 @@ public:
 		++AdaptationRevision;
 		for (int32& P : PackedPoolByType) { P = -1; }
 		Boss = FBossState{};
+		Abilities = FAbilityState{};
+		SelectedSoldier = INDEX_NONE;
 		PendingBossDamage = 0.f;
 		BossAttackers = 0;
 		BossAttackersPeak = 0;
@@ -919,6 +1038,8 @@ private:
 	TArray<FMassEntityHandle> AllEntities;
 
 	FBossState Boss;
+	FAbilityState Abilities;
+	int32 SelectedSoldier = INDEX_NONE;
 	float PendingBossDamage = 0.f;
 	int32 BossAttackers = 0;
 	int32 BossAttackersPeak = 0;

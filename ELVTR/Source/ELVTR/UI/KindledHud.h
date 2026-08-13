@@ -46,11 +46,15 @@ protected:
 	UPROPERTY(Transient) TObjectPtr<USizeBox> ShelfBox = nullptr;
 
 	// Live-muster tracking. PeakRetinue is the high-water headcount (the company denominator);
-	// SquadPeak is the per-squad high-water (each card's Size); the rest gate rebuilds so cards
-	// only re-lay when something visible changed.
+	// SquadPeak is the per-unit high-water (each card's Size).
+	//
+	// LastAlive is a SIGNATURE now, not a headcount (task-144): a card shows a verb cooldown
+	// counting down, which is a visible change with no body count behind it, so the gate folds
+	// in each of the seven's own order and whole-second readiness. The separate LastStance is
+	// gone with the global stance it tracked — cards read their unit's own order since the
+	// pivot, and one number for eight of them was never going to be right.
 	int32 PeakRetinue = 0;
 	int32 SquadPeak[8] = {}; // sized to USwarmSubsystem::MaxSquads
 	int32 LastAlive = -1;
-	int32 LastStance = -1;
 	float RefreshTimer = 0.f;
 };

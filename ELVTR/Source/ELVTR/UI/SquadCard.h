@@ -40,4 +40,9 @@ protected:
 	UPROPERTY(Transient) TObjectPtr<UMusterGrid> Grid = nullptr;
 	UPROPERTY(Transient) TObjectPtr<UBorder> Chip = nullptr;
 	UPROPERTY(Transient) TObjectPtr<UTextBlock> ChipText = nullptr;
+
+	/** Second chip: the verb this one carries and whether it is ready (task-144). Collapsed
+	 *  when FKindledSquad::Verb is empty, so a garrison card looks exactly as it did. */
+	UPROPERTY(Transient) TObjectPtr<UBorder> VerbChip = nullptr;
+	UPROPERTY(Transient) TObjectPtr<UTextBlock> VerbChipText = nullptr;
 };

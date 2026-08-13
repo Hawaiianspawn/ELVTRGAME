@@ -217,6 +217,62 @@ Swarm.HeroDPS 0                ; RETIRED 2026-08-13 — castle-layout.md §6.4 /
 Swarm.HeroMeleeRange 190       ; hero melee reach, uu
 
 # ============================================================
+# THE ABILITY KIT — the bearer's entire output (task-144)   @tab Player
+# docs/design/ability-kit.md. Four verbs from CLASSES.md's hero kits, reachable TWO ways so
+# OPEN-DECISIONS Q23 and Q26 can be closed by playing instead of by arguing. NOTHING HERE IS
+# A VERDICT: both shapes are built, the owner picks. Full account in docs/design/slice-a7.md §10.
+#   FOCUS  = Mark Quarry (Pathfinder)  SCREEN = Ward Circle (Relickeeper)
+#   RAISE  = Kindle      (Lampbearer)  RALLY  = Banner Slam (Vanguard)
+# ============================================================
+Kindled.Ability.Mode 0            ; [0|1] THE SWITCH. 0 = Q23 A, a fixed kit on the BEARER,
+                                  ; applied to whoever is in range, ordered through the verb
+                                  ; wheel (Q26 = D: hold Q, point, release, LMB). 1 = Q23 B, the
+                                  ; verb lives in the SOLDIER (SevenRoster's Verb column) and you
+                                  ; choose who acts — select-then-order (Q26 = B: ZXCVBNM + LMB)
+                                  ; and direct-target (Q26 = A: E) are both live at once.
+                                  ; [F] in game flips it mid-fight, which is the point: the
+                                  ; deliverable is a back-to-back comparison against ONE boss
+Kindled.Ability.PlayerRange 1600  ; [0..4000] Q23 = A ONLY: how far from the bearer one of the
+                                  ; seven still counts as in reach of his kit. A cast with nobody
+                                  ; in reach REFUSES and logs why — that refusal is the register's
+                                  ; stated cost for shape A turned into something that happens
+Kindled.Ability.Cooldown 12       ; [0..60] seconds between casts. Per VERB under Q23 = A, per
+                                  ; SOLDIER under Q23 = B. THE DIAL FOR THE ROTATION FAILURE
+                                  ; ability-kit.md §5 names: too low and B collapses into
+                                  ; "whoever is off cooldown" instead of a mark-driven read
+Kindled.Ability.FocusSeconds 6    ; [0..30] Mark Quarry duration. While it runs, a marking
+                                  ; soldier's blow reaches the boss even when a brood is nearer —
+                                  ; which is what fixes slice-a7.md §8's "archers rarely strike
+                                  ; the boss while brood are alive"
+Kindled.Ability.ScreenSeconds 8   ; [0..30] Ward Circle duration
+Kindled.Ability.ScreenRadius 700  ; [100..2000] Ward Circle radius, uu. Under Swarm.FlameRadius
+                                  ; (900) so the zone reads as ground, not as the whole fight
+Kindled.Ability.ScreenScale 0.35  ; [0..1] damage taken inside the circle. Covers the seven, the
+                                  ; garrison AND the bearer — "allies inside" is unqualified in
+                                  ; CLASSES.md. 1 = the circle does nothing
+Kindled.Ability.RaiseSeconds 5    ; [0..30] Kindle channel length
+Kindled.Ability.RaiseRate 90      ; [0..500] HP/s to the raised soldier. 5s x 90 is ~450 of a
+                                  ; named soldier's 760 — most of a bar, not all of it. NO
+                                  ; overheal shield and nothing revives; both are recorded gaps
+Kindled.Ability.RallySeconds 8    ; [0..30] Banner Slam duration
+Kindled.Ability.RallyRadius 900   ; [100..2500] banner radius, uu — wider than the Ward Circle so
+                                  ; the two zones read apart when both are standing
+Kindled.Ability.RallyHaste 1.6    ; [0.5..4] swing-CLOCK multiplier inside the banner, so one blow
+                                  ; is still worth what its stat block says and only the rate
+                                  ; moves. The nearest thing the four kits have to the BURST verb
+                                  ; ability-kit.md §4 says Sated has no answer to — whether it
+                                  ; outruns Kindled.Boss.SatedRegenPerSecond (120) is a thing to
+                                  ; measure in play, not a claim
+Kindled.Ability.PickRadius 400    ; [50..1500] Q26 = A ONLY: how close the cursor must be to the
+                                  ; boss or a soldier before one click MEANS that thing. Widen it
+                                  ; and the scheme guesses more; narrow it and it refuses more.
+                                  ; Both are the evidence ability-kit.md §5 asks for
+Kindled.Ability.Draw 1            ; 1 draws the verb wheel and the standing zones as world debug
+                                  ; draw — the only evidence channel there is, since no capture
+                                  ; path here can film Slate or debug draws. 0 hides them; every
+                                  ; verb still works
+
+# ============================================================
 # RETINUE FORMATION — how your army arranges itself around you   @tab Unit
 # ============================================================
 Swarm.Formation.Shape 1        ; {0=Ring, 1=Block, 2=Wedge, 3=Arc} the camera does not rotate, so

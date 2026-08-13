@@ -10,6 +10,7 @@
 #include "Components/SizeBox.h"
 #include "Engine/World.h"
 #include "Mass/SwarmSubsystem.h"
+#include "Spike/SevenRoster.h"
 
 namespace
 {
@@ -71,22 +72,35 @@ void UKindledHud::PushLiveMuster()
 	}
 
 	PeakRetinue = FMath::Max(PeakRetinue, Alive);
-	const ESwarmStance Stance = Swarm->GetStance();
-	const int32 StanceInt = (int32)Stance;
 
-	// Only rebuild when the visible state changed.
-	if (Alive == LastAlive && StanceInt == LastStance)
+	// --- what a card is, after the pivot (task-144) ---------------------------------------
+	// castle-layout.md §6.4: the HUD's job changed "from describing an army to describing seven
+	// individuals and what each can currently do". So handles 0-6 are now NAMED SOLDIERS off
+	// SevenRoster — real names, their own per-unit order, and their verb with its cooldown —
+	// and handle 7 is the garrison, one card, still an army. The five invented squad names
+	// ("Shield", "Vets", "Spearmen"...) are gone: they described a company that no longer
+	// exists, and printing them beside real names would have been the HUD lying about which
+	// bodies the player commands.
+	const float Now = World->GetTimeSeconds();
+	const bool bModeB = SwarmCombatTuning::AbilityMode() == 1;
+	const USwarmSubsystem::FAbilityState& Abil = Swarm->GetAbilities();
+	const int32 Selected = Swarm->GetSelectedSoldier();
+
+	// Rebuild gate. Alive + the global stance no longer cover it — a cooldown ticking down is a
+	// visible change with no body count behind it — so the signature folds in each soldier's
+	// own order and whole-second readiness. Whole seconds, not raw floats, so the card row does
+	// not re-lay every frame just because a countdown moved a hundredth.
+	int32 Signature = Alive * 31 + (int32)Swarm->GetStance() + Selected * 7 + (bModeB ? 1024 : 0);
+	for (int32 i = 0; i < USwarmSubsystem::NamedSoldiers; ++i)
+	{
+		Signature = Signature * 17 + (int32)Swarm->GetUnitStance(i)
+			+ FMath::CeilToInt(FMath::Max(Abil.SoldierReadyAt[i] - Now, 0.f));
+	}
+	if (Signature == LastAlive)
 	{
 		return;
 	}
-	LastAlive = Alive;
-	LastStance = StanceInt;
-
-	// Real per-squad standing (cosmetic squads, tracked in the sim). Each card's SIZE is that
-	// squad's high-water headcount, STANDING its live count — so cards show honest per-squad
-	// attrition. Squads that never had members are skipped, so the row matches the live army.
-	static const TCHAR* const SquadNames[] = {
-		TEXT("Shield"), TEXT("Vets"), TEXT("Spearmen"), TEXT("Banner"), TEXT("Reserve") };
+	LastAlive = Signature;
 
 	const int32 SquadCount = FMath::Min<int32>(USwarmSubsystem::MaxSquads, UE_ARRAY_COUNT(SquadPeak));
 	TArray<FKindledSquad> Live;
@@ -97,18 +111,40 @@ void UKindledHud::PushLiveMuster()
 		SquadPeak[i] = FMath::Max(SquadPeak[i], Standing);
 		if (SquadPeak[i] <= 0)
 		{
-			continue; // squad never populated
+			continue; // handle never populated
 		}
 		FKindledSquad S;
 		S.Size = SquadPeak[i];
 		S.Standing = FMath::Min(Standing, S.Size);
 		S.Columns = FMath::Clamp(FMath::RoundToInt(FMath::Sqrt((float)FMath::Max(S.Size, 1)) * 1.3f), 3, 10);
 		S.bWide = S.Size > 30;
-		S.Stance = Stance;
-		S.DisplayName = FText::FromString(SquadNames[i % UE_ARRAY_COUNT(SquadNames)]);
+		// The per-unit order, not the last broadcast one: since the pivot a soldier can be
+		// carrying an order nobody else got, and a card showing the global stance would report
+		// the opposite of what that soldier is doing.
+		S.Stance = Swarm->GetUnitStance(i);
+
+		if (USwarmSubsystem::IsNamedUnit(i))
+		{
+			const SevenRoster::FSoldier& Soldier = SevenRoster::Get(i);
+			S.DisplayName = FText::FromString(Soldier.Name);
+			// Only under Q23 = B does a soldier carry anything. Under Q23 = A the verb chip is
+			// left empty and the card collapses it — which is the shape difference showing up
+			// in the UI without the UI taking a position on which shape is right.
+			if (bModeB)
+			{
+				S.Verb = FText::FromString(LexToString(Soldier.Verb));
+				S.VerbCooldown = FMath::Max(Abil.SoldierReadyAt[i] - Now, 0.f);
+				S.bVerbReady = Standing > 0 && S.VerbCooldown <= 0.f;
+			}
+		}
+		else
+		{
+			S.DisplayName = FText::FromString(TEXT("THE WAR"));
+		}
 		Live.Add(S);
 	}
 
+	Muster->SelectedIndex = (bModeB && Selected != INDEX_NONE) ? Selected : INDEX_NONE;
 	Muster->SetSquads(Live);
 }
 

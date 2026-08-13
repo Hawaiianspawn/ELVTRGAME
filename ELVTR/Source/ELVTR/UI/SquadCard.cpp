@@ -71,6 +71,21 @@ TSharedRef<SWidget> USquadCard::RebuildWidget()
 			ChipSlot->SetPadding(FMargin(0.f, 4.f, 0.f, 0.f));
 			ChipSlot->SetHorizontalAlignment(HAlign_Left);
 		}
+
+		// verb chip (task-144) — "what this one can currently do", under the order it is under.
+		// A second chip rather than a second line in the existing one: the stance is an ORDER
+		// and the verb is a CAPABILITY, and a card that runs them together makes a spent verb
+		// look like a stance the player did not give.
+		VerbChip = WidgetTree->ConstructWidget<UBorder>(UBorder::StaticClass(), TEXT("VerbChip"));
+		VerbChip->SetPadding(FMargin(5.f, 2.f));
+		VerbChipText = WidgetTree->ConstructWidget<UTextBlock>(UTextBlock::StaticClass(), TEXT("VerbChipText"));
+		VerbChipText->SetFont(FCoreStyle::GetDefaultFontStyle("Regular", 8));
+		VerbChip->SetContent(VerbChipText);
+		if (UVerticalBoxSlot* VerbSlot = Body->AddChildToVerticalBox(VerbChip))
+		{
+			VerbSlot->SetPadding(FMargin(0.f, 3.f, 0.f, 0.f));
+			VerbSlot->SetHorizontalAlignment(HAlign_Left);
+		}
 	}
 
 	Refresh();
@@ -96,4 +111,24 @@ void USquadCard::Refresh()
 	Chip->SetBrushColor(Demichrome::Pale());
 	ChipText->SetColorAndOpacity(FSlateColor(Demichrome::Dark()));
 	ChipText->SetText(FText::FromString(LexToString(Squad.Stance)));
+
+	// The verb chip inverts against the stance chip when the verb is spent — Steel ground with
+	// Pale text instead of a Pale ground — so "ready" and "not ready" are a fill difference at
+	// card size rather than a word you have to read.
+	if (!VerbChip)
+	{
+		return;
+	}
+	const bool bHasVerb = !Squad.Verb.IsEmpty();
+	VerbChip->SetVisibility(bHasVerb ? ESlateVisibility::HitTestInvisible : ESlateVisibility::Collapsed);
+	if (bHasVerb)
+	{
+		VerbChip->SetBrushColor(Squad.bVerbReady ? Demichrome::Bone() : Demichrome::Steel());
+		VerbChipText->SetColorAndOpacity(FSlateColor(
+			Squad.bVerbReady ? Demichrome::Dark() : Demichrome::Pale()));
+		VerbChipText->SetText(Squad.bVerbReady
+			? Squad.Verb
+			: FText::FromString(FString::Printf(TEXT("%s %.0fs"),
+				*Squad.Verb.ToString(), FMath::CeilToFloat(Squad.VerbCooldown))));
+	}
 }

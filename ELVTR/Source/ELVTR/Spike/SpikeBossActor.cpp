@@ -320,7 +320,12 @@ void ASpikeBossActor::Tick(float DeltaSeconds)
 			const float Objective = HasMark(Boss.Marks, EBossMark::Ram)
 				? BaseBlow * SwarmCombatTuning::BossRamObjectiveScale()
 				: BaseBlow;
-			Swarm->AddPendingHeroDamage(Objective);
+			// The Ward Circle covers the bearer (task-144). Applied here as well as in the
+			// combat pass because this blow does not go through the grid — it is handed over
+			// directly, so a zone applied only on the Mass side would let the one attack that
+			// can actually kill you walk straight through it.
+			Swarm->AddPendingHeroDamage(Objective
+				* Swarm->ScreenScaleAt(Bearer, GetWorld()->GetTimeSeconds()));
 		}
 	}
 

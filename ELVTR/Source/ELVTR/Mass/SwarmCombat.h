@@ -86,6 +86,90 @@ inline const TCHAR* LexToString(EUnitType Type)
 	return Type == EUnitType::Archers ? TEXT("ARCHERS") : TEXT("SPEARMEN");
 }
 
+/**
+ * The four squad-channelled verbs — docs/design/ability-kit.md §1, sourced from CLASSES.md's
+ * four hero kits per Q29 = A. Q13 = C's sketch list ("focus fire, reposition, screen, raise")
+ * named four words; §1 transcribes which actual class verb each one is:
+ *
+ *   Focus  = Mark Quarry   (Pathfinder signature) — "the entire pack focus-fires it"
+ *   Screen = Ward Circle   (Relickeeper field)    — "allies inside take reduced damage"
+ *   Raise  = Kindle        (Lampbearer signature) — "channel onto a unit: heal over time"
+ *   Rally  = Banner Slam   (Vanguard signature)   — "retinue in radius gains attack speed
+ *                                                    and fights to the death"
+ *
+ * WHICH FOUR IS NOT A VERDICT ON Q23. Q23 asks whether the kit lives on the player, in the
+ * soldiers, or both — a question about STRUCTURE, which this enum deliberately does not
+ * encode. The same four values are reached both ways at runtime (Kindled.Ability.Mode), which
+ * is the entire point of the build: the owner compares the two addressings against one boss.
+ *
+ * Reposition (Shield Wall) is absent because the shipped stance set already IS it —
+ * ESwarmStance::Hold anchors a unit on the ground it was called on, which is Shield Wall's
+ * own mechanical text ("the formation stops tracking the hero and holds that spot").
+ * Duplicating it as a fifth verb would have been a second way to press the same button.
+ *
+ * Plain enum, matching EBossMark's reasoning one struct up: nothing Blueprint-facing reads
+ * it, and a reflected enum would put a class-layout dependency in a header the whole sim
+ * includes. The UI's own copy is an FText carried on FKindledSquad.
+ */
+enum class ESquadVerb : uint8
+{
+	None = 0,
+	Focus,
+	Screen,
+	Raise,
+	Rally,
+	Num
+};
+
+inline constexpr int32 NumSquadVerbs = (int32)ESquadVerb::Num;
+
+inline const TCHAR* LexToString(ESquadVerb Verb)
+{
+	switch (Verb)
+	{
+	case ESquadVerb::Focus:		return TEXT("FOCUS");
+	case ESquadVerb::Screen:	return TEXT("SCREEN");
+	case ESquadVerb::Raise:		return TEXT("RAISE");
+	case ESquadVerb::Rally:		return TEXT("RALLY");
+	default:					return TEXT("—");
+	}
+}
+
+/** The CLASSES.md verb this one IS, for a HUD line and a log the owner can trace to canon. */
+inline const TCHAR* SquadVerbSource(ESquadVerb Verb)
+{
+	switch (Verb)
+	{
+	case ESquadVerb::Focus:		return TEXT("Mark Quarry");
+	case ESquadVerb::Screen:	return TEXT("Ward Circle");
+	case ESquadVerb::Raise:		return TEXT("Kindle");
+	case ESquadVerb::Rally:		return TEXT("Banner Slam");
+	default:					return TEXT("none");
+	}
+}
+
+/** "focus" / "mark" -> ESquadVerb::Focus. ESquadVerb::None on anything unknown. */
+inline ESquadVerb SquadVerbFromToken(const FString& Token)
+{
+	if (Token.Equals(TEXT("focus"), ESearchCase::IgnoreCase) || Token.Equals(TEXT("mark"), ESearchCase::IgnoreCase))
+	{
+		return ESquadVerb::Focus;
+	}
+	if (Token.Equals(TEXT("screen"), ESearchCase::IgnoreCase) || Token.Equals(TEXT("ward"), ESearchCase::IgnoreCase))
+	{
+		return ESquadVerb::Screen;
+	}
+	if (Token.Equals(TEXT("raise"), ESearchCase::IgnoreCase) || Token.Equals(TEXT("kindle"), ESearchCase::IgnoreCase))
+	{
+		return ESquadVerb::Raise;
+	}
+	if (Token.Equals(TEXT("rally"), ESearchCase::IgnoreCase) || Token.Equals(TEXT("banner"), ESearchCase::IgnoreCase))
+	{
+		return ESquadVerb::Rally;
+	}
+	return ESquadVerb::None;
+}
+
 USTRUCT()
 struct FSwarmHealthFragment : public FMassFragment
 {
@@ -277,6 +361,46 @@ namespace SwarmCombatTuning
 	/** Sated: seconds without taking a blow before regeneration starts, and its rate in HP/s. */
 	float BossSatedCalmSeconds();
 	float BossSatedRegenPerSecond();
+
+	// --- the squad-channelled ability kit (task-144, docs/design/ability-kit.md) -----------
+	// EVERY tuning value here is a CVar and none is a constant, on the owner's dispatch note:
+	// cooldowns, ranges, magnitudes and durations all get tweaked against a live fight, and a
+	// recompile between two tries is the thing that stops an owner comparing Q23 = A against
+	// Q23 = B honestly. Defaults are stated in SwarmCombatProcessors.cpp beside each CVar and
+	// mirrored into ELVTR/Config/SwarmExecOnPlay.canonical.txt.
+
+	/** 0 = Q23 A (a fixed kit on the player), 1 = Q23 B (the verb lives in the soldier).
+	 *  NOT A VERDICT — the flip is the deliverable. See docs/design/slice-a7.md §10. */
+	int32 AbilityMode();
+
+	/** Q23 = A only: how far from the bearer a soldier still counts as "in range" of the kit. */
+	float AbilityPlayerRange();
+
+	/** Seconds between casts. Per VERB under Q23 = A; per SOLDIER under Q23 = B. */
+	float AbilityCooldown();
+
+	/** Mark Quarry: how long the pack keeps focus-firing the marked enemy. */
+	float AbilityFocusSeconds();
+
+	/** Ward Circle: duration, radius, and the multiplier on damage taken inside it. */
+	float AbilityScreenSeconds();
+	float AbilityScreenRadius();
+	float AbilityScreenScale();
+
+	/** Kindle: channel length and HP/s restored to the soldier being raised. */
+	float AbilityRaiseSeconds();
+	float AbilityRaiseRate();
+
+	/** Banner Slam: duration, radius, and the swing-clock rate multiplier inside it. */
+	float AbilityRallySeconds();
+	float AbilityRallyRadius();
+	float AbilityRallyHaste();
+
+	/** How close the cursor has to be to a thing for Q26 = A (direct target) to mean it. */
+	float AbilityPickRadius();
+
+	/** 0 hides the verb wheel and the active-zone rings. They still work — this only draws. */
+	int32 AbilityDraw();
 
 	// --- knight sub-types (task-095, docs/design/retinue-melee-subtypes.md) -----------
 	// Binds the team-atlas VARIANT INDEX a Spearman already wears (SwarmSheet::Team,

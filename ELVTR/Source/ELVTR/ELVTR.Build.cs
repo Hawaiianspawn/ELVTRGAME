@@ -16,6 +16,12 @@ public class ELVTR : ModuleRules
 			"CoreUObject",
 			"Engine",
 			"InputCore",
+
+			// task-137's migration off raw key polling, landed by task-144: the bearer's input
+			// is one C++-built UInputMappingContext (SpikeHeroPawn::BuildInputMap). Needed for
+			// the Q26 = D verb wheel, which is a HOLD — a real Started/Completed pair, not two
+			// IsInputKeyDown reads compared against last frame's bool.
+			"EnhancedInput",
 			"MassCore",
 			"MassEntity",
 			"MassCommon",

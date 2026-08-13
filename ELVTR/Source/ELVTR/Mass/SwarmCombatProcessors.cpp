@@ -163,6 +163,101 @@ namespace
 		TEXT("heal in 50s of being left alone, which should read as 'you cannot walk away from\n")
 		TEXT("this one' without being unkillable."), ECVF_Default);
 
+	// --- the squad-channelled ability kit (task-144, docs/design/ability-kit.md) -----------
+	// EVERY number below is a CVar rather than a constant, on the owner's dispatch note: this
+	// build exists so Q23 = A and Q23 = B can be compared back-to-back against the same boss,
+	// and a recompile between two tries is what makes that comparison dishonest. Defaults are
+	// first-pass and unmeasured unless a line below says otherwise.
+	TAutoConsoleVariable<int32> CVarAbilityMode(
+		TEXT("Kindled.Ability.Mode"), 0,
+		TEXT("WHICH SHAPE OF Q23 IS LIVE — the switch this whole build exists to provide.\n")
+		TEXT("  0 = Q23 A. A fixed kit on the BEARER. All four verbs are always his; each one\n")
+		TEXT("      applies to whichever of the seven are inside Kindled.Ability.PlayerRange.\n")
+		TEXT("      Order scheme: the verb wheel (Q26 = D) — hold Q, release to arm, LMB to target.\n")
+		TEXT("  1 = Q23 B. The verb lives in the SOLDIER (SevenRoster.h's Verb column); the\n")
+		TEXT("      bearer has no kit of his own and chooses WHO acts.\n")
+		TEXT("      Order schemes: select-then-order (Q26 = B, ZXCVBNM then LMB) and direct\n")
+		TEXT("      target (Q26 = A, E at the cursor) are BOTH live at once, so the two can be\n")
+		TEXT("      compared without a second flip.\n")
+		TEXT("\n")
+		TEXT("NOT A VERDICT. Q23 and Q26 are open owner calls (docs/OPEN-DECISIONS.md); this\n")
+		TEXT("flips between the options inside one session and takes no position on either."),
+		ECVF_Default);
+	TAutoConsoleVariable<float> CVarAbilityPlayerRange(
+		TEXT("Kindled.Ability.PlayerRange"), 1600.f,
+		TEXT("Q23 = A ONLY: how far from the bearer, uu, one of the seven still counts as being\n")
+		TEXT("in reach of his kit — the register's own phrasing, 'applies to whichever soldiers\n")
+		TEXT("are in range'. A cast with nobody in reach REFUSES and says so, which is the\n")
+		TEXT("shape's cost made visible rather than argued. Inert while Mode is 1."), ECVF_Default);
+	TAutoConsoleVariable<float> CVarAbilityCooldown(
+		TEXT("Kindled.Ability.Cooldown"), 12.f,
+		TEXT("Seconds between casts. Per VERB under Q23 = A (four independent clocks on the\n")
+		TEXT("bearer); per SOLDIER under Q23 = B (seven clocks, one each). Both sets are kept\n")
+		TEXT("live at once so flipping Mode mid-fight never reads the other shape's clock.\n")
+		TEXT("\n")
+		TEXT("THE DIAL FOR THE ROTATION FAILURE ability-kit.md §5 NAMES: low enough and Q23 = B\n")
+		TEXT("collapses into 'whoever is off cooldown' instead of a mark-driven read. Raise it\n")
+		TEXT("until spending a soldier is a real commitment, and watch whether the choice\n")
+		TEXT("survives."), ECVF_Default);
+	TAutoConsoleVariable<float> CVarAbilityFocusSeconds(
+		TEXT("Kindled.Ability.FocusSeconds"), 6.f,
+		TEXT("Mark Quarry: seconds the marked enemy stays marked. While it does, a marking\n")
+		TEXT("soldier's blow reaches the BOSS even when a brood is nearer — see\n")
+		TEXT("Kindled.Ability.Draw for what that fixes."), ECVF_Default);
+	TAutoConsoleVariable<float> CVarAbilityScreenSeconds(
+		TEXT("Kindled.Ability.ScreenSeconds"), 8.f,
+		TEXT("Ward Circle: how long the inscribed zone stands."), ECVF_Default);
+	TAutoConsoleVariable<float> CVarAbilityScreenRadius(
+		TEXT("Kindled.Ability.ScreenRadius"), 700.f,
+		TEXT("Ward Circle radius, uu. Sized against Swarm.FlameRadius (900) so the zone reads as\n")
+		TEXT("a piece of ground rather than as the whole fight."), ECVF_Default);
+	TAutoConsoleVariable<float> CVarAbilityScreenScale(
+		TEXT("Kindled.Ability.ScreenScale"), 0.35f,
+		TEXT("Multiplier on damage taken inside the Ward Circle — CLASSES.md's 'allies inside\n")
+		TEXT("take reduced damage'. Applies to the seven, the garrison AND the bearer, because\n")
+		TEXT("'allies' in the source text is not qualified. 1 = the circle does nothing."),
+		ECVF_Default);
+	TAutoConsoleVariable<float> CVarAbilityRaiseSeconds(
+		TEXT("Kindled.Ability.RaiseSeconds"), 5.f,
+		TEXT("Kindle: seconds the channel runs. CLASSES.md calls Kindle CHANNELED, and this is\n")
+		TEXT("that duration — but nothing here commits the caster to standing still, because no\n")
+		TEXT("channel-interrupt mechanic exists in this sim. Recorded as a gap, not modelled."),
+		ECVF_Default);
+	TAutoConsoleVariable<float> CVarAbilityRaiseRate(
+		TEXT("Kindled.Ability.RaiseRate"), 90.f,
+		TEXT("Kindle: HP/s restored to the raised soldier. At the shipped 760 HP a named soldier\n")
+		TEXT("carries (SevenRoster's 4x expedient), 5s of this is ~450 — most of a bar, not all\n")
+		TEXT("of it. NO OVERHEAL SHIELD: CLASSES.md's overheal-becomes-a-light-shield half needs\n")
+		TEXT("a shield mechanic the sim does not have. Recorded, not faked."), ECVF_Default);
+	TAutoConsoleVariable<float> CVarAbilityRallySeconds(
+		TEXT("Kindled.Ability.RallySeconds"), 8.f,
+		TEXT("Banner Slam: seconds the planted banner stands."), ECVF_Default);
+	TAutoConsoleVariable<float> CVarAbilityRallyRadius(
+		TEXT("Kindled.Ability.RallyRadius"), 900.f,
+		TEXT("Banner Slam radius, uu — wider than the Ward Circle so the two zones read apart on\n")
+		TEXT("screen when both are standing."), ECVF_Default);
+	TAutoConsoleVariable<float> CVarAbilityRallyHaste(
+		TEXT("Kindled.Ability.RallyHaste"), 1.6f,
+		TEXT("Banner Slam: swing-clock rate multiplier inside the banner — CLASSES.md's 'retinue\n")
+		TEXT("in radius gains attack speed'. Scales the CLOCK, not the blow, so DPS rises by\n")
+		TEXT("exactly this factor and one blow is still worth what its stat block says.\n")
+		TEXT("\n")
+		TEXT("This is the closest thing in the four kits to §4's MISSING BURST VERB — the gap\n")
+		TEXT("ability-kit.md §4 names as Sated's unanswered counter. It is a rate, not a burst,\n")
+		TEXT("and whether it outruns Kindled.Boss.SatedRegenPerSecond is a thing to measure in\n")
+		TEXT("play, not a claim made here."), ECVF_Default);
+	TAutoConsoleVariable<float> CVarAbilityPickRadius(
+		TEXT("Kindled.Ability.PickRadius"), 400.f,
+		TEXT("Q26 = A (direct target) ONLY: how close the cursor must be to the boss or to one of\n")
+		TEXT("the seven before one click MEANS that thing. Widen it and the scheme guesses more\n")
+		TEXT("often; narrow it and it refuses more often. Both failure modes are the evidence\n")
+		TEXT("ability-kit.md §5 asks for under Q26 = A/C."), ECVF_Default);
+	TAutoConsoleVariable<int32> CVarAbilityDraw(
+		TEXT("Kindled.Ability.Draw"), 1,
+		TEXT("1 draws the verb wheel and the standing zones in the world (debug draw, so a\n")
+		TEXT("whole-window screenshot catches it and Swarm.DebugShotAfter does not). 0 hides\n")
+		TEXT("them; every verb still works."), ECVF_Default);
+
 	// --- swing cadence + hit reaction ------------------------------------
 	TAutoConsoleVariable<float> CVarSwingInterval(
 		TEXT("Swarm.SwingInterval"), 0.9f,
@@ -421,6 +516,21 @@ namespace SwarmCombatTuning
 	float BossSatedCalmSeconds(){ return FMath::Max(CVarBossSatedCalm.GetValueOnAnyThread(), 0.f); }
 	float BossSatedRegenPerSecond() { return FMath::Max(CVarBossSatedRegen.GetValueOnAnyThread(), 0.f); }
 
+	int32 AbilityMode()          { return FMath::Clamp(CVarAbilityMode.GetValueOnAnyThread(), 0, 1); }
+	float AbilityPlayerRange()   { return FMath::Max(CVarAbilityPlayerRange.GetValueOnAnyThread(), 0.f); }
+	float AbilityCooldown()      { return FMath::Max(CVarAbilityCooldown.GetValueOnAnyThread(), 0.f); }
+	float AbilityFocusSeconds()  { return FMath::Max(CVarAbilityFocusSeconds.GetValueOnAnyThread(), 0.f); }
+	float AbilityScreenSeconds() { return FMath::Max(CVarAbilityScreenSeconds.GetValueOnAnyThread(), 0.f); }
+	float AbilityScreenRadius()  { return FMath::Max(CVarAbilityScreenRadius.GetValueOnAnyThread(), 0.f); }
+	float AbilityScreenScale()   { return FMath::Clamp(CVarAbilityScreenScale.GetValueOnAnyThread(), 0.f, 1.f); }
+	float AbilityRaiseSeconds()  { return FMath::Max(CVarAbilityRaiseSeconds.GetValueOnAnyThread(), 0.f); }
+	float AbilityRaiseRate()     { return FMath::Max(CVarAbilityRaiseRate.GetValueOnAnyThread(), 0.f); }
+	float AbilityRallySeconds()  { return FMath::Max(CVarAbilityRallySeconds.GetValueOnAnyThread(), 0.f); }
+	float AbilityRallyRadius()   { return FMath::Max(CVarAbilityRallyRadius.GetValueOnAnyThread(), 0.f); }
+	float AbilityRallyHaste()    { return FMath::Max(CVarAbilityRallyHaste.GetValueOnAnyThread(), 0.f); }
+	float AbilityPickRadius()    { return FMath::Max(CVarAbilityPickRadius.GetValueOnAnyThread(), 0.f); }
+	int32 AbilityDraw()          { return CVarAbilityDraw.GetValueOnAnyThread(); }
+
 	// Floored so a zero or negative interval can't produce a divide-by-zero or a
 	// unit that strikes every frame. StrikeAt is clamped inside the interval so the
 	// windup and the recovery both always exist.
@@ -605,6 +715,23 @@ void USwarmCombatProcessor::Execute(FMassEntityManager& EntityManager, FMassExec
 	const float BossChipFloor = SwarmCombatTuning::BossArmorChipFloor();
 	const int32 BossSurroundCap = SwarmCombatTuning::BossSurroundCap();
 
+	// --- the ability kit, effect side (task-144, docs/design/ability-kit.md) ---------------
+	// Snapshotted once per pass and captured BY VALUE into the chunk lambda, the same idiom
+	// every other tunable above uses: a per-entity subsystem call inside this loop is exactly
+	// what Design Law 5 and this file's own precedent refuse. Three of the four verbs land
+	// here; the fourth (Banner Slam's haste) belongs to the swing clock in SwarmProcessors.cpp,
+	// because that is where a swing clock lives.
+	const float AbilityNow = Context.GetWorld()->GetTimeSeconds();
+	const float AbilityDelta = Context.GetDeltaTimeSeconds();
+	const USwarmSubsystem::FAbilityState& Abil = Swarm->GetAbilities();
+	const uint8 FocusMask = (AbilityNow < Abil.FocusUntil) ? Abil.FocusUnits : 0;
+	const bool bScreenUp = AbilityNow < Abil.ScreenUntil;
+	const FVector ScreenCentre = Abil.ScreenCentre;
+	const float ScreenRadiusSq = FMath::Square(SwarmCombatTuning::AbilityScreenRadius());
+	const float ScreenScale = SwarmCombatTuning::AbilityScreenScale();
+	const int32 RaiseUnit = (AbilityNow < Abil.RaiseUntil) ? Abil.RaiseUnit : INDEX_NONE;
+	const float RaiseRate = SwarmCombatTuning::AbilityRaiseRate();
+
 	const float FlashTime = SwarmCombatTuning::HitFlashTime();
 	// Impulse speed that spends KnockbackDistance over KnockbackTime under the
 	// exponential decay applied in the integrate pass: displacement = V * tau.
@@ -630,7 +757,7 @@ void USwarmCombatProcessor::Execute(FMassEntityManager& EntityManager, FMassExec
 	float BossDamage = 0.f;
 	int32 BossStrikers = 0;
 
-	EntityQuery.ForEachEntityChunk(Context, [Swarm, HeroLocation, bHeroAlive, bHeroStriking, MeleeRangeSq, ArchersRangeSq, ArchersMinRangeSq, HeroMeleeRangeSq, HeroBlow, MaxAttackers, ArchersTargets, BroodTargets, KnightTables, SquadVariants, FlashTime, KnockSpeed, bBossAlive, BossLocation, BossArmor, BossQuilledArmor, BossChipFloor, BossSurroundCap, &HeroDamage, &DamageToRetinue, &DamageToBrood, &KilledBySquad, &HeroKilled, &BossDamage, &BossStrikers](FMassExecutionContext& ChunkContext)
+	EntityQuery.ForEachEntityChunk(Context, [Swarm, HeroLocation, bHeroAlive, bHeroStriking, MeleeRangeSq, ArchersRangeSq, ArchersMinRangeSq, HeroMeleeRangeSq, HeroBlow, MaxAttackers, ArchersTargets, BroodTargets, KnightTables, SquadVariants, FlashTime, KnockSpeed, bBossAlive, BossLocation, BossArmor, BossQuilledArmor, BossChipFloor, BossSurroundCap, AbilityDelta, FocusMask, bScreenUp, ScreenCentre, ScreenRadiusSq, ScreenScale, RaiseUnit, RaiseRate, &HeroDamage, &DamageToRetinue, &DamageToBrood, &KilledBySquad, &HeroKilled, &BossDamage, &BossStrikers](FMassExecutionContext& ChunkContext)
 	{
 		const TConstArrayView<FTransformFragment> Transforms = ChunkContext.GetFragmentView<FTransformFragment>();
 		const TArrayView<FSwarmHealthFragment> Health = ChunkContext.GetMutableFragmentView<FSwarmHealthFragment>();
@@ -929,7 +1056,22 @@ void USwarmCombatProcessor::Execute(FMassEntityManager& EntityManager, FMassExec
 			if (bRetinue && bBossAlive && Strike[i].bStrikeFrame && BossStrikers < BossSurroundCap)
 			{
 				const float BossDistSq = (float)FVector::DistSquared2D(Location, BossLocation);
-				if (BossDistSq <= MyReachSq)
+
+				// --- Mark Quarry (task-144) ---------------------------------------------
+				// "Tag an enemy: the entire pack focus-fires it" (CLASSES.md). In this sim the
+				// thing that stops a soldier hitting the boss is not RANGE, it is PRIORITY:
+				// MyReachSq is the distance to this soldier's Kth NEAREST enemy, so a soldier
+				// standing in a live wave reaches the brood at its elbow and never the boss two
+				// bodies behind it. slice-a7.md §8 recorded that as an archer quirk; it is every
+				// soldier's, and it is what makes a boss fight inside a wave feel like nothing
+				// you do matters. Focus is the answer: a MARKING soldier's blow reaches the boss
+				// anywhere inside its own engage range, brood in the way or not.
+				//
+				// It redirects a swing, it never adds one — the claim below still spends from
+				// this soldier's own BlowsClaimed budget, so a marked soldier that also had a
+				// brood in reach pays the boss INSTEAD of the brood, not as well as.
+				const bool bMarking = (FocusMask & (uint8)(1u << SwarmSquad::UnitIndex(Anim[i].SquadId))) != 0;
+				if (BossDistSq <= (bMarking ? MyRangeSq : MyReachSq))
 				{
 					USwarmSubsystem::FGridEntry* OwnEntry =
 						Swarm->FindOwnGridEntry(Location, /*bRetinue=*/true, Strike[i].bStrikeFrame, MyReachSq);
@@ -956,6 +1098,22 @@ void USwarmCombatProcessor::Execute(FMassEntityManager& EntityManager, FMassExec
 			Strike[i].StrikeReachSq = (InReach <= 0)
 				? 0.f
 				: NearestSq[FMath::Min(InReach, MyTargets) - 1];
+
+			// --- Ward Circle (task-144) -------------------------------------------------
+			// "Allies inside take reduced damage" (CLASSES.md). Applied HERE, at the one place
+			// a body's HP actually falls, rather than at any of the several places damage is
+			// produced — so no damage source can route around the zone, including the boss's
+			// own blow, which arrives through the same neighbour walk as everything else.
+			//
+			// Retinue only. Brood standing inside an ally circle keeping their own skin is a
+			// bug the player would read off the screen in one wave, and "allies" in the source
+			// text plainly does not mean them. The BEARER is covered too, but not here — his HP
+			// is not a fragment; see the AddPendingHeroDamage call at the end of this pass.
+			if (bStruck && bRetinue && bScreenUp
+				&& FVector::DistSquared2D(Location, ScreenCentre) <= ScreenRadiusSq)
+			{
+				Damage *= ScreenScale;
+			}
 
 			if (bStruck)
 			{
@@ -989,6 +1147,26 @@ void USwarmCombatProcessor::Execute(FMassEntityManager& EntityManager, FMassExec
 				}
 			}
 
+			// --- Kindle (task-144) ------------------------------------------------------
+			// "Channel onto a player or unit: heal over time" (CLASSES.md). Outside the bStruck
+			// block deliberately — a soldier nobody is hitting this frame is exactly the one a
+			// channel is most likely to be finishing, and gating a heal on being hit would make
+			// the verb do nothing the moment it started working.
+			//
+			// Applied AFTER this frame's damage so the two never race, and clamped to MaxHP:
+			// CLASSES.md's other half of Kindle ("overheal becomes a temporary light-shield")
+			// needs a shield mechanic this sim does not have. That half is recorded as a gap in
+			// docs/design/slice-a7.md, not faked with a bigger number.
+			//
+			// Nothing revives: a soldier at 0 HP is gone from the sim before this pass sees it,
+			// so Kindle's "revives a downed player faster" half is also absent — Q15 (down and
+			// revive) is open and this must not answer it.
+			if (bRetinue && RaiseUnit != INDEX_NONE && Health[i].HP > 0.f
+				&& SwarmSquad::UnitIndex(Anim[i].SquadId) == RaiseUnit)
+			{
+				Health[i].HP = FMath::Min(Health[i].HP + RaiseRate * AbilityDelta, Health[i].MaxHP);
+			}
+
 			if (bContact)
 			{
 				Anim[i].Bits |= SwarmAnim::AttackBit;
@@ -998,7 +1176,10 @@ void USwarmCombatProcessor::Execute(FMassEntityManager& EntityManager, FMassExec
 
 	if (HeroDamage > 0.f)
 	{
-		Swarm->AddPendingHeroDamage(HeroDamage);
+		// The Ward Circle covers the bearer too. "Allies inside" is unqualified in CLASSES.md,
+		// and under Q13 = C a screen the player can stand in is the only place the kit touches
+		// his own survival — which is the whole of what he has left.
+		Swarm->AddPendingHeroDamage(HeroDamage * Swarm->ScreenScaleAt(HeroLocation, AbilityNow));
 	}
 	if (BossDamage > 0.f)
 	{

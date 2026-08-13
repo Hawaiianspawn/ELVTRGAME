@@ -22,12 +22,25 @@
  *    Pathfinder (the few / range), Lampbearer (the light) — are drawn across seven slots at
  *    2/2/2/1. That ratio is a shape, not a decision; there is no canon for it.
  *
- *  - NO VERBS. Deliberately, and this is the single most important omission in the file.
- *    Q23 (the squad-channelled ability kit) is open, it is the largest piece of undesigned
- *    content in the project, and the register says in as many words that it "should not be
- *    settled by whatever gets prototyped first". Giving these seven abilities here would
- *    answer it by accident. The archetype is a LABEL and a LOOK and nothing else until
- *    task-144. What distinguishes them today is their body, their reach and their orders.
+ *  - VERB is task-144's addition, and it is LIVE ONLY UNDER Kindled.Ability.Mode 1 (Q23 = B).
+ *    Under Mode 0 (Q23 = A) this column is inert: all four verbs belong to the bearer and
+ *    apply to whichever of the seven are in range, so which soldier "carries" what does not
+ *    exist as a concept. Both modes flip inside one session, on purpose.
+ *
+ *    STILL NOT AN ANSWER TO Q23. The register says the kit "should not be settled by whatever
+ *    gets prototyped first", so this table implements ONE of the two options rather than
+ *    choosing it, and the binding itself is ability-kit.md §2 B's own suggested one, not a new
+ *    proposal: line/Vanguard, guardian/Relickeeper, hunter/Pathfinder, light/Guided each take
+ *    the verb that section pairs them with. Vanguard takes Banner Slam rather than §2's
+ *    "reposition" because the shipped stance set already IS reposition (ESwarmStance::Hold
+ *    anchors a unit on the ground it was called on, which is Shield Wall's mechanical text),
+ *    and the four verbs the task names are focus / screen / raise / rally.
+ *
+ *    THE SHAPE OF THIS COLUMN IS ITSELF EVIDENCE. Seven soldiers over four verbs means three
+ *    verbs are doubled and one (Kindle, on Ember) is held by exactly one body. So losing Ember
+ *    loses raise for the run, while losing Wren still leaves Kite able to mark — which is
+ *    precisely the "is the choice hollow?" question ability-kit.md §5 says to watch under
+ *    Q23 = B, made concrete instead of argued. It is not balanced and is not meant to be.
  *
  *  - VARIANT is the team-atlas WITHIN-BLOCK index (SwarmSheet::Team — 0-10 spearmen, 0-12
  *    archers), assigned through USwarmSubsystem::SetSquadRung, which is the existing
@@ -60,6 +73,7 @@ namespace SevenRoster
 		int32 Variant;			// team-atlas WITHIN-BLOCK index
 		int32 Tier;				// Swarm.TierHP / Swarm.TierDPS row
 		float HPScale;
+		ESquadVerb Verb;		// Q23 = B only — inert under Kindled.Ability.Mode 0
 	};
 
 	inline constexpr int32 Num = USwarmSubsystem::NamedSoldiers;
@@ -68,17 +82,20 @@ namespace SevenRoster
 	{
 		static const FSoldier Table[Num] = {
 			// Vanguard — the many. The line: closes, holds contact, takes the hits.
-			{ TEXT("Ash"),   TEXT("VANGUARD"),    EUnitType::Spearmen, 7,  2, 4.f },	// v8_heavycloak — the widest, heaviest read
-			{ TEXT("Rook"),  TEXT("VANGUARD"),    EUnitType::Spearmen, 3,  2, 4.f },	// v3_shieldbreak
-			// Relickeeper — the tough. The guardian.
-			{ TEXT("Cairn"), TEXT("RELICKEEPER"), EUnitType::Spearmen, 10, 2, 4.f },	// v13_maceraised
-			{ TEXT("Slate"), TEXT("RELICKEEPER"), EUnitType::Spearmen, 8,  2, 4.f },	// v10_bracedstaff — light but a 46px footprint
+			// Banner Slam: haste + leash exemption on the ground it is planted on.
+			{ TEXT("Ash"),   TEXT("VANGUARD"),    EUnitType::Spearmen, 7,  2, 4.f, ESquadVerb::Rally },	// v8_heavycloak — the widest, heaviest read
+			{ TEXT("Rook"),  TEXT("VANGUARD"),    EUnitType::Spearmen, 3,  2, 4.f, ESquadVerb::Rally },	// v3_shieldbreak
+			// Relickeeper — the tough. The guardian. Ward Circle: damage taken cut inside it.
+			{ TEXT("Cairn"), TEXT("RELICKEEPER"), EUnitType::Spearmen, 10, 2, 4.f, ESquadVerb::Screen },	// v13_maceraised
+			{ TEXT("Slate"), TEXT("RELICKEEPER"), EUnitType::Spearmen, 8,  2, 4.f, ESquadVerb::Screen },	// v10_bracedstaff — light but a 46px footprint
 			// Pathfinder — the few. The hunter: never closes, reaches 750uu.
-			{ TEXT("Wren"),  TEXT("PATHFINDER"),  EUnitType::Archers,  2,  2, 4.f },	// ghilliecloak
-			{ TEXT("Kite"),  TEXT("PATHFINDER"),  EUnitType::Archers,  0,  2, 4.f },	// hoodedbow
-			// Lampbearer — the light. No healing exists in the sim, so today this slot is a
-			// distinct body and a distinct name and no more. That gap is real and recorded.
-			{ TEXT("Ember"), TEXT("LAMPBEARER"),  EUnitType::Archers,  5,  2, 4.f },	// crystalstaff
+			// Mark Quarry: the pack's blows reach the marked boss through the wave in the way.
+			{ TEXT("Wren"),  TEXT("PATHFINDER"),  EUnitType::Archers,  2,  2, 4.f, ESquadVerb::Focus },	// ghilliecloak
+			{ TEXT("Kite"),  TEXT("PATHFINDER"),  EUnitType::Archers,  0,  2, 4.f, ESquadVerb::Focus },	// hoodedbow
+			// Lampbearer — the light. Kindle now has a real effect (heal over time on one of
+			// the seven), but only its first half: no overheal shield, and nothing revives —
+			// Q15 is open. The one body holding raise, which is the point. See the header.
+			{ TEXT("Ember"), TEXT("LAMPBEARER"),  EUnitType::Archers,  5,  2, 4.f, ESquadVerb::Raise },	// crystalstaff
 		};
 		return Table[FMath::Clamp(Index, 0, Num - 1)];
 	}

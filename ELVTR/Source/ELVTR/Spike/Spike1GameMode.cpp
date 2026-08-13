@@ -12,6 +12,7 @@
 #include "SevenRoster.h"
 #include "SpikeBossActor.h"
 #include "SpikeHeroPawn.h"
+#include "SquadAbilities.h"
 #include "UI/KindledUIDebug.h"
 #include "TimerManager.h"
 
@@ -479,6 +480,11 @@ void ASpike1GameMode::Tick(float DeltaSeconds)
 		{
 			GSevenLogCountdown = SevenLogInterval;
 			LogTheSeven(*Swarm);
+			// The kit, on the same clock (task-144): which shape of Q23 is live, each verb's
+			// cooldown, everything standing, and which Q26 scheme actually delivered the casts.
+			// None of that can be filmed — the HUD is Slate and the zones are debug draws — so
+			// a scripted run's log is the only evidence channel there is.
+			SquadAbilities::LogReport(GetWorld());
 			if (Swarm->IsBossAlive())
 			{
 				const USwarmSubsystem::FBossState& B = Swarm->GetBoss();
