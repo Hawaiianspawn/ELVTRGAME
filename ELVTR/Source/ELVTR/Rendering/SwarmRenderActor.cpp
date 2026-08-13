@@ -1482,6 +1482,18 @@ void ASwarmRenderActor::Tick(float DeltaSeconds)
 		return;
 	}
 
+	// Walls (Swarm.Wall.Add / Kindled.WarTest): debug boxes, since no wall art exists yet.
+	// Zero walls — the shipped game — costs nothing here.
+	for (const USwarmSubsystem::FSwarmWall& W : Swarm->GetWalls())
+	{
+		const FVector A(W.A.X, W.A.Y, 0.f);
+		const FVector B(W.B.X, W.B.Y, 0.f);
+		const FQuat Rot = FRotationMatrix::MakeFromX(B - A).ToQuat();
+		DrawDebugBox(GetWorld(), (A + B) * 0.5f + FVector(0.f, 0.f, 120.f),
+			FVector(FVector2D::Distance(W.A, W.B) * 0.5f, W.HalfWidth, 120.f),
+			Rot, FColor::Silver, false, -1.f, 0, 10.f);
+	}
+
 	const bool bNoWorldRender = CVarSwarmDebugRender.GetValueOnGameThread() == 2;
 	NiagaraComponent->SetVisibility(!bNoWorldRender);
 

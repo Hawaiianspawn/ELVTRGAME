@@ -1395,7 +1395,11 @@ void USwarmIntegrateProcessor::Execute(FMassEntityManager& EntityManager, FMassE
 	// the entire horde the moment unit 0 adapted.
 	const int32* SquadVariants = Swarm->GetSquadVariants();
 
-	EntityQuery.ForEachEntityChunk(Context, [Swarm, DeltaTime, TimeSeconds, StrikeAtFrac, Lunge, KnockDecay, BroodWalkHz, Facing, HeroLocation, EnemyVariants, TeamVariants, ArcherVariants, SquadVariants](FMassExecutionContext& ChunkContext)
+	// Snapshotted like every other dial: zero walls (the shipped game) skips the resolve
+	// branch entirely, so the wall system costs nothing until a scenario authors one.
+	const bool bHasWalls = Swarm->GetWalls().Num() > 0;
+
+	EntityQuery.ForEachEntityChunk(Context, [Swarm, DeltaTime, TimeSeconds, StrikeAtFrac, Lunge, KnockDecay, BroodWalkHz, Facing, HeroLocation, EnemyVariants, TeamVariants, ArcherVariants, SquadVariants, bHasWalls](FMassExecutionContext& ChunkContext)
 	{
 		const TArrayView<FTransformFragment> Transforms = ChunkContext.GetMutableFragmentView<FTransformFragment>();
 		const TConstArrayView<FMassVelocityFragment> Velocities = ChunkContext.GetFragmentView<FMassVelocityFragment>();
@@ -1417,6 +1421,14 @@ void USwarmIntegrateProcessor::Execute(FMassEntityManager& EntityManager, FMassE
 			const FVector Push(S.Impulse.X, S.Impulse.Y, 0.f);
 			Transform.SetTranslation(Transform.GetTranslation() + (Velocity + Push) * DeltaTime);
 			S.Impulse *= KnockDecay;
+
+			// Walls: clamp the just-integrated position out of every wall capsule. Only the
+			// normal component of the move is lost, so seeking past a wall becomes a slide
+			// along it — the whole of "nav" for the bottleneck test (USwarmSubsystem::FSwarmWall).
+			if (bHasWalls)
+			{
+				Transform.SetTranslation(Swarm->ResolveWalls(Transform.GetTranslation()));
+			}
 
 			// --- swing clock ----------------------------------------------
 			// Advances only while something is in reach (AttackBit, set by the combat

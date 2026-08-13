@@ -499,6 +499,52 @@ public:
 		}
 	}
 
+	// --- static walls (bottleneck structures for the army test) -----------------------
+	// A wall is a 2D capsule (segment + HalfWidth) no entity may stand inside. Resolved as
+	// a position clamp in the integrate pass AFTER velocity moves the body: the move's
+	// normal component is removed, the tangential component survives, so a unit seeking a
+	// point beyond the wall slides along it toward the nearest opening — funnelling through
+	// gates with no pathfinding. ponytail: position-slide only, no steering lookahead; add
+	// a steering-side avoidance push if piles form dead-centre against a long wall.
+	struct FSwarmWall
+	{
+		FVector2D A = FVector2D::ZeroVector;
+		FVector2D B = FVector2D::ZeroVector;
+		float HalfWidth = 80.f;	// wall half-thickness plus body radius, uu
+	};
+
+	void AddWall(const FVector2D& A, const FVector2D& B, float HalfWidth)
+	{
+		Walls.Add(FSwarmWall{ A, B, FMath::Max(HalfWidth, 1.f) });
+	}
+	void ClearWalls() { Walls.Reset(); }
+	const TArray<FSwarmWall>& GetWalls() const { return Walls; }
+
+	/** Push a ground-plane position out of every wall capsule. O(walls) — the integrate
+	 *  pass skips the call entirely while no walls exist, so the shipped game pays nothing. */
+	FVector ResolveWalls(const FVector& Pos) const
+	{
+		FVector Out = Pos;
+		for (const FSwarmWall& W : Walls)
+		{
+			const FVector2D P(Out.X, Out.Y);
+			const FVector2D AB = W.B - W.A;
+			const float LenSq = AB.SizeSquared();
+			const float T = LenSq > 0.f
+				? FMath::Clamp(FVector2D::DotProduct(P - W.A, AB) / LenSq, 0.f, 1.f) : 0.f;
+			const FVector2D Closest = W.A + AB * T;
+			FVector2D Away = P - Closest;
+			const float Dist = Away.Size();
+			if (Dist < W.HalfWidth)
+			{
+				Away = (Dist > KINDA_SMALL_NUMBER) ? Away / Dist : FVector2D(1.f, 0.f);
+				Out.X = Closest.X + Away.X * W.HalfWidth;
+				Out.Y = Closest.Y + Away.Y * W.HalfWidth;
+			}
+		}
+		return Out;
+	}
+
 	// --- render buffers (written by integrate, read by render bridge) -----
 	void ResetRenderBuffers(int32 ExpectedCount)
 	{
@@ -862,6 +908,7 @@ private:
 	bool bHeroStriking = false;
 
 	TMap<FIntPoint, TArray<FGridEntry>> Grid;
+	TArray<FSwarmWall> Walls;	// authored by console/scenario commands, empty by default
 	TArray<FVector> RenderPositions;
 	TArray<int32> RenderAnimBits;
 	FBox RetinueBounds = FBox(ForceInit); // friendly-only AABB, refilled each frame

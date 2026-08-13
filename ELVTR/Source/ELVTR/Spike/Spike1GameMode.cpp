@@ -76,6 +76,12 @@ namespace
 		TEXT("Swarm.BroodSpawnRadiusMin (1200 in the shipped exec file) or the wave spawns behind\n")
 		TEXT("your own front and there is no front at all. [0..4000]"), ECVF_Default);
 
+	TAutoConsoleVariable<int32> CVarWarAuto(
+		TEXT("Kindled.War.Auto"), 1,
+		TEXT("1 = the Gate-1 run state machine owns the field (waves, breathers, win/lose).\n")
+		TEXT("0 = it stands down for the session and a scripted scenario (Kindled.WarTest) owns\n")
+		TEXT("the population — same effect as -SwarmBench, but settable at runtime."), ECVF_Default);
+
 	TAutoConsoleVariable<int32> CVarBossAutoWave(
 		TEXT("Kindled.Boss.AutoWave"), 3,
 		TEXT("1-based wave the marked boss arrives on by itself. 0 = never; use\n")
@@ -445,6 +451,13 @@ void ASpike1GameMode::Tick(float DeltaSeconds)
 	// Deploying, so this state machine would still advance into wave 1 by itself and
 	// spawn brood on top of the benchmark's population. Stay out entirely.
 	if (IsBenchmarkRun())
+	{
+		return;
+	}
+
+	// Kindled.WarTest sets this 0 so its scripted population isn't fought over by the
+	// wave machine. Checked every tick, unlike the command line, so it can stand back up.
+	if (CVarWarAuto.GetValueOnGameThread() == 0)
 	{
 		return;
 	}

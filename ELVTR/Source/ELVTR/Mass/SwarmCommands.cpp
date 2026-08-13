@@ -435,6 +435,160 @@ namespace
 				UE_LOG(LogTemp, Display, TEXT("Swarm.RunAfter: will run '%s' in %.1fs"), *Command, Delay);
 			}));
 
+	// --- walls + the two-army war test (goal 2026-08-13) --------------------------------
+
+	FAutoConsoleCommandWithWorldAndArgs GWallAddCmd(
+		TEXT("Swarm.Wall.Add"),
+		TEXT("Add a static wall segment the swarm cannot cross (it slides along instead).\n")
+		TEXT("Usage: Swarm.Wall.Add <x1> <y1> <x2> <y2> [halfwidth=80]"),
+		FConsoleCommandWithWorldAndArgsDelegate::CreateStatic(
+			[](const TArray<FString>& Args, UWorld* World)
+			{
+				USwarmSubsystem* Swarm = World ? World->GetSubsystem<USwarmSubsystem>() : nullptr;
+				if (!Swarm || Args.Num() < 4)
+				{
+					UE_LOG(LogTemp, Warning, TEXT("Swarm.Wall.Add: usage <x1> <y1> <x2> <y2> [halfwidth]"));
+					return;
+				}
+				const FVector2D A(FCString::Atof(*Args[0]), FCString::Atof(*Args[1]));
+				const FVector2D B(FCString::Atof(*Args[2]), FCString::Atof(*Args[3]));
+				const float HalfWidth = Args.Num() > 4 ? FCString::Atof(*Args[4]) : 80.f;
+				Swarm->AddWall(A, B, HalfWidth);
+				UE_LOG(LogTemp, Display, TEXT("Swarm.Wall.Add: wall %d, (%.0f,%.0f)-(%.0f,%.0f) halfwidth %.0f"),
+					Swarm->GetWalls().Num() - 1, A.X, A.Y, B.X, B.Y, HalfWidth);
+			}));
+
+	FAutoConsoleCommandWithWorldAndArgs GWallClearCmd(
+		TEXT("Swarm.Wall.Clear"),
+		TEXT("Remove every wall segment."),
+		FConsoleCommandWithWorldAndArgsDelegate::CreateStatic(
+			[](const TArray<FString>& Args, UWorld* World)
+			{
+				if (USwarmSubsystem* Swarm = World ? World->GetSubsystem<USwarmSubsystem>() : nullptr)
+				{
+					Swarm->ClearWalls();
+					UE_LOG(LogTemp, Display, TEXT("Swarm.Wall.Clear: all walls removed."));
+				}
+			}));
+
+	FAutoConsoleCommandWithWorldAndArgs GSpawnGarrisonCmd(
+		TEXT("Swarm.SpawnGarrison"),
+		TEXT("Spawn N bodies onto the autonomous garrison handle (mixed types, leash-exempt).\n")
+		TEXT("They obey whatever stance handle 7 already holds. Swarm.UnitStance refuses 7,\n")
+		TEXT("so the anchor comes from the game mode's run start or from Kindled.WarTest."),
+		FConsoleCommandWithWorldAndArgsDelegate::CreateStatic(
+			[](const TArray<FString>& Args, UWorld* World)
+			{
+				SwarmSpawn::SpawnGarrison(World, ParseCount(Args, 100));
+			}));
+
+	/**
+	 * The whole 500-vs-500 scenario in one command, so it fits one -ExecCmds / exec-file
+	 * line (this repo's only scripted-scenario surface). Defenders: one garrison block,
+	 * anchored Hold on the war line — block DEPTH is the reserve, back ranks stand out of
+	 * reach and the formation repack feeds them forward as the front rank dies. Attackers:
+	 * brood committed progressively in waves; the unspawned remainder is their reserve.
+	 * Bottleneck: a wall across the tide's approach with one gate, unless walls were
+	 * already authored by hand before calling this.
+	 */
+	FAutoConsoleCommandWithWorldAndArgs GWarTestCmd(
+		TEXT("Kindled.WarTest"),
+		TEXT("Two-army siege test. Usage: Kindled.WarTest [perSide=500] [waves=5] [interval=20]\n")
+		TEXT("Clears the field, stands the run state machine down (Kindled.War.Auto 0), spawns\n")
+		TEXT("<perSide> garrison holding a walled line and <perSide> brood arriving in <waves>\n")
+		TEXT("waves every <interval> seconds. Read cost with: stat Swarm, stat unit."),
+		FConsoleCommandWithWorldAndArgsDelegate::CreateStatic(
+			[](const TArray<FString>& Args, UWorld* World)
+			{
+				USwarmSubsystem* Swarm = World ? World->GetSubsystem<USwarmSubsystem>() : nullptr;
+				if (!Swarm)
+				{
+					return;
+				}
+				const int32 PerSide = Args.Num() > 0 ? FMath::Clamp(FCString::Atoi(*Args[0]), 1, 20000) : 500;
+				const int32 Waves = Args.Num() > 1 ? FMath::Clamp(FCString::Atoi(*Args[1]), 1, 50) : 5;
+				const float Interval = Args.Num() > 2 ? FMath::Max(FCString::Atof(*Args[2]), 1.f) : 20.f;
+
+				// Re-running the test must not leave the previous run's wave timers alive on
+				// top of the fresh field — that double-spawns and poisons the measurement.
+				static TArray<FTimerHandle> GWaveTimers;
+				for (FTimerHandle& Old : GWaveTimers)
+				{
+					World->GetTimerManager().ClearTimer(Old);
+				}
+				GWaveTimers.Reset();
+
+				// The Gate-1 run state machine would spawn its own waves on top of this
+				// population and call win/lose on it — stand it down for the session.
+				if (IConsoleVariable* Auto = IConsoleManager::Get().FindConsoleVariable(TEXT("Kindled.War.Auto")))
+				{
+					Auto->Set(0);
+				}
+
+				SwarmSpawn::ClearAll(World);
+				Swarm->ResetRunState();
+
+				float Standoff = 700.f;
+				if (IConsoleVariable* SO = IConsoleManager::Get().FindConsoleVariable(TEXT("Kindled.War.Standoff")))
+				{
+					Standoff = SO->GetFloat();
+				}
+				SwarmSpawn::SpawnGarrison(World, PerSide);
+				const FVector Line = SwarmSpawn::TideBearingPoint(World, Standoff);
+				Swarm->SetUnitStance(USwarmSubsystem::GarrisonUnit, ESwarmStance::Hold, Line);
+
+				if (Swarm->GetWalls().Num() == 0)
+				{
+					// A wall across the tide's bearing, gate in the middle, just 150uu beyond
+					// the garrison line: the whole garrison stands BEHIND the wall and the
+					// fight happens IN the gate — defenders plug it, attackers queue through.
+					const FVector Bearer(Swarm->GetAttractor().X, Swarm->GetAttractor().Y, 0.f);
+					const FVector Far = SwarmSpawn::TideBearingPoint(World, 1000.f);
+					FVector2D Dir(Far.X - Bearer.X, Far.Y - Bearer.Y);
+					if (!Dir.Normalize())
+					{
+						Dir = FVector2D(1.f, 0.f);
+					}
+					const FVector2D Perp(-Dir.Y, Dir.X);
+					const FVector WallPoint = SwarmSpawn::TideBearingPoint(World, Standoff + 150.f);
+					const FVector2D Centre(WallPoint.X, WallPoint.Y);
+					constexpr float GapHalf = 300.f;	// a 600uu gate
+					constexpr float SegLen = 3000.f;
+					Swarm->AddWall(Centre + Perp * GapHalf, Centre + Perp * (GapHalf + SegLen), 80.f);
+					Swarm->AddWall(Centre - Perp * GapHalf, Centre - Perp * (GapHalf + SegLen), 80.f);
+				}
+
+				// Metered, never one batch: the only spawn measurement the project owns is a
+				// 23.46ms single-frame spike for 250 entities (GDD.md §9).
+				const int32 PerWave = FMath::DivideAndRoundUp(PerSide, Waves);
+				int32 Remaining = PerSide;
+				for (int32 W = 0; W < Waves && Remaining > 0; ++W)
+				{
+					const int32 Count = FMath::Min(PerWave, Remaining);
+					Remaining -= Count;
+					if (W == 0)
+					{
+						SwarmSpawn::SpawnBrood(World, Count);
+						continue;
+					}
+					TWeakObjectPtr<UWorld> WeakWorld(World);
+					FTimerHandle& Handle = GWaveTimers.AddDefaulted_GetRef();
+					World->GetTimerManager().SetTimer(Handle, FTimerDelegate::CreateLambda(
+						[WeakWorld, Count]()
+						{
+							if (UWorld* Wd = WeakWorld.Get())
+							{
+								SwarmSpawn::SpawnBrood(Wd, Count);
+							}
+						}), Interval * W, false);
+				}
+
+				UE_LOG(LogTemp, Display,
+					TEXT("Kindled.WarTest: %d garrison holding at %.0fuu behind %d wall(s), ")
+					TEXT("%d brood in %d wave(s) of ~%d every %.0fs. 'stat Swarm' for per-pass cost."),
+					PerSide, Standoff, Swarm->GetWalls().Num(), PerSide, Waves, PerWave, Interval);
+			}));
+
 	FAutoConsoleCommandWithWorldAndArgs GStanceCmd(
 		TEXT("Swarm.Stance"),
 		TEXT("Set the retinue stance. Usage: Swarm.Stance Follow|Charge|Hold|Rally"),
