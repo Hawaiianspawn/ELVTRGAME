@@ -1,10 +1,10 @@
 # Open decisions — the register
 
-**Opened:** 2026-08-13 · **Status:** 20 open, 3 closed, 1 added
+**Opened:** 2026-08-13 · **Status:** 25 open, 3 closed
 **Last closed:** Q13, Q1, Q7 — all of Tier 0 — 2026-08-13
 **Sources consolidated here:** `docs/design/castle-layout.md` §10 (Q1–Q7),
-`docs/design/intro-and-zones.md` §E (Q8–Q12), and Q13–Q22, raised 2026-08-13 and
-not previously written down anywhere.
+`docs/design/intro-and-zones.md` §E (Q8–Q12), Q13–Q22 raised 2026-08-13, and
+**Q24–Q28 raised in `docs/PREFLIGHT.md` §3** — the pre-implementation pass.
 
 ---
 
@@ -55,12 +55,24 @@ call, not by a later doc quietly assuming an answer.
 | Q20 | Fate of `squad-group-system.md` | 3 | — | — | open |
 | Q21 | Art for seven named persistent soldiers | 3 | Q14, Q2 | — | open |
 | Q22 | Do Elite and Titan accrete marks? | 3 | — | — | open |
+| **Q24** | **Is the front ledger authoritative or derived?** | **0** | — | Q8, all streaming | open |
+| **Q25** | Are the seven Mass entities or promoted Actors? | **1** | — | Q21 | open |
+| **Q26** | How are orders issued? | **1** | Q23 | — | open |
+| **Q27** | How does the stalemate premise get validated? | **1** | — | Q28 | open |
+| **Q28** | What is the first slice? | **1** | Q25, Q26, Q27 | everything | open |
 
 > **Tier 0 is closed.** The three that gated everything landed 2026-08-13. Seven decisions
 > came unblocked with them (Q14, Q15, Q16, Q19, Q3, Q6, Q11), and **Q13 opened one new one
 > (Q23)** — an ability kit is now required content that did not exist before the call.
 >
 > **Next up: Q23, Q14, Q15, Q16** — the four that decide whether the intro can be built.
+>
+> **Then `docs/PREFLIGHT.md` added Q24–Q28** — five decisions that were not in this register
+> and that block building harder than most of what was. **Q24 (ledger authority) is
+> Tier-0-equivalent**: it decides whether "marks earned identically in all three bands"
+> (`castle-layout.md` §7) is even possible, and getting it wrong makes beat A9's consequence
+> a lie. Full options, consequences and recommendations are in `PREFLIGHT.md` §3; they are
+> kept there rather than duplicated here so the two files cannot drift.
 
 **Tier 0** — nothing downstream resolves cleanly until these do.
 **Tier 1** — blocks building the intro.
