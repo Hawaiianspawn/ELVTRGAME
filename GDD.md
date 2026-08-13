@@ -475,9 +475,23 @@ makes the shops the thing that unlocks scale, and costs zero re-tuning. It also 
 retinue-reaching-zero rule intact — units degrade, they do not die out, and a starved army
 is never a loss condition (§3).
 
+> **Superseded 2026-08-13 (castle pivot; `docs/OPEN-DECISIONS.md` Q31 = A): upkeep
+> belongs to the war now.** Degrade-don't-die survives unchanged in kind, but it
+> governs the *garrison* — the Works' fall is the starvation lever
+> (`docs/design/castle-layout.md` §3.2). The seven draw no upkeep, and the
+> merchant-headline-good purchase route above is dead with it (the quartermaster's
+> replacement goods are register Q30).
+
 ---
 
 ## 8. Loot & Itemization — **[LATER, placeholder]**
+
+> **Amended 2026-08-13 (castle pivot; `docs/OPEN-DECISIONS.md` Q30 = B):** gold and
+> the persistent stash survive; the shops' venue moves from stage beats (dead with
+> §9's arena ladder) to **the castle's quartermaster, whose stock is the layers you
+> still hold** — lose the Works, lose the stores. Stocks items for the seven and
+> off-branch adaptation rungs. Q26 (gold's rate/sources) and Q34 (rung price)
+> remain open.
 
 Deferred by design, but reserving the slot. Direction notes:
 - Vampire Survivors–style: frequent drops, stacking/synergizing effects, evolution

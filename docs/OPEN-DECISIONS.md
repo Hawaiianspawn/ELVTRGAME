@@ -1,7 +1,7 @@
 # Open decisions — the register
 
-**Opened:** 2026-08-13 · **Status:** 24 open, 5 closed
-**Last closed:** Q3 (kills feed both ratchets, split by attribution) — 2026-08-13
+**Opened:** 2026-08-13 · **Status:** 24 open, 7 closed
+**Last closed:** Q30 (gold survives; the quartermaster's stock is the layers you hold), Q31 (Supply/upkeep belongs to the war) — 2026-08-13
 **Sources consolidated here:** `docs/design/castle-layout.md` §10 (Q1–Q7),
 `docs/design/intro-and-zones.md` §E (Q8–Q12), Q13–Q22 raised 2026-08-13, and
 **Q24–Q28 raised in `docs/PREFLIGHT.md` §3** — the pre-implementation pass.
@@ -36,6 +36,8 @@ call, not by a later doc quietly assuming an answer.
 | ~~Q1~~ | What a siege is, and what persists between them | 0 | — | Q3, Q6, Q10, Q19 | **CLOSED — A** |
 | ~~Q7~~ | What the leash / light premise means now | 0 | — | Q11, Q15 | **CLOSED — A** |
 | ~~Q29~~ | Fate of the four classes under the pivot | 1 | — | Q2, Q21, Q23 | **CLOSED — A** |
+| ~~Q30~~ | Fate of gold and the shops under the siege | 2 | — | GDD Q26, Q34 | **CLOSED — B** |
+| ~~Q31~~ | Who Supply/upkeep governs now | 3 | — | — | **CLOSED — A** |
 | **Q23** | The squad-channelled ability kit — what is in it? | **1** | — | Q2, Q14 | open *(opened by Q13)* |
 | **Q14** | Is 7 a cap or a floor? | **1** | *unblocked* | Q2, Q21 | open |
 | **Q15** | Can your seven be downed and revived? | **1** | *unblocked* | — | open |
@@ -560,6 +562,54 @@ zone graph thrashes.
 
 ---
 
+## Q30 — Fate of gold and the shops under the siege · **CLOSED**
+
+**Blocks:** `GDD.md` Q26 (gold rate/sources), Q34 (rung price) · **Blocked by:** — ·
+**Verdict: B** · **Date: 2026-08-13**
+
+The 2026-07-31 economy — gold drops → merchant + secret shop at stage beats → item
+stash persists → Supply capacity as the merchant's headline good — lost its venue
+(no beats) and its headline good (Q31 moves Supply to the war) in the pivot.
+
+- [ ] **A · Gold retires.** Items from drops/war outcome; keep points the only spend.
+- [x] **B · Gold survives; the merchant becomes the castle's quartermaster.** Venue
+      lives in **held layers** (the Crown between sorties; venue detail open) and
+      **the stock is war-coupled: lose the Works, lose the stores** — stock thins
+      and prices climb as the castle shrinks, so the economy feels the war without
+      a new system. The stash persists (D12 unchanged). Headline goods: items for
+      the seven, and **off-branch adaptation rungs** (Q31-GDD's shop-stock rule,
+      retargeted to the squad).
+- [ ] **C · One merged currency.** Reopens the repair-vs-items competition the
+      2026-07-31 direction deliberately ruled out.
+
+> **TAKEN — B, 2026-08-13.** Keeps every 2026-07-31 economy decision that still has
+> a leg (gold, stash, shop-stocked rungs) and the non-competition rule. `GDD.md`
+> Q26 (gold's rate and sources) and Q34 (rung pricing) stay open — nothing here
+> prices anything.
+
+---
+
+## Q31 — Who Supply/upkeep governs now · **CLOSED**
+
+**Blocks:** — · **Blocked by:** — · **Verdict: A** · **Date: 2026-08-13**
+
+Upkeep existed to govern retinue *size* (`GDD.md` §7). A fixed seven makes that
+meaningless for the squad — and `castle-layout.md` §3.2 already points upkeep at
+the war: the Works fall and the garrison starves.
+
+- [x] **A · War-economy only.** Upkeep governs the garrison; degrade-don't-die
+      unchanged in kind; L2's fall is the starvation lever. **The seven draw no
+      upkeep, and there is no player-facing Supply purchase** — the merchant's old
+      headline good is gone (see Q30 for its replacements).
+- [ ] **B · The seven also draw upkeep.**
+- [ ] **C · Defer.**
+
+> **TAKEN — A, 2026-08-13.** The 2026-07-31 "Supply capacity is the merchant's
+> headline good" amendment is superseded; the degrade formula itself
+> (`economy.json`) survives untouched as garrison tuning.
+
+---
+
 # TIER 3 — scope and cleanup
 
 ## Q3 — Fate of the kills → army-level ratchet · **CLOSED**
@@ -701,3 +751,11 @@ Marks (`castle-layout.md` §6.1) currently attach to Boss only.
   kills (incl. the hero channel) pay rung climbs; war outcome (fronts/layers held,
   normalised) pays keep repair. Written to `castle-layout.md` §8 and §10. Answers the
   climb-mechanism gap Q29 left open; rates and formulas are tuning.
+- **2026-08-13 · Q30 = B** — gold and the stash survive; the merchant becomes the
+  castle's quartermaster, and its stock is war-coupled: the shop is made of the layers
+  you still hold. Stocks items for the seven + off-branch rungs. Written to `GDD.md` §8
+  (marker). GDD Q26/Q34 stay open.
+- **2026-08-13 · Q31 = A** — Supply/upkeep belongs to the war: it governs the garrison,
+  the Works' fall starves it, the seven draw none, and no player-facing Supply purchase
+  exists. Written to `GDD.md` §7 (marker); the degrade formula survives as garrison
+  tuning.
