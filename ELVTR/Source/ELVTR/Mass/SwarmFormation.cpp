@@ -32,12 +32,48 @@ namespace
 		TEXT("[40..400]"), ECVF_Default);
 
 	TAutoConsoleVariable<int32> CVarColumns(
-		TEXT("Swarm.Formation.Columns"), 12,
+		TEXT("Swarm.Formation.Columns"), 8,
 		TEXT("Slots per rank, for Block and Arc. THE framing dial: wide and shallow puts\n")
 		TEXT("the most bodies across the screen and makes losses read as the line getting\n")
 		TEXT("shorter; narrow and deep reads as a column. Note the army-scale camera pulls\n")
 		TEXT("back as you lose people, so a very wide line stays framed. [1..64]"),
 		ECVF_Default);
+
+	TAutoConsoleVariable<float> CVarGroupGap(
+		TEXT("Swarm.Formation.GroupGap"), 80.f,
+		TEXT("Block shape only: clear ground between DETACHMENTS, uu. One detachment per\n")
+		TEXT("unique sprite in the standing army — each look gets its own Columns-wide block,\n")
+		TEXT("deepening as that look recruits. 0 closes the gaps and the detachments touch,\n")
+		TEXT("which is the old one-continuous-block reading with the looks still in bands.\n")
+		TEXT("[0..2000]"), ECVF_Default);
+
+	TAutoConsoleVariable<int32> CVarGroupsPerRow(
+		TEXT("Swarm.Formation.GroupsPerRow"), 4,
+		TEXT("Block shape only: how many DETACHMENTS stand abreast before the next one wraps\n")
+		TEXT("to a second row behind them. THE LEASH DIAL: soldiers past Swarm's 2000uu leash\n")
+		TEXT("radius abandon their slot and run back, so a line of thirteen looks laid out in\n")
+		TEXT("one row (measured 2026-08-01: 35 of 120 latched broken) never forms at all.\n")
+		TEXT("Keep GroupsPerRow * (Columns * Spacing + GroupGap) / 2 well under 2000.\n")
+		TEXT("0 = never wrap, one row however wide it gets. [0..32]"), ECVF_Default);
+
+	TAutoConsoleVariable<float> CVarGroupRowPitch(
+		TEXT("Swarm.Formation.GroupRowPitch"), 300.f,
+		TEXT("Block shape only: depth between wrapped detachment rows, uu. Fixed, not derived\n")
+		TEXT("from how deep the blocks in front actually are, so a look that recruits past\n")
+		TEXT("roughly GroupRowPitch / RankSpacing ranks will grow into the row behind it —\n")
+		TEXT("raise this or Columns when that shows up. Ignored when GroupsPerRow is 0.\n")
+		TEXT("[0..4000]"), ECVF_Default);
+
+	TAutoConsoleVariable<int32> CVarGroupDepthCap(
+		TEXT("Swarm.Formation.GroupDepthCap"), 2,
+		TEXT("Block shape only: ranks a look fills (Columns * GroupDepthCap soldiers) before\n")
+		TEXT("opening a sibling detachment of the same look, rather than deepening forever.\n")
+		TEXT("4x2 at the default Columns 4 / GroupDepthCap 2; raise to 4 for 4x4 later, no\n")
+		TEXT("code change needed. Shared across types, same reasoning as GroupGap/GroupsPerRow.\n")
+		TEXT("Note: a command unit that has absorbed unbounded overflow recruits past\n")
+		TEXT("AssignRecruit's soft 16-soldier ceiling (once all 8 unit handles are claimed)\n")
+		TEXT("can still open more detachments than one row comfortably holds — this dial caps\n")
+		TEXT("detachment DEPTH, not how many detachments a unit can have. [1..16]"), ECVF_Default);
 
 	TAutoConsoleVariable<float> CVarForward(
 		TEXT("Swarm.Formation.Forward"), 150.f,
@@ -81,9 +117,12 @@ namespace
 		TEXT("Swarm.Formation.Shape. Default Block — reads as ranks, same as Spearmen."),
 		ECVF_Default);
 	TAutoConsoleVariable<int32> CVarArchersColumns(
-		TEXT("Swarm.Formation.Archers.Columns"), 20,
-		TEXT("Archer slots per rank. Wider than Spearmen's 12 — a wide, shallow firing line\n")
-		TEXT("reads as 'the line behind the wall' rather than a second block. [1..64]"),
+		TEXT("Swarm.Formation.Archers.Columns"), 8,
+		TEXT("Archer slots per rank. Was 20, when this was the frontage of the WHOLE archer\n")
+		TEXT("line and wide-and-shallow read as 'the line behind the wall'. Under Block it is\n")
+		TEXT("now the frontage of ONE DETACHMENT, and thirteen archer looks at 20 wide put the\n")
+		TEXT("outer blocks past the 2000uu leash, where soldiers drop their slot and run back.\n")
+		TEXT("See Swarm.Formation.GroupsPerRow for the width budget. [1..64]"),
 		ECVF_Default);
 	TAutoConsoleVariable<float> CVarArchersSpacing(
 		TEXT("Swarm.Formation.Archers.Spacing"), 55.f,
@@ -134,17 +173,54 @@ namespace
 		return FVector2D(FMath::Cos(Angle) * Radius, FMath::Sin(Angle) * Radius);
 	}
 
-	/** Rectangle: rank 0 nearest the bearer, ranks stacking away from camera. */
-	FVector2D BlockSlot(int32 Index, const SwarmFormation::FParams& P)
+	/**
+	 * Rectangle: rank 0 nearest the bearer, ranks stacking away from camera.
+	 *
+	 * Group is a DETACHMENT — one per unique sprite, Index counts within it. Every
+	 * detachment is the same Columns wide and grows in DEPTH as its look recruits, so
+	 * the frontage a look occupies is fixed and its block visibly thickens: an army of
+	 * specific units that gets bigger unit by unit, which is the whole readout.
+	 *
+	 * Groups alternate right/left of centre (0, +1, -1, +2, -2 ...) rather than running
+	 * left to right. This function is PURE — it sees one index, never the army's total —
+	 * so it cannot centre a left-to-right row it doesn't know the length of, and a row
+	 * that grew rightward would slide the whole army off the anchor as it recruited.
+	 * Alternating self-centres at every count.
+	 *
+	 * Formation only, same as the repack: a detachment is not a command handle. Command
+	 * is by type (docs/design/DIRECTION-2026-07-31.md D14).
+	 */
+	FVector2D BlockSlot(int32 Index, int32 Group, const SwarmFormation::FParams& P)
 	{
 		const int32 Columns = FMath::Max(P.Columns, 1);
+		Group = FMath::Max(Group, 0);
+
 		const int32 Rank = Index / Columns;
 		const int32 Column = Index % Columns;
 
 		// Centre the rank on the anchor so the bearer sits under the middle of his line
 		// rather than off its left end.
 		const float Right = (Column - (Columns - 1) * 0.5f) * P.Spacing;
-		return FVector2D(Rank * P.RankSpacing, Right);
+
+		// Columns * Spacing, not (Columns - 1) * Spacing: the block is (Columns-1) gaps
+		// wide, and the extra Spacing is the one slot of pitch that keeps GroupGap the
+		// actual clear ground between two blocks rather than centre-to-centre distance.
+		const float GroupPitch = Columns * P.Spacing + FMath::Max(P.GroupGap, 0.f);
+
+		// Wrap to a second row of detachments rather than letting one row grow without
+		// bound: past the 2000uu leash a soldier drops his slot and runs back to the
+		// bearer, so a wide enough row is a formation that never forms (measured
+		// 2026-08-01 at thirteen archer looks — 35 of 120 latched broken).
+		// ponytail: fixed row pitch, not derived from the depth of the blocks in front.
+		// Derive it if a look ever recruits deep enough to grow into the row behind.
+		const int32 PerRow = (P.GroupsPerRow > 0) ? P.GroupsPerRow : MAX_int32;
+		const int32 GroupRow = Group / PerRow;
+		const int32 GroupCol = Group % PerRow;
+
+		const float Side = (GroupCol % 2) ? 1.f : -1.f;
+		const float GroupRight = Side * (float)((GroupCol + 1) / 2) * GroupPitch;
+
+		return FVector2D(Rank * P.RankSpacing + GroupRow * P.GroupRowPitch, Right + GroupRight);
 	}
 
 	/**
@@ -213,6 +289,10 @@ namespace SwarmFormation
 		P.Spacing = FMath::Max(CVarSpacing.GetValueOnAnyThread(), 1.f);
 		P.RankSpacing = FMath::Max(CVarRankSpacing.GetValueOnAnyThread(), 1.f);
 		P.Columns = FMath::Clamp(CVarColumns.GetValueOnAnyThread(), 1, 64);
+		P.GroupGap = CVarGroupGap.GetValueOnAnyThread();
+		P.GroupsPerRow = FMath::Clamp(CVarGroupsPerRow.GetValueOnAnyThread(), 0, 32);
+		P.GroupRowPitch = CVarGroupRowPitch.GetValueOnAnyThread();
+		P.GroupDepthCap = FMath::Clamp(CVarGroupDepthCap.GetValueOnAnyThread(), 1, 16);
 		P.Forward = CVarForward.GetValueOnAnyThread();
 		P.ArcDegrees = CVarArcDegrees.GetValueOnAnyThread();
 		P.ArcRadius = CVarArcRadius.GetValueOnAnyThread();
@@ -236,6 +316,12 @@ namespace SwarmFormation
 		P.Spacing = FMath::Max(CVarArchersSpacing.GetValueOnAnyThread(), 1.f);
 		P.RankSpacing = FMath::Max(CVarArchersRankSpacing.GetValueOnAnyThread(), 1.f);
 		P.Columns = FMath::Clamp(CVarArchersColumns.GetValueOnAnyThread(), 1, 64);
+		// Detachment gap is shared with Spearmen, same reasoning as the arc dials below:
+		// how far apart the blocks stand is an army-wide reading, not a per-type shape.
+		P.GroupGap = CVarGroupGap.GetValueOnAnyThread();
+		P.GroupsPerRow = FMath::Clamp(CVarGroupsPerRow.GetValueOnAnyThread(), 0, 32);
+		P.GroupRowPitch = CVarGroupRowPitch.GetValueOnAnyThread();
+		P.GroupDepthCap = FMath::Clamp(CVarGroupDepthCap.GetValueOnAnyThread(), 1, 16);
 		P.Forward = CVarArchersForward.GetValueOnAnyThread();
 		// Shared across types on purpose — see ReadParamsForType's doc comment in
 		// SwarmFormation.h for why (unit-types.json ships identical arc dials for both).
@@ -249,14 +335,14 @@ namespace SwarmFormation
 		return P;
 	}
 
-	FVector2D SlotOffset(int32 Index, const FParams& P)
+	FVector2D SlotOffset(int32 Index, int32 GroupIndex, const FParams& P)
 	{
 		Index = FMath::Max(Index, 0);
 
 		FVector2D Local;
 		switch (P.Shape)
 		{
-		case EShape::Block: Local = BlockSlot(Index, P); break;
+		case EShape::Block: Local = BlockSlot(Index, GroupIndex, P); break;
 		case EShape::Wedge: Local = WedgeSlot(Index, P); break;
 		case EShape::Arc:   Local = ArcSlot(Index, P);   break;
 		case EShape::Ring:

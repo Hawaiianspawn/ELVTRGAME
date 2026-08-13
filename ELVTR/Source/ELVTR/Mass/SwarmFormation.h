@@ -43,7 +43,14 @@ namespace SwarmFormation
 		EShape Shape = EShape::Block;
 		float Spacing = 110.f;      // lateral gap between neighbours in a rank, uu
 		float RankSpacing = 110.f;  // gap between ranks (depth), uu
-		int32 Columns = 12;         // slots per rank — Block and Arc
+		int32 Columns = 8;         // slots per rank — Block and Arc
+		float GroupGap = 80.f;     // Block: clear ground between per-look detachments, uu
+		int32 GroupsPerRow = 4;     // Block: detachments abreast before wrapping back, 0 = never wrap
+		float GroupRowPitch = 300.f;// Block: depth step between wrapped detachment rows, uu
+		int32 GroupDepthCap = 2;    // Block: ranks a look fills before opening a sibling detachment
+		                            // of the same look, rather than deepening forever. Soldier cap
+		                            // per detachment = Columns * GroupDepthCap. Shared across types,
+		                            // same reasoning as GroupGap/GroupsPerRow above.
 		float Forward = 150.f;      // shift the whole formation away from camera, uu
 		float ArcDegrees = 140.f;   // Arc: angle the front rank subtends
 		float ArcRadius = 700.f;    // Arc: radius of the front rank, uu
@@ -88,8 +95,23 @@ namespace SwarmFormation
 	 * Ground-plane offset from the anchor for dense slot Index, already rotated into
 	 * world space. Pure — same index and params give the same offset on every caller,
 	 * which is what lets the spawner place a unit and the steering pass agree.
+	 *
+	 * GroupIndex is the soldier's DETACHMENT — one per unique sprite WITHIN one command
+	 * unit, ranked densely among the looks that unit currently has standing
+	 * (URetinueFormationProcessor assigns it, and Index is then the position WITHIN
+	 * that detachment). Each detachment is its own Columns-wide block with GroupGap of
+	 * clear ground beside it, capped at Columns * GroupDepthCap soldiers deep — a look
+	 * that outgrows the cap opens a sibling detachment instead of deepening forever,
+	 * and a detachment never straddles two different command units (a fresh depth row
+	 * always starts at a unit boundary), so the formation reads as "these are Unit 3's
+	 * soldiers, in these looks" rather than one undifferentiated type-wide slab.
+	 *
+	 * Block shape only. The other three shapes have no lateral band to give a group,
+	 * so the repack leaves every unit in group 0 for them and they behave as before —
+	 * see URetinueFormationProcessor::Execute. Pass 0 when there is no grouping to
+	 * apply (the spawner's frame-one placement does).
 	 */
-	FVector2D SlotOffset(int32 Index, const FParams& Params);
+	FVector2D SlotOffset(int32 Index, int32 GroupIndex, const FParams& Params);
 
 	/**
 	 * Brood's version of SlotOffset. Same idea — a dense index resolves to a ground-plane

@@ -292,7 +292,9 @@ namespace
 				const int32 Slot = SlotCursorByType[TypeIdx]++;
 				View.GetFragmentData<FRetinueFollowFragment>().SlotIndex = Slot;
 				const SwarmFormation::FParams& MyFormation = (Type == EUnitType::Archers) ? ArchersFormation : Formation;
-				const FVector2D Offset = SwarmFormation::SlotOffset(Slot, MyFormation);
+				// Group 0: the recruit's detachment isn't known until the repack ranks the
+				// looks next frame, and this offset is only where to drop him on frame one.
+				const FVector2D Offset = SwarmFormation::SlotOffset(Slot, 0, MyFormation);
 				SpawnLocation = Center + FVector(Offset.X, Offset.Y, 0.f);
 
 				FSwarmAnimFragment& AnimFragment = View.GetFragmentData<FSwarmAnimFragment>();

@@ -159,50 +159,46 @@ Kindled.Cam.HudBiasLerp 6    ; easing speed as the HUD resizes; 0 = snap
 # These own the camera every frame (added 2026-07-25). The defaults below reproduce the
 # shot the constructor used to hard-code, so changing nothing changes nothing.
 #
-# PINNED EYE-LEVEL SHOT (owner call 2026-07-28). These five ARE the shot now: the army-scale
-# camera is switched OFF (Kindled.Cam.Scale 0 below) so the framing no longer drifts with
-# how much retinue is left, and the same view is up from BeginPlay.
+# INERT AS OF 2026-08-03 (owner call): default mode is now Kindled.Cam.Scale 2 (STRATEGIC,
+# see ARMY-SCALE CAMERA below), which overrides all five of these every frame. They are kept,
+# not deleted — set Kindled.Cam.Scale 0 to pin the camera by hand to exactly this shot for
+# quick framing tests, same as before. While Scale is 2 these five do nothing.
 #
-# Where the numbers came from — matched to the Unit Cam projector's virtual lens, which is the
-# shot the owner picked off a screenshot. That lens sits Dist 320 behind the focus and Height
-# 100 above it, then tilts UP 9.2 deg off the look-at, at Fov 45.6 horizontal. Net lens angle
-# is -atan(100/320) + 9.2 = -8.2 deg. This camera cannot separate where it sits from where it
-# aims (one Pitch drives both, TickCamera's Rot/Forward), so the height is bought back with
-# OffsetZ: at Dist 323 the lens rides 323*sin(8.2) = 46uu up, and OffsetZ 54 lifts it to ~100.
+# Formerly the shipped shot (PINNED EYE-LEVEL, owner call 2026-07-28 through 2026-08-02):
+# matched to the old Unit Cam projector's virtual lens (since cut) — Dist 320 behind the
+# focus, Height 100 above it, tilted UP 9.2 deg, Fov 45.6 horizontal, net angle
+# -atan(100/320) + 9.2 = -8.2 deg. OffsetZ 54 bought back the height Pitch alone couldn't
+# (one Pitch drives both where the camera sits and where it aims, TickCamera's Rot/Forward).
+# Values below left as that shot's numbers so switching back to Scale 0 reproduces it exactly.
 #
-# STILL LIVE while Scale is 0: Yaw, YawInput, OffsetX/Y/Z, Lerp, HudBias. They apply in both
-# modes and were never overridden.
-# TO GO BACK to the army-scale camera: set Kindled.Cam.Scale 1 and these five go inert again.
-Kindled.Cam.Ortho 0          ; (was 1) 0 = PERSPECTIVE. An eye-level shot needs it — ortho has
-                               ; no convergence, so at this pitch the ranks would not recede and
-                               ; the depth the angle exists to show would be flat
-Kindled.Cam.OrthoWidth 2400  ; [400..8000] ortho view WIDTH uu — unused while Ortho 0. Left at
-                               ; the old value so flipping Ortho 1 restores the top-down shot
-Kindled.Cam.Fov 45.6         ; [20..90] (was 60) horizontal FOV — matched to the Unit Cam lens.
-                               ; THE FRAMING DIAL now that this is perspective: it decides how much
-                               ; of the line fits across screen without moving the camera. Widen it
-                               ; before reaching for Dist, since Dist also changes how much the
-                               ; ranks recede
-Kindled.Cam.Dist 323         ; [80..2000] (was 1200) distance back along the view axis, uu.
-                               ; = 320 / cos(8.2), so the lens sits ~320uu behind him. THIS IS
-                               ; CLOSE — at Fov 45.6 the view is only ~271uu wide at the hero and
-                               ; ~400uu at the front rank (Formation.Forward 150). Roughly 9
-                               ; columns at Formation.Spacing 42.4, which is what the screenshot
-                               ; shows. Raise it to see more of the field, at the cost of the
-                               ; over-the-shoulder read
-Kindled.Cam.Pitch -8.2       ; [-40..0] (was -90) THE dial that makes this an eye-level shot.
-                               ; = -atan(Height 100 / Dist 320) + the projector's 9.2 tilt-up.
-                               ; -90 = the old straight-down map. Anything shallower than about
-                               ; -15 sees a long way down-field — see the SimLOD note below
+# LIVE IN EVERY MODE, never gated by Scale: Yaw, YawInput, OffsetX/Y/Z, Lerp, HudBias.
+Kindled.Cam.Ortho 0          ; (was 1) INERT while Cam.Scale is 2 (or 1) — only read when Scale
+                               ; is 0. 0 = PERSPECTIVE, which the pinned eye-level shot above
+                               ; needs (ortho has no convergence, so ranks wouldn't recede)
+Kindled.Cam.OrthoWidth 2400  ; [400..8000] INERT while Cam.Scale is 2 (or 1), and unused even at
+                               ; Scale 0 while Ortho is 0. Left at the old value so flipping
+                               ; Ortho 1 at Scale 0 restores the top-down pinned shot
+Kindled.Cam.Fov 45.6         ; [20..90] (was 60) INERT while Cam.Scale is 2 (or 1) — the live FOV
+                               ; is solved from ScalePitchFull/FitWidthMax instead. Matched to the
+                               ; old Unit Cam lens for when Scale 0 is used to pin this shot
+Kindled.Cam.Dist 323         ; [80..2000] (was 1200) INERT while Cam.Scale is 2 (or 1). At Scale 0
+                               ; = 320 / cos(8.2), so the lens sits ~320uu behind him — CLOSE, at
+                               ; Fov 45.6 the view is only ~271uu wide at the hero
+Kindled.Cam.Pitch -8.2       ; [-40..0] (was -90) INERT while Cam.Scale is 2 (or 1) — the live
+                               ; pitch now lerps between ScalePitchAlone/ScalePitchFull instead.
+                               ; At Scale 0 this is THE dial that makes it an eye-level shot
 Kindled.Cam.Yaw 0            ; [-180..180] orbit the view around the hero
 Kindled.Cam.YawInput 1       ; 1 = WASD follows the yaw so W is always up-screen; 0 = world axes
 Kindled.Cam.OffsetX 0        ; [-2000..2000] world offset on the point the camera centres
 Kindled.Cam.OffsetY 0        ; [-2000..2000] world offset on the focus
 Kindled.Cam.OffsetZ 54       ; [-500..500] (was 0) raises the point the camera aims at, and with
-                               ; it the camera. Load-bearing for this shot: Pitch alone would leave
-                               ; the lens only 46uu off the ground at Dist 323, so the front rank
-                               ; would tower over the frame. 54 lifts it to ~100uu, the projector's
-                               ; Height. Raise for a taller vantage, lower to get down among them
+                               ; it the camera — applies in EVERY mode, including the default
+                               ; Scale 2. Was load-bearing for the pinned eye-level shot: Pitch
+                               ; alone left the lens only 46uu off the ground at Dist 323, so the
+                               ; front rank would tower over the frame; 54 lifted it to ~100uu, the
+                               ; old Unit Cam projector's Height. Under Scale 2 it's a smaller trim
+                               ; on the strategic focus point. Raise for a taller vantage, lower to
+                               ; get down among them
 Kindled.Cam.Lerp 0           ; smoothing on camera moves; 0 = snap (honest while tuning)
 
 # ============================================================
@@ -227,10 +223,33 @@ Swarm.Formation.Shape 1        ; {0=Ring, 1=Block, 2=Wedge, 3=Arc} the camera do
                                ; a Ring parks half your army off the bottom of frame. The others
                                ; stand broadside to the viewer and put the whole line where you
                                ; can count it. Live — changing it re-forms the standing army
-Swarm.Formation.Columns 12     ; [1..64] slots per rank (Block, Arc). THE framing dial: wide and
+Swarm.Formation.Columns 4      ; [1..64] slots per rank (Block, Arc). THE framing dial: wide and
                                ; shallow puts the most bodies across screen and makes losses read
                                ; as the line getting shorter. Wedge ignores it — its width is
-                               ; implied by the count, since rank r holds 2r+1 soldiers
+                               ; implied by the count, since rank r holds 2r+1 soldiers.
+                               ; Under Block this is per DETACHMENT — one look, within one command
+                               ; unit — so it is "how many soldiers stand shoulder to shoulder in
+                               ; one detachment's rank". 4 wide, paired with GroupDepthCap 2 below,
+                               ; is the 4x2 detachment shape; raise GroupDepthCap to 4 for 4x4 later
+Swarm.Formation.GroupGap 80    ; [0..2000] clear ground between DETACHMENTS, uu. One detachment per
+                               ; unique sprite standing WITHIN one command unit; each is Columns
+                               ; wide and GroupDepthCap ranks deep before a same-look overflow opens
+                               ; a sibling detachment. 0 closes the gaps into one block with the
+                               ; looks still in bands
+Swarm.Formation.GroupsPerRow 4 ; [0..32] detachments abreast before the next wraps to a row behind.
+                               ; A fresh command unit always starts its own row regardless of this
+                               ; count, so units never share a row. THE LEASH DIAL: past Swarm's
+                               ; 2000uu leash a soldier drops his slot and runs back, so too wide a
+                               ; line never forms (measured 2026-08-01: 13 archer looks in one row
+                               ; latched 35 of 120 broken).
+                               ; 0 = never wrap
+Swarm.Formation.GroupRowPitch 300 ; [0..4000] depth between wrapped detachment rows, uu. Fixed, not
+                               ; derived from how deep the blocks in front are, so a look that
+                               ; recruits past ~Pitch / RankSpacing ranks grows into the row behind
+Swarm.Formation.GroupDepthCap 2 ; [1..16] ranks a look fills (Columns * GroupDepthCap soldiers)
+                               ; before opening a sibling detachment of the same look instead of
+                               ; deepening forever. 4x2 at Columns 4. Raise to 4 for 4x4 later — no
+                               ; code change needed, just this dial
 Swarm.Formation.Spacing 42.4   ; [40..400] lateral gap within a rank, uu. Owner-tuned from 110 —
                                ; tight ranks are what make the line read as ROWS in the Unit Cam.
                                ; NOTE this is below the ~70 threshold the old comment warned about
@@ -332,6 +351,12 @@ Swarm.BroodWalkHz 6            ; [0..20] brood walk-cycle rate, full frames/sec.
 # striding. 4500 covers a typical wave with margin. It is not free: far more bodies now count
 # as "near" and steer every frame, so the entity ceiling measured at 2200 no longer holds
 # and wants re-measuring with -SwarmBench. Lower it only alongside a steeper Cam.Pitch.
+#
+# NOT YET RE-TUNED for the 2026-08-03 default-mode switch to Cam.Scale 2 (STRATEGIC): its
+# pitch now lerps -55 (full army) to -22 (alone), steeper than -8.2 across the whole range —
+# by this note's own math, 2200 would already cover -55 with margin. Left at 4500 because
+# that direction is SAFE (over-provisioned, not broken) and hasn't been re-measured against
+# the new default with -SwarmBench. Lower it only after that measurement.
 # ============================================================
 Swarm.SimLOD.NearRadius 4500   ; [500..8000] distance from the bearer, uu, inside which a brood
                                ; always steers at full rate regardless of Stride. Must cover
@@ -478,24 +503,54 @@ Swarm.SpacingLogInterval 0 ; seconds between auto spacing reports; 0 disables
 
 # ============================================================
 # ARMY-SCALE CAMERA — WHERE THE CAMERA ACTUALLY IS (docs/design/CAMERA-SCALE.md)   @tab Camera
-# While Kindled.Cam.Scale is 1 (as shipped) THIS section, not the GAME CAMERA block above,
-# places the camera. One scalar — how much army you have left, 1 = full, 0 = alone — lerps
-# width, pitch and distance between the two ends below, and swaps the projection at SwapAt.
-# So every framing dial comes in a FULL / ALONE pair: set both to the same number to pin the
-# shot regardless of army size, or spread them to make attrition move the camera.
+# While Kindled.Cam.Scale is 1 or 2 (2 is the DEFAULT as of 2026-08-03) THIS section, not the
+# GAME CAMERA block above, places the camera. One scalar — how much army you have left, 1 =
+# full, 0 = alone — lerps width, pitch and distance between the two ends below, and swaps the
+# projection at SwapAt. So every framing dial comes in a FULL / ALONE pair: set both to the
+# same number to pin the shot regardless of army size, or spread them to make attrition move
+# the camera. Mode 2 additionally measures the live retinue bbox and widens past whatever the
+# scalar alone would give until it actually fits — see "strategic fit" below.
 # ============================================================
-Kindled.Cam.Scale 0                 ; OFF as of 2026-07-28 (owner call): the pinned eye-level
-                                      ; shot in GAME CAMERA above is the shot, and it should be
-                                      ; the same view from BeginPlay rather than drifting with
-                                      ; how much retinue is left. Was 1.
-                                      ; 1 = the shot scales with your army and OVERRIDES
-                                      ; Cam.Ortho/OrthoWidth/Fov/Dist/Pitch. Everything below is
-                                      ; INERT while this is 0 — kept, not deleted, because the
-                                      ; feature is sound and only deferred
+Kindled.Cam.Scale 2                 ; DEFAULT as of 2026-08-03 (owner call): STRATEGIC. Was 0
+                                      ; (pinned eye-level, GAME CAMERA block above — that shot is
+                                      ; kept, not deleted; set this back to 0 to use it by hand).
+                                      ; 0 = off — Cam.Ortho/OrthoWidth/Fov/Dist/Pitch drive the
+                                      ; shot directly, no framing math at all.
+                                      ; 1 = army-weighted — width/pitch/dist follow how much army
+                                      ; is left (ScaleRetinueWeight/ScaleBroodWeight/ScaleBodies),
+                                      ; a PROXY for where the bodies are, not a measurement.
+                                      ; 2 = STRATEGIC — 1's scalar becomes a floor (see FitFloor)
+                                      ; and the shot additionally widens until the live retinue
+                                      ; bbox actually FITS (FitWidthMax/FitMargin). Contains your
+                                      ; units; the brood is left to run off-frame on purpose.
+                                      ; While 1 or 2, this OVERRIDES the five GAME CAMERA hand
+                                      ; dials above every frame — they stop responding, by design
+
+# --- strategic fit (Cam.Scale 2 only) ---
+Kindled.Cam.FitWidthMax 7000        ; [2400..12000] hard ceiling on the strategic width, uu. Not a
+                                      ; target — a view that grows without bound turns soldiers
+                                      ; into pixels. Replaces ScaleWidthFull as the far end of the
+                                      ; width lerp while Scale is 2; at 1920px a 48px soldier draws
+                                      ; ~13px here, which still reads
+Kindled.Cam.FitLog 0                ; 1 = log the solve once a second (extents / needs / at). The
+                                      ; solve has NO other observable — PIE screenshots come back
+                                      ; as the EDITOR viewport, so a picture cannot confirm it.
+                                      ; This is the channel to tune the two dials below against
+Kindled.Cam.FitMargin 1.15          ; [1.0..1.6] slack on the solved width. The bbox bounds unit
+                                      ; CENTRES and is a frame behind, so 1.0 puts the outermost
+                                      ; soldiers half-off the edge. Below ~1.05 the line clips
+Kindled.Cam.FitFloor 0              ; [0..1] (src default, owner call 2026-08-04: "the units can
+                                      ; be tighter together") how much of the weighted body-count
+                                      ; scalar still floors the strategic width. 0 = solved from
+                                      ; the measured retinue bbox alone — a tight huddle gets a
+                                      ; tight, close, low shot however many bodies are in it. 1 =
+                                      ; old behaviour, full retinue always pins width at
+                                      ; FitWidthMax regardless of actual spread
 
 # --- the FULL-ARMY end of the shot (scalar 1: you command a mass) ---
-Kindled.Cam.ScaleWidthFull 2400     ; [400..8000] view width uu at full army — the zoom dial
-                                      ; that replaces Cam.OrthoWidth while Scale is on
+Kindled.Cam.ScaleWidthFull 2400     ; [400..8000] view width uu at full army — the zoom dial that
+                                      ; replaces Cam.OrthoWidth while Scale is 1. INERT while Scale
+                                      ; is 2 — FitWidthMax replaces this as the far width end there
 Kindled.Cam.ScalePitchFull -55      ; [-90..-5] pitch at full army. -90 = the old straight-down
                                       ; map; -55 = tilted so the arena reads as ground you look
                                       ; ACROSS. TIED TO Swarm.SimLOD.NearRadius — shallower sees

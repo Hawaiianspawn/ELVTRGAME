@@ -554,8 +554,29 @@ struct FRetinueFollowFragment : public FMassFragment
 	 *
 	 * Also not the spawn order: while Swarm.Formation.Compact is on, the repack pass
 	 * re-densifies these as units die so the formation shrinks instead of going holey.
+	 *
+	 * Under the Block shape this counts WITHIN the unit's detachment (see GroupIndex),
+	 * not across the whole type — every detachment starts again at 0.
 	 */
 	int32 SlotIndex = 0;
+
+	/**
+	 * Which DETACHMENT this soldier stands in — one per unique sprite WITHIN this
+	 * soldier's own command unit (SquadId), ranked densely so a look nobody in that unit
+	 * wears costs no ground, and capped at Columns * GroupDepthCap soldiers deep (a look
+	 * that outgrows the cap opens a sibling detachment instead of deepening forever). The
+	 * repack writes it; SwarmFormation::SlotOffset turns it into the block's lateral band.
+	 * A fresh command unit's detachments always start a new depth row, so a detachment
+	 * never straddles two different units.
+	 *
+	 * Zero for every unit under the non-Block shapes, which have no lateral band to give
+	 * a detachment (URetinueFormationProcessor::Execute keeps SlotIndex type-wide dense
+	 * in that case, so those shapes are untouched by any of this).
+	 *
+	 * A look is NOT a command handle — command is by type, docs/design/DIRECTION-2026-07-31.md
+	 * D14. This is where a soldier stands, nothing more.
+	 */
+	int32 GroupIndex = 0;
 
 	/**
 	 * Leash hysteresis latch (docs/RTS-VERTICAL-SLICE.md §2). Set when the unit

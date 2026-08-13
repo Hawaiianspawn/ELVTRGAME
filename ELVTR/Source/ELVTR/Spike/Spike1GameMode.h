@@ -47,7 +47,7 @@ public:
 	TArray<int32> WaveBroodCounts = { 250, 450, 700 };
 
 	UPROPERTY(EditDefaultsOnly, Category = "Run")
-	int32 StartingRetinue = 120;
+	int32 StartingRetinue = 128;
 
 	/**
 	 * Breathers refill the retinue back up to this cap rather than granting a
@@ -55,9 +55,13 @@ public:
 	 * army death-spirals and the last wave is lost before it starts. Refilling
 	 * to a cap means losses cost you the *wave*, not the run, and the cap keeps
 	 * the ceiling flat so later waves still escalate.
+	 *
+	 * 128 = 8 units x 16 (the 8x2 "mini retinue", owner call 2026-08-04): every
+	 * command handle claimed, every unit full at muster. Was 120, which left
+	 * the 16-body units ragged.
 	 */
 	UPROPERTY(EditDefaultsOnly, Category = "Run")
-	int32 RetinueCap = 120;
+	int32 RetinueCap = 128;
 
 	UPROPERTY(EditDefaultsOnly, Category = "Run")
 	float DeploySeconds = 1.f;

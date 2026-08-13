@@ -114,9 +114,18 @@ namespace
 
 	TAutoConsoleVariable<int32> CVarCamScale(
 		TEXT("Kindled.Cam.Scale"), 0,
-		TEXT("1 = the camera scales with how much army you have left; 0 = off (default), and the\n")
-		TEXT("Cam.OrthoWidth / Pitch / Dist / Ortho dials drive the shot by hand as before.\n")
-		TEXT("While on, this OVERRIDES those four — they stop responding, by design."),
+		TEXT("Which driver decides how zoomed out the shot is.\n")
+		TEXT("  0 = off (default). The Cam.OrthoWidth / Pitch / Dist / Ortho dials drive the shot\n")
+		TEXT("      by hand — this is also the CLOSE shot: set OrthoWidth small and go in.\n")
+		TEXT("  1 = army-weighted. Width follows how much army you have left (ScaleRetinueWeight,\n")
+		TEXT("      ScaleBroodWeight, ScaleBodies). A proxy for where the bodies are, not a\n")
+		TEXT("      measurement of it, so it CANNOT promise anything stays on screen.\n")
+		TEXT("  2 = STRATEGIC. Mode 1's scalar becomes a FLOOR, and the shot additionally widens\n")
+		TEXT("      until the live retinue bounding box actually fits (Cam.FitWidthMax,\n")
+		TEXT("      Cam.FitMargin). Your units are contained and stay small; the brood is left to\n")
+		TEXT("      run off every edge on purpose — a frame wide enough to hold the horde turns a\n")
+		TEXT("      soldier into a smudge.\n")
+		TEXT("While 1 or 2, this OVERRIDES the four hand dials — they stop responding, by design."),
 		ECVF_Default);
 
 	// Weights deliberately mirror Kindled.UnitCamProj.Size* — the Unit Cam already solved
@@ -160,6 +169,74 @@ namespace
 	TAutoConsoleVariable<float> CVarCamScaleWidthAlone(
 		TEXT("Kindled.Cam.ScaleWidthAlone"), 700.f,
 		TEXT("World units across the view with nobody left — the character-camera end."),
+		ECVF_Default);
+
+	// --- strategic fit (Cam.Scale 2 only) ---------------------------------------
+	// ScaleWidthFull is calibrated to look like the shipped shot, which makes it the wrong
+	// CEILING: a retinue spread wider than 2400uu would silently clip against it and the mode
+	// would quietly fail at the one thing it promises. Strategic swaps in its own far end.
+	TAutoConsoleVariable<float> CVarCamFitWidthMax(
+		TEXT("Kindled.Cam.FitWidthMax"), 7000.f,
+		TEXT("Widest the STRATEGIC shot may open to, in world units. This is a hard clamp, not a\n")
+		TEXT("target: a view that can grow without bound turns soldiers into pixels. Replaces\n")
+		TEXT("ScaleWidthFull as the far end of the width lerp while Cam.Scale is 2 — pitch and\n")
+		TEXT("distance still travel between their Alone/Full poles.\n")
+		TEXT("7000 comes from the arena the brood arrives across at BroodSpawnRadiusMax 4000; at\n")
+		TEXT("1920px wide that leaves a 48px soldier drawing ~13px, which still reads."),
+		ECVF_Default);
+
+	TAutoConsoleVariable<int32> CVarCamFitLog(
+		TEXT("Kindled.Cam.FitLog"), 0,
+		TEXT("1 = log what the strategic solve decided, roughly once a second: the measured\n")
+		TEXT("retinue extents, the width they demand, and the width the shot is actually at.\n")
+		TEXT("Off by default. This exists because the solve has NO other observable — PIE\n")
+		TEXT("screenshots come back as the editor viewport, so a picture cannot confirm the\n")
+		TEXT("numbers. Turn it on to tune FitMargin/FitWidthMax against a real fight."),
+		ECVF_Default);
+
+	TAutoConsoleVariable<float> CVarCamFitMargin(
+		TEXT("Kindled.Cam.FitMargin"), 1.15f,
+		TEXT("Slack multiplier on the solved strategic width. 1.0 fits the bounding box exactly,\n")
+		TEXT("which puts the outermost soldiers half-off the screen edge — the box bounds their\n")
+		TEXT("CENTRES, and it is a frame behind. Below ~1.05 the edge of the line will clip."),
+		ECVF_Default);
+
+	TAutoConsoleVariable<float> CVarCamFitFloor(
+		// 0 since 2026-08-04 (owner call: "the units can be tighter together"). Was 1: the
+		// weighted body count floored the strategic scalar, so a full retinue pinned the shot
+		// at ~FitWidthMax even when the line measured ~2100uu wide — containment held, but the
+		// army read as specks on black ground. The measurement alone is the floor now.
+		TEXT("Kindled.Cam.FitFloor"), 0.f,
+		TEXT("How much of the weighted body-count scalar still floors the STRATEGIC shot, 0..1.\n")
+		TEXT("0 = the width is solved from the measured retinue bbox alone (default): a tight\n")
+		TEXT("huddle gets a tight, low, close shot however many bodies are in it, and the frame\n")
+		TEXT("only opens when the line actually spreads. 1 = the old behaviour: full retinue\n")
+		TEXT("pins the width at FitWidthMax regardless of spread. Values between blend.\n")
+		TEXT("Note pitch and distance travel with the same scalar, so 0 also means a huddle\n")
+		TEXT("gets the shallow, near end of the shot."),
+		ECVF_Default);
+
+	// --- movement lead --------------------------------------------------------
+	// "Moves with you as you move": the focus runs a little ahead of the hero along his
+	// velocity, so the frame shows where you are GOING instead of centering where you ARE.
+	// Applies in every mode — it is folded into the focus point, which all paths share.
+	TAutoConsoleVariable<float> CVarCamLead(
+		TEXT("Kindled.Cam.Lead"), 0.35f,
+		TEXT("Seconds of hero velocity to lead the camera focus by. 0.35 means the focus sits\n")
+		TEXT("about a third of a second of travel ahead of the hero while he moves. 0 = off,\n")
+		TEXT("the focus stays on the hero."),
+		ECVF_Default);
+
+	TAutoConsoleVariable<float> CVarCamLeadMax(
+		TEXT("Kindled.Cam.LeadMax"), 400.f,
+		TEXT("Cap on the movement-lead offset in uu, so a fast hero cannot push himself to the\n")
+		TEXT("screen edge. The lead is a nudge, not a pan."),
+		ECVF_Default);
+
+	TAutoConsoleVariable<float> CVarCamLeadLerp(
+		TEXT("Kindled.Cam.LeadLerp"), 5.f,
+		TEXT("Easing speed on the lead offset (VInterpTo). WASD velocity starts and stops\n")
+		TEXT("instantly, so the raw lead would jump; this glides it in and out. 0 = snap."),
 		ECVF_Default);
 
 	TAutoConsoleVariable<float> CVarCamScalePitchFull(
@@ -292,6 +369,20 @@ namespace
 	float GCamArmyScale = 0.f;
 	float GCamArmyScaleLow = 1.f;
 	float GCamArmyScaleVel = 0.f;
+	double GCamFitLogTime = 0.0; // world seconds of the last Cam.FitLog line
+
+	// Movement-lead state, file-static for the same Live Coding reason as the army scalar.
+	FVector GPrevHeroLoc = FVector::ZeroVector;
+	FVector GCamLead = FVector::ZeroVector;
+
+	// Edge-detect state for the numpad camera-mode keys. File-static rather than pawn members
+	// on purpose: adding a member to ASpikeHeroPawn is a class-layout change, which cannot go
+	// in over Live Coding and costs an editor-closed rebuild — and this is a tuning hotkey.
+	// ponytail: one shared set of flags, fine while there is exactly one local player pawn;
+	// move them onto the pawn if split-screen ever lands.
+	bool GWasDownCamHand = false;
+	bool GWasDownCamArmy = false;
+	bool GWasDownCamStrategic = false;
 }
 
 ASpikeHeroPawn::ASpikeHeroPawn()
@@ -411,6 +502,31 @@ void ASpikeHeroPawn::TickStanceInput(const APlayerController& PC)
 			GameMode->RestartRun();
 		}
 	}
+
+	// --- camera modes on the numpad --------------------------------------
+	// Deliberately the NUMPAD and not the number row: 1-4 up there are the stance orders and
+	// are worth muscle memory, while these are a view toggle you flick during a fight.
+	// They write the CVar rather than shadowing it in a second piece of state, so the console,
+	// SwarmExecOnPlay.txt and these keys can never disagree about which mode is live.
+	auto SetCamMode = [](int32 Mode)
+	{
+		if (IConsoleVariable* CVar = IConsoleManager::Get().FindConsoleVariable(TEXT("Kindled.Cam.Scale")))
+		{
+			CVar->Set(Mode, ECVF_SetByConsole);
+		}
+	};
+	if (ConsumeKeyPress(PC, EKeys::NumPadOne, GWasDownCamHand))
+	{
+		SetCamMode(0);	// hand dials — the close shot
+	}
+	else if (ConsumeKeyPress(PC, EKeys::NumPadTwo, GWasDownCamArmy))
+	{
+		SetCamMode(1);	// army-weighted
+	}
+	else if (ConsumeKeyPress(PC, EKeys::NumPadThree, GWasDownCamStrategic))
+	{
+		SetCamMode(2);	// strategic — fits your army, lets the horde overflow
+	}
 }
 
 void ASpikeHeroPawn::TickHeroCombat(float DeltaSeconds)
@@ -518,10 +634,25 @@ void ASpikeHeroPawn::TickCamera(float DeltaSeconds, const USwarmSubsystem* Swarm
 		return;
 	}
 
+	// Fetched once: the strategic fit and the HUD bias both need it, and it is a virtual call
+	// into the viewport either way.
+	FVector2D ViewportSize = FVector2D::ZeroVector;
+	if (GEngine && GEngine->GameViewport)
+	{
+		GEngine->GameViewport->GetViewportSize(ViewportSize);
+	}
+	const bool bHaveViewport = ViewportSize.X > 1.0 && ViewportSize.Y > 1.0;
+
 	// --- army scale ---------------------------------------------------------
 	// One scalar, 0 (alone) .. 1 (full army), drives width, pitch, distance and projection
 	// together so they can never disagree about what the shot is saying.
-	const bool bScale = CVarCamScale.GetValueOnGameThread() != 0;
+	const int32 ScaleMode = CVarCamScale.GetValueOnGameThread();
+	const bool bScale = ScaleMode != 0;
+	const bool bStrategic = ScaleMode >= 2;
+
+	// Pawn-relative nudge that re-centres the shot on the retinue in strategic mode. Stays
+	// zero everywhere else, so it can be added unconditionally at the focus below.
+	FVector FitFocus = FVector::ZeroVector;
 
 	// Hand-driven defaults. Each is replaced below when army scale is on.
 	bool bOrtho = CVarCamOrtho.GetValueOnGameThread() != 0;
@@ -565,10 +696,107 @@ void ASpikeHeroPawn::TickCamera(float DeltaSeconds, const USwarmSubsystem* Swarm
 			GCamArmyScale = Army;
 			GCamArmyScaleLow = Army;
 			GCamArmyScaleVel = 0.f;
+			GCamFitLogTime = 0.0; // world time restarts each run; the throttle must not straddle it
 		}
 		GCamArmyScaleLow = FMath::Min(GCamArmyScaleLow, Army);
-		const float TargetArmy = CVarCamScaleRatchet.GetValueOnGameThread() != 0
+		float TargetArmy = CVarCamScaleRatchet.GetValueOnGameThread() != 0
 			? GCamArmyScaleLow : Army;
+
+		// --- strategic fit (Cam.Scale 2) -------------------------------------
+		// Everything above is a PROXY for where the bodies are. This measures where they
+		// actually are and opens the shot until they fit. Deliberately applied AFTER stages
+		// and ratchet: containment is a guarantee, and those two are stylistic dials that
+		// would otherwise quantise it away or pin the shot narrow while the line spreads.
+		// The weighted scalar only floors the fit as far as Cam.FitFloor lets it — at the
+		// default 0 the measurement alone sets the width, so a tight huddle gets a tight
+		// shot instead of a full-army-width frame around specks.
+		if (bStrategic && Swarm)
+		{
+			const FBox& Bounds = Swarm->GetRetinueBounds();
+			if (Bounds.IsValid != 0)
+			{
+				// Extents in CAMERA-YAW space, not world: the shot is yawed, so a world-axis
+				// span measures the wrong rectangle. Four ground corners is exact for a yaw
+				// of an AABB — the AABB itself is the only conservative step, and erring wide
+				// is the safe direction here.
+				const double YawRad = FMath::DegreesToRadians((double)CVarCamYaw.GetValueOnGameThread());
+				const FVector2D Fwd(FMath::Cos(YawRad), FMath::Sin(YawRad));
+				const FVector2D Right(-Fwd.Y, Fwd.X);
+
+				double FwdMin = 0.0, FwdMax = 0.0, RightMin = 0.0, RightMax = 0.0;
+				for (int32 Corner = 0; Corner < 4; ++Corner)
+				{
+					const FVector2D P(
+						(Corner & 1) ? Bounds.Max.X : Bounds.Min.X,
+						(Corner & 2) ? Bounds.Max.Y : Bounds.Min.Y);
+					const double F = FVector2D::DotProduct(P, Fwd);
+					const double R = FVector2D::DotProduct(P, Right);
+					if (Corner == 0)
+					{
+						FwdMin = FwdMax = F;
+						RightMin = RightMax = R;
+						continue;
+					}
+					FwdMin = FMath::Min(FwdMin, F); FwdMax = FMath::Max(FwdMax, F);
+					RightMin = FMath::Min(RightMin, R); RightMax = FMath::Max(RightMax, R);
+				}
+
+				// This frame's pitch is not solved yet — it comes out of the very scalar being
+				// computed. Use last frame's smoothed one: the shot is spring-damped anyway, so
+				// a frame of lag on the depth term is invisible. Same argument the alive counts
+				// already make for themselves one file over.
+				const float PitchNow = FMath::Lerp(
+					CVarCamScalePitchAlone.GetValueOnGameThread(),
+					CVarCamScalePitchFull.GetValueOnGameThread(),
+					FMath::Clamp(GCamArmyScale, 0.f, 1.f));
+				// Ground depth visible at width W is (W / aspect) / sin(pitch) — invert it for
+				// the width a depth span needs. Floored so a near-horizontal pitch cannot send
+				// the solve to infinity.
+				const float SinPitch = FMath::Max(
+					FMath::Abs(FMath::Sin(FMath::DegreesToRadians(PitchNow))), 0.05f);
+				const float AspectX = bHaveViewport ? (float)(ViewportSize.X / ViewportSize.Y) : 1.7778f;
+
+				// BOTH axes, take the max. Screen width is the ortho width outright; screen
+				// depth is foreshortened by the pitch. Solving depth alone under-frames badly.
+				const float Needed =
+					FMath::Max((float)(RightMax - RightMin), (float)(FwdMax - FwdMin) * AspectX * SinPitch)
+					* FMath::Max(CVarCamFitMargin.GetValueOnGameThread(), 1.f);
+
+				const float FitAlone = CVarCamScaleWidthAlone.GetValueOnGameThread();
+				const float FitMax = FMath::Max(CVarCamFitWidthMax.GetValueOnGameThread(), FitAlone + 1.f);
+				// FitFloor scales how much the weighted count still gets to say: 0 hands
+				// the width to the measurement outright, 1 is the old "full army = full
+				// width" floor.
+				TargetArmy = FMath::Max(
+					TargetArmy * FMath::Clamp(CVarCamFitFloor.GetValueOnGameThread(), 0.f, 1.f),
+					FMath::Clamp((Needed - FitAlone) / (FitMax - FitAlone), 0.f, 1.f));
+
+				// Centre on the box, not on the hero: a width that fits a box the view is not
+				// centred on still does not contain it. This is also the forward lead the shot
+				// needs — the brood arrives from the front, so the line sits ahead of you — and
+				// it is SOLVED from where the army is rather than a hand-typed guess. Folded on
+				// top of Cam.OffsetX/Y rather than replacing them, so those stay as trim.
+				const FVector Centre = Bounds.GetCenter();
+				const FVector Loc = GetActorLocation();
+				FitFocus = FVector(Centre.X - Loc.X, Centre.Y - Loc.Y, 0.f);
+
+				if (CVarCamFitLog.GetValueOnGameThread() != 0)
+				{
+					// Throttled off world time rather than a frame counter, so the cadence does
+					// not change with frame rate while you are tuning.
+					const double Now = GetWorld() ? GetWorld()->GetTimeSeconds() : 0.0;
+					if (Now - GCamFitLogTime >= 1.0)
+					{
+						GCamFitLogTime = Now;
+						UE_LOG(LogTemp, Display,
+							TEXT("CamFit: retinue extents lateral=%.0f depth=%.0f uu  needs=%.0f  at=%.0f  (A=%.3f pitch=%.1f aspect=%.3f)"),
+							(float)(RightMax - RightMin), (float)(FwdMax - FwdMin), Needed,
+							FMath::Lerp(FitAlone, FitMax, FMath::Clamp(GCamArmyScale, 0.f, 1.f)),
+							GCamArmyScale, PitchNow, AspectX);
+					}
+				}
+			}
+		}
 
 		const float Stiffness = FMath::Max(CVarCamScaleStiffness.GetValueOnGameThread(), 0.f);
 		if (Stiffness > 0.f && bCameraPlaced)
@@ -597,9 +825,14 @@ void ASpikeHeroPawn::TickCamera(float DeltaSeconds, const USwarmSubsystem* Swarm
 		}
 
 		const float A = FMath::Clamp(GCamArmyScale, 0.f, 1.f);
+		// Strategic swaps the FAR end of the width lerp only. ScaleWidthFull is calibrated to
+		// look like the shipped shot, which makes it a ceiling the fit would silently clip
+		// against; pitch and distance still travel between their own Alone/Full poles, so the
+		// two modes keep saying the same thing about how the shot is angled.
 		Width = FMath::Lerp(
 			CVarCamScaleWidthAlone.GetValueOnGameThread(),
-			CVarCamScaleWidthFull.GetValueOnGameThread(), A);
+			bStrategic ? CVarCamFitWidthMax.GetValueOnGameThread()
+					   : CVarCamScaleWidthFull.GetValueOnGameThread(), A);
 		Pitch = FMath::Lerp(
 			CVarCamScalePitchAlone.GetValueOnGameThread(),
 			CVarCamScalePitchFull.GetValueOnGameThread(), A);
@@ -651,10 +884,38 @@ void ASpikeHeroPawn::TickCamera(float DeltaSeconds, const USwarmSubsystem* Swarm
 	const FVector Forward = Basis.GetUnitAxis(EAxis::X);
 	const FVector Up = Basis.GetUnitAxis(EAxis::Z);
 
-	const FVector Focus(
+	// --- movement lead --------------------------------------------------------
+	// Velocity from position delta — the pawn moves by AddActorWorldOffset, so there is
+	// no movement component to ask. Eased in and out because WASD speed is a step
+	// function; a raw lead would jump the frame on every key press and release.
+	const FVector HeroLoc = GetActorLocation();
+	if (!bCameraPlaced)
+	{
+		GPrevHeroLoc = HeroLoc;
+		GCamLead = FVector::ZeroVector;
+	}
+	FVector TargetLead = FVector::ZeroVector;
+	const float LeadSecs = CVarCamLead.GetValueOnGameThread();
+	if (LeadSecs > 0.f && DeltaSeconds > KINDA_SMALL_NUMBER)
+	{
+		const FVector Velocity = (HeroLoc - GPrevHeroLoc) / DeltaSeconds;
+		TargetLead = Velocity * LeadSecs;
+		const float LeadMax = FMath::Max(CVarCamLeadMax.GetValueOnGameThread(), 0.f);
+		if (TargetLead.SizeSquared() > LeadMax * LeadMax)
+		{
+			TargetLead = TargetLead.GetSafeNormal() * LeadMax;
+		}
+	}
+	GPrevHeroLoc = HeroLoc;
+	const float LeadSpeed = FMath::Max(CVarCamLeadLerp.GetValueOnGameThread(), 0.f);
+	GCamLead = LeadSpeed > 0.f
+		? FMath::VInterpTo(GCamLead, TargetLead, DeltaSeconds, LeadSpeed)
+		: TargetLead;
+
+	const FVector Focus = FVector(
 		CVarCamOffsetX.GetValueOnGameThread(),
 		CVarCamOffsetY.GetValueOnGameThread(),
-		CVarCamOffsetZ.GetValueOnGameThread());
+		CVarCamOffsetZ.GetValueOnGameThread()) + FitFocus + GCamLead;
 
 	// --- HUD bias -----------------------------------------------------------
 	// The combat HUD covers the bottom of the screen, so the middle of the VIEWPORT is not the
@@ -668,12 +929,7 @@ void ASpikeHeroPawn::TickCamera(float DeltaSeconds, const USwarmSubsystem* Swarm
 		const float Occluded = Swarm->GetHudOccludedFraction();
 		if (Occluded > 0.f)
 		{
-			FVector2D ViewportSize = FVector2D::ZeroVector;
-			if (GEngine && GEngine->GameViewport)
-			{
-				GEngine->GameViewport->GetViewportSize(ViewportSize);
-			}
-			if (ViewportSize.X > 1.0 && ViewportSize.Y > 1.0)
+			if (bHaveViewport)
 			{
 				const float AspectY = (float)(ViewportSize.Y / ViewportSize.X);
 				// World height of the view at the focus. Ortho pixels are square so the height
@@ -780,4 +1036,10 @@ void ASpikeHeroPawn::DrawHUD() const
 
 	GEngine->AddOnScreenDebugMessage(5, 0.f, FColor::Silver,
 		TEXT("[WASD] move   [1] Follow  [2] Charge (at cursor)  [3] Hold  [4] Rally   [R] restart"));
+
+	GEngine->AddOnScreenDebugMessage(6, 0.f, FColor::Silver,
+		FString::Printf(TEXT("CAMERA  [Num1] close  [Num2] army  [Num3] strategic      (mode %d)"),
+			IConsoleManager::Get().FindConsoleVariable(TEXT("Kindled.Cam.Scale"))
+				? IConsoleManager::Get().FindConsoleVariable(TEXT("Kindled.Cam.Scale"))->GetInt()
+				: 0));
 }

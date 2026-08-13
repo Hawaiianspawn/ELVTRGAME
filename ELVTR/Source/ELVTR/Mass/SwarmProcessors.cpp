@@ -796,10 +796,22 @@ void URetinueFormationProcessor::Execute(FMassEntityManager& EntityManager, FMas
 	SWARM_SCOPE(STAT_SwarmRetinueFormation, SwarmRetinueFormation);
 
 	USwarmSubsystem* Swarm = Context.GetWorld()->GetSubsystem<USwarmSubsystem>();
-	if (!Swarm || !SwarmFormation::ReadParams().bCompact)
+	if (!Swarm)
 	{
 		return;
 	}
+	// Read both types' params here, not just bCompact: the SHAPE decides whether this pass
+	// packs into per-look detachments at all. Only Block has a lateral band to give a
+	// detachment — Ring/Wedge/Arc would stack every look on the same slots — so under those
+	// shapes the pass falls back to the type-wide dense index it always produced.
+	const SwarmFormation::FParams SpearParams = SwarmFormation::ReadParamsForType(EUnitType::Spearmen);
+	const SwarmFormation::FParams ArcherParams = SwarmFormation::ReadParamsForType(EUnitType::Archers);
+	if (!SpearParams.bCompact)
+	{
+		return;
+	}
+	const bool bGroupSpearmen = SpearParams.Shape == SwarmFormation::EShape::Block;
+	const bool bGroupArchers = ArcherParams.Shape == SwarmFormation::EShape::Block;
 	// The repack is gated on the standing count moving. That was sufficient when the sort
 	// key was the slot index alone; it is not now that the key leads with the atlas LOOK,
 	// because dragging Swarm.TeamVariantWeights / Swarm.ArcherVariantWeights re-rolls every
@@ -816,8 +828,25 @@ void URetinueFormationProcessor::Execute(FMassEntityManager& EntityManager, FMas
 	LastTeamWeights = TeamWeightsNow;
 	LastArcherWeights = ArcherWeightsNow;
 
-	const bool bNeedSpearmen = bLooksChanged || Swarm->NeedsFormationRepack(EUnitType::Spearmen);
-	const bool bNeedArchers = bLooksChanged || Swarm->NeedsFormationRepack(EUnitType::Archers);
+	// Same reasoning one level further: the shape decides whether slots are within-detachment
+	// or type-wide, so dragging Swarm.Formation.Shape off Block has to re-rank immediately or
+	// the army holds a numbering the new shape reads as overlapping blocks.
+	static int32 LastSpearShape = -1, LastArcherShape = -1;
+	const bool bShapeChanged = ((int32)SpearParams.Shape != LastSpearShape) || ((int32)ArcherParams.Shape != LastArcherShape);
+	LastSpearShape = (int32)SpearParams.Shape;
+	LastArcherShape = (int32)ArcherParams.Shape;
+
+	// Adapting a standing unit re-skins every one of its soldiers without any of them
+	// dying, so it has to re-rank on the same frame for exactly the reason bLooksChanged
+	// above does — otherwise the block keeps yesterday's detachments and the new rung
+	// reads as scattered through the old formation instead of standing as one body.
+	static int32 LastAdaptRevision = -1;
+	const int32 AdaptRevisionNow = Swarm->GetAdaptationRevision();
+	const bool bAdaptChanged = (AdaptRevisionNow != LastAdaptRevision);
+	LastAdaptRevision = AdaptRevisionNow;
+
+	const bool bNeedSpearmen = bLooksChanged || bShapeChanged || bAdaptChanged || Swarm->NeedsFormationRepack(EUnitType::Spearmen);
+	const bool bNeedArchers = bLooksChanged || bShapeChanged || bAdaptChanged || Swarm->NeedsFormationRepack(EUnitType::Archers);
 	if (!bNeedSpearmen && !bNeedArchers)
 	{
 		return;
@@ -832,33 +861,42 @@ void URetinueFormationProcessor::Execute(FMassEntityManager& EntityManager, FMas
 	// RANKING, not a reassignment, exactly as before: gather every live slot key (within
 	// this type), sort, and each unit's new index is where its own key lands in that order.
 	//
-	// THE KEY IS (LOOK, SLOT), NOT SLOT. Slots run down the block rank by rank, so ranking
-	// on the slot alone scattered the eleven knight looks and thirteen archer looks evenly
-	// through the formation and every rank read as a jumble. Sorting on the atlas variant
-	// first makes identical-looking soldiers contiguous, so the block resolves into visible
-	// sub-units of matching bodies. The old slot is the tiebreak, which keeps the repack a
-	// stable ranking WITHIN a look — a casualty still just closes the gap behind it instead
-	// of reshuffling its neighbours.
+	// THE KEY IS (UNIT, LOOK, SLOT), NOT SLOT. Slots run down the block rank by rank, so
+	// ranking on the slot alone scattered the eleven knight looks and thirteen archer looks
+	// evenly through the formation and every rank read as a jumble. Sorting on the soldier's
+	// own command unit first, then atlas variant, makes each unit's soldiers of a matching
+	// look contiguous, so the block resolves into visible sub-units of matching bodies that
+	// never straddle two different command units. The old slot is the tiebreak, which keeps
+	// the repack a stable ranking WITHIN a (unit, look) pair — a casualty still just closes
+	// the gap behind it instead of reshuffling its neighbours.
 	//
 	// This is a FORMATION grouping only. It does not touch SquadId, stances or orders:
 	// command is by TYPE (docs/design/DIRECTION-2026-07-31.md D14), and a look is not a
-	// command handle.
+	// command handle — sorting by unit first only makes the existing per-type command
+	// grouping legible on the ground, it doesn't turn a detachment into a second one.
 	const FVariantTable TeamVariants = ParseVariantTable(TeamWeightsNow, SwarmSheet::Team::SpearVariants);
 	const FVariantTable ArcherVariants = ParseVariantTable(ArcherWeightsNow, SwarmSheet::Team::ArcherVariants);
 
-	// Look in the high bits, slot in the low 24 — one sortable, uniquely-searchable int64
-	// per soldier, so the LowerBound lookup below stays the same shape it always was.
-	// 24 bits is 16.7M slots, past any army this engine will hold.
-	auto MakeKey = [](int32 Variant, int32 Slot) -> int64
+	// An adapted unit's soldiers all key on ONE look, so the (unit, look, slot) sort below
+	// collapses them into a single contiguous detachment rather than spreading them across
+	// the weight table's mix — which is what makes a rung read on the ground as a body of
+	// matching soldiers instead of a re-skin scattered through the block.
+	const int32* SquadVariants = Swarm->GetSquadVariants();
+
+	// Unit in bits 32+, look in bits 24-31, slot in the low 24 — one sortable,
+	// uniquely-searchable int64 per soldier, so the LowerBound lookup below stays the same
+	// shape it always was. 24 bits is 16.7M slots, past any army this engine will hold; unit
+	// index only needs 3 bits (MaxSquads) but bit 32 leaves the look byte untouched.
+	auto MakeKey = [](int32 UnitIndex, int32 Variant, int32 Slot) -> int64
 	{
-		return ((int64)Variant << 24) | (int64)FMath::Clamp(Slot, 0, (1 << 24) - 1);
+		return ((int64)UnitIndex << 32) | ((int64)Variant << 24) | (int64)FMath::Clamp(Slot, 0, (1 << 24) - 1);
 	};
 
 	TArray<int64> LiveSpearmen, LiveArchers;
 	LiveSpearmen.Reserve(FMath::Max(Swarm->GetAliveByType(EUnitType::Spearmen), 64));
 	LiveArchers.Reserve(FMath::Max(Swarm->GetAliveByType(EUnitType::Archers), 64));
 
-	EntityQuery.ForEachEntityChunk(Context, [&LiveSpearmen, &LiveArchers, &TeamVariants, &ArcherVariants, &MakeKey](FMassExecutionContext& ChunkContext)
+	EntityQuery.ForEachEntityChunk(Context, [&LiveSpearmen, &LiveArchers, &TeamVariants, &ArcherVariants, SquadVariants, &MakeKey](FMassExecutionContext& ChunkContext)
 	{
 		const TConstArrayView<FRetinueFollowFragment> Follow = ChunkContext.GetFragmentView<FRetinueFollowFragment>();
 		const TConstArrayView<FSwarmAnimFragment> Anim = ChunkContext.GetFragmentView<FSwarmAnimFragment>();
@@ -867,15 +905,60 @@ void URetinueFormationProcessor::Execute(FMassEntityManager& EntityManager, FMas
 		{
 			const bool bArcher = SwarmSquad::UnitType(Anim[i].SquadId) == EUnitType::Archers;
 			const FVariantTable& Table = bArcher ? ArcherVariants : TeamVariants;
-			const int32 Variant = SwarmRenderPack::VariantFromPhase(Jitter[i].Phase, Table.Cum, Table.Num);
-			(bArcher ? LiveArchers : LiveSpearmen).Add(MakeKey(Variant, Follow[i].SlotIndex));
+			const int32 UnitIndex = SwarmSquad::UnitIndex(Anim[i].SquadId);
+			const int32 Variant = SwarmRenderPack::VariantFor(SquadVariants[UnitIndex], Jitter[i].Phase, Table.Cum, Table.Num);
+			(bArcher ? LiveArchers : LiveSpearmen).Add(MakeKey(UnitIndex, Variant, Follow[i].SlotIndex));
 		}
 	});
 
 	if (bNeedSpearmen) { LiveSpearmen.Sort(); }
 	if (bNeedArchers) { LiveArchers.Sort(); }
 
-	EntityQuery.ForEachEntityChunk(Context, [&LiveSpearmen, &LiveArchers, bNeedSpearmen, bNeedArchers, &TeamVariants, &ArcherVariants, &MakeKey](FMassExecutionContext& ChunkContext)
+	// One DETACHMENT per (unit, look) run, split further every Cap soldiers so a look never
+	// deepens past Columns * GroupDepthCap. GroupOrd[] is the group ordinal actually handed
+	// to SlotOffset — gapped, not dense, because a fresh command unit always jumps to the
+	// next GroupsPerRow boundary rather than sharing a depth row with the previous unit's
+	// tail. BlockSlot only ever does Group / PerRow and Group % PerRow, so it tolerates the
+	// gaps for free — no geometry-function change needed to make row-per-unit hold.
+	struct FGroupTable { TArray<int32> Start; TArray<int32> GroupOrd; };
+	auto BuildGroups = [](const TArray<int64>& Keys, int32 Cap, int32 GroupsPerRow)
+	{
+		FGroupTable Table;
+		int64 LastGroupKey = -1; // (Unit, Variant) combined — Keys[i] >> 24
+		int32 LastUnit = -1;
+		int32 RunCount = 0;
+		int32 NextGroup = 0;
+		for (int32 i = 0; i < Keys.Num(); ++i)
+		{
+			const int64 GroupKey = Keys[i] >> 24; // (Unit, Variant), drops the slot tiebreak
+			const int32 Unit = (int32)(Keys[i] >> 32);
+			const bool bNewLook = (GroupKey != LastGroupKey);
+			const bool bCapped = !bNewLook && (RunCount >= Cap);
+			if (bNewLook || bCapped)
+			{
+				if (bNewLook && Unit != LastUnit && LastUnit != -1 && GroupsPerRow > 0)
+				{
+					// Fresh command unit: jump to the next row rather than filling out the
+					// previous unit's row, so two units never share a depth row.
+					NextGroup = ((NextGroup + GroupsPerRow - 1) / GroupsPerRow) * GroupsPerRow;
+				}
+				Table.Start.Add(i);
+				Table.GroupOrd.Add(NextGroup);
+				++NextGroup;
+				RunCount = 0;
+			}
+			LastGroupKey = GroupKey;
+			LastUnit = Unit;
+			++RunCount;
+		}
+		return Table;
+	};
+	const int32 SpearCap = FMath::Max(1, SpearParams.Columns * SpearParams.GroupDepthCap);
+	const int32 ArcherCap = FMath::Max(1, ArcherParams.Columns * ArcherParams.GroupDepthCap);
+	const FGroupTable SpearGroups = bGroupSpearmen ? BuildGroups(LiveSpearmen, SpearCap, SpearParams.GroupsPerRow) : FGroupTable();
+	const FGroupTable ArcherGroups = bGroupArchers ? BuildGroups(LiveArchers, ArcherCap, ArcherParams.GroupsPerRow) : FGroupTable();
+
+	EntityQuery.ForEachEntityChunk(Context, [&LiveSpearmen, &LiveArchers, bNeedSpearmen, bNeedArchers, bGroupSpearmen, bGroupArchers, &SpearGroups, &ArcherGroups, &TeamVariants, &ArcherVariants, SquadVariants, &MakeKey](FMassExecutionContext& ChunkContext)
 	{
 		const TArrayView<FRetinueFollowFragment> Follow = ChunkContext.GetMutableFragmentView<FRetinueFollowFragment>();
 		const TConstArrayView<FSwarmAnimFragment> Anim = ChunkContext.GetFragmentView<FSwarmAnimFragment>();
@@ -888,9 +971,25 @@ void URetinueFormationProcessor::Execute(FMassEntityManager& EntityManager, FMas
 				continue;
 			}
 			const FVariantTable& Table = bArcher ? ArcherVariants : TeamVariants;
-			const int32 Variant = SwarmRenderPack::VariantFromPhase(Jitter[i].Phase, Table.Cum, Table.Num);
-			const int64 Key = MakeKey(Variant, Follow[i].SlotIndex);
-			Follow[i].SlotIndex = Algo::LowerBound(bArcher ? LiveArchers : LiveSpearmen, Key);
+			const int32 UnitIndex = SwarmSquad::UnitIndex(Anim[i].SquadId);
+			const int32 Variant = SwarmRenderPack::VariantFor(SquadVariants[UnitIndex], Jitter[i].Phase, Table.Cum, Table.Num);
+			const int64 Key = MakeKey(UnitIndex, Variant, Follow[i].SlotIndex);
+			const int32 Position = Algo::LowerBound(bArcher ? LiveArchers : LiveSpearmen, Key);
+
+			if (!(bArcher ? bGroupArchers : bGroupSpearmen))
+			{
+				// Non-Block shape: type-wide dense index, exactly the pre-detachment behavior.
+				Follow[i].SlotIndex = Position;
+				Follow[i].GroupIndex = 0;
+				continue;
+			}
+			// Start[] is ascending with Position (both built off the same sorted Keys), so the
+			// run this soldier's Position falls in is the last Start <= Position — always
+			// valid, since this soldier's own key is guaranteed present from the gather pass.
+			const FGroupTable& Groups = bArcher ? ArcherGroups : SpearGroups;
+			const int32 Run = Algo::UpperBound(Groups.Start, Position) - 1;
+			Follow[i].GroupIndex = Groups.GroupOrd[Run];
+			Follow[i].SlotIndex = Position - Groups.Start[Run];
 		}
 	});
 
@@ -997,7 +1096,7 @@ void URetinueFollowProcessor::Execute(FMassEntityManager& EntityManager, FMassEx
 			const SwarmFormation::FParams& Formation = bArcher ? ArchersFormation : SpearmenFormation;
 
 			const FVector Location = Transforms[i].GetTransform().GetLocation();
-			const FVector2D Slot = SwarmFormation::SlotOffset(Follow[i].SlotIndex, Formation);
+			const FVector2D Slot = SwarmFormation::SlotOffset(Follow[i].SlotIndex, Follow[i].GroupIndex, Formation);
 			const float HeroDistSq = FVector::DistSquared2D(Location, Attractor);
 
 			// --- leash (docs/RTS-VERTICAL-SLICE.md §2) -------------------

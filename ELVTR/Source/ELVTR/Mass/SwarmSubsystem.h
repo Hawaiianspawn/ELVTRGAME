@@ -50,8 +50,13 @@ public:
 	 * Per-type legibility ceiling (§4.1's `squad_size_legibility_ceiling`, docs/data/
 	 * squads.json). A type's derived unit COUNT is ceil(Pool(type) / this), recomputed at
 	 * every recruit and every formation repack — see AssignRecruit and §4.1's formula.
+	 *
+	 * 16 since 2026-08-04 (owner call: every unit is a full 8x2 "mini retinue"). With the
+	 * 128-body retinue split 96/32 by the deterministic type quota in SwarmCommands.cpp,
+	 * this lands exactly 6 Spearmen units + 2 Archers units, all eight full. Was 80,
+	 * which derived 2 ragged oversized units from the same pools.
 	 */
-	static constexpr int32 TypeLegibilityCeiling = 80;
+	static constexpr int32 TypeLegibilityCeiling = 16;
 
 	/**
 	 * SquadIdForSlot is GONE (docs/design/squad-group-system.md §1.3): deriving a unit id
@@ -410,6 +415,7 @@ public:
 	{
 		RenderPositions.Reset(ExpectedCount);
 		RenderAnimBits.Reset(ExpectedCount);
+		RetinueBounds.Init();
 		AliveRetinue = 0;
 		AliveBrood = 0;
 		LeashBroken = 0;
@@ -448,6 +454,7 @@ public:
 		if ((AnimBits & SwarmAnim::TeamBit) != 0)
 		{
 			++AliveRetinue;
+			RetinueBounds += Location;
 			const int32 UnitIndex = FMath::Min<int32>(SwarmSquad::UnitIndex(SquadId), MaxSquads - 1);
 			SquadStanding[UnitIndex]++;
 			SquadCentroidSum[UnitIndex] += Location;
@@ -733,6 +740,7 @@ private:
 	TMap<FIntPoint, TArray<FGridEntry>> Grid;
 	TArray<FVector> RenderPositions;
 	TArray<int32> RenderAnimBits;
+	FBox RetinueBounds = FBox(ForceInit); // friendly-only AABB, refilled each frame
 	int32 SquadStanding[MaxSquads] = {}; // live retinue count per unit, refilled each frame
 	FVector SquadCentroidSum[MaxSquads] = {}; // sum of member locations per unit, refilled each frame
 	TArray<FMassEntityHandle> AllEntities;
