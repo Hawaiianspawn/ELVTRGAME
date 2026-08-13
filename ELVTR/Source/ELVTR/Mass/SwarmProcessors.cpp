@@ -652,6 +652,26 @@ void USwarmGridBuildProcessor::Execute(FMassEntityManager& EntityManager, FMassE
 		}
 	});
 
+	// --- the boss rides in as an ordinary enemy entry (entity-tiers.md §5) ----------------
+	// One call, and the whole grid works on it: retinue steering finds it as their nearest
+	// enemy and closes on it, their swing clocks advance against it, they take its blow
+	// victim-side out of the same BlowsClaimed budget that caps every other striker, they get
+	// knockback and hit flash from it, and they turn to face it. None of that needed writing.
+	//
+	// bRetinue=false is what keeps it honest in both directions: brood skip it on the same
+	// same-team test they skip each other with (no friendly fire, no brood mobbing their own
+	// boss), and brood steering's FindNearestEnemy(bWantRetinue=true) never returns it.
+	//
+	// Published AFTER the entity loop rather than before because nothing in the loop can see
+	// it — the grid is a per-frame scratch structure and order within a frame is irrelevant.
+	// The state it reads was written by ASpikeBossActor's tick, so it is one frame old in
+	// exactly the way the hero's attractor already is.
+	if (const USwarmSubsystem::FBossState& Boss = Swarm->GetBoss(); Boss.bAlive)
+	{
+		Swarm->AddToGrid(Boss.Location, /*bRetinue=*/false, Boss.bStriking,
+			Boss.ReachSq, Boss.TargetsPerHit, Boss.BlowDamage, /*SquadId=*/0);
+	}
+
 	// Occupancy is the grid's own health metric: cells vs. entities tells you
 	// whether GridCellSize is bucketing sensibly or degenerating toward a list.
 	SET_DWORD_STAT(STAT_SwarmGridCells, Swarm->GetGridCellCount());
@@ -1102,7 +1122,21 @@ void URetinueFollowProcessor::Execute(FMassEntityManager& EntityManager, FMassEx
 			// --- leash (docs/RTS-VERTICAL-SLICE.md §2) -------------------
 			// Latch out past Radius, latch back in only inside ReanchorRadius,
 			// so a unit sitting exactly on the boundary can't flicker.
-			if (Follow[i].bLeashBroken)
+			//
+			// THE GARRISON IS EXEMPT (castle-layout.md D1 + Q7 = A). The leash means "you must
+			// stay in the fight with your troops", which is a statement about the bearer's own
+			// squad; the war is not the bearer's squad. Left leashed, the whole line would
+			// latch broken the moment the player walked 2000uu away, drop to Follow and come
+			// running after the flame — the front would follow you around the map, which is
+			// precisely the thing this slice exists to stop. Q7 = A supplies the fiction at no
+			// extra rule: the castle has fixed light of its own, so the garrison is standing in
+			// the castle's light and does not need yours. The SEVEN keep the leash unchanged.
+			const bool bGarrison = (UnitIndex == USwarmSubsystem::GarrisonUnit);
+			if (bGarrison)
+			{
+				Follow[i].bLeashBroken = false;
+			}
+			else if (Follow[i].bLeashBroken)
 			{
 				if (HeroDistSq < SwarmLeash::ReanchorRadiusSq)
 				{
@@ -1127,8 +1161,10 @@ void URetinueFollowProcessor::Execute(FMassEntityManager& EntityManager, FMassEx
 				++BrokenThisFrame;
 			}
 
-			// Warn before breaking: breaking stance must never feel random.
-			const bool bWarn = !Follow[i].bLeashBroken && HeroDistSq > SwarmLeash::WarnRadiusSq;
+			// Warn before breaking: breaking stance must never feel random. Nothing to warn
+			// about on a unit that cannot break, so the garrison never lights the bit — left
+			// in, the entire line would flash a leash warning for the whole siege.
+			const bool bWarn = !bGarrison && !Follow[i].bLeashBroken && HeroDistSq > SwarmLeash::WarnRadiusSq;
 			Anim[i].Bits = bWarn ? (Anim[i].Bits | SwarmAnim::LeashWarnBit)
 								 : (Anim[i].Bits & ~SwarmAnim::LeashWarnBit);
 
@@ -1214,7 +1250,33 @@ void URetinueFollowProcessor::Execute(FMassEntityManager& EntityManager, FMassEx
 			const bool bEngaging = FindNearestEnemyBanded(*Swarm, Location, /*bWantRetinue=*/false,
 				FMath::Square(MinEngageRange), FMath::Square(EngageRange), EnemyLocation, EnemyDistSq);
 
-			const FVector Target = (bEngaging && bMayCloseDistance) ? EnemyLocation : Anchor;
+			FVector Target = (bEngaging && bMayCloseDistance) ? EnemyLocation : Anchor;
+
+			// --- a line advances to contact and HOLDS; it does not pursue -----------------
+			// castle-layout.md §5.2, and also what SwarmTuning's own constants have always
+			// SAID they mean: "How far a unit will step off its anchor to hit something, per
+			// stance." They did not do that. EngageRange was only the radius of the search
+			// around the UNIT, so a soldier stepped up to EngageRange onto an enemy, searched
+			// again from its new position, found the next one, and ratcheted outward without
+			// limit — measured 2026-08-13: a garrison ordered to Hold a line 700uu in front of
+			// the bearer had walked itself out past 1800uu chasing the tide, and the front the
+			// order existed to create simply was not there any more.
+			//
+			// The anchor is now a TETHER as well as a rest position: a unit may close on
+			// anything, but never to a point further than its own EngageRange from its anchor.
+			// One clamp, no new state, no second search — and it makes all four stances mean
+			// what their constants claim. Hold holds; Charge fights where it was sent; Follow
+			// keeps its slot; a broken leash still overrides everything by dropping to Follow.
+			if (bEngaging && bMayCloseDistance)
+			{
+				const FVector FromAnchor(Target.X - Anchor.X, Target.Y - Anchor.Y, 0.f);
+				const float Out = FromAnchor.Size2D();
+				if (Out > EngageRange)
+				{
+					Target = Anchor + FromAnchor * (EngageRange / Out);
+				}
+			}
+
 			const FVector ToTarget = Target - Location;
 			const float Dist = ToTarget.Size2D();
 
@@ -1264,6 +1326,10 @@ void USwarmIntegrateProcessor::ConfigureQueries(const TSharedRef<FMassEntityMana
 	EntityQuery.AddRequirement<FSwarmAnimFragment>(EMassFragmentAccess::ReadWrite);
 	EntityQuery.AddRequirement<FSwarmJitterFragment>(EMassFragmentAccess::ReadOnly);
 	EntityQuery.AddRequirement<FSwarmStrikeFragment>(EMassFragmentAccess::ReadWrite);
+	// Read-only, and already on every swarm entity — no class-layout change. Published per
+	// UNIT on the same PushRenderEntry pass that already receives the body, so the HUD can
+	// show one of the seven its own health bar without a second walk over the army.
+	EntityQuery.AddRequirement<FSwarmHealthFragment>(EMassFragmentAccess::ReadOnly);
 	EntityQuery.AddTagRequirement<FSwarmTag>(EMassFragmentPresence::All);
 }
 
@@ -1336,6 +1402,7 @@ void USwarmIntegrateProcessor::Execute(FMassEntityManager& EntityManager, FMassE
 		const TArrayView<FSwarmAnimFragment> Anim = ChunkContext.GetMutableFragmentView<FSwarmAnimFragment>();
 		const TConstArrayView<FSwarmJitterFragment> Jitter = ChunkContext.GetFragmentView<FSwarmJitterFragment>();
 		const TArrayView<FSwarmStrikeFragment> Strike = ChunkContext.GetMutableFragmentView<FSwarmStrikeFragment>();
+		const TConstArrayView<FSwarmHealthFragment> Health = ChunkContext.GetFragmentView<FSwarmHealthFragment>();
 
 		for (int32 i = 0; i < ChunkContext.GetNumEntities(); ++i)
 		{
@@ -1464,7 +1531,8 @@ void USwarmIntegrateProcessor::Execute(FMassEntityManager& EntityManager, FMassE
 					: INDEX_NONE;
 				Swarm->PushRenderEntry(Published, Anim[i].Bits, Anim[i].SquadId,
 					SwarmRenderPack::BucketFromPhase(Jitter[i].Phase), Anim[i].Facing,
-					SwarmRenderPack::VariantFor(MyAssigned, Jitter[i].Phase, MyVariants.Cum, MyVariants.Num));
+					SwarmRenderPack::VariantFor(MyAssigned, Jitter[i].Phase, MyVariants.Cum, MyVariants.Num),
+					Health[i].HP, Health[i].MaxHP);
 
 			// Consume AttackBit: it is an observation made THIS frame by the steering
 			// and combat passes, and it has to be re-observed next frame. Left set it

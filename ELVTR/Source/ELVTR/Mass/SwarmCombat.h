@@ -52,6 +52,35 @@ enum class EUnitType : uint8
 
 inline constexpr int32 NumUnitTypes = 2;
 
+/**
+ * A boss's accreted MARKS (docs/design/castle-layout.md §6.1).
+ *
+ * A bitmask and not an enum-with-one-value because §6.1's whole claim is that marks
+ * COMPOUND — "a boss that took the Great Gate, ate the column that routed from it, and then
+ * survived the Works' archers arrives at the Ascent as a gate-breaking, regenerating,
+ * ranged-immune problem". Three of the six are implemented here; the other three (Wearing,
+ * Unblinded, Column-fed) need war-sim events that do not exist yet, so they are deliberately
+ * absent rather than stubbed.
+ *
+ * NOTHING ACCRETES THESE YET. §6.2's claim — that a boss is a report on a war you were not
+ * in — needs the war sim, which is out of this slice's scope. They are set by console
+ * command (Kindled.Boss.Marks), which is a prototype surface, not a design position on how a
+ * boss earns them.
+ *
+ * Plain enum rather than a UENUM: nothing Blueprint-facing reads it, and a reflected
+ * bitflag enum would add a class-layout dependency to a header the whole sim includes.
+ */
+enum class EBossMark : uint8
+{
+	None     = 0,
+	Quilled  = 1 << 0,	// armour that scales against RANGED specifically; seeks ranged positions
+	Ram      = 1 << 1,	// prefers the objective over bodies; heavy damage to what it is aimed at
+	Sated    = 1 << 2,	// regenerates between engagements
+};
+
+inline constexpr uint8 operator|(EBossMark A, EBossMark B) { return (uint8)A | (uint8)B; }
+inline constexpr bool HasMark(uint8 Marks, EBossMark M) { return (Marks & (uint8)M) != 0; }
+
 inline const TCHAR* LexToString(EUnitType Type)
 {
 	return Type == EUnitType::Archers ? TEXT("ARCHERS") : TEXT("SPEARMEN");
@@ -209,8 +238,45 @@ namespace SwarmCombatTuning
 	// not as the damage. He survives long enough to reposition the line; he
 	// cannot replace it.
 	ELVTR_API float HeroMaxHP();	// exported: the editor toolset's swarm snapshot reports hp/maxHp
+	/**
+	 * RETIRED AS THE PLAYER'S DAMAGE, 2026-08-13 — castle-layout.md §6.4, Q13 = C: "the
+	 * player's entire output is the seven... you have no independent attack worth using."
+	 *
+	 * The getter, the CVar, the swing clock on the pawn and the whole grid bridge in
+	 * SwarmCombatProcessors.cpp all STAY — §6.4 is explicit that the hero remains a body in
+	 * the grid that can be struck, and entity-tiers.md §1 still points at that bridge as the
+	 * precedent every promoted Actor reuses (the boss below does exactly that). What changed
+	 * is the number it carries: the shipped default is now 0.
+	 *
+	 * Set it back above 0 to A/B the pre-pivot hero. NOTE Saved/SwarmExecOnPlay.txt overrides
+	 * this default at BeginPlay, so the C++ value alone proves nothing — see slice-a7.md.
+	 */
 	float HeroDPS();
 	float HeroMeleeRange();
+
+	// --- the marked boss (docs/design/entity-tiers.md §3, castle-layout.md §6) ------------
+	// Baseline stat block transcribed from entity-tiers.md §3's Boss row, unchanged: 6000 HP,
+	// 110 DPS, Armor 14, TargetsPerHit 6, 250uu melee, 2.0s SwingInterval. SurroundCap is §4's
+	// own 35-55 estimate taken at its midpoint. Nothing here re-derives or "improves" a number
+	// that doc already owns.
+	float BossMaxHP();
+	float BossDPS();
+	float BossArmor();
+	float BossArmorChipFloor();
+	int32 BossTargetsPerHit();
+	float BossMeleeRange();
+	float BossSwingInterval();
+	int32 BossSurroundCap();
+	float BossSpeed();
+
+	/** Extra Armor applied ONLY to blows from Archers, while the Quilled mark is carried. */
+	float BossQuilledArmor();
+	/** Ram: how its blow scales against a soldier, and against the thing it is actually aimed at. */
+	float BossRamBodyScale();
+	float BossRamObjectiveScale();
+	/** Sated: seconds without taking a blow before regeneration starts, and its rate in HP/s. */
+	float BossSatedCalmSeconds();
+	float BossSatedRegenPerSecond();
 
 	// --- knight sub-types (task-095, docs/design/retinue-melee-subtypes.md) -----------
 	// Binds the team-atlas VARIANT INDEX a Spearman already wears (SwarmSheet::Team,

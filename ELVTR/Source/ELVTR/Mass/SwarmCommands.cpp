@@ -128,6 +128,17 @@ namespace
 		// public parameter so SpawnRetinue's signature — and every existing call site
 		// (Spike1GameMode, the Swarm.SpawnRetinue console command) — doesn't have to churn.
 		int32 SlotBase = 0;
+
+		// --- recruitment override (docs/design/slice-a7.md) ------------------------------
+		// INDEX_NONE keeps the shipped path exactly: roll a type, hand it to AssignRecruit,
+		// let it grow units out of the stream. Set, it means "this batch belongs to THIS
+		// handle" — which is what the garrison (one handle, a hundred bodies) and each of the
+		// seven (one handle, one body) both need and neither can express through a policy
+		// whose whole job is to spread recruits across handles by fullness.
+		int32 ForceUnit = INDEX_NONE;
+		bool bForceType = false;        // when ForceUnit is set, pin the type too rather than rolling
+		EUnitType ForcedType = EUnitType::Spearmen;
+		float HPScale = 1.f;
 	};
 
 	void SpawnSwarm(UWorld* World, const FSwarmSpawnParams& Params)
@@ -266,9 +277,23 @@ namespace
 			}
 			else
 			{
-				const EUnitType Type = (Rand.FRand() < ArcherWeight) ? EUnitType::Archers : EUnitType::Spearmen;
+				// ForceUnit bypasses AssignRecruit entirely rather than teaching it a second
+				// policy — see FSwarmSpawnParams. ClaimSquad still has to run, or the handle
+				// reads unclaimed and Kindled.Adapt refuses to touch it.
+				const EUnitType Type = Params.bForceType
+					? Params.ForcedType
+					: ((Rand.FRand() < ArcherWeight) ? EUnitType::Archers : EUnitType::Spearmen);
 				const int32 TypeIdx = (int32)Type;
-				const uint8 SquadByte = Swarm->AssignRecruit(Type, RecruitedThisBatch[TypeIdx]++);
+				uint8 SquadByte;
+				if (Params.ForceUnit != INDEX_NONE)
+				{
+					Swarm->ClaimSquad(Params.ForceUnit, Type);
+					SquadByte = SwarmSquad::Pack((uint8)Params.ForceUnit, Type);
+				}
+				else
+				{
+					SquadByte = Swarm->AssignRecruit(Type, RecruitedThisBatch[TypeIdx]++);
+				}
 				const int32 MyUnit = SwarmSquad::UnitIndex(SquadByte);
 				const int32 MyTier = Swarm->GetSquadTier(MyUnit);
 
@@ -307,6 +332,10 @@ namespace
 			FSwarmJitterFragment& JitterFragment = View.GetFragmentData<FSwarmJitterFragment>();
 			JitterFragment.SpeedScale = TypeSpeedScale * Rand.FRandRange(1.f - SpeedJitter, 1.f + SpeedJitter);
 			JitterFragment.Phase = Phase;
+
+			// HPScale is 1 for everything except a named soldier — see SwarmSpawn.h for why
+			// the seven need one and why it is an expedient rather than a stat block.
+			MaxHP *= Params.bBrood ? 1.f : FMath::Max(Params.HPScale, 0.01f);
 
 			FSwarmHealthFragment& HealthFragment = View.GetFragmentData<FSwarmHealthFragment>();
 			HealthFragment.MaxHP = MaxHP;
@@ -435,7 +464,16 @@ namespace
 	FAutoConsoleCommandWithWorldAndArgs GUnitStanceCmd(
 		TEXT("Swarm.UnitStance"),
 		TEXT("Set ONE unit's stance, leaving every other unit (and the 'all units' order)\n")
-		TEXT("untouched. Usage: Swarm.UnitStance <0-7> Follow|Charge|Hold|Rally"),
+		TEXT("untouched. Usage: Swarm.UnitStance <0-6> Follow|Charge|Hold|Rally\n")
+		TEXT("\n")
+		TEXT("0-6 are the SEVEN named soldiers (docs/design/slice-a7.md). 7 is the autonomous\n")
+		TEXT("garrison and ordering it contradicts the whole point of it holding on its own —\n")
+		TEXT("the command still goes through, deliberately, because pulling the war off its\n")
+		TEXT("anchor by hand is a useful thing to be able to do while judging whether the line\n")
+		TEXT("reads as a front. It warns so it can never happen by accident.\n")
+		TEXT("\n")
+		TEXT("How orders are ACTUALLY issued is docs/OPEN-DECISIONS.md Q26 and is still open;\n")
+		TEXT("this is the stand-in surface, not a proposal."),
 		FConsoleCommandWithWorldAndArgsDelegate::CreateStatic(
 			[](const TArray<FString>& Args, UWorld* World)
 			{
@@ -452,6 +490,12 @@ namespace
 				else if (Name.Equals(TEXT("Hold"), ESearchCase::IgnoreCase)) { Stance = ESwarmStance::Hold; }
 				else if (Name.Equals(TEXT("Rally"), ESearchCase::IgnoreCase)) { Stance = ESwarmStance::Rally; }
 
+				if (UnitIndex == USwarmSubsystem::GarrisonUnit)
+				{
+					UE_LOG(LogTemp, Warning, TEXT("Swarm.UnitStance: unit %d is THE GARRISON — the war, "
+						"not your squad. Ordering it pulls the front off its anchor. The seven are 0-6."),
+						UnitIndex);
+				}
 				Swarm->SetUnitStance(UnitIndex, Stance, Swarm->GetAttractor());
 				UE_LOG(LogTemp, Display, TEXT("Swarm: unit %d stance = %s (type %s)"),
 					UnitIndex, LexToString(Stance), LexToString(Swarm->GetSquadType(UnitIndex)));
@@ -760,6 +804,49 @@ namespace SwarmSpawn
 	void SpawnRetinue(UWorld* World, int32 Count, int32 SlotBase)
 	{
 		SpawnSwarm(World, FSwarmSpawnParams{ false, Count, SlotBase });
+	}
+
+	FVector TideBearingPoint(UWorld* World, float Distance)
+	{
+		const USwarmSubsystem* Swarm = World ? World->GetSubsystem<USwarmSubsystem>() : nullptr;
+		const FVector Bearer = Swarm ? Swarm->GetAttractor() : FVector::ZeroVector;
+
+		// Built the same way SpawnSwarm builds the tide's own BroodFormation, and resolved
+		// through the same BroodSlotOffset — a one-column, zero-degree arc's single slot IS
+		// the arc's centre line. Borrowing the real function rather than re-deriving the trig
+		// is what stops this drifting from the tide the day the convention changes.
+		SwarmFormation::FParams Bearing;
+		Bearing.Columns = 1;
+		Bearing.ArcDegrees = 0.f;
+		Bearing.ArcRadius = FMath::Max(Distance, 0.f);
+		Bearing.RankSpacing = 1.f;
+		const float BearingDeg = CVarBroodSpawnArcCenter.GetValueOnGameThread()
+			+ (CVarBroodSpawnFaceCamera.GetValueOnGameThread() != 0 ? SwarmFormation::CameraYawDegrees() : 0.f);
+		Bearing.YawRadians = FMath::DegreesToRadians(BearingDeg);
+
+		const FVector2D Offset = SwarmFormation::BroodSlotOffset(0, Bearing);
+		return FVector(Bearer.X + Offset.X, Bearer.Y + Offset.Y, 0.f);
+	}
+
+	void SpawnGarrison(UWorld* World, int32 Count)
+	{
+		FSwarmSpawnParams Params;
+		Params.bBrood = false;
+		Params.Count = Count;
+		Params.ForceUnit = USwarmSubsystem::GarrisonUnit;
+		SpawnSwarm(World, Params);
+	}
+
+	void SpawnNamed(UWorld* World, int32 UnitIndex, EUnitType Type, float HPScale)
+	{
+		FSwarmSpawnParams Params;
+		Params.bBrood = false;
+		Params.Count = 1;
+		Params.ForceUnit = UnitIndex;
+		Params.bForceType = true;
+		Params.ForcedType = Type;
+		Params.HPScale = HPScale;
+		SpawnSwarm(World, Params);
 	}
 
 	void ClearAll(UWorld* World)

@@ -48,11 +48,120 @@ namespace
 		TEXT("Swarm.HeroMaxHP"), 500.f,
 		TEXT("Max HP of the hero/bearer."), ECVF_Default);
 	TAutoConsoleVariable<float> CVarHeroDPS(
-		TEXT("Swarm.HeroDPS"), 55.f,
-		TEXT("Damage per second the hero deals to brood within HeroMeleeRange."), ECVF_Default);
+		TEXT("Swarm.HeroDPS"), 0.f,
+		TEXT("Damage per second the hero deals to brood within HeroMeleeRange.\n")
+		TEXT("\n")
+		TEXT("0 SINCE 2026-08-13 — castle-layout.md §6.4 / OPEN-DECISIONS Q13 = C: the player's\n")
+		TEXT("entire output is the seven, and 'you have no independent attack worth using'.\n")
+		TEXT("Was 55. The bridge that carried it is untouched and still runs every frame: the\n")
+		TEXT("hero is still a body in the grid, still gets mobbed, still takes blows, and the\n")
+		TEXT("promoted-Actor precedent entity-tiers.md §1 points at is still there for the boss\n")
+		TEXT("to reuse. Only the number retired.\n")
+		TEXT("\n")
+		TEXT("Raise it to A/B the pre-pivot hero. Saved/SwarmExecOnPlay.txt overrides this at\n")
+		TEXT("BeginPlay, so changing it here alone changes nothing in play."), ECVF_Default);
 	TAutoConsoleVariable<float> CVarHeroMeleeRange(
 		TEXT("Swarm.HeroMeleeRange"), 190.f,
 		TEXT("Hero melee reach in uu."), ECVF_Default);
+
+	// --- the marked boss (docs/design/entity-tiers.md §3 + §4, castle-layout.md §6) --------
+	// Every default below is TRANSCRIBED from entity-tiers.md §3's Boss row and §4's surround
+	// cap. Nothing here re-derives, rescales or "improves" a number that doc already owns —
+	// same contract Swarm.TierHP/TierDPS keep with upgrades.json.
+	TAutoConsoleVariable<float> CVarBossMaxHP(
+		TEXT("Kindled.Boss.MaxHP"), 6000.f,
+		TEXT("Boss max HP — entity-tiers.md §3, unchanged."), ECVF_Default);
+	TAutoConsoleVariable<float> CVarBossDPS(
+		TEXT("Kindled.Boss.DPS"), 110.f,
+		TEXT("Boss damage/sec. One blow removes this * Kindled.Boss.SwingInterval, same\n")
+		TEXT("discrete-cadence model every other body in the sim runs."), ECVF_Default);
+	TAutoConsoleVariable<float> CVarBossArmor(
+		TEXT("Kindled.Boss.Armor"), 14.f,
+		TEXT("Flat per-blow damage reduction (entity-tiers.md §2.2). FLAT, not a percentage,\n")
+		TEXT("and that is the load-bearing choice: it removes a larger FRACTION of a small blow\n")
+		TEXT("than of a large one, so it blunts the cheap end of the roster far harder than the\n")
+		TEXT("invested end. A percentage would read as pure HP inflation with extra math."),
+		ECVF_Default);
+	TAutoConsoleVariable<float> CVarBossArmorChipFloor(
+		TEXT("Kindled.Boss.ArmorChipFloor"), 3.f,
+		TEXT("Minimum damage any blow does through Armor, so a lone attacker always makes SOME\n")
+		TEXT("progress (entity-tiers.md §2.2's soft-costs-over-hard-caps)."), ECVF_Default);
+	TAutoConsoleVariable<int32> CVarBossTargetsPerHit(
+		TEXT("Kindled.Boss.TargetsPerHit"), 6,
+		TEXT("How many soldiers ONE boss blow pays out to. Spent through the same\n")
+		TEXT("FGridEntry::BlowsClaimed budget every striker in the sim draws from, so damage is\n")
+		TEXT("conserved and the boss cannot hit fifty people with one swing. Clamped 1-8 by the\n")
+		TEXT("combat loop's fixed nearest-K arrays."), ECVF_Default);
+	TAutoConsoleVariable<float> CVarBossMeleeRange(
+		TEXT("Kindled.Boss.MeleeRange"), 250.f,
+		TEXT("Boss reach, uu — entity-tiers.md §3."), ECVF_Default);
+	TAutoConsoleVariable<float> CVarBossSwingInterval(
+		TEXT("Kindled.Boss.SwingInterval"), 2.f,
+		TEXT("Seconds between boss blows. Long relative to the shared 0.9s so the swing reads as\n")
+		TEXT("a distinct telegraphed beat at horde scale (Design Law 6). DPS is unchanged by\n")
+		TEXT("this — one blow is DPS * this."), ECVF_Default);
+	TAutoConsoleVariable<int32> CVarBossSurroundCap(
+		TEXT("Kindled.Boss.SurroundCap"), 45,
+		TEXT("Distinct soldiers allowed to land a blow on the boss in one frame — entity-tiers.md\n")
+		TEXT("§4's 35-55 circle-packing estimate at its midpoint.\n")
+		TEXT("\n")
+		TEXT("ponytail: this is a SAFETY CLAMP, not the mechanism. The real cap is geometric —\n")
+		TEXT("only so many bodies fit inside 250uu — and because blows are spread across a 0.9s\n")
+		TEXT("cadence, only a fraction of the engaged crowd strikes on any given frame, so this\n")
+		TEXT("number will not normally bind at all. Watch Kindled.Boss.Report's attacker count:\n")
+		TEXT("if it sits pinned at this value the estimate is wrong and wants a real measurement\n")
+		TEXT("(§5 asks for exactly that), not a bigger clamp."), ECVF_Default);
+	TAutoConsoleVariable<float> CVarBossSpeed(
+		TEXT("Kindled.Boss.Speed"), 220.f,
+		TEXT("Boss march speed, uu/s. Slower than a brood's 320 and half a soldier's 450, so it\n")
+		TEXT("can be outpaced but not ignored. UNMEASURED — entity-tiers.md gives Titan a 0.5x\n")
+		TEXT("scale and the Boss row none, so this is a first-pass feel value."), ECVF_Default);
+
+	// --- marks (castle-layout.md §6.1) ----------------------------------------------------
+	// Each mark has to change BEHAVIOUR, not just a number, and be visible on the silhouette
+	// before it acts. These are the numbers behind the behaviour half; the silhouette half is
+	// drawn in SpikeBossActor.cpp.
+	TAutoConsoleVariable<float> CVarBossQuilledArmor(
+		TEXT("Kindled.Boss.QuilledArmor"), 40.f,
+		TEXT("EXTRA Armor applied only to blows from ARCHERS while Quilled is carried — §6.1's\n")
+		TEXT("'armour that scales against ranged specifically'. At the shipped archer blow\n")
+		TEXT("(18 DPS * 1.5s = 27) this floors a bow to the chip floor outright while leaving a\n")
+		TEXT("spear line's blow almost untouched, which is what makes §6.3's counter real:\n")
+		TEXT("Quilled wants melee, not the archers it is armoured against."), ECVF_Default);
+	TAutoConsoleVariable<float> CVarBossRamBodyScale(
+		TEXT("Kindled.Boss.RamBodyScale"), 0.35f,
+		TEXT("Ram's blow against a SOLDIER, as a fraction of its base. Low because Ram is not\n")
+		TEXT("fighting the line — §6.1: 'prefers gates over bodies'. It walks through you."),
+		ECVF_Default);
+	TAutoConsoleVariable<float> CVarBossRamObjectiveScale(
+		TEXT("Kindled.Boss.RamObjectiveScale"), 1.5f,
+		TEXT("Ram's blow against the thing it is aimed at, as a fraction of its base.\n")
+		TEXT("\n")
+		TEXT("PROTOTYPE SUBSTITUTION, stated plainly: §6.1's Ram breaks a GATE, and this slice\n")
+		TEXT("has no gate (the brief rules gates out of scope). The bearer stands in for the\n")
+		TEXT("objective, so Ram beelines the flame and hits it hard instead of stopping to fight.\n")
+		TEXT("The BEHAVIOUR is the specced one — ignore bodies, go for the thing that matters —\n")
+		TEXT("but what it is aimed at is a stand-in. See docs/design/slice-a7.md.\n")
+		TEXT("\n")
+		TEXT("1.5, DOWN FROM 2.5, and the reason is a real tension worth an owner's eye rather\n")
+		TEXT("than a quiet tune: the boss's base blow is 220 (110 DPS x 2.0s) against a bearer\n")
+		TEXT("whose Swarm.HeroMaxHP of 500 was set when he had 55 DPS and was expected to tank\n")
+		TEXT("brood. At 2.5 that is 550 — a ONE-SHOT, measured in the first run of this slice.\n")
+		TEXT("1.5 makes it two blows with 2s between them, so the tell lands, you get out, and\n")
+		TEXT("the seven intercept — which is exactly the counter §6.3 describes. It is still\n")
+		TEXT("4.3x what Ram deals to a soldier, so the mark is not blunted. The bearer's own HP\n")
+		TEXT("against post-pivot threats is NOT retuned here; that is a tuning call."), ECVF_Default);
+	TAutoConsoleVariable<float> CVarBossSatedCalm(
+		TEXT("Kindled.Boss.SatedCalmSeconds"), 3.f,
+		TEXT("Seconds the boss must go WITHOUT taking a blow before Sated regeneration starts —\n")
+		TEXT("§6.1's 'regeneration between engagements'. This is what makes §6.3's counter real:\n")
+		TEXT("Sated wants burst that outruns regeneration, so a squad that trickles damage in\n")
+		TEXT("and disengages never finishes it."), ECVF_Default);
+	TAutoConsoleVariable<float> CVarBossSatedRegen(
+		TEXT("Kindled.Boss.SatedRegenPerSecond"), 120.f,
+		TEXT("HP/s regained once calm. UNMEASURED first-pass value: at 6000 MaxHP this is a full\n")
+		TEXT("heal in 50s of being left alone, which should read as 'you cannot walk away from\n")
+		TEXT("this one' without being unkillable."), ECVF_Default);
 
 	// --- swing cadence + hit reaction ------------------------------------
 	TAutoConsoleVariable<float> CVarSwingInterval(
@@ -297,6 +406,21 @@ namespace SwarmCombatTuning
 	float HeroDPS()             { return CVarHeroDPS.GetValueOnAnyThread(); }
 	float HeroMeleeRange()      { return CVarHeroMeleeRange.GetValueOnAnyThread(); }
 
+	float BossMaxHP()           { return FMath::Max(CVarBossMaxHP.GetValueOnAnyThread(), 1.f); }
+	float BossDPS()             { return FMath::Max(CVarBossDPS.GetValueOnAnyThread(), 0.f); }
+	float BossArmor()           { return FMath::Max(CVarBossArmor.GetValueOnAnyThread(), 0.f); }
+	float BossArmorChipFloor()  { return FMath::Max(CVarBossArmorChipFloor.GetValueOnAnyThread(), 0.f); }
+	int32 BossTargetsPerHit()   { return FMath::Clamp(CVarBossTargetsPerHit.GetValueOnAnyThread(), 1, 8); }
+	float BossMeleeRange()      { return FMath::Max(CVarBossMeleeRange.GetValueOnAnyThread(), 1.f); }
+	float BossSwingInterval()   { return FMath::Max(CVarBossSwingInterval.GetValueOnAnyThread(), 0.05f); }
+	int32 BossSurroundCap()     { return FMath::Max(CVarBossSurroundCap.GetValueOnAnyThread(), 1); }
+	float BossSpeed()           { return FMath::Max(CVarBossSpeed.GetValueOnAnyThread(), 0.f); }
+	float BossQuilledArmor()    { return FMath::Max(CVarBossQuilledArmor.GetValueOnAnyThread(), 0.f); }
+	float BossRamBodyScale()    { return FMath::Max(CVarBossRamBodyScale.GetValueOnAnyThread(), 0.f); }
+	float BossRamObjectiveScale() { return FMath::Max(CVarBossRamObjectiveScale.GetValueOnAnyThread(), 0.f); }
+	float BossSatedCalmSeconds(){ return FMath::Max(CVarBossSatedCalm.GetValueOnAnyThread(), 0.f); }
+	float BossSatedRegenPerSecond() { return FMath::Max(CVarBossSatedRegen.GetValueOnAnyThread(), 0.f); }
+
 	// Floored so a zero or negative interval can't produce a divide-by-zero or a
 	// unit that strikes every frame. StrikeAt is clamped inside the interval so the
 	// windup and the recovery both always exist.
@@ -462,6 +586,25 @@ void USwarmCombatProcessor::Execute(FMassEntityManager& EntityManager, FMassExec
 	const float SwingInterval = SwarmCombatTuning::SwingInterval();
 	const float HeroBlow = SwarmCombatTuning::HeroDPS() * SwingInterval;
 
+	// --- the boss, victim side (entity-tiers.md §5: reuse the hero bridge) ----------------
+	// Damage OUT of the boss needs nothing here: it is published into the grid as an ordinary
+	// enemy entry (USwarmGridBuildProcessor), so the neighbour walk below already finds it,
+	// already counts it as contact, already turns the soldier to face it, already lets the
+	// soldier pull its blow through BlowsClaimed, and already feeds it into the K-nearest set.
+	// This block is only the OTHER half — damage IN, which is the exact shape the brood's
+	// direct hero-strike branch has, with the teams swapped.
+	const USwarmSubsystem::FBossState& BossIn = Swarm->GetBoss();
+	const bool bBossAlive = BossIn.bAlive;
+	const FVector BossLocation = BossIn.Location;
+	const float BossArmor = SwarmCombatTuning::BossArmor();
+	// §6.1's Quilled: armour that scales against RANGED specifically. Resolved per striker
+	// below off the SAME bArcher test the rest of the loop already computes, so "which of my
+	// soldiers is this armour aimed at" can never disagree with which stat block it fights on.
+	const float BossQuilledArmor = HasMark(BossIn.Marks, EBossMark::Quilled)
+		? SwarmCombatTuning::BossQuilledArmor() : 0.f;
+	const float BossChipFloor = SwarmCombatTuning::BossArmorChipFloor();
+	const int32 BossSurroundCap = SwarmCombatTuning::BossSurroundCap();
+
 	const float FlashTime = SwarmCombatTuning::HitFlashTime();
 	// Impulse speed that spends KnockbackDistance over KnockbackTime under the
 	// exponential decay applied in the integrate pass: displacement = V * tau.
@@ -482,7 +625,12 @@ void USwarmCombatProcessor::Execute(FMassEntityManager& EntityManager, FMassExec
 	int32 KilledBySquad[USwarmSubsystem::MaxSquads] = {};
 	int32 HeroKilled = 0;
 
-	EntityQuery.ForEachEntityChunk(Context, [Swarm, HeroLocation, bHeroAlive, bHeroStriking, MeleeRangeSq, ArchersRangeSq, ArchersMinRangeSq, HeroMeleeRangeSq, HeroBlow, MaxAttackers, ArchersTargets, BroodTargets, KnightTables, SquadVariants, FlashTime, KnockSpeed, &HeroDamage, &DamageToRetinue, &DamageToBrood, &KilledBySquad, &HeroKilled](FMassExecutionContext& ChunkContext)
+	// Same chunk-local shape as HeroDamage: merged into the subsystem once at the end, so
+	// this survives a future move to ParallelForEachEntityChunk unchanged.
+	float BossDamage = 0.f;
+	int32 BossStrikers = 0;
+
+	EntityQuery.ForEachEntityChunk(Context, [Swarm, HeroLocation, bHeroAlive, bHeroStriking, MeleeRangeSq, ArchersRangeSq, ArchersMinRangeSq, HeroMeleeRangeSq, HeroBlow, MaxAttackers, ArchersTargets, BroodTargets, KnightTables, SquadVariants, FlashTime, KnockSpeed, bBossAlive, BossLocation, BossArmor, BossQuilledArmor, BossChipFloor, BossSurroundCap, &HeroDamage, &DamageToRetinue, &DamageToBrood, &KilledBySquad, &HeroKilled, &BossDamage, &BossStrikers](FMassExecutionContext& ChunkContext)
 	{
 		const TConstArrayView<FTransformFragment> Transforms = ChunkContext.GetFragmentView<FTransformFragment>();
 		const TArrayView<FSwarmHealthFragment> Health = ChunkContext.GetMutableFragmentView<FSwarmHealthFragment>();
@@ -767,6 +915,38 @@ void USwarmCombatProcessor::Execute(FMassEntityManager& EntityManager, FMassExec
 				}
 			}
 
+			// --- this soldier's blow against the boss (entity-tiers.md §5) --------------
+			// Deliberately ONLY the claim. Contact, facing, knockback, flash and the
+			// K-nearest set were all already handled a few lines up by the neighbour walk,
+			// because the boss is in the grid — duplicating any of that here would double-
+			// count it. What the walk cannot do is deliver damage to something that is not a
+			// Mass entity, and this is that, copied from the brood-vs-hero branch above.
+			//
+			// Spending from the striker's OWN BlowsClaimed budget is the load-bearing part,
+			// for the identical reason it is on the hero path: without it a soldier whose
+			// single blow already landed on a brood via QueryNeighbors would ALSO pay the
+			// boss out of that same swing, and one swing would silently become two.
+			if (bRetinue && bBossAlive && Strike[i].bStrikeFrame && BossStrikers < BossSurroundCap)
+			{
+				const float BossDistSq = (float)FVector::DistSquared2D(Location, BossLocation);
+				if (BossDistSq <= MyReachSq)
+				{
+					USwarmSubsystem::FGridEntry* OwnEntry =
+						Swarm->FindOwnGridEntry(Location, /*bRetinue=*/true, Strike[i].bStrikeFrame, MyReachSq);
+					if (OwnEntry && OwnEntry->BlowsClaimed < OwnEntry->TargetsPerHit)
+					{
+						++OwnEntry->BlowsClaimed;
+						++BossStrikers;
+						// entity-tiers.md §2.2, applied victim-side exactly as specced:
+						// max(AttackerBlow - Victim.Armor, ArmorChipFloor). Quilled adds its
+						// armour only against archers, which is what makes the mark a
+						// counterable BEHAVIOUR ("bring melee") rather than a bigger number.
+						const float MyArmor = BossArmor + (bArcher ? BossQuilledArmor : 0.f);
+						BossDamage += FMath::Max(OwnEntry->BlowDamage - MyArmor, BossChipFloor);
+					}
+				}
+			}
+
 			Strike[i].Facing = Toward.GetSafeNormal();
 
 			// Publish my reach for the next frame: the distance to my Kth nearest enemy,
@@ -820,6 +1000,11 @@ void USwarmCombatProcessor::Execute(FMassEntityManager& EntityManager, FMassExec
 	{
 		Swarm->AddPendingHeroDamage(HeroDamage);
 	}
+	if (BossDamage > 0.f)
+	{
+		Swarm->AddPendingBossDamage(BossDamage);
+	}
+	Swarm->SetBossAttackers(BossStrikers);
 
 	Swarm->AddDamageDealt(DamageToRetinue, DamageToBrood);
 	Swarm->CreditKills(KilledBySquad, HeroKilled);

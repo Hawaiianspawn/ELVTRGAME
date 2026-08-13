@@ -7,7 +7,9 @@
 #include "Kismet/GameplayStatics.h"
 #include "Mass/SwarmCombat.h"
 #include "Mass/SwarmSubsystem.h"
+#include "SevenRoster.h"
 #include "Spike1GameMode.h"
+#include "SpikeBossActor.h"
 #include "Engine/GameViewportClient.h"
 #include "HAL/IConsoleManager.h"
 #include "UObject/ConstructorHelpers.h"
@@ -1017,25 +1019,74 @@ void ASpikeHeroPawn::DrawHUD() const
 		GEngine->AddOnScreenDebugMessage(1, 0.f, BannerColor, Banner);
 	}
 
-	// --- hero ------------------------------------------------------------
+	// --- bearer ----------------------------------------------------------
+	// No damage number any more: Q13 = C retired it (Swarm.HeroDPS 0). The bearer is a body
+	// in the fight and a set of orders, and the HP bar is the half of that which can kill you.
 	const float HPFraction = Swarm->GetHeroHP() / FMath::Max(1.f, Swarm->GetHeroMaxHP());
 	GEngine->AddOnScreenDebugMessage(2, 0.f,
 		HPFraction > 0.5f ? FColor::Green : (HPFraction > 0.25f ? FColor::Yellow : FColor::Red),
-		FString::Printf(TEXT("HERO  %3.0f / %3.0f"), Swarm->GetHeroHP(), Swarm->GetHeroMaxHP()));
+		FString::Printf(TEXT("BEARER  %3.0f / %3.0f      (no attack — your output is the seven)"),
+			Swarm->GetHeroHP(), Swarm->GetHeroMaxHP()));
 
-	// --- army ------------------------------------------------------------
+	// --- the war ---------------------------------------------------------
+	// Reported as the garrison and the tide, not as "your army": the whole point of the split
+	// is that the first number is not yours to command.
+	const int32 Garrison = Swarm->GetSquadStanding(USwarmSubsystem::GarrisonUnit);
 	GEngine->AddOnScreenDebugMessage(3, 0.f, FColor::Cyan,
-		FString::Printf(TEXT("RETINUE %4d      BROOD %4d"), Swarm->GetAliveRetinue(), Swarm->GetAliveBrood()));
+		FString::Printf(TEXT("THE WAR  garrison %4d  vs  brood %4d      (holding, unordered)"),
+			Garrison, Swarm->GetAliveBrood()));
 
-	// --- stance + leash ---------------------------------------------------
+	// --- the boss --------------------------------------------------------
+	// Marks first, before the numbers: §6.3 says reading the marks and picking the answer IS
+	// the tactical layer, so the line has to lead with what it is, not with how much is left.
+	if (Swarm->IsBossAlive())
+	{
+		const USwarmSubsystem::FBossState& Boss = Swarm->GetBoss();
+		const float BossFrac = Boss.MaxHP > 0.f ? Boss.HP / Boss.MaxHP : 0.f;
+		GEngine->AddOnScreenDebugMessage(10, 0.f,
+			BossFrac > 0.5f ? FColor(255, 120, 90) : FColor(255, 60, 40),
+			FString::Printf(TEXT("BOSS  %s   %.0f / %.0f   (%d striking it)"),
+				*ASpikeBossActor::MarksToString(Boss.Marks), Boss.HP, Boss.MaxHP, Swarm->GetBossAttackers()));
+	}
+
+	// --- the seven -------------------------------------------------------
+	// One line each, named, with its own health and its own standing order — the HUD change
+	// §6.4 asks for in as many words: "from describing an army to describing seven individuals
+	// and what each can currently do". What each can DO is deliberately absent; that is Q23.
+	for (int32 i = 0; i < SevenRoster::Num; ++i)
+	{
+		const SevenRoster::FSoldier& S = SevenRoster::Get(i);
+		const bool bDown = Swarm->GetSquadStanding(i) <= 0;
+		const float Max = Swarm->GetSquadMaxHP(i);
+		const float Frac = Max > 0.f ? Swarm->GetSquadHP(i) / Max : 0.f;
+
+		FColor Colour = FColor(90, 90, 90);
+		if (!bDown)
+		{
+			Colour = Frac > 0.5f ? FColor::White : (Frac > 0.25f ? FColor::Yellow : FColor::Red);
+		}
+		GEngine->AddOnScreenDebugMessage(20 + i, 0.f, Colour, bDown
+			? FString::Printf(TEXT("  [%d] %-6s %-12s   DOWN"), i, S.Name, S.Archetype)
+			: FString::Printf(TEXT("  [%d] %-6s %-12s %4.0f / %-4.0f  %s"),
+				i, S.Name, S.Archetype, Swarm->GetSquadHP(i), Max,
+				LexToString(Swarm->GetUnitStance(i))));
+	}
+
+	// --- orders -----------------------------------------------------------
 	const int32 Broken = Swarm->GetLeashBrokenCount();
 	GEngine->AddOnScreenDebugMessage(4, 0.f, Broken > 0 ? FColor::Yellow : FColor::White,
-		FString::Printf(TEXT("STANCE  %s%s"),
+		FString::Printf(TEXT("ORDER TO ALL SEVEN  %s%s"),
 			LexToString(Swarm->GetStance()),
 			Broken > 0 ? *FString::Printf(TEXT("   (%d leashed back to Follow)"), Broken) : TEXT("")));
 
 	GEngine->AddOnScreenDebugMessage(5, 0.f, FColor::Silver,
 		TEXT("[WASD] move   [1] Follow  [2] Charge (at cursor)  [3] Hold  [4] Rally   [R] restart"));
+
+	// How ORDERS are issued is Q26 and is not this slice's to answer, so addressing one of the
+	// seven stays on the shipped console surface rather than getting an invented input scheme.
+	GEngine->AddOnScreenDebugMessage(7, 0.f, FColor::Silver,
+		TEXT("ONE SOLDIER:  Swarm.UnitStance <0-6> Follow|Charge|Hold|Rally      "
+			"BOSS:  Kindled.Boss.Marks quilled,ram,sated|none"));
 
 	GEngine->AddOnScreenDebugMessage(6, 0.f, FColor::Silver,
 		FString::Printf(TEXT("CAMERA  [Num1] close  [Num2] army  [Num3] strategic      (mode %d)"),

@@ -9,6 +9,8 @@
 #include "MassEntityView.h"
 #include "Misc/CommandLine.h"
 #include "Misc/Parse.h"
+#include "SevenRoster.h"
+#include "SpikeBossActor.h"
 #include "SpikeHeroPawn.h"
 #include "UI/KindledUIDebug.h"
 #include "TimerManager.h"
@@ -55,6 +57,48 @@ namespace
 	int32 GStallLastBroodCount = -1;
 	float GStallUnchangedSeconds = 0.f;
 	bool GStallLogged = false;
+
+	/** Countdown for Kindled.Seven.LogInterval. File-static for the same layout reason. */
+	float GSevenLogCountdown = 0.f;
+
+	// --- the war, and the boss's arrival (docs/design/slice-a7.md) ------------------------
+	// CVars rather than UPROPERTYs, for the same reason GStall* above are file-static: a
+	// class-layout change on this module cannot be applied by Live Coding (it reports success
+	// and then crashes the next PIE), and both of these are composition dials meant to be
+	// dragged against a running fight.
+	TAutoConsoleVariable<float> CVarWarStandoff(
+		TEXT("Kindled.War.Standoff"), 700.f,
+		TEXT("How far forward of the bearer the garrison holds its line, uu, on the bearing the\n")
+		TEXT("tide arrives from.\n")
+		TEXT("\n")
+		TEXT("This is what makes castle-layout.md §9 step 4 true — 'arrive in a fight already in\n")
+		TEXT("progress, hundreds of entities, a held line'. Keep it INSIDE\n")
+		TEXT("Swarm.BroodSpawnRadiusMin (1200 in the shipped exec file) or the wave spawns behind\n")
+		TEXT("your own front and there is no front at all. [0..4000]"), ECVF_Default);
+
+	TAutoConsoleVariable<int32> CVarBossAutoWave(
+		TEXT("Kindled.Boss.AutoWave"), 3,
+		TEXT("1-based wave the marked boss arrives on by itself. 0 = never; use\n")
+		TEXT("Kindled.Boss.Spawn instead. The wave does not clear while it is standing, so the\n")
+		TEXT("boss is the wave's real win condition rather than a decoration on top of it."),
+		ECVF_Default);
+
+	// Same shape as the shipped Swarm.SpacingLogInterval: off by default, so it costs nothing,
+	// and turnable on for a scripted run — which is the only way to get evidence out of a
+	// headless session, since the HUD block is Slate text no capture path here can film.
+	TAutoConsoleVariable<float> CVarSevenLogInterval(
+		TEXT("Kindled.Seven.LogInterval"), 0.f,
+		TEXT("Seconds between automatic Kindled.Seven.Report + Kindled.Boss.Report lines.\n")
+		TEXT("0 = off (default). Set it on a scripted or standalone run to get the seven's\n")
+		TEXT("health, orders and kills — and the boss's marks — onto the log over time."),
+		ECVF_Default);
+
+	TAutoConsoleVariable<FString> CVarBossAutoMarks(
+		TEXT("Kindled.Boss.AutoMarks"), TEXT("quilled,ram,sated"),
+		TEXT("Marks the auto-spawned boss arrives carrying (castle-layout.md §6.1). All three by\n")
+		TEXT("default so the slice shows the compounding case §6.1 is actually about — a\n")
+		TEXT("gate-breaking, regenerating, ranged-armoured problem that looks like all three\n")
+		TEXT("before it does anything. Set to 'none' for the bare stat block."), ECVF_Default);
 
 	void ResetStallTracking()
 	{
@@ -185,10 +229,16 @@ namespace
 			{
 				continue;
 			}
+			// Named soldiers by name, the garrison as "the war" — the board is now the split
+			// castle-layout.md §8 / Q3 = C cares about: kills credited to the seven pay the
+			// SQUAD ratchet, while what the garrison did is war outcome and is not a body
+			// count. Nothing here spends either; this is the readout the split needs to exist.
+			const bool bNamed = USwarmSubsystem::IsNamedUnit(i);
+			const FString Label = bNamed ? FString(SevenRoster::Get(i).Name) : FString(TEXT("THE WAR"));
 			const TCHAR* TypeName = Swarm.GetSquadType(i) == EUnitType::Archers ? TEXT("Archers") : TEXT("Spearmen");
-			Wave += FString::Printf(TEXT(" unit%d(%s x%d)=%d"),
-				i, TypeName, Swarm.GetSquadStanding(i), Swarm.GetWaveKilledBySquad(i));
-			Run += FString::Printf(TEXT(" unit%d=%d"), i, Swarm.GetRunKilledBySquad(i));
+			Wave += FString::Printf(TEXT(" %s(%s x%d)=%d"),
+				*Label, TypeName, Swarm.GetSquadStanding(i), Swarm.GetWaveKilledBySquad(i));
+			Run += FString::Printf(TEXT(" %s=%d"), *Label, Swarm.GetRunKilledBySquad(i));
 			WaveSum += Swarm.GetWaveKilledBySquad(i);
 			RunSum += Swarm.GetRunKilledBySquad(i);
 		}
@@ -200,6 +250,50 @@ namespace
 			WaveIndex + 1, *Run, Swarm.GetHeroRunKills(), Credited,
 			Swarm.GetTotalKilledBrood(), Swarm.GetTotalKilledBrood() - Credited);
 	}
+
+	/**
+	 * The seven, as a log line each — name, archetype, look, rung, health, standing order.
+	 *
+	 * Exists because the HUD that shows this is drawn with AddOnScreenDebugMessage, which no
+	 * capture path in this project can film: Swarm.DebugShotAfter goes through a
+	 * SceneCaptureComponent2D (SwarmRenderActor.h), and a scene capture renders world
+	 * primitives, not Slate. So on a headless or scripted run the log is the ONLY way to
+	 * show that seven soldiers exist, differ, and hold their own orders.
+	 */
+	void LogTheSeven(const USwarmSubsystem& Swarm)
+	{
+		for (int32 i = 0; i < SevenRoster::Num; ++i)
+		{
+			const SevenRoster::FSoldier& S = SevenRoster::Get(i);
+			if (Swarm.GetSquadStanding(i) <= 0)
+			{
+				UE_LOG(LogTemp, Display, TEXT("Seven: [%d] %s (%s) — DOWN"), i, S.Name, S.Archetype);
+				continue;
+			}
+			UE_LOG(LogTemp, Display,
+				TEXT("Seven: [%d] %s (%s) %s look %d rung %d — %.0f/%.0f HP, order %s, %d kills this run"),
+				i, S.Name, S.Archetype, LexToString(Swarm.GetSquadType(i)),
+				Swarm.GetSquadVariant(i), Swarm.GetSquadTier(i),
+				Swarm.GetSquadHP(i), Swarm.GetSquadMaxHP(i),
+				LexToString(Swarm.GetUnitStance(i)), Swarm.GetRunKilledBySquad(i));
+		}
+		UE_LOG(LogTemp, Display, TEXT("Seven: the war — garrison unit %d holding %d bodies, unordered"),
+			USwarmSubsystem::GarrisonUnit, Swarm.GetSquadStanding(USwarmSubsystem::GarrisonUnit));
+	}
+
+	FAutoConsoleCommandWithWorld GSevenReportCmd(
+		TEXT("Kindled.Seven.Report"),
+		TEXT("Log each of the seven named soldiers — archetype, look, rung, health, standing order\n")
+		TEXT("and run kills — plus the garrison's standing count. The headless twin of the HUD\n")
+		TEXT("block, since on-screen debug text cannot be captured by any path in this project."),
+		FConsoleCommandWithWorldDelegate::CreateStatic(
+			[](UWorld* World)
+			{
+				if (const USwarmSubsystem* Swarm = World ? World->GetSubsystem<USwarmSubsystem>() : nullptr)
+				{
+					LogTheSeven(*Swarm);
+				}
+			}));
 
 	/**
 	 * True when launched with -SwarmBench, i.e. ASwarmRenderActor's benchmark owns
@@ -248,8 +342,10 @@ void ASpike1GameMode::BeginPlay()
 void ASpike1GameMode::RestartRun()
 {
 	SwarmSpawn::ClearAll(GetWorld());
+	ASpikeBossActor::ClearBoss(GetWorld());
 
-	if (USwarmSubsystem* Swarm = GetWorld()->GetSubsystem<USwarmSubsystem>())
+	USwarmSubsystem* Swarm = GetWorld()->GetSubsystem<USwarmSubsystem>();
+	if (Swarm)
 	{
 		Swarm->ResetRunState();
 
@@ -266,11 +362,43 @@ void ASpike1GameMode::RestartRun()
 	RetinueSlotCursor = 0;
 	ResetStallTracking();
 
-	SwarmSpawn::SpawnRetinue(GetWorld(), StartingRetinue, RetinueSlotCursor);
+	if (Swarm)
+	{
+		// --- the seven, first (castle-layout.md D1) -----------------------------------
+		// Spawned BEFORE the garrison on purpose. The formation repack ranks soldiers by
+		// (unit, look, slot) within a type, and the seven hold handles 0-6 against the
+		// garrison's 7, so they end up in the innermost formation slots — the player's own
+		// people stand with them and the war stands in front. Nothing enforces that; it
+		// falls out of the ordering, which is why the ordering is worth keeping.
+		//
+		// The rung is assigned BEFORE the body exists, because spawn bakes MaxHP from
+		// whatever rung the handle carries (SwarmCommands.cpp) — assign after and the
+		// soldier wears the look but keeps the old stat block.
+		for (int32 i = 0; i < SevenRoster::Num; ++i)
+		{
+			const SevenRoster::FSoldier& S = SevenRoster::Get(i);
+			Swarm->SetSquadRung(i, S.Variant, S.Tier);
+			SwarmSpawn::SpawnNamed(GetWorld(), i, S.Type, S.HPScale);
+		}
+
+		// --- the war (castle-layout.md §9 step 4) --------------------------------------
+		SwarmSpawn::SpawnGarrison(GetWorld(), StartingRetinue);
+
+		// An ANCHORED HOLD at a fixed world point in front of the bearer, on the bearing the
+		// tide arrives from — deliberately not an orbit of the hero. This one line is what
+		// turns 128 bodies from "the player's army" into "a front that is already there when
+		// you arrive": the anchor is captured now and never moves again, so the line stays
+		// where it was put however far the bearer walks. Combined with the garrison's leash
+		// exemption (SwarmProcessors.cpp) and SetStance no longer sweeping handle 7, nothing
+		// the player does can order, drag or recall the war.
+		const FVector Line = SwarmSpawn::TideBearingPoint(GetWorld(), CVarWarStandoff.GetValueOnGameThread());
+		Swarm->SetUnitStance(USwarmSubsystem::GarrisonUnit, ESwarmStance::Hold, Line);
+	}
 	RetinueSlotCursor += StartingRetinue;
 
 	EnterPhase(ERunPhase::Deploying);
-	UE_LOG(LogTemp, Display, TEXT("Run: restarted (%d retinue, %d waves)"), StartingRetinue, WaveBroodCounts.Num());
+	UE_LOG(LogTemp, Display, TEXT("Run: restarted — %d named soldiers + %d garrison, %d waves"),
+		SevenRoster::Num, StartingRetinue, WaveBroodCounts.Num());
 }
 
 void ASpike1GameMode::EnterPhase(ERunPhase NewPhase)
@@ -292,6 +420,18 @@ void ASpike1GameMode::BeginWave()
 	}
 
 	SwarmSpawn::SpawnBrood(GetWorld(), Count);
+
+	// The boss walks in with its own wave (castle-layout.md §9 step 4: you arrive at a fight
+	// already in progress with a thing in the middle of it that is killing the line). The
+	// wave does not clear while it stands, so it is the wave's win condition rather than an
+	// ornament on top of one.
+	const int32 AutoWave = CVarBossAutoWave.GetValueOnGameThread();
+	if (AutoWave > 0 && WaveIndex + 1 == AutoWave)
+	{
+		ASpikeBossActor::SpawnBoss(GetWorld(),
+			ASpikeBossActor::ParseMarks(CVarBossAutoMarks.GetValueOnGameThread()));
+	}
+
 	EnterPhase(ERunPhase::WaveActive);
 	UE_LOG(LogTemp, Display, TEXT("Run: wave %d/%d — %d brood (wave kill board zeroed)"),
 		WaveIndex + 1, WaveBroodCounts.Num(), Count);
@@ -316,6 +456,27 @@ void ASpike1GameMode::Tick(float DeltaSeconds)
 	}
 
 	PhaseTimer += DeltaSeconds;
+
+	// Periodic readout for scripted / standalone runs — see Kindled.Seven.LogInterval.
+	const float SevenLogInterval = CVarSevenLogInterval.GetValueOnGameThread();
+	if (SevenLogInterval > 0.f)
+	{
+		GSevenLogCountdown -= DeltaSeconds;
+		if (GSevenLogCountdown <= 0.f)
+		{
+			GSevenLogCountdown = SevenLogInterval;
+			LogTheSeven(*Swarm);
+			if (Swarm->IsBossAlive())
+			{
+				const USwarmSubsystem::FBossState& B = Swarm->GetBoss();
+				// PEAK since the last line, not this frame's count — see ConsumeBossAttackersPeak.
+				UE_LOG(LogTemp, Display, TEXT("Boss: %s | %.0f / %.0f HP | peak %d striking it (cap %d) | at (%.0f, %.0f)"),
+					*ASpikeBossActor::MarksToString(B.Marks), B.HP, B.MaxHP,
+					Swarm->ConsumeBossAttackersPeak(), SwarmCombatTuning::BossSurroundCap(),
+					B.Location.X, B.Location.Y);
+			}
+		}
+	}
 
 	// Hero death ends the run from any phase.
 	if (!IsRunOver() && !Swarm->IsHeroAlive())
@@ -383,10 +544,15 @@ void ASpike1GameMode::Tick(float DeltaSeconds)
 				WaveIndex + 1, GStallUnchangedSeconds, CurrentBrood, Destroyed, Destroyed == 1 ? TEXT("y") : TEXT("ies"));
 		}
 
-		if (CurrentBrood == 0 || bTimedOut)
+		// The boss holds the wave open. An empty field with a marked boss still standing is
+		// exactly the situation the slice is about — the line has done its job and the thing
+		// it cannot answer is still there — so clearing on brood count alone would end the
+		// wave at the moment the fight actually starts.
+		if ((CurrentBrood == 0 && !Swarm->IsBossAlive()) || bTimedOut)
 		{
 			// Before WaveIndex moves and before BeginWave zeroes the wave side.
 			LogWaveKills(*Swarm, WaveIndex);
+			LogTheSeven(*Swarm);
 
 			ResetStallTracking();
 			SwarmSpawn::CompactTracked(GetWorld());
@@ -399,18 +565,28 @@ void ASpike1GameMode::Tick(float DeltaSeconds)
 			}
 			else
 			{
-				// Refill to the cap. Re-seat the slot cursor at the survivor
-				// count so the formation re-packs from the inside out instead
-				// of marching ever-outward as the cursor accumulates.
-				const int32 Survivors = Swarm->GetAliveRetinue();
+				// Refill the GARRISON only, and count only the garrison's own survivors —
+				// GetAliveRetinue() now includes the seven, so refilling against it would
+				// hand the war a spare body every time one of the player's soldiers died.
+				//
+				// THE SEVEN ARE NOT REPLACED. Not a ruling on Q15 (can your seven be downed
+				// and revived): nothing revives them because no revive mechanic exists, which
+				// is the absence of an answer rather than one. A named soldier lost mid-run
+				// stays lost until R restarts the run.
+				const int32 Survivors = Swarm->GetSquadStanding(USwarmSubsystem::GarrisonUnit);
 				const int32 Reinforcements = FMath::Max(0, RetinueCap - Survivors);
-				RetinueSlotCursor = Survivors;
-				SwarmSpawn::SpawnRetinue(GetWorld(), Reinforcements, RetinueSlotCursor);
-				RetinueSlotCursor += Reinforcements;
+				SwarmSpawn::SpawnGarrison(GetWorld(), Reinforcements);
+				RetinueSlotCursor = Survivors + Reinforcements;
+
+				int32 SevenStanding = 0;
+				for (int32 i = 0; i < SevenRoster::Num; ++i)
+				{
+					SevenStanding += Swarm->GetSquadStanding(i) > 0 ? 1 : 0;
+				}
 
 				EnterPhase(ERunPhase::Breather);
-				UE_LOG(LogTemp, Display, TEXT("Run: wave cleared — %d survivors, +%d reinforcements"),
-					Survivors, Reinforcements);
+				UE_LOG(LogTemp, Display, TEXT("Run: wave cleared — garrison %d survivors, +%d reinforcements; %d/%d of the seven standing"),
+					Survivors, Reinforcements, SevenStanding, SevenRoster::Num);
 			}
 		}
 		break;

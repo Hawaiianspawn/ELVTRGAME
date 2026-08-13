@@ -46,6 +46,20 @@ public:
 	static constexpr int32 MaxSquads = 8;        // hard cap; the shared command-handle budget
 	static constexpr int32 SquadTargetSize = 20; // legacy per-unit formation-slot reference size
 
+	// --- the seven, and the war (docs/design/slice-a7.md, castle-layout.md D1) ----------
+	// The eight command handles split: 0-6 are the SEVEN named soldiers, one body each, and
+	// handle 7 is the whole autonomous garrison. That split is a PROTOTYPE EXPEDIENT, not a
+	// verdict on Q25 (Mass entities vs promoted Actors) — it is simply the cheapest thing
+	// that already exists, since every per-unit stance/rung/credit/centroid facility below
+	// works unchanged whether a handle holds one body or a hundred.
+	//
+	// The garrison sitting in the LAST handle rather than the first is what lets the seven
+	// keep the low, stable indices a HUD and a console command are addressed by, and what
+	// makes "is this handle the player's?" a single < comparison everywhere.
+	static constexpr int32 NamedSoldiers = 7;
+	static constexpr int32 GarrisonUnit = MaxSquads - 1;
+	static constexpr bool IsNamedUnit(int32 UnitIndex) { return UnitIndex >= 0 && UnitIndex < NamedSoldiers; }
+
 	/**
 	 * Per-type legibility ceiling (§4.1's `squad_size_legibility_ceiling`, docs/data/
 	 * squads.json). A type's derived unit COUNT is ceil(Pool(type) / this), recomputed at
@@ -212,8 +226,12 @@ public:
 	{
 		Stance = InStance;
 		StanceAnchor = WorldPoint;
-		// "All" writes every slot, both types — unchanged from today's only behavior (§3).
-		for (int32 i = 0; i < MaxSquads; ++i)
+		// "All" writes every PLAYER-COMMANDED slot. It used to write every slot, both types;
+		// since the pivot (D1) handle 7 holds the autonomous garrison and the whole point of
+		// it is that the player never orders it — a broadcast order that swept the war along
+		// with the seven would make the line follow the bearer around, which is the exact
+		// opposite of "a front that is already there when you arrive".
+		for (int32 i = 0; i < NamedSoldiers; ++i)
 		{
 			UnitStance[i] = InStance;
 			UnitStanceAnchor[i] = WorldPoint;
@@ -243,6 +261,77 @@ public:
 	FVector GetUnitStanceAnchor(int32 UnitIndex) const
 	{
 		return (UnitIndex >= 0 && UnitIndex < MaxSquads) ? UnitStanceAnchor[UnitIndex] : StanceAnchor;
+	}
+
+	// --- the marked boss (docs/design/entity-tiers.md §5) -----------------
+	/**
+	 * The boss's shared state, published by ASpikeBossActor's tick and read by the sim.
+	 *
+	 * This is the HERO BRIDGE, mirrored: entity-tiers.md §5 says in as many words to reuse
+	 * `HeroMeleeRangeSq` / `FindOwnGridEntry` / `SwarmCombatProcessors.cpp` rather than invent
+	 * a second Actor-vs-Mass path, and that is exactly what this is — an Actor that is not a
+	 * Mass entity, keeping its authoritative state on the subsystem so both sides of the
+	 * exchange can reach it without anyone reaching across entities.
+	 *
+	 * ONE difference from the hero, and it buys a great deal: the boss is also PUBLISHED INTO
+	 * THE GRID each frame as an ordinary enemy entry (USwarmGridBuildProcessor). That single
+	 * line hands it, free and with no new code, everything the grid already does — the retinue
+	 * find it as their nearest enemy and close on it, their swing clocks advance against it,
+	 * they pull its blows victim-side through the same BlowsClaimed budget that caps every
+	 * other striker, they take knockback and flash from it, and they turn to face it. The
+	 * hero's own bridge could never have that, because the hero has no enemies in the grid to
+	 * be found by. Damage IN to the boss is the only half that still needs a hand-written
+	 * claim, and that half is a near-verbatim copy of the brood-vs-hero branch.
+	 */
+	struct FBossState
+	{
+		FVector Location = FVector::ZeroVector;
+		float HP = 0.f;
+		float MaxHP = 0.f;
+		uint8 Marks = 0;			// EBossMark bitmask
+		bool bAlive = false;
+		bool bStriking = false;		// its blow lands this frame — same one-frame flag the hero publishes
+		float BlowDamage = 0.f;		// DPS * SwingInterval, already scaled by whatever marks apply
+		float ReachSq = 0.f;		// MeleeRange squared; anyone inside it is a candidate for the blow
+		int32 TargetsPerHit = 6;	// how many victims one blow pays out to, via FGridEntry::BlowsClaimed
+	};
+
+	const FBossState& GetBoss() const { return Boss; }
+	FBossState& GetMutableBoss() { return Boss; }
+	bool IsBossAlive() const { return Boss.bAlive; }
+
+	/** Written by the combat pass, consumed + cleared by the boss actor each tick — the exact
+	 *  shape AddPendingHeroDamage/ConsumePendingHeroDamage already has, other side of the board. */
+	void AddPendingBossDamage(float Damage) { PendingBossDamage += Damage; }
+	float ConsumePendingBossDamage()
+	{
+		const float Damage = PendingBossDamage;
+		PendingBossDamage = 0.f;
+		return Damage;
+	}
+
+	/**
+	 * How many distinct soldiers landed a blow on the boss — the readout that says whether
+	 * entity-tiers.md §4's surround cap is actually biting rather than being assumed.
+	 *
+	 * A PEAK, not the instantaneous count, and that distinction is the whole value of the
+	 * number: blows are spread over each unit's own ~0.9s swing cadence, so on any given
+	 * frame almost nobody is mid-strike and the per-frame count reads 0 while forty soldiers
+	 * are visibly hacking at the thing. Reporting that would say the cap never binds for the
+	 * wrong reason. The peak is consumed (and reset) by whoever reports it, so each report
+	 * covers the window since the last one.
+	 */
+	void SetBossAttackers(int32 Count)
+	{
+		BossAttackers = Count;
+		BossAttackersPeak = FMath::Max(BossAttackersPeak, Count);
+	}
+	int32 GetBossAttackers() const { return BossAttackers; }
+	int32 ConsumeBossAttackersPeak()
+	{
+		const int32 Peak = BossAttackersPeak;
+		BossAttackersPeak = 0;
+		return Peak;
 	}
 
 	// --- spatial grid (rebuilt by USwarmGridBuildProcessor) ---------------
@@ -421,6 +510,8 @@ public:
 		LeashBroken = 0;
 		for (int32& S : SquadStanding) { S = 0; }
 		for (FVector& C : SquadCentroidSum) { C = FVector::ZeroVector; }
+		for (float& H : SquadHP) { H = 0.f; }
+		for (float& H : SquadMaxHP) { H = 0.f; }
 		for (int32& P : AlivePoolByType) { P = 0; }
 	}
 
@@ -447,7 +538,7 @@ public:
 	 * unit AND type instead of approximating off the whole visible retinue.
 	 */
 	void PushRenderEntry(const FVector& Location, uint8 AnimBits, uint8 SquadId = 0, int32 SizeBucket = 0,
-		int32 FacingIndex = 0, int32 VariantIndex = 0)
+		int32 FacingIndex = 0, int32 VariantIndex = 0, float HP = 0.f, float MaxHP = 0.f)
 	{
 		RenderPositions.Add(Location);
 		RenderAnimBits.Add(SwarmRenderPack::Pack(AnimBits, SizeBucket, FacingIndex, SquadId, VariantIndex));
@@ -458,6 +549,12 @@ public:
 			const int32 UnitIndex = FMath::Min<int32>(SwarmSquad::UnitIndex(SquadId), MaxSquads - 1);
 			SquadStanding[UnitIndex]++;
 			SquadCentroidSum[UnitIndex] += Location;
+			// Summed, not averaged, on the SAME pass that already receives the body — the
+			// third O(N) walk SquadCentroidSum refused to write. For the seven a sum IS the
+			// number (one body per handle); for the garrison it is the unit's pooled HP,
+			// which is the honest reading of "how much line is left" anyway.
+			SquadHP[UnitIndex] += HP;
+			SquadMaxHP[UnitIndex] += MaxHP;
 			AlivePoolByType[(int32)SwarmSquad::UnitType(SquadId)]++;
 		}
 		else
@@ -486,6 +583,29 @@ public:
 	{
 		if (Index < 0 || Index >= MaxSquads || SquadStanding[Index] <= 0) { return FVector::ZeroVector; }
 		return SquadCentroidSum[Index] / (float)SquadStanding[Index];
+	}
+
+	/** Live HP / MaxHP pooled over unit Index's standing bodies. Valid after integrate, same
+	 *  lifetime as GetSquadStanding. For one of the seven this is that soldier's own bar. */
+	float GetSquadHP(int32 Index) const { return (Index >= 0 && Index < MaxSquads) ? SquadHP[Index] : 0.f; }
+	float GetSquadMaxHP(int32 Index) const { return (Index >= 0 && Index < MaxSquads) ? SquadMaxHP[Index] : 0.f; }
+
+	/**
+	 * Open a handle directly, bypassing AssignRecruit's fill-lowest-first policy.
+	 *
+	 * AssignRecruit exists to grow units out of an anonymous recruit stream; the seven are
+	 * the opposite — an authored roster where WHICH handle a soldier lands on is the whole
+	 * identity — and the garrison is the other opposite, a hundred bodies that must all
+	 * share one handle. Neither is a policy change to AssignRecruit; both simply do not go
+	 * through it. Sticky in the same way: type is set once and never rewritten.
+	 */
+	void ClaimSquad(int32 UnitIndex, EUnitType Type)
+	{
+		if (UnitIndex >= 0 && UnitIndex < MaxSquads && !SquadClaimed[UnitIndex])
+		{
+			SquadClaimed[UnitIndex] = true;
+			SquadType[UnitIndex] = Type;
+		}
 	}
 
 	/** Which type unit Index (0..MaxSquads-1) is — valid only once AssignRecruit has claimed
@@ -710,6 +830,10 @@ public:
 		}
 		++AdaptationRevision;
 		for (int32& P : PackedPoolByType) { P = -1; }
+		Boss = FBossState{};
+		PendingBossDamage = 0.f;
+		BossAttackers = 0;
+		BossAttackersPeak = 0;
 		HeroContacts = 0;
 		HeroContactsThisFrame = 0;
 		TotalDamageToRetinue = 0.0;
@@ -743,7 +867,14 @@ private:
 	FBox RetinueBounds = FBox(ForceInit); // friendly-only AABB, refilled each frame
 	int32 SquadStanding[MaxSquads] = {}; // live retinue count per unit, refilled each frame
 	FVector SquadCentroidSum[MaxSquads] = {}; // sum of member locations per unit, refilled each frame
+	float SquadHP[MaxSquads] = {};       // pooled live HP per unit, refilled each frame
+	float SquadMaxHP[MaxSquads] = {};    // pooled MaxHP per unit, refilled each frame
 	TArray<FMassEntityHandle> AllEntities;
+
+	FBossState Boss;
+	float PendingBossDamage = 0.f;
+	int32 BossAttackers = 0;
+	int32 BossAttackersPeak = 0;
 
 	// --- typed-unit command layer (docs/design/squad-group-system.md §1) --------------
 	bool SquadClaimed[MaxSquads] = {};                         // has AssignRecruit ever opened this unit id

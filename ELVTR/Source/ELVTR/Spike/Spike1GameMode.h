@@ -46,6 +46,16 @@ public:
 	UPROPERTY(EditDefaultsOnly, Category = "Run")
 	TArray<int32> WaveBroodCounts = { 250, 450, 700 };
 
+	/**
+	 * THE GARRISON, not the player's army — castle-layout.md D1, 2026-08-13. The same 128
+	 * bodies that used to be the retinue under command are now the autonomous war: they take
+	 * one shared command handle (USwarmSubsystem::GarrisonUnit), hold an anchored line the
+	 * player never orders, and are exempt from the leash. The player's army is the seven,
+	 * spawned separately below.
+	 *
+	 * Name kept rather than churned so every existing tuning note, log line and measurement
+	 * that says "StartingRetinue 128" still lines up with what the number does.
+	 */
 	UPROPERTY(EditDefaultsOnly, Category = "Run")
 	int32 StartingRetinue = 128;
 
