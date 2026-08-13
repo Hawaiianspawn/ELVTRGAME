@@ -1,7 +1,7 @@
 # Open decisions — the register
 
-**Opened:** 2026-08-13 · **Status:** 25 open, 3 closed
-**Last closed:** Q13, Q1, Q7 — all of Tier 0 — 2026-08-13
+**Opened:** 2026-08-13 · **Status:** 25 open, 4 closed
+**Last closed:** Q29 (the four classes become the seven's archetypes) — 2026-08-13
 **Sources consolidated here:** `docs/design/castle-layout.md` §10 (Q1–Q7),
 `docs/design/intro-and-zones.md` §E (Q8–Q12), Q13–Q22 raised 2026-08-13, and
 **Q24–Q28 raised in `docs/PREFLIGHT.md` §3** — the pre-implementation pass.
@@ -35,6 +35,7 @@ call, not by a later doc quietly assuming an answer.
 | ~~Q13~~ | What is the player now that the army is seven? | 0 | — | Q2, Q14, Q15, Q16, Q21, Q23 | **CLOSED — C** |
 | ~~Q1~~ | What a siege is, and what persists between them | 0 | — | Q3, Q6, Q10, Q19 | **CLOSED — A** |
 | ~~Q7~~ | What the leash / light premise means now | 0 | — | Q11, Q15 | **CLOSED — A** |
+| ~~Q29~~ | Fate of the four classes under the pivot | 1 | — | Q2, Q21, Q23 | **CLOSED — A** |
 | **Q23** | The squad-channelled ability kit — what is in it? | **1** | — | Q2, Q14 | open *(opened by Q13)* |
 | **Q14** | Is 7 a cap or a floor? | **1** | *unblocked* | Q2, Q21 | open |
 | **Q15** | Can your seven be downed and revived? | **1** | *unblocked* | — | open |
@@ -221,6 +222,53 @@ while you are two rings away, that cannot be literally true as written.
 
 # TIER 1 — blocks building the intro
 
+## Q29 — Fate of the four classes under the pivot · **CLOSED**
+
+**Blocks:** Q2, Q21, Q23 · **Blocked by:** — · **Verdict: A** · **Date: 2026-08-13**
+
+`CLASSES.md`'s four classes are defined by the retinue each commands. With the
+commanded force at seven, the class system had no stated home — and the four kits,
+tier ladders and identities are among the best-developed content in the project.
+The Pathfinder's pack ("low count, elite, named, individually mourned, cap ≈6–12,
+each member takes upgrades like a mini-hero") was already the pivot's shape,
+written 2026-07-11.
+
+- [x] **A · The four survive as squad archetypes — mixed squad, no class select.**
+      The seven are drawn across all four identities — line soldier (Liberated),
+      guardian (Awakened), hunter (Pack), light (Guided) — and **evolve mid-fight
+      up the tiered adaptation tree** (`docs/design/adaptation.md`). The player is
+      one identity: the flame-bearer (Q13 = C).
+- [ ] **B · Class select survives; the seven are one class's units.** Four distinct
+      squads at 4× roster/kit cost; a healer-only squad as your entire output is a
+      hard problem.
+- [ ] **C · Class = the player's channel kit; squad mixed regardless.** Rebuilds the
+      soldier-interchangeability failure Q13 = C was chosen to avoid.
+
+> **TAKEN — A, 2026-08-13.** Owner call, given as "keep the 4 classes but they can
+> evolve over the fight into our tiered tree system," then confirmed against A/B/C.
+
+### What A commits the project to
+
+1. **The adaptation tree is claimed by the pivot.** Rungs climb *during* a siege
+   ("over the fight") and persist per D3. **The climb mechanism is deliberately
+   unspecified** — kills, XP, or something else is not decided; do not infer. It is
+   adjacent to Q3 (the kill economy needs a sink; this may be one).
+2. **`CLASSES.md` becomes a sourcebook, not a menu.** The four hero kits are the
+   source material for Q23 (Mark Quarry = focus fire, Shield Wall / Ward Circle =
+   shield, Kindle = raise, Banner Slam / The Muster = rally). Vanguard's
+   Freed → Militia → Veteran → Bannerman ladder is the model archetype tree.
+3. **Q2 is narrowed, not closed.** The archetype palette is fixed at four; the
+   split across seven bodies and the selection mechanism (fixed / loadout /
+   survivors) stay open with Q14.
+4. **Q21 is narrowed.** Each archetype already has a silhouette language — lines /
+   blocks / darts / glow — so the seven inherit an art read for free.
+5. **Class select is deferred, not dead** — same marker style as `[MP — deferred]`.
+6. `adaptation.md`'s **captain rung (fields its own retinue ≤ 8) still conflicts
+   with D1** and needs its re-read regardless (already flagged, `castle-layout.md`
+   §11).
+
+---
+
 ## Q23 — The squad-channelled ability kit: what is in it?
 
 **Blocks:** Q2, Q14 · **Blocked by:** — · **Verdict:** ________ · **Date:** ________
@@ -244,6 +292,12 @@ of the answer matters more than the list:
       amplifiers and redirects on their verbs.
       *Cost:* most design surface, most likely to be legible only to the designer.
 
+> **Q29 = A names the source material (2026-08-13):** the four class hero kits in
+> `CLASSES.md` — Mark Quarry, Shield Wall / Ward Circle, Kindle, Banner Slam / The
+> Muster — already cover Q13 = C's sketch list (focus fire, shield, raise, rally).
+> The kit question is now *which of these verbs, on what structure*, not invention
+> from nothing.
+>
 > **No recommendation yet — this needs a prototype, not an argument.** What is worth saying:
 > **B is the option most consistent with the rest of the pivot.** The whole design already
 > says that reading a boss's marks and picking the answer is the tactical layer
@@ -268,6 +322,10 @@ D3 made the squad a ratchet but did not say on which axis. Size or depth.
 - [ ] **C · Seven in the field, larger roster behind.** You pick seven per sortie from a
       growing company. Depth *and* breadth, with a fixed field size.
 
+> **Narrowed by Q29 = A (2026-08-13):** whatever the answer, the depth axis is
+> settled — the seven evolve mid-fight up the tiered adaptation tree. This question
+> is now only about *headcount*: cap, growth, or bench.
+>
 > **Recommendation: C — sharpened by Q13 = C, 2026-08-13.** Now that the player's entire
 > output routes through the squad, **who you bring is the decision**, and a fixed seven
 > means you bring the same answer to every boss. Loadout selection becomes the counterplay
@@ -450,6 +508,10 @@ zone graph thrashes.
 > **Q13 = C raises the stakes here.** If the player's whole output is the squad, the seven
 > cannot be interchangeable — each has to be a distinct verb or the choice of who to spend
 > is hollow. **If Q14 = C, this is C by construction.** Still gated on Q23.
+>
+> **Narrowed by Q29 = A (2026-08-13):** the palette is fixed — the seven are drawn
+> mixed across the four class archetypes (line / guardian / hunter / light). What
+> remains open here is the *split* across seven bodies and which of A/B/C picks it.
 
 ---
 
@@ -624,3 +686,8 @@ Marks (`castle-layout.md` §6.1) currently attach to Boss only.
   place that has fixed light. Written to `castle-layout.md` §10 and §12. The leash survives
   unchanged in kind at a new scale, and **a fallen layer going dark becomes the in-fiction
   reason the collapse is one-way.**
+- **2026-08-13 · Q29 = A** — the four classes survive as squad archetypes: mixed seven,
+  no class select, mid-fight evolution up the tiered adaptation tree. Written to
+  `CLASSES.md` (banner) and `GDD.md` §5 (marker). Narrows Q2 (palette fixed, split open)
+  and Q14 (depth axis settled), sources Q23 from the four hero kits. The climb mechanism
+  is deliberately unspecified — do not infer.

@@ -304,6 +304,11 @@ Design rules:
 
 ## 5. Classes
 
+> **Superseded 2026-08-13 (castle pivot; `docs/OPEN-DECISIONS.md` Q29 = A):** there
+> is no class select. The four identities survive as the archetypes of the
+> seven-soldier squad and evolve mid-fight up the tiered adaptation tree — see the
+> `CLASSES.md` banner. Kept below as the record.
+
 Each class defines: the hero's kit, the **type of retinue** they field, and how the
 retinue grows. Classes should feel like different *games*, not different stat sheets.
 

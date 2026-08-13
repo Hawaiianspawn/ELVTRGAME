@@ -2,6 +2,28 @@
 
 **Version:** 0.4 (4-class roster, role-only identities) · Companion to `GDD.md` §5 · Last updated: 2026-07-11
 
+> ### Pivot supersession — 2026-08-13 (`docs/OPEN-DECISIONS.md` Q29 = A)
+>
+> **The class *system* this document specs — a player-selected class commanding its
+> own retinue — is superseded.** The commanded force is seven (castle pivot,
+> `docs/design/castle-layout.md` D1), the player is the flame-bearer whose entire
+> output routes through them (Q13 = C), and there is **no class select**
+> `[CLASS SELECT — deferred]`.
+>
+> **The four identities survive as the squad's archetypes.** The seven are drawn
+> mixed from Vanguard-line (Liberated) / Relickeeper-guardian (Awakened) /
+> Pathfinder-hunter (Pack) / Lampbearer-light (Guided), and **evolve mid-fight up
+> the tiered adaptation tree** (`docs/design/adaptation.md`; climb mechanism
+> undecided — do not infer). The hero kits below are the source material for the
+> player's channel kit (Q23); the unit ladders (Freed → Militia → Veteran →
+> Bannerman) are the model for the archetype trees. The hero identity blocks
+> (the quarryman's son, the Vault-Tender, the war orphan, the lamp-carrier) are
+> candidates for squad-member fiction — a narrative pass, not done here.
+>
+> Nothing below is rewritten; per project convention the superseded text stays and
+> this banner is the reason. Co-op, procgen, world-flag and dungeon framing below
+> were already stale (see `GDD.md`'s standing-decisions banner).
+
 **Tone decision:** *We are the good guys.* Heroes descend into the dungeon to liberate
 it, not to plunder it. This drives the unifying retinue theme:
 
