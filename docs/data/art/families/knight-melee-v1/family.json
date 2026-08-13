@@ -1,0 +1,52 @@
+{
+  "family": "knight-melee-v1",
+  "note": "task-082. Base confirmed live via get_character 2026-07-29: 88x88px, group 2cc3ab61-4230-4786-98fa-b94da9e99218 (29 sibling states already exist off this same base -- knight-mass/primitive/topology/types were all built from it, per docs/backlog/task-082's Findings). The base carries a shield + polearm as its established silhouette (this is T_Soldier_Knight's own state 01) -- exactly the 'large dominant prop' case Findings 4 warns about, so v1_narrowguard and v4_overhead explicitly drop or reposition it rather than let it anchor mass in the states that need to go narrow. Full colour throughout per docs/art/aesthetic-direction.md's 2026-07-28 AMENDMENT -- no quantizing, no fewer-colours request, glow banned explicitly in every prompt.",
+  "base": {
+    "character_id": "1c935515-0ea3-459b-8c63-e7f8cf368272",
+    "canvas_size": 88,
+    "note": "Confirmed by mcp__pixellab__get_character before queueing anything (task-082 order of operations step 1). create_character_state has no 'size' param -- it inherits the source's canvas, so the size-vs-canvas trap (request 92, get back 132) does not apply to this family; only create_character has that trap."
+  },
+  "axis": {
+    "name": "mixed",
+    "description": "Three variants move width via the skeletal-base axis SKILL.md proves works -- narrow (arms tucked, shield dropped) versus wide-by-extension (a rigid prop, lance or shield+sword together, held away from the body) -- never tall<->squat. Two variants move topology instead: an asymmetric shield-out brace (front/back silhouette, gap open to the edge) and a two-handed overhead sword whose raised arms fully enclose a hole. One variant simplifies the outer silhouette only (shield slung small on the back, cloak trimmed) as the interior tiebreaker, spent last per SKILL.md's axis order."
+  },
+  "constant": "Base knight character (1c935515-0ea3-459b-8c63-e7f8cf368272), inherited palette via use_color_palette_from_reference (no new hues, no fewer colours), 88px canvas, full colour per the 2026-07-28 AMENDMENT, glow explicitly banned in every prompt, every variant nameable as a soldier from its outline alone.",
+  "variants": [
+    {
+      "slug": "v1_narrowguard",
+      "silhouette_target": 0.58,
+      "edit_description": "Standing narrow and tall: both arms tucked in close against the torso, the shield lowered and held flush against the body rather than out to the side, sword sheathed at the hip. No weapon or shield extended outward. Roughly two times taller than wide. Keep the head and legs clearly visible. Match the existing color palette exactly, no new colors, no glowing parts.",
+      "source": "generated"
+    },
+    {
+      "slug": "v2_lanceout",
+      "silhouette_target": 1.4,
+      "edit_description": "A long lance held level and extended straight out to one side at arm's length, couched under the arm, the shield lowered close to the body so only the lance adds width. The lance should read as a rigid straight line reaching well past the body's edge, roughly one and a half times wider than tall overall. Keep the head and legs clearly visible. Match the existing color palette exactly, no new colors, no glowing parts.",
+      "source": "generated"
+    },
+    {
+      "slug": "v3_shieldbreak",
+      "silhouette_target": "asymmetric front/back silhouette: shield thrust out to one side with the gap open to the sprite's edge on top and bottom (not enclosed), sword arm lowered close to the body on the opposite side -- left and right profiles must read as clearly different shapes",
+      "edit_description": "An asymmetric bracing stance: the shield thrust straight out to one side at arm's length, its edge clearly separated from the torso by open air on both the top and bottom so the gap is open to the sprite's edge, not enclosed. The sword arm stays lowered and close to the body on the opposite side, so the left and right profile are clearly different shapes, not mirrored. Match the existing color palette exactly, no new colors, no glowing parts.",
+      "source": "generated"
+    },
+    {
+      "slug": "v4_overhead",
+      "silhouette_target": "two-handed sword raised overhead with elbows out, arms and blade fully enclosing a real hole above the head -- must survive downsampling, not just a shallow notch",
+      "edit_description": "A two-handed sword gripped with both hands raised straight overhead, elbows out to the sides, so the arms and the blade fully enclose a gap above the head and below the raised hands -- a true enclosed hole, not an open notch. Shield lowered and out of the way, not extended. Keep the head and legs clearly visible below the raised arms. Match the existing color palette exactly, no new colors, no glowing parts.",
+      "source": "generated"
+    },
+    {
+      "slug": "v5_widecross",
+      "silhouette_target": 1.6,
+      "edit_description": "A wide guard stance with both arms spread away from the torso: the shield held out to one side at arm's length and the sword held out to the other side at arm's length, at the same time, both clearly separated from the body by open air reaching the sprite's edge on each side. Overall silhouette roughly one and a half to one and three-quarter times wider than tall. Keep the head and legs clearly visible between the two spread arms. Match the existing color palette exactly, no new colors, no glowing parts.",
+      "source": "generated"
+    },
+    {
+      "slug": "v6_simplecolumn",
+      "silhouette_target": 0.9,
+      "edit_description": "Simplify the outline only, not the interior detail: the shield slung small and flat against the back rather than held out, the sword sheathed at the hip, the cloak trimmed close to the body, standing straight with arms close to the sides. The goal is the cleanest possible outer silhouette -- a simple upright column -- while the head, shoulders, and legs stay clearly visible and nameable as a soldier. Do not reduce the number of colors or strip interior surface detail, only the outer silhouette. Match the existing color palette exactly, no new colors, no glowing parts.",
+      "source": "generated"
+    }
+  ]
+}

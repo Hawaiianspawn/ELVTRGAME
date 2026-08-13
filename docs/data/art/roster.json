@@ -1,0 +1,606 @@
+{
+  "groups": [
+    "heroes",
+    "team",
+    "enemies",
+    "tests",
+    "unsorted"
+  ],
+  "units": {
+    "pathfinder-line/ArtilleryCannons_on": {
+      "group": "team",
+      "title": "ArtilleryCannons_on",
+      "expectation": "archer-gunner militia rung (variant_index 20) -- docs/art/adaptation-roster.md"
+    },
+    "pathfinder-line/Bump_helmet_ontop_of": {
+      "group": "team",
+      "title": "Bump_helmet_ontop_of",
+      "expectation": "archer-gunner bannerman/captain rung (variant_index 21) -- docs/art/adaptation-roster.md",
+      "notes": [
+        {
+          "at": "2026-08-09T04:25:35+00:00",
+          "text": "archer-gunner escalates by footprint/reach (+15%, +9%), not mass -- opaque pixel count actually falls at each rung (-17%, -10%). Real but different grammar from the other 3 ladders."
+        }
+      ]
+    },
+    "pathfinder-line/Can_we_have_one_cove": {
+      "group": "team",
+      "title": "Can_we_have_one_cove",
+      "expectation": "archer-scout militia rung (variant_index 13) -- docs/art/adaptation-roster.md",
+      "notes": [
+        {
+          "at": "2026-08-09T04:25:35+00:00",
+          "text": "archer-scout's whole ladder rests on kit/headgear register, not size -- bbox and opaque both swing <6% across all 3 rungs, weakest quantitative case of the 4 ladders. See docs/art/adaptation-roster.md."
+        }
+      ]
+    },
+    "pathfinder-line/Can_you_make_a_Turre": {
+      "group": "team",
+      "title": "Can_you_make_a_Turre",
+      "expectation": "archer-siege veteran rung (variant_index 22) -- docs/art/adaptation-roster.md"
+    },
+    "pathfinder-line/Convert_to_Mage": {
+      "group": "team",
+      "title": "Convert_to_Mage"
+    },
+    "pathfinder-line/Cyborg_with_Crossbow": {
+      "group": "team",
+      "title": "Cyborg_with_Crossbow"
+    },
+    "pathfinder-line/dwarf_version_which": {
+      "group": "team",
+      "title": "dwarf_version_which",
+      "expectation": "archer-scout veteran rung (variant_index 15) -- docs/art/adaptation-roster.md"
+    },
+    "pathfinder-line/Lets_so_secret_servi": {
+      "group": "team",
+      "title": "Lets_so_secret_servi",
+      "expectation": "archer-siege militia rung (variant_index 23) -- docs/art/adaptation-roster.md"
+    },
+    "pathfinder-line/Merle_Pathfinder": {
+      "group": "team",
+      "title": "Merle_Pathfinder",
+      "expectation": "shared freed rung for all 3 archer branches (variant_index 11) -- docs/art/adaptation-roster.md"
+    },
+    "pathfinder-line/One_with_Hollow_blac": {
+      "group": "team",
+      "title": "One_with_Hollow_blac",
+      "expectation": "archer-scout bannerman/captain rung (variant_index 14) -- docs/art/adaptation-roster.md"
+    },
+    "pathfinder-line/Replace_the_bow_with": {
+      "group": "team",
+      "title": "Replace_the_bow_with",
+      "expectation": "archer-gunner veteran rung (variant_index 18) -- docs/art/adaptation-roster.md"
+    },
+    "shipped/unit-retinue-colour/raw/rotations": {
+      "group": "team",
+      "title": "retinue"
+    },
+    "pathfinder-line/RPG_launcher": {
+      "group": "team",
+      "title": "RPG_launcher",
+      "expectation": "archer-siege bannerman/captain rung (variant_index 19) -- docs/art/adaptation-roster.md",
+      "notes": [
+        {
+          "at": "2026-08-09T04:25:35+00:00",
+          "text": "Captain by POSE, the softest of the three grammars. Swapped up from veteran 2026-08-08 after turretnest was rejected as captain -- furniture does not lead a moving retinue. Costs the branch its monotonic footprint/mass growth at the top rung (~-20% both axes). Best of what is on disk; a generated standing gunnery-sergeant look would beat it."
+        }
+      ]
+    },
+    "brood-ooze/state00_base": {
+      "group": "enemies",
+      "title": "state00_base"
+    },
+    "brood-ooze/state01_sump": {
+      "group": "enemies",
+      "title": "state01_sump"
+    },
+    "brood-ooze/state02_bell": {
+      "group": "enemies",
+      "title": "state02_bell"
+    },
+    "brood-ooze/state03_stalk": {
+      "group": "enemies",
+      "title": "state03_stalk"
+    },
+    "brood-ooze/state04_wedge": {
+      "group": "enemies",
+      "title": "state04_wedge"
+    },
+    "brood-ooze/state05_ridge": {
+      "group": "enemies",
+      "title": "state05_ridge"
+    },
+    "brood-ooze/state06_crown": {
+      "group": "enemies",
+      "title": "state06_crown"
+    },
+    "brood-ooze/state07_twin": {
+      "group": "enemies",
+      "title": "state07_twin"
+    },
+    "brood-ooze/state08_slug": {
+      "group": "enemies",
+      "title": "state08_slug"
+    },
+    "knight-melee-v2/v10_bracedstaff": {
+      "group": "team",
+      "title": "v10_bracedstaff"
+    },
+    "knight-melee-v2/v11_midguard": {
+      "group": "team",
+      "title": "v11_midguard"
+    },
+    "knight-melee-v2/v13_maceraised": {
+      "group": "team",
+      "title": "v13_maceraised"
+    },
+    "knight-melee-v1/v1_narrowguard": {
+      "group": "team",
+      "title": "v1_narrowguard",
+      "expectation": "spearmen-line militia rung (variant_index 1) -- docs/art/adaptation-roster.md",
+      "notes": [
+        {
+          "at": "2026-08-09T04:22:23+00:00",
+          "text": "CLI set/note subcommand wired 2026-08-08; set_field existed but main() never reached it"
+        }
+      ]
+    },
+    "archer-medieval/v2_bowextended": {
+      "group": "team",
+      "title": "v2_bowextended"
+    },
+    "knight-melee-v1/v2_lanceout": {
+      "group": "team",
+      "title": "v2_lanceout"
+    },
+    "knight-melee-v1/v3_shieldbreak": {
+      "group": "team",
+      "title": "v3_shieldbreak",
+      "expectation": "spearmen-line veteran rung (variant_index 3) -- docs/art/adaptation-roster.md"
+    },
+    "knight-melee-v1/v4_overhead": {
+      "group": "team",
+      "title": "v4_overhead"
+    },
+    "knight-melee-v1/v6_simplecolumn": {
+      "group": "team",
+      "title": "v6_simplecolumn"
+    },
+    "knight-melee-v2/v7_barestance": {
+      "group": "team",
+      "title": "v7_barestance"
+    },
+    "knight-melee-v2/v8_heavycloak": {
+      "group": "team",
+      "title": "v8_heavycloak",
+      "expectation": "spearmen-line bannerman/captain rung (variant_index 7) -- docs/art/adaptation-roster.md"
+    },
+    "request/soldier-05": {
+      "group": "team",
+      "title": "Flame-tender (soldier roster v1, the caged bright)"
+    },
+    "request/soldier-02": {
+      "group": "team",
+      "title": "Line infantry (soldier roster v1, rung 2)"
+    },
+    "request/soldier-04": {
+      "group": "team",
+      "title": "Rally caller (soldier roster v1, horn - replaces the standard axis)"
+    },
+    "request/unit-retinue": {
+      "group": "team",
+      "title": "Retinue militia (swarm unit)"
+    },
+    "request/soldier-06": {
+      "group": "team",
+      "title": "Shield-heavy (soldier roster v1, the door)"
+    },
+    "request/soldier-03": {
+      "group": "team",
+      "title": "Veteran (soldier roster v1, rung 3)"
+    },
+    "request/soldier-01": {
+      "group": "team",
+      "title": "Volunteer (soldier roster v1, rung 1)"
+    },
+    "brood-ooze/A_black_ghost_with_sharp": {
+      "group": "unsorted",
+      "title": "A_black_ghost_with_sharp"
+    },
+    "brood-ooze/Baby_face_smiling_li": {
+      "group": "unsorted",
+      "title": "Baby_face_smiling_li"
+    },
+    "archer-proxy/base": {
+      "group": "unsorted",
+      "title": "base"
+    },
+    "pathfinder-line/berserker": {
+      "group": "unsorted",
+      "title": "berserker"
+    },
+    "pathfinder-line/buccaneer": {
+      "group": "unsorted",
+      "title": "buccaneer"
+    },
+    "pathfinder-line/droneleash": {
+      "group": "unsorted",
+      "title": "droneleash"
+    },
+    "pathfinder-line/gunslinger": {
+      "group": "unsorted",
+      "title": "gunslinger"
+    },
+    "pathfinder-line/harpoonreach": {
+      "group": "unsorted",
+      "title": "harpoonreach"
+    },
+    "pathfinder-line/hazmatbulk": {
+      "group": "unsorted",
+      "title": "hazmatbulk"
+    },
+    "pathfinder-line/kneebrace": {
+      "group": "unsorted",
+      "title": "kneebrace"
+    },
+    "brood-ooze/Made_of_tongues": {
+      "group": "unsorted",
+      "title": "Made_of_tongues"
+    },
+    "knight-primitive/p0_base": {
+      "group": "unsorted",
+      "title": "p0_base"
+    },
+    "knight-primitive/p1_square": {
+      "group": "unsorted",
+      "title": "p1_square"
+    },
+    "knight-primitive/p2_triangle": {
+      "group": "unsorted",
+      "title": "p2_triangle"
+    },
+    "knight-primitive/p3_dome": {
+      "group": "unsorted",
+      "title": "p3_dome"
+    },
+    "knight-primitive/p4_column": {
+      "group": "unsorted",
+      "title": "p4_column"
+    },
+    "knight-primitive/p5_invtriangle": {
+      "group": "unsorted",
+      "title": "p5_invtriangle"
+    },
+    "knight-primitive/p6_bar": {
+      "group": "unsorted",
+      "title": "p6_bar"
+    },
+    "brood-ooze/pale_blue_skin_big_e": {
+      "group": "unsorted",
+      "title": "pale_blue_skin_big_e"
+    },
+    "request/protagonist-01": {
+      "group": "heroes",
+      "title": "Protagonist prototype 01 - The Standard"
+    },
+    "request/protagonist-02": {
+      "group": "heroes",
+      "title": "Protagonist prototype 02 - The Ember Core"
+    },
+    "request/protagonist-03": {
+      "group": "heroes",
+      "title": "Protagonist prototype 03 - The Tender"
+    },
+    "brood-ooze-colour/rotations": {
+      "group": "unsorted",
+      "title": "rotations"
+    },
+    "pathfinder-line/shinobi": {
+      "group": "unsorted",
+      "title": "shinobi"
+    },
+    "archer-scifi/state01_marksman": {
+      "group": "unsorted",
+      "title": "state01_marksman"
+    },
+    "archer-proxy/state02_hollowmask": {
+      "group": "unsorted",
+      "title": "state02_hollowmask"
+    },
+    "archer-scifi/state02_voltaic": {
+      "group": "unsorted",
+      "title": "state02_voltaic"
+    },
+    "archer-proxy/state03_crossbow": {
+      "group": "unsorted",
+      "title": "state03_crossbow"
+    },
+    "archer-scifi/state03_harpooner": {
+      "group": "unsorted",
+      "title": "state03_harpooner"
+    },
+    "archer-proxy/state04_blade": {
+      "group": "unsorted",
+      "title": "state04_blade"
+    },
+    "archer-scifi/state04_volley": {
+      "group": "unsorted",
+      "title": "state04_volley"
+    },
+    "archer-scifi/state05_kite": {
+      "group": "unsorted",
+      "title": "state05_kite"
+    },
+    "archer-proxy/state05_mage": {
+      "group": "unsorted",
+      "title": "state05_mage"
+    },
+    "archer-scifi/state06_sharpshooter": {
+      "group": "unsorted",
+      "title": "state06_sharpshooter"
+    },
+    "pathfinder-line/stilthauler": {
+      "group": "unsorted",
+      "title": "stilthauler"
+    },
+    "request/style-soldier-01": {
+      "group": "tests",
+      "title": "Style test 01 - flat shading / low detail"
+    },
+    "request/style-soldier-02": {
+      "group": "tests",
+      "title": "Style test 02 - basic shading / low detail"
+    },
+    "request/style-soldier-03": {
+      "group": "tests",
+      "title": "Style test 03 - medium shading / medium detail"
+    },
+    "request/style-soldier-04": {
+      "group": "tests",
+      "title": "Style test 04 - detailed shading / medium detail"
+    },
+    "request/style-soldier-05": {
+      "group": "tests",
+      "title": "Style test 05 - detailed shading / high detail"
+    },
+    "request/style-soldier-06": {
+      "group": "tests",
+      "title": "Style test 06 - detailed shading / high detail"
+    },
+    "knight-topology/t0_base": {
+      "group": "unsorted",
+      "title": "t0_base"
+    },
+    "knight-topology/t1_straddle": {
+      "group": "unsorted",
+      "title": "t1_straddle"
+    },
+    "knight-topology/t2_shieldout": {
+      "group": "unsorted",
+      "title": "t2_shieldout"
+    },
+    "knight-topology/t3_spearlevel": {
+      "group": "unsorted",
+      "title": "t3_spearlevel"
+    },
+    "knight-topology/t4_akimbo": {
+      "group": "unsorted",
+      "title": "t4_akimbo"
+    },
+    "knight-topology/t5_overhead": {
+      "group": "unsorted",
+      "title": "t5_overhead"
+    },
+    "request/protagonist-04": {
+      "group": "heroes",
+      "title": "The Bearer (hero) - winning design, was Protagonist prototype 04 The Brazier"
+    },
+    "pathfinder-line/tinkerer": {
+      "group": "unsorted",
+      "title": "tinkerer"
+    },
+    "brood-tongues/tongue01_column": {
+      "group": "unsorted",
+      "title": "tongue01_column"
+    },
+    "brood-tongues/tongue02_spill": {
+      "group": "unsorted",
+      "title": "tongue02_spill"
+    },
+    "brood-tongues/tongue03_trail": {
+      "group": "unsorted",
+      "title": "tongue03_trail"
+    },
+    "brood-tongues/tongue04_lean": {
+      "group": "unsorted",
+      "title": "tongue04_lean"
+    },
+    "brood-tongues/tongue05_loop": {
+      "group": "unsorted",
+      "title": "tongue05_loop"
+    },
+    "brood-tongues/tongue06_knot": {
+      "group": "unsorted",
+      "title": "tongue06_knot"
+    },
+    "pathfinder-line/trenchcoat": {
+      "group": "unsorted",
+      "title": "trenchcoat"
+    },
+    "knight-types/type0_base": {
+      "group": "unsorted",
+      "title": "type0_base"
+    },
+    "knight-types/type1_bulwark": {
+      "group": "unsorted",
+      "title": "type1_bulwark"
+    },
+    "knight-types/type2_pikeman": {
+      "group": "unsorted",
+      "title": "type2_pikeman"
+    },
+    "knight-types/type3_skirmisher": {
+      "group": "unsorted",
+      "title": "type3_skirmisher"
+    },
+    "enemy-armored/v0_base": {
+      "group": "unsorted",
+      "title": "v0_base"
+    },
+    "knight-mass/v0_base": {
+      "group": "unsorted",
+      "title": "v0_base"
+    },
+    "enemy-armored/v10_clawreach": {
+      "group": "unsorted",
+      "title": "v10_clawreach"
+    },
+    "knight-melee-v2/v12_pikereach": {
+      "group": "unsorted",
+      "title": "v12_pikereach"
+    },
+    "knight-melee-v2/v14_twinraise": {
+      "group": "unsorted",
+      "title": "v14_twinraise"
+    },
+    "knight-melee-v2/v15_strapshield": {
+      "group": "unsorted",
+      "title": "v15_strapshield"
+    },
+    "archer-medieval/v1_narrowstrung": {
+      "group": "unsorted",
+      "title": "v1_narrowstrung"
+    },
+    "enemy-armored/v1_pike": {
+      "group": "unsorted",
+      "title": "v1_pike"
+    },
+    "knight-mass/v1_tower": {
+      "group": "unsorted",
+      "title": "v1_tower"
+    },
+    "enemy-armored/v2_column": {
+      "group": "unsorted",
+      "title": "v2_column"
+    },
+    "knight-mass/v2_pauldron": {
+      "group": "unsorted",
+      "title": "v2_pauldron"
+    },
+    "enemy-armored/v3_levelspear": {
+      "group": "unsorted",
+      "title": "v3_levelspear"
+    },
+    "archer-medieval/v3_loosingarm": {
+      "group": "unsorted",
+      "title": "v3_loosingarm"
+    },
+    "knight-mass/v3_skirted": {
+      "group": "unsorted",
+      "title": "v3_skirted"
+    },
+    "knight-mass/v4_pike": {
+      "group": "unsorted",
+      "title": "v4_pike"
+    },
+    "archer-medieval/v4_quiverreach": {
+      "group": "unsorted",
+      "title": "v4_quiverreach"
+    },
+    "enemy-armored/v4_standard": {
+      "group": "unsorted",
+      "title": "v4_standard"
+    },
+    "knight-mass/v5_bannered": {
+      "group": "unsorted",
+      "title": "v5_bannered"
+    },
+    "archer-medieval/v5_crossbowbrace": {
+      "group": "unsorted",
+      "title": "v5_crossbowbrace"
+    },
+    "enemy-armored/v5_slabshield": {
+      "group": "unsorted",
+      "title": "v5_slabshield"
+    },
+    "knight-melee-v1/v5_widecross": {
+      "group": "unsorted",
+      "title": "v5_widecross"
+    },
+    "enemy-armored/v6_notched": {
+      "group": "unsorted",
+      "title": "v6_notched"
+    },
+    "knight-mass/v6_shieldwall": {
+      "group": "unsorted",
+      "title": "v6_shieldwall"
+    },
+    "archer-medieval/v6_slingwhirl": {
+      "group": "unsorted",
+      "title": "v6_slingwhirl"
+    },
+    "enemy-armored/v7_spined": {
+      "group": "unsorted",
+      "title": "v7_spined"
+    },
+    "enemy-armored/v8_tethered": {
+      "group": "unsorted",
+      "title": "v8_tethered"
+    },
+    "enemy-armored/v9_clawgauntlet": {
+      "group": "unsorted",
+      "title": "v9_clawgauntlet"
+    },
+    "request/hero-vanguard": {
+      "group": "heroes",
+      "title": "Vanguard (hero)"
+    },
+    "pathfinder-line/wingflare": {
+      "group": "unsorted",
+      "title": "wingflare"
+    },
+    "pathfinder-line/lanternring": {
+      "group": "team",
+      "title": "lanternring",
+      "notes": [
+        {
+          "at": "2026-08-09T02:14:57+00:00",
+          "text": "3 holes, 124px - only unit in the block with open sky inside it"
+        }
+      ]
+    },
+    "pathfinder-line/pavisewall": {
+      "group": "unsorted",
+      "title": "pavisewall"
+    },
+    "pathfinder-line/pavisewall-r2": {
+      "group": "unsorted",
+      "title": "pavisewall-r2"
+    },
+    "pathfinder-line/sackhauler": {
+      "group": "unsorted",
+      "title": "sackhauler"
+    },
+    "request/brood-elite": {
+      "group": "enemies",
+      "title": "Brood Elite (swarm-punisher)"
+    },
+    "request/authored-test-vanguard": {
+      "group": "tests",
+      "title": "Vanguard state variety - authored-path test (no PixelLab)"
+    },
+    "concept/lampbearer": {
+      "title": "Lampbearer",
+      "group": "heroes",
+      "expectation": "v1 class roster per docs/narrative/FLAME-FOUNDATION.md. Carries the lamp; the light radius is the mechanic.",
+      "notes": []
+    },
+    "concept/relickeeper": {
+      "title": "Relickeeper",
+      "group": "heroes",
+      "expectation": "v1 class roster per docs/narrative/FLAME-FOUNDATION.md. No art and no design brief yet -- expectation needs writing.",
+      "notes": []
+    }
+  }
+}

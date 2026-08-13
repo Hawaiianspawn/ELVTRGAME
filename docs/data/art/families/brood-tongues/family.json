@@ -1,0 +1,52 @@
+{
+  "family": "brood-tongues",
+  "note": "task-104. Six NEW states off brood-ooze's Made_of_tongues (character_id 4daf02e5, group 8b4b9811 -- the same group brood-ooze's 20 tracked states live in). Made_of_tongues is the legacy round's most distinctive SURFACE (luma 0.198, 84 colours) and least distinctive SHAPE (aspect 0.86, one of eleven crowded into 0.86-0.91). This family repeats brood-ooze's numbered state00-08 batch's approach -- spend aspect, then topology -- on that surface instead of generating a new one. Side finding, out of this family's scope to act on: get_character on the base showed the shared PixelLab group actually holds 37 states, not the 20 brood-ooze/family.json tracks -- 17 untracked states with names like 'Keep this exact tall', 'Keep this exact tria[ngular]', 'Split this creature', 'Keep the body low an[d]' suggest an earlier shape-exploration pass that was never downloaded to RawArt/. Flagged for whoever next touches brood-ooze; not fetched or judged here since RawArt/Renders/brood-ooze/** is do-not-write for this task.",
+  "base": {
+    "character_id": "4daf02e5-178c-454e-b0a6-7b48050ad7a1",
+    "canvas_size": 88,
+    "note": "Confirmed by get_character 2026-07-30: 88x88, 8 directions, group 8b4b9811-dcf3-4e9d-baa6-2cb3f8901d0b, state_name 'Made of tongues'. Matches brood-ooze's confirmed canvas."
+  },
+  "axis": {
+    "name": "mixed",
+    "description": "Aspect first (column/spill/trail spend width:height 0.5x-2.5x, the same order brood-ooze's numbered batch used), then topology once aspect is spent (lean for asymmetry, loop for a real enclosed hole, knot for solidity/unbroken-outline as the squat counterpoint). Never interior -- the tongue surface itself is the one thing every variant must keep."
+  },
+  "constant": "The wet packed-tongue surface and Made_of_tongues' inherited palette (use_color_palette_from_reference=True), the 88px canvas, the general mass-of-tongues read. No glow in any edit_description -- aesthetic-direction.md reserves light for the flame.",
+  "variants": [
+    {
+      "slug": "tongue01_column",
+      "silhouette_target": 0.5,
+      "edit_description": "A tall narrow column of packed writhing tongues, twice as tall as it is wide, the tongue mass drawn upward into a slender vertical stalk instead of spreading sideways. Keep the same wet tongue surface and dark red palette. No glow, no light source, no new colours.",
+      "source": "generated"
+    },
+    {
+      "slug": "tongue02_spill",
+      "silhouette_target": 1.6,
+      "edit_description": "A low wide spill of tongues, noticeably wider than tall, the mass pooling and fanning out sideways low to the ground instead of standing upright. Keep the same wet tongue surface and dark red palette. No glow, no light source, no new colours.",
+      "source": "generated"
+    },
+    {
+      "slug": "tongue03_trail",
+      "silhouette_target": 2.5,
+      "edit_description": "A long low trail of tongues stretched out lengthwise along the ground, two and a half times longer than it is tall, a thin extended ribbon of packed tongues rather than a rounded mass. Keep the same wet tongue surface and dark red palette. No glow, no light source, no new colours.",
+      "source": "generated"
+    },
+    {
+      "slug": "tongue04_lean",
+      "silhouette_target": "asymmetry > 0.5, not an aspect target -- a clear front and back that do not mirror, checked against the whole 8-rotation band",
+      "edit_description": "A mass of tongues leaning distinctly to one side, with a clear front and a clear back that are not mirror images of each other -- more tongues bulge forward and out on one side, the other side is flatter and pulled in. Keep the same wet tongue surface and dark red palette. No glow, no light source, no new colours.",
+      "source": "generated"
+    },
+    {
+      "slug": "tongue05_loop",
+      "silhouette_target": "a real enclosed hole (>=19px, closed on every side) -- not an aspect target",
+      "edit_description": "A ring of tongues coiled into a loop around a completely enclosed gap in the middle of the body -- the gap is fully surrounded by tongue mass on every side and does not open out to any edge of the creature, like a thick knotted ring with a real hole punched through its centre. Keep the same wet tongue surface and dark red palette. No glow, no light source, no new colours.",
+      "source": "generated"
+    },
+    {
+      "slug": "tongue06_knot",
+      "silhouette_target": "squat, high solidity, unbroken outline -- not an aspect target",
+      "edit_description": "A single squat, dense knot of tongues balled tightly together into one compact rounded mass, only slightly wider than tall, with a smooth unbroken outline and no gaps, notches or protrusions anywhere on the edge. Keep the same wet tongue surface and dark red palette. No glow, no light source, no new colours.",
+      "source": "generated"
+    }
+  ]
+}

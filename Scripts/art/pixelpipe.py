@@ -325,10 +325,17 @@ def cmd_validate(args):
                       "(owner decision 2026-07-25; only kind 'ui' may differ)"
                       % (cell, kind))
     grid = out.get("grid") or []
+    # COLUMNS must be a power of two. ROWS need not be, and the old rule that said
+    # otherwise was folklore: the Niagara Sprite Renderer's Sub UV is a pair of floats and
+    # the decode is a ratio, so 20 rows work exactly as well as 16. Measured 2026-07-29 on
+    # the 8x20 swarm atlas (task-059) -- see docs/perf/niagara-sprite-path.md. Rounding up
+    # to the next power of two would have cost 1.6MB of transparent texels to satisfy a
+    # constraint the engine does not have.
     for i, n in enumerate(grid):
-        if n < 1 or (n & (n - 1)) != 0:
-            errors.append("output.grid[%d] = %s is not a power of two -- required by "
-                          "the Niagara SubUV setup in ELVTR/SETUP-EDITOR.md" % (i, n))
+        if n < 1:
+            errors.append("output.grid[%d] = %s must be at least 1" % (i, n))
+        elif i == 0 and (n & (n - 1)) != 0:
+            errors.append("output.grid[0] = %s (columns) is not a power of two" % n)
     fm = out.get("frame_map") or {}
     if grid and len(grid) == 2:
         cells = grid[0] * grid[1]

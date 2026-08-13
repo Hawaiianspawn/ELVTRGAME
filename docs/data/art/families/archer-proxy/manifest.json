@@ -1,0 +1,228 @@
+{
+  "family": "archer-proxy",
+  "variants": {
+    "base": {
+      "measured": {
+        "canvas": [
+          92,
+          92
+        ],
+        "content": [
+          43,
+          46
+        ],
+        "aspect": 0.9347826086956522,
+        "solidity": 0.5530839231547017,
+        "asymmetry": 0.6946983546617916,
+        "holes": 1,
+        "hole_px": 46,
+        "luma_mean": 0.1933991647847439,
+        "luma_p95": 0.7045557254901955,
+        "opaque": 1094,
+        "distinct": 881,
+        "off_ramp": 1094,
+        "binary_alpha": true
+      },
+      "band": {
+        "aspect": [
+          0.5,
+          0.9555555555555556
+        ],
+        "solidity": [
+          0.5436692506459948,
+          0.7022684310018904
+        ],
+        "asymmetry": [
+          0.3149394347240915,
+          0.6946983546617916
+        ],
+        "holes": [
+          0,
+          1
+        ]
+      },
+      "verdict": "keep",
+      "reasons": [
+        "luma 0.193 -- not automatically wrong (SKILL.md), but the outline is doing all the work"
+      ]
+    },
+    "state02_hollowmask": {
+      "measured": {
+        "canvas": [
+          92,
+          92
+        ],
+        "content": [
+          43,
+          46
+        ],
+        "aspect": 0.9347826086956522,
+        "solidity": 0.5510616784630941,
+        "asymmetry": 0.689908256880734,
+        "holes": 1,
+        "hole_px": 46,
+        "luma_mean": 0.1758164425256341,
+        "luma_p95": 0.7005992156862746,
+        "opaque": 1090,
+        "distinct": 66,
+        "off_ramp": 1090,
+        "binary_alpha": true
+      },
+      "band": {
+        "aspect": [
+          0.5,
+          0.9555555555555556
+        ],
+        "solidity": [
+          0.5421188630490956,
+          0.7107750472589792
+        ],
+        "asymmetry": [
+          0.28191489361702127,
+          0.689908256880734
+        ],
+        "holes": [
+          0,
+          1
+        ]
+      },
+      "verdict": "keep",
+      "reasons": [
+        "luma 0.176 -- not automatically wrong (SKILL.md), but the outline is doing all the work"
+      ]
+    },
+    "state03_crossbow": {
+      "measured": {
+        "canvas": [
+          92,
+          92
+        ],
+        "content": [
+          42,
+          46
+        ],
+        "aspect": 0.9130434782608695,
+        "solidity": 0.5936853002070394,
+        "asymmetry": 0.6015693112467306,
+        "holes": 1,
+        "hole_px": 43,
+        "luma_mean": 0.2000885173598646,
+        "luma_p95": 0.7574541176470588,
+        "opaque": 1147,
+        "distinct": 75,
+        "off_ramp": 1147,
+        "binary_alpha": true
+      },
+      "band": {
+        "aspect": [
+          0.5434782608695652,
+          0.9130434782608695
+        ],
+        "solidity": [
+          0.5058754406580493,
+          0.6495652173913044
+        ],
+        "asymmetry": [
+          0.34002677376171353,
+          0.9489685124864278
+        ],
+        "holes": [
+          0,
+          1
+        ]
+      },
+      "verdict": "keep",
+      "reasons": []
+    },
+    "state04_blade": {
+      "measured": {
+        "canvas": [
+          92,
+          92
+        ],
+        "content": [
+          43,
+          46
+        ],
+        "aspect": 0.9347826086956522,
+        "solidity": 0.5283114256825076,
+        "asymmetry": 0.37894736842105264,
+        "holes": 0,
+        "hole_px": 0,
+        "luma_mean": 0.1712941281546111,
+        "luma_p95": 0.7040448627450963,
+        "opaque": 1045,
+        "distinct": 77,
+        "off_ramp": 1045,
+        "binary_alpha": true
+      },
+      "band": {
+        "aspect": [
+          0.6521739130434783,
+          0.9347826086956522
+        ],
+        "solidity": [
+          0.5283114256825076,
+          0.6615942028985508
+        ],
+        "asymmetry": [
+          0.37894736842105264,
+          0.9366786140979689
+        ],
+        "holes": [
+          0
+        ]
+      },
+      "verdict": "keep",
+      "reasons": [
+        "luma 0.171 -- not automatically wrong (SKILL.md), but the outline is doing all the work"
+      ]
+    },
+    "state05_mage": {
+      "measured": {
+        "canvas": [
+          92,
+          92
+        ],
+        "content": [
+          35,
+          46
+        ],
+        "aspect": 0.7608695652173914,
+        "solidity": 0.7024844720496894,
+        "asymmetry": 0.40495137046861185,
+        "holes": 1,
+        "hole_px": 28,
+        "luma_mean": 0.17295590922487472,
+        "luma_p95": 0.6680070588235293,
+        "opaque": 1131,
+        "distinct": 72,
+        "off_ramp": 1131,
+        "binary_alpha": true
+      },
+      "band": {
+        "aspect": [
+          0.6739130434782609,
+          0.8695652173913043
+        ],
+        "solidity": [
+          0.5385869565217392,
+          0.7024844720496894
+        ],
+        "asymmetry": [
+          0.40495137046861185,
+          0.8963474827245804
+        ],
+        "holes": [
+          0,
+          1
+        ]
+      },
+      "verdict": "keep",
+      "reasons": [
+        "luma 0.173 -- not automatically wrong (SKILL.md), but the outline is doing all the work"
+      ]
+    }
+  },
+  "judged": "2026-07-30T01:16:19+00:00"
+}

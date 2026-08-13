@@ -1,0 +1,36 @@
+{
+  "family": "brood-ooze",
+  "note": "Backfilled 2026-07-29 (task-081). This directory holds TWO generation rounds merged together: 11 auto-named legacy states (A_black_ghost_with_sharp, Baby_face, Baby_face_smiling_li, Black_ooze_with_teet, Black_ooze_with_teet_copy, Hairy_overgrown_like, made_of_marble, Made_of_tongues, pale_blue_skin_big_e, Undead, wearing_armor) that SKILL.md itself calls out as a failure ('all eleven sit inside aspect 0.86-0.91 ... eleven different creatures, one silhouette'), and a later numbered state00-state08 batch that actually hits the 3.1x spread SKILL.md credits to the brood ('amorphous base... states beat proportion knobs outright'). Measured 2026-07-29: state00_base is opaque-count IDENTICAL to Black_ooze_with_teet/_copy across all 8 rotations (same render, carried forward as the numbered batch's base) -- judge rejects the two legacy duplicates and keeps state00_base. A_black_ghost_with_sharp/Baby_face/made_of_marble are a second identical-outline trio from the legacy round. state05_ridge is SKILL.md's worked example ('a variant briefed as a long low ridge measured aspect 0.86 from the south... across its rotations it runs 0.59 to 2.60... the best variant in the batch') -- its silhouette_target of 2.5 (a 2.5x-longer-than-tall log) is the one number SKILL.md records as an actual ask, not just a result.",
+  "base": {
+    "character_id": null,
+    "canvas_size": 88,
+    "note": "Confirmed by measurement (all 20 states return 88x88)."
+  },
+  "axis": {
+    "name": "aspect",
+    "description": "Amorphous blob/ooze base with no skeleton to preserve -- each state pushes width/height ratio and surface directly. The numbered state00-08 batch is the one that actually spends this axis (0.50-1.56 measured); the 11 auto-named states sit narrowly banded together and do not."
+  },
+  "constant": "Base ooze/blob character, inherited palette, 88px canvas.",
+  "variants": [
+    {"slug": "A_black_ghost_with_sharp", "silhouette_target": null, "edit_description": null, "source": "legacy"},
+    {"slug": "Baby_face", "silhouette_target": null, "edit_description": null, "source": "legacy"},
+    {"slug": "Baby_face_smiling_li", "silhouette_target": null, "edit_description": null, "source": "legacy"},
+    {"slug": "Black_ooze_with_teet", "silhouette_target": null, "edit_description": null, "source": "legacy"},
+    {"slug": "Black_ooze_with_teet_copy", "silhouette_target": null, "edit_description": null, "source": "legacy"},
+    {"slug": "Hairy_overgrown_like", "silhouette_target": null, "edit_description": null, "source": "legacy"},
+    {"slug": "made_of_marble", "silhouette_target": null, "edit_description": null, "source": "legacy"},
+    {"slug": "Made_of_tongues", "silhouette_target": null, "edit_description": null, "source": "legacy"},
+    {"slug": "pale_blue_skin_big_e", "silhouette_target": null, "edit_description": null, "source": "legacy"},
+    {"slug": "Undead", "silhouette_target": null, "edit_description": null, "source": "legacy"},
+    {"slug": "wearing_armor", "silhouette_target": null, "edit_description": null, "source": "legacy"},
+    {"slug": "state00_base", "silhouette_target": null, "edit_description": null, "source": "legacy"},
+    {"slug": "state01_sump", "silhouette_target": null, "edit_description": null, "source": "legacy"},
+    {"slug": "state02_bell", "silhouette_target": null, "edit_description": null, "source": "legacy"},
+    {"slug": "state03_stalk", "silhouette_target": null, "edit_description": null, "source": "legacy"},
+    {"slug": "state04_wedge", "silhouette_target": null, "edit_description": null, "source": "legacy"},
+    {"slug": "state05_ridge", "silhouette_target": 2.5, "edit_description": null, "source": "legacy"},
+    {"slug": "state06_crown", "silhouette_target": null, "edit_description": null, "source": "legacy"},
+    {"slug": "state07_twin", "silhouette_target": null, "edit_description": null, "source": "legacy"},
+    {"slug": "state08_slug", "silhouette_target": null, "edit_description": null, "source": "legacy"}
+  ]
+}

@@ -1,0 +1,70 @@
+{
+  "family": "knight-melee-v2",
+  "note": "task-087. Base confirmed live via get_character 2026-07-29: 88x88px, group 2cc3ab61-4230-4786-98fa-b94da9e99218, same base as knight-melee-v1 (task-082). v1 closed with five keeps but the whole-table read left three named weaknesses: mass spread across the keeps only 1.17x (960-1124px, against task-082's own 1.3x do-not-separate threshold), the aspect spread of 1.53x was really two disconnected clusters (~0.69 and ~1.0) rather than five shapes, and the wide-by-extension attempt (v5_widecross) undershot its 1.60 aspect target landing at 1.09 while topology stayed a one-off (only v4_overhead has holes, and just 2). v2 is a targeted pass at those three gaps, not a second batch of 'more knights'. Full colour throughout per docs/art/aesthetic-direction.md's 2026-07-28 amendment -- no quantizing, no fewer-colours request, glow banned explicitly in every prompt. v13_maceraised is a 7th, unbudgeted variant: v10_bracedstaff's chest-height double-loop measured ZERO holes across all 8 rotations (not just south), a clean miss on the family's own hole-topology target, so one extra generation was spent chasing the same target with the mechanism SKILL.md and v1_overhead already proved works (a raised limb closing a gap against the body) rather than repeating the failed staff-loop idea.",
+  "base": {
+    "character_id": "1c935515-0ea3-459b-8c63-e7f8cf368272",
+    "canvas_size": 88,
+    "note": "Confirmed by mcp__pixellab__get_character before queueing anything: 88x88, group has 35 sibling states (30 pre-existing plus v1's 5 keeps and 1 flag). create_character_state inherits the source's canvas, so the size-vs-canvas trap does not apply here."
+  },
+  "axis": {
+    "name": "mixed",
+    "description": "Four variants deliberately push mass past v1's clustered 960-1124px band: v7_barestance strips the shield and cloak entirely for a materially lower mass, v8_heavycloak adds a forward shield plus a spread cloak for a materially higher mass, and v9_spearlevel / v12_pikereach both widen by extension (a level spear, then a two-handed pike with a tighter double grip) chasing the 53px-wide/0.45-solidity recipe v1's own wide attempt underdelivered on. v10_bracedstaff encloses a second, chest-height hole topology (two forearm-to-polearm pockets) distinct from v1's single overhead arch. v11_midguard fills the 0.70-0.95 aspect gap v1 left as two disconnected clusters."
+  },
+  "constant": "Base knight character (1c935515-0ea3-459b-8c63-e7f8cf368272), inherited palette via use_color_palette_from_reference (no new hues, no fewer colours), 88px canvas, full colour per the 2026-07-28 amendment, glow explicitly banned in every prompt, every variant nameable as a soldier from its outline alone.",
+  "variants": [
+    {
+      "slug": "v7_barestance",
+      "silhouette_target": "the lightest-mass knight in the family: no shield, no cloak, sword sheathed, arms tucked -- opaque pixel count should land materially below v1's lowest keep (960 px)",
+      "edit_description": "Standing narrow and unarmed for battle: no shield at all, sword sheathed at the hip, no cloak or cape, arms tucked close against the torso, legs together. The silhouette should be the leanest, lightest version of this knight, roughly half again as tall as wide. Keep the head and legs clearly visible. Match the existing color palette exactly, no new colors, no glowing parts.",
+      "source": "generated"
+    },
+    {
+      "slug": "v8_heavycloak",
+      "silhouette_target": "the highest-mass knight in the family: shield held forward plus a long heavy cloak spread open behind the shoulders -- opaque pixel count should land materially above v1's highest keep (1124 px)",
+      "edit_description": "A heavily equipped guard stance: the shield held up and forward in front of the body, and in addition a long heavy cloak or cape spread open wide behind both shoulders, doubling the visible bulk of the figure. Sword held ready at the side. This should be the bulkiest, heaviest-looking knight in the group while still clearly a soldier standing upright. Keep the head, shoulders and legs clearly visible. Match the existing color palette exactly, no new colors, no glowing parts.",
+      "source": "generated"
+    },
+    {
+      "slug": "v9_spearlevel",
+      "silhouette_target": 1.65,
+      "edit_description": "A single straight spear gripped in both hands and held fully level, extended straight out to one side at arm's length, reaching well past the body's edge. The shield is completely removed, not carried at all, so only the spear adds width. Body kept narrow and compact -- legs together, no cloak. The spear should read as a rigid straight line, roughly one and two-thirds times wider than tall overall. Keep the head and legs clearly visible. Match the existing color palette exactly, no new colors, no glowing parts.",
+      "source": "generated"
+    },
+    {
+      "slug": "v10_bracedstaff",
+      "silhouette_target": "a two-handed staff held horizontal at chest height with both elbows bent down and in, fully enclosing a gap under each forearm -- two enclosed holes at chest height, distinct from v1_overhead's single overhead arch, each gap closed on every side so it survives downsampling",
+      "edit_description": "Both hands gripping a long polearm held straight and horizontal at chest height in front of the body. Both elbows are bent downward and tucked in close to the ribs, so the forearms, the horizontal polearm above, and the torso below fully close off a gap under each forearm -- two separate enclosed pockets of open air, one on each side of the chest, not open to the sprite's edge. Shield lowered and out of the way. Keep the head and legs clearly visible. Match the existing color palette exactly, no new colors, no glowing parts.",
+      "source": "generated"
+    },
+    {
+      "slug": "v11_midguard",
+      "silhouette_target": 0.83,
+      "edit_description": "A compact ready stance: the shield held up close in front of the chest at a slight angle, not extended out to the side, and the sword held low and close to the body. The overall silhouette should be roughly as wide as it is tall, squarely between a narrow tucked-in stance and a wide braced stance. Keep the head and legs clearly visible. Match the existing color palette exactly, no new colors, no glowing parts.",
+      "source": "generated"
+    },
+    {
+      "slug": "v12_pikereach",
+      "silhouette_target": 1.8,
+      "edit_description": "A long two-handed pike gripped with both hands held close together near the body's center, and the pike extended fully straight out to one side, reaching as far past the body's edge as possible. No shield carried at all. Body kept as thin and narrow as possible -- legs together, arms tucked except for the pike grip -- so the pike alone creates the width. This should be the single widest silhouette in the family, roughly one and three-quarters to two times wider than tall. Keep the head and legs clearly visible. Match the existing color palette exactly, no new colors, no glowing parts.",
+      "source": "generated"
+    },
+    {
+      "slug": "v13_maceraised",
+      "silhouette_target": "a single raised weapon arm, asymmetric (not overhead-symmetric like v1_overhead), fully enclosing a hole between the upper arm, forearm and head -- reroll of the hole-topology target after v10_bracedstaff measured zero holes on every rotation",
+      "edit_description": "A single heavy mace or war-hammer raised high and out to one side in one hand, elbow bent sharply outward and up, so the raised arm and weapon fully enclose a gap between the upper arm, the forearm, and the head/shoulder below -- a large enclosed hole on one side only, asymmetric rather than a symmetric overhead pose. The other arm holds the shield lowered close to the body. Keep the head and legs clearly visible below and beside the raised weapon. Match the existing color palette exactly, no new colors, no glowing parts.",
+      "source": "generated"
+    },
+    {
+      "slug": "v14_twinraise",
+      "silhouette_target": "two distinct enclosed holes at different heights, asymmetric left/right -- v13 proved a single raised asymmetric limb reliably closes one hole; this pushes the same proven mechanism to both sides at once, after v9/v12's wide-by-extension undershot 1.6-1.8 three times running (v5/v9/v12 all capped 1.07-1.24) and v10's two-hole chest-loop attempt measured zero",
+      "edit_description": "A dual raised-guard stance: on one side, a weapon arm raised high with the elbow bent sharply outward and up so it fully encloses a gap between the upper arm, forearm and the head or shoulder below -- one enclosed hole. On the opposite side, the shield is raised overhead and braced back at a different angle rather than held forward, so that arm also bends and fully encloses a second, separate gap between its upper arm, forearm and the top of the head -- at a clearly different height than the first hole, so the two are not mirrored. Two distinct enclosed pockets of open air, one on each side, at different heights, each gap closed on every side. Legs together. Keep the head and legs clearly visible below and between the two raised limbs. Match the existing color palette exactly, no new colors, no glowing parts.",
+      "source": "generated"
+    },
+    {
+      "slug": "v15_strapshield",
+      "silhouette_target": "two enclosed holes via two different mechanisms -- overhead weapon-arm closure (proven, v13) + shield-on-strap loop held away from body (untried; SKILL.md notes an object held away from the body on a strap/chain is the reliable hole mechanism, not armpit-closure, which had failed twice: v10 and v14)",
+      "edit_description": "A dual-hole guard stance using two different mechanisms. On one side: a weapon arm raised high overhead, elbow bent sharply outward and up, fully enclosing a gap between the upper arm, forearm and the head or shoulder below -- one hole. On the other side: the round shield is not held against the body at all -- instead it hangs out and away from the body at the end of a rigid strap or chain gripped in the hand, so the strap forms a closed loop between the hand and the shield with open air fully enclosed inside that loop, the shield's edge clearly separated from the torso by air on every side -- a second, separate hole, formed by the strap loop, not by the arm closing against the body. Two distinct enclosed holes at different heights, using two different mechanisms. Legs together. Keep the head and legs clearly visible. Match the existing color palette exactly, no new colors, no glowing parts.",
+      "source": "generated"
+    }
+  ]
+}

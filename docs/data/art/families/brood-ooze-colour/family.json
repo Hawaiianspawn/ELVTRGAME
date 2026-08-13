@@ -1,0 +1,17 @@
+{
+  "family": "brood-ooze-colour",
+  "note": "Backfilled 2026-07-29 (task-081). Single character, not a differentiated family -- measured south 53x34, aspect 1.56, solidity 0.67 is an exact match for brood-ooze's state01_sump, so this is a full-colour re-render of that same silhouette rather than a new state (docs/art/aesthetic-direction.md's 2026-07-28 AMENDMENT: the game ships in full colour, so a high off-ramp count here is expected and not a defect). judge has nothing to compare it against -- there is one variant, so aspect-spread and band-containment are both vacuous. Kept as-is; nothing to cull.",
+  "base": {
+    "character_id": null,
+    "canvas_size": 88,
+    "note": "Confirmed by measurement (88x88)."
+  },
+  "axis": {
+    "name": "interior",
+    "description": "Colour-treatment test of brood-ooze's state01_sump silhouette under the full-colour amendment -- not a silhouette axis at all."
+  },
+  "constant": "The single state01_sump silhouette; only colour treatment varies from brood-ooze.",
+  "variants": [
+    {"slug": "rotations", "silhouette_target": null, "edit_description": null, "source": "legacy"}
+  ]
+}

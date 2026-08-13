@@ -1,0 +1,87 @@
+{
+  "$schema": "../sprite-request.schema.json",
+  "id": "brood-elite",
+  "revision": 1,
+  "subject": {
+    "title": "Brood Elite (swarm-punisher)",
+    "kind": "monster",
+    "faction": "none",
+    "class_tie": "none",
+    "brief": null,
+    "spec": "../../../art/brood-elite.md"
+  },
+  "canon": {
+    "palette": "demichrome-4",
+    "value_dominance": "dark",
+    "pale_usage": "mark",
+    "silhouette": "top-heavy anvil: a broad canopy overhangs a narrower trailing skirt \u2014 the inverse of the ground-hugging dome profile shared by all nine brood walker variants, so it reads apart by outline alone at horde scale in a 56px cell",
+    "reads_as": "an elite that punishes clumped retinues (GDD \u00a77 swarm-punishing elite, the soft cost backing retinue upkeep): the canopy visibly flares wider before its area burst, so a massed army reads the telegraph and spreads",
+    "moving": true
+  },
+  "prompt": {
+    "description": "Heavy amorphous mass of glistening near-black tar (#211e20) moving on four blunt pseudopod limbs. The body rises into a broad overhanging canopy, wider than its base, like a wet anvil or a storm-bent fungus cap, with a ragged skirt of dripping tendrils trailing beneath. Steel-grey (#555568) undertones sit in the folds; a single matte pale (#e9efec) mark sits at the crown of the canopy, catching light only, never emitting it. No face, no eyes, no symmetry \u2014 torn-membrane surface texture. The bulk rides high and top-heavy, silhouette flaring outward at the top.",
+    "must_include": [
+      "overhanging canopy wider than its base",
+      "four blunt pseudopod limbs",
+      "single matte pale crown mark, non-luminous",
+      "dripping tendril skirt under the canopy",
+      "near-black body with steel-grey fold tones"
+    ],
+    "must_avoid": [
+      "red of any shade",
+      "any hex outside #211e20 / #555568 / #a0a08b / #e9efec",
+      "glow, self-illumination, or light emission of any kind",
+      "ground-hugging dome silhouette (the walker profile)",
+      "visible face, eyes, or expression",
+      "gore or viscera",
+      "chibi proportions",
+      "hard geometric or armored forms"
+    ],
+    "style_mode": "flat"
+  },
+  "pixellab": {
+    "mode": "standard",
+    "size": 48,
+    "view": "low top-down",
+    "n_directions": 8,
+    "outline": "single color black outline",
+    "detail": "low detail",
+    "shading": "flat shading",
+    "body_type": "quadruped",
+    "template": "dog"
+  },
+  "anchor": {
+    "strategy": "quantized-self",
+    "approved": false
+  },
+  "output": {
+    "cell": 48,
+    "grid": [
+      4,
+      4
+    ],
+    "texture": "T_BroodElite",
+    "content_path": "/Game/Spike1",
+    "frame_map": {
+      "0": "south.idle",
+      "1": "south.walk1",
+      "2": "south-west.idle",
+      "3": "south-west.walk1",
+      "4": "west.idle",
+      "5": "west.walk1",
+      "6": "north-west.idle",
+      "7": "north-west.walk1",
+      "8": "north.idle",
+      "9": "north.walk1",
+      "10": "north-east.idle",
+      "11": "north-east.walk1",
+      "12": "east.idle",
+      "13": "east.walk1",
+      "14": "south-east.idle",
+      "15": "south-east.walk1"
+    }
+  },
+  "budget": {
+    "max_generations": 20
+  }
+}

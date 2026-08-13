@@ -21,9 +21,12 @@
 # (RawArt/Renders/<id>/r<rev>/manifest.json, "sheet" block), which pixelpipe.py pack
 # writes. That keeps this script free of hardcoded paths -- the request is the contract.
 #
-# The MCP Python sandbox cannot `import unreal`, so this cannot be run through MCP.
-# Editor Python can. Same constraint and same workaround as
-# Scripts/populate_cvar_preset.py -- see .claude/skills/cvars/SKILL.md.
+# The MCP *Python sandbox* still cannot `import unreal`. That no longer means this is
+# unreachable from MCP: as of 2026-07-31 the project's own toolset can run any console
+# command, and the console's `py` reaches the editor's real interpreter --
+#     KindledConsoleToolset.Exec('py "C:/Projects/ELVTRGAME/Scripts/art/import_sprites.py" <id>')
+# Verified 2026-07-31. Output goes to the log, not the tool result, so read it back with
+# LogsToolset.GetLogEntries(Category:"", Pattern:"..."). See .claude/skills/atlas/SKILL.md.
 
 import json
 import os

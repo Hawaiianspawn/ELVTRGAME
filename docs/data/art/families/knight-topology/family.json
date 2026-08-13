@@ -1,0 +1,22 @@
+{
+  "family": "knight-topology",
+  "note": "Backfilled 2026-07-29 (task-081). This is the batch .claude/skills/variants/SKILL.md's 'topology' section describes directly (straddle/shieldout/spearlevel/akimbo/overhead) -- SKILL.md's hole-count and aspect-vs-asymmetry claims for this batch are reproduced by judge on the renders as they exist on disk today.",
+  "base": {
+    "character_id": null,
+    "canvas_size": 88,
+    "note": "Confirmed by measurement (all 6 states return 88x88)."
+  },
+  "axis": {
+    "name": "topology",
+    "description": "Each state changes the KIND of outline via pose, not the aspect ratio: a wide straddle, a shield held out to one side, a spear held level, arms akimbo, a spear raised overhead. SKILL.md: straddle and shieldout each open their gap to the sprite's edge (0 holes); akimbo and overhead close it (2 holes each, 10px and 19px -- the akimbo gap is near the floor a downsample can still show)."
+  },
+  "constant": "Base knight character, inherited palette, 88px canvas, weapon/shield present in every state.",
+  "variants": [
+    {"slug": "t0_base", "silhouette_target": null, "edit_description": null, "source": "legacy"},
+    {"slug": "t1_straddle", "silhouette_target": null, "edit_description": null, "source": "legacy"},
+    {"slug": "t2_shieldout", "silhouette_target": null, "edit_description": null, "source": "legacy"},
+    {"slug": "t3_spearlevel", "silhouette_target": null, "edit_description": null, "source": "legacy"},
+    {"slug": "t4_akimbo", "silhouette_target": null, "edit_description": null, "source": "legacy"},
+    {"slug": "t5_overhead", "silhouette_target": null, "edit_description": null, "source": "legacy"}
+  ]
+}

@@ -1,0 +1,912 @@
+{
+  "family": "brood-ooze",
+  "variants": {
+    "A_black_ghost_with_sharp": {
+      "measured": {
+        "canvas": [
+          88,
+          88
+        ],
+        "content": [
+          39,
+          44
+        ],
+        "aspect": 0.8863636363636364,
+        "solidity": 0.594988344988345,
+        "asymmetry": 0.17042115572967678,
+        "holes": 0,
+        "hole_px": 0,
+        "luma_mean": 0.15639119048990802,
+        "luma_p95": 0.5010909803921568,
+        "opaque": 1021,
+        "distinct": 22,
+        "off_ramp": 1021,
+        "binary_alpha": true
+      },
+      "band": {
+        "aspect": [
+          0.46511627906976744,
+          0.8863636363636364
+        ],
+        "solidity": [
+          0.594988344988345,
+          0.7174418604651163
+        ],
+        "asymmetry": [
+          0.03644158628081458,
+          0.37681159420289856
+        ],
+        "holes": [
+          0,
+          1
+        ]
+      },
+      "verdict": "keep",
+      "reasons": [
+        "luma 0.156 -- not automatically wrong (SKILL.md), but the outline is doing all the work"
+      ]
+    },
+    "Baby_face": {
+      "measured": {
+        "canvas": [
+          88,
+          88
+        ],
+        "content": [
+          39,
+          44
+        ],
+        "aspect": 0.8863636363636364,
+        "solidity": 0.594988344988345,
+        "asymmetry": 0.17042115572967678,
+        "holes": 0,
+        "hole_px": 0,
+        "luma_mean": 0.13710083770236792,
+        "luma_p95": 0.4649317647058823,
+        "opaque": 1021,
+        "distinct": 63,
+        "off_ramp": 1021,
+        "binary_alpha": true
+      },
+      "band": {
+        "aspect": [
+          0.46511627906976744,
+          0.8863636363636364
+        ],
+        "solidity": [
+          0.594988344988345,
+          0.7162790697674418
+        ],
+        "asymmetry": [
+          0.03644158628081458,
+          0.3741935483870968
+        ],
+        "holes": [
+          0,
+          1
+        ]
+      },
+      "verdict": "reject",
+      "reasons": [
+        "identical opaque count (1021 px) to 'A_black_ghost_with_sharp' -- same outline, differs on the interior only"
+      ],
+      "culled_to": "RawArt/Renders/brood-ooze/rejected/Baby_face",
+      "culled_at": "2026-07-30T01:06:30+00:00"
+    },
+    "Baby_face_smiling_li": {
+      "measured": {
+        "canvas": [
+          88,
+          88
+        ],
+        "content": [
+          38,
+          44
+        ],
+        "aspect": 0.8636363636363636,
+        "solidity": 0.6118421052631579,
+        "asymmetry": 0.0019550342130987292,
+        "holes": 0,
+        "hole_px": 0,
+        "luma_mean": 0.14947131044793283,
+        "luma_p95": 0.6706227450980392,
+        "opaque": 1023,
+        "distinct": 62,
+        "off_ramp": 1023,
+        "binary_alpha": true
+      },
+      "band": {
+        "aspect": [
+          0.46511627906976744,
+          0.8636363636363636
+        ],
+        "solidity": [
+          0.603359173126615,
+          0.7197674418604652
+        ],
+        "asymmetry": [
+          0.0019550342130987292,
+          0.36538461538461536
+        ],
+        "holes": [
+          0,
+          1
+        ]
+      },
+      "verdict": "keep",
+      "reasons": [
+        "luma 0.149 -- not automatically wrong (SKILL.md), but the outline is doing all the work"
+      ]
+    },
+    "Black_ooze_with_teet": {
+      "measured": {
+        "canvas": [
+          88,
+          88
+        ],
+        "content": [
+          40,
+          44
+        ],
+        "aspect": 0.9090909090909091,
+        "solidity": 0.6102272727272727,
+        "asymmetry": 0.2942271880819367,
+        "holes": 2,
+        "hole_px": 26,
+        "luma_mean": 0.06507982765545696,
+        "luma_p95": 0.31514588235294116,
+        "opaque": 1074,
+        "distinct": 16,
+        "off_ramp": 1074,
+        "binary_alpha": true
+      },
+      "band": {
+        "aspect": [
+          0.46511627906976744,
+          0.9090909090909091
+        ],
+        "solidity": [
+          0.6102272727272727,
+          0.7372093023255814
+        ],
+        "asymmetry": [
+          0.041928721174004195,
+          0.3657957244655582
+        ],
+        "holes": [
+          0,
+          2
+        ]
+      },
+      "verdict": "reject",
+      "reasons": [
+        "identical opaque count (1074 px) to 'state00_base' -- same outline, differs on the interior only"
+      ],
+      "culled_to": "RawArt/Renders/brood-ooze/rejected/Black_ooze_with_teet",
+      "culled_at": "2026-07-30T01:06:30+00:00"
+    },
+    "Black_ooze_with_teet_copy": {
+      "measured": {
+        "canvas": [
+          88,
+          88
+        ],
+        "content": [
+          40,
+          44
+        ],
+        "aspect": 0.9090909090909091,
+        "solidity": 0.6102272727272727,
+        "asymmetry": 0.2942271880819367,
+        "holes": 2,
+        "hole_px": 26,
+        "luma_mean": 0.06507982765545696,
+        "luma_p95": 0.31514588235294116,
+        "opaque": 1074,
+        "distinct": 16,
+        "off_ramp": 1074,
+        "binary_alpha": true
+      },
+      "band": {
+        "aspect": [
+          0.46511627906976744,
+          0.9090909090909091
+        ],
+        "solidity": [
+          0.6102272727272727,
+          0.7372093023255814
+        ],
+        "asymmetry": [
+          0.041928721174004195,
+          0.3657957244655582
+        ],
+        "holes": [
+          0,
+          2
+        ]
+      },
+      "verdict": "reject",
+      "reasons": [
+        "identical opaque count (1074 px) to 'state00_base' -- same outline, differs on the interior only"
+      ],
+      "culled_to": "RawArt/Renders/brood-ooze/rejected/Black_ooze_with_teet_copy",
+      "culled_at": "2026-07-30T01:06:30+00:00"
+    },
+    "Hairy_overgrown_like": {
+      "measured": {
+        "canvas": [
+          88,
+          88
+        ],
+        "content": [
+          38,
+          44
+        ],
+        "aspect": 0.8636363636363636,
+        "solidity": 0.6417464114832536,
+        "asymmetry": 0.009319664492078284,
+        "holes": 0,
+        "hole_px": 0,
+        "luma_mean": 0.128667083310491,
+        "luma_p95": 0.3557521568627445,
+        "opaque": 1073,
+        "distinct": 64,
+        "off_ramp": 1073,
+        "binary_alpha": true
+      },
+      "band": {
+        "aspect": [
+          0.45454545454545453,
+          0.8636363636363636
+        ],
+        "solidity": [
+          0.6246770025839793,
+          0.7125
+        ],
+        "asymmetry": [
+          0.009319664492078284,
+          0.3540445486518171
+        ],
+        "holes": [
+          0,
+          1
+        ]
+      },
+      "verdict": "reject",
+      "reasons": [
+        "band sits fully inside 'Baby_face_smiling_li' on every axis (aspect/solidity/asymmetry/holes) across all 8 rotations"
+      ],
+      "culled_to": "RawArt/Renders/brood-ooze/rejected/Hairy_overgrown_like",
+      "culled_at": "2026-07-30T01:06:30+00:00"
+    },
+    "made_of_marble": {
+      "measured": {
+        "canvas": [
+          88,
+          88
+        ],
+        "content": [
+          39,
+          44
+        ],
+        "aspect": 0.8863636363636364,
+        "solidity": 0.594988344988345,
+        "asymmetry": 0.17042115572967678,
+        "holes": 0,
+        "hole_px": 0,
+        "luma_mean": 0.3716592590885522,
+        "luma_p95": 0.8777145098039215,
+        "opaque": 1021,
+        "distinct": 61,
+        "off_ramp": 1021,
+        "binary_alpha": true
+      },
+      "band": {
+        "aspect": [
+          0.46511627906976744,
+          0.8863636363636364
+        ],
+        "solidity": [
+          0.594988344988345,
+          0.7174418604651163
+        ],
+        "asymmetry": [
+          0.03862660944206009,
+          0.37681159420289856
+        ],
+        "holes": [
+          0,
+          1
+        ]
+      },
+      "verdict": "reject",
+      "reasons": [
+        "identical opaque count (1021 px) to 'A_black_ghost_with_sharp' -- same outline, differs on the interior only"
+      ],
+      "culled_to": "RawArt/Renders/brood-ooze/rejected/made_of_marble",
+      "culled_at": "2026-07-30T01:06:30+00:00"
+    },
+    "Made_of_tongues": {
+      "measured": {
+        "canvas": [
+          88,
+          88
+        ],
+        "content": [
+          38,
+          44
+        ],
+        "aspect": 0.8636363636363636,
+        "solidity": 0.6202153110047847,
+        "asymmetry": 0.017357762777242044,
+        "holes": 0,
+        "hole_px": 0,
+        "luma_mean": 0.19846349688959478,
+        "luma_p95": 0.6049098039215686,
+        "opaque": 1037,
+        "distinct": 84,
+        "off_ramp": 1037,
+        "binary_alpha": true
+      },
+      "band": {
+        "aspect": [
+          0.4883720930232558,
+          0.8636363636363636
+        ],
+        "solidity": [
+          0.6136950904392765,
+          0.6888150609080842
+        ],
+        "asymmetry": [
+          0.017357762777242044,
+          0.3780290791599354
+        ],
+        "holes": [
+          0,
+          2
+        ]
+      },
+      "verdict": "keep",
+      "reasons": [
+        "luma 0.198 -- not automatically wrong (SKILL.md), but the outline is doing all the work"
+      ]
+    },
+    "pale_blue_skin_big_e": {
+      "measured": {
+        "canvas": [
+          88,
+          88
+        ],
+        "content": [
+          40,
+          44
+        ],
+        "aspect": 0.9090909090909091,
+        "solidity": 0.6153409090909091,
+        "asymmetry": 0.28254847645429365,
+        "holes": 2,
+        "hole_px": 26,
+        "luma_mean": 0.43211157387793525,
+        "luma_p95": 0.8541207843137254,
+        "opaque": 1083,
+        "distinct": 44,
+        "off_ramp": 1083,
+        "binary_alpha": true
+      },
+      "band": {
+        "aspect": [
+          0.46511627906976744,
+          0.9090909090909091
+        ],
+        "solidity": [
+          0.6153409090909091,
+          0.7430232558139535
+        ],
+        "asymmetry": [
+          0.041928721174004195,
+          0.37054631828978624
+        ],
+        "holes": [
+          0,
+          1,
+          2
+        ]
+      },
+      "verdict": "keep",
+      "reasons": []
+    },
+    "state00_base": {
+      "measured": {
+        "canvas": [
+          88,
+          88
+        ],
+        "content": [
+          40,
+          44
+        ],
+        "aspect": 0.9090909090909091,
+        "solidity": 0.6102272727272727,
+        "asymmetry": 0.2942271880819367,
+        "holes": 2,
+        "hole_px": 26,
+        "luma_mean": 0.06507982765545696,
+        "luma_p95": 0.31514588235294116,
+        "opaque": 1074,
+        "distinct": 16,
+        "off_ramp": 1074,
+        "binary_alpha": true
+      },
+      "band": {
+        "aspect": [
+          0.46511627906976744,
+          0.9090909090909091
+        ],
+        "solidity": [
+          0.6102272727272727,
+          0.7372093023255814
+        ],
+        "asymmetry": [
+          0.041928721174004195,
+          0.3657957244655582
+        ],
+        "holes": [
+          0,
+          2
+        ]
+      },
+      "verdict": "keep",
+      "reasons": [
+        "externally referenced by docs/data/art/brood-variants.json -- keep despite: band sits fully inside 'pale_blue_skin_big_e' on every axis (aspect/solidity/asymmetry/holes) across all 8 rotations"
+      ]
+    },
+    "state01_sump": {
+      "measured": {
+        "canvas": [
+          88,
+          88
+        ],
+        "content": [
+          53,
+          34
+        ],
+        "aspect": 1.5588235294117647,
+        "solidity": 0.6698113207547169,
+        "asymmetry": 0.08947804473902236,
+        "holes": 0,
+        "hole_px": 0,
+        "luma_mean": 0.053810653540620874,
+        "luma_p95": 0.2288713725490196,
+        "opaque": 1207,
+        "distinct": 15,
+        "off_ramp": 1207,
+        "binary_alpha": true
+      },
+      "band": {
+        "aspect": [
+          1.0227272727272727,
+          1.5588235294117647
+        ],
+        "solidity": [
+          0.5969696969696969,
+          0.6698113207547169
+        ],
+        "asymmetry": [
+          0.0673076923076923,
+          0.44844844844844844
+        ],
+        "holes": [
+          0
+        ]
+      },
+      "verdict": "keep",
+      "reasons": [
+        "luma 0.054 -- not automatically wrong (SKILL.md), but the outline is doing all the work"
+      ]
+    },
+    "state02_bell": {
+      "measured": {
+        "canvas": [
+          88,
+          88
+        ],
+        "content": [
+          42,
+          44
+        ],
+        "aspect": 0.9545454545454546,
+        "solidity": 0.5313852813852814,
+        "asymmetry": 0.048879837067209775,
+        "holes": 0,
+        "hole_px": 0,
+        "luma_mean": 0.07191826125154745,
+        "luma_p95": 0.31514588235294116,
+        "opaque": 982,
+        "distinct": 15,
+        "off_ramp": 982,
+        "binary_alpha": true
+      },
+      "band": {
+        "aspect": [
+          0.8837209302325582,
+          0.9555555555555556
+        ],
+        "solidity": [
+          0.5313852813852814,
+          0.5458996328029376
+        ],
+        "asymmetry": [
+          0.03857868020304569,
+          0.3901345291479821
+        ],
+        "holes": [
+          0
+        ]
+      },
+      "verdict": "keep",
+      "reasons": [
+        "luma 0.072 -- not automatically wrong (SKILL.md), but the outline is doing all the work"
+      ]
+    },
+    "state03_stalk": {
+      "measured": {
+        "canvas": [
+          88,
+          88
+        ],
+        "content": [
+          22,
+          44
+        ],
+        "aspect": 0.5,
+        "solidity": 0.6518595041322314,
+        "asymmetry": 0.003169572107765452,
+        "holes": 0,
+        "hole_px": 0,
+        "luma_mean": 0.06976934961623317,
+        "luma_p95": 0.31514588235294116,
+        "opaque": 631,
+        "distinct": 16,
+        "off_ramp": 631,
+        "binary_alpha": true
+      },
+      "band": {
+        "aspect": [
+          0.5,
+          0.5777777777777777
+        ],
+        "solidity": [
+          0.5623931623931624,
+          0.6589147286821705
+        ],
+        "asymmetry": [
+          0.0,
+          0.36065573770491804
+        ],
+        "holes": [
+          0
+        ]
+      },
+      "verdict": "keep",
+      "reasons": [
+        "luma 0.070 -- not automatically wrong (SKILL.md), but the outline is doing all the work"
+      ]
+    },
+    "state04_wedge": {
+      "measured": {
+        "canvas": [
+          88,
+          88
+        ],
+        "content": [
+          43,
+          41
+        ],
+        "aspect": 1.048780487804878,
+        "solidity": 0.6812251843448667,
+        "asymmetry": 0.05328892589508743,
+        "holes": 0,
+        "hole_px": 0,
+        "luma_mean": 0.06188216094431111,
+        "luma_p95": 0.4520658823529411,
+        "opaque": 1201,
+        "distinct": 16,
+        "off_ramp": 1201,
+        "binary_alpha": true
+      },
+      "band": {
+        "aspect": [
+          1.0,
+          1.0681818181818181
+        ],
+        "solidity": [
+          0.5607707509881423,
+          0.6962833914053427
+        ],
+        "asymmetry": [
+          0.0050041701417848205,
+          0.37511436413540716
+        ],
+        "holes": [
+          0
+        ]
+      },
+      "verdict": "keep",
+      "reasons": [
+        "luma 0.062 -- not automatically wrong (SKILL.md), but the outline is doing all the work"
+      ]
+    },
+    "state05_ridge": {
+      "measured": {
+        "canvas": [
+          88,
+          88
+        ],
+        "content": [
+          30,
+          35
+        ],
+        "aspect": 0.8571428571428571,
+        "solidity": 0.7476190476190476,
+        "asymmetry": 0.0025477707006369425,
+        "holes": 0,
+        "hole_px": 0,
+        "luma_mean": 0.07160211614837017,
+        "luma_p95": 0.31514588235294116,
+        "opaque": 785,
+        "distinct": 15,
+        "off_ramp": 785,
+        "binary_alpha": true
+      },
+      "band": {
+        "aspect": [
+          0.5909090909090909,
+          2.6
+        ],
+        "solidity": [
+          0.5361111111111111,
+          0.8496503496503497
+        ],
+        "asymmetry": [
+          0.0,
+          1.0466321243523315
+        ],
+        "holes": [
+          0
+        ]
+      },
+      "verdict": "keep",
+      "reasons": [
+        "luma 0.072 -- not automatically wrong (SKILL.md), but the outline is doing all the work"
+      ]
+    },
+    "state06_crown": {
+      "measured": {
+        "canvas": [
+          88,
+          88
+        ],
+        "content": [
+          40,
+          43
+        ],
+        "aspect": 0.9302325581395349,
+        "solidity": 0.5552325581395349,
+        "asymmetry": 0.17382198952879582,
+        "holes": 0,
+        "hole_px": 0,
+        "luma_mean": 0.06322106806282722,
+        "luma_p95": 0.31514588235294116,
+        "opaque": 955,
+        "distinct": 15,
+        "off_ramp": 955,
+        "binary_alpha": true
+      },
+      "band": {
+        "aspect": [
+          0.6521739130434783,
+          0.9302325581395349
+        ],
+        "solidity": [
+          0.5552325581395349,
+          0.5934782608695652
+        ],
+        "asymmetry": [
+          0.1439312567132116,
+          0.532156368221942
+        ],
+        "holes": [
+          0
+        ]
+      },
+      "verdict": "keep",
+      "reasons": [
+        "luma 0.063 -- not automatically wrong (SKILL.md), but the outline is doing all the work"
+      ]
+    },
+    "state07_twin": {
+      "measured": {
+        "canvas": [
+          88,
+          88
+        ],
+        "content": [
+          40,
+          41
+        ],
+        "aspect": 0.975609756097561,
+        "solidity": 0.7475609756097561,
+        "asymmetry": 0.26753670473083196,
+        "holes": 2,
+        "hole_px": 17,
+        "luma_mean": 0.08023655183443687,
+        "luma_p95": 0.31514588235294116,
+        "opaque": 1226,
+        "distinct": 16,
+        "off_ramp": 1226,
+        "binary_alpha": true
+      },
+      "band": {
+        "aspect": [
+          0.4666666666666667,
+          0.975609756097561
+        ],
+        "solidity": [
+          0.6504983388704318,
+          0.7862433862433862
+        ],
+        "asymmetry": [
+          0.034013605442176874,
+          0.4117647058823529
+        ],
+        "holes": [
+          0,
+          2
+        ]
+      },
+      "verdict": "keep",
+      "reasons": [
+        "luma 0.080 -- not automatically wrong (SKILL.md), but the outline is doing all the work"
+      ]
+    },
+    "state08_slug": {
+      "measured": {
+        "canvas": [
+          88,
+          88
+        ],
+        "content": [
+          41,
+          37
+        ],
+        "aspect": 1.1081081081081081,
+        "solidity": 0.5893210283454186,
+        "asymmetry": 0.6935123042505593,
+        "holes": 0,
+        "hole_px": 0,
+        "luma_mean": 0.06914051761196648,
+        "luma_p95": 0.31514588235294116,
+        "opaque": 894,
+        "distinct": 15,
+        "off_ramp": 894,
+        "binary_alpha": true
+      },
+      "band": {
+        "aspect": [
+          0.851063829787234,
+          1.1081081081081081
+        ],
+        "solidity": [
+          0.5077777777777778,
+          0.5917678812415654
+        ],
+        "asymmetry": [
+          0.5471502590673575,
+          1.1641137855579868
+        ],
+        "holes": [
+          0
+        ]
+      },
+      "verdict": "keep",
+      "reasons": [
+        "luma 0.069 -- not automatically wrong (SKILL.md), but the outline is doing all the work"
+      ]
+    },
+    "Undead": {
+      "measured": {
+        "canvas": [
+          88,
+          88
+        ],
+        "content": [
+          39,
+          44
+        ],
+        "aspect": 0.8863636363636364,
+        "solidity": 0.5955710955710956,
+        "asymmetry": 0.17221135029354206,
+        "holes": 0,
+        "hole_px": 0,
+        "luma_mean": 0.15019245078853458,
+        "luma_p95": 0.47495529411764703,
+        "opaque": 1022,
+        "distinct": 63,
+        "off_ramp": 1022,
+        "binary_alpha": true
+      },
+      "band": {
+        "aspect": [
+          0.46511627906976744,
+          0.8863636363636364
+        ],
+        "solidity": [
+          0.5955710955710956,
+          0.7220930232558139
+        ],
+        "asymmetry": [
+          0.03628601921024546,
+          0.3673469387755102
+        ],
+        "holes": [
+          0,
+          1
+        ]
+      },
+      "verdict": "reject",
+      "reasons": [
+        "band is identical to 'A_black_ghost_with_sharp' on every axis across all 8 rotations"
+      ],
+      "culled_to": "RawArt/Renders/brood-ooze/rejected/Undead",
+      "culled_at": "2026-07-30T01:06:30+00:00"
+    },
+    "wearing_armor": {
+      "measured": {
+        "canvas": [
+          88,
+          88
+        ],
+        "content": [
+          38,
+          44
+        ],
+        "aspect": 0.8636363636363636,
+        "solidity": 0.6351674641148325,
+        "asymmetry": 0.0,
+        "holes": 0,
+        "hole_px": 0,
+        "luma_mean": 0.12816929803183041,
+        "luma_p95": 0.4621788235294117,
+        "opaque": 1062,
+        "distinct": 47,
+        "off_ramp": 1062,
+        "binary_alpha": true
+      },
+      "band": {
+        "aspect": [
+          0.46511627906976744,
+          0.8636363636363636
+        ],
+        "solidity": [
+          0.5934343434343434,
+          0.7255813953488373
+        ],
+        "asymmetry": [
+          0.0,
+          0.3837902264600715
+        ],
+        "holes": [
+          0,
+          1
+        ]
+      },
+      "verdict": "reject",
+      "reasons": [
+        "band is identical to 'Baby_face_smiling_li' on every axis across all 8 rotations"
+      ],
+      "culled_to": "RawArt/Renders/brood-ooze/rejected/wearing_armor",
+      "culled_at": "2026-07-30T01:06:30+00:00"
+    }
+  },
+  "judged": "2026-07-30T22:41:56+00:00"
+}

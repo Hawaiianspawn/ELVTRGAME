@@ -1,0 +1,272 @@
+{
+  "family": "archer-scifi",
+  "variants": {
+    "state01_marksman": {
+      "measured": {
+        "canvas": [
+          92,
+          92
+        ],
+        "content": [
+          41,
+          46
+        ],
+        "aspect": 0.8913043478260869,
+        "solidity": 0.5227995758218452,
+        "asymmetry": 0.8073022312373225,
+        "holes": 0,
+        "hole_px": 0,
+        "luma_mean": 0.18248872449588355,
+        "luma_p95": 0.6826094117647059,
+        "opaque": 986,
+        "distinct": 86,
+        "off_ramp": 986,
+        "binary_alpha": true
+      },
+      "band": {
+        "aspect": [
+          0.717391304347826,
+          0.9555555555555556
+        ],
+        "solidity": [
+          0.45760869565217394,
+          0.5612648221343873
+        ],
+        "asymmetry": [
+          0.49061032863849763,
+          1.2851985559566788
+        ],
+        "holes": [
+          0
+        ]
+      },
+      "verdict": "keep",
+      "reasons": [
+        "luma 0.182 -- not automatically wrong (SKILL.md), but the outline is doing all the work"
+      ]
+    },
+    "state02_voltaic": {
+      "measured": {
+        "canvas": [
+          92,
+          92
+        ],
+        "content": [
+          30,
+          46
+        ],
+        "aspect": 0.6521739130434783,
+        "solidity": 0.7094202898550724,
+        "asymmetry": 0.296220633299285,
+        "holes": 0,
+        "hole_px": 0,
+        "luma_mean": 0.18752744417072242,
+        "luma_p95": 0.7060596078431373,
+        "opaque": 979,
+        "distinct": 100,
+        "off_ramp": 979,
+        "binary_alpha": true
+      },
+      "band": {
+        "aspect": [
+          0.6521739130434783,
+          0.9333333333333333
+        ],
+        "solidity": [
+          0.5513227513227513,
+          0.7094202898550724
+        ],
+        "asymmetry": [
+          0.296220633299285,
+          0.9101516919486581
+        ],
+        "holes": [
+          0
+        ]
+      },
+      "verdict": "keep",
+      "reasons": [
+        "luma 0.188 -- not automatically wrong (SKILL.md), but the outline is doing all the work"
+      ]
+    },
+    "state03_harpooner": {
+      "measured": {
+        "canvas": [
+          92,
+          92
+        ],
+        "content": [
+          45,
+          46
+        ],
+        "aspect": 0.9782608695652174,
+        "solidity": 0.5444444444444444,
+        "asymmetry": 0.45785270629991126,
+        "holes": 0,
+        "hole_px": 0,
+        "luma_mean": 0.17344780973258866,
+        "luma_p95": 0.6431960784313725,
+        "opaque": 1127,
+        "distinct": 101,
+        "off_ramp": 1127,
+        "binary_alpha": true
+      },
+      "band": {
+        "aspect": [
+          0.8260869565217391,
+          1.0666666666666667
+        ],
+        "solidity": [
+          0.48777173913043476,
+          0.5611111111111111
+        ],
+        "asymmetry": [
+          0.2508250825082508,
+          0.6728205128205128
+        ],
+        "holes": [
+          0,
+          2
+        ]
+      },
+      "verdict": "keep",
+      "reasons": [
+        "luma 0.173 -- not automatically wrong (SKILL.md), but the outline is doing all the work"
+      ]
+    },
+    "state04_volley": {
+      "measured": {
+        "canvas": [
+          92,
+          92
+        ],
+        "content": [
+          43,
+          48
+        ],
+        "aspect": 0.8958333333333334,
+        "solidity": 0.6521317829457365,
+        "asymmetry": 0.4903417533432392,
+        "holes": 1,
+        "hole_px": 46,
+        "luma_mean": 0.1930466369489846,
+        "luma_p95": 0.6891750980392157,
+        "opaque": 1346,
+        "distinct": 114,
+        "off_ramp": 1346,
+        "binary_alpha": true
+      },
+      "band": {
+        "aspect": [
+          0.6739130434782609,
+          0.9555555555555556
+        ],
+        "solidity": [
+          0.5896640826873385,
+          0.7145862552594671
+        ],
+        "asymmetry": [
+          0.2505050505050505,
+          0.4975417895771878
+        ],
+        "holes": [
+          0,
+          1
+        ]
+      },
+      "verdict": "keep",
+      "reasons": [
+        "luma 0.193 -- not automatically wrong (SKILL.md), but the outline is doing all the work"
+      ]
+    },
+    "state05_kite": {
+      "measured": {
+        "canvas": [
+          92,
+          92
+        ],
+        "content": [
+          46,
+          46
+        ],
+        "aspect": 1.0,
+        "solidity": 0.502835538752363,
+        "asymmetry": 0.9210526315789473,
+        "holes": 0,
+        "hole_px": 0,
+        "luma_mean": 0.1781051090962701,
+        "luma_p95": 0.7060441960784314,
+        "opaque": 1064,
+        "distinct": 88,
+        "off_ramp": 1064,
+        "binary_alpha": true
+      },
+      "band": {
+        "aspect": [
+          0.6739130434782609,
+          1.0444444444444445
+        ],
+        "solidity": [
+          0.4711830131445905,
+          0.5925666199158486
+        ],
+        "asymmetry": [
+          0.5017751479289941,
+          1.1609553478712358
+        ],
+        "holes": [
+          0
+        ]
+      },
+      "verdict": "keep",
+      "reasons": [
+        "luma 0.178 -- not automatically wrong (SKILL.md), but the outline is doing all the work"
+      ]
+    },
+    "state06_sharpshooter": {
+      "measured": {
+        "canvas": [
+          92,
+          92
+        ],
+        "content": [
+          43,
+          46
+        ],
+        "aspect": 0.9347826086956522,
+        "solidity": 0.5222446916076845,
+        "asymmetry": 0.6698935140367861,
+        "holes": 0,
+        "hole_px": 0,
+        "luma_mean": 0.17823757341077767,
+        "luma_p95": 0.6694690196078431,
+        "opaque": 1033,
+        "distinct": 82,
+        "off_ramp": 1033,
+        "binary_alpha": true
+      },
+      "band": {
+        "aspect": [
+          0.8913043478260869,
+          1.0
+        ],
+        "solidity": [
+          0.48179979777553084,
+          0.5222446916076845
+        ],
+        "asymmetry": [
+          0.6698935140367861,
+          1.255863539445629
+        ],
+        "holes": [
+          0
+        ]
+      },
+      "verdict": "keep",
+      "reasons": [
+        "luma 0.178 -- not automatically wrong (SKILL.md), but the outline is doing all the work"
+      ]
+    }
+  },
+  "judged": "2026-07-30T01:16:19+00:00"
+}

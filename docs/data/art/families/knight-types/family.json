@@ -1,0 +1,20 @@
+{
+  "family": "knight-types",
+  "note": "Backfilled 2026-07-29 (task-081). type2_pikeman matches SKILL.md's humanoid 'narrow' worked example exactly (aspect 0.58 at 28px wide) -- SKILL.md documents what this variant REACHED, not what it was originally asked for, so silhouette_target stays null rather than backfilling the achieved number as if it were the ask. SKILL.md's rule for a skeletal base applies here: the axis is narrow <-> wide-by-extension, never tall <-> squat -- a humanoid will not compress vertically (see SKILL.md's three failed 'squat' attempts on the Vanguard).",
+  "base": {
+    "character_id": null,
+    "canvas_size": 88,
+    "note": "Confirmed by measurement (all 4 states return 88x88)."
+  },
+  "axis": {
+    "name": "aspect",
+    "description": "Unit-role variants (bulwark, pikeman, skirmisher) at the same base pose, moved narrow <-> wide by tucking/extending limbs and gear rather than by proportion knobs."
+  },
+  "constant": "Base knight character, inherited palette, 88px canvas.",
+  "variants": [
+    {"slug": "type0_base", "silhouette_target": null, "edit_description": null, "source": "legacy"},
+    {"slug": "type1_bulwark", "silhouette_target": null, "edit_description": null, "source": "legacy"},
+    {"slug": "type2_pikeman", "silhouette_target": null, "edit_description": null, "source": "legacy"},
+    {"slug": "type3_skirmisher", "silhouette_target": null, "edit_description": null, "source": "legacy"}
+  ]
+}

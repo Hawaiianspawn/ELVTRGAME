@@ -1,0 +1,84 @@
+{
+  "pavisewall": {
+    "slug": "pavisewall",
+    "base_id": "b3163cdf-6434-4390-8417-721a80797dcf",
+    "character_id": "44acbafa-03a9-4018-8afc-397a64618862",
+    "background_job_id": "36f8901b-3fd6-4392-a67e-b76f0966e285",
+    "edit": "A huge flat rectangular pavise shield planted upright on the ground directly in front of the body, wider than the soldier and reaching from the ground to the chest, the hooded figure crouched close behind it. The outline is a broad solid slab with a small head above it, wider than tall",
+    "tail": "Keep the head and legs clearly visible. Match the existing color palette exactly, no new colors, no glowing parts.",
+    "prompt": "A huge flat rectangular pavise shield planted upright on the ground directly in front of the body, wider than the soldier and reaching from the ground to the chest, the hooded figure crouched close behind it. The outline is a broad solid slab with a small head above it, wider than tall. Keep the head and legs clearly visible. Match the existing color palette exactly, no new colors, no glowing parts.",
+    "seed": null,
+    "usage": null,
+    "started": "2026-08-08T23:15:49+00:00",
+    "status": "done",
+    "fetched": "2026-08-08T23:17:48+00:00",
+    "canvas": [
+      92,
+      92
+    ],
+    "pixellab_name": "Merle (Pathfinder)",
+    "group_id": "e2702eb6-248d-4b6b-b8dc-fedc1290e059"
+  },
+  "lanternring": {
+    "slug": "lanternring",
+    "base_id": "b3163cdf-6434-4390-8417-721a80797dcf",
+    "character_id": "2994e1c3-7cc0-4e9e-a2b6-a5425fa58e63",
+    "background_job_id": "2eaba18f-959f-4bd8-adca-aebe19d16bde",
+    "edit": "Holding a tall pole out to one side topped with a large open circular lantern ring, the ring's hoop fully enclosing a wide empty gap of open sky well clear of the body. Hood up, other arm at the hip",
+    "tail": "Keep the head and legs clearly visible. Match the existing color palette exactly, no new colors, no glowing parts.",
+    "prompt": "Holding a tall pole out to one side topped with a large open circular lantern ring, the ring's hoop fully enclosing a wide empty gap of open sky well clear of the body. Hood up, other arm at the hip. Keep the head and legs clearly visible. Match the existing color palette exactly, no new colors, no glowing parts.",
+    "seed": null,
+    "usage": null,
+    "started": "2026-08-08T23:15:50+00:00",
+    "status": "done",
+    "fetched": "2026-08-08T23:17:54+00:00",
+    "canvas": [
+      92,
+      92
+    ],
+    "pixellab_name": "Merle (Pathfinder)",
+    "group_id": "e2702eb6-248d-4b6b-b8dc-fedc1290e059"
+  },
+  "sackhauler": {
+    "slug": "sackhauler",
+    "base_id": "b3163cdf-6434-4390-8417-721a80797dcf",
+    "character_id": "0581edf9-88b7-439a-b924-bd32a22168c4",
+    "background_job_id": "16091e2e-5457-4dec-896b-73c54320ed94",
+    "edit": "Hunched low under an enormous bulging bundled pack strapped high on the back, the pack doubling the body's depth and rising above the hood, both arms gripping the shoulder straps in front. The back view is a huge rounded mass, the front view stays narrow",
+    "tail": "Keep the head and legs clearly visible. Match the existing color palette exactly, no new colors, no glowing parts.",
+    "prompt": "Hunched low under an enormous bulging bundled pack strapped high on the back, the pack doubling the body's depth and rising above the hood, both arms gripping the shoulder straps in front. The back view is a huge rounded mass, the front view stays narrow. Keep the head and legs clearly visible. Match the existing color palette exactly, no new colors, no glowing parts.",
+    "seed": null,
+    "usage": null,
+    "started": "2026-08-08T23:15:50+00:00",
+    "status": "done",
+    "fetched": "2026-08-08T23:17:59+00:00",
+    "canvas": [
+      92,
+      92
+    ],
+    "pixellab_name": "Merle (Pathfinder)",
+    "group_id": "e2702eb6-248d-4b6b-b8dc-fedc1290e059"
+  },
+  "pavisewall-r2": {
+    "slug": "pavisewall-r2",
+    "base_id": "44acbafa-03a9-4018-8afc-397a64618862",
+    "character_id": "aaed4492-a273-43fc-a4f2-36feeb4acb56",
+    "background_job_id": "96cebf0b-50dd-45f0-9774-c3130497886a",
+    "edit": "The big rectangular pavise shield must stay planted directly in front of the body in every single facing. In the north, north-east and north-west views it drifts off to one side and leaves the soldier standing exposed beside it -- keep it centred in front of the torso in all eight rotations. Also the hood loses its shape in those rear views and becomes a smooth round ball: keep the hood peaked with a readable opening",
+    "tail": "Change only what is described and nothing else. Keep the same character, pose, proportions and kit. Match the existing color palette exactly, no new colors, no glowing parts.",
+    "prompt": "The big rectangular pavise shield must stay planted directly in front of the body in every single facing. In the north, north-east and north-west views it drifts off to one side and leaves the soldier standing exposed beside it -- keep it centred in front of the torso in all eight rotations. Also the hood loses its shape in those rear views and becomes a smooth round ball: keep the hood peaked with a readable opening. Change only what is described and nothing else. Keep the same character, pose, proportions and kit. Match the existing color palette exactly, no new colors, no glowing parts.",
+    "seed": null,
+    "usage": null,
+    "started": "2026-08-09T00:46:17+00:00",
+    "status": "done",
+    "refined_from": "pavisewall",
+    "refine_note": "The big rectangular pavise shield must stay planted directly in front of the body in every single facing. In the north, north-east and north-west views it drifts off to one side and leaves the soldier standing exposed beside it -- keep it centred in front of the torso in all eight rotations. Also the hood loses its shape in those rear views and becomes a smooth round ball: keep the hood peaked with a readable opening",
+    "fetched": "2026-08-09T00:48:12+00:00",
+    "canvas": [
+      92,
+      92
+    ],
+    "pixellab_name": "Merle (Pathfinder)",
+    "group_id": "e2702eb6-248d-4b6b-b8dc-fedc1290e059"
+  }
+}

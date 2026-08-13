@@ -1,0 +1,302 @@
+{
+  "family": "knight-mass",
+  "variants": {
+    "v0_base": {
+      "measured": {
+        "canvas": [
+          88,
+          88
+        ],
+        "content": [
+          34,
+          44
+        ],
+        "aspect": 0.7727272727272727,
+        "solidity": 0.7306149732620321,
+        "asymmetry": 0.2616651418115279,
+        "holes": 0,
+        "hole_px": 0,
+        "luma_mean": 0.2946110657840446,
+        "luma_p95": 0.6678015686274505,
+        "opaque": 1093,
+        "distinct": 871,
+        "off_ramp": 1093,
+        "binary_alpha": true
+      },
+      "band": {
+        "aspect": [
+          0.5227272727272727,
+          0.7954545454545454
+        ],
+        "solidity": [
+          0.6583333333333333,
+          0.7618577075098815
+        ],
+        "asymmetry": [
+          0.2616651418115279,
+          0.7065592635212888
+        ],
+        "holes": [
+          0
+        ]
+      },
+      "verdict": "keep",
+      "reasons": []
+    },
+    "v1_tower": {
+      "measured": {
+        "canvas": [
+          88,
+          88
+        ],
+        "content": [
+          34,
+          46
+        ],
+        "aspect": 0.7391304347826086,
+        "solidity": 0.7576726342710998,
+        "asymmetry": 0.3358649789029536,
+        "holes": 0,
+        "hole_px": 0,
+        "luma_mean": 0.31404568279970213,
+        "luma_p95": 0.600092549019608,
+        "opaque": 1185,
+        "distinct": 95,
+        "off_ramp": 1185,
+        "binary_alpha": true
+      },
+      "band": {
+        "aspect": [
+          0.5681818181818182,
+          0.782608695652174
+        ],
+        "solidity": [
+          0.6784313725490196,
+          0.8036363636363636
+        ],
+        "asymmetry": [
+          0.167420814479638,
+          0.5895953757225434
+        ],
+        "holes": [
+          0
+        ]
+      },
+      "verdict": "keep",
+      "reasons": []
+    },
+    "v2_pauldron": {
+      "measured": {
+        "canvas": [
+          88,
+          88
+        ],
+        "content": [
+          53,
+          46
+        ],
+        "aspect": 1.1521739130434783,
+        "solidity": 0.561115668580804,
+        "asymmetry": 0.14619883040935672,
+        "holes": 0,
+        "hole_px": 0,
+        "luma_mean": 0.291747992202729,
+        "luma_p95": 0.7077717647058823,
+        "opaque": 1368,
+        "distinct": 97,
+        "off_ramp": 1368,
+        "binary_alpha": true
+      },
+      "band": {
+        "aspect": [
+          0.6739130434782609,
+          1.1521739130434783
+        ],
+        "solidity": [
+          0.5180388529139686,
+          0.6086956521739131
+        ],
+        "asymmetry": [
+          0.12749003984063745,
+          0.4548162859980139
+        ],
+        "holes": [
+          0
+        ]
+      },
+      "verdict": "keep",
+      "reasons": []
+    },
+    "v3_skirted": {
+      "measured": {
+        "canvas": [
+          88,
+          88
+        ],
+        "content": [
+          36,
+          44
+        ],
+        "aspect": 0.8181818181818182,
+        "solidity": 0.7537878787878788,
+        "asymmetry": 0.18425460636515914,
+        "holes": 0,
+        "hole_px": 0,
+        "luma_mean": 0.2935820678556179,
+        "luma_p95": 0.6877005490196078,
+        "opaque": 1194,
+        "distinct": 105,
+        "off_ramp": 1194,
+        "binary_alpha": true
+      },
+      "band": {
+        "aspect": [
+          0.6222222222222222,
+          0.8181818181818182
+        ],
+        "solidity": [
+          0.6967084639498433,
+          0.7699346405228759
+        ],
+        "asymmetry": [
+          0.18425460636515914,
+          0.5197505197505198
+        ],
+        "holes": [
+          0
+        ]
+      },
+      "verdict": "keep",
+      "reasons": []
+    },
+    "v4_pike": {
+      "measured": {
+        "canvas": [
+          88,
+          88
+        ],
+        "content": [
+          34,
+          48
+        ],
+        "aspect": 0.7083333333333334,
+        "solidity": 0.6194852941176471,
+        "asymmetry": 0.23936696340257171,
+        "holes": 0,
+        "hole_px": 0,
+        "luma_mean": 0.23639272550959056,
+        "luma_p95": 0.658596862745098,
+        "opaque": 1011,
+        "distinct": 98,
+        "off_ramp": 1011,
+        "binary_alpha": true
+      },
+      "band": {
+        "aspect": [
+          0.5,
+          0.7291666666666666
+        ],
+        "solidity": [
+          0.5821428571428572,
+          0.7334710743801653
+        ],
+        "asymmetry": [
+          0.1295774647887324,
+          0.461864406779661
+        ],
+        "holes": [
+          0,
+          1
+        ]
+      },
+      "verdict": "keep",
+      "reasons": []
+    },
+    "v5_bannered": {
+      "measured": {
+        "canvas": [
+          88,
+          88
+        ],
+        "content": [
+          42,
+          48
+        ],
+        "aspect": 0.875,
+        "solidity": 0.6795634920634921,
+        "asymmetry": 0.5109489051094891,
+        "holes": 1,
+        "hole_px": 16,
+        "luma_mean": 0.2575841935022184,
+        "luma_p95": 0.6347513725490197,
+        "opaque": 1370,
+        "distinct": 113,
+        "off_ramp": 1370,
+        "binary_alpha": true
+      },
+      "band": {
+        "aspect": [
+          0.75,
+          0.9166666666666666
+        ],
+        "solidity": [
+          0.5681306306306306,
+          0.6795634920634921
+        ],
+        "asymmetry": [
+          0.4637002341920375,
+          1.1199207135777998
+        ],
+        "holes": [
+          0,
+          1
+        ]
+      },
+      "verdict": "keep",
+      "reasons": []
+    },
+    "v6_shieldwall": {
+      "measured": {
+        "canvas": [
+          88,
+          88
+        ],
+        "content": [
+          43,
+          42
+        ],
+        "aspect": 1.0238095238095237,
+        "solidity": 0.606312292358804,
+        "asymmetry": 0.2228310502283105,
+        "holes": 0,
+        "hole_px": 0,
+        "luma_mean": 0.26236670928462713,
+        "luma_p95": 0.6280580392156863,
+        "opaque": 1095,
+        "distinct": 92,
+        "off_ramp": 1095,
+        "binary_alpha": true
+      },
+      "band": {
+        "aspect": [
+          0.7045454545454546,
+          1.0238095238095237
+        ],
+        "solidity": [
+          0.6057855927396484,
+          0.7152274225444957
+        ],
+        "asymmetry": [
+          0.17228464419475656,
+          0.6961325966850829
+        ],
+        "holes": [
+          0
+        ]
+      },
+      "verdict": "keep",
+      "reasons": []
+    }
+  },
+  "judged": "2026-07-30T01:16:20+00:00"
+}

@@ -1,0 +1,23 @@
+{
+  "family": "knight-mass",
+  "note": "Backfilled 2026-07-29 (task-081). This is SKILL.md's 'adding gear' batch (tower shield, pauldrons, skirt plates, pike, banner, shieldwall crouch) -- measured aspect spread 1.6x matches SKILL.md's table exactly, well under knight-primitive's 3.2x from stripping the same base. SKILL.md's point stands: gear makes the outline busier, not more distinct.",
+  "base": {
+    "character_id": null,
+    "canvas_size": 88,
+    "note": "Confirmed by measurement (all 7 states return 88x88)."
+  },
+  "axis": {
+    "name": "interior",
+    "description": "Each state adds one piece of carried/worn gear (tower shield, pauldrons, skirt plates, pike, banner, shieldwall stance) to the same base pose -- mass added to the silhouette rather than the pose or ratio changing."
+  },
+  "constant": "Base knight character, inherited palette, 88px canvas, upright pose.",
+  "variants": [
+    {"slug": "v0_base", "silhouette_target": null, "edit_description": null, "source": "legacy"},
+    {"slug": "v1_tower", "silhouette_target": null, "edit_description": null, "source": "legacy"},
+    {"slug": "v2_pauldron", "silhouette_target": null, "edit_description": null, "source": "legacy"},
+    {"slug": "v3_skirted", "silhouette_target": null, "edit_description": null, "source": "legacy"},
+    {"slug": "v4_pike", "silhouette_target": null, "edit_description": null, "source": "legacy"},
+    {"slug": "v5_bannered", "silhouette_target": null, "edit_description": null, "source": "legacy"},
+    {"slug": "v6_shieldwall", "silhouette_target": null, "edit_description": null, "source": "legacy"}
+  ]
+}

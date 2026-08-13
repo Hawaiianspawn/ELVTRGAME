@@ -1,0 +1,23 @@
+{
+  "family": "knight-primitive",
+  "note": "Backfilled 2026-07-29 (task-081). This is SKILL.md's 'stripping to one nameable primitive' batch (square/triangle/dome/column, plus invtriangle and bar beyond what SKILL.md names) -- measured aspect spread 3.2x matches SKILL.md's table exactly. Solidity has a known ideal PER SHAPE (rectangle 1.00, half-disc 0.785, triangle 0.50 per SKILL.md) rather than one shared number, so it is not encoded as a per-variant silhouette_target here -- judge's aspect-target check would misread it as an aspect miss. SKILL.md's own verdict on this batch stands and judge cannot repeat it: Dome, Bar and Triangle read as furniture (a metal egg, a framed plaque, a shield/arrowhead) despite good numbers -- 'simplify to the simplest shape that still keeps a head and legs' is not something any metric here checks. Read the contact sheet before trusting the verdict column alone for this family.",
+  "base": {
+    "character_id": null,
+    "canvas_size": 88,
+    "note": "Confirmed by measurement (all 7 states return 88x88)."
+  },
+  "axis": {
+    "name": "aspect",
+    "description": "Each state strips the knight to one primitive shape (square, triangle, dome, column, inverted triangle, bar) with the weapon stowed and limbs tucked -- pure ratio and solidity change, no topology move."
+  },
+  "constant": "Base knight character, inherited palette, 88px canvas, no held prop extending the silhouette.",
+  "variants": [
+    {"slug": "p0_base", "silhouette_target": null, "edit_description": null, "source": "legacy"},
+    {"slug": "p1_square", "silhouette_target": null, "edit_description": null, "source": "legacy"},
+    {"slug": "p2_triangle", "silhouette_target": null, "edit_description": null, "source": "legacy"},
+    {"slug": "p3_dome", "silhouette_target": null, "edit_description": null, "source": "legacy"},
+    {"slug": "p4_column", "silhouette_target": null, "edit_description": null, "source": "legacy"},
+    {"slug": "p5_invtriangle", "silhouette_target": null, "edit_description": null, "source": "legacy"},
+    {"slug": "p6_bar", "silhouette_target": null, "edit_description": null, "source": "legacy"}
+  ]
+}

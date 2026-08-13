@@ -1,0 +1,82 @@
+{
+  "family": "enemy-armored",
+  "note": "task-112, 2026-07-30. First armored/human-shaped enemy on disk -- the brood is amorphous, this is the skeletal counterpart docs/art/npc-silhouette-brief.md §(b) describes. Base is character afa5582e's 'Make brighter pallet' state: despite the character's PixelLab name this is a bright grey/white armored humanoid, not an ooze. Every generated variant is create_character_state on this base only (no standard mode, no proportions knobs), use_color_palette_from_reference=True, glow explicitly banned per aesthetic-direction.md (light is reserved for the flame). Per SKILL.md's skeletal-base finding, the axis is narrow <-> wide-by-extension, never tall <-> squat. UPDATE 2026-07-30: owner asked to iterate away from old-fashioned weapons (flail, pike) toward claw armor/weapons. v1_pike and v8_tethered are SUPERSEDED -- kept on disk per the retention rule, not deleted -- and replaced by v9_clawgauntlet (same narrow brief/target as v1, claw gauntlets instead of a pike) and v10_clawreach (same hole-topology brief as v8, a claw held at shoulder height instead of a flail on a chain, specifically to fix v8's open-to-the-bottom-edge failure -- see docs/art/enemy-armored-variants.md).",
+  "base": {
+    "character_id": "afa5582e-c649-49cc-96de-677e6f9869dd",
+    "canvas_size": 88,
+    "note": "Confirmed via get_character before queueing: 88x88, 8 directions, low top-down, group 8b4b9811-dcf3-4e9d-baa6-2cb3f8901d0b (43 states)."
+  },
+  "axis": {
+    "name": "aspect",
+    "description": "Skeletal/armored humanoid base: v1-v2 spend the axis narrow (arms tucked, prop dropped or stowed vertically), v3-v5 spend it wide-by-extension (a rigid weapon/shield/standard held OUT from the body, never an inflated torso), v6-v8 spend topology once aspect is crowded (a notch, enclosed spike gaps, a tethered object held away from the body)."
+  },
+  "constant": "Base afa5582e armored-humanoid character, use_color_palette_from_reference=True, 88px canvas, low top-down 8-direction view, no glow/light source anywhere.",
+  "variants": [
+    {
+      "slug": "v0_base",
+      "silhouette_target": null,
+      "edit_description": null,
+      "source": "legacy"
+    },
+    {
+      "slug": "v1_pike",
+      "silhouette_target": 0.58,
+      "edit_description": "Tuck both arms tightly against the sides of the body, nothing protruding outward. Hold a single pike or spear vertically, flush against the body, pointing straight up. No shield, no outstretched limbs. Keep the same armored soldier silhouette with a clearly visible head and legs. No glow, no light source, no luminous effects anywhere.",
+      "source": "generated"
+    },
+    {
+      "slug": "v2_column",
+      "silhouette_target": 0.50,
+      "edit_description": "Remove all held weapons and shields entirely -- no props of any kind. Both arms tucked flush against the torso. The whole figure reads as one clean narrow vertical column from shoulders to feet, with no protruding parts. The figure must still keep a clearly visible head and legs so it reads as a soldier standing upright, not a pillar. No glow, no light source, no luminous effects anywhere.",
+      "source": "generated"
+    },
+    {
+      "slug": "v3_levelspear",
+      "silhouette_target": 1.6,
+      "edit_description": "Hold a long rigid spear or pike horizontally, perfectly level, straight across the body at chest height, extending equally past both shoulders. Body mass and armor stay unchanged from the base -- the width comes only from the extended weapon. No glow, no light source, no luminous effects anywhere.",
+      "source": "generated"
+    },
+    {
+      "slug": "v4_standard",
+      "silhouette_target": "asymmetry > 0.4 (long standard/banner held out to one side only, not mirrored)",
+      "edit_description": "Hold a long standard or banner pole extended out to one side only, reaching well past that shoulder. The other arm stays tucked close against the body with no matching prop, so the left and right sides of the silhouette are clearly different from each other, not mirrored. Body mass otherwise unchanged from the base. No glow, no light source, no luminous effects anywhere.",
+      "source": "generated"
+    },
+    {
+      "slug": "v5_slabshield",
+      "silhouette_target": "asymmetry > 0.4 and solidity clearly above siblings (tall slab shield one side, sword arm tucked the other)",
+      "edit_description": "Hold a tall rectangular slab shield out to one side, extending well past that shoulder and covering much of that side's silhouette with solid mass. The sword arm on the opposite side stays tucked close against the body, no matching prop. The two sides of the silhouette must read as clearly different from each other. No glow, no light source, no luminous effects anywhere.",
+      "source": "generated"
+    },
+    {
+      "slug": "v6_notched",
+      "silhouette_target": "aspect near base, ~0.85-0.95 (deep vertical notch splitting the body mass, head dropped below the shoulder line)",
+      "edit_description": "A deep notch or gap splits the body mass roughly in half vertically, as if the torso were cleaved open. The head is dropped down below the shoulder line so the top edge of the silhouette is uneven and asymmetric, not a clean dome. Keep overall body width and height close to the base proportions -- this variant changes the shape of the outline, not its ratio. No glow, no light source, no luminous effects anywhere.",
+      "source": "generated"
+    },
+    {
+      "slug": "v7_spined",
+      "silhouette_target": "enclosed air gaps between top-edge spikes surviving all 8 rotations, not a thin notch",
+      "edit_description": "A row of rigid jagged spikes or spines projects from the top of the shoulders and back. Leave generous, wide open air gaps between each spike -- the background must not be able to flow into the gaps from any edge, they must be fully enclosed on every side. Keep the base body mass and armor. No glow, no light source, no luminous effects anywhere.",
+      "source": "generated"
+    },
+    {
+      "slug": "v8_tethered",
+      "silhouette_target": "at least one enclosed hole surviving all 8 rotations (rigid object held away from the torso on a chain/haft)",
+      "edit_description": "A spiked flail head hangs from a chain, swung out and held away from the body at the end of an extended arm -- clear open space between the flail head and the torso on every side, fully enclosed and not touching the body or any limb. The flail head itself is inert metal, not glowing. No glow, no light source, no luminous effects anywhere.",
+      "source": "generated"
+    },
+    {
+      "slug": "v9_clawgauntlet",
+      "silhouette_target": 0.58,
+      "edit_description": "Tuck both arms tightly against the sides of the body, nothing protruding outward. Both hands end in oversized clawed gauntlets -- sharp curved metal talons instead of holding any weapon or prop. No polearm, no pike, no separate held item of any kind. Keep the same armored soldier silhouette with a clearly visible head and legs. No glow, no light source, no luminous effects anywhere.",
+      "source": "generated"
+    },
+    {
+      "slug": "v10_clawreach",
+      "silhouette_target": "at least one enclosed hole surviving all 8 rotations (rigid claw held away from the torso at shoulder height, not hanging low)",
+      "edit_description": "One arm ends in a massive segmented mechanical claw or pincer, held out and open away from the torso at shoulder height. Leave clear open space fully enclosed on every side between the claw and the body -- the claw must not touch the torso and must not hang down below the waist. The claw is rigid armored metal, not a weapon on a chain, not a hand weapon. No glow, no light source, no luminous effects anywhere.",
+      "source": "generated"
+    }
+  ]
+}

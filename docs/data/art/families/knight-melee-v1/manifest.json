@@ -1,0 +1,390 @@
+{
+  "family": "knight-melee-v1",
+  "variants": {
+    "v1_narrowguard": {
+      "urls": [
+        "https://backblaze.pixellab.ai/file/pixellab-characters/af7def4e-5692-4b18-9246-874d5382befb/0b629df4-95c4-4559-8a6c-c08d7d2c78ae/rotations/south.png?t=1785375574",
+        "https://backblaze.pixellab.ai/file/pixellab-characters/af7def4e-5692-4b18-9246-874d5382befb/0b629df4-95c4-4559-8a6c-c08d7d2c78ae/rotations/east.png?t=1785375574",
+        "https://backblaze.pixellab.ai/file/pixellab-characters/af7def4e-5692-4b18-9246-874d5382befb/0b629df4-95c4-4559-8a6c-c08d7d2c78ae/rotations/north.png?t=1785375574",
+        "https://backblaze.pixellab.ai/file/pixellab-characters/af7def4e-5692-4b18-9246-874d5382befb/0b629df4-95c4-4559-8a6c-c08d7d2c78ae/rotations/west.png?t=1785375574",
+        "https://backblaze.pixellab.ai/file/pixellab-characters/af7def4e-5692-4b18-9246-874d5382befb/0b629df4-95c4-4559-8a6c-c08d7d2c78ae/rotations/south-east.png?t=1785375574",
+        "https://backblaze.pixellab.ai/file/pixellab-characters/af7def4e-5692-4b18-9246-874d5382befb/0b629df4-95c4-4559-8a6c-c08d7d2c78ae/rotations/north-east.png?t=1785375574",
+        "https://backblaze.pixellab.ai/file/pixellab-characters/af7def4e-5692-4b18-9246-874d5382befb/0b629df4-95c4-4559-8a6c-c08d7d2c78ae/rotations/north-west.png?t=1785375574",
+        "https://backblaze.pixellab.ai/file/pixellab-characters/af7def4e-5692-4b18-9246-874d5382befb/0b629df4-95c4-4559-8a6c-c08d7d2c78ae/rotations/south-west.png?t=1785375574"
+      ],
+      "fetched": "2026-07-30T01:39:59+00:00",
+      "files": [
+        "east.png",
+        "north-east.png",
+        "north-west.png",
+        "north.png",
+        "south-east.png",
+        "south-west.png",
+        "south.png",
+        "west.png"
+      ],
+      "measured": {
+        "canvas": [
+          88,
+          88
+        ],
+        "content": [
+          31,
+          44
+        ],
+        "aspect": 0.7045454545454546,
+        "solidity": 0.7038123167155426,
+        "asymmetry": 0.07916666666666666,
+        "holes": 0,
+        "hole_px": 0,
+        "luma_mean": 0.2529629656862745,
+        "luma_p95": 0.6280580392156863,
+        "opaque": 960,
+        "distinct": 45,
+        "off_ramp": 960,
+        "binary_alpha": true
+      },
+      "band": {
+        "aspect": [
+          0.5,
+          0.7045454545454546
+        ],
+        "solidity": [
+          0.7038123167155426,
+          0.7613636363636364
+        ],
+        "asymmetry": [
+          0.04814004376367615,
+          0.3147208121827411
+        ],
+        "holes": [
+          0
+        ]
+      },
+      "verdict": "keep",
+      "reasons": []
+    },
+    "v2_lanceout": {
+      "urls": [
+        "https://backblaze.pixellab.ai/file/pixellab-characters/af7def4e-5692-4b18-9246-874d5382befb/cef30036-651d-4300-8485-b0fbc235ce38/rotations/south.png?t=1785375737",
+        "https://backblaze.pixellab.ai/file/pixellab-characters/af7def4e-5692-4b18-9246-874d5382befb/cef30036-651d-4300-8485-b0fbc235ce38/rotations/east.png?t=1785375737",
+        "https://backblaze.pixellab.ai/file/pixellab-characters/af7def4e-5692-4b18-9246-874d5382befb/cef30036-651d-4300-8485-b0fbc235ce38/rotations/north.png?t=1785375737",
+        "https://backblaze.pixellab.ai/file/pixellab-characters/af7def4e-5692-4b18-9246-874d5382befb/cef30036-651d-4300-8485-b0fbc235ce38/rotations/west.png?t=1785375737",
+        "https://backblaze.pixellab.ai/file/pixellab-characters/af7def4e-5692-4b18-9246-874d5382befb/cef30036-651d-4300-8485-b0fbc235ce38/rotations/south-east.png?t=1785375737",
+        "https://backblaze.pixellab.ai/file/pixellab-characters/af7def4e-5692-4b18-9246-874d5382befb/cef30036-651d-4300-8485-b0fbc235ce38/rotations/north-east.png?t=1785375737",
+        "https://backblaze.pixellab.ai/file/pixellab-characters/af7def4e-5692-4b18-9246-874d5382befb/cef30036-651d-4300-8485-b0fbc235ce38/rotations/north-west.png?t=1785375737",
+        "https://backblaze.pixellab.ai/file/pixellab-characters/af7def4e-5692-4b18-9246-874d5382befb/cef30036-651d-4300-8485-b0fbc235ce38/rotations/south-west.png?t=1785375737"
+      ],
+      "fetched": "2026-07-30T01:42:50+00:00",
+      "files": [
+        "east.png",
+        "north-east.png",
+        "north-west.png",
+        "north.png",
+        "south-east.png",
+        "south-west.png",
+        "south.png",
+        "west.png"
+      ],
+      "measured": {
+        "canvas": [
+          88,
+          88
+        ],
+        "content": [
+          46,
+          44
+        ],
+        "aspect": 1.0454545454545454,
+        "solidity": 0.5340909090909091,
+        "asymmetry": 0.3866790009250694,
+        "holes": 0,
+        "hole_px": 0,
+        "luma_mean": 0.2611095898859081,
+        "luma_p95": 0.6874996078431371,
+        "opaque": 1081,
+        "distinct": 41,
+        "off_ramp": 1081,
+        "binary_alpha": true
+      },
+      "band": {
+        "aspect": [
+          0.9772727272727273,
+          1.2619047619047619
+        ],
+        "solidity": [
+          0.39827727645611155,
+          0.5340909090909091
+        ],
+        "asymmetry": [
+          0.3866790009250694,
+          1.2135593220338983
+        ],
+        "holes": [
+          0
+        ]
+      },
+      "verdict": "keep",
+      "reasons": []
+    },
+    "v3_shieldbreak": {
+      "urls": [
+        "https://backblaze.pixellab.ai/file/pixellab-characters/af7def4e-5692-4b18-9246-874d5382befb/d54d6aee-a9b4-4278-8c1a-d921af9cfa0f/rotations/south.png?t=1785375719",
+        "https://backblaze.pixellab.ai/file/pixellab-characters/af7def4e-5692-4b18-9246-874d5382befb/d54d6aee-a9b4-4278-8c1a-d921af9cfa0f/rotations/east.png?t=1785375719",
+        "https://backblaze.pixellab.ai/file/pixellab-characters/af7def4e-5692-4b18-9246-874d5382befb/d54d6aee-a9b4-4278-8c1a-d921af9cfa0f/rotations/north.png?t=1785375719",
+        "https://backblaze.pixellab.ai/file/pixellab-characters/af7def4e-5692-4b18-9246-874d5382befb/d54d6aee-a9b4-4278-8c1a-d921af9cfa0f/rotations/west.png?t=1785375719",
+        "https://backblaze.pixellab.ai/file/pixellab-characters/af7def4e-5692-4b18-9246-874d5382befb/d54d6aee-a9b4-4278-8c1a-d921af9cfa0f/rotations/south-east.png?t=1785375719",
+        "https://backblaze.pixellab.ai/file/pixellab-characters/af7def4e-5692-4b18-9246-874d5382befb/d54d6aee-a9b4-4278-8c1a-d921af9cfa0f/rotations/north-east.png?t=1785375719",
+        "https://backblaze.pixellab.ai/file/pixellab-characters/af7def4e-5692-4b18-9246-874d5382befb/d54d6aee-a9b4-4278-8c1a-d921af9cfa0f/rotations/north-west.png?t=1785375719",
+        "https://backblaze.pixellab.ai/file/pixellab-characters/af7def4e-5692-4b18-9246-874d5382befb/d54d6aee-a9b4-4278-8c1a-d921af9cfa0f/rotations/south-west.png?t=1785375719"
+      ],
+      "fetched": "2026-07-30T01:42:55+00:00",
+      "files": [
+        "east.png",
+        "north-east.png",
+        "north-west.png",
+        "north.png",
+        "south-east.png",
+        "south-west.png",
+        "south.png",
+        "west.png"
+      ],
+      "measured": {
+        "canvas": [
+          88,
+          88
+        ],
+        "content": [
+          42,
+          44
+        ],
+        "aspect": 0.9545454545454546,
+        "solidity": 0.6082251082251082,
+        "asymmetry": 0.7402135231316725,
+        "holes": 0,
+        "hole_px": 0,
+        "luma_mean": 0.2678535859325937,
+        "luma_p95": 0.6874996078431371,
+        "opaque": 1124,
+        "distinct": 38,
+        "off_ramp": 1124,
+        "binary_alpha": true
+      },
+      "band": {
+        "aspect": [
+          0.7727272727272727,
+          0.9545454545454546
+        ],
+        "solidity": [
+          0.5512820512820513,
+          0.6783891094724901
+        ],
+        "asymmetry": [
+          0.48315688161693937,
+          0.7792706333973128
+        ],
+        "holes": [
+          0,
+          1
+        ]
+      },
+      "verdict": "keep",
+      "reasons": []
+    },
+    "v4_overhead": {
+      "urls": [
+        "https://backblaze.pixellab.ai/file/pixellab-characters/af7def4e-5692-4b18-9246-874d5382befb/95374fa3-3f06-4db5-be4c-b0c73f72f7af/rotations/south.png?t=1785375707",
+        "https://backblaze.pixellab.ai/file/pixellab-characters/af7def4e-5692-4b18-9246-874d5382befb/95374fa3-3f06-4db5-be4c-b0c73f72f7af/rotations/east.png?t=1785375707",
+        "https://backblaze.pixellab.ai/file/pixellab-characters/af7def4e-5692-4b18-9246-874d5382befb/95374fa3-3f06-4db5-be4c-b0c73f72f7af/rotations/north.png?t=1785375707",
+        "https://backblaze.pixellab.ai/file/pixellab-characters/af7def4e-5692-4b18-9246-874d5382befb/95374fa3-3f06-4db5-be4c-b0c73f72f7af/rotations/west.png?t=1785375707",
+        "https://backblaze.pixellab.ai/file/pixellab-characters/af7def4e-5692-4b18-9246-874d5382befb/95374fa3-3f06-4db5-be4c-b0c73f72f7af/rotations/south-east.png?t=1785375707",
+        "https://backblaze.pixellab.ai/file/pixellab-characters/af7def4e-5692-4b18-9246-874d5382befb/95374fa3-3f06-4db5-be4c-b0c73f72f7af/rotations/north-east.png?t=1785375707",
+        "https://backblaze.pixellab.ai/file/pixellab-characters/af7def4e-5692-4b18-9246-874d5382befb/95374fa3-3f06-4db5-be4c-b0c73f72f7af/rotations/north-west.png?t=1785375707",
+        "https://backblaze.pixellab.ai/file/pixellab-characters/af7def4e-5692-4b18-9246-874d5382befb/95374fa3-3f06-4db5-be4c-b0c73f72f7af/rotations/south-west.png?t=1785375707"
+      ],
+      "fetched": "2026-07-30T01:43:05+00:00",
+      "files": [
+        "east.png",
+        "north-east.png",
+        "north-west.png",
+        "north.png",
+        "south-east.png",
+        "south-west.png",
+        "south.png",
+        "west.png"
+      ],
+      "measured": {
+        "canvas": [
+          88,
+          88
+        ],
+        "content": [
+          45,
+          43
+        ],
+        "aspect": 1.0465116279069768,
+        "solidity": 0.5229974160206718,
+        "asymmetry": 0.16798418972332016,
+        "holes": 2,
+        "hole_px": 18,
+        "luma_mean": 0.2307820863365109,
+        "luma_p95": 0.645204705882353,
+        "opaque": 1012,
+        "distinct": 43,
+        "off_ramp": 1012,
+        "binary_alpha": true
+      },
+      "band": {
+        "aspect": [
+          0.391304347826087,
+          1.0465116279069768
+        ],
+        "solidity": [
+          0.5088888888888888,
+          0.7089371980676329
+        ],
+        "asymmetry": [
+          0.10707456978967496,
+          0.44541484716157204
+        ],
+        "holes": [
+          0,
+          1,
+          2
+        ]
+      },
+      "verdict": "keep",
+      "reasons": []
+    },
+    "v5_widecross": {
+      "urls": [
+        "https://backblaze.pixellab.ai/file/pixellab-characters/af7def4e-5692-4b18-9246-874d5382befb/d6695238-46c4-4159-9f60-0b09b9ebf6d6/rotations/south.png?t=1785375725",
+        "https://backblaze.pixellab.ai/file/pixellab-characters/af7def4e-5692-4b18-9246-874d5382befb/d6695238-46c4-4159-9f60-0b09b9ebf6d6/rotations/east.png?t=1785375725",
+        "https://backblaze.pixellab.ai/file/pixellab-characters/af7def4e-5692-4b18-9246-874d5382befb/d6695238-46c4-4159-9f60-0b09b9ebf6d6/rotations/north.png?t=1785375725",
+        "https://backblaze.pixellab.ai/file/pixellab-characters/af7def4e-5692-4b18-9246-874d5382befb/d6695238-46c4-4159-9f60-0b09b9ebf6d6/rotations/west.png?t=1785375725",
+        "https://backblaze.pixellab.ai/file/pixellab-characters/af7def4e-5692-4b18-9246-874d5382befb/d6695238-46c4-4159-9f60-0b09b9ebf6d6/rotations/south-east.png?t=1785375725",
+        "https://backblaze.pixellab.ai/file/pixellab-characters/af7def4e-5692-4b18-9246-874d5382befb/d6695238-46c4-4159-9f60-0b09b9ebf6d6/rotations/north-east.png?t=1785375725",
+        "https://backblaze.pixellab.ai/file/pixellab-characters/af7def4e-5692-4b18-9246-874d5382befb/d6695238-46c4-4159-9f60-0b09b9ebf6d6/rotations/north-west.png?t=1785375725",
+        "https://backblaze.pixellab.ai/file/pixellab-characters/af7def4e-5692-4b18-9246-874d5382befb/d6695238-46c4-4159-9f60-0b09b9ebf6d6/rotations/south-west.png?t=1785375725"
+      ],
+      "fetched": "2026-07-30T01:43:10+00:00",
+      "files": [
+        "east.png",
+        "north-east.png",
+        "north-west.png",
+        "north.png",
+        "south-east.png",
+        "south-west.png",
+        "south.png",
+        "west.png"
+      ],
+      "measured": {
+        "canvas": [
+          88,
+          88
+        ],
+        "content": [
+          50,
+          46
+        ],
+        "aspect": 1.0869565217391304,
+        "solidity": 0.5282608695652173,
+        "asymmetry": 0.5382716049382716,
+        "holes": 0,
+        "hole_px": 0,
+        "luma_mean": 0.2699161294279029,
+        "luma_p95": 0.658596862745098,
+        "opaque": 1215,
+        "distinct": 43,
+        "off_ramp": 1215,
+        "binary_alpha": true
+      },
+      "band": {
+        "aspect": [
+          0.9782608695652174,
+          1.2325581395348837
+        ],
+        "solidity": [
+          0.4001755155770075,
+          0.5625
+        ],
+        "asymmetry": [
+          0.05043859649122807,
+          0.7592190889370932
+        ],
+        "holes": [
+          0,
+          1
+        ]
+      },
+      "verdict": "flag",
+      "reasons": [
+        "aspect target 1.60 falls outside the measured 0.98-1.23 band across all 8 rotations"
+      ]
+    },
+    "v6_simplecolumn": {
+      "urls": [
+        "https://backblaze.pixellab.ai/file/pixellab-characters/af7def4e-5692-4b18-9246-874d5382befb/193c4747-fb55-4d2d-884a-6f8aa795c05d/rotations/south.png?t=1785375708",
+        "https://backblaze.pixellab.ai/file/pixellab-characters/af7def4e-5692-4b18-9246-874d5382befb/193c4747-fb55-4d2d-884a-6f8aa795c05d/rotations/east.png?t=1785375708",
+        "https://backblaze.pixellab.ai/file/pixellab-characters/af7def4e-5692-4b18-9246-874d5382befb/193c4747-fb55-4d2d-884a-6f8aa795c05d/rotations/north.png?t=1785375708",
+        "https://backblaze.pixellab.ai/file/pixellab-characters/af7def4e-5692-4b18-9246-874d5382befb/193c4747-fb55-4d2d-884a-6f8aa795c05d/rotations/west.png?t=1785375708",
+        "https://backblaze.pixellab.ai/file/pixellab-characters/af7def4e-5692-4b18-9246-874d5382befb/193c4747-fb55-4d2d-884a-6f8aa795c05d/rotations/south-east.png?t=1785375708",
+        "https://backblaze.pixellab.ai/file/pixellab-characters/af7def4e-5692-4b18-9246-874d5382befb/193c4747-fb55-4d2d-884a-6f8aa795c05d/rotations/north-east.png?t=1785375708",
+        "https://backblaze.pixellab.ai/file/pixellab-characters/af7def4e-5692-4b18-9246-874d5382befb/193c4747-fb55-4d2d-884a-6f8aa795c05d/rotations/north-west.png?t=1785375708",
+        "https://backblaze.pixellab.ai/file/pixellab-characters/af7def4e-5692-4b18-9246-874d5382befb/193c4747-fb55-4d2d-884a-6f8aa795c05d/rotations/south-west.png?t=1785375708"
+      ],
+      "fetched": "2026-07-30T01:43:16+00:00",
+      "files": [
+        "east.png",
+        "north-east.png",
+        "north-west.png",
+        "north.png",
+        "south-east.png",
+        "south-west.png",
+        "south.png",
+        "west.png"
+      ],
+      "measured": {
+        "canvas": [
+          88,
+          88
+        ],
+        "content": [
+          30,
+          44
+        ],
+        "aspect": 0.6818181818181818,
+        "solidity": 0.746969696969697,
+        "asymmetry": 0.26774847870182555,
+        "holes": 0,
+        "hole_px": 0,
+        "luma_mean": 0.25137688263134866,
+        "luma_p95": 0.6280580392156863,
+        "opaque": 986,
+        "distinct": 41,
+        "off_ramp": 986,
+        "binary_alpha": true
+      },
+      "band": {
+        "aspect": [
+          0.5454545454545454,
+          0.7045454545454546
+        ],
+        "solidity": [
+          0.6510263929618768,
+          0.7848837209302325
+        ],
+        "asymmetry": [
+          0.15873015873015872,
+          0.5436241610738255
+        ],
+        "holes": [
+          0
+        ]
+      },
+      "verdict": "keep",
+      "reasons": []
+    }
+  },
+  "judged": "2026-07-30T01:47:58+00:00"
+}

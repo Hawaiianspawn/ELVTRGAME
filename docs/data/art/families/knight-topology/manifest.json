@@ -1,0 +1,265 @@
+{
+  "family": "knight-topology",
+  "variants": {
+    "t0_base": {
+      "measured": {
+        "canvas": [
+          88,
+          88
+        ],
+        "content": [
+          34,
+          44
+        ],
+        "aspect": 0.7727272727272727,
+        "solidity": 0.7306149732620321,
+        "asymmetry": 0.2616651418115279,
+        "holes": 0,
+        "hole_px": 0,
+        "luma_mean": 0.2946110657840446,
+        "luma_p95": 0.6678015686274505,
+        "opaque": 1093,
+        "distinct": 871,
+        "off_ramp": 1093,
+        "binary_alpha": true
+      },
+      "band": {
+        "aspect": [
+          0.5227272727272727,
+          0.7954545454545454
+        ],
+        "solidity": [
+          0.6583333333333333,
+          0.7618577075098815
+        ],
+        "asymmetry": [
+          0.2616651418115279,
+          0.7065592635212888
+        ],
+        "holes": [
+          0
+        ]
+      },
+      "verdict": "keep",
+      "reasons": []
+    },
+    "t1_straddle": {
+      "measured": {
+        "canvas": [
+          88,
+          88
+        ],
+        "content": [
+          37,
+          47
+        ],
+        "aspect": 0.7872340425531915,
+        "solidity": 0.6693502012650949,
+        "asymmetry": 0.20103092783505155,
+        "holes": 0,
+        "hole_px": 0,
+        "luma_mean": 0.26658806549423897,
+        "luma_p95": 0.6576174509803915,
+        "opaque": 1164,
+        "distinct": 102,
+        "off_ramp": 1164,
+        "binary_alpha": true
+      },
+      "band": {
+        "aspect": [
+          0.7446808510638298,
+          0.8913043478260869
+        ],
+        "solidity": [
+          0.5543735224586288,
+          0.6693502012650949
+        ],
+        "asymmetry": [
+          0.20103092783505155,
+          0.4864864864864865
+        ],
+        "holes": [
+          0,
+          1
+        ]
+      },
+      "verdict": "keep",
+      "reasons": []
+    },
+    "t2_shieldout": {
+      "measured": {
+        "canvas": [
+          88,
+          88
+        ],
+        "content": [
+          52,
+          44
+        ],
+        "aspect": 1.1818181818181819,
+        "solidity": 0.5406468531468531,
+        "asymmetry": 0.5966046887631367,
+        "holes": 0,
+        "hole_px": 0,
+        "luma_mean": 0.24773902135146705,
+        "luma_p95": 0.6245168627450981,
+        "opaque": 1237,
+        "distinct": 99,
+        "off_ramp": 1237,
+        "binary_alpha": true
+      },
+      "band": {
+        "aspect": [
+          0.7045454545454546,
+          1.186046511627907
+        ],
+        "solidity": [
+          0.5338137472283814,
+          0.7104105571847508
+        ],
+        "asymmetry": [
+          0.4850361197110423,
+          0.8598130841121495
+        ],
+        "holes": [
+          0,
+          1
+        ]
+      },
+      "verdict": "keep",
+      "reasons": []
+    },
+    "t3_spearlevel": {
+      "measured": {
+        "canvas": [
+          88,
+          88
+        ],
+        "content": [
+          51,
+          44
+        ],
+        "aspect": 1.1590909090909092,
+        "solidity": 0.4500891265597148,
+        "asymmetry": 0.2,
+        "holes": 0,
+        "hole_px": 0,
+        "luma_mean": 0.21508158338186759,
+        "luma_p95": 0.6245168627450981,
+        "opaque": 1010,
+        "distinct": 92,
+        "off_ramp": 1010,
+        "binary_alpha": true
+      },
+      "band": {
+        "aspect": [
+          1.0454545454545454,
+          1.2325581395348837
+        ],
+        "solidity": [
+          0.36954545454545457,
+          0.4804552201880257
+        ],
+        "asymmetry": [
+          0.14022140221402213,
+          0.8870392390011891
+        ],
+        "holes": [
+          0
+        ]
+      },
+      "verdict": "keep",
+      "reasons": []
+    },
+    "t4_akimbo": {
+      "measured": {
+        "canvas": [
+          88,
+          88
+        ],
+        "content": [
+          36,
+          44
+        ],
+        "aspect": 0.8181818181818182,
+        "solidity": 0.6837121212121212,
+        "asymmetry": 0.4228993536472761,
+        "holes": 2,
+        "hole_px": 10,
+        "luma_mean": 0.286352769539949,
+        "luma_p95": 0.643003137254902,
+        "opaque": 1083,
+        "distinct": 129,
+        "off_ramp": 1083,
+        "binary_alpha": true
+      },
+      "band": {
+        "aspect": [
+          0.5681818181818182,
+          0.8372093023255814
+        ],
+        "solidity": [
+          0.5902406417112299,
+          0.7127272727272728
+        ],
+        "asymmetry": [
+          0.22702702702702704,
+          0.6818700114025086
+        ],
+        "holes": [
+          0,
+          1,
+          2
+        ]
+      },
+      "verdict": "keep",
+      "reasons": []
+    },
+    "t5_overhead": {
+      "measured": {
+        "canvas": [
+          88,
+          88
+        ],
+        "content": [
+          51,
+          44
+        ],
+        "aspect": 1.1590909090909092,
+        "solidity": 0.46702317290552586,
+        "asymmetry": 0.2748091603053435,
+        "holes": 2,
+        "hole_px": 19,
+        "luma_mean": 0.19279012872324502,
+        "luma_p95": 0.5734345098039215,
+        "opaque": 1048,
+        "distinct": 89,
+        "off_ramp": 1048,
+        "binary_alpha": true
+      },
+      "band": {
+        "aspect": [
+          0.8695652173913043,
+          1.2093023255813953
+        ],
+        "solidity": [
+          0.38486997635933806,
+          0.5838888888888889
+        ],
+        "asymmetry": [
+          0.18773946360153257,
+          0.7571288102261554
+        ],
+        "holes": [
+          0,
+          2
+        ]
+      },
+      "verdict": "keep",
+      "reasons": [
+        "luma 0.193 -- not automatically wrong (SKILL.md), but the outline is doing all the work"
+      ]
+    }
+  },
+  "judged": "2026-07-30T01:16:19+00:00"
+}

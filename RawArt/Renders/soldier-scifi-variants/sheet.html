@@ -1,0 +1,139 @@
+<title>Sci-fi soldier silhouette variants</title>
+<style>
+:root{--ground:#141418;--surface:#1d1d24;--line:#31313c;--sunk:#0e0e12;
+  --bone:#a0a08b;--pale:#e9efec;--steel:#7f8494;--blood:#8f4038;
+  --ink:var(--pale);--dim:var(--steel);
+  --serif:"Iowan Old Style","Palatino Linotype",Palatino,Georgia,serif;
+  --mono:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;}
+@media (prefers-color-scheme:light){:root{--ground:#f3f2ed;--surface:#fff;--line:#dad8ce;
+  --sunk:#e8e6dd;--ink:#20202a;--dim:#5d6270;--bone:#7b7b66;}}
+:root[data-theme="light"]{--ground:#f3f2ed;--surface:#fff;--line:#dad8ce;--sunk:#e8e6dd;
+  --ink:#20202a;--dim:#5d6270;--bone:#7b7b66;}
+:root[data-theme="dark"]{--ground:#141418;--surface:#1d1d24;--line:#31313c;--sunk:#0e0e12;
+  --ink:#e9efec;--dim:#7f8494;--bone:#a0a08b;}
+body{background:var(--ground);color:var(--ink);font-family:var(--serif);margin:0;
+  padding:clamp(1.25rem,3.5vw,3rem);line-height:1.55;}
+.wrap{max-width:82rem;margin:0 auto;display:flex;flex-direction:column;gap:2rem;}
+header{max-width:62ch;display:flex;flex-direction:column;gap:.6rem;}
+.eyebrow{font-family:var(--mono);font-size:.7rem;letter-spacing:.16em;text-transform:uppercase;
+  color:var(--bone);margin:0;}
+h1{font-size:clamp(1.8rem,3.6vw,2.5rem);margin:0;font-weight:600;text-wrap:balance;
+  line-height:1.15;}
+header p{margin:0;color:var(--dim);}
+.tiles{display:grid;gap:.75rem;grid-template-columns:repeat(auto-fit,minmax(11rem,1fr));}
+.t{background:var(--surface);border:1px solid var(--line);padding:.8rem .9rem;display:flex;
+  flex-direction:column;gap:.15rem;}
+.t b{font-family:var(--mono);font-size:1.4rem;font-weight:600;line-height:1;
+  font-variant-numeric:tabular-nums;color:var(--bone);}
+.t span{font-size:.78rem;color:var(--dim);}
+.strip{display:grid;gap:.75rem;grid-template-columns:repeat(auto-fill,minmax(11rem,1fr));}
+.s{margin:0;background:var(--surface);border:1px solid var(--line);display:flex;
+  flex-direction:column;}
+.pair{display:flex;align-items:flex-end;justify-content:center;gap:.45rem;padding:.7rem .35rem;
+  min-height:9rem;background:repeating-conic-gradient(from 0deg,rgba(127,132,148,.06) 0% 25%,
+  transparent 0% 50%) 0 0/14px 14px;}
+.s img{height:auto;image-rendering:pixelated;}
+.s img.sil{opacity:.92;}
+figcaption{border-top:1px solid var(--line);padding:.5rem .65rem;display:flex;
+  flex-direction:column;gap:.1rem;}
+figcaption b{font-size:.95rem;font-weight:600;}
+.mx{margin:.25rem 0 0;font-family:var(--mono);font-size:.63rem;color:var(--dim);
+  font-variant-numeric:tabular-nums;line-height:1.5;}
+em{font-style:normal;font-family:var(--mono);font-size:.63rem;text-transform:uppercase;
+  letter-spacing:.04em;}
+em.bad{color:var(--blood);}
+.legend{display:flex;flex-wrap:wrap;gap:.9rem;font-family:var(--mono);font-size:.68rem;
+  color:var(--dim);align-items:center;}
+.legend i{width:11px;height:11px;display:block;border:1px solid var(--line);
+  background:#a0a08b;}
+.scroll{overflow-x:auto;}
+</style>
+<div class="wrap">
+  <header>
+    <p class="eyebrow">Emberkeep &middot; silhouette report</p>
+    <h1>Sci-fi soldier silhouette variants</h1>
+    <p>Six states off the bright-palette sci-fi soldier (afa5582e), split 3 proportion / 3 topology. Every variant appears as rendered and again as a flat outline, because the outline
+    is what survives at panel scale. All figures share one zoom, so relative size is true.</p>
+  </header>
+  <div class="tiles">
+    <div class="t"><b>0.64&ndash;1.11</b><span>aspect range, a 1.7&times; spread across 6
+      variants.</span></div>
+    <div class="t"><b>29&ndash;50 px</b><span>width range, a 1.7&times; spread.</span></div>
+    <div class="t"><b>1.06</b><span>widest asymmetry &mdash; above ~0.4 means a form with a
+      front and a back.</span></div>
+    <div class="t"><b>0.50</b><span>lowest solidity &mdash; the gappiest outline, a different
+      kind of shape rather than a different ratio.</span></div>
+  </div>
+  <div class="legend"><b><i></i></b>
+    <span>outline &mdash; solidity is the share of the bounding box filled; asymmetry is the
+    mirror difference, 0.00 being perfectly symmetrical.</span>
+  </div>
+  <section><div class="strip">
+        <figure class="s">
+          <div class="pair">
+            <img src="data:image/png;base64,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" alt="prop-mid" style="width:87px">
+            <img class="sil" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAB0AAAAtCAYAAABS6WCiAAAA4klEQVR4nOWYUQ6EMAhEy8SDcomewktwUzeb+GXQggG6q/NZ7bxIp1Sl5pTIumnjzJ2sHogAjq7dhlpMrWBEAT33ok0QfhIqjtJa5yAaaJmLDODIA22CMANKGWUdtUlUAI/eqAAeGVQFfGd6MQ3KjlM/DCqFQWLuhOrkvjBIlRJZN1Qnd+6WqQQzd1JB2WcqMsyvgCo06ylFO8QrJDv4+c2B93UtSS8ftuPzy/s/UOZOWrs8Gz/T0hz6BswL0BTWkTx/XhABTP2W4YuyWkou3jZoMbWuNaKAnnuHbw53kjry+gBAwYPeiwDowgAAAABJRU5ErkJggg==" alt="prop-mid outline" style="width:87px">
+          </div>
+          <figcaption><b>prop-mid</b>
+            <p class="mx">29&times;45 &middot; aspect 0.64 &middot; solidity 0.70 &middot; asym 0.14</p>
+            <p class="mx">luma 0.313 / p95 0.868 &middot; 58 colours</p>
+            
+          </figcaption>
+        </figure>
+        <figure class="s">
+          <div class="pair">
+            <img src="data:image/png;base64,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" alt="prop-narrow" style="width:96px">
+            <img class="sil" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAwCAYAAABwrHhvAAAA+klEQVR4nO2YSxKEIAxEmy4Pmkt4irmEN3XKBTvCbxLiWL6VUpKOCYRPQoPj+Jz5WWRPMIa94qV3C7aZTpojMxGilfhsxAhjRtNEawdGnSCCoZfh3igQwfC2DhxGRadlhwiG0Q6kUqNHzddKNVeJa7a5SlzT4ErxkhYRDF8H8KYAa2dAJmvy8SmQxk6ZEeHPXNr3TYEYHsNqtghnpnZEInuyHhtaFIgF1H6GHkfuXi7tYgQ8pqZmkwiGt3BACuPAuw7kNpY+8hiYmv1U62Q1GEMrYQsimM0ypDMpI55+P9BcCxAM/24tkMqcdr+qlQ6BUSfUHdEvhkf6fwFQYoEeJPRJKQAAAABJRU5ErkJggg==" alt="prop-narrow outline" style="width:96px">
+          </div>
+          <figcaption><b>prop-narrow</b>
+            <p class="mx">32&times;48 &middot; aspect 0.67 &middot; solidity 0.66 &middot; asym 0.07</p>
+            <p class="mx">luma 0.321 / p95 0.910 &middot; 55 colours</p>
+            
+          </figcaption>
+        </figure>
+        <figure class="s">
+          <div class="pair">
+            <img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACsAAAAtCAYAAAA3BJLdAAAG/UlEQVR4nMVZe1BUZRQ/F/ayLDA5Oo0lM/2RzyFFDclAzUTFGjJFVNRQG23G0GlJRPAZCAMS8tBWBUJYFVCLRJFBohxfiaj4TJJKZ5ypKSqrGUF3ZdmF25xz97vcZXd57S6dmW++873u/d3fPa+7y0HfRLAzz8EACNeHvYImbw+ETg8Gk5EDBS/i/vpsHWyIie16LcEVD+DWF6BMRo8dB8NH+5Ou4Dkwr9lj3WnC9QUosspAori7tcODnxrh4s3bNI5eGc2uKbiCWUV/DiFI6QKenrIVHgCMzsDlkBkQqygP7zdQj4xiQ5k1VVwzA3WZOfQE1uLGZ767Qj0DiazW37xndYhTIMMDC7ZXDD1pbbEYG4x6RzH1GayQmLLNbIMAMWvXg9/Y16VFZFRuq6NGTGDOBQlb0kEwudYcugiPYPFmUovfFGcx7mmNY4HY9dHA2qMVghK2JGwFlUoFk14Vw1dtXT2YOIPV3vhNcZCVrXE2VqtYaMHGkbKjEBX5njRGsJ7eSmncqjMQ2MyMbCuggslIjmY2Cc7ZNivkF+dDgfaAeciDSulO/emKCurlLDKgbG/DnXrSNn28kQGEws8LoajosBUJjoIVHjU9hIjZc0DloZIWw0Lfpf6d8MXQ8vhfyMzQQDvXRnOMYZy7deMa+E+cLDmkKDwYdDpYvHABtDzGiOG4DSNYoaS0FM7UXoXa69dhavAUECMBQNbuHGjVN5MNJ3ySRP0zXSsBZqBxbn/BPtK0eVnwvO8w0jkFgPZQIXwYvQ4OHdOCJi8Tpx0CTHkc7ezFocPg5ZEvQeMPD6Ct/RmkJKbRBnVsLLwVHgpz3wyjcWBAAISEhoDK25P2rFdHwZ69ZfC0uQl8BvlCYkoC7WPne7h3/8GixMVthP7Ijp27YMfWBJgfvoDGEwJekdaCJgeD0GoCP//x4KMCGOo7vF+AOTGmJkhMMBNg4xkhs2BRZAR4gQnGjPOjualvzIH/Qzi5HSHDq1dGkq4tLiPnEUUMQ5s3xEsH03fthMtX60g3PGP2ay0nK09BUPBrMH70SBq7Kb3Aw6OzatPsOwSxH6lh+IgxcLy83OLslGmB4PuCL1TXVMEgbw/2GnhhvToSps+eB1fq6qW4mZ2dJR1s/LkRigq00hht98atW6RHq2PBo90EgtJ2jvH0cIPWtg7Q69BZO8XLexC4mx6RvmfvEbsPjKbl5eltmcEi5i+Rgj/vw8H7y6Kktfq7N8Fb4Q2a3L00ZkBXrFojMmSeR4eUg8QHx5udqjgJPQm+WSZG/Z/SA3Q9S/k8Zp1aMBj1AjL9qOkhtX+a/qCGenVNFe1LTUsVfvvrPu2bETJLqgc+WLNaUMfGUq0g1gvieucYhNMVFUJgQACtidfjBW3eZ3brDjlIxiyHhYfOpIODx4rJRr85VwdDfHwsnujClUvUY2i7e/s+6TPDZsKF82dJl5sJE1xj6ygnqiupR7MLe3susV5cVtmr6CCZAaZIrbYEhgweTNnnbsNt8PF6DrgONxDcOuCpntWtYpa60fA9PVRivBg9UHI0u9mXLorkDzNCppPGQE8InAi1l+90fcWcQ4UM2hBWW2i/3QX5ZUuXw7EvSrt+i3H2rtsDhj6LTfvJTM+xmlu2dHmv7M2VQjdLyUyzApCdnUVOgw2dpet6ribXZcW3TaAF2gPkpQgM+1a9vjv2qGHEwL1FRYdlZ13PrjA/fIE5nBA7wpaErULL4xYJOOqs4RwCTU5OtmA/vvNTx2UfjMK+vP2kmJReVPIx70/f+alYDublgpu56C4sRacywv4DBRaZLWjyeNKxInMm4C75UQT2+6+/gMKgh9VrsQIzUh0gl4KSr0SlQwSdlIS1LsDx8kpYtHAeNOvawPCkDeYsieo2jToq9FrRZvOL8yUbFD2etxENeCzcJf14eaWUmaouVrs8KqAZkL3y7krybNRFp+m0R2avLP3KwbMIUXWxWg7YZWIVipiH52h2W0WBE6e+tMEyDFisJYDIHIsIchBsDaMCFj5YuMjBPW3+m9aQdZfHWrwBY9OSKYvYabPhWXyA6poq6geEWWwrVq0x35CXyj1WzmHDWIyN7cdYjHZug22XCt2YgRODvcXrtGmTjFU2n56R4XSwdn/5TklKBDcPDrZv2y4HydmrkrDE1OTmQ8w6NY3bzb/KuFKISbRV0V7FdCu+VvvOYnYkqVXXVAmXL31LzZnsWvzWlZycDCP9RsHiiAiaKCk9SFmNV6q6f0KJRV763cDfPwgmTZombXEWYKrmNycl2shMzGZ7czMe/9WhiJCalmoVJZwIWPzx+Md712Qple+zkyCozsTB08cntnPnLzg15tLFMNVi+MF4isG9n2wIR8qOUmPMykKcQ9LTd1J/v4+ceS1J/gNW4CNm2+ss0AAAAABJRU5ErkJggg==" alt="prop-wide" style="width:129px">
+            <img class="sil" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACsAAAAtCAYAAAA3BJLdAAABFElEQVR4nOWZ3Q2DMAyEkxODeolOwRK3KVVfUIX4SeBsErinikb2h/E5Kc2pQuQ4rV03++QUIFwFXfuOO2vdYUuSewFWwdZAeAMjdSSoA3pWF3cllsK2BroJqwClw82+22CeyhF9aqLtGBGGoig2opxPQQ5EjihezBVuMHKczkLfNg14Aji3uFM9Ys4i6ifJ6yo7pMZlf09+/tCC0eygJeGZ2Cr8ULJ2hvUymh3Erbmp1UWqljBxAbqaBlheUBqNYtP2W1k6jC8KY/Zb2daF1CusOWwMJozZb2VbF9ITYW3jwFF7ugo5fP+GeySY2w5W80/OFT3zXZftPP6S1qDiXVfJohKYiF6GEsIbGHtJziRXxlrqC0LZj+AAIacGAAAAAElFTkSuQmCC" alt="prop-wide outline" style="width:129px">
+          </div>
+          <figcaption><b>prop-wide</b>
+            <p class="mx">43&times;45 &middot; aspect 0.96 &middot; solidity 0.50 &middot; asym 1.04</p>
+            <p class="mx">luma 0.292 / p95 0.907 &middot; 62 colours</p>
+            
+          </figcaption>
+        </figure>
+        <figure class="s">
+          <div class="pair">
+            <img src="data:image/png;base64,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" alt="topo-asymmetric" style="width:105px">
+            <img class="sil" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACMAAAAxCAYAAABQxxDJAAABIUlEQVR4nOWY6w3CMAyEW6uD3hJMwRK3KagSSBHkZWJsC+4XakPy9Xx5tPu2KPJ6q10HLru2L/kGSO1er+0yDCc6n2mzDEPFIJq2S2WylgsMJ91Rw1CZA40kC4gKhgYgoz7+L8Cz2qNygsp2IVGBZaVviZo5tTHCM8MCKBymVAoYPtzpziY65CZNgFOWqQtDx4Uu1Bl0gELKhAZQCAwbMXCFYcbzDCplOq+J1dug1p1yjOfvYwsUXh7adZ1JFeCRcsMwYINMN7XfYDxcwerehC+uO1WYkStwABo6g0mIs92orft5BgsOymjz2hylcgaKkn3y36MVYCy64v4d2FqicYW/9BltJLHOyopMMgOjB5DZTtG4Z+rkWabIM8xWKNXUvgOt/JJUdm+JBQAAAABJRU5ErkJggg==" alt="topo-asymmetric outline" style="width:105px">
+          </div>
+          <figcaption><b>topo-asymmetric</b>
+            <p class="mx">35&times;49 &middot; aspect 0.71 &middot; solidity 0.56 &middot; asym 0.54</p>
+            <p class="mx">luma 0.306 / p95 0.907 &middot; 56 colours</p>
+            
+          </figcaption>
+        </figure>
+        <figure class="s">
+          <div class="pair">
+            <img src="data:image/png;base64,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" alt="topo-hole" style="width:150px">
+            <img class="sil" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAADIAAAAtCAYAAADsvzj/AAABJElEQVR4nO1ZQRKDIAxMdvpQPtFX9BP8tI4HnY6DToAE0ugeUckum0RQJiXk/PmWxlN6Mw0ALEWUrl3dO1WIhJgVeTUhNQStxYCCACODWbqC1gdH5L25EG8imoRoiLBYCFAQgIKAvdRFzVYmF7jAS3FLY+ST+9h7h0oHp5qEzBZxy2IHBQF7T6skrBFXjqSO0yTPcqKHdC5wFNmmDYtzPCgIUOvGqK8ipo54FbEL8dJqe/AcrLyBZ6aVZs2BggAzO5FmNoCCAHQnIcnxi1AsZBNhIebpWrWO/ENKbUCEfZZa11qdK7l3Nm6Bl8Ykq6sjSVc5Iv16ofnH13yLYllHWnOjNPgrThLoajFGLRT3BpHWhdY8Jl2rJrh1I0ArgRZimnMdsQANvaKk09s0ZgAAAABJRU5ErkJggg==" alt="topo-hole outline" style="width:150px">
+          </div>
+          <figcaption><b>topo-hole</b>
+            <p class="mx">50&times;45 &middot; aspect 1.11 &middot; solidity 0.50 &middot; asym 1.06</p>
+            <p class="mx">luma 0.305 / p95 0.943 &middot; 59 colours</p>
+            
+          </figcaption>
+        </figure>
+        <figure class="s">
+          <div class="pair">
+            <img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACgAAAAtCAYAAADcMyneAAAIg0lEQVR4nLVZfVBU1xX/7bJv+dLmn3Yy+ZhOitHGapp0ElGJFDAzSaeZRGNsggGa0WRINYJYimg0MLuCxhoTA3ZNaSONH6QaIWAIMXYEI4FFsBBMjZ2hOnE6A5NoJwkiXwu8zjlv79v73r5HQeyZOXM/37m/e865556768DNI9Wm3zEVoVP6WCJ13943MW/hQm64FA2r/3QLVq1eZ15Hncy6TtwkcALYrDlzETfrXm6PRMbgrf1vjafd/ztAVYBb+PMFOjCimff8BInzf8r1qYB04SbRSMCBCOfoODMUAIFJy70ZJgZpj+jC5xe47PrnF8xESQ/8LDgrcENanApAXqwPKmuvze9nHxTAiNrPX4QrKmoKS9wYQAKmaiaD4dTakfv6EJe93/bC4VImpUnnxAFp9aFAP+qO1+r+lL06B7PnzLf8MDoyAjNn3CdCDTa8Uoi1WWsFUF3mVE45C7h08RIL2bXrNSHMwAcOHrTstxtbsvRJtarmMNe7LnaSNSYNUP6IAX7drYEMhhZhZpUAKBGRaoF3s/phdbV6tbtH7f22l/upTfMOHanQv92+Y4deJ5AE8Aa0qfAiAoRY/ML5M7pwTZsKa+No5TFehOpFxUXMYp4GjgGoJXt3G8AR52Sl6X1Dgf4wbdrEwQB2/6kUV7t7sOPN1/BoShJuu/1ueQO4Z4bWfm5lKt4pL8f+v5Tjjjvu1GfUN5zC31vaUVtVh/MXOjBn9lw8u+QZ9llB98+dx/zVFQdKX9+JP/65DA4XoI7YHxJdxSMD/ThWcwR5617CzBl3Y1o00ORv1icmJi+GEuHEsiXpWL78KVy+/GXYNp3uMXiL8xicmQaGRjGKa1wv31eGiprDGoCRgAGHCaCCD6urUVVzGAPXB5H8yOPoGwA+bWtjdrrF9AC2b3sV1659EwTihKdgKyJdwwbOzd2kSyZrnGk9o7fHhsfQ4v8cPd3/wr97uvDiC5no7DiHQ0cqmAVZZRXkG1yJiozF4NB1fPGPLm7/aGYcWvxtKH3jDd5M9prfICd3PeJmxHH7+cwMrMpI5bkfN3wCb0Ex15saT2BoxI3FKcnczl6ThXkJWmgKXPsPfjx3Nte/7LmKpKQHceets3RsdmmPDvKzznNYEK+lUY31zRhxDGHnjl2GyU2NJ/BQ4iOWgsgXPzr+geEbAkj0zIrHGTiNL0yIZ7OnPf2sAZdtstDafh7uCO3yb2ho4HL3rj3I+d1arm/a8DIWJcTjsaVLGVxyysOYF38/lj75FI9/L8qFEydP61r7uvsSysorsGWzh9slPs5wEDttOsPxN7da4rAF+KrHq9fz8nO5JHCyJpJSHuJb4WxHOwM51XBSHxPz/B1NuDduFjrPdQRHAijxlepaNFuErsLgQdHaFtj0OCSEkEAzkQajo6OxKDkRCfPjuS8qJsYwp++7K1wSuJMtbXAOq9iyeUuYrOczV+n1t8v2GXCFhRmaTLsWyQCBIx8TWjTT4FAfms+0ov50PbdzstKYBTBi8jMCN+aW9aFgRWo63+uxrlgs++UTuNh1OUxJYWGGiEwiTEHgrGj777dhYGAAZ/0dDFIdlKKriZqbP8Xw6AAK8jbrfRSQGcngCH7xxKOoqjvGLuLxeETGEwZQJVCk4mm3/IA7ioqL0HC6FfsO/FX2EwdthEy8XQLpiLJ2Z/qewFHIES5DMtSRgOPoe+8xsMqqqhDwMSc2/jbPoEUJIFRfiU8d7O+3y06EptVNG17W+6ne1HgibH7d8VrDvZy9JssqGQj7RpNtvJPVvu+u8ARKEoRQb+FWZossw7ygKvfZ9VMpZS4GWZSMrEhN55IACgVY2mVsWJOx5sUX8P3bbwuac2fYu6LEV2o4POYAvrGwANHOCPT19+pj0l2rnxiST5SeuhxnOzuRuDgBH32shSwdIPkdxTSiAs8r0jLCYY0vMjqpu0sPhYEiipzuDoulRN7CrUHZxhcehSvZB2ERWvTkUzaLybzMwj+1pFUJ5o1avmfHlMTSHCGP8kuzy5BJaZzK5JSHDePjCtd8R9GBkZ+0n203jF8NAiA/JibQIuGlsVAGDtXj8VgCtDuUTtkXyJ/IzMRkDtm84pZwRcfgs7ZGiF8UIqe74S3axnOOVITSpP3vHuDynXcP4Zt+zZx8X89/ABGqGwVejokCJGPIWJnJjQMHD8rAtUrW+vUG9PJJEqk/pfbGNwkMTCGKxvbs/QOzPCbeJxRGSItUSgBU4WrE9EyQ3jFGFUv2NwEMPZiEr/pKfPwOIfBWLz7ZpzVACpemmGlYnwDSd2EARZwSOzWB4+AsNCTqviCLeQRS+J+QI1tA9NV+UieDlAAquhbNAT14CJTgywpmAZbO7NMBKobnpAxYLGzzdjbIzliZaQlOX1g+nZJmDPNoIdqMeE7ukXyNxkh7NE4WMbsInXAaq284ZXWjyArQSbpJQhnEYH+/OLWGfFGJiOSysrY62BPA2tUvcY1OdUZ6OuyIMpR1eflIW/FrnGr8myEpladZdaobCwsMMU8yh+UOyRTEANTi10MnmvyTmGIlsejPy8/lXx+olGKglXxLUkWYoTBCp1ISHjZXyjSCfmcwlY2PKQxODtYTBegi0+blZ/OdOk2JRk31+5zpjkfewgIoMW5sys+XgTnsX4kBlk/BmYL0qGMYEyXHODsxL0YHgx/c9FBPe/o5XpieCG+X0a0RsAFHGg75m5yhB5+q4/7ib7jqSJvadRM6MAIcXT93/fAu/GrZMu44WlnJ82Jib+GfQOwpYHiDED24YBGzkD0eQHmSnJVIpIRdg91fdZtj3/8gRfXuLObQImfYxMFwM+EDEy46ePoocIfSL8PVNlEynGC6EIibWpqnBlDsku5QAkuBWXqzYLKyRCgSGxXhyu6Dif4lZSXgRv9Gm5Ss/wIrp8yeh7bf4QAAAABJRU5ErkJggg==" alt="topo-notched" style="width:120px">
+            <img class="sil" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACgAAAAtCAYAAADcMyneAAABTElEQVR4nNWZbc4CIQyEl+Y96FzCU3iJualvTCQhykILZenOLz/W9mHasqjpcBL5fNVeBx5pJq4cC+Fq77WuXQJIRUIrlBsgDYlHIV1KvFKXAnLAxWHAmb6yKO0Cg3L7EQ1QhvJ0jUXMVlzZWVIqYlYBe6taJVbyNh28EpInucLvg6l8sqOsvUkP76B4Ho08lVl+HIwAiYLhXiW+BSCDTbJEhGPBcZ8SU+mex5QDj9SLk3lMDnpvQVDEk0i99603l7kHPRZDQ4zwQ5J2lhefHmz9bBLfwWPzkKDjYggH6fGtbpdEc9GuMyI0Q5LhVkCiEfv0RL1LKCDLx3/aD10hVPJJ1PtwlkuJcXJ80hyremqWWCvy+fKAMTn4nWy0FWj4B6Am0ax6ZZ+yE7vqYAmtgUNjkbMGTLsHZd+NxpmaYhiGYnSA1Lc6j4Qjsf4BXIrFFUJLOm0AAAAASUVORK5CYII=" alt="topo-notched outline" style="width:120px">
+          </div>
+          <figcaption><b>topo-notched</b>
+            <p class="mx">40&times;45 &middot; aspect 0.89 &middot; solidity 0.67 &middot; asym 0.31</p>
+            <p class="mx">luma 0.315 / p95 0.943 &middot; 57 colours</p>
+            
+          </figcaption>
+        </figure>
+  </div></section>
+</div>

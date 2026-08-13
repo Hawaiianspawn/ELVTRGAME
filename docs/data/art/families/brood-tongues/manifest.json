@@ -1,0 +1,402 @@
+{
+  "family": "brood-tongues",
+  "variants": {
+    "tongue02_spill": {
+      "urls": [
+        "https://backblaze.pixellab.ai/file/pixellab-characters/af7def4e-5692-4b18-9246-874d5382befb/296c3dda-74c2-48f0-9c83-17a473c426a9/rotations/south.png?t=1785451507",
+        "https://backblaze.pixellab.ai/file/pixellab-characters/af7def4e-5692-4b18-9246-874d5382befb/296c3dda-74c2-48f0-9c83-17a473c426a9/rotations/east.png?t=1785451507",
+        "https://backblaze.pixellab.ai/file/pixellab-characters/af7def4e-5692-4b18-9246-874d5382befb/296c3dda-74c2-48f0-9c83-17a473c426a9/rotations/north.png?t=1785451507",
+        "https://backblaze.pixellab.ai/file/pixellab-characters/af7def4e-5692-4b18-9246-874d5382befb/296c3dda-74c2-48f0-9c83-17a473c426a9/rotations/west.png?t=1785451507",
+        "https://backblaze.pixellab.ai/file/pixellab-characters/af7def4e-5692-4b18-9246-874d5382befb/296c3dda-74c2-48f0-9c83-17a473c426a9/rotations/south-east.png?t=1785451507",
+        "https://backblaze.pixellab.ai/file/pixellab-characters/af7def4e-5692-4b18-9246-874d5382befb/296c3dda-74c2-48f0-9c83-17a473c426a9/rotations/north-east.png?t=1785451507",
+        "https://backblaze.pixellab.ai/file/pixellab-characters/af7def4e-5692-4b18-9246-874d5382befb/296c3dda-74c2-48f0-9c83-17a473c426a9/rotations/north-west.png?t=1785451507",
+        "https://backblaze.pixellab.ai/file/pixellab-characters/af7def4e-5692-4b18-9246-874d5382befb/296c3dda-74c2-48f0-9c83-17a473c426a9/rotations/south-west.png?t=1785451507"
+      ],
+      "fetched": "2026-07-30T22:45:23+00:00",
+      "files": [
+        "east.png",
+        "north-east.png",
+        "north-west.png",
+        "north.png",
+        "south-east.png",
+        "south-west.png",
+        "south.png",
+        "west.png"
+      ],
+      "measured": {
+        "canvas": [
+          88,
+          88
+        ],
+        "content": [
+          46,
+          48
+        ],
+        "aspect": 0.9583333333333334,
+        "solidity": 0.6055253623188406,
+        "asymmetry": 0.055347793567688854,
+        "holes": 2,
+        "hole_px": 32,
+        "luma_mean": 0.19450153724316951,
+        "luma_p95": 0.5662917647058824,
+        "opaque": 1337,
+        "distinct": 40,
+        "off_ramp": 1337,
+        "binary_alpha": true
+      },
+      "band": {
+        "aspect": [
+          0.9387755102040817,
+          1.065217391304348
+        ],
+        "solidity": [
+          0.41481810115350487,
+          0.6055253623188406
+        ],
+        "asymmetry": [
+          0.055347793567688854,
+          0.34500426985482496
+        ],
+        "holes": [
+          0,
+          2
+        ]
+      },
+      "verdict": "flag",
+      "reasons": [
+        "aspect target 1.60 falls outside the measured 0.94-1.07 band across all 8 rotations",
+        "luma 0.195 -- not automatically wrong (SKILL.md), but the outline is doing all the work"
+      ]
+    },
+    "tongue05_loop": {
+      "urls": [
+        "https://backblaze.pixellab.ai/file/pixellab-characters/af7def4e-5692-4b18-9246-874d5382befb/bb3530c5-10c3-49e5-a853-4bdd2e894e21/rotations/south.png?t=1785451508",
+        "https://backblaze.pixellab.ai/file/pixellab-characters/af7def4e-5692-4b18-9246-874d5382befb/bb3530c5-10c3-49e5-a853-4bdd2e894e21/rotations/east.png?t=1785451508",
+        "https://backblaze.pixellab.ai/file/pixellab-characters/af7def4e-5692-4b18-9246-874d5382befb/bb3530c5-10c3-49e5-a853-4bdd2e894e21/rotations/north.png?t=1785451508",
+        "https://backblaze.pixellab.ai/file/pixellab-characters/af7def4e-5692-4b18-9246-874d5382befb/bb3530c5-10c3-49e5-a853-4bdd2e894e21/rotations/west.png?t=1785451508",
+        "https://backblaze.pixellab.ai/file/pixellab-characters/af7def4e-5692-4b18-9246-874d5382befb/bb3530c5-10c3-49e5-a853-4bdd2e894e21/rotations/south-east.png?t=1785451508",
+        "https://backblaze.pixellab.ai/file/pixellab-characters/af7def4e-5692-4b18-9246-874d5382befb/bb3530c5-10c3-49e5-a853-4bdd2e894e21/rotations/north-east.png?t=1785451508",
+        "https://backblaze.pixellab.ai/file/pixellab-characters/af7def4e-5692-4b18-9246-874d5382befb/bb3530c5-10c3-49e5-a853-4bdd2e894e21/rotations/north-west.png?t=1785451508",
+        "https://backblaze.pixellab.ai/file/pixellab-characters/af7def4e-5692-4b18-9246-874d5382befb/bb3530c5-10c3-49e5-a853-4bdd2e894e21/rotations/south-west.png?t=1785451508"
+      ],
+      "fetched": "2026-07-30T22:45:28+00:00",
+      "files": [
+        "east.png",
+        "north-east.png",
+        "north-west.png",
+        "north.png",
+        "south-east.png",
+        "south-west.png",
+        "south.png",
+        "west.png"
+      ],
+      "measured": {
+        "canvas": [
+          88,
+          88
+        ],
+        "content": [
+          38,
+          44
+        ],
+        "aspect": 0.8636363636363636,
+        "solidity": 0.6297846889952153,
+        "asymmetry": 0.017094017094017096,
+        "holes": 0,
+        "hole_px": 0,
+        "luma_mean": 0.19546694076681,
+        "luma_p95": 0.6015090196078431,
+        "opaque": 1053,
+        "distinct": 38,
+        "off_ramp": 1053,
+        "binary_alpha": true
+      },
+      "band": {
+        "aspect": [
+          0.4883720930232558,
+          0.8636363636363636
+        ],
+        "solidity": [
+          0.624031007751938,
+          0.7796234772978959
+        ],
+        "asymmetry": [
+          0.017094017094017096,
+          0.34710743801652894
+        ],
+        "holes": [
+          0
+        ]
+      },
+      "verdict": "keep",
+      "reasons": [
+        "luma 0.195 -- not automatically wrong (SKILL.md), but the outline is doing all the work"
+      ]
+    },
+    "tongue01_column": {
+      "urls": [
+        "https://backblaze.pixellab.ai/file/pixellab-characters/af7def4e-5692-4b18-9246-874d5382befb/4f7d5325-14a9-4e71-8157-a52d17c82b39/rotations/south.png?t=1785451521",
+        "https://backblaze.pixellab.ai/file/pixellab-characters/af7def4e-5692-4b18-9246-874d5382befb/4f7d5325-14a9-4e71-8157-a52d17c82b39/rotations/east.png?t=1785451521",
+        "https://backblaze.pixellab.ai/file/pixellab-characters/af7def4e-5692-4b18-9246-874d5382befb/4f7d5325-14a9-4e71-8157-a52d17c82b39/rotations/north.png?t=1785451521",
+        "https://backblaze.pixellab.ai/file/pixellab-characters/af7def4e-5692-4b18-9246-874d5382befb/4f7d5325-14a9-4e71-8157-a52d17c82b39/rotations/west.png?t=1785451521",
+        "https://backblaze.pixellab.ai/file/pixellab-characters/af7def4e-5692-4b18-9246-874d5382befb/4f7d5325-14a9-4e71-8157-a52d17c82b39/rotations/south-east.png?t=1785451521",
+        "https://backblaze.pixellab.ai/file/pixellab-characters/af7def4e-5692-4b18-9246-874d5382befb/4f7d5325-14a9-4e71-8157-a52d17c82b39/rotations/north-east.png?t=1785451521",
+        "https://backblaze.pixellab.ai/file/pixellab-characters/af7def4e-5692-4b18-9246-874d5382befb/4f7d5325-14a9-4e71-8157-a52d17c82b39/rotations/north-west.png?t=1785451521",
+        "https://backblaze.pixellab.ai/file/pixellab-characters/af7def4e-5692-4b18-9246-874d5382befb/4f7d5325-14a9-4e71-8157-a52d17c82b39/rotations/south-west.png?t=1785451521"
+      ],
+      "fetched": "2026-07-30T22:45:50+00:00",
+      "files": [
+        "east.png",
+        "north-east.png",
+        "north-west.png",
+        "north.png",
+        "south-east.png",
+        "south-west.png",
+        "south.png",
+        "west.png"
+      ],
+      "measured": {
+        "canvas": [
+          88,
+          88
+        ],
+        "content": [
+          22,
+          45
+        ],
+        "aspect": 0.4888888888888889,
+        "solidity": 0.794949494949495,
+        "asymmetry": 0.12960609911054638,
+        "holes": 0,
+        "hole_px": 0,
+        "luma_mean": 0.17735164063083939,
+        "luma_p95": 0.5108078431372549,
+        "opaque": 787,
+        "distinct": 32,
+        "off_ramp": 787,
+        "binary_alpha": true
+      },
+      "band": {
+        "aspect": [
+          0.4883720930232558,
+          0.5652173913043478
+        ],
+        "solidity": [
+          0.7165551839464883,
+          0.8073089700996677
+        ],
+        "asymmetry": [
+          0.06218905472636816,
+          0.1658291457286432
+        ],
+        "holes": [
+          0
+        ]
+      },
+      "verdict": "keep",
+      "reasons": [
+        "luma 0.177 -- not automatically wrong (SKILL.md), but the outline is doing all the work"
+      ]
+    },
+    "tongue03_trail": {
+      "urls": [
+        "https://backblaze.pixellab.ai/file/pixellab-characters/af7def4e-5692-4b18-9246-874d5382befb/7028f2f3-ae2f-4947-ad51-2b10adc3f3ea/rotations/south.png?t=1785451520",
+        "https://backblaze.pixellab.ai/file/pixellab-characters/af7def4e-5692-4b18-9246-874d5382befb/7028f2f3-ae2f-4947-ad51-2b10adc3f3ea/rotations/east.png?t=1785451520",
+        "https://backblaze.pixellab.ai/file/pixellab-characters/af7def4e-5692-4b18-9246-874d5382befb/7028f2f3-ae2f-4947-ad51-2b10adc3f3ea/rotations/north.png?t=1785451520",
+        "https://backblaze.pixellab.ai/file/pixellab-characters/af7def4e-5692-4b18-9246-874d5382befb/7028f2f3-ae2f-4947-ad51-2b10adc3f3ea/rotations/west.png?t=1785451520",
+        "https://backblaze.pixellab.ai/file/pixellab-characters/af7def4e-5692-4b18-9246-874d5382befb/7028f2f3-ae2f-4947-ad51-2b10adc3f3ea/rotations/south-east.png?t=1785451520",
+        "https://backblaze.pixellab.ai/file/pixellab-characters/af7def4e-5692-4b18-9246-874d5382befb/7028f2f3-ae2f-4947-ad51-2b10adc3f3ea/rotations/north-east.png?t=1785451520",
+        "https://backblaze.pixellab.ai/file/pixellab-characters/af7def4e-5692-4b18-9246-874d5382befb/7028f2f3-ae2f-4947-ad51-2b10adc3f3ea/rotations/north-west.png?t=1785451520",
+        "https://backblaze.pixellab.ai/file/pixellab-characters/af7def4e-5692-4b18-9246-874d5382befb/7028f2f3-ae2f-4947-ad51-2b10adc3f3ea/rotations/south-west.png?t=1785451520"
+      ],
+      "fetched": "2026-07-30T22:45:55+00:00",
+      "files": [
+        "east.png",
+        "north-east.png",
+        "north-west.png",
+        "north.png",
+        "south-east.png",
+        "south-west.png",
+        "south.png",
+        "west.png"
+      ],
+      "measured": {
+        "canvas": [
+          88,
+          88
+        ],
+        "content": [
+          38,
+          45
+        ],
+        "aspect": 0.8444444444444444,
+        "solidity": 0.6292397660818714,
+        "asymmetry": 0.022304832713754646,
+        "holes": 0,
+        "hole_px": 0,
+        "luma_mean": 0.19520455280997157,
+        "luma_p95": 0.6044643137254901,
+        "opaque": 1076,
+        "distinct": 40,
+        "off_ramp": 1076,
+        "binary_alpha": true
+      },
+      "band": {
+        "aspect": [
+          0.6818181818181818,
+          0.8604651162790697
+        ],
+        "solidity": [
+          0.44563167818981775,
+          0.6530303030303031
+        ],
+        "asymmetry": [
+          0.022304832713754646,
+          1.692524682651622
+        ],
+        "holes": [
+          0,
+          2
+        ]
+      },
+      "verdict": "flag",
+      "reasons": [
+        "aspect target 2.50 falls outside the measured 0.68-0.86 band across all 8 rotations",
+        "luma 0.195 -- not automatically wrong (SKILL.md), but the outline is doing all the work"
+      ]
+    },
+    "tongue04_lean": {
+      "urls": [
+        "https://backblaze.pixellab.ai/file/pixellab-characters/af7def4e-5692-4b18-9246-874d5382befb/37739a1e-a38f-414e-81d7-f96e60de1f32/rotations/south.png?t=1785451512",
+        "https://backblaze.pixellab.ai/file/pixellab-characters/af7def4e-5692-4b18-9246-874d5382befb/37739a1e-a38f-414e-81d7-f96e60de1f32/rotations/east.png?t=1785451512",
+        "https://backblaze.pixellab.ai/file/pixellab-characters/af7def4e-5692-4b18-9246-874d5382befb/37739a1e-a38f-414e-81d7-f96e60de1f32/rotations/north.png?t=1785451512",
+        "https://backblaze.pixellab.ai/file/pixellab-characters/af7def4e-5692-4b18-9246-874d5382befb/37739a1e-a38f-414e-81d7-f96e60de1f32/rotations/west.png?t=1785451512",
+        "https://backblaze.pixellab.ai/file/pixellab-characters/af7def4e-5692-4b18-9246-874d5382befb/37739a1e-a38f-414e-81d7-f96e60de1f32/rotations/south-east.png?t=1785451512",
+        "https://backblaze.pixellab.ai/file/pixellab-characters/af7def4e-5692-4b18-9246-874d5382befb/37739a1e-a38f-414e-81d7-f96e60de1f32/rotations/north-east.png?t=1785451512",
+        "https://backblaze.pixellab.ai/file/pixellab-characters/af7def4e-5692-4b18-9246-874d5382befb/37739a1e-a38f-414e-81d7-f96e60de1f32/rotations/north-west.png?t=1785451512",
+        "https://backblaze.pixellab.ai/file/pixellab-characters/af7def4e-5692-4b18-9246-874d5382befb/37739a1e-a38f-414e-81d7-f96e60de1f32/rotations/south-west.png?t=1785451512"
+      ],
+      "fetched": "2026-07-30T22:46:00+00:00",
+      "files": [
+        "east.png",
+        "north-east.png",
+        "north-west.png",
+        "north.png",
+        "south-east.png",
+        "south-west.png",
+        "south.png",
+        "west.png"
+      ],
+      "measured": {
+        "canvas": [
+          88,
+          88
+        ],
+        "content": [
+          38,
+          44
+        ],
+        "aspect": 0.8636363636363636,
+        "solidity": 0.6447368421052632,
+        "asymmetry": 0.07050092764378478,
+        "holes": 0,
+        "hole_px": 0,
+        "luma_mean": 0.1746725388337153,
+        "luma_p95": 0.49297098039215687,
+        "opaque": 1078,
+        "distinct": 38,
+        "off_ramp": 1078,
+        "binary_alpha": true
+      },
+      "band": {
+        "aspect": [
+          0.4888888888888889,
+          0.9090909090909091
+        ],
+        "solidity": [
+          0.6072463768115942,
+          0.697037037037037
+        ],
+        "asymmetry": [
+          0.07050092764378478,
+          0.5775656324582339
+        ],
+        "holes": [
+          0,
+          1
+        ]
+      },
+      "verdict": "keep",
+      "reasons": [
+        "luma 0.175 -- not automatically wrong (SKILL.md), but the outline is doing all the work"
+      ]
+    },
+    "tongue06_knot": {
+      "urls": [
+        "https://backblaze.pixellab.ai/file/pixellab-characters/af7def4e-5692-4b18-9246-874d5382befb/3e9fca23-f7aa-469a-a565-0de5ff96120d/rotations/south.png?t=1785451521",
+        "https://backblaze.pixellab.ai/file/pixellab-characters/af7def4e-5692-4b18-9246-874d5382befb/3e9fca23-f7aa-469a-a565-0de5ff96120d/rotations/east.png?t=1785451521",
+        "https://backblaze.pixellab.ai/file/pixellab-characters/af7def4e-5692-4b18-9246-874d5382befb/3e9fca23-f7aa-469a-a565-0de5ff96120d/rotations/north.png?t=1785451521",
+        "https://backblaze.pixellab.ai/file/pixellab-characters/af7def4e-5692-4b18-9246-874d5382befb/3e9fca23-f7aa-469a-a565-0de5ff96120d/rotations/west.png?t=1785451521",
+        "https://backblaze.pixellab.ai/file/pixellab-characters/af7def4e-5692-4b18-9246-874d5382befb/3e9fca23-f7aa-469a-a565-0de5ff96120d/rotations/south-east.png?t=1785451521",
+        "https://backblaze.pixellab.ai/file/pixellab-characters/af7def4e-5692-4b18-9246-874d5382befb/3e9fca23-f7aa-469a-a565-0de5ff96120d/rotations/north-east.png?t=1785451521",
+        "https://backblaze.pixellab.ai/file/pixellab-characters/af7def4e-5692-4b18-9246-874d5382befb/3e9fca23-f7aa-469a-a565-0de5ff96120d/rotations/north-west.png?t=1785451521",
+        "https://backblaze.pixellab.ai/file/pixellab-characters/af7def4e-5692-4b18-9246-874d5382befb/3e9fca23-f7aa-469a-a565-0de5ff96120d/rotations/south-west.png?t=1785451521"
+      ],
+      "fetched": "2026-07-30T22:46:06+00:00",
+      "files": [
+        "east.png",
+        "north-east.png",
+        "north-west.png",
+        "north.png",
+        "south-east.png",
+        "south-west.png",
+        "south.png",
+        "west.png"
+      ],
+      "measured": {
+        "canvas": [
+          88,
+          88
+        ],
+        "content": [
+          38,
+          45
+        ],
+        "aspect": 0.8444444444444444,
+        "solidity": 0.6181286549707602,
+        "asymmetry": 0.02459791863765374,
+        "holes": 0,
+        "hole_px": 0,
+        "luma_mean": 0.18902516036878328,
+        "luma_p95": 0.5662917647058824,
+        "opaque": 1057,
+        "distinct": 38,
+        "off_ramp": 1057,
+        "binary_alpha": true
+      },
+      "band": {
+        "aspect": [
+          0.4666666666666667,
+          0.8444444444444444
+        ],
+        "solidity": [
+          0.6169250645994832,
+          0.6952380952380952
+        ],
+        "asymmetry": [
+          0.02459791863765374,
+          0.3774733637747336
+        ],
+        "holes": [
+          0,
+          2
+        ]
+      },
+      "verdict": "keep",
+      "reasons": [
+        "luma 0.189 -- not automatically wrong (SKILL.md), but the outline is doing all the work"
+      ]
+    }
+  },
+  "judged": "2026-07-31T01:47:29+00:00"
+}

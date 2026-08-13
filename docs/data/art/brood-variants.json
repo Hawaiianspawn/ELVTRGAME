@@ -1,0 +1,83 @@
+{
+  "id": "brood-variants",
+  "revision": 1,
+  "note": "How often each brood look shows up. Owner, 2026-07-29: 'can we get npc variety into our system, lets not create any new stuff but utilize some of the good skins we have. Example the Oozes have some variance in appearence. They will be match to display weight.' This file is the DOCUMENT OF RECORD for the mix; the live knob is the CVar below, whose compiled default string is these weights in index order. Nothing parses this JSON at runtime -- a runtime JSON read would buy nothing the CVar does not already give (the mix has to be tunable mid-play without a reload), so the agreement between the two is checked by Scripts/art/check_brood_variants.py instead of enforced by a loader.",
+  "cvar": "Swarm.BroodVariantWeights",
+  "weight_note": "Integer weights, any scale -- the pick maps a per-entity random through the CUMULATIVE sum, so only the ratios matter. These happen to total 100 so they read as percentages. weight 0 RETIRES a look with no repack, no reimport and no rebuild: that is the whole reason all nine are packed rather than a chosen subset. Deliberately not a flat distribution -- nine-way-equal reads as noise, a common base with a couple of rare looks reads as variety.",
+  "index_note": "index IS the value carried in bits 21-24 of the render int32 (SwarmRenderPack::VariantShift) AND the atlas row pair (Row = index*2 + WalkFrame). Reordering this list without repacking the sheet swaps every skin.",
+  "atlas": "docs/data/art/requests/swarm-units.json",
+  "variants": [
+    {
+      "index": 0,
+      "id": "brood0-base",
+      "state": "state00_base",
+      "source": "RawArt/Renders/brood-ooze/raw/state00_base/rotations",
+      "weight": 14,
+      "look": "Limbed, upright, the most humanoid of the nine -- reads as a body rather than a blob."
+    },
+    {
+      "index": 1,
+      "id": "brood1-sump",
+      "state": "state01_sump",
+      "source": "RawArt/Renders/brood-ooze/raw/state01_sump/rotations",
+      "weight": 40,
+      "look": "Broad hooded mass, widest silhouette (53px). THE LOOK THAT SHIPPED ALONE from 2026-07-28 to 2026-07-29 -- RawArt/Renders/brood-ooze-colour is byte-identical to this state, so the heaviest weight keeps the horde looking like the horde the owner already approved."
+    },
+    {
+      "index": 2,
+      "id": "brood2-bell",
+      "state": "state02_bell",
+      "source": "RawArt/Renders/brood-ooze/raw/state02_bell/rotations",
+      "weight": 12,
+      "look": "Bell-shaped, flared skirt, tall crown."
+    },
+    {
+      "index": 3,
+      "id": "brood3-stalk",
+      "state": "state03_stalk",
+      "source": "RawArt/Renders/brood-ooze/raw/state03_stalk/rotations",
+      "weight": 8,
+      "look": "Narrow column, 28px wide -- half the width of sump. The thin end of the 2x silhouette spread."
+    },
+    {
+      "index": 4,
+      "id": "brood4-wedge",
+      "state": "state04_wedge",
+      "source": "RawArt/Renders/brood-ooze/raw/state04_wedge/rotations",
+      "weight": 10,
+      "look": "Hard triangular wedge, wide flat base."
+    },
+    {
+      "index": 5,
+      "id": "brood5-ridge",
+      "state": "state05_ridge",
+      "source": "RawArt/Renders/brood-ooze/raw/state05_ridge/rotations",
+      "weight": 4,
+      "look": "Low horizontal ridge, reads as crawling rather than standing. Rare on purpose: the flattest of the nine, so it carries least at distance."
+    },
+    {
+      "index": 6,
+      "id": "brood6-crown",
+      "state": "state06_crown",
+      "source": "RawArt/Renders/brood-ooze/raw/state06_crown/rotations",
+      "weight": 2,
+      "look": "Spiked crown, tallest content (47px). Rarest -- a distinctive silhouette is worth more when it is uncommon."
+    },
+    {
+      "index": 7,
+      "id": "brood7-twin",
+      "state": "state07_twin",
+      "source": "RawArt/Renders/brood-ooze/raw/state07_twin/rotations",
+      "weight": 6,
+      "look": "Two heads on one body -- the only silhouette with a notch in the top edge."
+    },
+    {
+      "index": 8,
+      "id": "brood8-slug",
+      "state": "state08_slug",
+      "source": "RawArt/Renders/brood-ooze/raw/state08_slug/rotations",
+      "weight": 4,
+      "look": "Hunched slug, heavy forward lean."
+    }
+  ]
+}

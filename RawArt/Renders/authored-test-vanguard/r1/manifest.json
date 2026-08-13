@@ -1,0 +1,31 @@
+{
+  "id": "authored-test-vanguard",
+  "revision": 1,
+  "created": "2026-07-28T07:52:27+00:00",
+  "stages": {
+    "anchor": {
+      "source": "authored",
+      "spec": "docs/art/authored-test-vanguard-states.md",
+      "generations": 0,
+      "updated": "2026-07-28T07:52:29+00:00"
+    }
+  },
+  "generations_spent": 0,
+  "request_snapshot": {
+    "prompt": {
+      "description": "TEST REQUEST - the anchor for this subject is authored, not generated. The pixel maps in subject.spec are the sprites; pixelpipe.py authored rasterizes them at zero generations. This block exists only because the schema requires it and must never be sent to PixelLab."
+    },
+    "pixellab": {
+      "mode": "standard",
+      "size": 48,
+      "view": "high top-down",
+      "n_directions": 8,
+      "outline": "selective outline",
+      "detail": "low detail",
+      "shading": "flat shading",
+      "text_guidance_scale": 12,
+      "body_type": "humanoid",
+      "template": null
+    }
+  }
+}

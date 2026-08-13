@@ -1,0 +1,62 @@
+{
+  "$schema": "../sprite-request.schema.json",
+  "id": "authored-test-vanguard",
+  "revision": 1,
+  "subject": {
+    "title": "Vanguard state variety - authored-path test (no PixelLab)",
+    "kind": "retinue",
+    "faction": "none",
+    "class_tie": "Vanguard",
+    "spec": "../../../art/authored-test-vanguard-states.md"
+  },
+  "canon": {
+    "palette": "demichrome-4",
+    "value_dominance": "steel",
+    "pale_usage": "eyes",
+    "silhouette": "an armoured vanguard soldier, hard headgear with a defined brim or visor line, square shoulder mass, one spear held vertically at the body - the state axis varies helm profile and shoulder mass only, never the spear or the shoulder square",
+    "reads_as": "five different soldiers who are unmistakably the same unit type",
+    "moving": true,
+    "light_shift_variant": false
+  },
+  "prompt": {
+    "description": "TEST REQUEST - the anchor for this subject is authored, not generated. The pixel maps in subject.spec are the sprites; pixelpipe.py authored rasterizes them at zero generations. This block exists only because the schema requires it and must never be sent to PixelLab."
+  },
+  "pixellab": {
+    "mode": "standard",
+    "size": 48,
+    "view": "high top-down",
+    "n_directions": 8,
+    "outline": "selective outline",
+    "detail": "low detail",
+    "shading": "flat shading",
+    "text_guidance_scale": 12,
+    "body_type": "humanoid",
+    "template": null
+  },
+  "anchor": {
+    "strategy": "authored",
+    "source_direction": "south",
+    "shared_anchor_id": null,
+    "approved": false
+  },
+  "animations": [],
+  "portrait": {
+    "enabled": false
+  },
+  "output": {
+    "cell": 48,
+    "grid": [
+      4,
+      2
+    ],
+    "frame_map": {
+      "0": "south.idle"
+    },
+    "texture": "T_Test_Vanguard_Authored",
+    "content_path": "/Game/Sprites/Units",
+    "sheet_srgb": true
+  },
+  "budget": {
+    "max_generations": 2
+  }
+}

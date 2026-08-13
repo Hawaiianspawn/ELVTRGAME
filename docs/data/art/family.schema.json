@@ -37,6 +37,17 @@
       "type": "string",
       "description": "What every variant in the family holds constant (SKILL.md step 2's variance table)."
     },
+    "forge": {
+      "type": "object",
+      "additionalProperties": false,
+      "description": "Optional defaults for Scripts/art/forge.py, the local page that generates and judges this family. Every field is optional and a CLI flag overrides it; a family with no forge block still works, it just cannot ship without --atlas/--prefix.",
+      "properties": {
+        "atlas": {"type": "string", "description": "Composite request id approved variants ship into, e.g. team-units."},
+        "prefix": {"type": "string", "description": "Atlas prefix a variant's slug is appended to, e.g. 'archer-'. Must match the block this family already occupies, or forged variants start a second block."},
+        "tail": {"type": "string", "description": "Constant clauses appended to every edit_description, overriding forge.py's TAIL default. These are the clauses each variant's prompt currently repeats verbatim -- head/legs legibility and the palette/no-glow rule."},
+        "note": {"type": "string"}
+      }
+    },
     "variants": {
       "type": "array",
       "minItems": 1,

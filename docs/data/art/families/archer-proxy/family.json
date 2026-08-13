@@ -1,0 +1,21 @@
+{
+  "family": "archer-proxy",
+  "note": "Backfilled 2026-07-29 (task-081). Layout is deliberately FLAT, not nested rotations/ -- docs/data/art/provenance.json: 'flat, matching T_Soldier_Archer's own flat raw/ layout rather than knight's raw/rotations/ subfolder'. The 'base' variant is the loose PNGs directly under raw/ (no subfolder of its own) -- provenance.json calls it 'state 1', predating both the per-variant-folder convention and the hero-naming reversal (see hero-naming-philosophy memory), so its original character name is not recorded here. character_id and edit_description are unrecorded for every variant.",
+  "base": {
+    "character_id": null,
+    "canvas_size": 92,
+    "note": "Confirmed by measurement (all 5 states return 92x92)."
+  },
+  "axis": {
+    "name": "interior",
+    "description": "Fixed archer pose and base silhouette; each state swaps a head/weapon prop (hollow mask, crossbow, blade, mage staff) rather than moving the outline. Measured 2026-07-29: 'base' and 'state02_hollowmask' look nearly identical from the south (43x46, aspect 0.93 both) but their 8-direction bands are NOT contained one in the other (solidity 0.5437-0.7023 vs 0.5421-0.7108, asymmetry 0.3149-0.6947 vs 0.2819-0.6899) -- a real, if small, separation that a south-only look would have missed."
+  },
+  "constant": "Base archer pose, inherited palette, 92px canvas.",
+  "variants": [
+    {"slug": "base", "silhouette_target": null, "edit_description": null, "source": "legacy"},
+    {"slug": "state02_hollowmask", "silhouette_target": null, "edit_description": null, "source": "legacy"},
+    {"slug": "state03_crossbow", "silhouette_target": null, "edit_description": null, "source": "legacy"},
+    {"slug": "state04_blade", "silhouette_target": null, "edit_description": null, "source": "legacy"},
+    {"slug": "state05_mage", "silhouette_target": null, "edit_description": null, "source": "legacy"}
+  ]
+}

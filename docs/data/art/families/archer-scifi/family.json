@@ -1,0 +1,22 @@
+{
+  "family": "archer-scifi",
+  "note": "Backfilled 2026-07-29 (task-081) from renders already on disk. Generated in a prior session before this schema/manifest existed -- base.character_id and every edit_description are unrecorded, not guessed. This is the reference family per docs/backlog/task-081: it reads apart on asymmetry (0.30-0.92), not aspect (a 1.5x spread that alone would look like a fail -- see task-081 Findings 1 and Scripts/art/test_variantpipe.py, which pins these exact numbers).",
+  "base": {
+    "character_id": null,
+    "canvas_size": 92,
+    "note": "Confirmed by measurement (all 6 states return 92x92), not by get_character."
+  },
+  "axis": {
+    "name": "topology",
+    "description": "Each state swaps the ranged weapon and firing pose (marksman rifle, voltaic coil weapon, harpooner launcher, volley stance, kite plus a detached drone, sharpshooter crouch) -- an asymmetric front/back silhouette per pose rather than a uniform width/height ratio change."
+  },
+  "constant": "Base archer character, inherited palette (use_color_palette_from_reference), 92px canvas, flat unlit rendering.",
+  "variants": [
+    {"slug": "state01_marksman", "silhouette_target": null, "edit_description": null, "source": "legacy"},
+    {"slug": "state02_voltaic", "silhouette_target": null, "edit_description": null, "source": "legacy"},
+    {"slug": "state03_harpooner", "silhouette_target": null, "edit_description": null, "source": "legacy"},
+    {"slug": "state04_volley", "silhouette_target": null, "edit_description": null, "source": "legacy"},
+    {"slug": "state05_kite", "silhouette_target": null, "edit_description": null, "source": "legacy"},
+    {"slug": "state06_sharpshooter", "silhouette_target": null, "edit_description": null, "source": "legacy"}
+  ]
+}

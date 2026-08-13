@@ -1,0 +1,50 @@
+{
+  "family": "brood-ooze-colour",
+  "variants": {
+    "rotations": {
+      "measured": {
+        "canvas": [
+          88,
+          88
+        ],
+        "content": [
+          53,
+          34
+        ],
+        "aspect": 1.5588235294117647,
+        "solidity": 0.6698113207547169,
+        "asymmetry": 0.08947804473902236,
+        "holes": 0,
+        "hole_px": 0,
+        "luma_mean": 0.053810653540620874,
+        "luma_p95": 0.2288713725490196,
+        "opaque": 1207,
+        "distinct": 15,
+        "off_ramp": 1207,
+        "binary_alpha": true
+      },
+      "band": {
+        "aspect": [
+          1.0227272727272727,
+          1.5588235294117647
+        ],
+        "solidity": [
+          0.5969696969696969,
+          0.6698113207547169
+        ],
+        "asymmetry": [
+          0.0673076923076923,
+          0.44844844844844844
+        ],
+        "holes": [
+          0
+        ]
+      },
+      "verdict": "keep",
+      "reasons": [
+        "luma 0.054 -- not automatically wrong (SKILL.md), but the outline is doing all the work"
+      ]
+    }
+  },
+  "judged": "2026-07-30T01:16:20+00:00"
+}
