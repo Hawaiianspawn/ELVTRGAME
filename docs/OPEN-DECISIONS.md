@@ -1,7 +1,7 @@
 # Open decisions — the register
 
-**Opened:** 2026-08-13 · **Status:** 24 open, 7 closed
-**Last closed:** Q30 (gold survives; the quartermaster's stock is the layers you hold), Q31 (Supply/upkeep belongs to the war) — 2026-08-13
+**Opened:** 2026-08-13 · **Status:** 23 open, 9 closed
+**Last closed:** Q6 (the relief is another bearer), Q32 (light fragments retire) — 2026-08-13
 **Sources consolidated here:** `docs/design/castle-layout.md` §10 (Q1–Q7),
 `docs/design/intro-and-zones.md` §E (Q8–Q12), Q13–Q22 raised 2026-08-13, and
 **Q24–Q28 raised in `docs/PREFLIGHT.md` §3** — the pre-implementation pass.
@@ -38,6 +38,7 @@ call, not by a later doc quietly assuming an answer.
 | ~~Q29~~ | Fate of the four classes under the pivot | 1 | — | Q2, Q21, Q23 | **CLOSED — A** |
 | ~~Q30~~ | Fate of gold and the shops under the siege | 2 | — | GDD Q26, Q34 | **CLOSED — B** |
 | ~~Q31~~ | Who Supply/upkeep governs now | 3 | — | — | **CLOSED — A** |
+| ~~Q32~~ | Fate of light fragments | 3 | — | — | **CLOSED — A** |
 | **Q23** | The squad-channelled ability kit — what is in it? | **1** | — | Q2, Q14 | open *(opened by Q13)* |
 | **Q14** | Is 7 a cap or a floor? | **1** | *unblocked* | Q2, Q21 | open |
 | **Q15** | Can your seven be downed and revived? | **1** | *unblocked* | — | open |
@@ -53,7 +54,7 @@ call, not by a later doc quietly assuming an answer.
 | Q10 | Does the withdrawal count persist? | 2 | Q9 | — | open |
 | Q19 | Where the game saves | 2 | *unblocked* | — | open |
 | ~~Q3~~ | Fate of the kills → army-level ratchet | 3 | — | — | **CLOSED — C** |
-| Q6 | Can the war be won, or only survived? | 3 | *unblocked* | — | open |
+| ~~Q6~~ | Can the war be won, or only survived? | 3 | — | — | **CLOSED — C** |
 | Q11 | Zoom range vs. the flame pool and dither | 3 | *unblocked* | — | open |
 | Q20 | Fate of `squad-group-system.md` | 3 | — | — | open |
 | Q21 | Art for seven named persistent soldiers | 3 | Q14, Q2 | — | open |
@@ -636,9 +637,9 @@ It is **shipped, working C++** — per-squad and per-hero attribution in `Mass/S
 
 ---
 
-## Q6 — Can the war be won, or only survived?
+## Q6 — Can the war be won, or only survived? · **CLOSED**
 
-**Blocks:** — · **Blocked by:** ~~Q1~~ *(closed — A)* · **Verdict:** ________ · **Date:** ________
+**Blocks:** — · **Blocked by:** ~~Q1~~ *(closed — A)* · **Verdict: C** · **Date: 2026-08-13**
 
 > **Q1 = A left a hole here that must not be filled by inference.** "Ends when the Crown
 > falls **or a relief condition is met**" — that clause is a placeholder. **What actually
@@ -648,7 +649,36 @@ D2 says the *castle* only falls. It does not say the *war* is unwinnable. **Tone
 
 - [ ] **A · Winnable** — there is an end and you can reach it.
 - [ ] **B · Survivable only** — the question is how long and at what cost.
-- [ ] **C · Winnable but not by you** — you buy time for something else to decide it.
+- [x] **C · Winnable but not by you** — you buy time for something else to decide it.
+
+> **TAKEN — C, 2026-08-13, and the "something else" is named: the relief is another
+> bearer.** You hold until a second flame answers yours. This gives
+> `FLAME-FOUNDATION.md` §4.4 — *uniting flames as a run objective*, decided
+> 2026-07-27 — its mechanical home: the war is won by the uniting, not by the
+> castle. **How progress toward relief is earned, paced and shown is open — do not
+> infer "survive N sieges."** Written to `castle-layout.md` §4.1. The narrative
+> pass connecting this to FLAME-FOUNDATION is a follow-up, not done here.
+
+---
+
+## Q32 — Fate of light fragments · **CLOSED**
+
+**Blocks:** — · **Blocked by:** — · **Verdict: A** · **Date: 2026-08-13**
+
+The 2026-07-31 route — fragments gather in-run, a threshold converts them into a
+healer unit, boss fragments drop as modifiers — belongs to the retired design
+(Q15 says so for the healer half). Under the pivot, healing already has two homes:
+the garrison's triage anchors rooted at the Lantern Court, and the Guided-light
+archetype as one of the seven (Q29 = A).
+
+- [x] **A · Fragments retire entirely.** Healing = light-archetype soldier +
+      garrison. `GDD.md` Q24 (gather method) closes as superseded — the currency it
+      priced no longer exists. One less currency in the game.
+- [ ] **B · Boss-drop modifiers only.**
+- [ ] **C · Defer.**
+
+> **TAKEN — A, 2026-08-13.** Written to `GDD.md` §3 and Q24 (markers). Whether the
+> light archetype's raise reaches the seven themselves is still Q15.
 
 ---
 
@@ -759,3 +789,10 @@ Marks (`castle-layout.md` §6.1) currently attach to Boss only.
   the Works' fall starves it, the seven draw none, and no player-facing Supply purchase
   exists. Written to `GDD.md` §7 (marker); the degrade formula survives as garrison
   tuning.
+- **2026-08-13 · Q6 = C** — the war is winnable but not by you: **the relief is another
+  bearer** — hold until a second flame answers yours. Uniting flames
+  (FLAME-FOUNDATION §4.4, 2026-07-27) gets its mechanical home. Written to
+  `castle-layout.md` §4.1. Pacing/earning of relief progress is open — do not infer.
+- **2026-08-13 · Q32 = A** — light fragments retire entirely; healing = the
+  Guided-light archetype among the seven + the garrison's triage anchors. Closes
+  `GDD.md` Q24 as superseded. Written to `GDD.md` §3 and Q24 (markers).

@@ -291,10 +291,12 @@ retreats across a region; one unbroken siege with no session boundary at all.*
 3. **Layer state is save state.** Which gates stand at siege start is the persistent
    set, and it changes wholesale exactly once per siege (Q19).
 
-> **Deliberately still unwritten: the relief condition.** "Ends when the Crown falls
-> **or when the defence holds to a relief condition**" is a placeholder, and Q1 did
-> not fill it. **What actually ends a siege in the player's favour is undecided (Q6),
-> and "survive N waves" is not to be inferred as the default.**
+> **The relief condition — CLOSED 2026-08-13 (Q6 = C): the relief is another
+> bearer.** You hold until a second flame answers yours; the war is won by the
+> uniting (`FLAME-FOUNDATION.md` §4.4's run objective, decided 2026-07-27, now
+> mechanical), not by the castle. **How progress toward relief is earned, paced
+> and shown is open — "survive N sieges" is not to be inferred.** The narrative
+> pass connecting the two docs is a follow-up.
 
 ---
 

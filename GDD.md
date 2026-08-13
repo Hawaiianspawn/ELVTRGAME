@@ -163,6 +163,9 @@ There is no separate meta-currency and no allocation panel.
   instead of converting into bodies. *Open (2026-07-31): how fragments are gathered —
   kill drops, placed caches, both, or rescue-only — was not decided, and is not to be
   inferred (Q24).*
+  **Superseded 2026-08-13 (castle pivot; `docs/OPEN-DECISIONS.md` Q32 = A): fragments
+  retire entirely.** Healing is the Guided-light archetype among the seven (Q29) plus
+  the garrison's triage anchors; Q24 closes with the currency.
 - **Win / loss** are stated in the run loop above: a wipe costs stage progress only, and
   everything persistent survives it.
 - **Difficulty — DECIDED 2026-07-31: both levers.** Stages scale at roughly **60% of army
@@ -789,7 +792,7 @@ deliberately written so co-op stays *possible*, and those affordances cost nothi
 | 13 | Unwitnessed faction (name, titan variety, horror level) | ~~First draft in `WORLD.md` §3a~~ — **SUPERSEDED.** The Unwitnessed belong to the discarded canon; any replacement antagonist is drafted from `docs/narrative/FLAME-FOUNDATION.md`, and none has been. | ⏸ Superseded 2026-07-22 |
 | 14 | v1 world-flag list + decision-event templates | ~~**15 flags / 8 templates — `WORLD.md` §7–8**~~ — **SUPERSEDED.** The world flags were discarded with the lore (§6a, §11) and `WORLD.md` is dead canon; meta-progression is answered instead by the persistent army (Q22). | ⏸ Superseded 2026-07-22 |
 | 11 | Final class names (per-class candidates in `CLASSES.md`) | Working names in use | Naming pass later |
-| 24 | How light fragments are gathered | Undecided. The conversion is decided — enough fragments in one place become a **healer unit**, and boss fragments drop as **modifiers** rather than bodies (Q22) — but the gathering method is not: kill drops with auto-vacuum vs. placed caches vs. both vs. rescue-only. Not to be filled in by inference. | Open |
+| 24 | How light fragments are gathered | ~~Undecided. The conversion is decided — enough fragments in one place become a **healer unit**, and boss fragments drop as **modifiers** rather than bodies (Q22) — but the gathering method is not.~~ **SUPERSEDED: fragments retire entirely with the castle pivot** (`docs/OPEN-DECISIONS.md` Q32 = A) — healing is the Guided-light archetype among the seven plus the garrison's triage anchors. | ⏸ Superseded 2026-08-13 |
 | 25 | Which wave curve is canon | Undecided, and the two live curves conflict: `SYSTEMS.md` §2 locks **250 / 450 / 700** as a dated decision record, while `docs/data/wave-scaling.json` proposes **120 / 400 / 20,000** with retinue 60 → 120 → 600. `encounter-budget.json`, `scaling-curve.json` and `retinue-vanguard.json` all derive from the old curve, so picking the new one re-derives three files. The direction needs one picked; deliberately not picked unilaterally. | Open |
 | 26 | Gold's drop rate and sources | Undecided. Gold is the shop currency (Q23) and drops in-run, but neither the rate nor which drops pay it has been set. | Open |
 | 27 | Does the leash survive an army in the thousands, commanded by type? | Undecided, and unasked. §4's leash rule ("hero relevance enforced by rule, not tuning") was written for a retinue of hundreds under whole-army stances; a four-digit army commanded by unit *type* (Q29) is new, and the rule has not been re-checked against it. | Open |
