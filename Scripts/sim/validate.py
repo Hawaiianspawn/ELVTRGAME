@@ -366,7 +366,11 @@ def main() -> int:
               "reported honestly, not fudged. See docs/sim/VALIDATION.md and docs/sim/LIMITATIONS.md "
               "for the numbers and the read on why. Wave-attrition scenario OUTPUT (floor1/floor2) should "
               "be read as illustrative of the MECHANISM (frontage concurrency limits), not as a trusted "
-              "survivor-count prediction, until this closes.")
+              "survivor-count prediction, until this closes. Formally attempted and NOT closed as of "
+              "task-148 (docs/sim/VALIDATION.md 'task-148' section, docs/sim/LIMITATIONS.md §1 "
+              "candidate 2) — the one fresh in-engine measurement available (task-145, "
+              "docs/perf/attacker-cap-transfer.md) turned out to measure Kindled.Boss.SurroundCap, "
+              "not Swarm.MaxAttackersPerUnit, and does not apply to this check's scenario.")
 
     if ok5 and ok6 and ok7:
         print("Variance-layer checks (5, 6, 7): PASS — variance is off by default and bit-identical, "

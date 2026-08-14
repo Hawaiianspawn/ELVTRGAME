@@ -548,3 +548,73 @@ The byte-identity evidence above was therefore captured **per scenario**
 across all 14 runnable ones rather than through `--all`. The fix belongs in
 `data_loader.list_scenarios()` (filtering by presence of a runnable `Kind`),
 which is outside this task's owned paths — reported, not patched.
+
+## task-148 — checked the task-145 measurement against candidate (2), found it inapplicable, gap stays open
+
+`PREFLIGHT.md` §4 P3: close the wave-attrition gap or formally fail to.
+`docs/perf/attacker-cap-transfer.md` (task-145, P2) landed first, framed as
+"the attacker-cap transfer" and cited by the team lead as fresh measured
+input for this task. Read closely, together with the two source lines it
+derives from, before touching any constant:
+
+- `Swarm.MaxAttackersPerUnit` (`SwarmCombatProcessors.cpp:934`) gates
+  ordinary unit-vs-unit strikers — the exact CVar
+  `wave_attrition_model.MaxAttackersPerUnit` in
+  `combat-model-constants.json` is meant to represent.
+- `Kindled.Boss.SurroundCap` (`SwarmCombatProcessors.cpp:1056`) is a
+  separate CVar gating a separate code path: only hits landing on the boss
+  entity.
+
+Both of task-145's captures were boss fights. Its N_eff curve (0.7-1.0
+front contact, ~2.9 mid-push, ~16.2 surrounded endgame) is a real,
+cited measurement of `Kindled.Boss.SurroundCap`'s behavior — its own §3 and
+§6 say plainly the boss path never consults `MaxAttackersPerUnit` and that
+neither capture measured the unit case. `gate1-calibration-wave1` (this
+check's own scenario) has no boss in it — 120 retinue vs 250
+`brood_fodder`, ordinary units both sides — so there is no scenario in this
+harness where the N_eff curve and `MaxAttackersPerUnit` describe the same
+fight. Recalibrating `wave_attrition_model`'s frontage/concurrency constants
+against it would be fitting one CVar's constant to a measurement of a
+different CVar's mechanism — a fitted value with no referent to the
+quantity being adjusted, the exact thing `LIMITATIONS.md`'s anti-fitting
+rule forbids. Full account: `docs/sim/LIMITATIONS.md` §1 candidate (2).
+
+**No constant in `combat-model-constants.json` was changed.** No new
+scenario was needed — there was no applicable measurement to encode into
+one. Re-ran the full suite to confirm the harness itself hasn't drifted
+while this was being checked:
+
+```
+=== task-063 validation suite ===
+
+Militia vs Fodder TTK = 2.0000s (expected 2.0s) -> PASS
+Hero(55dps) vs Elite TTK = 21.6000s (expected 21.6s) -> PASS
+GATE1 calibration: retinue survivors = 0.00 of 120 (measured range 109-111) -> FAIL (see docs/sim/VALIDATION.md for the read)
+Cleave sensitivity guard (K=MaxAttackersPerUnit=4 vs K=2xMaxAttackersPerUnit=8): 25.8 vs 19.7 enemy survivors, delta=6.1 (threshold 2.0) -> PASS
+[smoke, not the regression guard] TargetsPerHit=1 -> 188.7, TargetsPerHit=8 -> 19.7 enemy survivors, delta=169.0 -> PASS
+[bonus] Army(N=120, 80/20) vs Elite TTK = 1.848s (entity-tiers.md §7 table: 1.85s) -> PASS
+Variance-OFF identity (5 scenarios, 14 fields): PASS
+Trials reproducibility (run_trials x2, 8 trials, root_seed=1234, sources=['arrival_jitter']): -> PASS
+Trials order-independence (8 trials: in-order vs shuffled [7, 2, 0, 5, 4, 1, 3, 6] vs ProcessPoolExecutor x4): shuffled=MATCH, pooled=MATCH -> PASS
+
+REQUIRED closed-form checks (1, 2): PASS
+Cleave-sensitivity regression guard (4): PASS
+GATE1 wave-attrition reproduction (3): FAIL
+```
+
+Byte-identical to every prior run in this file. Checks 1, 2, 4, 5, 6, 7 all
+PASS (exit code 0); check 3 still FAILs at 0.00 of 120, unchanged, reported
+honestly rather than forced.
+
+**Formal result of task-148: fail to close the gap.** Candidate (1)
+(arrival timing) was already eliminated by task-068. Candidate (2)
+(`MaxAttackersPerUnit`'s pooled-vs-per-entity transfer) remains completely
+untested — task-145 was PREFLIGHT's attempt to supply that measurement and,
+by its own account, measured a different mechanism instead. There is no
+third candidate on record. Per `PREFLIGHT.md` §4's own framing, this
+honestly-reported non-closure is the correct outcome of this task, not a
+shortfall of it: wave-attrition survivor counts stay illustrative-of-mechanism
+only, and the standing rule (`LIMITATIONS.md` §1) — do not tune
+`EngagedSpacingUU`, `MaxAttackersPerUnit`, or `MeleeContactFacingFraction`
+to force check 3 to pass — held through this task exactly as it held
+through every prior one.

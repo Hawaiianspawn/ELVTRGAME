@@ -59,25 +59,59 @@ measurement.**
    current alive-counts. Full numbers: `docs/sim/VALIDATION.md`'s task-068
    section.
 2. **`MaxAttackersPerUnit` may not transfer cleanly from the real per-entity
-   sim into this pooled/geometric approximation.** In the real sim it bounds
-   one specific victim's simultaneous attacker count at an instant; here it's
-   used as an aggregate rate multiplier across an entire exposed perimeter
-   every tick. Those aren't obviously the same statistical quantity, and this
-   harness has no way to check which one is closer to the truth without an
-   in-engine measurement to compare against. **Now the more promising open
-   candidate of the two**, purely by elimination — candidate (1)'s own
-   arrival data was real and still didn't move the number.
+   sim into this pooled/geometric approximation. STILL UNTESTED — a fresh
+   attempt at the measurement (task-148, below) confirmed it measured the
+   wrong mechanism, not this one.** In the real sim it bounds one specific
+   victim's simultaneous attacker count at an instant; here it's used as an
+   aggregate rate multiplier across an entire exposed perimeter every tick.
+   Those aren't obviously the same statistical quantity, and this harness
+   still has no way to check which one is closer to the truth without an
+   in-engine measurement of *this* mechanism specifically.
+
+   **task-148 (PREFLIGHT.md §4 P3) checked whether `docs/perf/attacker-cap-transfer.md`
+   (task-145, PREFLIGHT §4 P2) could supply that measurement — it cannot, and
+   the reason is load-bearing, not a technicality.** `Swarm.MaxAttackersPerUnit`
+   (default 4, `SwarmCombatProcessors.cpp:934`) and `Kindled.Boss.SurroundCap`
+   (default 45, `SwarmCombatProcessors.cpp:1056`) are two separate CVars
+   gating two separate code paths — the first for ordinary unit-vs-unit
+   strikers, the second only for hits landing on the boss entity. Both of
+   task-145's captures were boss fights: the N_eff curve it derives
+   (0.7-1.0 front contact, ~2.9 mid-push, ~16.2 surrounded endgame) is real
+   and cited, but it is a measurement of `Kindled.Boss.SurroundCap`'s real
+   behavior, not `Swarm.MaxAttackersPerUnit`'s — task-145's own §3 and §6
+   say so directly ("the boss path never consults MaxAttackersPerUnit";
+   "Neither capture measured this — both were boss fights"). Its real
+   destination is `docs/sim/SEVEN-VS-BOSS.md`'s point-target
+   `SurroundCapEstimate` question (task-145 §7's own verdict), not this
+   candidate. `gate1-calibration-wave1` (check 3's own scenario) has no
+   boss in it at all — 120 retinue vs 250 `brood_fodder`, ordinary units on
+   both sides — so there is no fight in this harness where the N_eff curve
+   and `MaxAttackersPerUnit` would even be describing the same soldiers.
+   Feeding the N_eff curve into this model's frontage/concurrency constants
+   would be calibrating one CVar's parameter against a measurement of a
+   different CVar's mechanism — a fitted value with no referent to the
+   quantity being adjusted, exactly the failure mode this file's own rule
+   below forbids. **No constant in `combat-model-constants.json` was
+   changed as a result.** Candidate (2) is exactly as untested after
+   task-148 as before it — task-148's contribution is confirming that a
+   plausible-looking fresh measurement does not, in fact, apply, rather
+   than leaving that unchecked.
 
 **This harness previously could not distinguish between (1) and (2); it now
 has real evidence against (1) contributing meaningfully to this model's gap,
-but that is not the same as confirming (2) — it just narrows what's left
-untested.** Whether arrival timing matters in the REAL per-entity sim (which
-has geometry, positioning, and player input this pooled model still lacks —
-see §4 below) is a separate, still-open question this harness cannot answer
-either way; what's closed here is narrower and more specific: arrival timing
-alone cannot rescue *this pooled model's* prediction at these population
-scales, because of how its damage-rate math is structured, not because
-arrival timing is unimportant in general.
+and a checked-and-rejected near-miss on (2), but neither is confirmation of
+(2) — both narrow what's left untested, not what's answered.** Whether
+arrival timing matters in the REAL per-entity sim (which has geometry,
+positioning, and player input this pooled model still lacks — see §4 below)
+is a separate, still-open question this harness cannot answer either way;
+what's closed here is narrower and more specific: arrival timing alone
+cannot rescue *this pooled model's* prediction at these population scales,
+because of how its damage-rate math is structured, not because arrival
+timing is unimportant in general. **Closing candidate (2) still needs an
+in-engine measurement of `Swarm.MaxAttackersPerUnit` itself, on ordinary
+unit-vs-unit contact, not a boss fight** — unbuilt, and per PREFLIGHT.md
+§2.4 it is the same kind of `unreal-editor`-locked measurement task as P1
+and P2, so it serialises against them rather than running free.
 
 **Do not tune `EngagedSpacingUU`, `MaxAttackersPerUnit`, or
 `MeleeContactFacingFraction` in `combat-model-constants.json` to force check
