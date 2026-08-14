@@ -2,223 +2,213 @@
 
 task-145. `PREFLIGHT.md` §1/§4 P2, made load-bearing by `docs/sim/SEVEN-VS-BOSS.md` §2: the
 seven-vs-seventy claim in `castle-layout.md` §6.3 flips entirely on whether the real in-engine
-boss surround cap is ~7 or in the documented 35-55 band. This doc's job was to measure it.
+boss surround cap is ~7 or in the documented 35-55 band.
 
 ## Headline
 
-**Inconclusive, and the reason it's inconclusive is itself the finding.** `Kindled.Boss.Report`
-does not measure what §2's flip-point question needs. It reports the peak number of soldiers
-whose blow *landed* on the boss in a single frame — a quantity that reads near-zero (1-3,
-measured below) whether 7 soldiers are in reach or 45 are, because blows are spread across each
-soldier's own ~0.9s swing cadence. Five real samples pulled from an in-engine session run on
-this branch about an hour before this report all read 1-3 against a cap of 45, which is
-consistent with slice-a7.md §10 row 10's own claim that the cap "never binds in practice" — but
-that same evidence is equally consistent with the true concurrent-bodies-in-reach number being 7
-or being 45. **The instrument cannot tell the two apart, so it cannot adjudicate SEVEN-VS-BOSS.md
-§2.** What would adjudicate it, and why I didn't run it myself, is in §5.
+**The real number isn't a number, it's a curve, and it crosses the flip point mid-fight.**
+Converting two controlled standalone captures' HP-loss rate into effective concurrent attackers
+(`N_eff`, derivation in §4) gives:
 
-## 1. What was measured, and how
+| Phase | N_eff | vs SEVEN-VS-BOSS.md §2's cap=7 flip point |
+|---|---|---|
+| Front contact (boss parked against the line) | **0.7 - 1.0** | far below — seven ≈ seventy regime |
+| Mid-push (boss advancing through a thinned line) | **~2.9** | below — still seven ≈ seventy regime |
+| Late-front, static but thinning (bonus sample, §4) | **~7.0** | at the flip point |
+| Surrounded endgame (boss pinned near the bearer) | **~16.2** | above — seventy-wins regime |
 
-**Build/branch:** `build-space-differentiates`, current commit at time of writing
-(`cb06098`, "Add walls and the 1000-body war test scenario"). No source changes made for this
-task.
+None of these sit anywhere near the documented 35-55 `SurroundCapEstimate` band. Most of a fight's
+duration (the front-contact and mid-push phases measured here span 57s + 39s = 96s) sits *below*
+the cap=7 flip point; only the closing ~18s, once the boss is pinned and the survivors compress
+onto it, clears 7 and starts to look like the 35-55 band's "mass wins" story. **A single static
+`SurroundCapEstimate` is the wrong shape of number for what the engine actually does** — real
+concurrency is small and rises sharply as a fight closes, not a fixed ceiling. §7 unpacks what
+that means for §2's table.
 
-**Method:** I do not have MCP console-toolset access in this task invocation (no
-`KindledConsoleToolset`/`KindledSwarmToolset` tools were available to me — file and shell tools
-only), and per my own operating constraints I do not launch or drive the Unreal Editor directly.
-A live editor process for this exact project was already running when I started
-(`UnrealEditor.exe`, PID 41592, window title `ELVTR - Unreal Editor`, started ~70 minutes prior)
-— almost certainly the session that built and validated task-144's ability kit. Rather than start
-a second instance (resource-lock risk per `PREFLIGHT.md` §1's own note that `unreal-editor`
-serialises, plus the missing-modules/Live-Coding hang risk this project's memory already
-documents, which a headless launch has no way to dismiss), I mined that session's own log,
-`ELVTR/Saved/Logs/ELVTR.log`, for real `Kindled.Boss.Report` output it already produced.
+## 1. What was measured
 
-That log shows an MCP-driven session (`LogModelContextProtocol: Dispatching toolset tool:
-'ELVTREditor.KindledConsoleToolset.Exec'`) spawning the slice boss five times
-(`Kindled.Boss.Spawn quilled,ram,sated` / `quilled,sated`) against the default anchored garrison
-(116-132 retinue standing, `Follow`/anchored-Hold stance — nothing issued a `Charge` or
-per-unit `Hold` override in this log) while exercising the four ability-kit verbs, and calling
-`Kindled.Boss.Report` five times by hand. This is genuine, current, in-engine data on this
-branch — not fabricated, not from a stale log — but it was not run *for* this task, so it only
-covers one engagement shape (a normal front-line fight) and none of the three shapes §2 below
-was asked to compare.
+**Build/branch:** `build-space-differentiates`, same commit as before (`cb06098`). No source
+changes.
 
-## 2. What `Kindled.Boss.Report` counts — read from source, not assumed
+**Method:** the team lead ran the two captures I couldn't run myself (no MCP console-toolset
+access in this task invocation, and a live editor session was already open on this project —
+see the previous revision of this doc for why I didn't drive it myself). Two standalone `-game`
+launches, unmarked boss, no abilities cast, `Kindled.Seven.LogInterval 3` (which also fires
+`Kindled.Boss.Report`'s line every 3s, `Spike1GameMode.cpp:492`), brood waves running throughout
+(unavoidable — `WaveBroodCounts` is hard-coded, not a dial):
 
-`ELVTR/Source/ELVTR/Mass/SwarmCombatProcessors.cpp:1056`:
+```
+capmeasure-A-front.log:
+UnrealEditor.exe ... ELVTR.uproject L_Spike1 -game -windowed -ResX=1280 -ResY=720 ^
+  -ExecCmds="Kindled.Boss.AutoWave 1,Kindled.Boss.AutoMarks none,Kindled.Seven.LogInterval 3" ^
+  ABSLOG=...\capmeasure-A-front.log
+
+capmeasure-B-charge.log:
+UnrealEditor.exe ... ELVTR.uproject L_Spike1 -game -windowed -ResX=1280 -ResY=720 ^
+  -ExecCmds="Kindled.Boss.AutoWave 1,Kindled.Boss.AutoMarks none,Kindled.Seven.LogInterval 3,Swarm.UnitStance 7 Charge" ^
+  ABSLOG=...\capmeasure-B-charge.log
+```
+
+Garrison: 128 bodies, mixed Spearmen/Archers, no adaptation rungs assigned (only the Seven get
+`SetSquadRung` in this slice — `SwarmProcessors.cpp:620-624`: "nothing about today's shipped
+balance moves until a rung is assigned"), so combat stats are the shipped Gate 1 defaults
+(§4 blend). Boss: 6000 HP, Armor 14, unmarked.
+
+## 2. The `Swarm.UnitStance 7 Charge` correction to the brief
+
+**Not a refusal — an overwrite, and the timing is the whole story.** `capmeasure-B-charge.log`
+line 1913 shows the command actually executing:
+
+```
+LogTemp: Warning: Swarm.UnitStance: unit 7 is THE GARRISON — the war, not your squad. ...
+LogTemp: Display: Swarm: unit 7 stance = CHARGE (type SPEARMEN)
+```
+
+`SetUnitStance` ran and set the garrison's stance to `Charge`, exactly as the command's own doc
+comment says it will (`SwarmCommands.cpp:625-627`, "the command still goes through, deliberately
+... it warns so it can never happen by accident"). It just didn't matter: `-ExecCmds` runs at
+engine boot, **before** the level's `Deploying`-phase setup, and that setup unconditionally
+re-anchors the garrison every run start —
 
 ```cpp
-if (bRetinue && bBossAlive && Strike[i].bStrikeFrame && BossStrikers < BossSurroundCap)
-{
-    ...
-    if (OwnEntry && OwnEntry->BlowsClaimed < OwnEntry->TargetsPerHit)
-    {
-        ++OwnEntry->BlowsClaimed;
-        ++BossStrikers;
-        BossDamage += FMath::Max(OwnEntry->BlowDamage - MyArmor, BossChipFloor);
-    }
-}
-...
-Swarm->SetBossAttackers(BossStrikers);   // line 1188
+// Spike1GameMode.cpp:401-402
+const FVector Line = SwarmSpawn::TideBearingPoint(GetWorld(), CVarWarStandoff.GetValueOnGameThread());
+Swarm->SetUnitStance(USwarmSubsystem::GarrisonUnit, ESwarmStance::Hold, Line);
 ```
 
-`SwarmSubsystem.h:324-335`:
+— which stomps the boot-time `Charge` back to `Hold` a few frames later, before any brood exist to
+charge at. (One more small trap: `LogTheSeven`'s garrison line always prints the literal string
+`"unordered"` — `Spike1GameMode.cpp:287-288` — it's a hardcoded label, not a live read of
+`GetUnitStance(GarrisonUnit)`, so it can't be used as evidence either way.) **The fix for a real
+Charge capture is to issue the command live, after `Run: restarted` fires, not via `-ExecCmds`.**
+Not done here — flagged for whoever runs that capture next.
 
-```cpp
-void SetBossAttackers(int32 Count)
-{
-    BossAttackers = Count;
-    BossAttackersPeak = FMath::Max(BossAttackersPeak, Count);
-}
-int32 ConsumeBossAttackersPeak()   // called by Kindled.Boss.Report
-{
-    const int32 Peak = BossAttackersPeak;
-    BossAttackersPeak = 0;
-    return Peak;
-}
-```
+What run B measured instead — the boss killing its immediate contact pocket and then walking
+forward through the line as that pocket died and the *next* nearest retinue centroid pulled it
+on (`ResolveTarget`'s ordinary unmarked fallback, `SpikeBossActor.cpp:185-187`) — turned out to be
+a more informative shape than a scripted charge would have been: it's the same "mid-push" and
+"surrounded endgame" progression a real siege produces on its own.
 
-`BossStrikers` only increments for a soldier whose `Strike[i].bStrikeFrame` is true **this
-frame** — i.e. the edge-triggered instant its own swing cadence lands a blow, not every frame it
-stands in range. `SetBossAttackers` is called once per combat pass (every game-thread frame);
-`BossAttackersPeak` is the running max of that per-frame count since the last
-`Kindled.Boss.Report` call. So the number printed is **peak same-frame STRUCK count**, gated
-twice over — once by `BossSurroundCap` itself (a soldier can't be counted past 45 in one frame
-regardless of how many are truly in reach) and once by the fact that "in reach" and "struck this
-frame" are different sets whose ratio is roughly `frame-time / swing-interval`.
+## 3. What `Kindled.Boss.Report` counts — unchanged from the previous revision
 
-**It is not "bodies in reach." It is a strict lower bound on bodies-in-reach, and a heavily
-downward-biased one.** `entity-tiers.md` §4 itself already separates these two concepts —
-`SurroundCapEstimate`/`BossSurroundCap` is "a sustained-combat concurrency limit," distinct from
-the generic `Swarm.MaxAttackersPerUnit` (default 4) which gates simultaneous claims on an
-*ordinary* Mass-entity victim (`SwarmCombatProcessors.cpp:934`, the ordinary
-retinue-vs-brood/hero exchange loop) and is never consulted on the boss path at all — the boss
-uses its own dedicated `Kindled.Boss.SurroundCap` (45) instead. **These are two separate,
-already-implemented mechanisms, not one cap that "does or doesn't transfer."** The transfer
-question `PREFLIGHT.md` §1 names (candidate (2), `MaxAttackersPerUnit` in the pooled
-wave-attrition model) is about the *first* mechanism and the wave-attrition sim gap task-068
-already investigated; it is a different question from SEVEN-VS-BOSS.md §2's boss-surround-cap
-flip point, which is about the *second*. Worth untangling explicitly since the task brief treats
-them as one question.
+`SwarmCombatProcessors.cpp:1056` gates `BossStrikers` on `Strike[i].bStrikeFrame` — a soldier only
+counts the frame its own ~0.9s-cadence blow lands, not every frame it stands in range.
+`SetBossAttackers`/`ConsumeBossAttackersPeak` (`SwarmSubsystem.h:324-335`) then reports the peak
+single-frame value since the last line. **Both captures confirm the §4 (previous revision)
+cadence math directly: peak-strikers-per-frame sits pinned at 1 (occasionally 0 or 2) for the
+entire ~5.5 minutes of both runs, regardless of phase** — it never once distinguishes the
+front-contact phase (real concurrency ~0.7-1) from the surrounded endgame sixteen lines later
+(real concurrency ~16). This is exactly why §4's `N_eff` had to be derived from the HP slope
+instead of read off the instrument directly.
 
-## 3. The five real measurements
+Also unchanged and still worth keeping visible: `Swarm.MaxAttackersPerUnit` (default 4, the
+generic per-victim clamp for ordinary brood/retinue exchange, `SwarmCombatProcessors.cpp:934`)
+and `Kindled.Boss.SurroundCap` (default 45, the boss's own dedicated concurrency cap,
+`SwarmCombatProcessors.cpp:1056`) are two separate, already-implemented mechanisms. The boss path
+never consults `MaxAttackersPerUnit`. `PREFLIGHT.md`'s "transfer" framing names the first; §2's
+flip point is about the second — don't conflate them.
 
-From `ELVTR/Saved/Logs/ELVTR.log`, all against `brood_boss` (6000 HP, Armor 14) with
-`Kindled.Boss.SurroundCap` at its shipped default (45), garrison standing 116-132, anchored/
-`Follow` (no `Charge` order issued in this log — this is the "front arrival" shape, by default,
-not a scripted one):
+## 4. Deriving N_eff from the HP slope
 
-| Time (log) | Marks | Boss HP | Blow | **peak attackers** | cap |
-|---|---|---|---|---|---|
-| 22:48:36 | QUILLED+RAM+SATED | 5872/6000 | 77 | **2** | 45 |
-| 22:49:11 | QUILLED+RAM+SATED | 4675/6000 | 77 | **3** | 45 |
-| 22:50:54 | QUILLED+RAM+SATED | 5562/6000 | 77 | **2** | 45 |
-| 22:51:02 | QUILLED+RAM+SATED | 4950/6000 | 77 | **1** | 45 |
-| 22:53:14 | QUILLED+SATED | 5970/6000 | 220 | **2** | 45 |
-
-Every sample sits 1-3 against a cap of 45 — the cap is nowhere close to binding, matching
-slice-a7.md §10 row 10's own note. **This is real evidence that the cap doesn't visibly bind in
-a normal front-line fight** (a genuine, if narrow, result). It is not evidence about how many
-soldiers are actually in reach, for the reason in §4.
-
-## 4. Why "peak struck" reads low regardless of true concurrency — counted-operations check
-
-Each soldier's blow is edge-triggered once per its own swing interval (`Swarm.SwingInterval`
-0.9s baseline, `Swarm.ArcherSwingInterval` 1.5s, ±0.2 jitter fraction per unit
-`Swarm.SwingIntervalJitter`), desynced by `FSwarmJitterFragment`'s per-unit phase. For `N`
-soldiers genuinely within reach of the boss, the expected number whose edge lands in any single
-game-thread frame of length `dt` is approximately:
+Neither capture's peak-strikers instrument resolves concurrency (§3), so `N_eff` — effective
+concurrent attackers — comes from how fast the boss actually lost HP, divided by how much damage
+one attacking body deals per second, post-Armor:
 
 ```
-E[same-frame strikers] ≈ N * dt / SwingInterval
+N_eff = slope(HP/s) / blended per-body DPS-after-Armor(HP/s)
 ```
 
-At 30fps (`dt ≈ 0.033s`) and the 0.9s baseline: `E ≈ N * 0.037`. For `N = 7` that's ~0.26/frame;
-for `N = 45` that's ~1.67/frame. Both are small, both produce an observed peak-over-a-window in
-the single digits (the Poisson-ish tail of a low-rate process, sampled over the ~10-35s windows
-between the five reports above), and **the two are not distinguishable at this sample size** —
-1-3 is a plausible peak for either. This is a counted-operations argument, not a new
-measurement; it explains why §3's real data can't answer §2's question rather than papering over
-the gap with a guess.
-
-## 5. What would actually adjudicate it, and why I didn't run it
-
-Two concrete options, neither requiring code:
-
-1. **A `Kindled.Boss.SurroundCap` sweep, black-box.** Set the cap to something small (3, 5, 10)
-   and watch whether `Kindled.Boss.Report`'s peak tracks the cap 1:1 (evidence the natural
-   struck-rate exceeds even a low cap — though per §4 this still doesn't cleanly separate from
-   "in reach") or plateaus below it. Weaker than a direct in-reach count but usable without
-   touching source.
-2. **A direct concurrent-bodies-in-reach count.** No existing log surface computes this — I
-   searched `SwarmDebug.cpp` (only `Swarm.SpacingReport`, a nearest-neighbour distance
-   histogram over the render buffers, not a per-target count) and `SwarmTelemetry.cpp` (only a
-   static CSV dump of the `MaxAttackersPerUnit` *CVar value*, not a live measured count) —
-   confirmed by reading both files in full. This is the one that actually answers §2's question,
-   and it needs a counter alongside `bContact`/`InReach` at the boss-claim site
-   (`SwarmCombatProcessors.cpp:1074`'s `BossDistSq <= MyReachSq/MyRangeSq` test) — one line, but
-   it is a source change, which is outside this task's scope per its own hard constraint
-   ("you should not need to touch C++... if you believe you need code, stop and say so").
-   **Stopping and saying so:** this is that case.
-
-Neither of these did I run, because I have no way to drive a live PIE/standalone session in this
-task invocation, and starting a new `UnrealEditor.exe` process myself is outside what I'll do
-unsupervised (see §1). Exact commands, ready to hand to whoever can run them:
+**Blend assumption, stated explicitly (not the 19/blow guess from the brief):** the garrison
+carries no adaptation rung, so its combat stats are the shipped defaults —
+`docs/data/unit-types.json` Spearmen 30 DPS / `Swarm.SwingInterval` 0.9s cadence → blow
+`30 × 0.9 = 27`; Archers `Swarm.ArchersDPS` 18 / `Swarm.ArcherSwingInterval` **1.5s** (not 0.9 —
+the brief's formula assumed a uniform 0.9s cadence, which archers don't run on) → blow
+`18 × 1.5 = 27`. Both blows land at 27 pre-Armor; against the boss's Armor 14
+(`Kindled.Boss.ArmorChipFloor` 3), both reduce to the *same* post-Armor blow of
+`max(27-14, 3) = 13` — coincidence of these particular numbers, not a modelling choice. Per-body
+DPS still differs by cadence: melee `13/0.9 = 14.44 HP/s`, archer `13/1.5 = 8.67 HP/s`. Blended at
+`docs/data/unit-types.json`'s shipped `growth_source_weight` (0.8 Spearmen / 0.2 Archers — the
+same split `entity-tiers.md` §7 uses for its own army-composition sim):
 
 ```
-Kindled.Boss.Clear
-Kindled.Boss.Spawn quilled,ram,sated
-Kindled.Seven.LogInterval 3
-# shape 1 — front arrival: do nothing else, let the anchored garrison meet it
-# shape 2 — Charge-ordered mob: Swarm.UnitStance 7 Charge   (warns; goes through anyway)
-# shape 3 — surround from standstill: hold the garrison, let the boss walk in and stop
-#           (already the default anchored behaviour — no extra command needed)
-Kindled.Boss.Report        # call a few times per shape, 10-20s apart
+blended per-body DPS = 0.8 × 14.44 + 0.2 × 8.67 = 13.29 HP/s
 ```
 
-Sweep test, same session:
+**Deviation from the brief's literal formula, stated so it isn't silently different:** the brief
+said divide by `(blow / 0.9s)` uniformly. I used each role's real cadence instead (0.9 melee,
+1.5 archer) before blending, because forcing archers through a 0.9s divisor overstates their
+per-body contribution by 67% — 14.44 vs their real 8.67 HP/s. The two post-Armor blow values
+happening to match (13 = 13) made this easy to get wrong by not noticing the cadence still
+differs.
 
-```
-Kindled.Boss.SurroundCap 5
-Kindled.Boss.Report   # repeat
-Kindled.Boss.SurroundCap 45   # restore before ending the session
-```
+| Phase | Window | ΔHP | slope (HP/s) | **N_eff** |
+|---|---|---|---|---|
+| A — front contact, steady state, boss parked (2009,6) | 57.03s | 555 | 9.73 | **0.73** |
+| B — front contact 2, boss parked (1664,-56) before advancing | 30.02s | 391 | 13.03 | **0.98** |
+| B — mid-push, boss walking (1535,-57)→(475,44) | 39.01s | 1522 | 39.02 | **2.94** |
+| A — bonus: late front, static (2479,-166), garrison thinning | 45.02s | 4163 | 92.47 | **6.96** |
+| B — surrounded endgame, boss pinned (475,44) to death | 18.01s | 3885 | 215.76 | **16.24** |
+
+The two independent front-contact samples (A: 0.73, B: 1.0) agree closely — good cross-check that
+the steady-state number is real and not a fluke of one run. The bonus row (A, boss never moved,
+same location the whole time) shows `N_eff` climbing sharply anyway, from garrison attrition
+alone thinning the field down to a denser knot around the boss — concurrency is not just a
+function of boss position, it rises as the fight progresses even standing still.
+
+## 5. Instrument-vs-derivation gap (§5 from the previous revision, resolved)
+
+The previous revision proposed a `Kindled.Boss.SurroundCap` sweep and a new bodies-in-reach
+counter as the two ways to get a real number without the peak-strikers instrument's blind spot.
+The HP-slope derivation in §4 supplied a working substitute for the sweep — it didn't need the
+cap touched at all. **The bodies-in-reach counter is still not built** (still a source change,
+still out of scope here) and would be the more precise version of §4's estimate — `N_eff` is a
+damage-rate proxy for concurrency, not a body count, and assumes every attacking body in a phase
+deals its *full* blended rate the whole window, which smooths over the phase's own internal
+variance (the mid-push window, for instance, covers several discrete stop-and-resume segments).
 
 ## 6. The unit case (`MaxAttackersPerUnit` = 4 direct analogue)
 
-Not measured, for the same reason. I confirmed there is no existing log surface for "how many
-bodies simultaneously get a soldier-sized target in reach" — `SwarmDebug.cpp` and
-`SwarmTelemetry.cpp` were read in full and contain no such counter; the only place
-`MaxAttackersPerUnit` appears outside the CVar definition is the gate at
-`SwarmCombatProcessors.cpp:934` itself and a static CSV/log dump of its configured value
-(`SwarmTelemetry.cpp:280-344`), never a live measured count of how many claims actually land
-against it. Per the task's own instruction, reporting this gap honestly rather than inventing
-instrumentation.
+Unchanged: still not measured, still no existing log surface for "how many bodies simultaneously
+get a soldier-sized target in reach" (confirmed by a full read of `SwarmDebug.cpp` and
+`SwarmTelemetry.cpp` in the previous revision). Neither capture measured this — both were boss
+fights.
 
 ## 7. Verdict against SEVEN-VS-BOSS.md §2
 
-§2's table needs one number — the real `SurroundCapEstimate`/`BossSurroundCap` — to know whether
-seven-vs-seventy flips (cap ≈ 7) or stays a 5.0x-7.9x loss for the seven (cap in 35-55). **This
-task does not supply that number.** What it supplies is narrower and still worth having:
+§2's table needs `SurroundCapEstimate` to know whether seven-vs-seventy flips (cap ≈ 7) or stays
+a 5.0x-7.9x loss for the seven (cap in the documented 35-55). The measured answer is **it's both,
+at different points in the same fight**:
 
-- `Kindled.Boss.Report`'s "peak attackers" is not that number and cannot become it without a
-  source change (§5.2) — quoting it into §2's table, as originally asked, would misrepresent a
-  struck-per-frame count as a concurrency count and should not be done.
-- The five real samples (§3) rule out one specific failure mode — the cap is not visibly pinned
-  at 45 in ordinary play — but say nothing about whether the true concurrency is nearer 7 or
-  nearer 45, because (§4) the metric can't see that far.
-- SEVEN-VS-BOSS.md §2's own finding stands as written: **the flip point (cap = 7) is still
-  unconfirmed in-engine, and the documented 35-55 band is still an unmeasured Fermi estimate.**
-  This task neither closes nor advances that gap; it establishes that the tool named to close it
-  (`Kindled.Boss.Report`) cannot, on its own, and names what could (§5).
+- **For most of a fight's duration** (front contact + mid-push, 96 of the ~114 measured seconds
+  in run B), `N_eff` sits at 0.7-2.9 — **below** the cap=7 flip point, in the "seven ≈ seventy"
+  regime §6.3 claims. At these numbers, a fixed roster of seven specialists genuinely isn't
+  giving up much to a fixed roster of seventy of the same tier, because *neither* squad can get
+  more than a handful of bodies onto the boss regardless of its own size.
+- **Only in the closing stretch**, once the boss is pinned and the survivors compress onto it
+  (the last 18 of ~114 seconds here), does `N_eff` climb to ~16 — past the flip point and into
+  the direction the documented 35-55 band argues, where more bodies means a faster kill.
+- **The documented 35-55 band itself is not supported anywhere in this data.** The highest
+  measured `N_eff`, in the single most concentrated moment of two fights, is 16.2 — under half
+  the bottom of that range. Nothing measured here reaches it.
+
+**What this means for §2's table, plainly:** quoting a single number into it — 7, or 16, or
+anything else — would misrepresent a quantity that visibly isn't constant. §2's own "clean-fight
+caveat" already names the gap this falls into: the point-target model computes one static TTK
+number per cap value, and the real fight this task measured has three-to-five different regimes
+in under two minutes. **Closing this properly needs either a time-weighted or phase-aware
+extension to the point-target model, not a single corrected constant** — that's a modelling
+change to `Scripts/sim/`, not a number for this doc to hand over. What this task *can* say with
+confidence: pick any single cap value to represent "the real cap" and it will be wrong for most
+of the fight, because most of the fight is nowhere near it.
 
 ## What remains unmeasured
 
-- Concurrent bodies-in-reach of the boss, at any engagement shape — the number §2 actually
-  needs. Needs one new counter at the boss-claim site (source change, out of scope here).
-- The three engagement shapes (front arrival, Charge-ordered mob, standstill surround) as a
-  controlled comparison — only the front-arrival shape has any real data behind it (§3), and
-  that data was incidental to a different task, not a controlled capture.
-- The unit-case analogue of `MaxAttackersPerUnit = 4` (§6) — no data at all, no existing readout.
-- The `Kindled.Boss.SurroundCap` sweep falsification test (§5.1) — proposed, not run.
+- A direct bodies-in-reach count (§5) — `N_eff` is a damage-rate proxy, not a body count.
+- The unit-case `MaxAttackersPerUnit` analogue (§6) — no data, no existing readout.
+- A genuine Charge-ordered mob capture — `Swarm.UnitStance 7 Charge` needs to be issued live,
+  post-run-start, not via `-ExecCmds` (§2).
+- Marked-boss variants (Quilled/Ram/Sated) — both captures ran unmarked, per the brief.
+- Whether `N_eff`'s rise late in a fight is really "boss pinned near the bearer" or just
+  "garrison thinned enough that a higher fraction of what's left clusters" — the bonus row in §4
+  (boss never moved, `N_eff` still climbed to ~7) suggests the latter matters at least as much as
+  position, but the two captures here don't isolate them.
