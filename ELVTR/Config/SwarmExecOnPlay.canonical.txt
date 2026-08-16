@@ -333,6 +333,9 @@ Swarm.Formation.Compact 1      ; 1 = ranks close over the dead, so the formation
 # ============================================================
 # RETINUE COMBAT — your soldiers' side of the exchange   @tab Unit
 # ============================================================
+Swarm.ArcherGrowthWeight 0.08  ; [0..1] (src 0.4) fraction of each recruit rolled ARCHER; the rest
+                               ; Spearmen. Owner 2026-08-16: ~10 archers in the 128 garrison
+                               ; (128*0.08). Rolled per body, so +/-3, not exact
 Swarm.RetinueMaxHP 130         ; your soldier HP
 Swarm.RetinueDPS 30            ; damage/sec one soldier deals to an adjacent brood
 Swarm.RetinueTargetsPerHit 8   ; brood hit per retinue blow (its K nearest). The cleave powerup dial.
