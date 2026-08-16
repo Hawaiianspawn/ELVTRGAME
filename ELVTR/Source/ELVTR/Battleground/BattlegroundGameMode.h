@@ -40,11 +40,14 @@ public:
 	/** Ally army = MeleeUnits + RangedUnits formations of UnitWidth x UnitDepth bodies each
 	 *  (owner: "6x4 unit formations; multiple formations is your army"). One squad handle per
 	 *  formation, so MeleeUnits + RangedUnits <= USwarmSubsystem::MaxSquads. */
+	/** One block per SPRITE (owner, 2026-08-16): team-atlas variant indices for the melee
+	 *  blocks and archer-block indices for the ranged blocks. Melee + ranged <= MaxSquads (8),
+	 *  so with six MELEE looks only two of the three RANGED looks fit. */
 	UPROPERTY(EditDefaultsOnly, Category = "Battleground")
-	int32 MeleeUnits = 3;
+	TArray<int32> MeleeLooks = { 1, 2, 3, 7, 8, 10 };
 
 	UPROPERTY(EditDefaultsOnly, Category = "Battleground")
-	int32 RangedUnits = 1;
+	TArray<int32> RangedLooks = { 0, 1 };
 
 	UPROPERTY(EditDefaultsOnly, Category = "Battleground")
 	int32 UnitWidth = 6;

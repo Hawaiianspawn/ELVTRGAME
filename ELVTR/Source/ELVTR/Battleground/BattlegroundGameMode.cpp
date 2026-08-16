@@ -153,6 +153,15 @@ void ABattlegroundGameMode::StartMatch()
 	SetCVar(TEXT("Swarm.Formation.Columns"), FString::FromInt(UnitWidth));
 	SetCVar(TEXT("Swarm.Formation.Archers.Shape"), TEXT("1"));
 	SetCVar(TEXT("Swarm.Formation.Archers.Columns"), FString::FromInt(UnitWidth));
+	// Square blocks: ranks as close as files, big gap between units.
+	SetCVar(TEXT("Swarm.Formation.Spacing"), TEXT("48"));
+	SetCVar(TEXT("Swarm.Formation.RankSpacing"), TEXT("52"));
+	SetCVar(TEXT("Swarm.Formation.Archers.Spacing"), TEXT("48"));
+	SetCVar(TEXT("Swarm.Formation.Archers.RankSpacing"), TEXT("52"));
+	SetCVar(TEXT("Swarm.Formation.GroupGap"), TEXT("110"));
+	SetCVar(TEXT("Swarm.Formation.GroupsPerRow"), TEXT("0"));
+	SetCVar(TEXT("Swarm.Formation.GroupDepthCap"), TEXT("16"));
+	SetCVar(TEXT("Swarm.Formation.GroupRowPitch"), TEXT("650"));
 	SetCVar(TEXT("Swarm.Formation.FaceCamera"), TEXT("0"));
 	SetCVar(TEXT("Swarm.Formation.Yaw"), TEXT("0"));
 	// Team atlas (docs/data/art/requests/team-units.json), 2026-08-16 swap: idx 1 gs1_seed
@@ -187,12 +196,22 @@ void ABattlegroundGameMode::StartMatch()
 	Swarm->SetAttractor(PlayerZone);
 	TArray<int32> PlayerUnits;
 	{
-		const int32 Total = FMath::Clamp(MeleeUnits + RangedUnits, 1, USwarmSubsystem::MaxSquads);
-		for (int32 u = 0; u < Total; ++u)
+		// One block per sprite: unit u wears exactly one look (SetSquadRung pins the render
+		// variant; tier INDEX_NONE keeps HP/DPS on the look's weapon row).
+		int32 u = 0;
+		for (int32 Look : MeleeLooks)
 		{
-			SwarmSpawn::SpawnUnit(GetWorld(), u, (u < MeleeUnits) ? EUnitType::Spearmen : EUnitType::Archers,
-				FMath::Max(1, UnitWidth * UnitDepth), PlayerTeamId);
-			PlayerUnits.Add(u);
+			if (u >= USwarmSubsystem::MaxSquads) { break; }
+			Swarm->SetSquadRung(u, Look, INDEX_NONE);
+			SwarmSpawn::SpawnUnit(GetWorld(), u, EUnitType::Spearmen, FMath::Max(1, UnitWidth * UnitDepth), PlayerTeamId);
+			PlayerUnits.Add(u++);
+		}
+		for (int32 Look : RangedLooks)
+		{
+			if (u >= USwarmSubsystem::MaxSquads) { UE_LOG(LogTemp, Warning, TEXT("Battleground: out of squad handles, ranged look %d skipped"), Look); continue; }
+			Swarm->SetSquadRung(u, Look, INDEX_NONE);
+			SwarmSpawn::SpawnUnit(GetWorld(), u, EUnitType::Archers, FMath::Max(1, UnitWidth * UnitDepth), PlayerTeamId);
+			PlayerUnits.Add(u++);
 		}
 	}
 
@@ -225,7 +244,7 @@ void ABattlegroundGameMode::StartMatch()
 	if (ACameraActor* Cam = GetWorld()->SpawnActor<ACameraActor>((PlayerZone + FieldCenter) * 0.5f + FVector(0.f, 0.f, 1200.f), FRotator(-90.f, 90.f, 0.f)))
 	{
 		Cam->GetCameraComponent()->SetProjectionMode(ECameraProjectionMode::Orthographic);
-		Cam->GetCameraComponent()->SetOrthoWidth(DeploymentZoneDistance * 1.2f);
+		Cam->GetCameraComponent()->SetOrthoWidth(DeploymentZoneDistance * 2.0f);
 		if (APlayerController* PC = UGameplayStatics::GetPlayerController(GetWorld(), 0))
 		{
 			PC->SetViewTarget(Cam);

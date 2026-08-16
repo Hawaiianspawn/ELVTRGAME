@@ -26,6 +26,7 @@ namespace SwarmTuning
 	constexpr float FollowEngageRange = 250.f;
 	constexpr float ChargeEngageRange = 400.f;
 	constexpr float LineEngageRange = 160.f;	// Hold / Rally — keep the line
+	constexpr float BlockEngageRange = 60.f;	// field battle: fight from the slot (Battleground)
 
 	constexpr float SlotArriveRadius = 40.f;
 	constexpr float RallySlotScale = 0.45f;		// collapse tight onto the hero
@@ -941,7 +942,8 @@ void URetinueFormationProcessor::Execute(FMassEntityManager& EntityManager, FMas
 	// tail. BlockSlot only ever does Group / PerRow and Group % PerRow, so it tolerates the
 	// gaps for free — no geometry-function change needed to make row-per-unit hold.
 	struct FGroupTable { TArray<int32> Start; TArray<int32> GroupOrd; };
-	auto BuildGroups = [](const TArray<int64>& Keys, int32 Cap, int32 GroupsPerRow)
+	const bool bOneGroupPerUnit = Swarm->IsFieldBattle(); // Battleground: the block IS the unit
+	auto BuildGroups = [bOneGroupPerUnit](const TArray<int64>& Keys, int32 Cap, int32 GroupsPerRow)
 	{
 		FGroupTable Table;
 		int64 LastGroupKey = -1; // (Unit, Variant) combined — Keys[i] >> 24
@@ -950,10 +952,10 @@ void URetinueFormationProcessor::Execute(FMassEntityManager& EntityManager, FMas
 		int32 NextGroup = 0;
 		for (int32 i = 0; i < Keys.Num(); ++i)
 		{
-			const int64 GroupKey = Keys[i] >> 24; // (Unit, Variant), drops the slot tiebreak
 			const int32 Unit = (int32)(Keys[i] >> 32);
+			const int64 GroupKey = bOneGroupPerUnit ? (int64)Unit : (Keys[i] >> 24); // (Unit[, Variant]), drops the slot tiebreak
 			const bool bNewLook = (GroupKey != LastGroupKey);
-			const bool bCapped = !bNewLook && (RunCount >= Cap);
+			const bool bCapped = !bNewLook && !bOneGroupPerUnit && (RunCount >= Cap);
 			if (bNewLook || bCapped)
 			{
 				if (bNewLook && Unit != LastUnit && LastUnit != -1 && GroupsPerRow > 0)
@@ -1206,12 +1208,14 @@ void URetinueFollowProcessor::Execute(FMassEntityManager& EntityManager, FMassEx
 				case ESwarmStance::Hold:
 					// Shield Wall: anchored to the world point where the order was issued.
 					Anchor = StanceAnchor + FVector(Slot.X, Slot.Y, 0.f);
-					EngageRange = SwarmTuning::LineEngageRange;
+					// Field battle: the block IS the unit -- a soldier fights from his slot.
+					EngageRange = bFieldBattle ? SwarmTuning::BlockEngageRange : SwarmTuning::LineEngageRange;
 					break;
 				case ESwarmStance::Charge:
-					// Advance the Line.
-					Anchor = StanceAnchor;
-					EngageRange = SwarmTuning::ChargeEngageRange;
+					// Advance the Line. Field battle keeps the slot so a formation moves AS a
+					// block instead of every body converging on one point.
+					Anchor = bFieldBattle ? StanceAnchor + FVector(Slot.X, Slot.Y, 0.f) : StanceAnchor;
+					EngageRange = bFieldBattle ? SwarmTuning::BlockEngageRange * 2.f : SwarmTuning::ChargeEngageRange;
 					SpeedMul = SwarmTuning::ChargeSpeedMul;
 					break;
 				case ESwarmStance::Rally:
