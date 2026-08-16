@@ -1301,6 +1301,12 @@ def set_select(key, verdict, branch=""):
     if not slug:
         raise Fail("bad key %r" % key)
     rec = selects_load()
+    if verdict == "approve":
+        # validate before touching disk: a failed approve must not park the current copy
+        branch = (branch or "").strip().strip("/\\")
+        if not branch or branch.startswith("_"):
+            raise Fail("approve needs a branch name (not starting with _)")
+        src = unit_rotations(key)
     old = select_dir(slug)
     if old is not None:
         import shutil
@@ -1311,10 +1317,6 @@ def set_select(key, verdict, branch=""):
         shutil.move(str(old), str(parked))
     if verdict == "approve":
         import shutil
-        branch = (branch or "").strip().strip("/\\")
-        if not branch or branch.startswith("_"):
-            raise Fail("approve needs a branch name (not starting with _)")
-        src = unit_rotations(key)
         shutil.copytree(src, SELECTS / branch / slug / "rotations")
         rec[key] = {"branch": branch, "verdict": "approve", "at": vp.now(),
                     "source": rel(src)}
@@ -1436,7 +1438,64 @@ def selects_page():
         "sections": "\n".join(sections)}
 
 
+def palette_colours(png, q=24, floor=0.02):
+    """The colours a sprite is made of: opaque pixels quantised to a q-step cube, keeping
+    every bin worth >= floor of the body. Returns {bin: (count, mean rgb)}."""
+    from PIL import Image
+    im = Image.open(png).convert("RGBA")
+    acc = {}
+    for r, g, b, a in im.getdata():
+        if a < 128:
+            continue
+        k = (r // q, g // q, b // q)
+        c = acc.setdefault(k, [0, 0, 0, 0])
+        c[0] += 1; c[1] += r; c[2] += g; c[3] += b
+    n = sum(c[0] for c in acc.values()) or 1
+    return {k: (c[0], (c[1] // c[0], c[2] // c[0], c[3] // c[0]))
+            for k, c in acc.items() if c[0] / n >= floor}
+
+
+def palette_groups(dirs, thresh=0.35):
+    """Greedy Jaccard clustering of looks by the set of colours they use, so units that share
+    a palette land in one group. dirs: {key: Selects dir or None}. Returns
+    [(swatch_rgbs, [keys])] largest first; looks with no south frame are dropped.
+    ponytail: greedy single pass, order-dependent; a real linkage if groups start
+    looking arbitrary."""
+    sigs = {}
+    for key, d in dirs.items():
+        p = (d / "rotations" / "south.png") if d else None
+        if p and p.exists():
+            try:
+                sigs[key] = palette_colours(p)
+            except Exception:       # unreadable frame: still listed, in its own group
+                sigs[key] = {}
+    clusters = []   # [set_of_bins, {bin: (count, rgb)}, [keys]]
+    for key in sorted(sigs):
+        s = set(sigs[key])
+        best, bj = None, 0.0
+        for c in clusters:
+            j = len(s & c[0]) / (len(s | c[0]) or 1)
+            if j > bj:
+                best, bj = c, j
+        if best is not None and bj >= thresh:
+            best[0] |= s
+            for k, (cnt, rgb) in sigs[key].items():
+                old = best[1].get(k)
+                best[1][k] = (old[0] + cnt, old[1]) if old else (cnt, rgb)
+            best[2].append(key)
+        else:
+            clusters.append([s, dict(sigs[key]), [key]])
+    clusters.sort(key=lambda c: -len(c[2]))
+    out = []
+    for _, cols, keys in clusters:
+        top = sorted(cols.values(), key=lambda v: -v[0])[:6]
+        out.append(([rgb for _, rgb in top], keys))
+    return out
+
+
 OFFICIAL_CSS = """
+.sw{display:inline-flex;gap:2px;vertical-align:middle;margin-right:.4rem;}
+.sw i{width:1rem;height:1rem;border:1px solid var(--line);display:inline-block;}
 .cards{grid-template-columns:repeat(auto-fill,minmax(14rem,1fr));gap:.8rem;}
 .card{padding:.6rem;}
 .card img{aspect-ratio:1/1;height:auto;object-position:center;}
@@ -1449,25 +1508,27 @@ def official_page():
     copy (so Aseprite edits show), deny to demote. Nothing else -- the owner asked for
     approve/deny and no more; generation and editing live elsewhere."""
     rec = selects_seed(selects_load(), selects_candidates())
-    branches = {}
-    for key, r in rec.items():
-        if r.get("verdict") == "approve":
-            branches.setdefault(r.get("branch") or "?", []).append(key)
+    approved = {k: r for k, r in rec.items() if r.get("verdict") == "approve"}
+    groups = palette_groups({k: select_dir(k.partition("/")[2]) for k in approved})
     sections = []
-    for b in sorted(branches):
+    for i, (swatch, keys) in enumerate(groups):
         cards = []
-        for key in sorted(branches[b]):
+        for key in keys:
             slug = key.partition("/")[2]
             cards.append(
                 '<div class="card ok"><img src="/still?key=%s&sel=1&zoom=4" alt="" loading="lazy">'
-                '<b>%s</b><a href="/api/open?key=%s" target="_blank">%s &#8599;</a>'
+                '<b>%s</b><span class="sub">%s</span>'
+                '<a href="/api/open?key=%s" target="_blank">open folder &#8599;</a>'
                 "<div class=\"btns\"><button onclick=\"sel('%s','deny',this)\">deny</button>"
                 '</div></div>'
-                % (esc(key), esc(slug), esc(key), esc(key), esc(key)))
+                % (esc(key), esc(slug), esc(approved[key].get("branch") or ""), esc(key),
+                   esc(key)))
+        sw = "".join('<i style="background:rgb(%d,%d,%d)"></i>' % c for c in swatch)
         sections.append(
-            '<section class="grp"><h2>%s <span>%d official</span></h2><div class="cards">%s'
-            '</div></section>' % (esc(b), len(cards), "".join(cards)))
-    n = sum(len(v) for v in branches.values())
+            '<section class="grp"><h2><span class="sw">%s</span> palette %d '
+            '<span>%d official</span></h2><div class="cards">%s</div></section>'
+            % (sw, i + 1, len(cards), "".join(cards)))
+    n = len(approved)
     return """<!doctype html><html><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Kindled &middot; official characters</title><style>%(css)s</style></head><body>
@@ -1476,7 +1537,8 @@ def official_page():
     <p class="eyebrow"><a href="/" style="color:var(--bone)">&larr; roster</a> &middot;
     <a href="/selects" style="color:var(--bone)">selects</a> &middot; official</p>
     <h1>Official characters</h1>
-    <p>What is on disk in <code>RawArt/Aaron Selects/&lt;branch&gt;/</code>, by branch --
+    <p>What is on disk in <code>RawArt/Aaron Selects/&lt;branch&gt;/</code>, grouped by the
+    colours each sprite is made of (measured from the south frame, largest group first) --
     the frames shown are the Selects copies, so Aseprite edits appear here. <b>Deny</b> parks
     the folder under <code>_denied/</code>. To add one, approve it on the selects page.</p>
   </header>
@@ -1782,6 +1844,7 @@ def selftest():
                 raise AssertionError("approved with no branch")
             except Fail:
                 pass
+            assert (SELECTS / "Elf Branch" / "look1").is_dir(), "failed approve must not park"
 
             set_select("famA/look2", "deny")
             assert not (SELECTS / "Human Soldier Branch" / "look2").exists()
