@@ -1084,6 +1084,7 @@ void URetinueFollowProcessor::Execute(FMassEntityManager& EntityManager, FMassEx
 		return;
 	}
 	const FVector Attractor = Swarm->GetAttractor();
+	const bool bFieldBattle = Swarm->IsFieldBattle();
 
 	// Shape, spacing and bearing, read once per pass rather than per unit — one FParams
 	// per TYPE now (docs/design/squad-group-system.md §1.7), resolved here rather than
@@ -1114,7 +1115,7 @@ void URetinueFollowProcessor::Execute(FMassEntityManager& EntityManager, FMassEx
 	const FVector RallyCentre = RallyState.RallyCentre;
 	const float RallyRadiusSq = FMath::Square(SwarmCombatTuning::AbilityRallyRadius());
 
-	EntityQuery.ForEachEntityChunk(Context, [Swarm, Attractor, SpearmenFormation, ArchersFormation, ArchersRange, ArchersMinRange, bRallyUp, RallyCentre, RallyRadiusSq, &BrokenThisFrame](FMassExecutionContext& ChunkContext)
+	EntityQuery.ForEachEntityChunk(Context, [Swarm, Attractor, bFieldBattle, SpearmenFormation, ArchersFormation, ArchersRange, ArchersMinRange, bRallyUp, RallyCentre, RallyRadiusSq, &BrokenThisFrame](FMassExecutionContext& ChunkContext)
 	{
 		const TConstArrayView<FTransformFragment> Transforms = ChunkContext.GetFragmentView<FTransformFragment>();
 		const TConstArrayView<FSwarmJitterFragment> Jitter = ChunkContext.GetFragmentView<FSwarmJitterFragment>();
@@ -1151,7 +1152,7 @@ void URetinueFollowProcessor::Execute(FMassEntityManager& EntityManager, FMassEx
 			// snapshot for why the leash is the honest reading of "fights to the death".
 			const bool bBannered = bRallyUp
 				&& FVector::DistSquared2D(Location, RallyCentre) <= RallyRadiusSq;
-			if (bGarrison || bBannered)
+			if (bGarrison || bBannered || bFieldBattle)
 			{
 				Follow[i].bLeashBroken = false;
 			}
@@ -1235,6 +1236,9 @@ void URetinueFollowProcessor::Execute(FMassEntityManager& EntityManager, FMassEx
 					// Loose from Cover: anchors IDENTICALLY to Follow — behaviorally almost
 					// indistinguishable (archers are already static shooters); the value is
 					// in ADDRESSING one unit to hold a firing position while others move.
+					// Field battle: hold the ORDERED position (there is no hero to stand by).
+					if (bFieldBattle) { Anchor = StanceAnchor + FVector(Slot.X, Slot.Y, 0.f); break; }
+					[[fallthrough]];
 				case ESwarmStance::Follow:
 				default:
 					Anchor = Attractor + FVector(Slot.X, Slot.Y, 0.f);

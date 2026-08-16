@@ -136,9 +136,14 @@ namespace
 		// seven (one handle, one body) both need and neither can express through a policy
 		// whose whole job is to spread recruits across handles by fullness.
 		int32 ForceUnit = INDEX_NONE;
-		bool bForceType = false;        // when ForceUnit is set, pin the type too rather than rolling
+		bool bForceType = false;        // pin the type rather than rolling, with or without ForceUnit
 		EUnitType ForcedType = EUnitType::Spearmen;
 		float HPScale = 1.f;
+
+		// Battleground (docs/design/battleground.md §2.2): which of two armies this batch's
+		// recruits join. 0 for every existing caller (Spike1GameMode, every console command
+		// above) — a pure addition, see USwarmSubsystem::AssignRecruit's own comment.
+		uint8 TeamId = 0;
 	};
 
 	void SpawnSwarm(UWorld* World, const FSwarmSpawnParams& Params)
@@ -287,12 +292,12 @@ namespace
 				uint8 SquadByte;
 				if (Params.ForceUnit != INDEX_NONE)
 				{
-					Swarm->ClaimSquad(Params.ForceUnit, Type);
-					SquadByte = SwarmSquad::Pack((uint8)Params.ForceUnit, Type);
+					Swarm->ClaimSquad(Params.ForceUnit, Type, Params.TeamId);
+					SquadByte = SwarmSquad::Pack((uint8)Params.ForceUnit, Type, Params.TeamId);
 				}
 				else
 				{
-					SquadByte = Swarm->AssignRecruit(Type, RecruitedThisBatch[TypeIdx]++);
+					SquadByte = Swarm->AssignRecruit(Type, RecruitedThisBatch[TypeIdx]++, Params.TeamId);
 				}
 				const int32 MyUnit = SwarmSquad::UnitIndex(SquadByte);
 				const int32 MyTier = Swarm->GetSquadTier(MyUnit);
@@ -980,6 +985,29 @@ namespace SwarmSpawn
 
 		const FVector2D Offset = SwarmFormation::BroodSlotOffset(0, Bearing);
 		return FVector(Bearer.X + Offset.X, Bearer.Y + Offset.Y, 0.f);
+	}
+
+	void SpawnArmy(UWorld* World, int32 SpearmenCount, int32 ArcherCount, uint8 TeamId)
+	{
+		// Two fixed-type batches, not one weighted-roll batch: see SwarmSpawn.h's doc
+		// comment for why this level needs a deterministic unit count instead of an
+		// expected one. Spearmen first, same ordering precedent AssignRecruit itself
+		// already uses (§4.1: "Spearmen claim first, deliberately").
+		FSwarmSpawnParams SpearParams;
+		SpearParams.bBrood = false;
+		SpearParams.Count = SpearmenCount;
+		SpearParams.bForceType = true;
+		SpearParams.ForcedType = EUnitType::Spearmen;
+		SpearParams.TeamId = TeamId;
+		SpawnSwarm(World, SpearParams);
+
+		FSwarmSpawnParams ArcherParams;
+		ArcherParams.bBrood = false;
+		ArcherParams.Count = ArcherCount;
+		ArcherParams.bForceType = true;
+		ArcherParams.ForcedType = EUnitType::Archers;
+		ArcherParams.TeamId = TeamId;
+		SpawnSwarm(World, ArcherParams);
 	}
 
 	void SpawnGarrison(UWorld* World, int32 Count)

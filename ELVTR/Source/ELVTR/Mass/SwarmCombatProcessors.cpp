@@ -772,6 +772,10 @@ void USwarmCombatProcessor::Execute(FMassEntityManager& EntityManager, FMassExec
 			const bool bArcher = bRetinue && SwarmSquad::UnitType(Anim[i].SquadId) == EUnitType::Archers;
 			const bool bKnight = bRetinue && !bArcher; // a Spearman -- task-095 sub-type binding applies
 
+			// Battleground (docs/design/battleground.md §2.2): which of two armies I am, if
+			// I'm formed at all. 0 for every castle body (nobody there ever sets ArmyBit).
+			const uint8 MyArmy = SwarmSquad::UnitArmy(Anim[i].SquadId);
+
 			// Which stat row THIS Spearman fights on, from the SAME phase + live weights
 			// table the render bridge resolves its look from (SwarmProcessors.cpp) -- so
 			// this can never disagree with the sprite on screen. Unused (0) for archers/brood.
@@ -867,7 +871,15 @@ void USwarmCombatProcessor::Execute(FMassEntityManager& EntityManager, FMassExec
 
 			Swarm->QueryNeighbors(Location, [&](const USwarmSubsystem::FGridEntry& Entry)
 			{
-				if (Entry.bRetinue == bRetinue)
+				// bRetinue alone used to mean "my side" because only one formed side ever
+				// existed. Two formed teams (Battleground) need a real team check too — SAME
+				// side is now "both formed AND same army" (brood carry no army, so this
+				// collapses back to the original bRetinue-only test the instant only one team
+				// is in play, which is every existing castle fight: nobody there ever sets
+				// ArmyBit, so SwarmSquad::UnitArmy is always 0 == 0 there).
+				const bool bSameSide = (Entry.bRetinue == bRetinue)
+					&& (!bRetinue || SwarmSquad::UnitArmy(Entry.SquadId) == MyArmy);
+				if (bSameSide)
 				{
 					return;
 				}

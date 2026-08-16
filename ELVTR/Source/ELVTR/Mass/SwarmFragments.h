@@ -258,12 +258,25 @@ namespace SwarmSquad
 	constexpr uint8 TypeShift = 3;
 	constexpr uint8 TypeBit = 1 << TypeShift; // bit 3: 0 = Spearmen, 1 = Archers
 
-	FORCEINLINE uint8 Pack(uint8 UnitIndex, EUnitType Type)
+	/**
+	 * Battleground (docs/design/battleground.md §2.2): which of two armies this soldier
+	 * belongs to. Bit 4 was free — only bits 0-3 were ever live (unit index + type) — so
+	 * this costs nothing new to store, the same "spare bits in a byte that already exists"
+	 * reasoning this namespace's own doc comment gives for TypeBit. Every existing castle
+	 * body packs 0 here (nobody sets it), which is what keeps every single-army call
+	 * site's packed byte — and therefore the combat pass's same-side test — byte-identical
+	 * to before this existed.
+	 */
+	constexpr uint8 ArmyShift = 4;
+	constexpr uint8 ArmyBit = 1 << ArmyShift; // bit 4: 0 = team A/default, 1 = team B
+
+	FORCEINLINE uint8 Pack(uint8 UnitIndex, EUnitType Type, uint8 TeamId = 0)
 	{
-		return (UnitIndex & IdMask) | (Type == EUnitType::Archers ? TypeBit : 0);
+		return (UnitIndex & IdMask) | (Type == EUnitType::Archers ? TypeBit : 0) | ((TeamId & 1) ? ArmyBit : 0);
 	}
 	FORCEINLINE uint8 UnitIndex(uint8 Packed) { return Packed & IdMask; }
 	FORCEINLINE EUnitType UnitType(uint8 Packed) { return (Packed & TypeBit) ? EUnitType::Archers : EUnitType::Spearmen; }
+	FORCEINLINE uint8 UnitArmy(uint8 Packed) { return (Packed & ArmyBit) ? 1 : 0; }
 }
 
 /**

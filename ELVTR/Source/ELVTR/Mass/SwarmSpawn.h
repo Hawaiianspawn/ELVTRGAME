@@ -37,6 +37,21 @@ namespace SwarmSpawn
 	void SpawnGarrison(UWorld* World, int32 Count);
 
 	/**
+	 * ONE ARMY for the Battleground testbed (docs/design/battleground.md §1.2, §2.2) —
+	 * SpearmenCount Spearmen and ArcherCount Archers, deliberately spawned as two separate
+	 * FIXED-TYPE batches (not one weighted-roll batch) so the resulting unit COUNT is
+	 * deterministic rather than a matter of how the RNG happened to land — the Build scope
+	 * evidence this level owes is an exact handle count, not an expected one.
+	 *
+	 * Both batches land on TeamId's own claimed units via AssignRecruit's TeamId-partitioned
+	 * search (USwarmSubsystem::AssignRecruit), at wherever USwarmSubsystem's Attractor
+	 * currently is — SpawnRetinue's own "Center = GetAttractor()" convention, reused
+	 * unchanged (SwarmCommands.cpp). The caller sets the Attractor to a deployment zone
+	 * before calling this, once per team.
+	 */
+	void SpawnArmy(UWorld* World, int32 SpearmenCount, int32 ArcherCount, uint8 TeamId);
+
+	/**
 	 * ONE named soldier, on command handle UnitIndex (0..NamedSoldiers-1), with an explicit
 	 * type and an HP multiplier over whatever rung the handle already carries.
 	 *

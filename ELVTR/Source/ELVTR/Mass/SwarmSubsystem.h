@@ -85,6 +85,12 @@ public:
 	void SetAttractor(const FVector& InLocation) { Attractor = InLocation; }
 	FVector GetAttractor() const { return Attractor; }
 
+	/** Two-army field battle (BattlegroundGameMode): no leash back to the Attractor, and
+	 *  archers on Hold anchor on their ordered position instead of the Attractor. Off by
+	 *  default so the castle/retinue path is byte-identical. */
+	void SetFieldBattle(bool bIn) { bFieldBattle = bIn; }
+	bool IsFieldBattle() const { return bFieldBattle; }
+
 	// --- Unit Cam spell-cast focus (hookup for the flame-bearer casting) --
 	// When the bearer casts a spell FROM the flame, the caster calls SetCastFocus with a world
 	// point + an absolute end time; the Unit Cam camera manager pulls focus to it for a "focus
@@ -762,12 +768,13 @@ public:
 	 * share one handle. Neither is a policy change to AssignRecruit; both simply do not go
 	 * through it. Sticky in the same way: type is set once and never rewritten.
 	 */
-	void ClaimSquad(int32 UnitIndex, EUnitType Type)
+	void ClaimSquad(int32 UnitIndex, EUnitType Type, uint8 TeamId = 0)
 	{
 		if (UnitIndex >= 0 && UnitIndex < MaxSquads && !SquadClaimed[UnitIndex])
 		{
 			SquadClaimed[UnitIndex] = true;
 			SquadType[UnitIndex] = Type;
+			SquadArmy[UnitIndex] = TeamId;
 		}
 	}
 
@@ -780,6 +787,16 @@ public:
 	bool IsSquadClaimed(int32 Index) const
 	{
 		return (Index >= 0 && Index < MaxSquads) && SquadClaimed[Index];
+	}
+
+	/**
+	 * Which of two armies unit Index belongs to (docs/design/battleground.md §2.2) — 0 for
+	 * every castle handle (nobody there ever passes a TeamId), 0 or 1 for a Battleground
+	 * handle. Sticky, same lifetime as GetSquadType.
+	 */
+	uint8 GetSquadArmy(int32 Index) const
+	{
+		return (Index >= 0 && Index < MaxSquads) ? SquadArmy[Index] : 0;
 	}
 
 	// --- Adaptation (docs/design/adaptation.md) ---------------------------------------
@@ -910,15 +927,29 @@ public:
 	 * however many new units its own recruits actually justify instead of only ever
 	 * reacting to last frame's snapshot.
 	 */
-	uint8 AssignRecruit(EUnitType Type, int32 AlreadyRecruitedThisBatch = 0)
+	uint8 AssignRecruit(EUnitType Type, int32 AlreadyRecruitedThisBatch = 0, uint8 TeamId = 0)
 	{
+		// Battleground (docs/design/battleground.md §2.2): TeamId splits the shared 8-handle
+		// budget in half, low half for team 0 and high half for team 1 — the same "claim
+		// from opposite ends" trick this function already uses for Spearmen-vs-Archers, one
+		// level deeper. Team 0 keeps the FULL 0..MaxSquads-1 search range, byte-identical to
+		// every existing single-army caller (nobody there ever passes TeamId), so this is a
+		// pure addition for the castle. ponytail: team 0 can, in principle, still grow into
+		// team 1's half under heavy simultaneous reinforcement on BOTH sides at once — the
+		// existing-unit loop below is team-scoped so it never MISCOUNTS, but the new-unit
+		// search isn't range-locked for team 0. Battleground's v1 roster is spawned once,
+		// statically (battleground.md §1.2) — no live growth exercises this — so it doesn't
+		// bite in practice; a real two-way reservation is the fix if reinforcement ships.
+		const int32 RangeLo = (TeamId != 0) ? (MaxSquads / 2) : 0;
+		const int32 RangeHi = MaxSquads;
+
 		int32 BestUnit = INDEX_NONE;
 		int32 BestStanding = TNumericLimits<int32>::Max();
 		int32 TypeUnitCount = 0;
 		int32 TypePool = AlreadyRecruitedThisBatch;
 		for (int32 i = 0; i < MaxSquads; ++i)
 		{
-			if (!SquadClaimed[i] || SquadType[i] != Type) { continue; }
+			if (!SquadClaimed[i] || SquadType[i] != Type || SquadArmy[i] != TeamId) { continue; }
 			++TypeUnitCount;
 			TypePool += SquadStanding[i];
 			if (SquadStanding[i] < BestStanding) { BestStanding = SquadStanding[i]; BestUnit = i; }
@@ -934,31 +965,32 @@ public:
 			int32 NewId = INDEX_NONE;
 			if (Type == EUnitType::Spearmen)
 			{
-				for (int32 i = 0; i < MaxSquads; ++i) { if (!SquadClaimed[i]) { NewId = i; break; } }
+				for (int32 i = RangeLo; i < RangeHi; ++i) { if (!SquadClaimed[i]) { NewId = i; break; } }
 			}
 			else
 			{
-				for (int32 i = MaxSquads - 1; i >= 0; --i) { if (!SquadClaimed[i]) { NewId = i; break; } }
+				for (int32 i = RangeHi - 1; i >= RangeLo; --i) { if (!SquadClaimed[i]) { NewId = i; break; } }
 			}
 			if (NewId != INDEX_NONE)
 			{
 				SquadClaimed[NewId] = true;
 				SquadType[NewId] = Type;
-				return SwarmSquad::Pack((uint8)NewId, Type);
+				SquadArmy[NewId] = TeamId;
+				return SwarmSquad::Pack((uint8)NewId, Type, TeamId);
 			}
-			// No free global slot anywhere — §4.2's own named breaking point (the 8-handle
-			// budget is fully claimed by the two types combined). Fold into this type's own
-			// units below rather than crash.
+			// No free slot in range — §4.2's own named breaking point (the handle budget is
+			// fully claimed). Fold into this type/team's own units below rather than crash.
 		}
 
 		if (BestUnit == INDEX_NONE)
 		{
-			// This type owns nothing yet AND no free slot exists (the other type claimed
-			// all 8) — degrade to unit 0 rather than lose the recruit. Same §4.2 edge.
-			BestUnit = 0;
-			if (!SquadClaimed[0]) { SquadClaimed[0] = true; SquadType[0] = Type; }
+			// This (type, team) owns nothing yet AND no free slot exists in range — degrade
+			// to the team's own range floor rather than lose the recruit. Same §4.2 edge,
+			// now team-scoped so a team-1 fallback can't land on team 0's unit 0.
+			BestUnit = RangeLo;
+			if (!SquadClaimed[BestUnit]) { SquadClaimed[BestUnit] = true; SquadType[BestUnit] = Type; SquadArmy[BestUnit] = TeamId; }
 		}
-		return SwarmSquad::Pack((uint8)BestUnit, Type);
+		return SwarmSquad::Pack((uint8)BestUnit, Type, TeamId);
 	}
 
 	// --- bookkeeping -------------------------------------------------------
@@ -988,6 +1020,7 @@ public:
 			UnitStanceAnchor[i] = FVector::ZeroVector;
 			SquadClaimed[i] = false;
 			SquadType[i] = EUnitType::Spearmen;
+			SquadArmy[i] = 0;
 			SquadVariant[i] = INDEX_NONE;
 			SquadTier[i] = INDEX_NONE;
 		}
@@ -1013,6 +1046,7 @@ public:
 
 private:
 	FVector Attractor = FVector::ZeroVector;
+	bool bFieldBattle = false;
 	FVector StanceAnchor = FVector::ZeroVector;
 	ESwarmStance Stance = ESwarmStance::Follow;
 
@@ -1047,6 +1081,7 @@ private:
 	// --- typed-unit command layer (docs/design/squad-group-system.md §1) --------------
 	bool SquadClaimed[MaxSquads] = {};                         // has AssignRecruit ever opened this unit id
 	EUnitType SquadType[MaxSquads] = {};                        // sticky — set once by AssignRecruit
+	uint8 SquadArmy[MaxSquads] = {};                            // Battleground team id, sticky, 0 in the castle
 	ESwarmStance UnitStance[MaxSquads] = {};                    // per-unit order; "all" writes every slot
 	FVector UnitStanceAnchor[MaxSquads] = {};
 	int32 AlivePoolByType[NumUnitTypes] = {};                   // live standing per type, refilled each frame
