@@ -171,6 +171,10 @@ void ABattlegroundGameMode::StartMatch()
 	SetCVar(TEXT("Swarm.KnightSubtypeDPS"),     TEXT("36,28,44"));
 	SetCVar(TEXT("Swarm.KnightSubtypeEngage"),  TEXT("95,125,85"));
 	SetCVar(TEXT("Swarm.KnightSubtypeTargets"), TEXT("8,8,6"));
+	// Uniform blocks (owner, 2026-08-16): no per-soldier size roll, archers same size as
+	// spearmen. SwarmExecOnPlay.txt re-enables jitter for the castle; this level overrides.
+	SetCVar(TEXT("Swarm.RetinueSizeJitter"), TEXT("0"));
+	SetCVar(TEXT("Swarm.ArcherSizeScale"), TEXT("1"));
 	SetCVar(TEXT("Swarm.BroodSpawnFaceCamera"), TEXT("0"));
 	SetCVar(TEXT("Swarm.BroodSpawnArcCenter"), TEXT("0"));
 	SetCVar(TEXT("Swarm.BroodSpawnArc"), TEXT("30"));
