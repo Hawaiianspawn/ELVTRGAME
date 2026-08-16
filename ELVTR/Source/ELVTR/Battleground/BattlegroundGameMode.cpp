@@ -155,8 +155,22 @@ void ABattlegroundGameMode::StartMatch()
 	SetCVar(TEXT("Swarm.Formation.Archers.Columns"), FString::FromInt(UnitWidth));
 	SetCVar(TEXT("Swarm.Formation.FaceCamera"), TEXT("0"));
 	SetCVar(TEXT("Swarm.Formation.Yaw"), TEXT("0"));
-	SetCVar(TEXT("Swarm.TeamVariantWeights"), TEXT("0,0,0,0,0,0,0,1,1,0,1"));
-	SetCVar(TEXT("Swarm.ArcherVariantWeights"), TEXT("1,1,0,0,0,0,0,0,0,0,0,0,0"));
+	// Team atlas (docs/data/art/requests/team-units.json), 2026-08-16 swap: idx 1 gs1_seed
+	// (Sword), 2 gs2_sweep (Sword), 3 mass_v4_pike (Spear), 7 v8_heavycloak (Sword),
+	// 8 v10_bracedstaff (Spear), 10 v13_maceraised (Mace) = the owner's MELEE palette.
+	// Archer block: 0 hoodedbow (Merle), 1 v2_bowextended, 2 v1_narrowstrung = RANGED.
+	SetCVar(TEXT("Swarm.TeamVariantWeights"), TEXT("0,1,1,1,0,0,0,1,1,0,1"));
+	SetCVar(TEXT("Swarm.ArcherVariantWeights"), TEXT("1,1,1,0,0,0,0,0,0,0,0,0,0"));
+
+	// Per-WEAPON stats (owner: "each of the weapon units should have differing stats for
+	// damage"), through task-095's look->row binding. Rows: 0 Sword, 1 Spear, 2 Mace.
+	// Sword = the baseline knight; Spear = less damage, more reach; Mace = heavy hitter,
+	// short reach, fewer targets. Map is per team-atlas index (order above).
+	SetCVar(TEXT("Swarm.KnightSubtypeMap"),     TEXT("0,0,0,1,0,0,0,0,1,0,2"));
+	SetCVar(TEXT("Swarm.KnightSubtypeHP"),      TEXT("140,130,150"));
+	SetCVar(TEXT("Swarm.KnightSubtypeDPS"),     TEXT("36,28,44"));
+	SetCVar(TEXT("Swarm.KnightSubtypeEngage"),  TEXT("95,125,85"));
+	SetCVar(TEXT("Swarm.KnightSubtypeTargets"), TEXT("8,8,6"));
 	SetCVar(TEXT("Swarm.BroodSpawnFaceCamera"), TEXT("0"));
 	SetCVar(TEXT("Swarm.BroodSpawnArcCenter"), TEXT("0"));
 	SetCVar(TEXT("Swarm.BroodSpawnArc"), TEXT("30"));
