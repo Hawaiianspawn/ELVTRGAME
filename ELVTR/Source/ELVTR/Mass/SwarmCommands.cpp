@@ -1019,6 +1019,20 @@ namespace SwarmSpawn
 		SpawnSwarm(World, Params);
 	}
 
+	void SpawnUnit(UWorld* World, int32 UnitIndex, EUnitType Type, int32 Count, uint8 TeamId)
+	{
+		// One whole formation on one handle (Battleground): SpawnNamed's ForceUnit path with
+		// a body count, so AssignRecruit's legibility split never carves the unit up.
+		FSwarmSpawnParams Params;
+		Params.bBrood = false;
+		Params.Count = Count;
+		Params.ForceUnit = UnitIndex;
+		Params.bForceType = true;
+		Params.ForcedType = Type;
+		Params.TeamId = TeamId;
+		SpawnSwarm(World, Params);
+	}
+
 	void SpawnNamed(UWorld* World, int32 UnitIndex, EUnitType Type, float HPScale)
 	{
 		FSwarmSpawnParams Params;

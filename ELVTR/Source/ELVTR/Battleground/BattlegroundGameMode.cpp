@@ -138,36 +138,61 @@ void ABattlegroundGameMode::StartMatch()
 	const FVector PlayerZone = FieldCenter - FVector(DeploymentZoneDistance * 0.5f, 0.f, 0.f);
 	const FVector EnemyZone = FieldCenter + FVector(DeploymentZoneDistance * 0.5f, 0.f, 0.f);
 
-	// SwarmSpawn::SpawnArmy places bodies around wherever the subsystem's Attractor
-	// currently is (SwarmCommands.cpp's "Center = GetAttractor()" convention) -- so the
-	// Attractor is moved to each zone in turn before that army's own batch spawns.
+	// Formation + look dials for this level (owner, 2026-08-16): every unit is a 6x4 block,
+	// the line faces +X (toward the Ooze) regardless of camera, and only the looks the owner
+	// filed under the MELEE / RANGED palettes on the official page are drawn. Team-atlas
+	// order is retinue,v1,v2,v3,v4,v6,v7,v8,v10,v11,v13 -> MELEE = v8,v10,v13; archer order
+	// starts hoodedbow,v2_bowextended -> RANGED = those two. (Four more MELEE/RANGED looks
+	// exist but are not in the packed atlas yet -- needs a repack + editor import.)
+	auto SetCVar = [](const TCHAR* Name, const FString& Value)
+	{
+		if (IConsoleVariable* V = IConsoleManager::Get().FindConsoleVariable(Name)) { V->Set(*Value, ECVF_SetByConsole); }
+		else { UE_LOG(LogTemp, Warning, TEXT("Battleground: no CVar %s"), Name); }
+	};
+	SetCVar(TEXT("Swarm.Formation.Shape"), TEXT("1"));
+	SetCVar(TEXT("Swarm.Formation.Columns"), FString::FromInt(UnitWidth));
+	SetCVar(TEXT("Swarm.Formation.Archers.Shape"), TEXT("1"));
+	SetCVar(TEXT("Swarm.Formation.Archers.Columns"), FString::FromInt(UnitWidth));
+	SetCVar(TEXT("Swarm.Formation.FaceCamera"), TEXT("0"));
+	SetCVar(TEXT("Swarm.Formation.Yaw"), TEXT("0"));
+	SetCVar(TEXT("Swarm.TeamVariantWeights"), TEXT("0,0,0,0,0,0,0,1,1,0,1"));
+	SetCVar(TEXT("Swarm.ArcherVariantWeights"), TEXT("1,1,0,0,0,0,0,0,0,0,0,0,0"));
+	SetCVar(TEXT("Swarm.BroodSpawnFaceCamera"), TEXT("0"));
+	SetCVar(TEXT("Swarm.BroodSpawnArcCenter"), TEXT("0"));
+	SetCVar(TEXT("Swarm.BroodSpawnArc"), TEXT("30"));
+	SetCVar(TEXT("Swarm.BroodSpawnRadiusMin"), FString::SanitizeFloat(DeploymentZoneDistance));
+	SetCVar(TEXT("Swarm.BroodFormation.Columns"), FString::FromInt(UnitWidth * 4));
+
+	// Ally army: one squad handle per formation, exactly UnitWidth*UnitDepth bodies each
+	// (ForceUnit bypasses AssignRecruit's legibility split -- SpawnNamed/SpawnGarrison
+	// precedent). Bodies spawn around the Attractor, so park it on the deployment zone.
 	Swarm->SetAttractor(PlayerZone);
-	SwarmSpawn::SpawnArmy(GetWorld(), SpearmenPerSide, ArchersPerSide, PlayerTeamId);
+	TArray<int32> PlayerUnits;
+	{
+		const int32 Total = FMath::Clamp(MeleeUnits + RangedUnits, 1, USwarmSubsystem::MaxSquads);
+		for (int32 u = 0; u < Total; ++u)
+		{
+			SwarmSpawn::SpawnUnit(GetWorld(), u, (u < MeleeUnits) ? EUnitType::Spearmen : EUnitType::Archers,
+				FMath::Max(1, UnitWidth * UnitDepth), PlayerTeamId);
+			PlayerUnits.Add(u);
+		}
+	}
 
-	Swarm->SetAttractor(EnemyZone);
-	SwarmSpawn::SpawnArmy(GetWorld(), SpearmenPerSide, ArchersPerSide, EnemyTeamId);
+	// Ooze: the brood tide, in ranks on the +X arc DeploymentZoneDistance out from the
+	// Attractor (i.e. on the enemy zone), hunting the Attractor -- which Tick keeps on the
+	// ally army's live centroid, so "find and start a fight" is the brood's own steering.
+	SwarmSpawn::SpawnBrood(GetWorld(), OozeCount);
 
-	// Leave the shared Attractor at the field's midpoint. It no longer decides either
-	// army's position -- both are on an explicit Hold anchor below -- but it is still the
-	// Follow/Rally fallback the shared stance processor reads for a leash break or an
-	// unaddressed handle (SwarmProcessors.cpp), and the midpoint is the least-wrong shared
-	// value to leave a single global point at when two armies are reading it.
-	Swarm->SetAttractor(FieldCenter);
-
-	const TArray<int32> PlayerUnits = CollectTeamUnits(*Swarm, PlayerTeamId);
-	const TArray<int32> EnemyUnits = CollectTeamUnits(*Swarm, EnemyTeamId);
-
-	// Default posture: both lines HOLD their own deployment zone. Nobody Follows the
-	// shared Attractor (that would pull both armies onto the same point) and nobody
-	// starts Charging -- the director's break is what earns that (§3.1).
+	// Formations hold their zone until the director's break; each one is its own unit and
+	// answers its own handle (Battleground.Order addresses all of the player's at once).
 	for (int32 Unit : PlayerUnits) { Swarm->SetUnitStance(Unit, ESwarmStance::Hold, PlayerZone); }
-	for (int32 Unit : EnemyUnits) { Swarm->SetUnitStance(Unit, ESwarmStance::Hold, EnemyZone); }
+	const TArray<int32> EnemyUnits; // brood: no handles
 
 	PlayerCommander = NewObject<UBattlegroundCommander>(this);
 	PlayerCommander->Initialize(PlayerTeamId, PlayerUnits, PlayerZone, EnemyZone);
 
 	EnemyCommander = NewObject<UBattlegroundCommander>(this);
-	EnemyCommander->Initialize(EnemyTeamId, EnemyUnits, EnemyZone, PlayerZone);
+	EnemyCommander->InitializeBrood(EnemyTeamId, EnemyZone, PlayerZone);
 
 	Director = NewObject<UBattlegroundDirector>(this);
 	const double Now = GetWorld()->GetTimeSeconds();
@@ -179,27 +204,21 @@ void ABattlegroundGameMode::StartMatch()
 
 	// No hero pawn on this level, so give the player a fixed top-down orthographic view
 	// wide enough to hold both deployment zones (same pitch as SpikeHeroPawn's default).
-	if (ACameraActor* Cam = GetWorld()->SpawnActor<ACameraActor>(FieldCenter + FVector(0.f, 0.f, 1200.f), FRotator(-90.f, 90.f, 0.f)))
+	if (ACameraActor* Cam = GetWorld()->SpawnActor<ACameraActor>((PlayerZone + FieldCenter) * 0.5f + FVector(0.f, 0.f, 1200.f), FRotator(-90.f, 90.f, 0.f)))
 	{
 		Cam->GetCameraComponent()->SetProjectionMode(ECameraProjectionMode::Orthographic);
-		Cam->GetCameraComponent()->SetOrthoWidth(DeploymentZoneDistance * 2.4f);
+		Cam->GetCameraComponent()->SetOrthoWidth(DeploymentZoneDistance * 1.2f);
 		if (APlayerController* PC = UGameplayStatics::GetPlayerController(GetWorld(), 0))
 		{
 			PC->SetViewTarget(Cam);
 		}
 	}
 
-	// §5 Build-scope evidence: does the claimed handle count actually match "2 Spearmen +
-	// 1 Archer unit x2 teams = 6/8 handles"? Logged plainly so a reader doesn't have to
-	// step through squad state by hand to check.
 	UE_LOG(LogTemp, Display,
-		TEXT("Battleground: BeginPlay -- team 0 (player) claimed handles [%s] (%d Spearmen unit(s) + %d Archer unit(s)); ")
-		TEXT("team 1 (AI) claimed handles [%s] (%d Spearmen unit(s) + %d Archer unit(s)); %d/%d handles total"),
-		*UnitsToString(PlayerUnits),
+		TEXT("Battleground: BeginPlay -- army: %d formations of %dx%d on handles [%s] (%d melee + %d ranged); Ooze: %d in ranks"),
+		PlayerUnits.Num(), UnitWidth, UnitDepth, *UnitsToString(PlayerUnits),
 		CountByType(*Swarm, PlayerUnits, EUnitType::Spearmen), CountByType(*Swarm, PlayerUnits, EUnitType::Archers),
-		*UnitsToString(EnemyUnits),
-		CountByType(*Swarm, EnemyUnits, EUnitType::Spearmen), CountByType(*Swarm, EnemyUnits, EUnitType::Archers),
-		PlayerUnits.Num() + EnemyUnits.Num(), USwarmSubsystem::MaxSquads);
+		OozeCount);
 }
 
 void ABattlegroundGameMode::Tick(float DeltaSeconds)
@@ -211,6 +230,9 @@ void ABattlegroundGameMode::Tick(float DeltaSeconds)
 	{
 		return;
 	}
+
+	// The brood hunts the Attractor; keep it on the army so the Ooze finds the fight.
+	Swarm->SetAttractor(PlayerCommander->GetLiveCentroid(*Swarm));
 
 	// Decision cadence, not per-frame (§2.1: "recommend 1.5-2s, matching the LookLerp/
 	// pacing cadence elsewhere in this codebase rather than inventing a new one").

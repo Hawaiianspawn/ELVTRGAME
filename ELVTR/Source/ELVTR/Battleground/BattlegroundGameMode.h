@@ -37,11 +37,24 @@ public:
 	virtual void Tick(float DeltaSeconds) override;
 
 	/** Per side. See the class comment for why these are 30/10, not the spec's stale 150/40. */
+	/** Ally army = MeleeUnits + RangedUnits formations of UnitWidth x UnitDepth bodies each
+	 *  (owner: "6x4 unit formations; multiple formations is your army"). One squad handle per
+	 *  formation, so MeleeUnits + RangedUnits <= USwarmSubsystem::MaxSquads. */
 	UPROPERTY(EditDefaultsOnly, Category = "Battleground")
-	int32 SpearmenPerSide = 30;
+	int32 MeleeUnits = 3;
 
 	UPROPERTY(EditDefaultsOnly, Category = "Battleground")
-	int32 ArchersPerSide = 10;
+	int32 RangedUnits = 1;
+
+	UPROPERTY(EditDefaultsOnly, Category = "Battleground")
+	int32 UnitWidth = 6;
+
+	UPROPERTY(EditDefaultsOnly, Category = "Battleground")
+	int32 UnitDepth = 4;
+
+	/** Enemy = the Ooze brood, spawned in ranks (Swarm.BroodFormation.*) and hunting the army. */
+	UPROPERTY(EditDefaultsOnly, Category = "Battleground")
+	int32 OozeCount = 192;
 
 	/** How far apart the two deployment zones sit, uu, along the field's long axis (§1.1:
 	 *  "far enough... neither army's formation spawns inside the other's... engage

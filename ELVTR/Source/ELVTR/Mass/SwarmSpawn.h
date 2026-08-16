@@ -13,6 +13,8 @@ class UWorld;
 namespace SwarmSpawn
 {
 	/** Ring of brood well outside the play area, so the tide visibly converges. */
+	/** One whole formation of Count bodies of Type on squad handle UnitIndex (Battleground). */
+	void SpawnUnit(UWorld* World, int32 UnitIndex, EUnitType Type, int32 Count, uint8 TeamId = 0);
 	void SpawnBrood(UWorld* World, int32 Count);
 
 	/**

@@ -29,6 +29,11 @@ public:
 	void Initialize(uint8 InTeamId, const TArray<int32>& InUnitHandles,
 		const FVector& InHomeZone, const FVector& InEnemyZone);
 
+	/** Brood mode: this "commander" fronts the Ooze tide -- no handles, no orders (brood
+	 *  self-steers toward the Attractor); standing/centroid come from the brood pool. */
+	void InitializeBrood(uint8 InTeamId, const FVector& InHomeZone, const FVector& InEnemyZone);
+	bool IsBrood() const { return bBrood; }
+
 	/**
 	 * Called on a ~1.5-2s cadence (§2.1's decision cadence) by the game mode's Tick, never
 	 * per-frame. Reads read-only squad state (GetSquadStanding/GetSquadCentroid/GetSquadHP)
@@ -72,4 +77,5 @@ private:
 	ESwarmStance LastStance = ESwarmStance::Hold;
 	bool bCommitted = false; // set by ForceBreakCharge; Charge is sticky until Rally
 	bool bManual = false;
+	bool bBrood = false;
 };

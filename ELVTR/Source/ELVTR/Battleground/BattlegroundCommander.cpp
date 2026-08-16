@@ -2,6 +2,7 @@
 
 #include "BattlegroundDirector.h"
 #include "Mass/SwarmSubsystem.h"
+#include "Mass/SwarmFragments.h"
 
 void UBattlegroundCommander::Initialize(uint8 InTeamId, const TArray<int32>& InUnitHandles,
 	const FVector& InHomeZone, const FVector& InEnemyZone)
@@ -12,8 +13,21 @@ void UBattlegroundCommander::Initialize(uint8 InTeamId, const TArray<int32>& InU
 	EnemyZone = InEnemyZone;
 }
 
+void UBattlegroundCommander::InitializeBrood(uint8 InTeamId, const FVector& InHomeZone, const FVector& InEnemyZone)
+{
+	TeamId = InTeamId;
+	UnitHandles.Reset();
+	HomeZone = InHomeZone;
+	EnemyZone = InEnemyZone;
+	bBrood = true;
+}
+
 int32 UBattlegroundCommander::GetLiveStanding(const USwarmSubsystem& Swarm) const
 {
+	if (bBrood)
+	{
+		return Swarm.GetAliveBrood();
+	}
 	int32 Total = 0;
 	for (int32 Unit : UnitHandles)
 	{
@@ -24,6 +38,19 @@ int32 UBattlegroundCommander::GetLiveStanding(const USwarmSubsystem& Swarm) cons
 
 FVector UBattlegroundCommander::GetLiveCentroid(const USwarmSubsystem& Swarm) const
 {
+	if (bBrood)
+	{
+		// Brood have no handles; average the render positions that carry no TeamBit.
+		const TArray<FVector>& Pos = Swarm.GetRenderPositions();
+		const TArray<int32>& Bits = Swarm.GetRenderAnimBits();
+		FVector BSum = FVector::ZeroVector;
+		int32 N = 0;
+		for (int32 i = 0; i < Pos.Num() && i < Bits.Num(); ++i)
+		{
+			if ((Bits[i] & SwarmAnim::TeamBit) == 0) { BSum += Pos[i]; ++N; }
+		}
+		return N > 0 ? BSum / (float)N : HomeZone;
+	}
 	// Standing-weighted average of each unit's own centroid, not a plain mean of centroids
 	// — a 2-body archer unit must not pull the point as hard as a 20-body spearman block.
 	FVector Sum = FVector::ZeroVector;
@@ -43,7 +70,7 @@ FVector UBattlegroundCommander::GetLiveCentroid(const USwarmSubsystem& Swarm) co
 
 void UBattlegroundCommander::Decide(USwarmSubsystem& Swarm, UBattlegroundDirector& Director, const FVector& EnemyCentroid)
 {
-	if (bManual) { return; }
+	if (bManual || bBrood) { return; }
 	// §3.2's no-snowball floor: a losing commander is nudged toward Rally (fall back,
 	// consolidate, buy time) instead of grinding in place on Hold — an order CHOICE
 	// already in this army's vocabulary, not a new mechanic or a stat change. Outside
@@ -73,6 +100,7 @@ void UBattlegroundCommander::Decide(USwarmSubsystem& Swarm, UBattlegroundDirecto
 
 void UBattlegroundCommander::ForceBreakCharge(USwarmSubsystem& Swarm, const FVector& EnemyCentroid)
 {
+	if (bBrood) { return; } // the tide is already coming
 	LastStance = ESwarmStance::Charge;
 	bCommitted = true;
 	UE_LOG(LogTemp, Display,
