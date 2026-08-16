@@ -1636,7 +1636,7 @@ def official_page():
                 sopts = "".join('<option%s>%s</option>' % (" selected" if x == side else "", x)
                                 for x in ("ally", "enemy"))
                 cards.append(
-                    '<div class="card ok"><img src="/still?key=%(k)s&sel=1&zoom=4" alt="" loading="lazy">'
+                    '<div class="card ok"><img src="/still?key=%(k)s&sel=1&zoom=4" alt="" loading="lazy" onmouseenter="this.src=\'/turn?key=%(k)s&sel=1&zoom=4\'" onmouseleave="this.src=\'/still?key=%(k)s&sel=1&zoom=4\'">'
                     '<input class="f title" value="%(title)s" placeholder="%(slug)s" '
                     'onchange="rf(\'%(k)s\',\'title\',this)">'
                     '<span class="sub">%(slug)s &middot; <a href="/api/open?key=%(k)s" target="_blank">'
@@ -1797,8 +1797,8 @@ def build_app(family, atlas, prefix, scale):
                         headers={"Cache-Control": "no-store"})
 
     @app.get("/turn")
-    def api_turn(key: str, sel: int = 0):
-        webp = guard(lambda: turnaround(rot_for(key, sel), max(1, scale - 1)))
+    def api_turn(key: str, sel: int = 0, zoom: int = 0):
+        webp = guard(lambda: turnaround(rot_for(key, sel), zoom or max(1, scale - 1)))
         return Response(webp, media_type="image/webp",
                         headers={"Cache-Control": "no-store"})
 
