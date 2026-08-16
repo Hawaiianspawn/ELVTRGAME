@@ -1436,6 +1436,14 @@ def selects_page():
         "sections": "\n".join(sections)}
 
 
+OFFICIAL_CSS = """
+.cards{grid-template-columns:repeat(auto-fill,minmax(14rem,1fr));gap:.8rem;}
+.card{padding:.6rem;}
+.card img{aspect-ratio:1/1;height:auto;object-position:center;}
+.card b{font-size:.85rem;} .card button{font-size:.7rem;padding:.3rem .7rem;}
+"""
+
+
 def official_page():
     """The official set: approved selects only, grouped by branch, thumbnails from the Selects
     copy (so Aseprite edits show), deny to demote. Nothing else -- the owner asked for
@@ -1451,13 +1459,11 @@ def official_page():
         for key in sorted(branches[b]):
             slug = key.partition("/")[2]
             cards.append(
-                '<div class="card ok"><img src="/still?key=%s&sel=1" alt="" loading="lazy" '
-                "onmouseenter=\"this.src='/turn?key=%s&sel=1'\" "
-                "onmouseleave=\"this.src='/still?key=%s&sel=1'\">"
+                '<div class="card ok"><img src="/still?key=%s&sel=1&zoom=4" alt="" loading="lazy">'
                 '<b>%s</b><a href="/api/open?key=%s" target="_blank">%s &#8599;</a>'
                 "<div class=\"btns\"><button onclick=\"sel('%s','deny',this)\">deny</button>"
                 '</div></div>'
-                % (esc(key), esc(key), esc(key), esc(slug), esc(key), esc(key), esc(key)))
+                % (esc(key), esc(slug), esc(key), esc(key), esc(key)))
         sections.append(
             '<section class="grp"><h2>%s <span>%d official</span></h2><div class="cards">%s'
             '</div></section>' % (esc(b), len(cards), "".join(cards)))
@@ -1480,7 +1486,7 @@ def official_page():
 %(sections)s
 </div>
 <script>%(js)s</script></body></html>""" % {
-        "css": SELECTS_CSS, "js": SELECTS_JS, "n": n,
+        "css": SELECTS_CSS + OFFICIAL_CSS, "js": SELECTS_JS, "n": n,
         "sections": "\n".join(sections) or "<p>Nothing approved yet.</p>"}
 
 
@@ -1580,8 +1586,8 @@ def build_app(family, atlas, prefix, scale):
         return d / "rotations" if d and (d / "rotations" / "south.png").exists() else unit_rotations(key)
 
     @app.get("/still")
-    def api_still(key: str, sel: int = 0):
-        png = guard(lambda: still(rot_for(key, sel), max(1, scale - 1)))
+    def api_still(key: str, sel: int = 0, zoom: int = 0):
+        png = guard(lambda: still(rot_for(key, sel), zoom or max(1, scale - 1)))
         return Response(png, media_type="image/webp",
                         headers={"Cache-Control": "no-store"})
 
