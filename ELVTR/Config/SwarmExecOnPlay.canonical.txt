@@ -569,7 +569,8 @@ Swarm.SpacingLogInterval 0 ; seconds between auto spacing reports; 0 disables
 # the camera. Mode 2 additionally measures the live retinue bbox and widens past whatever the
 # scalar alone would give until it actually fits — see "strategic fit" below.
 # ============================================================
-Kindled.Cam.Scale 2                 ; DEFAULT as of 2026-08-03 (owner call): STRATEGIC. Was 0
+Kindled.Cam.Scale 0                 ; (owner call 2026-08-16: PINNED, no zoom breathing while testing;
+                                      ; was 2 STRATEGIC, the 2026-08-03 default). Was 0
                                       ; (pinned eye-level, GAME CAMERA block above — that shot is
                                       ; kept, not deleted; set this back to 0 to use it by hand).
                                       ; 0 = off — Cam.Ortho/OrthoWidth/Fov/Dist/Pitch drive the
