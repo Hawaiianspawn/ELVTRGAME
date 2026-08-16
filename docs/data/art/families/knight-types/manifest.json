@@ -41,7 +41,13 @@
         ]
       },
       "verdict": "keep",
-      "reasons": []
+      "reasons": [],
+      "owner": {
+        "verdict": "deny",
+        "at": "2026-08-16T05:12:52+00:00",
+        "note": "",
+        "shipped": null
+      }
     },
     "type1_bulwark": {
       "measured": {
@@ -126,7 +132,13 @@
         ]
       },
       "verdict": "keep",
-      "reasons": []
+      "reasons": [],
+      "owner": {
+        "verdict": "approve",
+        "at": "2026-08-16T05:12:45+00:00",
+        "note": "",
+        "shipped": null
+      }
     },
     "type3_skirmisher": {
       "measured": {
@@ -169,7 +181,13 @@
         ]
       },
       "verdict": "keep",
-      "reasons": []
+      "reasons": [],
+      "owner": {
+        "verdict": "deny",
+        "at": "2026-08-16T05:12:49+00:00",
+        "note": "",
+        "shipped": null
+      }
     }
   },
   "judged": "2026-07-30T01:16:20+00:00"

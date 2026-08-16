@@ -44,7 +44,13 @@
       "verdict": "keep",
       "reasons": [
         "luma 0.156 -- not automatically wrong (SKILL.md), but the outline is doing all the work"
-      ]
+      ],
+      "owner": {
+        "verdict": "approve",
+        "at": "2026-08-16T05:08:08+00:00",
+        "note": "",
+        "shipped": null
+      }
     },
     "Baby_face": {
       "measured": {
@@ -136,7 +142,13 @@
       "verdict": "keep",
       "reasons": [
         "luma 0.149 -- not automatically wrong (SKILL.md), but the outline is doing all the work"
-      ]
+      ],
+      "owner": {
+        "verdict": "approve",
+        "at": "2026-08-16T05:08:06+00:00",
+        "note": "",
+        "shipped": null
+      }
     },
     "Black_ooze_with_teet": {
       "measured": {
@@ -369,7 +381,13 @@
       "verdict": "keep",
       "reasons": [
         "luma 0.198 -- not automatically wrong (SKILL.md), but the outline is doing all the work"
-      ]
+      ],
+      "owner": {
+        "verdict": "approve",
+        "at": "2026-08-16T05:08:04+00:00",
+        "note": "",
+        "shipped": null
+      }
     },
     "pale_blue_skin_big_e": {
       "measured": {
@@ -413,7 +431,13 @@
         ]
       },
       "verdict": "keep",
-      "reasons": []
+      "reasons": [],
+      "owner": {
+        "verdict": "approve",
+        "at": "2026-08-16T05:08:05+00:00",
+        "note": "",
+        "shipped": null
+      }
     },
     "state00_base": {
       "measured": {
@@ -458,7 +482,13 @@
       "verdict": "keep",
       "reasons": [
         "externally referenced by docs/data/art/brood-variants.json -- keep despite: band sits fully inside 'pale_blue_skin_big_e' on every axis (aspect/solidity/asymmetry/holes) across all 8 rotations"
-      ]
+      ],
+      "owner": {
+        "verdict": "approve",
+        "at": "2026-08-16T05:07:16+00:00",
+        "note": "",
+        "shipped": null
+      }
     },
     "state01_sump": {
       "measured": {
@@ -502,7 +532,13 @@
       "verdict": "keep",
       "reasons": [
         "luma 0.054 -- not automatically wrong (SKILL.md), but the outline is doing all the work"
-      ]
+      ],
+      "owner": {
+        "verdict": "approve",
+        "at": "2026-08-16T05:07:16+00:00",
+        "note": "",
+        "shipped": null
+      }
     },
     "state02_bell": {
       "measured": {
@@ -546,7 +582,13 @@
       "verdict": "keep",
       "reasons": [
         "luma 0.072 -- not automatically wrong (SKILL.md), but the outline is doing all the work"
-      ]
+      ],
+      "owner": {
+        "verdict": "approve",
+        "at": "2026-08-16T05:07:17+00:00",
+        "note": "",
+        "shipped": null
+      }
     },
     "state03_stalk": {
       "measured": {
@@ -590,7 +632,13 @@
       "verdict": "keep",
       "reasons": [
         "luma 0.070 -- not automatically wrong (SKILL.md), but the outline is doing all the work"
-      ]
+      ],
+      "owner": {
+        "verdict": "approve",
+        "at": "2026-08-16T05:07:18+00:00",
+        "note": "",
+        "shipped": null
+      }
     },
     "state04_wedge": {
       "measured": {
@@ -634,7 +682,13 @@
       "verdict": "keep",
       "reasons": [
         "luma 0.062 -- not automatically wrong (SKILL.md), but the outline is doing all the work"
-      ]
+      ],
+      "owner": {
+        "verdict": "approve",
+        "at": "2026-08-16T05:07:19+00:00",
+        "note": "",
+        "shipped": null
+      }
     },
     "state05_ridge": {
       "measured": {
@@ -678,7 +732,13 @@
       "verdict": "keep",
       "reasons": [
         "luma 0.072 -- not automatically wrong (SKILL.md), but the outline is doing all the work"
-      ]
+      ],
+      "owner": {
+        "verdict": "approve",
+        "at": "2026-08-16T05:07:12+00:00",
+        "note": "",
+        "shipped": null
+      }
     },
     "state06_crown": {
       "measured": {
@@ -722,7 +782,13 @@
       "verdict": "keep",
       "reasons": [
         "luma 0.063 -- not automatically wrong (SKILL.md), but the outline is doing all the work"
-      ]
+      ],
+      "owner": {
+        "verdict": "approve",
+        "at": "2026-08-16T05:07:13+00:00",
+        "note": "",
+        "shipped": null
+      }
     },
     "state07_twin": {
       "measured": {
@@ -767,7 +833,13 @@
       "verdict": "keep",
       "reasons": [
         "luma 0.080 -- not automatically wrong (SKILL.md), but the outline is doing all the work"
-      ]
+      ],
+      "owner": {
+        "verdict": "approve",
+        "at": "2026-08-16T05:07:14+00:00",
+        "note": "",
+        "shipped": null
+      }
     },
     "state08_slug": {
       "measured": {
@@ -811,7 +883,13 @@
       "verdict": "keep",
       "reasons": [
         "luma 0.069 -- not automatically wrong (SKILL.md), but the outline is doing all the work"
-      ]
+      ],
+      "owner": {
+        "verdict": "approve",
+        "at": "2026-08-16T05:07:15+00:00",
+        "note": "",
+        "shipped": null
+      }
     },
     "Undead": {
       "measured": {

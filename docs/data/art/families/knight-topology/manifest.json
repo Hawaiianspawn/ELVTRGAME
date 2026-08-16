@@ -41,7 +41,13 @@
         ]
       },
       "verdict": "keep",
-      "reasons": []
+      "reasons": [],
+      "owner": {
+        "verdict": "deny",
+        "at": "2026-08-16T05:13:16+00:00",
+        "note": "",
+        "shipped": null
+      }
     },
     "t1_straddle": {
       "measured": {
@@ -84,7 +90,13 @@
         ]
       },
       "verdict": "keep",
-      "reasons": []
+      "reasons": [],
+      "owner": {
+        "verdict": "approve",
+        "at": "2026-08-16T05:12:57+00:00",
+        "note": "",
+        "shipped": null
+      }
     },
     "t2_shieldout": {
       "measured": {
@@ -127,7 +139,13 @@
         ]
       },
       "verdict": "keep",
-      "reasons": []
+      "reasons": [],
+      "owner": {
+        "verdict": "deny",
+        "at": "2026-08-16T05:13:13+00:00",
+        "note": "",
+        "shipped": null
+      }
     },
     "t3_spearlevel": {
       "measured": {
@@ -169,7 +187,13 @@
         ]
       },
       "verdict": "keep",
-      "reasons": []
+      "reasons": [],
+      "owner": {
+        "verdict": "deny",
+        "at": "2026-08-16T05:13:14+00:00",
+        "note": "",
+        "shipped": null
+      }
     },
     "t4_akimbo": {
       "measured": {
@@ -213,7 +237,13 @@
         ]
       },
       "verdict": "keep",
-      "reasons": []
+      "reasons": [],
+      "owner": {
+        "verdict": "deny",
+        "at": "2026-08-16T05:13:14+00:00",
+        "note": "",
+        "shipped": null
+      }
     },
     "t5_overhead": {
       "measured": {
@@ -258,7 +288,13 @@
       "verdict": "keep",
       "reasons": [
         "luma 0.193 -- not automatically wrong (SKILL.md), but the outline is doing all the work"
-      ]
+      ],
+      "owner": {
+        "verdict": "deny",
+        "at": "2026-08-16T05:13:15+00:00",
+        "note": "",
+        "shipped": null
+      }
     }
   },
   "judged": "2026-07-30T01:16:19+00:00"

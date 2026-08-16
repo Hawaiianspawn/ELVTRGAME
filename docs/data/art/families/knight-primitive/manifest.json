@@ -41,7 +41,13 @@
         ]
       },
       "verdict": "keep",
-      "reasons": []
+      "reasons": [],
+      "owner": {
+        "verdict": "deny",
+        "at": "2026-08-16T05:13:23+00:00",
+        "note": "",
+        "shipped": null
+      }
     },
     "p1_square": {
       "measured": {
@@ -83,7 +89,13 @@
         ]
       },
       "verdict": "keep",
-      "reasons": []
+      "reasons": [],
+      "owner": {
+        "verdict": "deny",
+        "at": "2026-08-16T05:13:18+00:00",
+        "note": "",
+        "shipped": null
+      }
     },
     "p2_triangle": {
       "measured": {
@@ -125,7 +137,13 @@
         ]
       },
       "verdict": "keep",
-      "reasons": []
+      "reasons": [],
+      "owner": {
+        "verdict": "deny",
+        "at": "2026-08-16T05:13:19+00:00",
+        "note": "",
+        "shipped": null
+      }
     },
     "p3_dome": {
       "measured": {
@@ -167,7 +185,13 @@
         ]
       },
       "verdict": "keep",
-      "reasons": []
+      "reasons": [],
+      "owner": {
+        "verdict": "deny",
+        "at": "2026-08-16T05:13:19+00:00",
+        "note": "",
+        "shipped": null
+      }
     },
     "p4_column": {
       "measured": {
@@ -209,7 +233,13 @@
         ]
       },
       "verdict": "keep",
-      "reasons": []
+      "reasons": [],
+      "owner": {
+        "verdict": "deny",
+        "at": "2026-08-16T05:13:20+00:00",
+        "note": "",
+        "shipped": null
+      }
     },
     "p5_invtriangle": {
       "measured": {
@@ -251,7 +281,13 @@
         ]
       },
       "verdict": "keep",
-      "reasons": []
+      "reasons": [],
+      "owner": {
+        "verdict": "deny",
+        "at": "2026-08-16T05:13:21+00:00",
+        "note": "",
+        "shipped": null
+      }
     },
     "p6_bar": {
       "measured": {
@@ -293,7 +329,13 @@
         ]
       },
       "verdict": "keep",
-      "reasons": []
+      "reasons": [],
+      "owner": {
+        "verdict": "deny",
+        "at": "2026-08-16T05:13:21+00:00",
+        "note": "",
+        "shipped": null
+      }
     }
   },
   "judged": "2026-07-30T01:16:19+00:00"

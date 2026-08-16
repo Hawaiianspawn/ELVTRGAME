@@ -62,7 +62,13 @@
         ]
       },
       "verdict": "keep",
-      "reasons": []
+      "reasons": [],
+      "owner": {
+        "verdict": "approve",
+        "at": "2026-08-16T05:09:56+00:00",
+        "note": "",
+        "shipped": null
+      }
     },
     "v10_bracedstaff": {
       "urls": [
@@ -125,7 +131,13 @@
         ]
       },
       "verdict": "keep",
-      "reasons": []
+      "reasons": [],
+      "owner": {
+        "verdict": "approve",
+        "at": "2026-08-16T05:13:40+00:00",
+        "note": "",
+        "shipped": null
+      }
     },
     "v11_midguard": {
       "urls": [
@@ -189,7 +201,13 @@
         ]
       },
       "verdict": "keep",
-      "reasons": []
+      "reasons": [],
+      "owner": {
+        "verdict": "deny",
+        "at": "2026-08-16T05:13:37+00:00",
+        "note": "",
+        "shipped": null
+      }
     },
     "v8_heavycloak": {
       "urls": [
@@ -253,7 +271,13 @@
         ]
       },
       "verdict": "keep",
-      "reasons": []
+      "reasons": [],
+      "owner": {
+        "verdict": "approve",
+        "at": "2026-08-16T05:09:52+00:00",
+        "note": "",
+        "shipped": null
+      }
     },
     "v9_spearlevel": {
       "urls": [
@@ -385,7 +409,13 @@
       "verdict": "flag",
       "reasons": [
         "aspect target 1.80 falls outside the measured 1.07-1.23 band across all 8 rotations"
-      ]
+      ],
+      "owner": {
+        "verdict": "deny",
+        "at": "2026-08-16T05:13:31+00:00",
+        "note": "",
+        "shipped": null
+      }
     },
     "v13_maceraised": {
       "urls": [
@@ -449,7 +479,13 @@
         ]
       },
       "verdict": "keep",
-      "reasons": []
+      "reasons": [],
+      "owner": {
+        "verdict": "approve",
+        "at": "2026-08-16T05:10:01+00:00",
+        "note": "",
+        "shipped": null
+      }
     },
     "v14_twinraise": {
       "urls": [
@@ -474,8 +510,14 @@
         "west.png"
       ],
       "measured": {
-        "canvas": [88, 88],
-        "content": [38, 46],
+        "canvas": [
+          88,
+          88
+        ],
+        "content": [
+          38,
+          46
+        ],
         "aspect": 0.8260869565217391,
         "solidity": 0.6647597254004577,
         "asymmetry": 0.5714285714285714,
@@ -489,15 +531,33 @@
         "binary_alpha": true
       },
       "band": {
-        "aspect": [0.49, 0.85],
-        "solidity": [0.58, 0.81],
-        "asymmetry": [0.23, 0.57],
-        "holes": [0, 1]
+        "aspect": [
+          0.49,
+          0.85
+        ],
+        "solidity": [
+          0.58,
+          0.81
+        ],
+        "asymmetry": [
+          0.23,
+          0.57
+        ],
+        "holes": [
+          0,
+          1
+        ]
       },
       "verdict": "flag",
       "reasons": [
         "target was two enclosed holes at different heights; measured 0 holes on 7/8 rotations, 1 hole (7px, south-west only) on the 8th -- target missed, same failure mode as v10_bracedstaff's chest-loop attempt"
-      ]
+      ],
+      "owner": {
+        "verdict": "deny",
+        "at": "2026-08-16T05:13:29+00:00",
+        "note": "",
+        "shipped": null
+      }
     },
     "v15_strapshield": {
       "urls": [
@@ -522,8 +582,14 @@
         "west.png"
       ],
       "measured": {
-        "canvas": [88, 88],
-        "content": [45, 44],
+        "canvas": [
+          88,
+          88
+        ],
+        "content": [
+          45,
+          44
+        ],
         "aspect": 1.0227272727272727,
         "solidity": 0.5868686868686869,
         "asymmetry": 0.5180722891566265,
@@ -537,15 +603,33 @@
         "binary_alpha": true
       },
       "band": {
-        "aspect": [0.51, 1.02],
-        "solidity": [0.59, 0.71],
-        "asymmetry": [0.27, 0.72],
-        "holes": [0, 2]
+        "aspect": [
+          0.51,
+          1.02
+        ],
+        "solidity": [
+          0.59,
+          0.71
+        ],
+        "asymmetry": [
+          0.27,
+          0.72
+        ],
+        "holes": [
+          0,
+          2
+        ]
       },
       "verdict": "keep",
       "reasons": [
         "strap-loop mechanism (shield held away from body on a strap, not armpit-closure) delivered the family's first real 2-hole result: south 2 holes/59px, north 2 holes/50px, south-east 1 hole/13px, east/north-west/west/south-west 0 -- directional, same as brood-ooze's ridge state (SKILL.md worked example): the loop reads face-on from front/back and foreshortens edge-on from the sides, which is the expected geometry, not a defect. South is the default-facing direction and carries the strongest read (59px, well above the ~2px downsampling floor noted in SKILL.md)."
-      ]
+      ],
+      "owner": {
+        "verdict": "deny",
+        "at": "2026-08-16T05:13:28+00:00",
+        "note": "",
+        "shipped": null
+      }
     }
   },
   "judged": "2026-08-04T17:07:18+00:00"

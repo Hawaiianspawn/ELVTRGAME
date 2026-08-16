@@ -44,7 +44,13 @@
       "verdict": "keep",
       "reasons": [
         "luma 0.193 -- not automatically wrong (SKILL.md), but the outline is doing all the work"
-      ]
+      ],
+      "owner": {
+        "verdict": "approve",
+        "at": "2026-08-16T05:06:50+00:00",
+        "note": "",
+        "shipped": null
+      }
     },
     "state02_hollowmask": {
       "measured": {
@@ -89,7 +95,13 @@
       "verdict": "keep",
       "reasons": [
         "luma 0.176 -- not automatically wrong (SKILL.md), but the outline is doing all the work"
-      ]
+      ],
+      "owner": {
+        "verdict": "approve",
+        "at": "2026-08-16T05:06:51+00:00",
+        "note": "",
+        "shipped": null
+      }
     },
     "state03_crossbow": {
       "measured": {
@@ -132,7 +144,13 @@
         ]
       },
       "verdict": "keep",
-      "reasons": []
+      "reasons": [],
+      "owner": {
+        "verdict": "approve",
+        "at": "2026-08-16T05:06:52+00:00",
+        "note": "",
+        "shipped": null
+      }
     },
     "state04_blade": {
       "measured": {
@@ -176,7 +194,13 @@
       "verdict": "keep",
       "reasons": [
         "luma 0.171 -- not automatically wrong (SKILL.md), but the outline is doing all the work"
-      ]
+      ],
+      "owner": {
+        "verdict": "approve",
+        "at": "2026-08-16T05:06:53+00:00",
+        "note": "",
+        "shipped": null
+      }
     },
     "state05_mage": {
       "measured": {
@@ -221,7 +245,13 @@
       "verdict": "keep",
       "reasons": [
         "luma 0.173 -- not automatically wrong (SKILL.md), but the outline is doing all the work"
-      ]
+      ],
+      "owner": {
+        "verdict": "approve",
+        "at": "2026-08-16T05:06:53+00:00",
+        "note": "",
+        "shipped": null
+      }
     }
   },
   "judged": "2026-07-30T01:16:19+00:00"

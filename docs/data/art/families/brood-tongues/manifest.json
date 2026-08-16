@@ -66,7 +66,13 @@
       "reasons": [
         "aspect target 1.60 falls outside the measured 0.94-1.07 band across all 8 rotations",
         "luma 0.195 -- not automatically wrong (SKILL.md), but the outline is doing all the work"
-      ]
+      ],
+      "owner": {
+        "verdict": "approve",
+        "at": "2026-08-16T05:08:19+00:00",
+        "note": "",
+        "shipped": null
+      }
     },
     "tongue05_loop": {
       "urls": [
@@ -131,7 +137,13 @@
       "verdict": "keep",
       "reasons": [
         "luma 0.195 -- not automatically wrong (SKILL.md), but the outline is doing all the work"
-      ]
+      ],
+      "owner": {
+        "verdict": "approve",
+        "at": "2026-08-16T05:08:22+00:00",
+        "note": "",
+        "shipped": null
+      }
     },
     "tongue01_column": {
       "urls": [
@@ -196,7 +208,13 @@
       "verdict": "keep",
       "reasons": [
         "luma 0.177 -- not automatically wrong (SKILL.md), but the outline is doing all the work"
-      ]
+      ],
+      "owner": {
+        "verdict": "approve",
+        "at": "2026-08-16T05:08:25+00:00",
+        "note": "",
+        "shipped": null
+      }
     },
     "tongue03_trail": {
       "urls": [
@@ -263,7 +281,13 @@
       "reasons": [
         "aspect target 2.50 falls outside the measured 0.68-0.86 band across all 8 rotations",
         "luma 0.195 -- not automatically wrong (SKILL.md), but the outline is doing all the work"
-      ]
+      ],
+      "owner": {
+        "verdict": "deny",
+        "at": "2026-08-16T05:08:37+00:00",
+        "note": "",
+        "shipped": null
+      }
     },
     "tongue04_lean": {
       "urls": [
@@ -329,7 +353,13 @@
       "verdict": "keep",
       "reasons": [
         "luma 0.175 -- not automatically wrong (SKILL.md), but the outline is doing all the work"
-      ]
+      ],
+      "owner": {
+        "verdict": "approve",
+        "at": "2026-08-16T05:08:21+00:00",
+        "note": "",
+        "shipped": null
+      }
     },
     "tongue06_knot": {
       "urls": [
@@ -395,7 +425,13 @@
       "verdict": "keep",
       "reasons": [
         "luma 0.189 -- not automatically wrong (SKILL.md), but the outline is doing all the work"
-      ]
+      ],
+      "owner": {
+        "verdict": "deny",
+        "at": "2026-08-16T05:08:39+00:00",
+        "note": "",
+        "shipped": null
+      }
     }
   },
   "judged": "2026-07-31T01:47:29+00:00"

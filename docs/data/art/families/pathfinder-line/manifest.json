@@ -64,7 +64,13 @@
       "verdict": "keep",
       "reasons": [
         "luma 0.198 -- not automatically wrong (SKILL.md), but the outline is doing all the work"
-      ]
+      ],
+      "owner": {
+        "verdict": "approve",
+        "at": "2026-08-16T05:11:13+00:00",
+        "note": "",
+        "shipped": null
+      }
     },
     "harpoonreach": {
       "urls": [
@@ -130,7 +136,13 @@
       "reasons": [
         "aspect target 1.60 falls outside the measured 0.80-0.98 band across all 8 rotations",
         "luma 0.190 -- not automatically wrong (SKILL.md), but the outline is doing all the work"
-      ]
+      ],
+      "owner": {
+        "verdict": "deny",
+        "at": "2026-08-16T05:10:42+00:00",
+        "note": "",
+        "shipped": null
+      }
     },
     "wingflare": {
       "urls": [
@@ -195,7 +207,13 @@
       "verdict": "keep",
       "reasons": [
         "luma 0.190 -- not automatically wrong (SKILL.md), but the outline is doing all the work"
-      ]
+      ],
+      "owner": {
+        "verdict": "deny",
+        "at": "2026-08-16T05:12:41+00:00",
+        "note": "",
+        "shipped": null
+      }
     },
     "hazmatbulk": {
       "urls": [
@@ -258,7 +276,13 @@
         ]
       },
       "verdict": "keep",
-      "reasons": []
+      "reasons": [],
+      "owner": {
+        "verdict": "deny",
+        "at": "2026-08-16T05:10:45+00:00",
+        "note": "",
+        "shipped": null
+      }
     },
     "droneleash": {
       "urls": [
@@ -325,7 +349,13 @@
       "verdict": "keep",
       "reasons": [
         "luma 0.181 -- not automatically wrong (SKILL.md), but the outline is doing all the work"
-      ]
+      ],
+      "owner": {
+        "verdict": "deny",
+        "at": "2026-08-16T05:10:28+00:00",
+        "note": "",
+        "shipped": null
+      }
     },
     "kneebrace": {
       "urls": [
@@ -391,7 +421,13 @@
       "verdict": "reject",
       "reasons": [
         "identical opaque count (927 px) to 'Bump_helmet_ontop_of' -- same outline, differs on the interior only"
-      ]
+      ],
+      "owner": {
+        "verdict": "approve",
+        "at": "2026-08-16T05:10:47+00:00",
+        "note": "",
+        "shipped": null
+      }
     },
     "ArtilleryCannons_on": {
       "measured": {
@@ -437,7 +473,13 @@
       "verdict": "keep",
       "reasons": [
         "luma 0.162 -- not automatically wrong (SKILL.md), but the outline is doing all the work"
-      ]
+      ],
+      "owner": {
+        "verdict": "approve",
+        "at": "2026-08-16T05:10:17+00:00",
+        "note": "",
+        "shipped": null
+      }
     },
     "Bump_helmet_ontop_of": {
       "measured": {
@@ -481,7 +523,13 @@
       "verdict": "keep",
       "reasons": [
         "luma 0.152 -- not automatically wrong (SKILL.md), but the outline is doing all the work"
-      ]
+      ],
+      "owner": {
+        "verdict": "approve",
+        "at": "2026-08-16T05:10:20+00:00",
+        "note": "",
+        "shipped": null
+      }
     },
     "Can_we_have_one_cove": {
       "measured": {
@@ -526,7 +574,13 @@
       "verdict": "keep",
       "reasons": [
         "luma 0.197 -- not automatically wrong (SKILL.md), but the outline is doing all the work"
-      ]
+      ],
+      "owner": {
+        "verdict": "approve",
+        "at": "2026-08-16T05:10:21+00:00",
+        "note": "",
+        "shipped": null
+      }
     },
     "Can_you_make_a_Turre": {
       "measured": {
@@ -569,7 +623,13 @@
         ]
       },
       "verdict": "keep",
-      "reasons": []
+      "reasons": [],
+      "owner": {
+        "verdict": "approve",
+        "at": "2026-08-16T05:10:22+00:00",
+        "note": "",
+        "shipped": null
+      }
     },
     "Convert_to_Mage": {
       "measured": {
@@ -614,7 +674,13 @@
       "verdict": "keep",
       "reasons": [
         "luma 0.173 -- not automatically wrong (SKILL.md), but the outline is doing all the work"
-      ]
+      ],
+      "owner": {
+        "verdict": "approve",
+        "at": "2026-08-16T05:10:23+00:00",
+        "note": "",
+        "shipped": null
+      }
     },
     "Cyborg_with_Crossbow": {
       "measured": {
@@ -657,7 +723,13 @@
         ]
       },
       "verdict": "keep",
-      "reasons": []
+      "reasons": [],
+      "owner": {
+        "verdict": "approve",
+        "at": "2026-08-16T05:10:23+00:00",
+        "note": "",
+        "shipped": null
+      }
     },
     "dwarf_version_which": {
       "measured": {
@@ -702,7 +774,13 @@
       "verdict": "keep",
       "reasons": [
         "luma 0.196 -- not automatically wrong (SKILL.md), but the outline is doing all the work"
-      ]
+      ],
+      "owner": {
+        "verdict": "approve",
+        "at": "2026-08-16T05:10:30+00:00",
+        "note": "",
+        "shipped": null
+      }
     },
     "Lets_so_secret_servi": {
       "measured": {
@@ -746,7 +824,13 @@
       "verdict": "keep",
       "reasons": [
         "luma 0.142 -- not automatically wrong (SKILL.md), but the outline is doing all the work"
-      ]
+      ],
+      "owner": {
+        "verdict": "approve",
+        "at": "2026-08-16T05:10:56+00:00",
+        "note": "",
+        "shipped": null
+      }
     },
     "Merle_Pathfinder": {
       "measured": {
@@ -791,7 +875,13 @@
       "verdict": "keep",
       "reasons": [
         "luma 0.193 -- not automatically wrong (SKILL.md), but the outline is doing all the work"
-      ]
+      ],
+      "owner": {
+        "verdict": "approve",
+        "at": "2026-08-16T05:10:59+00:00",
+        "note": "",
+        "shipped": null
+      }
     },
     "One_with_Hollow_blac": {
       "measured": {
@@ -836,7 +926,13 @@
       "verdict": "keep",
       "reasons": [
         "luma 0.176 -- not automatically wrong (SKILL.md), but the outline is doing all the work"
-      ]
+      ],
+      "owner": {
+        "verdict": "approve",
+        "at": "2026-08-16T05:11:00+00:00",
+        "note": "",
+        "shipped": null
+      }
     },
     "Replace_the_bow_with": {
       "measured": {
@@ -880,7 +976,13 @@
       "verdict": "keep",
       "reasons": [
         "luma 0.178 -- not automatically wrong (SKILL.md), but the outline is doing all the work"
-      ]
+      ],
+      "owner": {
+        "verdict": "approve",
+        "at": "2026-08-16T05:11:06+00:00",
+        "note": "",
+        "shipped": null
+      }
     },
     "RPG_launcher": {
       "measured": {
@@ -924,7 +1026,13 @@
       "verdict": "keep",
       "reasons": [
         "luma 0.171 -- not automatically wrong (SKILL.md), but the outline is doing all the work"
-      ]
+      ],
+      "owner": {
+        "verdict": "approve",
+        "at": "2026-08-16T05:11:07+00:00",
+        "note": "",
+        "shipped": null
+      }
     },
     "gunslinger": {
       "urls": [
@@ -987,7 +1095,13 @@
         ]
       },
       "verdict": "keep",
-      "reasons": []
+      "reasons": [],
+      "owner": {
+        "verdict": "approve",
+        "at": "2026-08-16T05:10:39+00:00",
+        "note": "",
+        "shipped": null
+      }
     },
     "trenchcoat": {
       "urls": [
@@ -1050,7 +1164,13 @@
         ]
       },
       "verdict": "keep",
-      "reasons": []
+      "reasons": [],
+      "owner": {
+        "verdict": "approve",
+        "at": "2026-08-16T05:12:38+00:00",
+        "note": "",
+        "shipped": null
+      }
     },
     "shinobi": {
       "urls": [
@@ -1115,7 +1235,13 @@
       "verdict": "keep",
       "reasons": [
         "luma 0.179 -- not automatically wrong (SKILL.md), but the outline is doing all the work"
-      ]
+      ],
+      "owner": {
+        "verdict": "approve",
+        "at": "2026-08-16T05:11:09+00:00",
+        "note": "",
+        "shipped": null
+      }
     },
     "berserker": {
       "urls": [
@@ -1181,7 +1307,13 @@
       "verdict": "keep",
       "reasons": [
         "luma 0.180 -- not automatically wrong (SKILL.md), but the outline is doing all the work"
-      ]
+      ],
+      "owner": {
+        "verdict": "approve",
+        "at": "2026-08-16T05:10:18+00:00",
+        "note": "",
+        "shipped": null
+      }
     },
     "buccaneer": {
       "urls": [
@@ -1246,7 +1378,13 @@
         ]
       },
       "verdict": "keep",
-      "reasons": []
+      "reasons": [],
+      "owner": {
+        "verdict": "approve",
+        "at": "2026-08-16T05:10:19+00:00",
+        "note": "",
+        "shipped": null
+      }
     },
     "tinkerer": {
       "urls": [
@@ -1311,7 +1449,13 @@
       "verdict": "keep",
       "reasons": [
         "luma 0.189 -- not automatically wrong (SKILL.md), but the outline is doing all the work"
-      ]
+      ],
+      "owner": {
+        "verdict": "approve",
+        "at": "2026-08-16T05:11:16+00:00",
+        "note": "",
+        "shipped": null
+      }
     },
     "pavisewall": {
       "urls": [
@@ -1341,7 +1485,13 @@
           "note": "The big rectangular pavise shield must stay planted directly in front of the body in every single facing. In the north, north-east and north-west views it drifts off to one side and leaves the soldier standing exposed beside it -- keep it centred in front of the torso in all eight rotations. Also the hood loses its shape in those rear views and becomes a smooth round ball: keep the hood peaked with a readable opening",
           "child": "pavisewall-r2"
         }
-      ]
+      ],
+      "owner": {
+        "verdict": "deny",
+        "at": "2026-08-16T05:11:02+00:00",
+        "note": "",
+        "shipped": null
+      }
     },
     "lanternring": {
       "urls": [
@@ -1364,7 +1514,13 @@
         "south-west.png",
         "south.png",
         "west.png"
-      ]
+      ],
+      "owner": {
+        "verdict": "deny",
+        "at": "2026-08-16T05:10:55+00:00",
+        "note": "",
+        "shipped": null
+      }
     },
     "sackhauler": {
       "urls": [
@@ -1387,7 +1543,20 @@
         "south-west.png",
         "south.png",
         "west.png"
-      ]
+      ],
+      "owner": {
+        "verdict": "approve",
+        "at": "2026-08-16T05:11:08+00:00",
+        "note": "",
+        "shipped": null,
+        "generated": {
+          "base_id": "b3163cdf-6434-4390-8417-721a80797dcf",
+          "character_id": "0581edf9-88b7-439a-b924-bd32a22168c4",
+          "edit_description": "Hunched low under an enormous bulging bundled pack strapped high on the back, the pack doubling the body's depth and rising above the hood, both arms gripping the shoulder straps in front. The back view is a huge rounded mass, the front view stays narrow. Keep the head and legs clearly visible. Match the existing color palette exactly, no new colors, no glowing parts.",
+          "seed": null,
+          "tool": "forge.py create-character-state"
+        }
+      }
     },
     "pavisewall-r2": {
       "urls": [
@@ -1410,7 +1579,13 @@
         "south-west.png",
         "south.png",
         "west.png"
-      ]
+      ],
+      "owner": {
+        "verdict": "deny",
+        "at": "2026-08-16T05:11:04+00:00",
+        "note": "",
+        "shipped": null
+      }
     }
   },
   "judged": "2026-08-08T23:15:12+00:00"
