@@ -12,6 +12,18 @@
           }
         ]
       }
+    ],
+    "SessionStart": [
+      {
+        "matcher": "startup",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "py C:/Projects/ELVTRGAME/Scripts/art/forge_up.py",
+            "timeout": 30
+          }
+        ]
+      }
     ]
   }
 }
