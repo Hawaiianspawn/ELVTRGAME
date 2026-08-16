@@ -1,0 +1,58 @@
+{
+  "archer-scifi/state06_sharpshooter": {
+    "branch": "Elf Branch",
+    "verdict": "approve",
+    "at": "2026-08-16T04:19:25+00:00",
+    "source": "RawArt/Renders/archer-scifi/raw/state06_sharpshooter/rotations",
+    "seeded": true
+  },
+  "soldier-reach/s1_pikevertical": {
+    "branch": "Human Soldier Branch",
+    "verdict": "approve",
+    "at": "2026-08-16T04:19:25+00:00",
+    "source": "RawArt/Renders/soldier-reach/raw/s1_pikevertical/rotations",
+    "seeded": true
+  },
+  "knight-types/type1_bulwark": {
+    "branch": "Human Soldier Branch",
+    "verdict": "approve",
+    "at": "2026-08-16T04:19:25+00:00",
+    "source": "RawArt/Renders/knight-types/raw/type1_bulwark/rotations",
+    "seeded": true
+  },
+  "archer-medieval/v1_narrowstrung": {
+    "branch": "Human Soldier Branch",
+    "verdict": "approve",
+    "at": "2026-08-16T04:19:25+00:00",
+    "source": "RawArt/Renders/archer-medieval/raw/v1_narrowstrung/rotations",
+    "seeded": true
+  },
+  "archer-medieval/v2_bowextended": {
+    "branch": "Human Soldier Branch",
+    "verdict": "approve",
+    "at": "2026-08-16T04:19:25+00:00",
+    "source": "RawArt/Renders/archer-medieval/raw/v2_bowextended/rotations",
+    "seeded": true
+  },
+  "archer-medieval/v3_loosingarm": {
+    "branch": "Human Soldier Branch",
+    "verdict": "approve",
+    "at": "2026-08-16T04:19:25+00:00",
+    "source": "RawArt/Renders/archer-medieval/raw/v3_loosingarm/rotations",
+    "seeded": true
+  },
+  "archer-medieval/v4_quiverreach": {
+    "branch": "Human Soldier Branch",
+    "verdict": "approve",
+    "at": "2026-08-16T04:19:25+00:00",
+    "source": "RawArt/Renders/archer-medieval/raw/v4_quiverreach/rotations",
+    "seeded": true
+  },
+  "archer-medieval/v5_crossbowbrace": {
+    "branch": "Human Soldier Branch",
+    "verdict": "approve",
+    "at": "2026-08-16T04:19:25+00:00",
+    "source": "RawArt/Renders/archer-medieval/raw/v5_crossbowbrace/rotations",
+    "seeded": true
+  }
+}

@@ -1178,7 +1178,8 @@ def roster_page():
                         % (len(rejected), "".join(roster_row(u, groups) for u in rejected)))
 
     fams = sorted({u["family"] for u in units if u.get("family")})
-    nav = " ".join('<a href="/family/%s">%s</a>' % (esc(f), esc(f)) for f in fams)
+    nav = '<a href="/selects">&#10003; selects</a> ' + \
+          " ".join('<a href="/family/%s">%s</a>' % (esc(f), esc(f)) for f in fams)
 
     return """<!doctype html><html><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
@@ -1215,6 +1216,224 @@ def roster_page():
         "gopts": "".join("<option>%s</option>" % esc(g) for g in groups),
         "nav": nav, "sections": "\n".join(sections),
     }
+
+
+# ---------------------------------------------------------------- selects page
+#
+# The owner's approve/deny over every generated look, cross-family. Approve copies the
+# rotations into RawArt/Aaron Selects/<Branch>/<slug>/rotations -- the folder the owner already
+# keeps by hand for Aseprite + the PixelLab plugin -- so "official" is literally "on disk in
+# Selects". Deny never deletes: a hand-kept dir may hold Aseprite edits, so it is moved to
+# Selects/_denied/<slug> and RawArt/Renders is never touched (retention rule).
+
+SELECTS = REPO / "RawArt" / "Aaron Selects"
+SELECTS_JSON = "selects.json"
+
+
+def selects_json():
+    return SELECTS / SELECTS_JSON
+
+
+def rel(p):
+    p = Path(p)
+    try:
+        return str(p.relative_to(REPO)).replace("\\", "/")
+    except ValueError:
+        return str(p).replace("\\", "/")
+
+
+def selects_load():
+    return vp.load_json(selects_json()) if selects_json().exists() else {}
+
+
+def selects_branches():
+    if not SELECTS.exists():
+        return []
+    return sorted(p.name for p in SELECTS.iterdir() if p.is_dir() and not p.name.startswith("_"))
+
+
+def selects_candidates():
+    """(family, slug, dir) for every rotations dir with a south frame under RENDERS/*/raw."""
+    out = []
+    if not vp.RENDERS.exists():
+        return out
+    for fam in sorted(p.name for p in vp.RENDERS.iterdir() if (p / "raw").is_dir()):
+        for name, d in sr.variant_dirs(vp.raw_root(fam)):
+            if (Path(d) / "south.png").exists():
+                out.append((fam, name, Path(d)))
+    return out
+
+
+def selects_seed(rec, cands):
+    """A hand-made <Branch>/<slug> dir counts as approved -- the folder predates the record."""
+    by_slug = {}
+    for fam, slug, d in cands:
+        by_slug.setdefault(slug, (fam, d))
+    changed = False
+    for b in selects_branches():
+        for p in (SELECTS / b).iterdir():
+            if not p.is_dir() or p.name not in by_slug:
+                continue
+            fam, d = by_slug[p.name]
+            key = "%s/%s" % (fam, p.name)
+            if key not in rec:
+                rec[key] = {"branch": b, "verdict": "approve", "at": vp.now(),
+                            "source": rel(d),
+                            "seeded": True}
+                changed = True
+    if changed:
+        vp.save_json(selects_json(), rec)
+    return rec
+
+
+def select_dir(slug):
+    """Where the slug currently sits in Selects, if anywhere."""
+    for b in selects_branches():
+        if (SELECTS / b / slug).is_dir():
+            return SELECTS / b / slug
+    return None
+
+
+def set_select(key, verdict, branch=""):
+    if verdict not in ("approve", "deny", "clear"):
+        raise Fail("verdict must be approve, deny or clear (got %r)" % verdict)
+    fam, _, slug = (key or "").partition("/")
+    if not slug:
+        raise Fail("bad key %r" % key)
+    rec = selects_load()
+    old = select_dir(slug)
+    if old is not None:
+        import shutil
+        parked = SELECTS / "_denied" / slug
+        if parked.exists():
+            shutil.rmtree(parked)
+        parked.parent.mkdir(parents=True, exist_ok=True)
+        shutil.move(str(old), str(parked))
+    if verdict == "approve":
+        import shutil
+        branch = (branch or "").strip().strip("/\\")
+        if not branch or branch.startswith("_"):
+            raise Fail("approve needs a branch name (not starting with _)")
+        src = unit_rotations(key)
+        shutil.copytree(src, SELECTS / branch / slug / "rotations")
+        rec[key] = {"branch": branch, "verdict": "approve", "at": vp.now(),
+                    "source": rel(src)}
+    elif verdict == "deny":
+        rec[key] = {"branch": (rec.get(key) or {}).get("branch"), "verdict": "deny", "at": vp.now()}
+    else:
+        rec.pop(key, None)
+    vp.save_json(selects_json(), rec)
+    # mirror approve/deny into the family manifest when there is one; clear only forgets
+    # the selects record so it cannot wipe a verdict forge itself wrote earlier
+    if verdict != "clear" and vp.spec_path(fam).exists():
+        set_verdict(fam, slug, verdict)
+    return rec.get(key)
+
+
+SELECTS_CSS = ROSTER_CSS + """
+.cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(11rem,1fr));gap:.6rem;}
+.card{background:var(--surface);border:1px solid var(--line);padding:.5rem;display:flex;
+  flex-direction:column;gap:.35rem;}
+.card.ok{border-color:var(--bone);} .card.no{opacity:.45;}
+.card img{height:6rem;width:100%;object-fit:contain;object-position:bottom;
+  image-rendering:pixelated;background:var(--sunk);}
+.card b{font-size:.78rem;overflow-wrap:anywhere;}
+.card .btns{display:flex;gap:.3rem;flex-wrap:wrap;}
+.card button{background:var(--sunk);color:var(--ink);border:1px solid var(--line);
+  font-family:var(--mono);font-size:.62rem;padding:.2rem .45rem;cursor:pointer;}
+.card button:hover{border-color:var(--bone);}
+.card a{color:var(--bone);font-family:var(--mono);font-size:.6rem;}
+summary{cursor:pointer;} details.grp{margin-bottom:1rem;} details.grp>summary h2{display:inline-flex;}
+#branch{background:var(--sunk);color:var(--ink);border:1px solid var(--line);
+  font-family:var(--mono);font-size:.7rem;padding:.25rem;}
+body.hide-denied .card.no{display:none;}
+"""
+
+SELECTS_JS = ROSTER_JS + """
+function branchOf(){
+  const s = document.getElementById('branch');
+  return s.value === '__new' ? (document.getElementById('branch-new').value || '') : s.value;
+}
+async function sel(key, verdict, btn){
+  const card = btn.closest('.card');
+  try{
+    await rpost('/api/select', {key:key, verdict:verdict, branch:branchOf()});
+    location.reload();
+  }catch(e){ flash(card, false); alert(e.message); }
+}
+function toggleDenied(cb){ document.body.classList.toggle('hide-denied', !cb.checked); }
+document.addEventListener('DOMContentLoaded', () => {
+  const s = document.getElementById('branch');
+  s.addEventListener('change', () => {
+    document.getElementById('branch-new').style.display = s.value === '__new' ? '' : 'none'; });
+});
+"""
+
+
+def selects_page():
+    cands = selects_candidates()
+    rec = selects_seed(selects_load(), cands)
+    fams = {}
+    for fam, slug, d in cands:
+        fams.setdefault(fam, []).append((slug, d))
+
+    sections = []
+    tot = {"approve": 0, "deny": 0, "pending": 0}
+    for fam in sorted(fams):
+        cards, n = [], {"approve": 0, "deny": 0, "pending": 0}
+        for slug, d in fams[fam]:
+            key = "%s/%s" % (fam, slug)
+            r = rec.get(key) or {}
+            v = r.get("verdict") or "pending"
+            n[v] += 1
+            cls = {"approve": " ok", "deny": " no"}.get(v, "")
+            where = ('<a href="/api/open?key=%s" target="_blank">%s/%s &#8599;</a>'
+                     % (esc(key), esc(r.get("branch") or ""), esc(slug))) if v == "approve" else \
+                    ('<span class="sub">%s</span>' % esc(v))
+            cards.append(
+                '<div class="card%s"><img src="/still?key=%s" alt="" loading="lazy" '
+                'onmouseenter="this.src=\'/turn?key=%s\'" onmouseleave="this.src=\'/still?key=%s\'">'
+                '<b>%s</b>%s<div class="btns">'
+                '<button onclick="sel(\'%s\',\'approve\',this)">approve</button>'
+                '<button onclick="sel(\'%s\',\'deny\',this)">deny</button>'
+                '<button onclick="sel(\'%s\',\'clear\',this)">clear</button></div></div>'
+                % (cls, esc(key), esc(key), esc(key), esc(slug), where,
+                   esc(key), esc(key), esc(key)))
+        for k in tot:
+            tot[k] += n[k]
+        sections.append(
+            '<details class="grp"%s><summary><h2>%s <span>%d looks &middot; %d approved '
+            '&middot; %d denied &middot; %d pending</span></h2></summary><div class="cards">%s'
+            '</div></details>'
+            % (" open" if n["pending"] or n["approve"] else "", esc(fam), len(fams[fam]),
+               n["approve"], n["deny"], n["pending"], "".join(cards)))
+
+    bopts = "".join('<option>%s</option>' % esc(b) for b in selects_branches())
+    return """<!doctype html><html><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Kindled &middot; selects</title><style>%(css)s</style></head><body class="hide-denied">
+<div class="wrap">
+  <header>
+    <p class="eyebrow"><a href="/" style="color:var(--bone)">&larr; roster</a> &middot; selects</p>
+    <h1>Which looks are official</h1>
+    <p>Every generated look, by family. <b>Approve</b> copies its rotations into
+    <code>RawArt/Aaron Selects/&lt;branch&gt;/&lt;slug&gt;/</code> for Aseprite;
+    <b>deny</b> parks any Selects copy under <code>_denied/</code> and never touches Renders.
+    Hand-made Selects folders were read as approved.</p>
+  </header>
+  <div class="bar">
+    <span class="chip on">%(a)d approved</span> <span class="chip">%(d)d denied</span>
+    <span class="chip">%(p)d pending</span>
+    &nbsp; approve into <select id="branch">%(bopts)s<option value="__new">new branch&hellip;</option></select>
+    <input id="branch-new" placeholder="Branch name" style="display:none">
+    &nbsp; <label><input type="checkbox" onchange="toggleDenied(this)"> show denied</label>
+  </div>
+%(sections)s
+</div>
+<script>%(js)s</script></body></html>""" % {
+        "css": SELECTS_CSS, "js": SELECTS_JS, "bopts": bopts,
+        "a": tot["approve"], "d": tot["deny"], "p": tot["pending"],
+        "sections": "\n".join(sections)}
 
 
 def unit_rotations(key):
@@ -1286,6 +1505,23 @@ def build_app(family, atlas, prefix, scale):
         return page(fam,
                     fb.get("atlas") or (atlas if fam == family else None),
                     fb.get("prefix") or (prefix if fam == family else None), scale)
+
+    @app.get("/selects", response_class=HTMLResponse)
+    def selects_view():
+        return selects_page()
+
+    @app.post("/api/select")
+    def api_select(body: dict):
+        return {"select": guard(set_select, body.get("key"), body.get("verdict"),
+                                body.get("branch", ""))}
+
+    @app.get("/api/open")
+    def api_open(key: str):
+        d = select_dir((key or "").partition("/")[2])
+        if d is None:
+            raise HTTPException(status_code=404, detail="not in Selects")
+        os.startfile(str(d))
+        return {"opened": str(d)}
 
     @app.get("/still")
     def api_still(key: str):
@@ -1453,6 +1689,51 @@ def selftest():
             assert check_slug(next_refine_slug(fam, "Can_you_make_a_Turre"))
         finally:
             vp.FAMILIES, vp.RENDERS = real_fam, real_ren
+
+    # selects: a hand-made dir seeds as approved, approve copies, deny parks (never deletes),
+    # clear forgets, and Renders is never written
+    with tempfile.TemporaryDirectory() as td:
+        global SELECTS
+        real_fam, real_ren, real_sel = vp.FAMILIES, vp.RENDERS, SELECTS
+        try:
+            vp.FAMILIES, vp.RENDERS, SELECTS = Path(td) / "fam", Path(td) / "ren", Path(td) / "sel"
+            def rot(fam, slug):
+                d = vp.RENDERS / fam / "raw" / slug / "rotations"
+                d.mkdir(parents=True)
+                for n in ("south", "north"):
+                    (d / ("%s.png" % n)).write_bytes(b"png")
+                return d
+            rot("famA", "look1"); rot("famA", "look2")
+            hand = SELECTS / "Human Soldier Branch" / "look2" / "rotations"
+            hand.mkdir(parents=True); (hand / "south.png").write_bytes(b"png")
+            (hand.parent / "edit.aseprite").write_bytes(b"ase")
+
+            rec = selects_seed(selects_load(), selects_candidates())
+            assert rec["famA/look2"]["verdict"] == "approve" and rec["famA/look2"]["seeded"]
+            assert rec["famA/look2"]["branch"] == "Human Soldier Branch"
+
+            set_select("famA/look1", "approve", "Elf Branch")
+            assert (SELECTS / "Elf Branch" / "look1" / "rotations" / "north.png").exists()
+            assert selects_load()["famA/look1"]["branch"] == "Elf Branch"
+            try:
+                set_select("famA/look1", "approve", "")
+                raise AssertionError("approved with no branch")
+            except Fail:
+                pass
+
+            set_select("famA/look2", "deny")
+            assert not (SELECTS / "Human Soldier Branch" / "look2").exists()
+            assert (SELECTS / "_denied" / "look2" / "edit.aseprite").exists(), "deny must not delete"
+            assert selects_load()["famA/look2"]["verdict"] == "deny"
+            assert (vp.RENDERS / "famA" / "raw" / "look2" / "rotations" / "south.png").exists()
+            assert "_denied" not in selects_branches()
+
+            set_select("famA/look1", "clear")
+            assert "famA/look1" not in selects_load()
+            assert not (SELECTS / "Elf Branch" / "look1").exists()
+            assert not (vp.FAMILIES / "famA").exists(), "no manifest for a family with no spec"
+        finally:
+            vp.FAMILIES, vp.RENDERS, SELECTS = real_fam, real_ren, real_sel
 
     # nearest-neighbour is on band midpoints, and a variant with no band is not compared
     bands = {"x": {"aspect": [1.0, 1.0], "solidity": [.5, .5], "asymmetry": [.1, .1]},
