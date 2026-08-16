@@ -39,11 +39,11 @@
 # ============================================================
 # LIGHTING — the bearer's flame spotlight (§4b)   @tab Player
 # ============================================================
-Swarm.Flame 0              ; 0 = MPC_Flame keeps asset values so PIE matches the editor viewport; flame pool no longer tracks hero. 1 = code drives it
-Swarm.FlameRadius 900      ; outer edge of the pool, uu. Decoupled from the leash
-Swarm.FlameCoreRadius 330  ; pure-white focusing core, uu
+Swarm.Flame 1              ; master on/off; 0 freezes MPC_Flame at asset values (light frozen at origin)
+Swarm.FlameRadius 2000     ; (was 900) outer edge of the pool, uu; 2000 = MPC_Flame asset value, owner call 2026-08-16
+Swarm.FlameCoreRadius 220  ; (was 330) pure-white focusing core, uu; asset value
 Swarm.FlameFalloff 2       ; 1 = linear; higher = heavier dark, harder pool edge
-Swarm.FlameIntensity 0.55  ; base brightness before flicker; coupled to the core read
+Swarm.FlameIntensity 1     ; (was 0.55) base brightness before flicker; asset value
 Swarm.FlameFlicker 0.06    ; flicker amplitude 0-1; anti-vignette mechanism #2
 Swarm.FlameStiffness 55    ; spring responsiveness toward the bearer; <=0 snaps
 Swarm.FlameDamping 0.6     ; damping ratio; 1.0 = no overshoot, <1.0 overshoots on a 180
@@ -52,8 +52,10 @@ Swarm.FlameDamping 0.6     ; damping ratio; 1.0 = no overshoot, <1.0 overshoots 
 # DITHER — thresholds route through MPC_Flame into M_PP_Demichrome   @tab Debug
 # ============================================================
 Swarm.DitherWorldAnchor 1  ; 1 = world-anchored (sticks to floor), 0 = screen; anti-vignette #1
-Swarm.WorldDitherScale 8   ; (owner-tuned, src 12) world uu per dither texel; lower = finer
-Swarm.DitherBandWidth 0.5  ; (owner-tuned, src 0.326) Bayer transition width; live-tune 0.4-0.9
+Swarm.WorldDitherScale 5   ; (was 8, src 12) world uu per dither texel; asset value. INERT while DitherZoomCompensate 1
+Swarm.DitherBandWidth 0.326 ; (was 0.5) Bayer transition width; asset value
+Swarm.DitherZoomCompensate 1 ; (was 0) hold a Bayer texel at DitherTexelPixels on screen while Cam.Scale 2 zooms; 0 = pattern breathes with the fit
+Swarm.DitherTexelPixels 3  ; (src 4.35) texel size in screen px; floor 2
 
 # ============================================================
 # PALETTE — which 4-value ramp the demichrome pass outputs   @tab Debug
@@ -71,7 +73,7 @@ Swarm.DitherBandWidth 0.5  ; (owner-tuned, src 0.326) Bayer transition width; li
 # are inert at their defaults (1 / 4) — the locked demichrome look is byte-identical.
 # ============================================================
 Kindled.Palette 0        ; [0..2] which ramp; judge candidates at horde density, not on a swatch
-Kindled.Quantize 0       ; [0..1] 0 = RAW LIT SCENE, no posterise. Owner call 2026-07-28:
+Kindled.Quantize 1       ; [0..1] 1 = 4-value posterise (MPC_Flame asset look, owner call 2026-08-16). 0 = RAW LIT SCENE:
                            ; the 4-value lock of 2026-07-10 is SUPERSEDED — see
                            ; docs/art/aesthetic-direction.md. This is a direction change
                            ; recorded as such, not a judging dial left parked. 1 = the old
