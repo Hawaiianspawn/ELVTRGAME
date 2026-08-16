@@ -1979,6 +1979,14 @@ def main():
     prefix = args.prefix or fb.get("prefix")
 
     import uvicorn
+    import socket
+    for _ in range(20):      # a stale forge often still holds the port: take the next one
+        try:
+            with socket.socket() as sk:
+                sk.bind(("127.0.0.1", args.port))
+            break
+        except OSError:
+            args.port += 1
     url = "http://127.0.0.1:%d/" % args.port
     print("forge  family=%s  atlas=%s  prefix=%s\n%s"
           % (args.family, atlas or "-", prefix or "-", url))
