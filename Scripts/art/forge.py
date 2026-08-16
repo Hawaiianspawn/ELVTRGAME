@@ -1178,7 +1178,7 @@ def roster_page():
                         % (len(rejected), "".join(roster_row(u, groups) for u in rejected)))
 
     fams = sorted({u["family"] for u in units if u.get("family")})
-    nav = '<a href="/selects">&#10003; selects</a> ' + \
+    nav = '<a href="/official">&#9733; official</a> <a href="/selects">&#10003; selects</a> ' + \
           " ".join('<a href="/family/%s">%s</a>' % (esc(f), esc(f)) for f in fams)
 
     return """<!doctype html><html><head><meta charset="utf-8">
@@ -1436,6 +1436,54 @@ def selects_page():
         "sections": "\n".join(sections)}
 
 
+def official_page():
+    """The official set: approved selects only, grouped by branch, thumbnails from the Selects
+    copy (so Aseprite edits show), deny to demote. Nothing else -- the owner asked for
+    approve/deny and no more; generation and editing live elsewhere."""
+    rec = selects_seed(selects_load(), selects_candidates())
+    branches = {}
+    for key, r in rec.items():
+        if r.get("verdict") == "approve":
+            branches.setdefault(r.get("branch") or "?", []).append(key)
+    sections = []
+    for b in sorted(branches):
+        cards = []
+        for key in sorted(branches[b]):
+            slug = key.partition("/")[2]
+            cards.append(
+                '<div class="card ok"><img src="/still?key=%s&sel=1" alt="" loading="lazy" '
+                "onmouseenter=\"this.src='/turn?key=%s&sel=1'\" "
+                "onmouseleave=\"this.src='/still?key=%s&sel=1'\">"
+                '<b>%s</b><a href="/api/open?key=%s" target="_blank">%s &#8599;</a>'
+                "<div class=\"btns\"><button onclick=\"sel('%s','deny',this)\">deny</button>"
+                '</div></div>'
+                % (esc(key), esc(key), esc(key), esc(slug), esc(key), esc(key), esc(key)))
+        sections.append(
+            '<section class="grp"><h2>%s <span>%d official</span></h2><div class="cards">%s'
+            '</div></section>' % (esc(b), len(cards), "".join(cards)))
+    n = sum(len(v) for v in branches.values())
+    return """<!doctype html><html><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Kindled &middot; official characters</title><style>%(css)s</style></head><body>
+<div class="wrap">
+  <header>
+    <p class="eyebrow"><a href="/" style="color:var(--bone)">&larr; roster</a> &middot;
+    <a href="/selects" style="color:var(--bone)">selects</a> &middot; official</p>
+    <h1>Official characters</h1>
+    <p>What is on disk in <code>RawArt/Aaron Selects/&lt;branch&gt;/</code>, by branch --
+    the frames shown are the Selects copies, so Aseprite edits appear here. <b>Deny</b> parks
+    the folder under <code>_denied/</code>. To add one, approve it on the selects page.</p>
+  </header>
+  <div class="bar"><span class="chip on">%(n)d official</span>
+    <select id="branch" style="display:none"><option></option></select>
+    <input id="branch-new" style="display:none"></div>
+%(sections)s
+</div>
+<script>%(js)s</script></body></html>""" % {
+        "css": SELECTS_CSS, "js": SELECTS_JS, "n": n,
+        "sections": "\n".join(sections) or "<p>Nothing approved yet.</p>"}
+
+
 def unit_rotations(key):
     """The rotations dir for a roster key.
 
@@ -1510,6 +1558,10 @@ def build_app(family, atlas, prefix, scale):
     def selects_view():
         return selects_page()
 
+    @app.get("/official", response_class=HTMLResponse)
+    def official_view():
+        return official_page()
+
     @app.post("/api/select")
     def api_select(body: dict):
         return {"select": guard(set_select, body.get("key"), body.get("verdict"),
@@ -1523,15 +1575,19 @@ def build_app(family, atlas, prefix, scale):
         os.startfile(str(d))
         return {"opened": str(d)}
 
+    def rot_for(key, sel):
+        d = select_dir((key or "").partition("/")[2]) if sel else None
+        return d / "rotations" if d and (d / "rotations" / "south.png").exists() else unit_rotations(key)
+
     @app.get("/still")
-    def api_still(key: str):
-        png = guard(lambda: still(unit_rotations(key), max(1, scale - 1)))
+    def api_still(key: str, sel: int = 0):
+        png = guard(lambda: still(rot_for(key, sel), max(1, scale - 1)))
         return Response(png, media_type="image/webp",
                         headers={"Cache-Control": "no-store"})
 
     @app.get("/turn")
-    def api_turn(key: str):
-        webp = guard(lambda: turnaround(unit_rotations(key), max(1, scale - 1)))
+    def api_turn(key: str, sel: int = 0):
+        webp = guard(lambda: turnaround(rot_for(key, sel), max(1, scale - 1)))
         return Response(webp, media_type="image/webp",
                         headers={"Cache-Control": "no-store"})
 
@@ -1727,6 +1783,8 @@ def selftest():
             assert selects_load()["famA/look2"]["verdict"] == "deny"
             assert (vp.RENDERS / "famA" / "raw" / "look2" / "rotations" / "south.png").exists()
             assert "_denied" not in selects_branches()
+            html = official_page()
+            assert "look1" in html and "look2" not in html, "official page must list approved only"
 
             set_select("famA/look1", "clear")
             assert "famA/look1" not in selects_load()
