@@ -39,7 +39,7 @@
 # ============================================================
 # LIGHTING — the bearer's flame spotlight (§4b)   @tab Player
 # ============================================================
-Swarm.Flame 1              ; master on/off; 0 freezes the light (vignette test)
+Swarm.Flame 0              ; 0 = MPC_Flame keeps asset values so PIE matches the editor viewport; flame pool no longer tracks hero. 1 = code drives it
 Swarm.FlameRadius 900      ; outer edge of the pool, uu. Decoupled from the leash
 Swarm.FlameCoreRadius 330  ; pure-white focusing core, uu
 Swarm.FlameFalloff 2       ; 1 = linear; higher = heavier dark, harder pool edge
