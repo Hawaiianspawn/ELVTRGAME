@@ -1356,6 +1356,10 @@ function branchOf(){
   const s = document.getElementById('branch');
   return s.value === '__new' ? (document.getElementById('branch-new').value || '') : s.value;
 }
+async function setSide(key, side){
+  try{ await rpost('/api/side', {key:key, side:side}); location.reload(); }
+  catch(e){ alert(e.message); }
+}
 async function sel(key, verdict, btn){
   const card = btn.closest('.card');
   try{
@@ -1494,6 +1498,8 @@ def palette_groups(dirs, thresh=0.35):
 
 
 OFFICIAL_CSS = """
+h1.side{margin:1.6rem 0 .6rem;text-transform:capitalize;border-bottom:1px solid var(--line);}
+h1.side span{font-family:var(--mono);font-size:.8rem;opacity:.7;}
 .sw{display:inline-flex;gap:2px;vertical-align:middle;margin-right:.4rem;}
 .sw i{width:1rem;height:1rem;border:1px solid var(--line);display:inline-block;}
 .cards{grid-template-columns:repeat(auto-fill,minmax(14rem,1fr));gap:.8rem;}
@@ -1503,31 +1509,63 @@ OFFICIAL_CSS = """
 """
 
 
+ENEMY_FAMILIES = ("brood", "undead", "enemy", "boss", "spider", "swarm")
+
+
+def side_of(key, r):
+    """ally or enemy. Stored on the selects record when the owner sets it; otherwise guessed
+    from the family name (brood/undead/enemy/... are the enemy side)."""
+    if r.get("side") in ("ally", "enemy"):
+        return r["side"]
+    fam = key.partition("/")[0].lower()
+    return "enemy" if fam.startswith(ENEMY_FAMILIES) else "ally"
+
+
+def set_side(key, side):
+    if side not in ("ally", "enemy"):
+        raise Fail("side must be ally or enemy")
+    rec = selects_load()
+    if key not in rec:
+        raise Fail("no selects record for %r" % key)
+    rec[key]["side"] = side
+    vp.save_json(selects_json(), rec)
+    return rec[key]
+
+
 def official_page():
     """The official set: approved selects only, grouped by branch, thumbnails from the Selects
     copy (so Aseprite edits show), deny to demote. Nothing else -- the owner asked for
     approve/deny and no more; generation and editing live elsewhere."""
     rec = selects_seed(selects_load(), selects_candidates())
     approved = {k: r for k, r in rec.items() if r.get("verdict") == "approve"}
-    groups = palette_groups({k: select_dir(k.partition("/")[2]) for k in approved})
+    sides = {"ally": {}, "enemy": {}}
+    for k, r in approved.items():
+        sides[side_of(k, r)][k] = select_dir(k.partition("/")[2])
     sections = []
-    for i, (swatch, keys) in enumerate(groups):
-        cards = []
-        for key in keys:
-            slug = key.partition("/")[2]
-            cards.append(
-                '<div class="card ok"><img src="/still?key=%s&sel=1&zoom=4" alt="" loading="lazy">'
-                '<b>%s</b><span class="sub">%s</span>'
-                '<a href="/api/open?key=%s" target="_blank">open folder &#8599;</a>'
-                "<div class=\"btns\"><button onclick=\"sel('%s','deny',this)\">deny</button>"
-                '</div></div>'
-                % (esc(key), esc(slug), esc(approved[key].get("branch") or ""), esc(key),
-                   esc(key)))
-        sw = "".join('<i style="background:rgb(%d,%d,%d)"></i>' % c for c in swatch)
-        sections.append(
-            '<section class="grp"><h2><span class="sw">%s</span> palette %d '
-            '<span>%d official</span></h2><div class="cards">%s</div></section>'
-            % (sw, i + 1, len(cards), "".join(cards)))
+    for side in ("ally", "enemy"):
+        groups = palette_groups(sides[side])
+        blocks = []
+        for i, (swatch, keys) in enumerate(groups):
+            cards = []
+            for key in keys:
+                slug = key.partition("/")[2]
+                flip = "enemy" if side == "ally" else "ally"
+                cards.append(
+                    '<div class="card ok"><img src="/still?key=%s&sel=1&zoom=4" alt="" loading="lazy">'
+                    '<b>%s</b><span class="sub">%s</span>'
+                    '<a href="/api/open?key=%s" target="_blank">open folder &#8599;</a>'
+                    "<div class=\"btns\"><button onclick=\"sel('%s','deny',this)\">deny</button>"
+                    "<button onclick=\"setSide('%s','%s')\">&rarr; %s</button>"
+                    '</div></div>'
+                    % (esc(key), esc(slug), esc(approved[key].get("branch") or ""), esc(key),
+                       esc(key), esc(key), flip, flip))
+            sw = "".join('<i style="background:rgb(%d,%d,%d)"></i>' % c for c in swatch)
+            blocks.append(
+                '<section class="grp"><h2><span class="sw">%s</span> palette %d '
+                '<span>%d</span></h2><div class="cards">%s</div></section>'
+                % (sw, i + 1, len(cards), "".join(cards)))
+        sections.append('<h1 class="side">%s <span>%d</span></h1>%s'
+                        % (side, len(sides[side]), "".join(blocks)))
     n = len(approved)
     return """<!doctype html><html><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
@@ -1629,6 +1667,10 @@ def build_app(family, atlas, prefix, scale):
     @app.get("/official", response_class=HTMLResponse)
     def official_view():
         return official_page()
+
+    @app.post("/api/side")
+    def api_side(body: dict):
+        return {"select": guard(set_side, body.get("key"), body.get("side"))}
 
     @app.post("/api/select")
     def api_select(body: dict):
