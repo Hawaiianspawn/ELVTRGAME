@@ -1390,6 +1390,47 @@ document.addEventListener('DOMContentLoaded', () => {
 """
 
 
+OFFICIAL_JS = """
+async function sfx(key, field, el){   // class/weapon: '__new' prompts, then saves like sf
+  let v = el.value;
+  if(v === '__new'){ v = (prompt('New ' + (field === 'cls' ? 'class' : 'weapon') + ' name') || '').trim();
+                     if(!v){ location.reload(); return; } }
+  try{ await rpost('/api/select/field', {key:key, field:field, value:v}); location.reload(); }
+  catch(e){ flash(el, false); alert(e.message); }
+}
+// filter chips: class, then that class's weapons. Client-side only.
+const clsFilter = {cls: '', weapon: ''};
+function applyClsFilter(){
+  document.querySelectorAll('.card[data-cls]').forEach(c => {
+    const ok = (!clsFilter.cls || c.dataset.cls === clsFilter.cls)
+            && (!clsFilter.weapon || c.dataset.weapon === clsFilter.weapon);
+    c.style.display = ok ? '' : 'none'; });
+  document.querySelectorAll('section.grp').forEach(g => {
+    g.style.display = [...g.querySelectorAll('.card')].some(c => c.style.display !== 'none') ? '' : 'none'; });
+  document.querySelectorAll('#clsbar .chip').forEach(ch => {
+    ch.classList.toggle('on', ch.dataset.v === (ch.dataset.f === 'cls' ? clsFilter.cls : clsFilter.weapon)); });
+}
+function drawClsBar(){
+  const bar = document.getElementById('clsbar'); if(!bar) return;
+  const tree = JSON.parse(bar.dataset.tree || '{}');
+  const chip = (f, v, label) => { const b = document.createElement('span'); b.className = 'chip';
+    b.dataset.f = f; b.dataset.v = v; b.textContent = label; b.style.cursor = 'pointer';
+    b.onclick = () => { if(f === 'cls'){ clsFilter.cls = v; clsFilter.weapon = ''; drawClsBar(); }
+                        else { clsFilter.weapon = v; } applyClsFilter(); };
+    return b; };
+  bar.replaceChildren(chip('cls', '', 'all classes'));
+  Object.keys(tree).forEach(c => bar.appendChild(chip('cls', c, c)));
+  if(clsFilter.cls){
+    const sep = document.createElement('span'); sep.textContent = ' / '; bar.appendChild(sep);
+    bar.appendChild(chip('weapon', '', 'all ' + clsFilter.cls));
+    (tree[clsFilter.cls] || []).forEach(w => bar.appendChild(chip('weapon', w, w)));
+  }
+  applyClsFilter();
+}
+document.addEventListener('DOMContentLoaded', drawClsBar);
+"""
+
+
 def selects_page():
     cands = selects_candidates()
     rec = selects_seed(selects_load(), cands)
@@ -1549,7 +1590,12 @@ def side_of(key, r):
     return "enemy" if fam.startswith(ENEMY_FAMILIES) else "ally"
 
 
-SELECT_FIELDS = ("branch", "side", "palette")
+SELECT_FIELDS = ("branch", "side", "palette", "cls", "weapon")
+
+# Class tree the owner sorts the official set by: cls (branch) -> weapon (leaf). Seeds
+# only; any value typed on the page joins the dropdowns for every card.
+CLASS_SEED = {"Melee": ["Spear", "Sword", "Axe", "Mace", "Shield"],
+              "Ranged": ["Bow", "Crossbow", "Sling", "Javelin", "Gun"]}
 
 
 def set_select_field(key, field, value):
@@ -1564,6 +1610,11 @@ def set_select_field(key, field, value):
     value = (value or "").strip()
     if field == "side" and value not in ("ally", "enemy"):
         raise Fail("side must be ally or enemy")
+    if field == "cls" and value:
+        # keep one spelling per class so "melee" and "Melee" don't fork the tree
+        for known in class_tree(rec):
+            if known.lower() == value.lower():
+                value = known
     if field == "branch":
         value = value.strip("/\\")
         if not value or value.startswith("_"):
@@ -1583,6 +1634,18 @@ def set_select_field(key, field, value):
         rec[key].pop(field, None)
     vp.save_json(selects_json(), rec)
     return rec[key]
+
+
+def class_tree(rec):
+    """{cls: [weapons]} = seeds + everything the owner has typed on any record."""
+    tree = {c: list(w) for c, w in CLASS_SEED.items()}
+    for r in rec.values():
+        c, w = (r.get("cls") or "").strip(), (r.get("weapon") or "").strip()
+        if c:
+            tree.setdefault(c, [])
+            if w and w not in tree[c]:
+                tree[c].append(w)
+    return tree
 
 
 def set_palette(keys, name):
@@ -1608,6 +1671,7 @@ def official_page():
     approved = {k: r for k, r in rec.items() if r.get("verdict") == "approve"}
     units = (rs.load_roster().get("units") or {})
     branches = selects_branches()
+    tree = class_tree(rec)
     sides = {"ally": {}, "enemy": {}}
     for k, r in approved.items():
         sides[side_of(k, r)][k] = select_dir(k.partition("/")[2])
@@ -1635,14 +1699,24 @@ def official_page():
                                 for b in branches)
                 sopts = "".join('<option%s>%s</option>' % (" selected" if x == side else "", x)
                                 for x in ("ally", "enemy"))
+                cls, wpn = r.get("cls") or "", r.get("weapon") or ""
+                copts = '<option value=""></option>' + "".join(
+                    '<option%s>%s</option>' % (" selected" if c == cls else "", esc(c))
+                    for c in tree) + '<option value="__new">new class&hellip;</option>'
+                wopts = '<option value=""></option>' + "".join(
+                    '<option%s>%s</option>' % (" selected" if w == wpn else "", esc(w))
+                    for w in sorted(set(tree.get(cls, [])) | ({wpn} if wpn else set()))) \
+                    + '<option value="__new">new weapon&hellip;</option>'
                 cards.append(
-                    '<div class="card ok"><img src="/still?key=%(k)s&sel=1&zoom=4" alt="" loading="lazy" onmouseenter="this.src=\'/turn?key=%(k)s&sel=1&zoom=4\'" onmouseleave="this.src=\'/still?key=%(k)s&sel=1&zoom=4\'">'
+                    '<div class="card ok" data-cls="%(cls)s" data-weapon="%(wpn)s"><img src="/still?key=%(k)s&sel=1&zoom=4" alt="" loading="lazy" onmouseenter="this.src=\'/turn?key=%(k)s&sel=1&zoom=4\'" onmouseleave="this.src=\'/still?key=%(k)s&sel=1&zoom=4\'">'
                     '<input class="f title" value="%(title)s" placeholder="%(slug)s" '
                     'onchange="rf(\'%(k)s\',\'title\',this)">'
                     '<span class="sub">%(slug)s &middot; <a href="/api/open?key=%(k)s" target="_blank">'
                     'folder &#8599;</a></span>'
                     '<label>branch <select onchange="sf(\'%(k)s\',\'branch\',this)">%(bopts)s</select></label>'
                     '<label>side <select onchange="sf(\'%(k)s\',\'side\',this)">%(sopts)s</select></label>'
+                    '<label>class <select onchange="sfx(\'%(k)s\',\'cls\',this)">%(copts)s</select></label>'
+                    '<label>weapon <select onchange="sfx(\'%(k)s\',\'weapon\',this)">%(wopts)s</select></label>'
                     '<label>palette <input class="f" value="%(pal)s" onchange="sf(\'%(k)s\',\'palette\',this)"></label>'
                     '<textarea class="f" placeholder="expectation -- what it is for" '
                     'onchange="rf(\'%(k)s\',\'expectation\',this)">%(exp)s</textarea>'
@@ -1652,6 +1726,7 @@ def official_page():
                     '<div class="btns"><button onclick="sel(\'%(k)s\',\'deny\',this)">deny</button></div></div>'
                     % {"k": esc(key), "slug": esc(slug), "title": esc(u.get("title") or ""),
                        "bopts": bopts, "sopts": sopts, "pal": esc(r.get("palette") or ""),
+                       "copts": copts, "wopts": wopts, "cls": esc(cls), "wpn": esc(wpn),
                        "exp": esc(u.get("expectation") or ""), "notes": notes})
             sw = "".join('<i style="background:rgb(%d,%d,%d)"></i>' % c for c in swatch)
             blocks.append(
@@ -1679,10 +1754,12 @@ def official_page():
   <div class="bar"><span class="chip on">%(n)d official</span>
     <select id="branch" style="display:none"><option></option></select>
     <input id="branch-new" style="display:none"></div>
+  <div class="bar" id="clsbar" data-tree="%(tree)s"></div>
 %(sections)s
 </div>
 <script>%(js)s</script></body></html>""" % {
-        "css": SELECTS_CSS + OFFICIAL_CSS, "js": SELECTS_JS, "n": n,
+        "css": SELECTS_CSS + OFFICIAL_CSS, "js": SELECTS_JS + OFFICIAL_JS, "n": n,
+        "tree": esc(json.dumps(tree)),
         "sections": "\n".join(sections) or "<p>Nothing approved yet.</p>"}
 
 
