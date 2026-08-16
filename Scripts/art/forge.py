@@ -1356,6 +1356,11 @@ function branchOf(){
   const s = document.getElementById('branch');
   return s.value === '__new' ? (document.getElementById('branch-new').value || '') : s.value;
 }
+async function namePalette(el){
+  try{ await rpost('/api/palette', {keys: JSON.parse(el.dataset.keys), name: el.value});
+       location.reload(); }
+  catch(e){ alert(e.message); }
+}
 async function setSide(key, side){
   try{ await rpost('/api/side', {key:key, side:side}); location.reload(); }
   catch(e){ alert(e.message); }
@@ -1481,6 +1486,8 @@ def palette_groups(dirs, thresh=0.35):
             j = len(s & c[0]) / (len(s | c[0]) or 1)
             if j > bj:
                 best, bj = c, j
+        if best is None and clusters and thresh <= 0:
+            best = clusters[0]        # thresh 0 = one group, whatever the colours
         if best is not None and bj >= thresh:
             best[0] |= s
             for k, (cnt, rgb) in sigs[key].items():
@@ -1498,6 +1505,9 @@ def palette_groups(dirs, thresh=0.35):
 
 
 OFFICIAL_CSS = """
+.pname{background:transparent;color:var(--ink);border:0;border-bottom:1px dashed var(--line);
+  font:inherit;font-size:1rem;width:14rem;padding:.1rem .2rem;}
+.pname:focus{outline:0;border-bottom-color:var(--bone);}
 h1.side{margin:1.6rem 0 .6rem;text-transform:capitalize;border-bottom:1px solid var(--line);}
 h1.side span{font-family:var(--mono);font-size:.8rem;opacity:.7;}
 .sw{display:inline-flex;gap:2px;vertical-align:middle;margin-right:.4rem;}
@@ -1532,6 +1542,21 @@ def set_side(key, side):
     return rec[key]
 
 
+def set_palette(keys, name):
+    """Name a palette group: the name is stored on every member's selects record, so the
+    group is stable across reloads regardless of what the clustering does."""
+    name = (name or "").strip()
+    rec = selects_load()
+    for k in keys or []:
+        if k in rec:
+            if name:
+                rec[k]["palette"] = name
+            else:
+                rec[k].pop("palette", None)
+    vp.save_json(selects_json(), rec)
+    return name
+
+
 def official_page():
     """The official set: approved selects only, grouped by branch, thumbnails from the Selects
     copy (so Aseprite edits show), deny to demote. Nothing else -- the owner asked for
@@ -1543,9 +1568,17 @@ def official_page():
         sides[side_of(k, r)][k] = select_dir(k.partition("/")[2])
     sections = []
     for side in ("ally", "enemy"):
-        groups = palette_groups(sides[side])
+        named, loose = {}, {}
+        for k, d in sides[side].items():
+            name = approved[k].get("palette")
+            (named.setdefault(name, {}) if name else loose)[k] = d
+        groups = []
+        for name in sorted(named):
+            for swatch, keys in palette_groups(named[name], thresh=0.0):
+                groups.append((name, swatch, keys))
+        groups += [("", sw, keys) for sw, keys in palette_groups(loose)]
         blocks = []
-        for i, (swatch, keys) in enumerate(groups):
+        for i, (name, swatch, keys) in enumerate(groups):
             cards = []
             for key in keys:
                 slug = key.partition("/")[2]
@@ -1561,9 +1594,11 @@ def official_page():
                        esc(key), esc(key), flip, flip))
             sw = "".join('<i style="background:rgb(%d,%d,%d)"></i>' % c for c in swatch)
             blocks.append(
-                '<section class="grp"><h2><span class="sw">%s</span> palette %d '
-                '<span>%d</span></h2><div class="cards">%s</div></section>'
-                % (sw, i + 1, len(cards), "".join(cards)))
+                '<section class="grp"><h2><span class="sw">%s</span>'
+                '<input class="pname" value="%s" placeholder="unnamed palette %d" '
+                'data-keys="%s" onchange="namePalette(this)"> <span>%d</span></h2>'
+                '<div class="cards">%s</div></section>'
+                % (sw, esc(name), i + 1, esc(json.dumps(keys)), len(cards), "".join(cards)))
         sections.append('<h1 class="side">%s <span>%d</span></h1>%s'
                         % (side, len(sides[side]), "".join(blocks)))
     n = len(approved)
@@ -1667,6 +1702,10 @@ def build_app(family, atlas, prefix, scale):
     @app.get("/official", response_class=HTMLResponse)
     def official_view():
         return official_page()
+
+    @app.post("/api/palette")
+    def api_palette(body: dict):
+        return {"palette": guard(set_palette, body.get("keys"), body.get("name"))}
 
     @app.post("/api/side")
     def api_side(body: dict):
@@ -1944,7 +1983,7 @@ def main():
     print("forge  family=%s  atlas=%s  prefix=%s\n%s"
           % (args.family, atlas or "-", prefix or "-", url))
     if not args.no_open:
-        webbrowser.open(url)
+        webbrowser.open(url + "official")
     uvicorn.run(build_app(args.family, atlas, prefix, args.scale),
                 host="127.0.0.1", port=args.port, log_level="warning")
     return 0
