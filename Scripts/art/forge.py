@@ -1361,9 +1361,18 @@ async function namePalette(el){
        location.reload(); }
   catch(e){ alert(e.message); }
 }
-async function setSide(key, side){
-  try{ await rpost('/api/side', {key:key, side:side}); location.reload(); }
-  catch(e){ alert(e.message); }
+async function sf(key, field, el){   // selects.json field; reload since grouping may move
+  try{ await rpost('/api/select/field', {key:key, field:field, value:el.value}); location.reload(); }
+  catch(e){ flash(el, false); alert(e.message); }
+}
+async function rf(key, field, el){   // roster.json field, in place
+  try{ await rpost('/api/roster/field', {key:key, field:field, value:el.value}); flash(el, true); }
+  catch(e){ flash(el, false); alert(e.message); }
+}
+async function rn(key, el){          // roster.json note
+  if(!el.value.trim()) return;
+  try{ await rpost('/api/roster/note', {key:key, text:el.value}); location.reload(); }
+  catch(e){ flash(el, false); alert(e.message); }
 }
 async function sel(key, verdict, btn){
   const card = btn.closest('.card');
@@ -1505,6 +1514,15 @@ def palette_groups(dirs, thresh=0.35):
 
 
 OFFICIAL_CSS = """
+.card .f{background:var(--sunk);color:var(--ink);border:1px solid var(--line);font-family:var(--mono);
+  font-size:.68rem;padding:.2rem .3rem;width:100%;box-sizing:border-box;}
+.card .f.title{font-family:inherit;font-size:.9rem;font-weight:bold;}
+.card textarea.f{min-height:2.6rem;resize:vertical;} .card textarea.note{min-height:1.8rem;}
+.card label{display:flex;gap:.4rem;align-items:center;font-family:var(--mono);font-size:.62rem;
+  color:var(--muted,inherit);} .card label select{flex:1;background:var(--sunk);color:var(--ink);
+  border:1px solid var(--line);font-family:var(--mono);font-size:.65rem;padding:.15rem;}
+.card label .f{flex:1;width:auto;}
+.card ul.notes{margin:0;padding-left:1rem;font-size:.65rem;font-family:var(--mono);}
 .pname{background:transparent;color:var(--ink);border:0;border-bottom:1px dashed var(--line);
   font:inherit;font-size:1rem;width:14rem;padding:.1rem .2rem;}
 .pname:focus{outline:0;border-bottom-color:var(--bone);}
@@ -1531,13 +1549,38 @@ def side_of(key, r):
     return "enemy" if fam.startswith(ENEMY_FAMILIES) else "ally"
 
 
-def set_side(key, side):
-    if side not in ("ally", "enemy"):
-        raise Fail("side must be ally or enemy")
+SELECT_FIELDS = ("branch", "side", "palette")
+
+
+def set_select_field(key, field, value):
+    """Owner-editable fields on a selects record. branch moves the Selects folder; side is
+    ally/enemy; palette is the named group. Everything else about a look lives on the
+    roster (title, expectation, notes -- rs.set_field / rs.add_note)."""
+    if field not in SELECT_FIELDS:
+        raise Fail("cannot set %r on a select" % field)
     rec = selects_load()
     if key not in rec:
         raise Fail("no selects record for %r" % key)
-    rec[key]["side"] = side
+    value = (value or "").strip()
+    if field == "side" and value not in ("ally", "enemy"):
+        raise Fail("side must be ally or enemy")
+    if field == "branch":
+        value = value.strip("/\\")
+        if not value or value.startswith("_"):
+            raise Fail("branch must be a name not starting with _")
+        slug = key.partition("/")[2]
+        old = select_dir(slug)
+        if old is not None and old.parent.name != value:
+            import shutil
+            dst = SELECTS / value / slug
+            if dst.exists():
+                raise Fail("%s already exists in %s" % (slug, value))
+            dst.parent.mkdir(parents=True, exist_ok=True)
+            shutil.move(str(old), str(dst))
+    if value:
+        rec[key][field] = value
+    else:
+        rec[key].pop(field, None)
     vp.save_json(selects_json(), rec)
     return rec[key]
 
@@ -1563,6 +1606,8 @@ def official_page():
     approve/deny and no more; generation and editing live elsewhere."""
     rec = selects_seed(selects_load(), selects_candidates())
     approved = {k: r for k, r in rec.items() if r.get("verdict") == "approve"}
+    units = (rs.load_roster().get("units") or {})
+    branches = selects_branches()
     sides = {"ally": {}, "enemy": {}}
     for k, r in approved.items():
         sides[side_of(k, r)][k] = select_dir(k.partition("/")[2])
@@ -1582,16 +1627,32 @@ def official_page():
             cards = []
             for key in keys:
                 slug = key.partition("/")[2]
-                flip = "enemy" if side == "ally" else "ally"
+                r = approved[key]
+                u = units.get(key) or {}
+                notes = "".join('<li>%s</li>' % esc(nt.get("text", "")) for nt in u.get("notes") or [])
+                bopts = "".join('<option%s>%s</option>'
+                                % (" selected" if b == r.get("branch") else "", esc(b))
+                                for b in branches)
+                sopts = "".join('<option%s>%s</option>' % (" selected" if x == side else "", x)
+                                for x in ("ally", "enemy"))
                 cards.append(
-                    '<div class="card ok"><img src="/still?key=%s&sel=1&zoom=4" alt="" loading="lazy">'
-                    '<b>%s</b><span class="sub">%s</span>'
-                    '<a href="/api/open?key=%s" target="_blank">open folder &#8599;</a>'
-                    "<div class=\"btns\"><button onclick=\"sel('%s','deny',this)\">deny</button>"
-                    "<button onclick=\"setSide('%s','%s')\">&rarr; %s</button>"
-                    '</div></div>'
-                    % (esc(key), esc(slug), esc(approved[key].get("branch") or ""), esc(key),
-                       esc(key), esc(key), flip, flip))
+                    '<div class="card ok"><img src="/still?key=%(k)s&sel=1&zoom=4" alt="" loading="lazy">'
+                    '<input class="f title" value="%(title)s" placeholder="%(slug)s" '
+                    'onchange="rf(\'%(k)s\',\'title\',this)">'
+                    '<span class="sub">%(slug)s &middot; <a href="/api/open?key=%(k)s" target="_blank">'
+                    'folder &#8599;</a></span>'
+                    '<label>branch <select onchange="sf(\'%(k)s\',\'branch\',this)">%(bopts)s</select></label>'
+                    '<label>side <select onchange="sf(\'%(k)s\',\'side\',this)">%(sopts)s</select></label>'
+                    '<label>palette <input class="f" value="%(pal)s" onchange="sf(\'%(k)s\',\'palette\',this)"></label>'
+                    '<textarea class="f" placeholder="expectation -- what it is for" '
+                    'onchange="rf(\'%(k)s\',\'expectation\',this)">%(exp)s</textarea>'
+                    '<ul class="notes">%(notes)s</ul>'
+                    '<textarea class="f note" placeholder="add note, blur to save" '
+                    'onchange="rn(\'%(k)s\',this)"></textarea>'
+                    '<div class="btns"><button onclick="sel(\'%(k)s\',\'deny\',this)">deny</button></div></div>'
+                    % {"k": esc(key), "slug": esc(slug), "title": esc(u.get("title") or ""),
+                       "bopts": bopts, "sopts": sopts, "pal": esc(r.get("palette") or ""),
+                       "exp": esc(u.get("expectation") or ""), "notes": notes})
             sw = "".join('<i style="background:rgb(%d,%d,%d)"></i>' % c for c in swatch)
             blocks.append(
                 '<section class="grp"><h2><span class="sw">%s</span>'
@@ -1707,9 +1768,10 @@ def build_app(family, atlas, prefix, scale):
     def api_palette(body: dict):
         return {"palette": guard(set_palette, body.get("keys"), body.get("name"))}
 
-    @app.post("/api/side")
-    def api_side(body: dict):
-        return {"select": guard(set_side, body.get("key"), body.get("side"))}
+    @app.post("/api/select/field")
+    def api_select_field(body: dict):
+        return {"select": guard(set_select_field, body.get("key"), body.get("field"),
+                                body.get("value"))}
 
     @app.post("/api/select")
     def api_select(body: dict):
@@ -1926,6 +1988,16 @@ def selftest():
             except Fail:
                 pass
             assert (SELECTS / "Elf Branch" / "look1").is_dir(), "failed approve must not park"
+            set_select_field("famA/look1", "branch", "Dwarf Branch")
+            assert (SELECTS / "Dwarf Branch" / "look1" / "rotations" / "north.png").exists()
+            assert not (SELECTS / "Elf Branch" / "look1").exists()
+            assert selects_load()["famA/look1"]["branch"] == "Dwarf Branch"
+            set_select_field("famA/look1", "palette", "iron")
+            set_select_field("famA/look1", "side", "enemy")
+            assert selects_load()["famA/look1"]["palette"] == "iron"
+            assert side_of("famA/look1", selects_load()["famA/look1"]) == "enemy"
+            set_select_field("famA/look1", "palette", "")
+            assert "palette" not in selects_load()["famA/look1"]
 
             set_select("famA/look2", "deny")
             assert not (SELECTS / "Human Soldier Branch" / "look2").exists()
