@@ -79,6 +79,18 @@ func _ready() -> void:
 		riders.append(r)
 	jaxx = riders[2]
 	fallen = jaxx.get_meta("rider")
+	if Game.charged:
+		# resume from the circle: wall already broken, riders ringed around him, Jaxx nearest the camera
+		for a in actors.duplicate():
+			if a.has_meta("enemy"):
+				actors.erase(a)
+				a.queue_free()
+		for i in range(riders.size()):
+			var ang := PI * 1.5 + (i - 2) * TAU / 5.0
+			riders[i].set_meta("wx", cos(ang) * 150.0)
+			riders[i].set_meta("wd", 520.0 + sin(ang) * 150.0 * 0.55)
+			(riders[i].get_meta("horse") as Sprite2D).frame = 4 if i != 2 else 0
+			(riders[i].get_meta("rider") as Sprite2D).frame = 4 if i != 2 else 0
 	var cl := CanvasLayer.new()
 	add_child(cl)
 	caption = Label.new()
@@ -104,18 +116,21 @@ func _say(t: String, secs: float) -> void:
 
 
 func _run() -> void:
-	await _say("The line holds. Barely.", 2.0)
-	await _say("Hooves. Behind you.", 1.5)
-	# charge: from behind the camera, through the wall, onto the necromancer
-	for i in range(riders.size()):
-		_move(riders[i], (i - 2) * 95.0, 470.0, 2.6, i * 0.15)
-	await get_tree().create_timer(1.6).timeout
-	for a in actors:
-		if a.has_meta("enemy"):
-			var t := create_tween()
-			t.tween_property(a, "modulate", Color(2, 2, 2), 0.1)
-			t.tween_property(a, "modulate:a", 0.0, 0.5)
-	await get_tree().create_timer(1.2).timeout
+	if Game.charged:
+		await _say("The killing stroke.", 1.2)
+	else:
+		await _say("The line holds. Barely.", 2.0)
+		await _say("Hooves. Behind you.", 1.5)
+		# charge: from behind the camera, through the wall, onto the necromancer
+		for i in range(riders.size()):
+			_move(riders[i], (i - 2) * 95.0, 470.0, 2.6, i * 0.15)
+		await get_tree().create_timer(1.6).timeout
+		for a in actors:
+			if a.has_meta("enemy"):
+				var t := create_tween()
+				t.tween_property(a, "modulate", Color(2, 2, 2), 0.1)
+				t.tween_property(a, "modulate:a", 0.0, 0.5)
+		await get_tree().create_timer(1.2).timeout
 	caption.text = ""
 	# the necromancer dies
 	necro.modulate = Color(3, 3, 3)

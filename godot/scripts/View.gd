@@ -7,6 +7,7 @@ var horizon := 160.0
 var focal := 340.0
 var cam_h := 190.0
 var cam_x := 0.0
+var cam_d := 0.0              # camera position along depth; d values are absolute
 var sprite_k := 1.1           # sprite pixel scale at s == 1
 var fog_color := Color("#3a3d3f")
 var fog_start := 350.0
@@ -18,7 +19,7 @@ var near_color := Color("#3d3e3c")
 
 
 func s(d: float) -> float:
-	return focal / maxf(d, 20.0)
+	return focal / maxf(d - cam_d, 20.0)
 
 
 func project(x: float, d: float) -> Vector2:
@@ -31,12 +32,12 @@ func sprite_scale(d: float) -> float:
 
 
 func fog(d: float) -> Color:
-	return Color.WHITE.lerp(fog_color, clampf((d - fog_start) / (fog_end - fog_start), 0.0, 0.85))
+	return Color.WHITE.lerp(fog_color, clampf((d - cam_d - fog_start) / (fog_end - fog_start), 0.0, 0.85))
 
 
 ## Depth of the ground point under a screen y (inverse of project).
 func depth_at_y(y: float) -> float:
-	return focal * cam_h / maxf(y - horizon, 1.0)
+	return cam_d + focal * cam_h / maxf(y - horizon, 1.0)
 
 
 func x_at(sx: float, d: float) -> float:
@@ -57,21 +58,21 @@ func draw_ground(c: CanvasItem, scroll: float, x_half: float) -> void:
 		var t1 := float(i + 1) / steps
 		var da := d0 * pow(fog_end * 1.5 / d0, t0)
 		var db := d0 * pow(fog_end * 1.5 / d0, t1)
-		var ya := project(0, da).y
-		var yb := project(0, db).y
+		var ya := project(0, cam_d + da).y
+		var yb := project(0, cam_d + db).y
 		var col := near_color.lerp(far_color, clampf((da - fog_start) / (fog_end - fog_start), 0.0, 1.0))
 		c.draw_rect(Rect2(-2000, yb, 5000, ya - yb + 1), col)
 	# row lines marching toward the camera
 	var step := 80.0
-	var d := d0 + fposmod(-scroll, step)
+	var d := d0 + fposmod(-scroll - cam_d, step)
 	while d < fog_end:
-		var y := project(0, d).y
+		var y := project(0, cam_d + d).y
 		var a := 0.16 * (1.0 - clampf((d - fog_start) / (fog_end - fog_start), 0.0, 1.0))
 		c.draw_line(Vector2(-2000, y), Vector2(3000, y), Color(0, 0, 0, a))
 		d += step
 	# lateral lines converging on the horizon
 	var x := -x_half
 	while x <= x_half:
-		c.draw_line(project(x, d0), project(x, fog_end * 2.0), Color(0, 0, 0, 0.08))
+		c.draw_line(project(x, cam_d + d0), project(x, cam_d + fog_end * 2.0), Color(0, 0, 0, 0.08))
 		x += 90.0
 	c.draw_line(Vector2(-2000, horizon), Vector2(3000, horizon), Color(0, 0, 0, 0.35), 2.0)

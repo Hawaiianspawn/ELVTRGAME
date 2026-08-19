@@ -4,6 +4,7 @@ extends Node
 const DIRS := ["south", "south-east", "east", "north-east", "north", "north-west", "west", "south-west"]
 const SCENES := {
 	"battle": "res://scenes/battle/Battle.tscn",
+	"charge": "res://scenes/battle/Charge.tscn",
 	"cavalry": "res://scenes/cutscene/Cavalry.tscn",
 	"messhall": "res://scenes/messhall/MessHall.tscn",
 	"road": "res://scenes/road/Road.tscn",
@@ -23,6 +24,7 @@ var magic: float = 0.0
 var magic_ever: float = 0.0      # relic thresholds read this
 var relics: Array[String] = []
 var hero_hp: float = 100.0
+var charged := false             # the ride-and-circle segment was played; Cavalry resumes at the killing stroke
 
 var _fade: ColorRect
 
@@ -67,6 +69,7 @@ func reset_run() -> void:
 	magic_ever = 0.0
 	relics.clear()
 	hero_hp = 100.0
+	charged = false
 
 
 ## Sprite2D for a packed 8-direction strip. `facing` is an index into DIRS.

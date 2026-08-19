@@ -312,7 +312,7 @@ func _wave_done() -> void:
 	if Game.wave >= 3:
 		say("The line holds. Barely.")
 		await get_tree().create_timer(2.0).timeout
-		Game.goto("cavalry")
+		Game.goto("charge")
 	else:
 		say("Wave cleared. Magic siphoned: %d" % int(Game.magic))
 		await get_tree().create_timer(2.5).timeout

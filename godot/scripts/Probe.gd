@@ -12,6 +12,7 @@ func _run(spec: String) -> void:
 	var parts := spec.split(",")
 	var scene := parts[0]
 	var secs := float(parts[1]) if parts.size() > 1 else 5.0
+	Game.charged = parts.size() > 2 and parts[2] == "charged"
 	await get_tree().process_frame
 	get_tree().change_scene_to_file(Game.SCENES[scene])
 	await get_tree().create_timer(secs).timeout
