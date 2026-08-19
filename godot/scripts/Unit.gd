@@ -126,7 +126,7 @@ func _step(goal: Vector2, delta: float) -> void:
 
 
 func _place() -> void:
-	visible = wd > 40.0
+	visible = wd - battle.view.cam_d > 40.0
 	position = battle.view.project(wx, wd)
 	scale = Vector2.ONE * battle.view.sprite_scale(wd)
 	_lunge = _lunge.lerp(Vector2.ZERO, 0.18)

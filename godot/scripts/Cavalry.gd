@@ -4,6 +4,9 @@ extends Node2D
 ## Every actor carries meta wx/wd (world) and is re-projected each frame; tweens drive the world coords.
 
 var view := View.new()
+var army: Array[Unit] = []
+var advancing := true
+const CREEP := 14.0
 var caption: Label
 var actors: Array[Node2D] = []
 var necro: Sprite2D
@@ -38,25 +41,16 @@ func _ready() -> void:
 	var world := Node2D.new()
 	world.y_sort_enabled = true
 	add_child(world)
-	# our ranks + foreground rows, as the battle left them
-	for row in range(2):
-		var x := -700.0 + row * 24.0
-		while x <= 700.0:
-			_sprite(["veteran", "halberdier", "hammer", "sheathed", "vet_ranged"][_rng.randi_range(0, 4)], 4, x + _rng.randf_range(-6, 6), 150.0 + row * 35.0, 1.0, Color(0.62, 0.62, 0.66))
-			x += 48.0
-	for row in range(2):
-		var x := -420.0
-		while x <= 420.0:
-			_sprite(["veteran", "halberdier", "hammer", "sheathed", "vet_ranged"][_rng.randi_range(0, 4)], 4, x + _rng.randf_range(-6, 6), 285.0 - row * 30.0)
-			x += 44.0
+	# our ranks as the battle left them: the real block, still pushing
+	army = Army.block(self, world, Game.waves[3]["reserves"], 476.0, 7, 285.0, _rng)
 	for i in range(9):
-		_sprite(["veteran", "halberdier", "hammer", "sheathed", "vet_ranged"][i % 5], 4, (i - 4) * 80.0, 320.0)
-	# horde silhouettes far back
-	for row in range(6):
-		var x := -1100.0 + (row % 2) * 17.0
-		while x <= 1100.0:
-			_sprite(["undead", "armored", "ooze", "undead2"][_rng.randi_range(0, 3)], 0, x + _rng.randf_range(-8, 8), 720.0 + row * 110.0 + _rng.randf_range(-20, 20), 2.2, Color(0.23, 0.24, 0.25))
-			x += 34.0
+		var f := Unit.new()
+		f.setup(["veteran", "halberdier", "hammer", "sheathed", "vet_ranged"][i % 5], Unit.ALLY, self)
+		f.state = Unit.State.RANK
+		f.wx = (i - 4) * 64.0
+		f.wd = 320.0
+		world.add_child(f)
+		army.append(f)
 	# the tank wall remnants and the necromancer
 	for i in range(8):
 		var s := _sprite("armored", 0, (i - 3.5) * 90.0 + _rng.randf_range(-15, 15), 400.0 + _rng.randf_range(-15, 15))
@@ -196,12 +190,17 @@ func _pyre(host: Node2D, off := Vector2.ZERO) -> void:
 	t.tween_callback(func(): f.emitting = false)
 
 
+func lane_x(_l: int) -> float:
+	return 0.0
+
+
 func _process(delta: float) -> void:
 	scroll += 6.0 * delta
 	for a in actors:
 		var wd: float = a.get_meta("wd")
 		a.position = view.project(a.get_meta("wx"), wd)
 		a.scale = Vector2.ONE * view.sprite_scale(wd) * float(a.get_meta("k"))
+		a.modulate = view.fog(wd) if a.modulate.a >= 1.0 else a.modulate
 	queue_redraw()
 
 

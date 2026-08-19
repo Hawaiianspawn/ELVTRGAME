@@ -10,8 +10,6 @@ const LANE_W := 64.0
 const HERO_MIN_D := 150.0
 const HERO_MAX_D := 290.0
 const RANK_D0 := 285.0          # first rank behind the front line
-const RANK_STEP := 24.0
-const RANK_X := 32.0
 const CREEP := 14.0             # the push: world units / s the field slides toward the camera
 const RANK_ROWS := 7            # depth of the company block down to the camera; every slot is a real unit
 const BEHIND_D := 55.0          # just behind the lens: where swaps come from and go to
@@ -149,31 +147,10 @@ func start_wave(i: int) -> void:
 
 func _build_ranks(reserves: Dictionary) -> void:
 	# Every slot in the block is a real unit. waves.json reserves are the mix; the block size sets the count.
-	# Interleaved so each rank reads as a mixed line; the wider the block, the more of everything.
-	var pattern: Array[String] = []
-	var left := reserves.duplicate()
-	while true:
-		var any := false
-		for t in TYPES:
-			if int(left.get(t, 0)) > 0:
-				pattern.append(t)
-				left[t] = int(left[t]) - 1
-				any = true
-		if not any:
-			break
 	var half := (lanes - 1) / 2.0 * LANE_W + 220.0
-	var per_row := int(floor(half * 2.0 / RANK_X)) + 1
-	for k in range(per_row * RANK_ROWS):
-		var row := k / per_row
-		var col := k % per_row
-		var wx := -half + col * RANK_X + (row % 2) * RANK_X * 0.5 + _rng.randf_range(-3, 3)
-		var wd := RANK_D0 - row * RANK_STEP + _rng.randf_range(-2, 2)
-		var u := spawn(pattern[k % pattern.size()], Unit.ALLY)
-		u.state = Unit.State.RANK
-		u.wx = wx
-		u.wd = wd
-		u.hold_d = wd
-		u.home = Vector2(wx, wd)
+	for u in Army.block(self, world, reserves, half, RANK_ROWS, RANK_D0, _rng):
+		u.died.connect(_on_died)
+		units.append(u)
 
 
 func lane_x(l: int) -> float:

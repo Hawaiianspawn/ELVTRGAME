@@ -14,6 +14,9 @@ const ORBIT_R := 150.0
 const STRIKES := 3
 
 var view := View.new()
+var army: Array[Unit] = []
+var advancing := true
+const CREEP := 14.0
 var phase := Phase.CHARGE
 var world: Node2D
 var hud: Node2D
@@ -86,12 +89,16 @@ func _ready() -> void:
 	hud.z_index = 10
 	hud.draw.connect(_draw_hud)
 	add_child(hud)
-	# the army we leave behind
-	for row in range(4):
-		var x := -520.0 + (row % 2) * 22.0
-		while x <= 520.0:
-			_sprite(["veteran", "halberdier", "hammer", "sheathed", "vet_ranged"][_rng.randi_range(0, 4)], 4, x + _rng.randf_range(-6, 6), 250.0 + row * 34.0)
-			x += 44.0
+	# the army we leave behind: the real block, still pushing, outrun in seconds
+	army = Army.block(self, world, Game.waves[3]["reserves"], 476.0, 7, 285.0, _rng)
+	for i in range(9):
+		var f := Unit.new()
+		f.setup(["veteran", "halberdier", "hammer", "sheathed", "vet_ranged"][i % 5], Unit.ALLY, self)
+		f.state = Unit.State.RANK
+		f.wx = (i - 4) * 64.0
+		f.wd = 320.0
+		world.add_child(f)
+		army.append(f)
 	_sprite("mage", 4, 0.0, 240.0)
 	# the tank wall and stragglers, all the way to the necromancer
 	var d := 620.0
@@ -101,13 +108,6 @@ func _ready() -> void:
 			var e := _sprite("armored" if _rng.randf() < 0.7 else "undead", 0, _rng.randf_range(-WALL_X, WALL_X), d + _rng.randf_range(-25, 25))
 			enemies.append(e)
 		d += 70.0
-	# horde silhouettes ride with the camera on the horizon (meta rel = depth relative to cam)
-	for row in range(4):
-		var x := -1100.0 + (row % 2) * 17.0
-		while x <= 1100.0:
-			var h := _sprite(["undead", "armored", "ooze", "undead2"][_rng.randi_range(0, 3)], 0, x + _rng.randf_range(-8, 8), 0.0, 2.2, Color(0.23, 0.24, 0.25))
-			h.set_meta("rel", 900.0 + row * 110.0 + _rng.randf_range(-20, 20))
-			x += 34.0
 	necro = _sprite("undead", 0, 0.0, NECRO_D, 1.7, Color(0.6, 1.0, 0.6))
 	# riders: player on Jaxx in the middle
 	_rider("horse_jaxx", 0.0, RIDER_D)
@@ -123,8 +123,14 @@ func say(s: String, secs := 2.5) -> void:
 	caption_t = secs
 
 
+func lane_x(_l: int) -> float:
+	return 0.0
+
+
 func _process(delta: float) -> void:
 	t += delta
+	for u in army:
+		u.wd += CREEP * delta
 	caption_t -= delta
 	match phase:
 		Phase.CHARGE: _charge(delta)
@@ -135,6 +141,7 @@ func _process(delta: float) -> void:
 		var wd: float = a.get_meta("wd")
 		a.position = view.project(a.get_meta("wx"), wd)
 		a.scale = Vector2.ONE * view.sprite_scale(wd) * float(a.get_meta("k"))
+		a.modulate = view.fog(wd) if a.modulate.a >= 1.0 else a.modulate
 		a.visible = wd > view.cam_d + 25.0
 	queue_redraw()
 	hud.queue_redraw()
