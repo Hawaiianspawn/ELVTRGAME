@@ -359,9 +359,9 @@ func _unhandled_input(e: InputEvent) -> void:
 		_cast("bolt")
 	elif e is InputEventKey and e.pressed and not e.echo:
 		match e.keycode:
-			KEY_1: _cast("bolt")
-			KEY_2: _cast("heal")
-			KEY_3: _cast("wall")
+			KEY_Z: _cast("bolt")
+			KEY_X: _cast("heal")
+			KEY_C: _cast("wall")
 			KEY_Q: _cycle_lane(-1)
 			KEY_E: _cycle_lane(1)
 
@@ -465,7 +465,7 @@ func _draw_hud() -> void:
 		hud.draw_string(f, p + Vector2(-32, 0), t, HORIZONTAL_ALIGNMENT_CENTER, 64, 11, col)
 	# HUD
 	var lines := ["WAVE %d / 4" % (Game.wave + 1), "HERO %d" % int(hero_hp), "MAGIC %d  (lifetime %d)" % [int(Game.magic), int(Game.magic_ever)],
-		"1 Bolt 8   2 Mend 20   3 Wall 30    Q/E lane type    RMB siphon", "Relics: " + ", ".join(Game.relics), "FPS %d" % Engine.get_frames_per_second()]
+		"Z Bolt 8   X Mend 20   C Wall 30    Q/E lane type    RMB siphon", "Relics: " + ", ".join(Game.relics), "FPS %d" % Engine.get_frames_per_second()]
 	for i in range(lines.size()):
 		hud.draw_string(f, Vector2(12, 20 + i * 18), lines[i], HORIZONTAL_ALIGNMENT_LEFT, -1, 14, Color("#e9efec"))
 	if toast_t > 0.0:

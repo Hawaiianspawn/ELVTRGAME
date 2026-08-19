@@ -3,7 +3,7 @@ extends Node2D
 
 func _ready() -> void:
 	var l := Label.new()
-	l.text = "KINDLED\nThe Green Dot\n\n[Space] begin\n\nWASD move   Mouse aim   LMB cast   RMB hold: siphon\n1-3 spells   Q/E set lane unit type (hover lane)"
+	l.text = "KINDLED\nThe Green Dot\n\n[Space] begin\n\nWASD move   Mouse aim   LMB cast   RMB hold: siphon\nZ/X/C spells   Q/E set lane unit type (hover lane)\n\ndev: 1-0 jump to phase, Tab next"
 	l.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	l.size = Vector2(960, 540)
 	l.vertical_alignment = VERTICAL_ALIGNMENT_CENTER

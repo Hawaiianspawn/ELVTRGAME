@@ -1,8 +1,8 @@
 {
   "spells": [
-    {"id": "bolt", "key": "1", "label": "Bolt",  "cost": 8,  "cooldown": 0.6, "desc": "Green fire at cursor. 25 dmg."},
-    {"id": "heal", "key": "2", "label": "Mend",  "cost": 20, "cooldown": 3.0, "desc": "Heal every front-line unit 25."},
-    {"id": "wall", "key": "3", "label": "Wall",  "cost": 30, "cooldown": 6.0, "desc": "Root every enemy near cursor 3s."}
+    {"id": "bolt", "key": "Z", "label": "Bolt",  "cost": 8,  "cooldown": 0.6, "desc": "Green fire at cursor. 25 dmg."},
+    {"id": "heal", "key": "X", "label": "Mend",  "cost": 20, "cooldown": 3.0, "desc": "Heal every front-line unit 25."},
+    {"id": "wall", "key": "C", "label": "Wall",  "cost": 30, "cooldown": 6.0, "desc": "Root every enemy near cursor 3s."}
   ],
   "relics": [
     {"id": "ember_ring",  "at": 60,  "label": "Ember Ring",  "desc": "+25% siphon rate",   "gather": 0.25},

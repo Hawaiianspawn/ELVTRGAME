@@ -27,6 +27,12 @@ func _run(spec: String) -> void:
 		assert(new != null and new != old and new.type == b.lane_types[2], "new type did not step up")
 		assert(old.state == Unit.State.RANK or not is_instance_valid(old), "old unit never reached its rank slot")
 		print("PROBE swap ok: %s -> %s" % [old.type, new.type])
+	if parts.size() > 2 and parts[2] == "jump":
+		# self-check: every jumper phase loads and runs a second without errors
+		for i in range(Jump.PHASES.size()):
+			await Jump._go(i)
+			await get_tree().create_timer(1.0).timeout
+			print("PROBE jump %d -> %s wave=%d" % [i + 1, get_tree().current_scene.scene_file_path.get_file(), Game.wave])
 	await get_tree().create_timer(secs).timeout
 	print("PROBE %s fps=%d" % [scene, Engine.get_frames_per_second()])
 	var img := get_viewport().get_texture().get_image()
