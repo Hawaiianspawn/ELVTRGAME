@@ -58,7 +58,7 @@ func _process(delta: float) -> void:
 		sprite.modulate = sprite.modulate.lerp(battle.view.fog(wd), delta * 8.0)
 		match state:
 			State.RANK:
-				pass
+				_moving = battle.advancing      # the whole company marches; ranks bob in step
 			State.RETREAT:
 				_step(home, delta)
 				if not _moving:
@@ -79,6 +79,8 @@ func _process(delta: float) -> void:
 					if team == ENEMY and battle.lane_open(lane):
 						goal = Vector2(battle.hero_wx, battle.hero_wd)
 					_step(goal, delta)
+	if team == ENEMY:
+		wd -= battle.CREEP * delta          # treadmill: the army pushes up, so the field slides toward the camera
 	_place()
 
 

@@ -12,7 +12,8 @@ const HERO_MAX_D := 290.0
 const RANK_D0 := 285.0          # first rank behind the front line
 const RANK_STEP := 24.0
 const RANK_X := 32.0
-const CREEP := 6.0              # forward crawl of the whole army, world units / s
+const CREEP := 14.0             # the push: world units / s the field slides toward the camera
+const RANK_ROWS := 4            # visual depth of the company block; reserves fill from the front, decor fills the rest
 const TYPES := ["shield", "pike", "archer", "greatsword"]
 
 var view := View.new()
@@ -36,6 +37,8 @@ var fx: Node2D
 var hud: Node2D
 var scenery: Array[Sprite2D] = []      # foreground rows + far horde, meta wx/wd
 var scroll := 0.0
+var advancing := true
+var decor: Array[Sprite2D] = []
 var spell_cd := {"bolt": 0.0, "heal": 0.0, "wall": 0.0}
 var checkpoint_magic := 0.0
 var toast := ""
@@ -75,20 +78,24 @@ func _scenery_sprite(name: String, facing: int, wx: float, wd: float, tint: Colo
 
 
 func _build_scenery() -> void:
+	var sil := ShaderMaterial.new()
+	sil.shader = load("res://assets/shaders/silhouette.gdshader")
 	# Foreground: two packed rows of our own army between the hero and the camera, cropped by the frame.
-	for row in range(2):
-		var d := 150.0 + row * 35.0
-		var x := -700.0 + row * 20.0
-		while x <= 700.0:
-			_scenery_sprite(TYPES[_rng.randi_range(0, 3)], 4, x + _rng.randf_range(-5, 5), d + _rng.randf_range(-5, 5), Color(0.62, 0.62, 0.66), 1.0)
-			x += 40.0
+	for row in range(4):
+		var d := 128.0 + row * 30.0
+		var x := -760.0 + (row % 2) * 15.0
+		var shade := lerpf(0.5, 0.72, row / 3.0)
+		while x <= 760.0:
+			_scenery_sprite(TYPES[_rng.randi_range(0, 3)], 4, x + _rng.randf_range(-4, 4), d + _rng.randf_range(-4, 4), Color(shade, shade, shade + 0.03), 1.0)
+			x += 30.0
 	# Far: the horde massing under the green dot, flat silhouettes.
-	for row in range(6):
-		var d := 720.0 + row * 110.0
-		var x := -1100.0 + (row % 2) * 17.0
+	for row in range(3):
+		var d := 760.0 + row * 140.0
+		var x := -1100.0 + (row % 2) * 40.0
 		while x <= 1100.0:
-			_scenery_sprite(["undead", "armored", "ooze", "undead2"][_rng.randi_range(0, 3)], 0, x + _rng.randf_range(-8, 8), d + _rng.randf_range(-20, 20), Color(0.23, 0.24, 0.25), 2.2)
-			x += 34.0
+			_scenery_sprite(["undead", "armored", "ooze", "undead2"][_rng.randi_range(0, 3)], 0, x + _rng.randf_range(-12, 12), d + _rng.randf_range(-30, 30), Color.WHITE, _rng.randf_range(2.4, 3.6))
+			scenery[-1].material = sil
+			x += _rng.randf_range(62.0, 96.0)
 
 
 func start_wave(i: int) -> void:
@@ -136,17 +143,34 @@ func _build_ranks(reserves: Dictionary) -> void:
 				any = true
 		if not any:
 			break
-	var half := (lanes - 1) / 2.0 * LANE_W + LANE_W
+	for d in decor:
+		scenery.erase(d)
+		d.queue_free()
+	decor.clear()
+	var half := (lanes - 1) / 2.0 * LANE_W + 190.0
 	var per_row := int(floor(half * 2.0 / RANK_X)) + 1
-	for k in range(pool.size()):
+	for k in range(per_row * RANK_ROWS):
 		var row := k / per_row
 		var col := k % per_row
-		var u := spawn(pool[k], Unit.ALLY)
-		u.state = Unit.State.RANK
-		u.wx = -half + col * RANK_X + (row % 2) * RANK_X * 0.5 + _rng.randf_range(-3, 3)
-		u.wd = RANK_D0 - row * RANK_STEP + _rng.randf_range(-2, 2)
-		u.hold_d = u.wd
-		u.home = Vector2(u.wx, u.wd)
+		var wx := -half + col * RANK_X + (row % 2) * RANK_X * 0.5 + _rng.randf_range(-3, 3)
+		var wd := RANK_D0 - row * RANK_STEP + _rng.randf_range(-2, 2)
+		if k < pool.size():
+			var u := spawn(pool[k], Unit.ALLY)
+			u.state = Unit.State.RANK
+			u.wx = wx
+			u.wd = wd
+			u.hold_d = wd
+			u.home = Vector2(wx, wd)
+		else:
+			# decor: fills the company block so it always reads as a wall of helmets
+			var s := Game.make_sprite(TYPES[_rng.randi_range(0, 3)], 4)
+			s.set_meta("wx", wx)
+			s.set_meta("wd", wd)
+			s.set_meta("k", 1.0)
+			s.set_meta("tint", Color(0.9, 0.9, 0.92))
+			world.add_child(s)
+			decor.append(s)
+			scenery.append(s)
 
 
 func lane_x(l: int) -> float:
@@ -244,10 +268,12 @@ func _process(delta: float) -> void:
 		var wd: float = s.get_meta("wd")
 		if wd > 600.0:
 			wd -= CREEP * 0.5 * delta
-			if wd < 710.0:
-				wd += 660.0
+			if wd < 740.0:
+				wd += 420.0
 			s.set_meta("wd", wd)
 		s.position = view.project(s.get_meta("wx"), wd)
+		if wd < 600.0 and advancing:
+			s.position.y -= absf(sin(scroll * 0.9 + s.get_meta("wx") * 0.05)) * 3.0 * view.s(wd)
 		s.scale = Vector2.ONE * view.sprite_scale(wd) * float(s.get_meta("k"))
 		s.modulate = (s.get_meta("tint") as Color) * (Color.WHITE if wd > 600.0 else view.fog(wd))
 	if _done:
