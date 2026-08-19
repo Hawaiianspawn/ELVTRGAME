@@ -6,12 +6,12 @@ extends Node2D
 
 const FRONT_D := 320.0
 const SPAWN_D := 1500.0
-const LANE_W := 80.0
+const LANE_W := 64.0
 const HERO_MIN_D := 205.0
 const HERO_MAX_D := 290.0
 const RANK_D0 := 285.0          # first rank behind the front line
-const RANK_STEP := 30.0
-const RANK_X := 44.0
+const RANK_STEP := 24.0
+const RANK_X := 32.0
 const CREEP := 6.0              # forward crawl of the whole army, world units / s
 const TYPES := ["shield", "pike", "archer", "greatsword"]
 
@@ -78,10 +78,10 @@ func _build_scenery() -> void:
 	# Foreground: two packed rows of our own army between the hero and the camera, cropped by the frame.
 	for row in range(2):
 		var d := 150.0 + row * 35.0
-		var x := -700.0 + row * 24.0
+		var x := -700.0 + row * 20.0
 		while x <= 700.0:
-			_scenery_sprite(TYPES[_rng.randi_range(0, 3)], 4, x + _rng.randf_range(-6, 6), d + _rng.randf_range(-6, 6), Color(0.62, 0.62, 0.66), 1.0)
-			x += 48.0
+			_scenery_sprite(TYPES[_rng.randi_range(0, 3)], 4, x + _rng.randf_range(-5, 5), d + _rng.randf_range(-5, 5), Color(0.62, 0.62, 0.66), 1.0)
+			x += 40.0
 	# Far: the horde massing under the green dot, flat silhouettes.
 	for row in range(6):
 		var d := 720.0 + row * 110.0
@@ -143,9 +143,10 @@ func _build_ranks(reserves: Dictionary) -> void:
 		var col := k % per_row
 		var u := spawn(pool[k], Unit.ALLY)
 		u.state = Unit.State.RANK
-		u.wx = -half + col * RANK_X + (row % 2) * RANK_X * 0.5 + _rng.randf_range(-4, 4)
-		u.wd = RANK_D0 - row * RANK_STEP + _rng.randf_range(-3, 3)
+		u.wx = -half + col * RANK_X + (row % 2) * RANK_X * 0.5 + _rng.randf_range(-3, 3)
+		u.wd = RANK_D0 - row * RANK_STEP + _rng.randf_range(-2, 2)
 		u.hold_d = u.wd
+		u.home = Vector2(u.wx, u.wd)
 
 
 func lane_x(l: int) -> float:
@@ -172,7 +173,7 @@ func find_target(u: Unit) -> Node2D:
 	var best: Node2D = null
 	var best_d := INF
 	for o in units:
-		if not is_instance_valid(o) or o.team == u.team or o.state == Unit.State.RANK or absi(o.lane - u.lane) > 1:
+		if not is_instance_valid(o) or o.team == u.team or o.state == Unit.State.RANK or o.state == Unit.State.RETREAT or absi(o.lane - u.lane) > 1:
 			continue
 		var d := Vector2(u.wx, u.wd).distance_to(Vector2(o.wx, o.wd))
 		if d < best_d:
@@ -352,9 +353,16 @@ func _rank_count(type: String) -> int:
 	return n
 
 
-func _cycle_lane(dir: int) -> void:
-	var l := _hover_lane()
+func _cycle_lane(dir: int, l: int = -1) -> void:
+	if l < 0:
+		l = _hover_lane()
 	lane_types[l] = TYPES[(TYPES.find(lane_types[l]) + dir + 4) % 4]
+	# swap out: the standing front unit falls back to its rank slot, the new type steps up on the next tick
+	var u = front[l]
+	if u != null and is_instance_valid(u) and u.type != lane_types[l]:
+		front[l] = null
+		u.lane = -1
+		u.state = Unit.State.RETREAT
 	say("Lane %d -> %s (%d in the ranks)" % [l + 1, Game.units[lane_types[l]]["label"], _rank_count(lane_types[l])])
 
 
@@ -425,10 +433,10 @@ func _draw_hud() -> void:
 	hud.draw_rect(Rect2(0, 512, 960, 28), Color(0, 0, 0, 0.55))
 	var f := ThemeDB.fallback_font
 	for l in range(lanes):
-		var t: String = Game.units[lane_types[l]]["label"] + " x%d" % _rank_count(lane_types[l])
+		var t: String = Game.units[lane_types[l]]["label"] + " %d" % _rank_count(lane_types[l])
 		var col := Color("#f0c260") if l == _hover_lane() else Color("#a0a08b")
 		var p := Vector2(view.project(lane_x(l), FRONT_D).x, 528.0)
-		hud.draw_string(f, p + Vector2(-34, 0), t, HORIZONTAL_ALIGNMENT_CENTER, 90, 12, col)
+		hud.draw_string(f, p + Vector2(-32, 0), t, HORIZONTAL_ALIGNMENT_CENTER, 64, 11, col)
 	# HUD
 	var lines := ["WAVE %d / 4" % (Game.wave + 1), "HERO %d" % int(hero_hp), "MAGIC %d  (lifetime %d)" % [int(Game.magic), int(Game.magic_ever)],
 		"1 Bolt 8   2 Mend 20   3 Wall 30    Q/E lane type    RMB siphon", "Relics: " + ", ".join(Game.relics), "FPS %d" % Engine.get_frames_per_second()]

@@ -6,7 +6,7 @@ signal died(unit: Unit)
 
 const ALLY := 0
 const ENEMY := 1
-enum State { RANK, ADVANCE, FIGHT }
+enum State { RANK, ADVANCE, FIGHT, RETREAT }
 
 var type: String
 var team: int
@@ -22,6 +22,7 @@ var speed: float
 var cooldown: float
 var counters: Array
 var hold_d := 0.0            # allies stop here; enemies push past it toward the hero
+var home := Vector2.ZERO     # rank slot this ally came from and returns to when swapped out
 var rooted_until := 0.0
 var _cd := 0.0
 var _t := 0.0
@@ -58,6 +59,11 @@ func _process(delta: float) -> void:
 		match state:
 			State.RANK:
 				pass
+			State.RETREAT:
+				_step(home, delta)
+				if not _moving:
+					state = State.RANK
+					sprite.frame = 4
 			State.ADVANCE:
 				_step(Vector2(battle.lane_x(lane), hold_d), delta)
 				if not _moving:

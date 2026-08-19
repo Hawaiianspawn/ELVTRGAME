@@ -15,6 +15,18 @@ func _run(spec: String) -> void:
 	Game.charged = parts.size() > 2 and parts[2] == "charged"
 	await get_tree().process_frame
 	get_tree().change_scene_to_file(Game.SCENES[scene])
+	if parts.size() > 2 and parts[2] == "swap":
+		# self-check: swapping lane 2's type sends its front unit home and marches the new type up
+		await get_tree().create_timer(6.0).timeout
+		var b := get_tree().current_scene
+		var old = b.front[2]
+		b._cycle_lane(1, 2)
+		assert(old.state == Unit.State.RETREAT, "front unit did not retreat")
+		await get_tree().create_timer(4.0).timeout
+		var new = b.front[2]
+		assert(new != null and new != old and new.type == b.lane_types[2], "new type did not step up")
+		assert(old.state == Unit.State.RANK or not is_instance_valid(old), "old unit never reached its rank slot")
+		print("PROBE swap ok: %s -> %s" % [old.type, new.type])
 	await get_tree().create_timer(secs).timeout
 	print("PROBE %s fps=%d" % [scene, Engine.get_frames_per_second()])
 	var img := get_viewport().get_texture().get_image()
