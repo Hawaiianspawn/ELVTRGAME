@@ -27,6 +27,9 @@ var rooted_until := 0.0
 var _cd := 0.0
 var _t := 0.0
 var _moving := false
+var _lunge := Vector2.ZERO
+var _recoil := Vector2.ZERO
+var dead := false
 var battle: Node2D
 var sprite: Sprite2D
 
@@ -49,6 +52,8 @@ func setup(p_type: String, p_team: int, p_battle: Node2D) -> void:
 
 
 func _process(delta: float) -> void:
+	if dead:
+		return
 	_t += delta
 	_cd -= delta
 	_moving = false
@@ -103,12 +108,28 @@ func _step(goal: Vector2, delta: float) -> void:
 func _place() -> void:
 	position = battle.view.project(wx, wd)
 	scale = Vector2.ONE * battle.view.sprite_scale(wd)
-	sprite.position.y = -absf(sin(_t * 12.0)) * 3.0 if _moving else 0.0
+	_lunge = _lunge.lerp(Vector2.ZERO, 0.18)
+	_recoil = _recoil.lerp(Vector2.ZERO, 0.2)
+	var bob := -absf(sin(_t * 12.0)) * 3.0 if _moving else 0.0
+	sprite.position = _lunge + _recoil + Vector2(0, bob)
 
 
-func take(amount: float) -> void:
+func lunge(v: Vector2) -> void:
+	_lunge = v / maxf(scale.x, 0.01)
+
+
+func take(amount: float, push := Vector2.ZERO) -> void:
+	if dead:
+		return
 	hp -= amount
 	sprite.modulate = Color(2.0, 2.0, 2.0)
+	_recoil = push / maxf(scale.x, 0.01)
 	if hp <= 0.0:
+		dead = true
 		died.emit(self)
-		queue_free()
+		# fall: topple away from the blow, sink, fade
+		var side := 1.0 if push.x >= 0.0 else -1.0
+		var tw := create_tween().set_parallel(true)
+		tw.tween_property(sprite, "rotation", side * PI / 2.0, 0.35).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_IN)
+		tw.tween_property(sprite, "modulate", Color(0.4, 0.4, 0.4, 0.0), 1.1).set_delay(0.3)
+		tw.chain().tween_callback(queue_free)

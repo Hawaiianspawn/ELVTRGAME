@@ -5,7 +5,7 @@ extends Node2D
 ## siphons magic from kills, spends it on spells; relics unlock on lifetime magic.
 
 const FRONT_D := 320.0
-const SPAWN_D := 1500.0
+const SPAWN_D := 1050.0
 const LANE_W := 64.0
 const HERO_MIN_D := 205.0
 const HERO_MAX_D := 290.0
@@ -35,6 +35,9 @@ var hero_hp := 100.0
 var world: Node2D
 var fx: Node2D
 var hud: Node2D
+var hud_text: Label
+var toast_label: Label
+var lane_labels: Array[Label] = []
 var scenery: Array[Sprite2D] = []      # foreground rows + far horde, meta wx/wd
 var scroll := 0.0
 var advancing := true
@@ -59,12 +62,37 @@ func _ready() -> void:
 	hud.z_index = 10
 	hud.draw.connect(_draw_hud)
 	add_child(hud)
+	# text lives in Labels: draw_string reshapes every frame, which is what the WASM build feels
+	var cl := CanvasLayer.new()
+	cl.layer = 20
+	add_child(cl)
+	hud_text = _label(cl, Vector2(12, 6), 14, Color("#e9efec"))
+	toast_label = _label(cl, Vector2(300, 40), 20, Color("#f0c260"))
+	var strip := ColorRect.new()
+	strip.color = Color(0, 0, 0, 0.55)
+	strip.position = Vector2(0, 512)
+	strip.size = Vector2(960, 28)
+	cl.add_child(strip)
+	for l in range(9):
+		var lb := _label(cl, Vector2(0, 516), 11, Color("#a0a08b"))
+		lb.size = Vector2(64, 16)
+		lb.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+		lane_labels.append(lb)
 	hero = Node2D.new()
 	hero_sprite = Game.make_sprite("mage", 4)
 	hero.add_child(hero_sprite)
 	world.add_child(hero)
 	_build_scenery()
 	start_wave(Game.wave)
+
+
+func _label(parent: Node, pos: Vector2, size: int, col: Color) -> Label:
+	var l := Label.new()
+	l.position = pos
+	l.add_theme_font_size_override("font_size", size)
+	l.add_theme_color_override("font_color", col)
+	parent.add_child(l)
+	return l
 
 
 func _scenery_sprite(name: String, facing: int, wx: float, wd: float, tint: Color, k: float) -> void:
@@ -78,8 +106,6 @@ func _scenery_sprite(name: String, facing: int, wx: float, wd: float, tint: Colo
 
 
 func _build_scenery() -> void:
-	var sil := ShaderMaterial.new()
-	sil.shader = load("res://assets/shaders/silhouette.gdshader")
 	# Foreground: two packed rows of our own army between the hero and the camera, cropped by the frame.
 	for row in range(4):
 		var d := 128.0 + row * 30.0
@@ -88,14 +114,6 @@ func _build_scenery() -> void:
 		while x <= 760.0:
 			_scenery_sprite(TYPES[_rng.randi_range(0, 3)], 4, x + _rng.randf_range(-4, 4), d + _rng.randf_range(-4, 4), Color(shade, shade, shade + 0.03), 1.0)
 			x += 30.0
-	# Far: the horde massing under the green dot, flat silhouettes.
-	for row in range(3):
-		var d := 760.0 + row * 140.0
-		var x := -1100.0 + (row % 2) * 40.0
-		while x <= 1100.0:
-			_scenery_sprite(["undead", "armored", "ooze", "undead2"][_rng.randi_range(0, 3)], 0, x + _rng.randf_range(-12, 12), d + _rng.randf_range(-30, 30), Color.WHITE, _rng.randf_range(2.4, 3.6))
-			scenery[-1].material = sil
-			x += _rng.randf_range(62.0, 96.0)
 
 
 func start_wave(i: int) -> void:
@@ -214,11 +232,51 @@ func hit(a: Unit, t: Node2D) -> void:
 		d *= float(Game.units["counter_mult"])
 	if a.team == Unit.ALLY:
 		d *= 1.0 + Game.relic_bonus("dmg")
+	var to := t.position - a.position
+	if a.rng > 100.0:
+		_arrow(a.position + Vector2(0, -50 * a.scale.y), t.position + Vector2(0, -30 * t.scale.y))
+		await get_tree().create_timer(0.12).timeout
+		if not is_instance_valid(t):
+			return
+	else:
+		a.lunge(to.normalized() * 14.0 * a.scale.x)
+	_impact(t.position + Vector2(0, -34 * t.scale.y), 6.0 * t.scale.y)
 	if t is Unit:
-		t.take(d)
+		t.take(d, to.normalized() * 6.0)
 	elif t == hero:
 		hero_hp -= d
 		hero_sprite.modulate = Color(2, 1, 1)
+
+
+func _impact(p: Vector2, r: float) -> void:
+	var n := Node2D.new()
+	n.position = p
+	n.draw.connect(func():
+		n.draw_circle(Vector2.ZERO, r, Color(1.0, 0.95, 0.7))
+		for i in range(5):
+			var v := Vector2.RIGHT.rotated(i * TAU / 5.0 + _rng.randf() * 0.6) * r * 2.4
+			n.draw_line(v * 0.4, v, Color(1.0, 0.9, 0.5), 1.5))
+	fx.add_child(n)
+	var tw := create_tween()
+	tw.tween_property(n, "modulate:a", 0.0, 0.18)
+	tw.tween_callback(n.queue_free)
+
+
+func _arrow(from: Vector2, to: Vector2) -> void:
+	var l := Line2D.new()
+	l.width = 1.5
+	l.default_color = Color(0.9, 0.85, 0.7)
+	l.add_point(from)
+	l.add_point(from)
+	fx.add_child(l)
+	var tw := create_tween()
+	tw.tween_method(func(k: float):
+		var mid := from.lerp(to, k)
+		mid.y -= sin(k * PI) * from.distance_to(to) * 0.12
+		l.set_point_position(1, mid)
+		l.set_point_position(0, from.lerp(mid, 0.7)), 0.0, 1.0, 0.12)
+	tw.tween_property(l, "modulate:a", 0.0, 0.08)
+	tw.tween_callback(l.queue_free)
 
 
 func spawn(type: String, team: int) -> Unit:
@@ -235,7 +293,7 @@ func _spawn_enemy(type: String) -> void:
 	u.lane = _rng.randi_range(0, lanes - 1)
 	u.wx = lane_x(u.lane) + _rng.randf_range(-14, 14)
 	u.wd = SPAWN_D + _rng.randf_range(0, 120)
-	u.hold_d = FRONT_D + 40.0
+	u.hold_d = FRONT_D + 40.0 + _rng.randf_range(-6, 22)
 
 
 func _on_died(u: Unit) -> void:
@@ -263,19 +321,14 @@ func _process(delta: float) -> void:
 	hud.queue_redraw()
 	toast_t -= delta
 	scroll += CREEP * delta
-	# scenery re-projects every frame (camera tweens per wave); horde creeps toward us and wraps
+	# scenery re-projects every frame (camera tweens per wave)
 	for s in scenery:
 		var wd: float = s.get_meta("wd")
-		if wd > 600.0:
-			wd -= CREEP * 0.5 * delta
-			if wd < 740.0:
-				wd += 420.0
-			s.set_meta("wd", wd)
 		s.position = view.project(s.get_meta("wx"), wd)
-		if wd < 600.0 and advancing:
+		if advancing:
 			s.position.y -= absf(sin(scroll * 0.9 + s.get_meta("wx") * 0.05)) * 3.0 * view.s(wd)
 		s.scale = Vector2.ONE * view.sprite_scale(wd) * float(s.get_meta("k"))
-		s.modulate = (s.get_meta("tint") as Color) * (Color.WHITE if wd > 600.0 else view.fog(wd))
+		s.modulate = (s.get_meta("tint") as Color) * view.fog(wd)
 	if _done:
 		return
 	# spawns
@@ -456,17 +509,14 @@ func _draw_hud() -> void:
 		hud.draw_circle(view.project(m["wx"], m["wd"]) + Vector2(0, -10 * k), (2.5 + float(m["v"]) * 0.12) * k, Color(0.4, 1.0, 0.4, 0.9))
 	hud.draw_circle(hero.position + Vector2(0, -60 * hero.scale.y), 4.0 + minf(Game.magic, 200.0) * 0.06, Color(0.4, 1.0, 0.4, 0.8))
 	# lane labels: bottom strip, under each lane's screen x
-	hud.draw_rect(Rect2(0, 512, 960, 28), Color(0, 0, 0, 0.55))
-	var f := ThemeDB.fallback_font
-	for l in range(lanes):
-		var t: String = Game.units[lane_types[l]]["label"] + " %d" % _rank_count(lane_types[l])
-		var col := Color("#f0c260") if l == _hover_lane() else Color("#a0a08b")
-		var p := Vector2(view.project(lane_x(l), FRONT_D).x, 528.0)
-		hud.draw_string(f, p + Vector2(-32, 0), t, HORIZONTAL_ALIGNMENT_CENTER, 64, 11, col)
-	# HUD
-	var lines := ["WAVE %d / 4" % (Game.wave + 1), "HERO %d" % int(hero_hp), "MAGIC %d  (lifetime %d)" % [int(Game.magic), int(Game.magic_ever)],
-		"Z Bolt 8   X Mend 20   C Wall 30    Q/E lane type    RMB siphon", "Relics: " + ", ".join(Game.relics), "FPS %d" % Engine.get_frames_per_second()]
-	for i in range(lines.size()):
-		hud.draw_string(f, Vector2(12, 20 + i * 18), lines[i], HORIZONTAL_ALIGNMENT_LEFT, -1, 14, Color("#e9efec"))
-	if toast_t > 0.0:
-		hud.draw_string(f, Vector2(300, 60), toast, HORIZONTAL_ALIGNMENT_LEFT, -1, 20, Color("#f0c260"))
+	var hover := _hover_lane()
+	for l in range(lane_labels.size()):
+		var lb := lane_labels[l]
+		lb.visible = l < lanes
+		if l < lanes:
+			lb.text = Game.units[lane_types[l]]["label"] + " %d" % _rank_count(lane_types[l])
+			lb.position.x = view.project(lane_x(l), FRONT_D).x - 32.0
+			lb.add_theme_color_override("font_color", Color("#f0c260") if l == hover else Color("#a0a08b"))
+	hud_text.text = "WAVE %d / 4\nHERO %d\nMAGIC %d  (lifetime %d)\nZ Bolt 8   X Mend 20   C Wall 30    Q/E lane type    RMB siphon\nRelics: %s\nFPS %d" % [
+		Game.wave + 1, int(hero_hp), int(Game.magic), int(Game.magic_ever), ", ".join(Game.relics), Engine.get_frames_per_second()]
+	toast_label.text = toast if toast_t > 0.0 else ""

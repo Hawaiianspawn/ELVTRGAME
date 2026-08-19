@@ -34,6 +34,7 @@ def main():
     roster = json.load(open(ROSTER, encoding="utf-8"))
     os.makedirs(OUT, exist_ok=True)
     manifest = {}
+    strips = []
     for name, ref in roster.items():
         d = rotations_dir(ref, selects)
         frames = [Image.open(os.path.join(d, "%s.png" % f)).convert("RGBA") for f in DIRECTIONS]
@@ -43,7 +44,19 @@ def main():
             strip.paste(im, (i * cell + (cell - im.width) // 2, cell - im.height))
         strip.save(os.path.join(OUT, name + ".png"))
         manifest[name] = {"cell": cell, "source": ref}
+        strips.append((name, strip))
         print("%-24s %3dpx  %s" % (name, cell, ref))
+    # One atlas for the whole roster: every sprite shares a texture so the 2D batcher keeps them in one draw call.
+    width = max(im.width for _, im in strips)
+    height = sum(im.height for _, im in strips)
+    atlas = Image.new("RGBA", (width, height))
+    y = 0
+    for name, im in strips:
+        atlas.paste(im, (0, y))
+        manifest[name]["y"] = y
+        y += im.height
+    atlas.save(os.path.join(OUT, "atlas.png"))
+    print("atlas %dx%d" % (width, height))
     json.dump(manifest, open(os.path.join(OUT, "manifest.json"), "w"), indent=2)
 
 

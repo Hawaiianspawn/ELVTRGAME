@@ -72,10 +72,20 @@ func reset_run() -> void:
 	charged = false
 
 
+var _atlas: Texture2D
+
+
 ## Sprite2D for a packed 8-direction strip. `facing` is an index into DIRS.
+## Every sprite is a region of one shared atlas so the canvas batcher draws the whole crowd in a few calls.
 func make_sprite(name: String, facing: int = 0) -> Sprite2D:
+	if _atlas == null:
+		_atlas = load("res://assets/sprites/atlas.png")
 	var s := Sprite2D.new()
-	s.texture = load("res://assets/sprites/%s.png" % name)
+	var at := AtlasTexture.new()
+	at.atlas = _atlas
+	var cell_px: int = int(sprites[name]["cell"])
+	at.region = Rect2(0, int(sprites[name]["y"]), cell_px * 8, cell_px)
+	s.texture = at
 	s.hframes = 8
 	s.frame = facing
 	s.centered = true

@@ -9,13 +9,14 @@ var cam_h := 190.0
 var cam_x := 0.0
 var cam_d := 0.0              # camera position along depth; d values are absolute
 var sprite_k := 1.1           # sprite pixel scale at s == 1
-var fog_color := Color("#7a7b79")
-var fog_start := 300.0
-var fog_end := 900.0
-var far_color := Color("#7a7b79")
-var sky_color := Color("#d6d7d6")
-var sky_low := Color("#9a9c9c")
-var near_color := Color("#232324")
+var fog_color := Color.BLACK
+var fog_start := 380.0
+var fog_end := 980.0
+var fog_max := 1.0
+var far_color := Color.BLACK
+var sky_color := Color("#3a3b3d")
+var sky_low := Color.BLACK
+var near_color := Color("#2a2a2b")
 
 
 func s(d: float) -> float:
@@ -32,7 +33,7 @@ func sprite_scale(d: float) -> float:
 
 
 func fog(d: float) -> Color:
-	return Color.WHITE.lerp(fog_color, clampf((d - cam_d - fog_start) / (fog_end - fog_start), 0.0, 0.85))
+	return Color.WHITE.lerp(fog_color, clampf((d - cam_d - fog_start) / (fog_end - fog_start), 0.0, fog_max))
 
 
 ## Depth of the ground point under a screen y (inverse of project).
