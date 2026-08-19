@@ -6,6 +6,9 @@ Godot 4.7 / GDScript. Browser target, single-threaded web export (no COOP/COEP h
     godot --headless --path godot --export-release Web build/web/index.html
     py -m http.server -d build/web 8765                # open http://localhost:8765
 
+Local run/relaunch (no export): `pwsh Scripts\godot-run.ps1` (kills our previous run, launches windowed;
+`-Pack` repacks sprites first; `-Probe "battle,12;cavalry,8"` runs probes and prints the PROBE lines).
+
 Evidence probe (desktop): `godot --path godot -- --probe=battle,12` prints FPS and saves
 `user://probe_battle.png`. Scenes: battle, cavalry, messhall, road, ride, reveal.
 
