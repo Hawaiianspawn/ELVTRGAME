@@ -57,8 +57,8 @@ void AStressWarGameMode::BeginPlay()
 	};
 	const FString Cols = FString::FromInt(FMath::Max(1, Columns));
 	const int32 HandlesPerSide = USwarmSubsystem::MaxSquads / 2;
-	const int32 Companies = FMath::Clamp(CompaniesPerSide, 1, HandlesPerSide / 2);
-	const int32 PerHandle = FMath::Max(1, PerSide / (Companies * 2));
+	const int32 Companies = FMath::Clamp(CompaniesPerSide, 1, HandlesPerSide / UStressWarSide::HandlesPerCompany);
+	const int32 PerHandle = FMath::Max(1, PerSide / (Companies * 2)); // 2 troop handles per company
 	// Row pitch = one detachment's depth plus a gap, so wrapped rows never grow into each
 	// other. A handle deeper than GroupDepthCap (16) ranks opens sibling detachments.
 	const int32 Ranks = FMath::Min(16, FMath::DivideAndRoundUp(PerHandle, FMath::Max(1, Columns)));
@@ -72,20 +72,31 @@ void AStressWarGameMode::BeginPlay()
 	SetCVar(TEXT("Swarm.Formation.Archers.Spacing"), TEXT("48"));
 	SetCVar(TEXT("Swarm.Formation.Archers.RankSpacing"), TEXT("52"));
 	SetCVar(TEXT("Swarm.Formation.GroupGap"), TEXT("110"));
-	SetCVar(TEXT("Swarm.Formation.GroupsPerRow"), FString::FromInt(FMath::Max(0, BlocksAbreast)));
+	// 0 = every one of a side's handles abreast in ONE row. Rows behind the front are what
+	// held the two armies apart: a block parks at anchor + slot, and a wrapped row's slot is
+	// a whole GroupRowPitch further along, so with 3 abreast the armies stalled 4200uu apart
+	// after the first clash and stopped killing. One row per side: gap ~1600uu, even
+	// attrition, both reserves spent (measured 2026-08-19).
+	const int32 Abreast = (BlocksAbreast > 0) ? BlocksAbreast : Companies * UStressWarSide::HandlesPerCompany;
+	SetCVar(TEXT("Swarm.Formation.GroupsPerRow"), FString::FromInt(Abreast));
 	SetCVar(TEXT("Swarm.Formation.GroupRowPitch"), RowPitch);
 	SetCVar(TEXT("Swarm.Formation.GroupDepthCap"), TEXT("16"));
 	SetCVar(TEXT("Swarm.Formation.FaceCamera"), TEXT("0"));
 	SetCVar(TEXT("Swarm.Formation.Yaw"), TEXT("0"));
 	SetCVar(TEXT("Swarm.RetinueSizeJitter"), TEXT("0"));
+	// Mirror the two armies' STATS while keeping their looks apart: the shipped
+	// Swarm.KnightSubtypeMap sends look 1 to row 8 (HP 114 / DPS 25) and look 7 to row 1
+	// (HP 165 / DPS 30), so side A was fighting side B two weight classes down -- that, not
+	// the war manager, is what the first runs' 2:1 result measured. Every look on row 0 here.
+	SetCVar(TEXT("Swarm.KnightSubtypeMap"), TEXT("0,0,0,0,0,0,0,0,0,0,0"));
 
 	const FVector ZoneA(-DeploymentDistance * 0.5f, 0.f, 0.f);
 	const FVector ZoneB(+DeploymentDistance * 0.5f, 0.f, 0.f);
 
 	SideA = NewObject<UStressWarSide>(this);
-	SideA->Muster(*Swarm, 0, 0, Companies, PerHandle, Reserve, TeamAMeleeLook, ArcherLook, ZoneA, ZoneB);
+	SideA->Muster(*Swarm, 0, 0, Companies, PerHandle, Reserve, TeamAMeleeLook, ArcherLook, LeadHPScale, ZoneA, ZoneB);
 	SideB = NewObject<UStressWarSide>(this);
-	SideB->Muster(*Swarm, 1, HandlesPerSide, Companies, PerHandle, Reserve, TeamBMeleeLook, ArcherLook, ZoneB, ZoneA);
+	SideB->Muster(*Swarm, 1, HandlesPerSide, Companies, PerHandle, Reserve, TeamBMeleeLook, ArcherLook, LeadHPScale, ZoneB, ZoneA);
 	Swarm->SetAttractor(FVector::ZeroVector);
 
 	if (ACameraActor* Cam = GetWorld()->SpawnActor<ACameraActor>(FVector(0.f, 0.f, 3000.f), FRotator(-90.f, 90.f, 0.f)))
@@ -102,8 +113,9 @@ void AStressWarGameMode::BeginPlay()
 	Countdown = DecisionIntervalSeconds;
 	bCsvStarted = false;
 	bEnded = false;
-	UE_LOG(LogTemp, Display, TEXT("StressWar: %d vs %d fielded (%d companies x 2 handles x %d per side), +%d reserve each, zones %.0fuu apart"),
-		PerHandle * Companies * 2, PerHandle * Companies * 2, Companies, PerHandle, Reserve, DeploymentDistance);
+	UE_LOG(LogTemp, Display, TEXT("StressWar: %d vs %d fielded (%d companies x [lead + 2 x %d] per side, %d handles of %d), +%d reserve each, zones %.0fuu apart"),
+		PerHandle * Companies * 2, PerHandle * Companies * 2, Companies, PerHandle,
+		Companies * UStressWarSide::HandlesPerCompany * 2, USwarmSubsystem::MaxSquads, Reserve, DeploymentDistance);
 }
 
 void AStressWarGameMode::WriteCsv(const FString& Row)

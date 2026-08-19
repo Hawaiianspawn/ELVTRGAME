@@ -639,7 +639,7 @@ namespace
 				USwarmSubsystem* Swarm = World ? World->GetSubsystem<USwarmSubsystem>() : nullptr;
 				if (!Swarm || Args.Num() < 2)
 				{
-					UE_LOG(LogTemp, Warning, TEXT("Swarm.UnitStance: usage <0-7> Follow|Charge|Hold|Rally"));
+					UE_LOG(LogTemp, Warning, TEXT("Swarm.UnitStance: usage <0-31> Follow|Charge|Hold|Rally"));
 					return;
 				}
 				const int32 UnitIndex = FCString::Atoi(*Args[0]);
@@ -668,7 +668,7 @@ namespace
 	FAutoConsoleCommandWithWorldAndArgs GLogSquadRosterCmd(
 		TEXT("Swarm.LogSquadRoster"),
 		TEXT("Log every tracked retinue entity's (EntityIndex, unit, type). Usage:\n")
-		TEXT("Swarm.LogSquadRoster — logs everyone. Swarm.LogSquadRoster <0-7> — one unit only."),
+		TEXT("Swarm.LogSquadRoster — logs everyone. Swarm.LogSquadRoster <0-31> — one unit only."),
 		FConsoleCommandWithWorldAndArgsDelegate::CreateStatic(
 			[](const TArray<FString>& Args, UWorld* World)
 			{
@@ -825,8 +825,8 @@ namespace
 		TEXT("Kindled.Adapt"),
 		TEXT("Assign a unit an Adaptation rung. Usage:\n")
 		TEXT("  Kindled.Adapt                       — list ladders and current assignments\n")
-		TEXT("  Kindled.Adapt <0-7> <ladder> <rung> — e.g. Kindled.Adapt 0 spearmen-line 2\n")
-		TEXT("  Kindled.Adapt <0-7> clear           — back to the phase roll and stock stats"),
+		TEXT("  Kindled.Adapt <0-31> <ladder> <rung> — e.g. Kindled.Adapt 0 spearmen-line 2\n")
+		TEXT("  Kindled.Adapt <0-31> clear           — back to the phase roll and stock stats"),
 		FConsoleCommandWithWorldAndArgsDelegate::CreateStatic(
 			[](const TArray<FString>& Args, UWorld* World)
 			{
@@ -884,7 +884,7 @@ namespace
 				}
 				if (Args.Num() < 3)
 				{
-					UE_LOG(LogTemp, Warning, TEXT("Kindled.Adapt: usage <0-7> <ladder> <rung>, or <0-7> clear."));
+					UE_LOG(LogTemp, Warning, TEXT("Kindled.Adapt: usage <0-31> <ladder> <rung>, or <0-31> clear."));
 					return;
 				}
 				if (!Swarm->IsSquadClaimed(UnitIndex))
@@ -1033,7 +1033,7 @@ namespace SwarmSpawn
 		SpawnSwarm(World, Params);
 	}
 
-	void SpawnNamed(UWorld* World, int32 UnitIndex, EUnitType Type, float HPScale)
+	void SpawnNamed(UWorld* World, int32 UnitIndex, EUnitType Type, float HPScale, uint8 TeamId)
 	{
 		FSwarmSpawnParams Params;
 		Params.bBrood = false;
@@ -1042,6 +1042,7 @@ namespace SwarmSpawn
 		Params.bForceType = true;
 		Params.ForcedType = Type;
 		Params.HPScale = HPScale;
+		Params.TeamId = TeamId;
 		SpawnSwarm(World, Params);
 	}
 

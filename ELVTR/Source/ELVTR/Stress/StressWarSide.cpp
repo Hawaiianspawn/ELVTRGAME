@@ -5,31 +5,41 @@
 #include "Mass/SwarmSubsystem.h"
 
 void UStressWarSide::Muster(USwarmSubsystem& Swarm, uint8 InTeamId, int32 FirstHandle, int32 Companies_,
-	int32 BodiesPerHandle, int32 InReserve, int32 MeleeLook, int32 ArcherLook,
+	int32 BodiesPerHandle, int32 InReserve, int32 MeleeLook, int32 ArcherLook, float LeadHPScale,
 	const FVector& InHomeZone, const FVector& EnemyZone)
 {
 	TeamId = InTeamId;
 	HomeZone = InHomeZone;
+	EnemyHome = EnemyZone;
 	Reserve = InReserve;
 	StartPerHandle = BodiesPerHandle;
 	Companies.Reset();
 	Handles.Reset();
+	TroopHandles.Reset();
 
 	UWorld* World = Swarm.GetWorld();
-	Swarm.SetAttractor(HomeZone); // SpawnUnit lands bodies around the Attractor
+	Swarm.SetAttractor(HomeZone); // SpawnUnit/SpawnNamed land bodies around the Attractor
 	int32 Handle = FirstHandle;
 	for (int32 c = 0; c < Companies_; ++c)
 	{
+		if (Handle + HandlesPerCompany > USwarmSubsystem::MaxSquads) { break; }
 		TArray<int32> CompanyHandles;
+
+		// Company lead: one body on its own handle (the seven's own path), HP-scaled the same
+		// prototype way SpawnNamed documents. Rung BEFORE spawn: HP is baked from it.
+		Swarm.SetSquadRung(Handle, MeleeLook, INDEX_NONE);
+		SwarmSpawn::SpawnNamed(World, Handle, EUnitType::Spearmen, LeadHPScale, TeamId);
+		Swarm.SetUnitStance(Handle, ESwarmStance::Charge, EnemyZone);
+		CompanyHandles.Add(Handle);
+		Handles.Add(Handle++);
+
 		for (EUnitType Type : { EUnitType::Spearmen, EUnitType::Archers })
 		{
-			if (Handle >= USwarmSubsystem::MaxSquads) { break; }
-			// Rung BEFORE spawn: HP is baked from it (SwarmCommands.cpp). Tier INDEX_NONE keeps
-			// stats on the look's own weapon row.
 			Swarm.SetSquadRung(Handle, Type == EUnitType::Archers ? ArcherLook : MeleeLook, INDEX_NONE);
 			SwarmSpawn::SpawnUnit(World, Handle, Type, BodiesPerHandle, TeamId);
 			Swarm.SetUnitStance(Handle, ESwarmStance::Charge, EnemyZone);
 			CompanyHandles.Add(Handle);
+			TroopHandles.Add(Handle);
 			Handles.Add(Handle++);
 		}
 		UBattlegroundCommander* Company = NewObject<UBattlegroundCommander>(this);
@@ -50,7 +60,7 @@ void UStressWarSide::Decide(USwarmSubsystem& Swarm, const FVector& EnemyCentroid
 		if (EnemyStanding > 0)
 		{
 			const FVector Advance = (EnemyCentroid - Company->GetLiveCentroid(Swarm)).GetSafeNormal2D();
-			Company->Order(Swarm, ESwarmStance::Charge, EnemyCentroid + Advance * Overshoot);
+			Company->Order(Swarm, ESwarmStance::Charge, ClampToCorridor(EnemyCentroid + Advance * Overshoot));
 		}
 		else { Company->Order(Swarm, ESwarmStance::Hold, Company->GetLiveCentroid(Swarm)); }
 	}
@@ -60,7 +70,7 @@ void UStressWarSide::Decide(USwarmSubsystem& Swarm, const FVector& EnemyCentroid
 	const int32 Floor = FMath::CeilToInt(StartPerHandle * ReinforceFloor);
 	const FVector SavedAttractor = Swarm.GetAttractor();
 	Swarm.SetAttractor(HomeZone);
-	for (int32 Handle : Handles)
+	for (int32 Handle : TroopHandles)
 	{
 		const int32 Deficit = StartPerHandle - Swarm.GetSquadStanding(Handle);
 		if (Swarm.GetSquadStanding(Handle) >= Floor || Deficit <= 0 || Reserve <= 0) { continue; }
@@ -70,6 +80,23 @@ void UStressWarSide::Decide(USwarmSubsystem& Swarm, const FVector& EnemyCentroid
 		UE_LOG(LogTemp, Display, TEXT("StressWar: team %d reinforces handle %d +%d (reserve %d)"), TeamId, Handle, Count, Reserve);
 	}
 	Swarm.SetAttractor(SavedAttractor);
+}
+
+FVector UStressWarSide::ClampToCorridor(const FVector& Aim) const
+{
+	// Charge is slot-tethered (anchor + formation slot) and every slot offset points the SAME
+	// world way for both teams -- no per-army formation yaw exists. So "enemy centroid +
+	// overshoot" feeds each side's own slot offset back into the next order and BOTH armies
+	// walk off the map together, side B outrunning side A (measured 2026-08-19, 5000v5000:
+	// centroids at X ~+27000 from an 8000uu field, gap growing, A shot in the back). Bounding
+	// the aim to the corridor between the two home zones kills the feedback: the aim can lead
+	// the enemy, never leave the field.
+	const FVector Axis = EnemyHome - HomeZone;
+	const float Length = Axis.Size2D();
+	if (Length <= KINDA_SMALL_NUMBER) { return Aim; }
+	const FVector Dir = Axis / Length;
+	const float Along = FVector::DotProduct(Aim - HomeZone, Dir);
+	return Aim + Dir * (FMath::Clamp(Along, 0.f, Length) - Along);
 }
 
 int32 UStressWarSide::LiveStanding(const USwarmSubsystem& Swarm) const

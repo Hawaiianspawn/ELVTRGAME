@@ -912,7 +912,7 @@ void URetinueFormationProcessor::Execute(FMassEntityManager& EntityManager, FMas
 	// Unit in bits 32+, look in bits 24-31, slot in the low 24 — one sortable,
 	// uniquely-searchable int64 per soldier, so the LowerBound lookup below stays the same
 	// shape it always was. 24 bits is 16.7M slots, past any army this engine will hold; unit
-	// index only needs 3 bits (MaxSquads) but bit 32 leaves the look byte untouched.
+	// index only needs 5 bits (MaxSquads) but bit 32 leaves the look byte untouched.
 	auto MakeKey = [](int32 UnitIndex, int32 Variant, int32 Slot) -> int64
 	{
 		return ((int64)UnitIndex << 32) | ((int64)Variant << 24) | (int64)FMath::Clamp(Slot, 0, (1 << 24) - 1);
@@ -953,11 +953,20 @@ void URetinueFormationProcessor::Execute(FMassEntityManager& EntityManager, FMas
 		FGroupTable Table;
 		int64 LastGroupKey = -1; // (Unit, Variant) combined — Keys[i] >> 24
 		int32 LastUnit = -1;
+		int32 LastArmy = -1;
 		int32 RunCount = 0;
 		int32 NextGroup = 0;
 		for (int32 i = 0; i < Keys.Num(); ++i)
 		{
 			const int32 Unit = (int32)(Keys[i] >> 32);
+			// Each ARMY gets its own grid. The ordinal is a running count over every live body
+			// of a type, so before this a second army's blocks were laid out in the rows BEHIND
+			// the first army's -- 12 handles a side put team B's blocks 9000-14000uu +X of its
+			// own anchor, which reads on screen as one army running away from the other
+			// (StressWar 5000v5000, measured 2026-08-19). Rows extend behind an anchor, so
+			// restarting per army is also the mirror: each side's rows trail its own line.
+			const int32 Army = (Unit >= USwarmSubsystem::MaxSquads / 2) ? 1 : 0; // AssignRecruit's split
+			if (Army != LastArmy) { NextGroup = 0; LastArmy = Army; }
 			const int64 GroupKey = bOneGroupPerUnit ? (int64)Unit : (Keys[i] >> 24); // (Unit[, Variant]), drops the slot tiebreak
 			const bool bNewLook = (GroupKey != LastGroupKey);
 			const bool bCapped = !bNewLook && !bOneGroupPerUnit && (RunCount >= Cap);

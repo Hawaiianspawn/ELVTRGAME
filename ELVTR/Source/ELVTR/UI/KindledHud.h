@@ -54,7 +54,7 @@ protected:
 	// gone with the global stance it tracked — cards read their unit's own order since the
 	// pivot, and one number for eight of them was never going to be right.
 	int32 PeakRetinue = 0;
-	int32 SquadPeak[8] = {}; // sized to USwarmSubsystem::MaxSquads
+	int32 SquadPeak[32] = {}; // == USwarmSubsystem::MaxSquads (kept a literal: no Mass include here)
 	int32 LastAlive = -1;
 	float RefreshTimer = 0.f;
 };

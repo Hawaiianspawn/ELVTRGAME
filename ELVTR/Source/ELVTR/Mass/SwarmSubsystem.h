@@ -25,6 +25,11 @@ class ELVTR_API USwarmSubsystem : public UWorldSubsystem
 	GENERATED_BODY()
 
 public:
+	USwarmSubsystem()
+	{
+		for (int32 i = 0; i < MaxSquads; ++i) { SquadVariant[i] = INDEX_NONE; SquadTier[i] = INDEX_NONE; }
+	}
+
 	/**
 	 * World-space side length of one spatial-hash bucket. QueryNeighbors walks a 3x3
 	 * neighbourhood around an entity's own cell, so the true search radius this buys is
@@ -43,7 +48,10 @@ public:
 	// docs/design/squad-group-system.md §1.0: "squad" and "unit" are the same thing from
 	// here on — SquadId/MaxSquads/squads.json all keep their existing names (a terminology
 	// merge, not a code rename) but now name a TYPED thing (§1.1: Spearmen, Archers).
-	static constexpr int32 MaxSquads = 8;        // hard cap; the shared command-handle budget
+	// 32 since 2026-08-18 (StressWar Phase B): 5 id bits + type + army still fit the squad
+	// uint8 (SwarmSquad), the render int32 had the bits free (SwarmRenderPack). Every array
+	// below is sized by this, so raising it is a class-layout change: editor-closed rebuild.
+	static constexpr int32 MaxSquads = 32;       // hard cap; the shared command-handle budget
 	static constexpr int32 SquadTargetSize = 20; // legacy per-unit formation-slot reference size
 
 	// --- the seven, and the war (docs/design/slice-a7.md, castle-layout.md D1) ----------
@@ -57,7 +65,9 @@ public:
 	// keep the low, stable indices a HUD and a console command are addressed by, and what
 	// makes "is this handle the player's?" a single < comparison everywhere.
 	static constexpr int32 NamedSoldiers = 7;
-	static constexpr int32 GarrisonUnit = MaxSquads - 1;
+	// Pinned to 7, NOT MaxSquads - 1: the garrison's index is baked into help text, exec
+	// scripts and the "handle 7" idiom throughout; widening the budget must not move it.
+	static constexpr int32 GarrisonUnit = NamedSoldiers;
 	static constexpr bool IsNamedUnit(int32 UnitIndex) { return UnitIndex >= 0 && UnitIndex < NamedSoldiers; }
 
 	/**
@@ -1088,10 +1098,10 @@ private:
 	int32 PackedPoolByType[NumUnitTypes] = { -1, -1 };          // pool as of each type's last formation repack
 
 	// Adaptation: this unit's assigned rung, INDEX_NONE = not adapted. See SetSquadRung.
-	int32 SquadVariant[MaxSquads] = { INDEX_NONE, INDEX_NONE, INDEX_NONE, INDEX_NONE,
-	                                  INDEX_NONE, INDEX_NONE, INDEX_NONE, INDEX_NONE };
-	int32 SquadTier[MaxSquads] = { INDEX_NONE, INDEX_NONE, INDEX_NONE, INDEX_NONE,
-	                               INDEX_NONE, INDEX_NONE, INDEX_NONE, INDEX_NONE };
+	// Filled to INDEX_NONE by the constructor (below), not an initialiser list, so the
+	// literal never has to match MaxSquads again.
+	int32 SquadVariant[MaxSquads];
+	int32 SquadTier[MaxSquads];
 	int32 AdaptationRevision = 0;
 
 	int32 AliveRetinue = 0;

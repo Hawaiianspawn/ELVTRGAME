@@ -18,7 +18,7 @@ class UStressWarSide;
  * `open L_Spike1?game=/Script/ELVTR.StressWarGameMode`. Cost: `stat unit`, `stat Swarm`.
  *
  * Handles: team 0 takes 0..MaxSquads/2-1, team 1 the rest (USwarmSubsystem::AssignRecruit's
- * own TeamId split). Each company = 1 Spearmen + 1 Archers handle.
+ * own TeamId split). Each company = 1 lead + 1 Spearmen + 1 Archers handle.
  */
 UCLASS()
 class AStressWarGameMode : public AGameModeBase
@@ -35,9 +35,14 @@ public:
 	UPROPERTY(EditDefaultsOnly, Category = "StressWar")
 	int32 PerSide = 5000;
 
-	/** Companies per side; each takes 2 handles. Capped by MaxSquads/2/2. */
+	/** Companies per side; each takes UStressWarSide::HandlesPerCompany handles (lead +
+	 *  Spearmen + Archers). Capped by what MaxSquads/2 holds. */
 	UPROPERTY(EditDefaultsOnly, Category = "StressWar")
-	int32 CompaniesPerSide = 2;
+	int32 CompaniesPerSide = 4;
+
+	/** Company lead HP multiplier over its rung -- the seven's own SpawnNamed expedient. */
+	UPROPERTY(EditDefaultsOnly, Category = "StressWar")
+	float LeadHPScale = 10.f;
 
 	/** Bodies per side held back and fed in as handles thin out. */
 	UPROPERTY(EditDefaultsOnly, Category = "StressWar")
@@ -55,9 +60,11 @@ public:
 	UPROPERTY(EditDefaultsOnly, Category = "StressWar")
 	int32 Columns = 40;
 
-	/** Handle blocks abreast before the next wraps behind (Swarm.Formation.GroupsPerRow). */
+	/** Handle blocks abreast before the next wraps behind (Swarm.Formation.GroupsPerRow).
+	 *  0 = one row per side (every handle abreast), which is what keeps the two armies in
+	 *  contact -- see the .cpp. 3 puts one company per row: lead | Spearmen | Archers. */
 	UPROPERTY(EditDefaultsOnly, Category = "StressWar")
-	int32 BlocksAbreast = 2;
+	int32 BlocksAbreast = 0;
 
 	/** How far past the enemy centroid a company aims its charge, uu (see UStressWarSide::Decide). */
 	UPROPERTY(EditDefaultsOnly, Category = "StressWar")

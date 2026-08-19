@@ -102,6 +102,7 @@ void UKindledHud::PushLiveMuster()
 	}
 	LastAlive = Signature;
 
+	static_assert(UE_ARRAY_COUNT(SquadPeak) == USwarmSubsystem::MaxSquads, "SquadPeak must track MaxSquads");
 	const int32 SquadCount = FMath::Min<int32>(USwarmSubsystem::MaxSquads, UE_ARRAY_COUNT(SquadPeak));
 	TArray<FKindledSquad> Live;
 	Live.Reserve(SquadCount);

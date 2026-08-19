@@ -254,9 +254,11 @@ namespace SwarmFacing
  */
 namespace SwarmSquad
 {
-	constexpr uint8 IdMask = 0x07;   // bits 0-2: which of MaxSquads (8) unit slots
-	constexpr uint8 TypeShift = 3;
-	constexpr uint8 TypeBit = 1 << TypeShift; // bit 3: 0 = Spearmen, 1 = Archers
+	// 2026-08-18 (StressWar Phase B): id widened 3 -> 5 bits for MaxSquads 8 -> 32. Type
+	// and army moved up two bits; the byte still has bit 7 spare. 64 handles would fill it.
+	constexpr uint8 IdMask = 0x1F;   // bits 0-4: which of MaxSquads (32) unit slots
+	constexpr uint8 TypeShift = 5;
+	constexpr uint8 TypeBit = 1 << TypeShift; // bit 5: 0 = Spearmen, 1 = Archers
 
 	/**
 	 * Battleground (docs/design/battleground.md §2.2): which of two armies this soldier
@@ -267,8 +269,8 @@ namespace SwarmSquad
 	 * site's packed byte — and therefore the combat pass's same-side test — byte-identical
 	 * to before this existed.
 	 */
-	constexpr uint8 ArmyShift = 4;
-	constexpr uint8 ArmyBit = 1 << ArmyShift; // bit 4: 0 = team A/default, 1 = team B
+	constexpr uint8 ArmyShift = 6;
+	constexpr uint8 ArmyBit = 1 << ArmyShift; // bit 6: 0 = team A/default, 1 = team B
 
 	FORCEINLINE uint8 Pack(uint8 UnitIndex, EUnitType Type, uint8 TeamId = 0)
 	{
@@ -299,14 +301,14 @@ namespace SwarmSquad
  *   bits 0-7   anim byte (SwarmAnim)
  *   bits 8-11  size bucket: a per-entity uniform random, 0-15
  *   bits 12-16 world facing, 32 steps (SwarmFacing)
- *   bits 17-20 squad byte (SwarmSquad) — unit index (0-2) + type (bit 3), retinue only
- *   bits 21-24 variant: which atlas look this body wears, as a WITHIN-SUB-TABLE index.
+ *   bits 17-22 squad byte (SwarmSquad) — unit index (bits 0-4) + type (bit 5), retinue only
+ *   bits 23-26 variant: which atlas look this body wears, as a WITHIN-SUB-TABLE index.
  *              Shared field for all three tables -- TeamBit (already in bits 0-7) picks
  *              the side and, on the team side, the squad byte's unit type picks the
  *              sub-table: SwarmSheet::Enemy (0-8), team spearmen (0-10), team archers
  *              (0-5). task-126 kept this four bits wide by putting the archer ROW OFFSET
  *              in the render bridge instead of in this field -- see SwarmSheet::Team.
- *   bits 25-31 free
+ *   bits 27-31 free
  */
 namespace SwarmRenderPack
 {
@@ -329,9 +331,9 @@ namespace SwarmRenderPack
 	// was the exact gap docs/design/squad-group-system.md §1.3 and UnitCamDirector.cpp's own
 	// comment named ("bits 17-31 are free but nothing writes a squad id into them yet").
 	constexpr int32 SquadShift = 17;
-	constexpr int32 SquadMask = SwarmSquad::IdMask | SwarmSquad::TypeBit; // 4 bits, 0-15
+	constexpr int32 SquadMask = SwarmSquad::IdMask | SwarmSquad::TypeBit; // 6 bits, 0-63
 
-	// Bits 21-24: which atlas look this body wears -- SwarmSheet::Enemy (0-8), team
+	// Bits 23-26: which atlas look this body wears -- SwarmSheet::Enemy (0-8), team
 	// spearmen (0-10) or team archers (0-12), picked by TeamBit plus the squad byte's unit
 	// type (task-085 split one variant field into two independent tables sharing the same
 	// bits, since the two sides are never both live for a given entity; task-126 added a
@@ -342,7 +344,7 @@ namespace SwarmRenderPack
 	// class-layout change — which matters more than usual here, because a layout change on
 	// this module cannot be applied by Live Coding at all (it reports success and then
 	// crashes the next PIE, see the ponytail: note in SwarmRenderActor.cpp).
-	constexpr int32 VariantShift = 21;
+	constexpr int32 VariantShift = 23;
 	constexpr int32 VariantMask = 0xF;						// 4 bits, 0-15: 11 spear, 6 archer, 9 enemy
 
 	FORCEINLINE int32 Pack(uint8 AnimBits, int32 SizeBucket, int32 FacingIndex = 0, uint8 SquadByte = 0,

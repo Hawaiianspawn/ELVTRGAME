@@ -269,6 +269,11 @@ written 2026-07-11.
 6. `adaptation.md`'s **captain rung (fields its own retinue ≤ 8) still conflicts
    with D1** and needs its re-read regardless (already flagged, `castle-layout.md`
    §11).
+7. **A second topology now exists in code and does not match either.** `StressWar`
+   (`docs/design/stress-war.md`) fields a **company lead**: one named body on its *own*
+   handle, commanding a company of several troop handles — the inverse of
+   `adaptation.md` §6's "a captain plus its retinue is one handle". Neither is canon yet;
+   the re-read above has to pick one word for one shape. Logged 2026-08-19, testbed only.
 
 ---
 

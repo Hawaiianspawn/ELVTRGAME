@@ -5,7 +5,7 @@
   "revision_note": "0.3 is the typed-unit rework, owner ask 2026-07-27: 'retinue turned into simpler units, much like Total War... spearmen and archers.' Squad = unit now (squad-group-system.md §1.0). squad_target_size_formula (0.2, single pool) replaced by squad_manager.typed_allocation (two pools, Spearmen claim first). Adds map_mode (new third view) and army_view_lens_geometry.orthographic_check. view_modes/selection_responsiveness/yaw_envelope carried over from 0.2 unchanged except where noted.",
 
   "squad_manager": {
-    "max_squads": 8,
+    "max_squads": 32,
     "max_squads_note": "Fixed through the near-term bigger-retinue stage. Not a power cap (GDD §7 Law 2) — bounds the number of command handles a player juggles, not total retinue power. Matches the muster HUD's existing 4-card-per-wing mirrored layout. Now SHARED across both unit types (typed_allocation below), not per-type.",
     "typed_allocation": {
       "formula": "WantedUnits(type) = ceil(Pool(type) / squad_size_legibility_ceiling); Units(spearmen) = max(1, WantedUnits(spearmen)) if Pool(spearmen) > 0 else 0; Units(archers) = clamp(max(1, WantedUnits(archers)), 0, max_squads - Units(spearmen)) if Pool(archers) > 0 else 0",

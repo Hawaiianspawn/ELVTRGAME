@@ -63,7 +63,7 @@ namespace SwarmSpawn
 	 * commanding them individually feels like anything. Assign the handle's look and rung with
 	 * USwarmSubsystem::SetSquadRung BEFORE calling this, since HP is baked from it at spawn.
 	 */
-	void SpawnNamed(UWorld* World, int32 UnitIndex, EUnitType Type, float HPScale);
+	void SpawnNamed(UWorld* World, int32 UnitIndex, EUnitType Type, float HPScale, uint8 TeamId = 0);
 
 	/**
 	 * A world point Distance uu from the bearer along the bearing the tide arrives on —
