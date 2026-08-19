@@ -6,6 +6,7 @@ signal died(unit: Unit)
 
 const ALLY := 0
 const ENEMY := 1
+const RUSH := 7.0
 enum State { RANK, ADVANCE, FIGHT, RETREAT }
 
 var type: String
@@ -32,6 +33,8 @@ var _recoil := Vector2.ZERO
 var dead := false
 var opening := false        # fires the swap-in ability when it reaches the line
 var guard_until := 0.0
+var rush := false            # ADVANCE/RETREAT at rush speed (swaps route behind the camera)
+var _leg := 0                # RETREAT: 0 = run back past the camera, 1 = walk into the vacated slot
 var battle: Node2D
 var sprite: Sprite2D
 
@@ -67,10 +70,18 @@ func _process(delta: float) -> void:
 			State.RANK:
 				_moving = battle.advancing      # the whole company marches; ranks bob in step
 			State.RETREAT:
-				_step(home, delta)
-				if not _moving:
-					state = State.RANK
-					sprite.frame = 4
+				if _leg == 0:
+					_step(Vector2(wx, 45.0), delta)
+					if wd < 70.0:
+						_leg = 1
+						wx = home.x
+						wd = 55.0
+				else:
+					_step(home, delta)
+					if not _moving:
+						state = State.RANK
+						rush = false
+						sprite.frame = 4
 			State.ADVANCE:
 				_step(Vector2(battle.lane_x(lane), hold_d), delta)
 				if not _moving:
@@ -102,7 +113,11 @@ func _step(goal: Vector2, delta: float) -> void:
 	var here := Vector2(wx, wd)
 	if here.distance_to(goal) > 2.0:
 		var v := (goal - here).normalized()
-		here += v * speed * delta
+		var sp := speed * (RUSH if rush else 1.0)
+		if here.distance_to(goal) < sp * delta:
+			here = goal
+		else:
+			here += v * sp * delta
 		wx = here.x
 		wd = here.y
 		_moving = true
@@ -111,6 +126,7 @@ func _step(goal: Vector2, delta: float) -> void:
 
 
 func _place() -> void:
+	visible = wd > 40.0
 	position = battle.view.project(wx, wd)
 	scale = Vector2.ONE * battle.view.sprite_scale(wd)
 	_lunge = _lunge.lerp(Vector2.ZERO, 0.18)

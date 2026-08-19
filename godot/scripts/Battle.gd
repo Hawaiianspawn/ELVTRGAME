@@ -7,13 +7,14 @@ extends Node2D
 const FRONT_D := 320.0
 const SPAWN_D := 1050.0
 const LANE_W := 64.0
-const HERO_MIN_D := 205.0
+const HERO_MIN_D := 150.0
 const HERO_MAX_D := 290.0
 const RANK_D0 := 285.0          # first rank behind the front line
 const RANK_STEP := 24.0
 const RANK_X := 32.0
 const CREEP := 14.0             # the push: world units / s the field slides toward the camera
-const RANK_ROWS := 4            # visual depth of the company block; reserves fill from the front, decor fills the rest
+const RANK_ROWS := 7            # depth of the company block down to the camera; every slot is a real unit
+const BEHIND_D := 55.0          # just behind the lens: where swaps come from and go to
 const TYPES := ["veteran", "halberdier", "hammer", "sheathed", "vet_ranged"]
 
 var view := View.new()
@@ -44,6 +45,7 @@ var scenery: Array[Sprite2D] = []      # foreground rows + far horde, meta wx/wd
 var scroll := 0.0
 var advancing := true
 var swap_pending: Array[bool] = []
+var leaving_by_lane: Dictionary = {}   # lane -> Unit running back behind the camera
 var decor: Array[Sprite2D] = []
 var spell_cd := {"bolt": 0.0, "heal": 0.0, "wall": 0.0}
 var checkpoint_magic := 0.0
@@ -108,14 +110,7 @@ func _scenery_sprite(name: String, facing: int, wx: float, wd: float, tint: Colo
 
 
 func _build_scenery() -> void:
-	# Foreground: two packed rows of our own army between the hero and the camera, cropped by the frame.
-	for row in range(4):
-		var d := 128.0 + row * 30.0
-		var x := -760.0 + (row % 2) * 15.0
-		var shade := lerpf(0.5, 0.72, row / 3.0)
-		while x <= 760.0:
-			_scenery_sprite(TYPES[_rng.randi_range(0, 4)], 4, x + _rng.randf_range(-4, 4), d + _rng.randf_range(-4, 4), Color(shade, shade, shade + 0.03), 1.0)
-			x += 30.0
+	pass   # the whole army on camera is real units now (see _build_ranks)
 
 
 func start_wave(i: int) -> void:
@@ -153,46 +148,32 @@ func start_wave(i: int) -> void:
 
 
 func _build_ranks(reserves: Dictionary) -> void:
-	# Interleave the types so every rank reads as a mixed line, then fill rows nearest the front first.
-	var pool: Array[String] = []
+	# Every slot in the block is a real unit. waves.json reserves are the mix; the block size sets the count.
+	# Interleaved so each rank reads as a mixed line; the wider the block, the more of everything.
+	var pattern: Array[String] = []
 	var left := reserves.duplicate()
 	while true:
 		var any := false
 		for t in TYPES:
 			if int(left.get(t, 0)) > 0:
-				pool.append(t)
+				pattern.append(t)
 				left[t] = int(left[t]) - 1
 				any = true
 		if not any:
 			break
-	for d in decor:
-		scenery.erase(d)
-		d.queue_free()
-	decor.clear()
-	var half := (lanes - 1) / 2.0 * LANE_W + 190.0
+	var half := (lanes - 1) / 2.0 * LANE_W + 220.0
 	var per_row := int(floor(half * 2.0 / RANK_X)) + 1
 	for k in range(per_row * RANK_ROWS):
 		var row := k / per_row
 		var col := k % per_row
 		var wx := -half + col * RANK_X + (row % 2) * RANK_X * 0.5 + _rng.randf_range(-3, 3)
 		var wd := RANK_D0 - row * RANK_STEP + _rng.randf_range(-2, 2)
-		if k < pool.size():
-			var u := spawn(pool[k], Unit.ALLY)
-			u.state = Unit.State.RANK
-			u.wx = wx
-			u.wd = wd
-			u.hold_d = wd
-			u.home = Vector2(wx, wd)
-		else:
-			# decor: fills the company block so it always reads as a wall of helmets
-			var s := Game.make_sprite(TYPES[_rng.randi_range(0, 4)], 4)
-			s.set_meta("wx", wx)
-			s.set_meta("wd", wd)
-			s.set_meta("k", 1.0)
-			s.set_meta("tint", Color(0.9, 0.9, 0.92))
-			world.add_child(s)
-			decor.append(s)
-			scenery.append(s)
+		var u := spawn(pattern[k % pattern.size()], Unit.ALLY)
+		u.state = Unit.State.RANK
+		u.wx = wx
+		u.wd = wd
+		u.hold_d = wd
+		u.home = Vector2(wx, wd)
 
 
 func lane_x(l: int) -> float:
@@ -351,6 +332,16 @@ func _process(delta: float) -> void:
 				u.hold_d = FRONT_D
 				u.state = Unit.State.ADVANCE
 				u.opening = swap_pending[l]
+				if swap_pending[l]:
+					# the army wheels around you: it appears behind the lens and rushes up through the ranks
+					var slot := u.home
+					u.wx = lane_x(l) + _rng.randf_range(-10, 10)
+					u.wd = BEHIND_D
+					u.rush = true
+					var leaving: Unit = leaving_by_lane.get(l)
+					if leaving != null and is_instance_valid(leaving):
+						leaving.home = slot      # the one running back takes the vacated slot
+					leaving_by_lane.erase(l)
 				swap_pending[l] = false
 				front[l] = u
 	# ambient magic from the ground veins
@@ -456,6 +447,10 @@ func _set_army(type: String) -> void:
 			front[l] = null
 			u.lane = -1
 			u.state = Unit.State.RETREAT
+			u.rush = true
+			u._leg = 0
+			u.sprite.frame = 0
+			leaving_by_lane[l] = u
 		swap_pending[l] = true
 	var d: Dictionary = Game.units[type]
 	var cd := _ability_cd_left(type)
