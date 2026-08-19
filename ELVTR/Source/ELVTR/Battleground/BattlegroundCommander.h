@@ -57,6 +57,10 @@ public:
 	 */
 	void ForceBreakCharge(USwarmSubsystem& Swarm, const FVector& EnemyCentroid);
 
+	/** One stance to every handle this commander owns (a company-level order). Silent, not
+	 *  sticky — a caller-driven order, unlike ForceBreakCharge's one-shot scripted break. */
+	void Order(USwarmSubsystem& Swarm, ESwarmStance Stance, const FVector& Anchor);
+
 	uint8 GetTeamId() const { return TeamId; }
 	const TArray<int32>& GetUnitHandles() const { return UnitHandles; }
 	const FVector& GetHomeZone() const { return HomeZone; }

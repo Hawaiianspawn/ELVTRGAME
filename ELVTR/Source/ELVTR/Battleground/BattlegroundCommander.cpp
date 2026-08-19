@@ -111,3 +111,13 @@ void UBattlegroundCommander::ForceBreakCharge(USwarmSubsystem& Swarm, const FVec
 		Swarm.SetUnitStance(Unit, ESwarmStance::Charge, EnemyCentroid);
 	}
 }
+
+void UBattlegroundCommander::Order(USwarmSubsystem& Swarm, ESwarmStance Stance, const FVector& Anchor)
+{
+	if (bBrood) { return; }
+	LastStance = Stance;
+	for (int32 Unit : UnitHandles)
+	{
+		Swarm.SetUnitStance(Unit, Stance, Anchor);
+	}
+}

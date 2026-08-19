@@ -451,7 +451,7 @@ namespace
 	 * never contribute a closer candidate than the in-band one, so behaviour is unchanged.
 	 */
 	FORCEINLINE bool FindNearestEnemyBanded(const USwarmSubsystem& Swarm, const FVector& Location, bool bWantRetinue,
-		float MinRangeSq, float MaxRangeSq, FVector& OutLocation, float& OutDistSq)
+		float MinRangeSq, float MaxRangeSq, FVector& OutLocation, float& OutDistSq, int32 HostileArmy = INDEX_NONE)
 	{
 		bool bFoundInBand = false;
 		float BestInBandSq = TNumericLimits<float>::Max();
@@ -463,7 +463,12 @@ namespace
 
 		Swarm.QueryNeighbors(Location, [&](const USwarmSubsystem::FGridEntry& Entry)
 		{
-			if (Entry.bRetinue != bWantRetinue)
+			// Two formed armies (field battle): a retinue body of HostileArmy is an enemy too,
+			// mirroring the combat pass's own same-side test (SwarmCombatProcessors.cpp). Left
+			// INDEX_NONE by every castle caller, so this is byte-identical there.
+			const bool bHostileRetinue = HostileArmy != INDEX_NONE && Entry.bRetinue
+				&& SwarmSquad::UnitArmy(Entry.SquadId) == HostileArmy;
+			if (Entry.bRetinue != bWantRetinue && !bHostileRetinue)
 			{
 				return;
 			}
@@ -1250,7 +1255,9 @@ void URetinueFollowProcessor::Execute(FMassEntityManager& EntityManager, FMassEx
 				case ESwarmStance::Charge:
 					// Volley Advance: hold ground (never Charge's melee-advance), engaging at
 					// the same reach — the "aggressive" read without breaking never-melee.
-					Anchor = Attractor + FVector(Slot.X, Slot.Y, 0.f);
+					// Field battle: advance WITH the order (there is no hero to stand by), the
+					// same StanceAnchor + slot the block's Spearmen march on.
+					Anchor = (bFieldBattle ? StanceAnchor : Attractor) + FVector(Slot.X, Slot.Y, 0.f);
 					break;
 				case ESwarmStance::Rally:
 				{
@@ -1276,7 +1283,8 @@ void URetinueFollowProcessor::Execute(FMassEntityManager& EntityManager, FMassEx
 			FVector EnemyLocation;
 			float EnemyDistSq = 0.f;
 			const bool bEngaging = FindNearestEnemyBanded(*Swarm, Location, /*bWantRetinue=*/false,
-				FMath::Square(MinEngageRange), FMath::Square(EngageRange), EnemyLocation, EnemyDistSq);
+				FMath::Square(MinEngageRange), FMath::Square(EngageRange), EnemyLocation, EnemyDistSq,
+				/*HostileArmy=*/bFieldBattle ? (int32)(1 - SwarmSquad::UnitArmy(SquadByte)) : INDEX_NONE);
 
 			FVector Target = (bEngaging && bMayCloseDistance) ? EnemyLocation : Anchor;
 
