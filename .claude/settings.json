@@ -24,6 +24,19 @@
           }
         ]
       }
+    ],
+    "PostToolUse": [
+      {
+        "matcher": "Edit|Write|MultiEdit",
+        "hooks": [
+          {
+            "type": "command",
+            "async": true,
+            "timeout": 60,
+            "command": "grep -qiE '\"file_path\": *\"[^\"]*godot' && powershell -NoProfile -File C:/Projects/ELVTRGAME/Scripts/godot-run.ps1 >/dev/null 2>&1 || true"
+          }
+        ]
+      }
     ]
   }
 }
