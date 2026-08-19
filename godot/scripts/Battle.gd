@@ -44,6 +44,8 @@ var scroll := 0.0
 var advancing := true
 var swap_pending: Array[bool] = []
 var leaving_by_lane: Dictionary = {}   # lane -> Unit running back behind the camera
+var _grid: Dictionary = {}             # cell -> Array[Unit], rebuilt each frame for separation / near queries
+const CELL := 48.0
 var decor: Array[Sprite2D] = []
 var spell_cd := {"bolt": 0.0, "heal": 0.0, "wall": 0.0}
 var checkpoint_magic := 0.0
@@ -153,6 +155,24 @@ func _build_ranks(reserves: Dictionary) -> void:
 		units.append(u)
 
 
+## A slot opened in the ranks: the nearest unit behind it (toward the camera) steps up, and so on down the file.
+func _shuffle_up(slot: Vector2) -> void:
+	for _i in range(Army.RANK_X as int):   # bounded chain
+		var best: Unit = null
+		var best_d := 60.0
+		for o in units:
+			if o.team == Unit.ALLY and o.state == Unit.State.RANK and o.home.y < slot.y - 4.0:
+				var d := absf(o.home.x - slot.x) + (slot.y - o.home.y) * 0.8
+				if d < best_d:
+					best_d = d
+					best = o
+		if best == null:
+			return
+		var vacated := best.home
+		best.home = slot
+		slot = vacated
+
+
 func lane_x(l: int) -> float:
 	return (l - (lanes - 1) / 2.0) * LANE_W
 
@@ -176,15 +196,20 @@ func lane_open(l: int) -> bool:
 func find_target(u: Unit) -> Node2D:
 	var best: Node2D = null
 	var best_d := INF
+	var here := Vector2(u.wx, u.wd)
 	for o in units:
-		if not is_instance_valid(o) or o.team == u.team or o.state == Unit.State.RANK or o.state == Unit.State.RETREAT or absi(o.lane - u.lane) > 1:
+		if not is_instance_valid(o) or o.dead or o.team == u.team or o.state == Unit.State.RETREAT:
 			continue
-		var d := Vector2(u.wx, u.wd).distance_to(Vector2(o.wx, o.wd))
+		var d := here.distance_to(Vector2(o.wx, o.wd))
+		if o.state == Unit.State.RANK and d > 70.0:
+			continue          # ranks only matter once you're on top of them
+		if u.team == Unit.ALLY and d > u.rng + 50.0:
+			continue          # the line holds; it doesn't chase
 		if d < best_d:
 			best_d = d
 			best = o
-	if best == null and u.team == Unit.ENEMY and lane_open(u.lane):
-		return hero
+	if best == null and u.team == Unit.ENEMY and u.wd < FRONT_D + 60.0:
+		return hero        # through the line with nobody left to stop it
 	return best
 
 
@@ -255,8 +280,8 @@ func spawn(type: String, team: int) -> Unit:
 func _spawn_enemy(type: String) -> void:
 	var u := spawn(type, Unit.ENEMY)
 	u.lane = _rng.randi_range(0, lanes - 1)
-	u.wx = lane_x(u.lane) + _rng.randf_range(-14, 14)
-	u.wd = SPAWN_D + _rng.randf_range(0, 120)
+	u.wx = _rng.randf_range(lane_x(0) - 60.0, lane_x(lanes - 1) + 60.0)
+	u.wd = SPAWN_D + _rng.randf_range(0, 160)
 	u.hold_d = FRONT_D + 40.0 + _rng.randf_range(-6, 22)
 
 
@@ -280,9 +305,68 @@ func _cursor_world() -> Vector2:
 	return Vector2(view.x_at(c.x, d), d)
 
 
+func _cell(wx: float, wd: float) -> Vector2i:
+	return Vector2i(int(floor(wx / CELL)), int(floor(wd / CELL)))
+
+
+func _rebuild_grid() -> void:
+	_grid.clear()
+	for u in units:
+		if not is_instance_valid(u) or u.dead:
+			continue
+		var c := _cell(u.wx, u.wd)
+		if not _grid.has(c):
+			_grid[c] = []
+		_grid[c].append(u)
+
+
+func _around(wx: float, wd: float) -> Array:
+	var out := []
+	var c := _cell(wx, wd)
+	for dx in range(-1, 2):
+		for dy in range(-1, 2):
+			var arr = _grid.get(Vector2i(c.x + dx, c.y + dy))
+			if arr:
+				out.append_array(arr)
+	return out
+
+
+## Shove away from neighbours closer than a body width, and away from the hero pushing through.
+func separation(u: Unit) -> Vector2:
+	var here := Vector2(u.wx, u.wd)
+	var push := Vector2.ZERO
+	for o in _around(u.wx, u.wd):
+		if o == u or o.team != u.team:
+			continue
+		var d := here - Vector2(o.wx, o.wd)
+		var l := d.length()
+		if l < 24.0 and l > 0.01:
+			push += d / l * (24.0 - l) * 6.0
+	var hd := here - Vector2(hero_wx, hero_wd)
+	var hl := hd.length()
+	if hl < 34.0 and hl > 0.01:
+		push += hd / hl * (34.0 - hl) * 14.0
+	return push
+
+
+func near_enemy(u: Unit, radius: float) -> Unit:
+	var best: Unit = null
+	var best_d := radius
+	var here := Vector2(u.wx, u.wd)
+	for o in _around(u.wx, u.wd):
+		if o.team == u.team:
+			continue
+		var d := here.distance_to(Vector2(o.wx, o.wd))
+		if d < best_d:
+			best_d = d
+			best = o
+	return best
+
+
 func _process(delta: float) -> void:
 	queue_redraw()
 	hud.queue_redraw()
+	_rebuild_grid()
 	toast_t -= delta
 	scroll += CREEP * delta
 	# scenery re-projects every frame (camera tweens per wave)
@@ -309,6 +393,8 @@ func _process(delta: float) -> void:
 				u.hold_d = FRONT_D
 				u.state = Unit.State.ADVANCE
 				u.opening = swap_pending[l]
+				if not swap_pending[l]:
+					_shuffle_up(u.home)
 				if swap_pending[l]:
 					# the army wheels around you: it appears behind the lens and rushes up through the ranks
 					var slot := u.home

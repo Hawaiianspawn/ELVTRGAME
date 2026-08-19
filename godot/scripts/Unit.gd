@@ -6,7 +6,7 @@ signal died(unit: Unit)
 
 const ALLY := 0
 const ENEMY := 1
-const RUSH := 7.0
+const RUSH := 10.0
 enum State { RANK, ADVANCE, FIGHT, RETREAT }
 
 var type: String
@@ -26,7 +26,8 @@ var hold_d := 0.0            # allies stop here; enemies push past it toward the
 var home := Vector2.ZERO     # rank slot this ally came from and returns to when swapped out
 var rooted_until := 0.0
 var _cd := 0.0
-var _t := 0.0
+var _t := randf() * 10.0           # desynced walk phase
+var _gait := randf_range(0.85, 1.2)
 var _moving := false
 var _lunge := Vector2.ZERO
 var _recoil := Vector2.ZERO
@@ -49,7 +50,7 @@ func setup(p_type: String, p_team: int, p_battle: Node2D) -> void:
 	hp = max_hp
 	dmg = float(d["dmg"])
 	rng = float(d["range"])
-	speed = float(d["speed"]) * 1.5
+	speed = float(d["speed"]) * 2.2
 	cooldown = float(d["cooldown"])
 	counters = d["counters"]
 	sprite = Game.make_sprite(d["sprite"], 4 if team == ALLY else 0)
@@ -68,7 +69,22 @@ func _process(delta: float) -> void:
 		sprite.modulate = sprite.modulate.lerp(battle.view.fog(wd), delta * 8.0)
 		match state:
 			State.RANK:
-				_moving = battle.advancing      # the whole company marches; ranks bob in step
+				_moving = battle.advancing
+				# live in the ranks: spring back to the home slot, shoved by neighbours and the hero
+				var here := Vector2(wx, wd)
+				var push: Vector2 = battle.separation(self)
+				here += (home - here) * minf(1.0, 3.0 * delta) + push * delta
+				wx = here.x
+				wd = here.y
+				# anything that breaks through gets fought where it stands
+				var foe: Unit = battle.near_enemy(self, 90.0)
+				if foe:
+					sprite.frame = Game.facing_from(Vector2(foe.wx - wx, -(foe.wd - wd)))
+					if _dist(foe) <= maxf(rng, 45.0) and _cd <= 0.0:
+						_cd = cooldown
+						battle.hit(self, foe)
+				elif not _moving:
+					sprite.frame = 4
 			State.RETREAT:
 				if _leg == 0:
 					_step(Vector2(wx, 45.0), delta)
@@ -95,10 +111,16 @@ func _process(delta: float) -> void:
 					if _cd <= 0.0:
 						_cd = cooldown
 						battle.hit(self, target)
+					if team == ENEMY:
+						sprite.frame = Game.facing_from(Vector2(target.wx - wx, -(target.wd - wd)) if target is Unit else Vector2(0, 1))
 				else:
-					var goal := Vector2(battle.lane_x(lane), hold_d)
-					if team == ENEMY and battle.lane_open(lane):
-						goal = Vector2(battle.hero_wx, battle.hero_wd)
+					var goal: Vector2
+					if team == ENEMY:
+						# not on rails: head for whoever is nearest, else the hero; shoulder past your own kind
+						goal = Vector2(target.wx, target.wd) if target is Unit else (Vector2(battle.hero_wx, battle.hero_wd) if target == battle.hero else Vector2(wx, hold_d))
+						goal += battle.separation(self) * 0.35
+					else:
+						goal = Vector2(battle.lane_x(lane), hold_d)
 					_step(goal, delta)
 	if team == ENEMY:
 		wd -= battle.CREEP * delta          # treadmill: the army pushes up, so the field slides toward the camera
@@ -131,7 +153,7 @@ func _place() -> void:
 	scale = Vector2.ONE * battle.view.sprite_scale(wd)
 	_lunge = _lunge.lerp(Vector2.ZERO, 0.18)
 	_recoil = _recoil.lerp(Vector2.ZERO, 0.2)
-	var bob := -absf(sin(_t * 12.0)) * 3.0 if _moving else 0.0
+	var bob := -absf(sin(_t * 12.0 * _gait)) * 3.0 if _moving else 0.0
 	sprite.position = _lunge + _recoil + Vector2(0, bob)
 
 

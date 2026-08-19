@@ -28,6 +28,16 @@ func _run(spec: String) -> void:
 		assert(b._ability_cd_left(b.army_type) > 0.0, "swap-in ability did not fire")
 		assert(old.state == Unit.State.RANK or not is_instance_valid(old), "old unit never reached its rank slot")
 		print("PROBE swap ok: %s -> %s" % [old.type, new.type])
+	if parts.size() > 2 and parts[2].begins_with("stress"):
+		# stress: grow the block to N rows (default 20) and report FPS after `secs`
+		var rows := int(parts[2].trim_prefix("stress")) if parts[2].length() > 6 else 20
+		await get_tree().create_timer(1.0).timeout
+		var b := get_tree().current_scene
+		var extra := Army.block(b, b.world, Game.waves[Game.wave]["reserves"], 700.0, rows, 285.0 - 7 * Army.RANK_STEP, b._rng)
+		for u in extra:
+			u.died.connect(b._on_died)
+			b.units.append(u)
+		print("PROBE stress units=%d" % b.units.size())
 	if parts.size() > 2 and parts[2] == "jump":
 		# self-check: every jumper phase loads and runs a second without errors
 		for i in range(Jump.PHASES.size()):

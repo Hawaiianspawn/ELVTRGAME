@@ -194,6 +194,14 @@ func lane_x(_l: int) -> float:
 	return 0.0
 
 
+func separation(_u: Unit) -> Vector2:
+	return Vector2.ZERO
+
+
+func near_enemy(_u: Unit, _r: float) -> Unit:
+	return null
+
+
 func _process(delta: float) -> void:
 	scroll += 6.0 * delta
 	for a in actors:
