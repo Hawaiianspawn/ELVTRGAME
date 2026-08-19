@@ -86,25 +86,22 @@ func _process(delta: float) -> void:
 				elif not _moving:
 					sprite.frame = 4
 			State.RETREAT:
-				if _leg == 0:
-					_step(Vector2(wx, 45.0), delta)
-					if wd < 70.0:
-						_leg = 1
-						wx = home.x
-						wd = 55.0
-				else:
-					_step(home, delta)
-					if not _moving:
-						state = State.RANK
-						rush = false
-						sprite.frame = 4
+				_step(Vector2(wx, 45.0), delta)
+				if wd < 70.0:
+					battle.recall(self)      # back into its type's pool
+					return
 			State.ADVANCE:
-				_step(Vector2(battle.lane_x(lane), hold_d), delta)
+				_step(Vector2(battle.lane_x(lane), hold_d) if lane >= 0 else home, delta)
 				if not _moving:
-					state = State.FIGHT
-					if opening:
-						opening = false
-						battle.arrived(self)
+					rush = false
+					if lane >= 0:
+						state = State.FIGHT
+						if opening:
+							opening = false
+							battle.arrived(self)
+					else:
+						state = State.RANK
+						sprite.frame = 4
 			State.FIGHT:
 				var target: Node2D = battle.find_target(self)
 				if target and _dist(target) <= rng:

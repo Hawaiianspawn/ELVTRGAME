@@ -80,8 +80,8 @@ func _rider(coat: String, wx: float, wd: float) -> Node2D:
 
 func _ready() -> void:
 	_rng.randomize()
-	view.cam_h = 230.0
-	view.focal = 290.0
+	view.cam_h = 175.0
+	view.focal = 310.0
 	world = Node2D.new()
 	world.y_sort_enabled = true
 	add_child(world)
@@ -90,7 +90,7 @@ func _ready() -> void:
 	hud.draw.connect(_draw_hud)
 	add_child(hud)
 	# the army we leave behind: the real block, still pushing, outrun in seconds
-	army = Army.block(self, world, Game.waves[3]["reserves"], 476.0, 7, 285.0, _rng)
+	army = Army.block(self, world, Game.waves[3]["reserves"], 436.0, 7, 285.0, _rng)
 	for i in range(9):
 		var f := Unit.new()
 		f.setup(["veteran", "halberdier", "hammer", "sheathed", "vet_ranged"][i % 5], Unit.ALLY, self)

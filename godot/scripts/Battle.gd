@@ -43,7 +43,8 @@ var scenery: Array[Sprite2D] = []      # foreground rows + far horde, meta wx/wd
 var scroll := 0.0
 var advancing := true
 var swap_pending: Array[bool] = []
-var leaving_by_lane: Dictionary = {}   # lane -> Unit running back behind the camera
+var pool: Dictionary = {}              # type -> units of that type not on the field
+var slots: Array[Vector2] = []         # rank slot positions for this wave
 var _grid: Dictionary = {}             # cell -> Array[Unit], rebuilt each frame for separation / near queries
 const CELL := 48.0
 var decor: Array[Sprite2D] = []
@@ -142,17 +143,49 @@ func start_wave(i: int) -> void:
 	# camera: a touch higher and wider each wave so the widening army still fits
 	var t := i / 3.0
 	var tw := create_tween().set_parallel(true)
-	tw.tween_property(view, "focal", lerpf(360.0, 290.0, t), 1.5)
-	tw.tween_property(view, "cam_h", lerpf(190.0, 230.0, t), 1.5)
+	tw.tween_property(view, "focal", lerpf(360.0, 310.0, t), 1.5)
+	tw.tween_property(view, "cam_h", lerpf(150.0, 175.0, t), 1.5)
 	say("Wave %d / 4" % (i + 1))
 
 
 func _build_ranks(reserves: Dictionary) -> void:
-	# Every slot in the block is a real unit. waves.json reserves are the mix; the block size sets the count.
-	var half := (lanes - 1) / 2.0 * LANE_W + 220.0
-	for u in Army.block(self, world, reserves, half, RANK_ROWS, RANK_D0, _rng):
-		u.died.connect(_on_died)
-		units.append(u)
+	# waves.json reserves = per-type pools. The block is one type at a time; deploy fills every slot from the pool.
+	pool = reserves.duplicate()
+	var half := (lanes - 1) / 2.0 * LANE_W + 180.0
+	slots = Army.slots(half, RANK_ROWS, RANK_D0, _rng)
+	_deploy(army_type, false)
+
+
+## Fill every empty rank slot with `type` from its pool. `rush`: come in from behind the lens at speed.
+func _deploy(type: String, rush: bool) -> void:
+	var taken := {}
+	for u in units:
+		if u.team == Unit.ALLY and not u.dead and u.state != Unit.State.RETREAT:
+			taken[u.home] = true
+	for sl in slots:
+		if taken.has(sl) or int(pool.get(type, 0)) <= 0:
+			continue
+		pool[type] = int(pool[type]) - 1
+		var u := spawn(type, Unit.ALLY)
+		u.home = sl
+		u.hold_d = sl.y
+		if rush:
+			u.wx = sl.x + _rng.randf_range(-6, 6)
+			u.wd = BEHIND_D
+			u.rush = true
+			u.state = Unit.State.ADVANCE
+		else:
+			u.wx = sl.x
+			u.wd = sl.y
+			u.state = Unit.State.RANK
+
+
+## A retreating unit made it behind the lens: back into the pool, off the field.
+func recall(u: Unit) -> void:
+	units.erase(u)
+	pool[u.type] = int(pool.get(u.type, 0)) + 1
+	u.dead = true
+	u.queue_free()
 
 
 ## A slot opened in the ranks: the nearest unit behind it (toward the camera) steps up, and so on down the file.
@@ -181,8 +214,8 @@ func _rank_unit(type: String, l: int) -> Unit:
 	var best: Unit = null
 	var best_d := INF
 	for u in units:
-		if u.team == Unit.ALLY and u.state == Unit.State.RANK and u.type == type:
-			var d := absf(u.wx - lane_x(l)) + (RANK_D0 - u.wd) * 2.0
+		if u.team == Unit.ALLY and u.type == type and u.lane < 0 and (u.state == Unit.State.RANK or u.state == Unit.State.ADVANCE):
+			var d := absf(u.home.x - lane_x(l)) + (RANK_D0 - u.home.y) * 2.0
 			if d < best_d:
 				best_d = d
 				best = u
@@ -393,18 +426,9 @@ func _process(delta: float) -> void:
 				u.hold_d = FRONT_D
 				u.state = Unit.State.ADVANCE
 				u.opening = swap_pending[l]
+				u.rush = u.rush or swap_pending[l]
 				if not swap_pending[l]:
 					_shuffle_up(u.home)
-				if swap_pending[l]:
-					# the army wheels around you: it appears behind the lens and rushes up through the ranks
-					var slot := u.home
-					u.wx = lane_x(l) + _rng.randf_range(-10, 10)
-					u.wd = BEHIND_D
-					u.rush = true
-					var leaving: Unit = leaving_by_lane.get(l)
-					if leaving != null and is_instance_valid(leaving):
-						leaving.home = slot      # the one running back takes the vacated slot
-					leaving_by_lane.erase(l)
 				swap_pending[l] = false
 				front[l] = u
 	# ambient magic from the ground veins
@@ -487,9 +511,9 @@ func _hover_lane() -> int:
 
 
 func _rank_count(type: String) -> int:
-	var n := 0
+	var n := int(pool.get(type, 0))
 	for u in units:
-		if u.team == Unit.ALLY and u.state == Unit.State.RANK and u.type == type:
+		if u.team == Unit.ALLY and u.type == type and not u.dead and u.state != Unit.State.RETREAT:
 			n += 1
 	return n
 
@@ -505,16 +529,15 @@ func _set_army(type: String) -> void:
 	army_type = type
 	for l in range(lanes):
 		lane_types[l] = type
-		var u = front[l]
-		if u != null and is_instance_valid(u) and u.type != type:
-			front[l] = null
+		front[l] = null
+		swap_pending[l] = true
+	for u in units.duplicate():
+		if u.team == Unit.ALLY and not u.dead and u.type != type and u.state != Unit.State.RETREAT:
 			u.lane = -1
 			u.state = Unit.State.RETREAT
 			u.rush = true
-			u._leg = 0
 			u.sprite.frame = 0
-			leaving_by_lane[l] = u
-		swap_pending[l] = true
+	_deploy(type, true)
 	var d: Dictionary = Game.units[type]
 	var cd := _ability_cd_left(type)
 	say("%s step up - %s%s" % [d["label"], d["ability_label"], "" if cd <= 0.0 else " (on cooldown %.0fs)" % cd])

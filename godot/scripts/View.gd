@@ -4,11 +4,11 @@ extends RefCounted
 ## screen = (cx + x*s, horizon + cam_h*s), s = focal / d. Sprites scale with s, fog with d.
 
 var horizon := 160.0
-var focal := 340.0
-var cam_h := 190.0
+var focal := 360.0
+var cam_h := 150.0
 var cam_x := 0.0
 var cam_d := 0.0              # camera position along depth; d values are absolute
-var sprite_k := 1.1           # sprite pixel scale at s == 1
+var sprite_k := 1.3           # sprite pixel scale at s == 1
 var fog_color := Color.BLACK
 var fog_start := 380.0
 var fog_end := 980.0

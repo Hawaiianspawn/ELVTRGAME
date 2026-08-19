@@ -4,11 +4,11 @@
     "spawn_interval": 1.28,
     "magic_rate": 0.6,
     "reserves": {
-      "veteran": 6,
-      "halberdier": 5,
-      "hammer": 4,
-      "sheathed": 4,
-      "vet_ranged": 4
+      "veteran": 110,
+      "halberdier": 110,
+      "hammer": 110,
+      "sheathed": 110,
+      "vet_ranged": 110
     },
     "enemies": [
       {
@@ -22,11 +22,11 @@
     "spawn_interval": 1.04,
     "magic_rate": 0.8,
     "reserves": {
-      "veteran": 7,
-      "halberdier": 6,
-      "hammer": 5,
-      "sheathed": 5,
-      "vet_ranged": 5
+      "veteran": 125,
+      "halberdier": 125,
+      "hammer": 125,
+      "sheathed": 125,
+      "vet_ranged": 125
     },
     "enemies": [
       {
@@ -48,11 +48,11 @@
     "spawn_interval": 0.8,
     "magic_rate": 1.0,
     "reserves": {
-      "veteran": 8,
-      "halberdier": 7,
-      "hammer": 6,
-      "sheathed": 6,
-      "vet_ranged": 6
+      "veteran": 140,
+      "halberdier": 140,
+      "hammer": 140,
+      "sheathed": 140,
+      "vet_ranged": 140
     },
     "enemies": [
       {
@@ -74,11 +74,11 @@
     "spawn_interval": 1.12,
     "magic_rate": 1.3,
     "reserves": {
-      "veteran": 9,
-      "halberdier": 8,
-      "hammer": 8,
-      "sheathed": 7,
-      "vet_ranged": 7
+      "veteran": 160,
+      "halberdier": 160,
+      "hammer": 160,
+      "sheathed": 160,
+      "vet_ranged": 160
     },
     "enemies": [
       {
