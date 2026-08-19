@@ -51,3 +51,4 @@ Scripts/snap*.json
 Scripts/snap*.txt
 Scripts/slate-snapshot.txt
 _to_delete/
+build/

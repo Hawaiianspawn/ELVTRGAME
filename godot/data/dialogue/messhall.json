@@ -1,0 +1,24 @@
+{
+  "vet_burn": [
+    {"who": "Old Halloran", "text": "You saw it, Captain. We burned him with the necromancer."},
+    {"who": "You", "text": "He was ours. He deserved ground."},
+    {"who": "Old Halloran", "text": "Ground is where that thing reaches. Ash it can't. Nothing left to reincarnate."},
+    {"who": "Old Halloran", "text": "First command and you still flinch at the pyre. Good. Stop flinching and you're the one we burn."}
+  ],
+  "vet_horse": [
+    {"who": "Sergeant Wyn", "text": "The blue roan walked off. Jaxx. Nobody's chasing it."},
+    {"who": "You", "text": "A horse that size, someone should."},
+    {"who": "Sergeant Wyn", "text": "A horse that size chooses. You don't tame a Clydesdale, Captain. You get chosen or you get trampled."},
+    {"who": "Sergeant Wyn", "text": "It'll be at the treeline by now. Following whatever it follows."}
+  ],
+  "vet_captain": [
+    {"who": "Merle", "text": "Four waves and you kept the line. Junior captain, first command."},
+    {"who": "Merle", "text": "Siphoned enough to keep the flame going. Riders noticed. Doesn't mean they'll drink with you."}
+  ],
+  "bar": [
+    {"who": "Barkeep", "text": "On the house, Captain. Door's behind you if the room gets loud."}
+  ],
+  "door": [
+    {"who": "You", "text": "Cold out. And that flame in my hand hasn't gone out since the pyre."}
+  ]
+}
