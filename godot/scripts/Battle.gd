@@ -1,31 +1,41 @@
 extends Node2D
-## Four waves. Lanes of front-line slots refilled from reserves of the type the player set.
-## Hero walks behind the line, siphons magic from kills, spends it on spells; relics unlock on lifetime magic.
+## Four waves seen from behind the army. World space: x lateral, d depth ahead of the camera (View.gd projects).
+## Front line holds at FRONT_D; reserves stand in packed ranks behind it and step forward into the lane whose
+## front unit died, taking the type the player set for that lane. Hero walks the gap between ranks and line,
+## siphons magic from kills, spends it on spells; relics unlock on lifetime magic.
 
-const FRONT_Y := 300.0
-const SPAWN_Y := 40.0
-const LANE_W := 130.0
-const HERO_MIN_Y := 340.0
-const HERO_MAX_Y := 505.0
+const FRONT_D := 320.0
+const SPAWN_D := 1500.0
+const LANE_W := 80.0
+const HERO_MIN_D := 205.0
+const HERO_MAX_D := 290.0
+const RANK_D0 := 285.0          # first rank behind the front line
+const RANK_STEP := 30.0
+const RANK_X := 44.0
+const CREEP := 6.0              # forward crawl of the whole army, world units / s
 const TYPES := ["shield", "pike", "archer", "greatsword"]
 
+var view := View.new()
 var lanes := 5
 var lane_types: Array[String] = []
 var front: Array = []             # Unit or null per lane
-var reserves: Dictionary = {}
 var spawn_queue: Array[String] = []
 var spawn_t := 0.0
 var spawn_interval := 1.5
 var magic_rate := 0.6
 var mote_t := 0.0
 var units: Array[Unit] = []
-var motes: Array[Node2D] = []
+var motes: Array[Dictionary] = []      # {wx, wd, v}
 var hero: Node2D
 var hero_sprite: Sprite2D
+var hero_wx := 0.0
+var hero_wd := 245.0
 var hero_hp := 100.0
-var camera: Camera2D
 var world: Node2D
 var fx: Node2D
+var hud: Node2D
+var scenery: Array[Sprite2D] = []      # foreground rows + far horde, meta wx/wd
+var scroll := 0.0
 var spell_cd := {"bolt": 0.0, "heal": 0.0, "wall": 0.0}
 var checkpoint_magic := 0.0
 var toast := ""
@@ -36,33 +46,49 @@ var _done := false
 
 func _ready() -> void:
 	_rng.randomize()
-	camera = Camera2D.new()
-	camera.position = Vector2(480, 270)
-	add_child(camera)
-	camera.make_current()
 	world = Node2D.new()
 	world.y_sort_enabled = true
 	add_child(world)
 	fx = Node2D.new()
 	fx.z_index = 5
 	add_child(fx)
+	hud = Node2D.new()
+	hud.z_index = 10
+	hud.draw.connect(_draw_hud)
+	add_child(hud)
 	hero = Node2D.new()
-	hero.position = Vector2(480, 420)
 	hero_sprite = Game.make_sprite("mage", 4)
 	hero.add_child(hero_sprite)
 	world.add_child(hero)
-	_build_crowd()
+	_build_scenery()
 	start_wave(Game.wave)
 
 
-func _build_crowd() -> void:
-	# Back rows: big, dim, static allies between the hero and the camera. Decoration only.
-	for i in range(12):
-		var s := Game.make_sprite(TYPES[i % 4], 4)
-		s.position = Vector2(-120 + i * 110 + _rng.randf_range(-15, 15), 500 + _rng.randf_range(0, 60))
-		s.modulate = Color(0.55, 0.55, 0.6)
-		s.scale = Vector2.ONE * depth_scale(s.position.y)
-		world.add_child(s)
+func _scenery_sprite(name: String, facing: int, wx: float, wd: float, tint: Color, k: float) -> void:
+	var s := Game.make_sprite(name, facing)
+	s.set_meta("k", k)
+	s.set_meta("wx", wx)
+	s.set_meta("wd", wd)
+	s.set_meta("tint", tint)
+	world.add_child(s)
+	scenery.append(s)
+
+
+func _build_scenery() -> void:
+	# Foreground: two packed rows of our own army between the hero and the camera, cropped by the frame.
+	for row in range(2):
+		var d := 150.0 + row * 35.0
+		var x := -700.0 + row * 24.0
+		while x <= 700.0:
+			_scenery_sprite(TYPES[_rng.randi_range(0, 3)], 4, x + _rng.randf_range(-6, 6), d + _rng.randf_range(-6, 6), Color(0.62, 0.62, 0.66), 1.0)
+			x += 48.0
+	# Far: the horde massing under the green dot, flat silhouettes.
+	for row in range(6):
+		var d := 720.0 + row * 110.0
+		var x := -1100.0 + (row % 2) * 17.0
+		while x <= 1100.0:
+			_scenery_sprite(["undead", "armored", "ooze", "undead2"][_rng.randi_range(0, 3)], 0, x + _rng.randf_range(-8, 8), d + _rng.randf_range(-20, 20), Color(0.23, 0.24, 0.25), 2.2)
+			x += 34.0
 
 
 func start_wave(i: int) -> void:
@@ -72,14 +98,11 @@ func start_wave(i: int) -> void:
 		if is_instance_valid(u):
 			u.queue_free()
 	units.clear()
-	for m in motes:
-		m.queue_free()
 	motes.clear()
 	var w: Dictionary = Game.waves[i]
 	lanes = int(w["lanes"])
 	spawn_interval = float(w["spawn_interval"])
 	magic_rate = float(w["magic_rate"])
-	reserves = w["reserves"].duplicate()
 	while lane_types.size() < lanes:
 		lane_types.append(TYPES[lane_types.size() % 4])
 	front.resize(lanes)
@@ -89,32 +112,69 @@ func start_wave(i: int) -> void:
 		for n in range(int(e["count"])):
 			spawn_queue.append(e["type"])
 	spawn_queue.shuffle()
+	_build_ranks(w["reserves"])
 	spawn_t = 2.0
 	hero_hp = 100.0
-	var z := clampf(900.0 / (lanes * LANE_W), 0.55, 1.0)
-	create_tween().tween_property(camera, "zoom", Vector2(z, z), 1.5)
+	# camera: a touch higher and wider each wave so the widening army still fits
+	var t := i / 3.0
+	var tw := create_tween().set_parallel(true)
+	tw.tween_property(view, "focal", lerpf(360.0, 290.0, t), 1.5)
+	tw.tween_property(view, "cam_h", lerpf(190.0, 230.0, t), 1.5)
 	say("Wave %d / 4" % (i + 1))
 
 
+func _build_ranks(reserves: Dictionary) -> void:
+	# Interleave the types so every rank reads as a mixed line, then fill rows nearest the front first.
+	var pool: Array[String] = []
+	var left := reserves.duplicate()
+	while true:
+		var any := false
+		for t in TYPES:
+			if int(left.get(t, 0)) > 0:
+				pool.append(t)
+				left[t] = int(left[t]) - 1
+				any = true
+		if not any:
+			break
+	var half := (lanes - 1) / 2.0 * LANE_W + LANE_W
+	var per_row := int(floor(half * 2.0 / RANK_X)) + 1
+	for k in range(pool.size()):
+		var row := k / per_row
+		var col := k % per_row
+		var u := spawn(pool[k], Unit.ALLY)
+		u.state = Unit.State.RANK
+		u.wx = -half + col * RANK_X + (row % 2) * RANK_X * 0.5 + _rng.randf_range(-4, 4)
+		u.wd = RANK_D0 - row * RANK_STEP + _rng.randf_range(-3, 3)
+		u.hold_d = u.wd
+
+
 func lane_x(l: int) -> float:
-	return 480.0 + (l - (lanes - 1) / 2.0) * LANE_W
+	return (l - (lanes - 1) / 2.0) * LANE_W
+
+
+func _rank_unit(type: String, l: int) -> Unit:
+	var best: Unit = null
+	var best_d := INF
+	for u in units:
+		if u.team == Unit.ALLY and u.state == Unit.State.RANK and u.type == type:
+			var d := absf(u.wx - lane_x(l)) + (RANK_D0 - u.wd) * 2.0
+			if d < best_d:
+				best_d = d
+				best = u
+	return best
 
 
 func lane_open(l: int) -> bool:
-	return front[l] == null and int(reserves.get(lane_types[l], 0)) <= 0
-
-
-func depth_scale(y: float) -> float:
-	return lerpf(0.7, 2.6, clampf((y - SPAWN_Y) / (520.0 - SPAWN_Y), 0.0, 1.0))
+	return front[l] == null and _rank_unit(lane_types[l], l) == null
 
 
 func find_target(u: Unit) -> Node2D:
 	var best: Node2D = null
 	var best_d := INF
 	for o in units:
-		if not is_instance_valid(o) or o.team == u.team or absi(o.lane - u.lane) > 1:
+		if not is_instance_valid(o) or o.team == u.team or o.state == Unit.State.RANK or absi(o.lane - u.lane) > 1:
 			continue
-		var d := u.position.distance_to(o.position)
+		var d := Vector2(u.wx, u.wd).distance_to(Vector2(o.wx, o.wd))
 		if d < best_d:
 			best_d = d
 			best = o
@@ -136,34 +196,30 @@ func hit(a: Unit, t: Node2D) -> void:
 		hero_sprite.modulate = Color(2, 1, 1)
 
 
-func spawn(type: String, team: int, l: int) -> Unit:
+func spawn(type: String, team: int) -> Unit:
 	var u := Unit.new()
-	u.setup(type, team, l, self)
-	u.hold_y = FRONT_Y - 30.0 if team == Unit.ENEMY else FRONT_Y
-	u.position = Vector2(lane_x(l) + _rng.randf_range(-12, 12), SPAWN_Y if team == Unit.ENEMY else 440.0)
+	u.setup(type, team, self)
 	u.died.connect(_on_died)
 	world.add_child(u)
 	units.append(u)
 	return u
 
 
+func _spawn_enemy(type: String) -> void:
+	var u := spawn(type, Unit.ENEMY)
+	u.lane = _rng.randi_range(0, lanes - 1)
+	u.wx = lane_x(u.lane) + _rng.randf_range(-14, 14)
+	u.wd = SPAWN_D + _rng.randf_range(0, 120)
+	u.hold_d = FRONT_D + 40.0
+
+
 func _on_died(u: Unit) -> void:
 	units.erase(u)
 	if u.team == Unit.ALLY:
-		if front[u.lane] == u:
+		if u.lane >= 0 and front[u.lane] == u:
 			front[u.lane] = null
 	else:
-		_mote(u.position, 6.0 + u.max_hp * 0.08)
-
-
-func _mote(p: Vector2, value: float) -> void:
-	var m := Node2D.new()
-	m.position = p
-	m.set_meta("v", value)
-	m.set_meta("vel", Vector2(_rng.randf_range(-10, 10), 25))
-	m.draw.connect(func(): m.draw_circle(Vector2.ZERO, 3.0 + value * 0.15, Color(0.4, 1.0, 0.4, 0.9)))
-	fx.add_child(m)
-	motes.append(m)
+		motes.append({"wx": u.wx, "wd": u.wd, "v": 6.0 + u.max_hp * 0.08})
 
 
 func say(t: String) -> void:
@@ -171,51 +227,75 @@ func say(t: String) -> void:
 	toast_t = 2.5
 
 
+func _cursor_world() -> Vector2:
+	var c := get_global_mouse_position()
+	var d := clampf(view.depth_at_y(c.y), 60.0, SPAWN_D)
+	return Vector2(view.x_at(c.x, d), d)
+
+
 func _process(delta: float) -> void:
 	queue_redraw()
+	hud.queue_redraw()
 	toast_t -= delta
+	scroll += CREEP * delta
+	# scenery re-projects every frame (camera tweens per wave); horde creeps toward us and wraps
+	for s in scenery:
+		var wd: float = s.get_meta("wd")
+		if wd > 600.0:
+			wd -= CREEP * 0.5 * delta
+			if wd < 710.0:
+				wd += 660.0
+			s.set_meta("wd", wd)
+		s.position = view.project(s.get_meta("wx"), wd)
+		s.scale = Vector2.ONE * view.sprite_scale(wd) * float(s.get_meta("k"))
+		s.modulate = (s.get_meta("tint") as Color) * (Color.WHITE if wd > 600.0 else view.fog(wd))
 	if _done:
 		return
 	# spawns
 	spawn_t -= delta
 	if spawn_t <= 0.0 and not spawn_queue.is_empty():
 		spawn_t = spawn_interval
-		spawn(spawn_queue.pop_back(), Unit.ENEMY, _rng.randi_range(0, lanes - 1))
-	# refill front slots
+		_spawn_enemy(spawn_queue.pop_back())
+	# refill front slots from the ranks
 	for l in range(lanes):
-		if front[l] == null and int(reserves.get(lane_types[l], 0)) > 0:
-			reserves[lane_types[l]] = int(reserves[lane_types[l]]) - 1
-			front[l] = spawn(lane_types[l], Unit.ALLY, l)
+		if front[l] == null:
+			var u := _rank_unit(lane_types[l], l)
+			if u:
+				u.lane = l
+				u.hold_d = FRONT_D
+				u.state = Unit.State.ADVANCE
+				front[l] = u
 	# ambient magic from the ground veins
 	mote_t -= delta
 	if mote_t <= 0.0:
 		mote_t = 1.0 / magic_rate
-		_mote(Vector2(_rng.randf_range(lane_x(0), lane_x(lanes - 1)), _rng.randf_range(80, 260)), 3.0)
+		motes.append({"wx": _rng.randf_range(lane_x(0), lane_x(lanes - 1)), "wd": _rng.randf_range(400, 900), "v": 3.0})
 	# hero
 	var mv := Input.get_vector("move_left", "move_right", "move_up", "move_down")
-	hero.position += mv * 160.0 * delta
-	hero.position.x = clampf(hero.position.x, lane_x(0) - 40, lane_x(lanes - 1) + 40)
-	hero.position.y = clampf(hero.position.y, HERO_MIN_Y, HERO_MAX_Y)
-	hero.scale = Vector2.ONE * depth_scale(hero.position.y)
+	hero_wx = clampf(hero_wx + mv.x * 130.0 * delta, lane_x(0) - 40, lane_x(lanes - 1) + 40)
+	hero_wd = clampf(hero_wd - mv.y * 110.0 * delta, HERO_MIN_D, HERO_MAX_D)
+	hero.position = view.project(hero_wx, hero_wd)
+	hero.scale = Vector2.ONE * view.sprite_scale(hero_wd)
 	hero_sprite.modulate = hero_sprite.modulate.lerp(Color.WHITE, delta * 6.0)
 	if mv != Vector2.ZERO:
 		hero_sprite.frame = Game.facing_from(mv)
 	# siphon: hold RMB, motes near the cursor stream to the hero
 	var siphoning := Input.is_action_pressed("siphon")
-	var cur := get_global_mouse_position()
+	var cur := _cursor_world()
 	for m in motes.duplicate():
-		var vel: Vector2 = m.get_meta("vel")
-		if siphoning and m.position.distance_to(cur) < 140.0:
-			vel = (hero.position - m.position).normalized() * 420.0
-		m.position += vel * delta
-		if m.position.distance_to(hero.position) < 24.0:
-			for r in Game.gain_magic(float(m.get_meta("v"))):
+		var p := Vector2(m["wx"], m["wd"])
+		var vel := Vector2(0, -22.0)
+		if siphoning and p.distance_to(cur) < 120.0:
+			vel = (Vector2(hero_wx, hero_wd) - p).normalized() * 380.0
+		p += vel * delta
+		m["wx"] = p.x
+		m["wd"] = p.y
+		if p.distance_to(Vector2(hero_wx, hero_wd)) < 22.0:
+			for r in Game.gain_magic(float(m["v"])):
 				say("Relic: " + _relic(r)["label"] + " - " + _relic(r)["desc"])
 			motes.erase(m)
-			m.queue_free()
-		elif m.position.y > 560.0:
+		elif p.y < 80.0:
 			motes.erase(m)
-			m.queue_free()
 	for k in spell_cd:
 		spell_cd[k] -= delta
 	# lose / win
@@ -260,14 +340,22 @@ func _unhandled_input(e: InputEvent) -> void:
 
 
 func _hover_lane() -> int:
-	var x := get_global_mouse_position().x
+	var x := _cursor_world().x
 	return clampi(int(round((x - lane_x(0)) / LANE_W)), 0, lanes - 1)
+
+
+func _rank_count(type: String) -> int:
+	var n := 0
+	for u in units:
+		if u.team == Unit.ALLY and u.state == Unit.State.RANK and u.type == type:
+			n += 1
+	return n
 
 
 func _cycle_lane(dir: int) -> void:
 	var l := _hover_lane()
 	lane_types[l] = TYPES[(TYPES.find(lane_types[l]) + dir + 4) % 4]
-	say("Lane %d -> %s (%d in reserve)" % [l + 1, Game.units[lane_types[l]]["label"], int(reserves.get(lane_types[l], 0))])
+	say("Lane %d -> %s (%d in the ranks)" % [l + 1, Game.units[lane_types[l]]["label"], _rank_count(lane_types[l])])
 
 
 func _spell(id: String) -> Dictionary:
@@ -286,30 +374,31 @@ func _cast(id: String) -> void:
 		return
 	Game.magic -= float(s["cost"])
 	spell_cd[id] = float(s["cooldown"])
-	var cur := get_global_mouse_position()
+	var cur := _cursor_world()
 	match id:
 		"bolt":
-			var r := 70.0 if Game.has_relic_flag("splash") else 30.0
+			var r := 70.0 if Game.has_relic_flag("splash") else 32.0
 			_flash(cur, r, Color(0.5, 1.0, 0.5))
 			for u in units.duplicate():
-				if u.team == Unit.ENEMY and u.position.distance_to(cur) < r:
+				if u.team == Unit.ENEMY and Vector2(u.wx, u.wd).distance_to(cur) < r:
 					u.take(25.0)
 		"heal":
 			for u in front:
 				if u != null and is_instance_valid(u):
 					u.hp = minf(u.max_hp, u.hp + 25.0)
-					_flash(u.position, 20.0, Color(1.0, 0.9, 0.5))
+					_flash(Vector2(u.wx, u.wd), 20.0, Color(1.0, 0.9, 0.5))
 		"wall":
 			_flash(cur, 90.0, Color(0.3, 0.9, 0.3, 0.6))
 			for u in units:
-				if u.team == Unit.ENEMY and u.position.distance_to(cur) < 90.0:
+				if u.team == Unit.ENEMY and Vector2(u.wx, u.wd).distance_to(cur) < 90.0:
 					u.rooted_until = Time.get_ticks_msec() / 1000.0 + 3.0
 
 
-func _flash(p: Vector2, r: float, c: Color) -> void:
+func _flash(wp: Vector2, r: float, c: Color) -> void:
 	var n := Node2D.new()
-	n.position = p
-	n.draw.connect(func(): n.draw_circle(Vector2.ZERO, r, c))
+	n.position = view.project(wp.x, wp.y)
+	var k := view.s(wp.y)
+	n.draw.connect(func(): n.draw_circle(Vector2.ZERO, r * k, c))
 	fx.add_child(n)
 	var t := create_tween()
 	t.tween_property(n, "modulate:a", 0.0, 0.35)
@@ -317,35 +406,33 @@ func _flash(p: Vector2, r: float, c: Color) -> void:
 
 
 func _draw() -> void:
-	# ground bands + horizon + green dot; drawn in world space under everything
-	var x0 := lane_x(0) - 400.0
-	var x1 := lane_x(lanes - 1) + 400.0
-	draw_rect(Rect2(x0, -200, x1 - x0, 240), Color("#211e20"))
-	draw_rect(Rect2(x0, 40, x1 - x0, 260), Color("#3a3d3f"))
-	draw_rect(Rect2(x0, 300, x1 - x0, 400), Color("#4a4b48"))
-	for i in range(0, 12):
-		draw_line(Vector2(x0, 40 + i * 24), Vector2(x1, 40 + i * 24), Color(0, 0, 0, 0.12))
-	# far silhouettes on the horizon
-	for i in range(int((x1 - x0) / 34.0)):
-		var h := 18.0 + 8.0 * sin(i * 1.7)
-		draw_rect(Rect2(x0 + i * 34, 30 - h, 22, h + 12), Color("#2b2b2e"))
-	# the green dot
+	# ponytail: procedural ground bands; owner says real terrain lands here later — replace this one call.
+	view.draw_ground(self, scroll, (lanes - 1) / 2.0 * LANE_W + 400.0)
+	# the green dot on the horizon
 	var flick := 0.6 + 0.4 * sin(Time.get_ticks_msec() / 90.0)
-	draw_circle(Vector2(480, 24), 6.0 + 4.0 * flick, Color(0.4, 1.0, 0.4, flick))
-	draw_line(Vector2(480, 24), Vector2(480 + _rng.randf_range(-30, 30), -80), Color(0.5, 1.0, 0.5, 0.5 * flick), 2.0)
-	# lane labels
+	var dot := Vector2(480, view.horizon - 8)
+	draw_circle(dot, 6.0 + 4.0 * flick, Color(0.4, 1.0, 0.4, flick))
+	draw_line(dot, dot + Vector2(_rng.randf_range(-30, 30), -110), Color(0.5, 1.0, 0.5, 0.5 * flick), 2.0)
+
+
+func _draw_hud() -> void:
+	# motes + hero flame ride the top layer so they glow over the ranks
+	for m in motes:
+		var k := view.s(m["wd"])
+		hud.draw_circle(view.project(m["wx"], m["wd"]) + Vector2(0, -10 * k), (2.5 + float(m["v"]) * 0.12) * k, Color(0.4, 1.0, 0.4, 0.9))
+	hud.draw_circle(hero.position + Vector2(0, -60 * hero.scale.y), 4.0 + minf(Game.magic, 200.0) * 0.06, Color(0.4, 1.0, 0.4, 0.8))
+	# lane labels: bottom strip, under each lane's screen x
+	hud.draw_rect(Rect2(0, 512, 960, 28), Color(0, 0, 0, 0.55))
 	var f := ThemeDB.fallback_font
 	for l in range(lanes):
-		var t: String = Game.units[lane_types[l]]["label"] + " x%d" % int(reserves.get(lane_types[l], 0))
+		var t: String = Game.units[lane_types[l]]["label"] + " x%d" % _rank_count(lane_types[l])
 		var col := Color("#f0c260") if l == _hover_lane() else Color("#a0a08b")
-		draw_string(f, Vector2(lane_x(l) - 40, 328), t, HORIZONTAL_ALIGNMENT_LEFT, 90, 11, col)
-	# hero flame = magic held
-	draw_circle(hero.position + Vector2(0, -60 * hero.scale.y), 4.0 + minf(Game.magic, 200.0) * 0.06, Color(0.4, 1.0, 0.4, 0.8))
-	# HUD in camera space
-	var tl := camera.get_screen_center_position() - Vector2(480, 270) / camera.zoom
+		var p := Vector2(view.project(lane_x(l), FRONT_D).x, 528.0)
+		hud.draw_string(f, p + Vector2(-34, 0), t, HORIZONTAL_ALIGNMENT_CENTER, 90, 12, col)
+	# HUD
 	var lines := ["WAVE %d / 4" % (Game.wave + 1), "HERO %d" % int(hero_hp), "MAGIC %d  (lifetime %d)" % [int(Game.magic), int(Game.magic_ever)],
 		"1 Bolt 8   2 Mend 20   3 Wall 30    Q/E lane type    RMB siphon", "Relics: " + ", ".join(Game.relics), "FPS %d" % Engine.get_frames_per_second()]
 	for i in range(lines.size()):
-		draw_string(f, tl + Vector2(12, 20 + i * 18) / camera.zoom, lines[i], HORIZONTAL_ALIGNMENT_LEFT, -1, int(14 / camera.zoom.x), Color("#e9efec"))
+		hud.draw_string(f, Vector2(12, 20 + i * 18), lines[i], HORIZONTAL_ALIGNMENT_LEFT, -1, 14, Color("#e9efec"))
 	if toast_t > 0.0:
-		draw_string(f, tl + Vector2(300, 60) / camera.zoom, toast, HORIZONTAL_ALIGNMENT_LEFT, -1, int(20 / camera.zoom.x), Color("#f0c260"))
+		hud.draw_string(f, Vector2(300, 60), toast, HORIZONTAL_ALIGNMENT_LEFT, -1, 20, Color("#f0c260"))
