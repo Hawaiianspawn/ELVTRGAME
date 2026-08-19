@@ -46,7 +46,7 @@
   },
   "veteran": {
     "cell": 88,
-    "source": "melee-tropes/crusader",
+    "source": "knight-greatsword/g0_bulwark_parent",
     "y": 800
   },
   "halberdier": {
@@ -68,5 +68,40 @@
     "cell": 88,
     "source": "archer-medieval/v2_bowextended",
     "y": 1152
+  },
+  "hero_knight": {
+    "cell": 88,
+    "source": "knight-greatsword/g1_seed",
+    "y": 1240
+  },
+  "hero_turret": {
+    "cell": 92,
+    "source": "pathfinder-line/Can_you_make_a_Turre",
+    "y": 1328
+  },
+  "hero_sackhauler": {
+    "cell": 92,
+    "source": "pathfinder-line/sackhauler",
+    "y": 1420
+  },
+  "hero_dwarf": {
+    "cell": 92,
+    "source": "pathfinder-line/dwarf_version_which",
+    "y": 1512
+  },
+  "hero_cover": {
+    "cell": 92,
+    "source": "pathfinder-line/Can_we_have_one_cove",
+    "y": 1604
+  },
+  "hero_samurai": {
+    "cell": 88,
+    "source": "melee-tropes/samurai",
+    "y": 1696
+  },
+  "hero_ranger": {
+    "cell": 88,
+    "source": "archer-medieval/v1_narrowstrung_helm",
+    "y": 1784
   }
 }

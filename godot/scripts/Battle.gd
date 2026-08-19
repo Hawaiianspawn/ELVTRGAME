@@ -84,7 +84,7 @@ func _ready() -> void:
 		lb.size = Vector2(190, 16)
 		lane_labels.append(lb)
 	hero = Node2D.new()
-	hero_sprite = Game.make_sprite("mage", 4)
+	hero_sprite = Game.make_sprite(Game.hero, 4)
 	hero.add_child(hero_sprite)
 	world.add_child(hero)
 	_build_scenery()

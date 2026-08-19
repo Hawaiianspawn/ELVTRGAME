@@ -32,7 +32,7 @@ func _ready() -> void:
 	j.scale = Vector2.ONE * 1.4
 	var h := Game.make_sprite("horse_jaxx", 4)
 	j.add_child(h)
-	var r := Game.make_sprite("mage", 4)
+	var r := Game.make_sprite(Game.hero, 4)
 	r.scale = Vector2.ONE * 0.6
 	r.position = Vector2(0, -34)
 	j.add_child(r)

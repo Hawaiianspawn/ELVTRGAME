@@ -10,6 +10,7 @@ const SCENES := {
 	"road": "res://scenes/road/Road.tscn",
 	"ride": "res://scenes/ride/Ride.tscn",
 	"reveal": "res://scenes/cutscene/Reveal.tscn",
+	"probe3d": "res://scenes/probe3d/Probe3D.tscn",
 }
 
 var units: Dictionary
@@ -25,6 +26,10 @@ var magic_ever: float = 0.0      # relic thresholds read this
 var relics: Array[String] = []
 var hero_hp: float = 100.0
 var charged := false             # the ride-and-circle segment was played; Cavalry resumes at the killing stroke
+
+## Playable heroes. First is the knight that falls (g1_seed); the rest are the pick-a-role pool.
+const HEROES := ["hero_knight", "hero_turret", "hero_sackhauler", "hero_dwarf", "hero_cover", "hero_samurai", "hero_ranger"]
+var hero: String = HEROES[0]     # sprite name of the hero the player is running as
 
 var _fade: ColorRect
 

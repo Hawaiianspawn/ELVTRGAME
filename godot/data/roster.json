@@ -8,9 +8,16 @@
   "horse_white": "horse-proto/horse_p7_clydesdale_white",
   "horse_undead": "horse-proto/horse_p4_undead",
   "undead2": "undead-simple/02_bulk",
-  "veteran": "melee-tropes/crusader",
+  "veteran": "knight-greatsword/g0_bulwark_parent",
   "halberdier": "melee-tropes/halberdier",
   "hammer": "melee-tropes/hammer-knight",
   "sheathed": "melee-tropes/man-at-arms",
-  "vet_ranged": "archer-medieval/v2_bowextended"
+  "vet_ranged": "archer-medieval/v2_bowextended",
+  "hero_knight": "knight-greatsword/g1_seed",
+  "hero_turret": "pathfinder-line/Can_you_make_a_Turre",
+  "hero_sackhauler": "pathfinder-line/sackhauler",
+  "hero_dwarf": "pathfinder-line/dwarf_version_which",
+  "hero_cover": "pathfinder-line/Can_we_have_one_cove",
+  "hero_samurai": "melee-tropes/samurai",
+  "hero_ranger": "archer-medieval/v1_narrowstrung_helm"
 }

@@ -26,7 +26,7 @@ func _ready() -> void:
 				world.add_child(s)
 	hero = Node2D.new()
 	hero.position = Vector2(480, 470)
-	hero_sprite = Game.make_sprite("mage", 4)
+	hero_sprite = Game.make_sprite(Game.hero, 4)
 	hero_sprite.scale = Vector2.ONE * 0.9
 	hero.add_child(hero_sprite)
 	world.add_child(hero)

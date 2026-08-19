@@ -29,7 +29,7 @@ func _ready() -> void:
 	jaxx.scale = Vector2.ONE * 1.3
 	horse = Game.make_sprite("horse_jaxx", 4)
 	jaxx.add_child(horse)
-	rider = Game.make_sprite("mage", 4)
+	rider = Game.make_sprite(Game.hero, 4)
 	rider.scale = Vector2.ONE * 0.6
 	rider.position = Vector2(0, -34)
 	jaxx.add_child(rider)

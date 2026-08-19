@@ -15,7 +15,10 @@ $gui = Join-Path $pkg 'Godot_v4.7.2-stable_win64.exe'
 $con = Join-Path $pkg 'Godot_v4.7.2-stable_win64_console.exe'
 if (-not (Test-Path $con)) { Write-Host "Godot not found at $pkg (winget install GodotEngine.GodotEngine)" -ForegroundColor Red; exit 1 }
 
-if ($Pack) { py (Join-Path $repo 'Scripts\art\godot_pack.py'); if (-not $?) { exit 1 } }
+if ($Pack) {
+    py (Join-Path $repo 'Scripts\art\godot_pack.py'); if (-not $?) { exit 1 }
+    & $con --headless --path $proj --import | Out-Null   # runtime reads .godot/imported, not the png
+}
 
 # Only stop game runs we launched (--path <our project>, not an editor session: no -e/--editor).
 Get-CimInstance Win32_Process -Filter "Name LIKE 'Godot_v4.7%'" |

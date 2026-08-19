@@ -167,9 +167,41 @@ func take(amount: float, push := Vector2.ZERO) -> void:
 	if hp <= 0.0:
 		dead = true
 		died.emit(self)
+		_gib(push)
 		# fall: topple away from the blow, sink, fade
 		var side := 1.0 if push.x >= 0.0 else -1.0
 		var tw := create_tween().set_parallel(true)
 		tw.tween_property(sprite, "rotation", side * PI / 2.0, 0.35).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_IN)
 		tw.tween_property(sprite, "modulate", Color(0.4, 0.4, 0.4, 0.0), 1.1).set_delay(0.3)
 		tw.chain().tween_callback(queue_free)
+
+
+## Gibs: chunks torn from this sprite's own pixels, flung away from the blow, gravity pulls them down.
+func _gib(push: Vector2) -> void:
+	var at: AtlasTexture = sprite.texture
+	var cell := at.region.size.y
+	var k := maxf(scale.x, 0.01)
+	var tint: Color = battle.view.fog(wd) if battle != null and "view" in battle else Color.WHITE
+	var host := get_parent()
+	for i in range(8):
+		var c := Sprite2D.new()
+		var sub := AtlasTexture.new()
+		sub.atlas = at.atlas
+		var sz := randf_range(4.0, 8.0)
+		var ox := randf_range(cell * 0.3, cell * 0.7 - sz)
+		var oy := randf_range(cell * 0.25, cell * 0.9 - sz)
+		sub.region = Rect2(at.region.position + Vector2(sprite.frame * cell + ox, oy), Vector2(sz, sz))
+		c.texture = sub
+		c.modulate = tint
+		c.scale = Vector2(k, k)
+		c.z_index = z_index + 1
+		var p0 := global_position + Vector2(ox - cell / 2.0, oy - cell) * k
+		var v := (Vector2(randf_range(-70.0, 70.0), randf_range(-160.0, -60.0)) + push * 0.35) * k
+		var spin := randf_range(-8.0, 8.0)
+		host.add_child(c)
+		var tw := create_tween()
+		tw.tween_method(func(t: float):
+			c.position = p0 + v * t + Vector2(0.0, 320.0 * k) * t * t
+			c.rotation = spin * t, 0.0, 1.0, 0.8)
+		tw.tween_property(c, "modulate:a", 0.0, 0.4)
+		tw.tween_callback(c.queue_free)
