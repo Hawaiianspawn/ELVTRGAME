@@ -64,7 +64,7 @@ func _rider(coat: String, wx: float, wd: float) -> Node2D:
 	var r := Node2D.new()
 	var h := Game.make_sprite(coat, 4)
 	r.add_child(h)
-	var k := Game.make_sprite("greatsword", 4)
+	var k := Game.make_sprite("hammer", 4)
 	k.scale = Vector2.ONE * 0.6
 	k.position = Vector2(0, -34)
 	r.add_child(k)
@@ -90,7 +90,7 @@ func _ready() -> void:
 	for row in range(4):
 		var x := -520.0 + (row % 2) * 22.0
 		while x <= 520.0:
-			_sprite(["shield", "pike", "archer", "greatsword"][_rng.randi_range(0, 3)], 4, x + _rng.randf_range(-6, 6), 250.0 + row * 34.0)
+			_sprite(["veteran", "halberdier", "hammer", "sheathed", "vet_ranged"][_rng.randi_range(0, 4)], 4, x + _rng.randf_range(-6, 6), 250.0 + row * 34.0)
 			x += 44.0
 	_sprite("mage", 4, 0.0, 240.0)
 	# the tank wall and stragglers, all the way to the necromancer

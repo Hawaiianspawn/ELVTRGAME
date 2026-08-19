@@ -33,7 +33,7 @@ func _ready() -> void:
 
 func _walker() -> void:
 	var undead := _rng.randf() < 0.6
-	var s := Game.make_sprite("undead" if undead else ["shield", "pike", "greatsword"][_rng.randi_range(0, 2)], 4)
+	var s := Game.make_sprite("undead" if undead else ["veteran", "halberdier", "hammer"][_rng.randi_range(0, 2)], 4)
 	if undead:
 		s.modulate = Color(0.55, 0.6, 0.55)
 	s.position = Vector2(_rng.randf_range(120, 840), 600)

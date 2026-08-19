@@ -15,12 +15,12 @@ func _ready() -> void:
 	var world := Node2D.new()
 	world.y_sort_enabled = true
 	add_child(world)
-	var pool := ["shield", "pike", "archer", "greatsword", "mage"]
+	var pool := ["veteran", "halberdier", "hammer", "sheathed", "vet_ranged", "mage"]
 	for r in range(3):
 		for c in range(3):
 			var tp := Vector2(240 + c * 240, 200 + r * 110)
 			for k in range(3):
-				var s := Game.make_sprite(pool[_rng.randi_range(0, 4)], [0, 2, 6][k])
+				var s := Game.make_sprite(pool[_rng.randi_range(0, 5)], [0, 2, 6][k])
 				s.position = tp + [Vector2(0, -34), Vector2(-52, 6), Vector2(52, 6)][k]
 				s.scale = Vector2.ONE * 0.75
 				world.add_child(s)

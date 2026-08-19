@@ -1,67 +1,72 @@
 {
-  "shield": {
-    "cell": 88,
-    "source": "melee-tropes/crusader",
-    "y": 0
-  },
-  "pike": {
-    "cell": 88,
-    "source": "soldier-reach/s1_pikevertical",
-    "y": 88
-  },
-  "archer": {
-    "cell": 88,
-    "source": "archer-medieval/v2_bowextended",
-    "y": 176
-  },
-  "greatsword": {
-    "cell": 88,
-    "source": "knight-greatsword/g2_sweep",
-    "y": 264
-  },
   "mage": {
     "cell": 92,
     "source": "pathfinder-line/Convert_to_Mage",
-    "y": 352
+    "y": 0
   },
   "ooze": {
     "cell": 88,
     "source": "brood-ooze/state00_base",
-    "y": 444
+    "y": 92
   },
   "undead": {
     "cell": 88,
     "source": "undead-green/Undead",
-    "y": 532
+    "y": 180
   },
   "armored": {
     "cell": 88,
     "source": "enemy-armored/v5_slabshield",
-    "y": 620
+    "y": 268
   },
   "horse_jaxx": {
     "cell": 88,
     "source": "horse-proto/c08_blueroan",
-    "y": 708
+    "y": 356
   },
   "horse_clyde": {
     "cell": 88,
     "source": "horse-proto/horse_p5_clydesdale",
-    "y": 796
+    "y": 444
   },
   "horse_white": {
     "cell": 88,
     "source": "horse-proto/horse_p7_clydesdale_white",
-    "y": 884
+    "y": 532
   },
   "horse_undead": {
     "cell": 92,
     "source": "horse-proto/horse_p4_undead",
-    "y": 972
+    "y": 620
   },
   "undead2": {
     "cell": 88,
     "source": "undead-simple/02_bulk",
+    "y": 712
+  },
+  "veteran": {
+    "cell": 88,
+    "source": "melee-tropes/crusader",
+    "y": 800
+  },
+  "halberdier": {
+    "cell": 88,
+    "source": "melee-tropes/halberdier",
+    "y": 888
+  },
+  "hammer": {
+    "cell": 88,
+    "source": "melee-tropes/hammer-knight",
+    "y": 976
+  },
+  "sheathed": {
+    "cell": 88,
+    "source": "melee-tropes/man-at-arms",
     "y": 1064
+  },
+  "vet_ranged": {
+    "cell": 88,
+    "source": "archer-medieval/v2_bowextended",
+    "y": 1152
   }
 }

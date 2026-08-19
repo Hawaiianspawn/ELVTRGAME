@@ -42,15 +42,15 @@ func _ready() -> void:
 	for row in range(2):
 		var x := -700.0 + row * 24.0
 		while x <= 700.0:
-			_sprite(["shield", "pike", "archer", "greatsword"][_rng.randi_range(0, 3)], 4, x + _rng.randf_range(-6, 6), 150.0 + row * 35.0, 1.0, Color(0.62, 0.62, 0.66))
+			_sprite(["veteran", "halberdier", "hammer", "sheathed", "vet_ranged"][_rng.randi_range(0, 4)], 4, x + _rng.randf_range(-6, 6), 150.0 + row * 35.0, 1.0, Color(0.62, 0.62, 0.66))
 			x += 48.0
 	for row in range(2):
 		var x := -420.0
 		while x <= 420.0:
-			_sprite(["shield", "pike", "archer", "greatsword"][_rng.randi_range(0, 3)], 4, x + _rng.randf_range(-6, 6), 285.0 - row * 30.0)
+			_sprite(["veteran", "halberdier", "hammer", "sheathed", "vet_ranged"][_rng.randi_range(0, 4)], 4, x + _rng.randf_range(-6, 6), 285.0 - row * 30.0)
 			x += 44.0
 	for i in range(9):
-		_sprite(["shield", "pike", "archer", "greatsword"][i % 4], 4, (i - 4) * 80.0, 320.0)
+		_sprite(["veteran", "halberdier", "hammer", "sheathed", "vet_ranged"][i % 5], 4, (i - 4) * 80.0, 320.0)
 	# horde silhouettes far back
 	for row in range(6):
 		var x := -1100.0 + (row % 2) * 17.0
@@ -69,7 +69,7 @@ func _ready() -> void:
 		var r := Node2D.new()
 		var h := Game.make_sprite(coats[i], 4)
 		r.add_child(h)
-		var k := Game.make_sprite("greatsword", 4)
+		var k := Game.make_sprite("hammer", 4)
 		k.scale = Vector2.ONE * 0.6
 		k.position = Vector2(0, -34)
 		r.add_child(k)

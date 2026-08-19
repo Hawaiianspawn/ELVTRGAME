@@ -1,8 +1,4 @@
 {
-  "shield": "melee-tropes/crusader",
-  "pike": "soldier-reach/s1_pikevertical",
-  "archer": "archer-medieval/v2_bowextended",
-  "greatsword": "knight-greatsword/g2_sweep",
   "mage": "pathfinder-line/Convert_to_Mage",
   "ooze": "brood-ooze/state00_base",
   "undead": "undead-green/Undead",
@@ -11,5 +7,10 @@
   "horse_clyde": "horse-proto/horse_p5_clydesdale",
   "horse_white": "horse-proto/horse_p7_clydesdale_white",
   "horse_undead": "horse-proto/horse_p4_undead",
-  "undead2": "undead-simple/02_bulk"
+  "undead2": "undead-simple/02_bulk",
+  "veteran": "melee-tropes/crusader",
+  "halberdier": "melee-tropes/halberdier",
+  "hammer": "melee-tropes/hammer-knight",
+  "sheathed": "melee-tropes/man-at-arms",
+  "vet_ranged": "archer-medieval/v2_bowextended"
 }

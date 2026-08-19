@@ -14,11 +14,13 @@ const RANK_STEP := 24.0
 const RANK_X := 32.0
 const CREEP := 14.0             # the push: world units / s the field slides toward the camera
 const RANK_ROWS := 4            # visual depth of the company block; reserves fill from the front, decor fills the rest
-const TYPES := ["shield", "pike", "archer", "greatsword"]
+const TYPES := ["veteran", "halberdier", "hammer", "sheathed", "vet_ranged"]
 
 var view := View.new()
 var lanes := 5
 var lane_types: Array[String] = []
+var army_type := "veteran"
+var ability_ready: Dictionary = {}     # type -> time (s) the swap-in ability is ready again
 var front: Array = []             # Unit or null per lane
 var spawn_queue: Array[String] = []
 var spawn_t := 0.0
@@ -41,6 +43,7 @@ var lane_labels: Array[Label] = []
 var scenery: Array[Sprite2D] = []      # foreground rows + far horde, meta wx/wd
 var scroll := 0.0
 var advancing := true
+var swap_pending: Array[bool] = []
 var decor: Array[Sprite2D] = []
 var spell_cd := {"bolt": 0.0, "heal": 0.0, "wall": 0.0}
 var checkpoint_magic := 0.0
@@ -75,8 +78,7 @@ func _ready() -> void:
 	cl.add_child(strip)
 	for l in range(9):
 		var lb := _label(cl, Vector2(0, 516), 11, Color("#a0a08b"))
-		lb.size = Vector2(64, 16)
-		lb.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+		lb.size = Vector2(190, 16)
 		lane_labels.append(lb)
 	hero = Node2D.new()
 	hero_sprite = Game.make_sprite("mage", 4)
@@ -112,7 +114,7 @@ func _build_scenery() -> void:
 		var x := -760.0 + (row % 2) * 15.0
 		var shade := lerpf(0.5, 0.72, row / 3.0)
 		while x <= 760.0:
-			_scenery_sprite(TYPES[_rng.randi_range(0, 3)], 4, x + _rng.randf_range(-4, 4), d + _rng.randf_range(-4, 4), Color(shade, shade, shade + 0.03), 1.0)
+			_scenery_sprite(TYPES[_rng.randi_range(0, 4)], 4, x + _rng.randf_range(-4, 4), d + _rng.randf_range(-4, 4), Color(shade, shade, shade + 0.03), 1.0)
 			x += 30.0
 
 
@@ -128,10 +130,12 @@ func start_wave(i: int) -> void:
 	lanes = int(w["lanes"])
 	spawn_interval = float(w["spawn_interval"])
 	magic_rate = float(w["magic_rate"])
-	while lane_types.size() < lanes:
-		lane_types.append(TYPES[lane_types.size() % 4])
+	lane_types.resize(lanes)
+	lane_types.fill(army_type)
 	front.resize(lanes)
 	front.fill(null)
+	swap_pending.resize(lanes)
+	swap_pending.fill(false)
 	spawn_queue.clear()
 	for e in w["enemies"]:
 		for n in range(int(e["count"])):
@@ -181,7 +185,7 @@ func _build_ranks(reserves: Dictionary) -> void:
 			u.home = Vector2(wx, wd)
 		else:
 			# decor: fills the company block so it always reads as a wall of helmets
-			var s := Game.make_sprite(TYPES[_rng.randi_range(0, 3)], 4)
+			var s := Game.make_sprite(TYPES[_rng.randi_range(0, 4)], 4)
 			s.set_meta("wx", wx)
 			s.set_meta("wd", wd)
 			s.set_meta("k", 1.0)
@@ -242,6 +246,8 @@ func hit(a: Unit, t: Node2D) -> void:
 		a.lunge(to.normalized() * 14.0 * a.scale.x)
 	_impact(t.position + Vector2(0, -34 * t.scale.y), 6.0 * t.scale.y)
 	if t is Unit:
+		if t.guard_until > _now():
+			d *= 0.3
 		t.take(d, to.normalized() * 6.0)
 	elif t == hero:
 		hero_hp -= d
@@ -344,6 +350,8 @@ func _process(delta: float) -> void:
 				u.lane = l
 				u.hold_d = FRONT_D
 				u.state = Unit.State.ADVANCE
+				u.opening = swap_pending[l]
+				swap_pending[l] = false
 				front[l] = u
 	# ambient magic from the ground veins
 	mote_t -= delta
@@ -415,8 +423,8 @@ func _unhandled_input(e: InputEvent) -> void:
 			KEY_Z: _cast("bolt")
 			KEY_X: _cast("heal")
 			KEY_C: _cast("wall")
-			KEY_Q: _cycle_lane(-1)
-			KEY_E: _cycle_lane(1)
+			KEY_Q: _cycle_army(-1)
+			KEY_E: _cycle_army(1)
 
 
 func _hover_lane() -> int:
@@ -432,17 +440,81 @@ func _rank_count(type: String) -> int:
 	return n
 
 
-func _cycle_lane(dir: int, l: int = -1) -> void:
-	if l < 0:
-		l = _hover_lane()
-	lane_types[l] = TYPES[(TYPES.find(lane_types[l]) + dir + 4) % 4]
-	# swap out: the standing front unit falls back to its rank slot, the new type steps up on the next tick
-	var u = front[l]
-	if u != null and is_instance_valid(u) and u.type != lane_types[l]:
-		front[l] = null
-		u.lane = -1
-		u.state = Unit.State.RETREAT
-	say("Lane %d -> %s (%d in the ranks)" % [l + 1, Game.units[lane_types[l]]["label"], _rank_count(lane_types[l])])
+func _cycle_army(dir: int) -> void:
+	_set_army(TYPES[(TYPES.find(army_type) + dir + TYPES.size()) % TYPES.size()])
+
+
+## Whole front line cycles out; the new type steps up in every lane and fires its swap-in ability (if off cooldown).
+func _set_army(type: String) -> void:
+	if type == army_type:
+		return
+	army_type = type
+	for l in range(lanes):
+		lane_types[l] = type
+		var u = front[l]
+		if u != null and is_instance_valid(u) and u.type != type:
+			front[l] = null
+			u.lane = -1
+			u.state = Unit.State.RETREAT
+		swap_pending[l] = true
+	var d: Dictionary = Game.units[type]
+	var cd := _ability_cd_left(type)
+	say("%s step up - %s%s" % [d["label"], d["ability_label"], "" if cd <= 0.0 else " (on cooldown %.0fs)" % cd])
+
+
+func _ability_cd_left(type: String) -> float:
+	return maxf(0.0, float(ability_ready.get(type, 0.0)) - _now())
+
+
+func _now() -> float:
+	return Time.get_ticks_msec() / 1000.0
+
+
+## A swapped-in unit reached the line: fire its type's opening ability if that type is off cooldown.
+func arrived(u: Unit) -> void:
+	if _ability_cd_left(u.type) > 0.0:
+		return
+	ability_ready[u.type] = _now() + float(Game.units[u.type]["ability_cd"])
+	_opening(u)
+	if Game.has_relic_flag("echo"):
+		var tw := create_tween()
+		tw.tween_interval(1.5)
+		tw.tween_callback(func(): if is_instance_valid(u) and not u.dead: _opening(u))
+
+
+func _opening(u: Unit) -> void:
+	var here := Vector2(u.wx, u.wd)
+	var near: Array[Unit] = []
+	for o in units:
+		if o.team == Unit.ENEMY and absi(o.lane - u.lane) <= 1 and here.distance_to(Vector2(o.wx, o.wd)) < u.rng + 60.0:
+			near.append(o)
+	near.sort_custom(func(a, b): return here.distance_to(Vector2(a.wx, a.wd)) < here.distance_to(Vector2(b.wx, b.wd)))
+	match Game.units[u.type]["ability"]:
+		"bulwark":
+			for f in front:
+				if f != null and is_instance_valid(f):
+					f.guard_until = _now() + 4.0
+					_flash(Vector2(f.wx, f.wd), 26.0, Color(1.0, 0.85, 0.4, 0.5))
+		"sweep":
+			_flash(here + Vector2(0, 40), 70.0, Color(1.0, 0.9, 0.6, 0.45))
+			for o in near:
+				o.take(u.dmg * 2.0, Vector2(0, 8))
+				o.wd += 35.0
+		"slam":
+			_flash(here + Vector2(0, 40), 60.0, Color(1.0, 0.8, 0.5, 0.6))
+			for o in near:
+				o.take(20.0)
+				o.rooted_until = _now() + 2.5
+		"draw":
+			if not near.is_empty():
+				u.lunge((Vector2(near[0].wx, near[0].wd) - here).normalized() * 18.0 * u.scale.x)
+				_impact(near[0].position + Vector2(0, -34 * near[0].scale.y), 9.0 * near[0].scale.y)
+				near[0].take(45.0, Vector2(0, 6))
+		"volley":
+			for o in units:
+				if o.team == Unit.ENEMY and here.distance_to(Vector2(o.wx, o.wd)) < u.rng:
+					_arrow(u.position + Vector2(0, -50 * u.scale.y), o.position + Vector2(0, -30 * o.scale.y))
+					o.take(12.0)
 
 
 func _spell(id: String) -> Dictionary:
@@ -508,15 +580,16 @@ func _draw_hud() -> void:
 		var k := view.s(m["wd"])
 		hud.draw_circle(view.project(m["wx"], m["wd"]) + Vector2(0, -10 * k), (2.5 + float(m["v"]) * 0.12) * k, Color(0.4, 1.0, 0.4, 0.9))
 	hud.draw_circle(hero.position + Vector2(0, -60 * hero.scale.y), 4.0 + minf(Game.magic, 200.0) * 0.06, Color(0.4, 1.0, 0.4, 0.8))
-	# lane labels: bottom strip, under each lane's screen x
-	var hover := _hover_lane()
-	for l in range(lane_labels.size()):
-		var lb := lane_labels[l]
-		lb.visible = l < lanes
-		if l < lanes:
-			lb.text = Game.units[lane_types[l]]["label"] + " %d" % _rank_count(lane_types[l])
-			lb.position.x = view.project(lane_x(l), FRONT_D).x - 32.0
-			lb.add_theme_color_override("font_color", Color("#f0c260") if l == hover else Color("#a0a08b"))
-	hud_text.text = "WAVE %d / 4\nHERO %d\nMAGIC %d  (lifetime %d)\nZ Bolt 8   X Mend 20   C Wall 30    Q/E lane type    RMB siphon\nRelics: %s\nFPS %d" % [
+	# bottom strip: the five types, ranks left, ability cooldown; current army type highlighted
+	for i in range(lane_labels.size()):
+		var lb := lane_labels[i]
+		lb.visible = i < TYPES.size()
+		if i < TYPES.size():
+			var ty: String = TYPES[i]
+			var cd := _ability_cd_left(ty)
+			lb.text = "%s x%d  %s%s" % [Game.units[ty]["label"], _rank_count(ty), Game.units[ty]["ability_label"], "" if cd <= 0.0 else " %.0fs" % cd]
+			lb.position.x = 8 + i * 190
+			lb.add_theme_color_override("font_color", Color("#f0c260") if ty == army_type else Color("#a0a08b"))
+	hud_text.text = "WAVE %d / 4\nHERO %d\nMAGIC %d  (lifetime %d)\nZ Bolt 8   X Mend 20   C Wall 30    Q/E cycle the army    RMB siphon\nRelics: %s\nFPS %d" % [
 		Game.wave + 1, int(hero_hp), int(Game.magic), int(Game.magic_ever), ", ".join(Game.relics), Engine.get_frames_per_second()]
 	toast_label.text = toast if toast_t > 0.0 else ""

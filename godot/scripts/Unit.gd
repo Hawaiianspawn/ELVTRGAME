@@ -30,6 +30,8 @@ var _moving := false
 var _lunge := Vector2.ZERO
 var _recoil := Vector2.ZERO
 var dead := false
+var opening := false        # fires the swap-in ability when it reaches the line
+var guard_until := 0.0
 var battle: Node2D
 var sprite: Sprite2D
 
@@ -73,6 +75,9 @@ func _process(delta: float) -> void:
 				_step(Vector2(battle.lane_x(lane), hold_d), delta)
 				if not _moving:
 					state = State.FIGHT
+					if opening:
+						opening = false
+						battle.arrived(self)
 			State.FIGHT:
 				var target: Node2D = battle.find_target(self)
 				if target and _dist(target) <= rng:

@@ -20,11 +20,12 @@ func _run(spec: String) -> void:
 		await get_tree().create_timer(6.0).timeout
 		var b := get_tree().current_scene
 		var old = b.front[2]
-		b._cycle_lane(1, 2)
+		b._cycle_army(1)
 		assert(old.state == Unit.State.RETREAT, "front unit did not retreat")
 		await get_tree().create_timer(4.0).timeout
 		var new = b.front[2]
-		assert(new != null and new != old and new.type == b.lane_types[2], "new type did not step up")
+		assert(new != null and new != old and new.type == b.army_type, "new type did not step up")
+		assert(b._ability_cd_left(b.army_type) > 0.0, "swap-in ability did not fire")
 		assert(old.state == Unit.State.RANK or not is_instance_valid(old), "old unit never reached its rank slot")
 		print("PROBE swap ok: %s -> %s" % [old.type, new.type])
 	if parts.size() > 2 and parts[2] == "jump":
