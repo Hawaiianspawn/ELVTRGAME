@@ -72,11 +72,15 @@ func _process(delta: float) -> void:
 		# back, i-frames in take(), blade clips anyone in reach. Breather = plant, face N or S.
 		sprite.modulate = sprite.modulate.lerp(battle.view.fog(wd), delta * 8.0)
 		if spinning():
-			# erratic: short darts at double speed, ~1.5 mid-dart rethinks a second
+			# erratic: short darts, ~1.5 mid-dart rethinks a second; exponential lerp = fast
+			# launch easing out into the stop, the dodge-roll pop
 			if _roll_goal == Vector2.ZERO or Vector2(wx, wd).distance_to(_roll_goal) < 4.0 or randf() < 1.5 * delta:
 				var side := 1.0 if randf() < 0.5 else -1.0
 				_roll_goal = Vector2(clampf(wx + side * randf_range(30.0, 90.0), -320.0, 320.0), wd + randf_range(-28.0, 6.0))   # rank half-width
-			_step(_roll_goal, delta, 2.0)
+			var here := Vector2(wx, wd).lerp(_roll_goal, 1.0 - exp(-7.0 * delta))
+			wx = here.x
+			wd = here.y
+			_moving = true
 			sprite.frame = wrapi(int(_t * 22.0), 0, 8)
 			var foe: Unit = battle.near_enemy(self, 45.0)
 			if foe and _cd <= 0.0:
@@ -148,11 +152,11 @@ func _dist(o: Node2D) -> float:
 	return Vector2(wx, wd).distance_to(Vector2(o.wx, o.wd))
 
 
-func _step(goal: Vector2, delta: float, mult := 1.0) -> void:
+func _step(goal: Vector2, delta: float) -> void:
 	var here := Vector2(wx, wd)
 	if here.distance_to(goal) > 2.0:
 		var v := (goal - here).normalized()
-		var sp := speed * (RUSH if rush else 1.0) * mult
+		var sp := speed * (RUSH if rush else 1.0)
 		if here.distance_to(goal) < sp * delta:
 			here = goal
 		else:
