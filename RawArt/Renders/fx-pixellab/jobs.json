@@ -1,0 +1,71 @@
+{
+ "note": "animate_image takes seeded from Scripts/art/fx_library.py STYLES peak frames, 2026-08-20",
+ "jobs": {
+  "ink_slash": {
+   "anim": "b9c919b5-423f-4eb6-9cb8-5282b08d3820"
+  },
+  "ink_sweep": {
+   "anim": "fa09cfad-3e76-486e-a2e4-71be422a4559"
+  },
+  "ink_dark": {
+   "anim": "589aca38-8096-45bc-9631-36a0885f3c28"
+  },
+  "comic_slash": {
+   "anim": "cf28c21e-59e2-4ffc-8914-09a7405a200d"
+  },
+  "comic_wedge": {
+   "anim": "d731c782-8b14-4f41-8681-c6d2b54e0520"
+  },
+  "comic_wedge_r": {
+   "anim": "9d4cb5f6-4327-42dc-88b2-e8e9f83b92ff"
+  },
+  "lines_fwd": {
+   "anim": "a6fe7308-5e38-41ea-aa46-2d4be2beb7ff"
+  },
+  "lines_up": {
+   "anim": "0b9f9177-7482-475c-b809-7d8e8ed49f02"
+  },
+  "lines_diag": {
+   "anim": "64fb78e4-78e6-42d9-8060-4d2cb0956089"
+  },
+  "dust": {
+   "anim": "b61a7bdb-e4bb-4a64-9302-00a7b26f3b6f"
+  },
+  "dust_small": {
+   "anim": "b46c8437-a72c-4c78-bbc8-1b1e179000e4"
+  },
+  "shockwave": {
+   "anim": "a163e838-4e6e-4e86-9b86-f091ebc8d0c3"
+  },
+  "shock_ink": {
+   "anim": "94910f83-b409-4a79-acc9-1d0c97242ba5"
+  },
+  "chips": {
+   "anim": "ca90623a-9bf6-4185-b304-133600fbc543"
+  },
+  "chips_blood": {
+   "anim": "6e744e44-b52d-4f29-a16d-b5917510506f"
+  },
+  "crack": {
+   "anim": "fb222197-39b9-4fbf-8d3f-a4495e8911d9"
+  },
+  "crack_diag": {
+   "anim": "7aaa1cc1-9b0d-4d0e-8445-ef30ddd0dd45"
+  },
+  "ink_crash": {
+   "anim": "5e6c3cf1-b3d7-4879-9d89-9aa970f43b01"
+  },
+  "comic_hit": {
+   "anim": "5d687313-7b56-4400-8d8d-bcef398cd268"
+  },
+  "lines_stab": {
+   "anim": "b128df76-ab44-44ca-beac-eed19870efd8"
+  },
+  "judgement_cut": {
+   "anim": "bce393df-8ec7-447c-9666-752cfcae2b7d"
+  }
+ },
+ "frames": {
+  "judgement_cut": 13
+ }
+}

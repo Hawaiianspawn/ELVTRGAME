@@ -74,7 +74,7 @@
   "veteran": {
     "cell": 88,
     "source": "knight-melee-v2/v8_heavycloak",
-    "com": 20.3,
+    "com": 19.5,
     "attack": {
       "frames": 8,
       "y": 1152
@@ -96,7 +96,7 @@
     "source": "melee-tropes/hammer-knight",
     "com": 23.7,
     "attack": {
-      "frames": 8,
+      "frames": 5,
       "y": 1504
     },
     "slam": {
@@ -157,34 +157,436 @@
     "com": 22.1,
     "y": 2400
   },
+  "fx_burst": {
+    "cell": 64,
+    "frames": 7,
+    "source": "fx-slash/burst",
+    "y": 2488
+  },
+  "fx_burst_big": {
+    "cell": 64,
+    "frames": 8,
+    "source": "fx-slash/burst_big",
+    "y": 2552
+  },
+  "fx_burst_blue": {
+    "cell": 64,
+    "frames": 7,
+    "source": "fx-slash/burst_blue",
+    "y": 2616
+  },
+  "fx_burst_red": {
+    "cell": 64,
+    "frames": 7,
+    "source": "fx-slash/burst_red",
+    "y": 2680
+  },
+  "fx_chips": {
+    "cell": 64,
+    "frames": 8,
+    "source": "fx-slash/chips",
+    "y": 2744
+  },
+  "fx_chips_blood": {
+    "cell": 64,
+    "frames": 8,
+    "source": "fx-slash/chips_blood",
+    "y": 2808
+  },
+  "fx_chips_blood_pl": {
+    "cell": 64,
+    "frames": 9,
+    "source": "fx-slash/chips_blood_pl",
+    "y": 2872
+  },
+  "fx_chips_pl": {
+    "cell": 64,
+    "frames": 9,
+    "source": "fx-slash/chips_pl",
+    "y": 2936
+  },
   "fx_chop": {
     "cell": 64,
     "frames": 9,
     "source": "fx-slash/chop",
-    "y": 2488
+    "y": 3000
+  },
+  "fx_cleave_heavy": {
+    "cell": 64,
+    "frames": 9,
+    "source": "fx-slash/cleave_heavy",
+    "y": 3064
+  },
+  "fx_comic_hit": {
+    "cell": 64,
+    "frames": 9,
+    "source": "fx-slash/comic_hit",
+    "y": 3128
+  },
+  "fx_comic_hit_pl": {
+    "cell": 64,
+    "frames": 9,
+    "source": "fx-slash/comic_hit_pl",
+    "y": 3192
+  },
+  "fx_comic_slash": {
+    "cell": 64,
+    "frames": 7,
+    "source": "fx-slash/comic_slash",
+    "y": 3256
+  },
+  "fx_comic_slash_pl": {
+    "cell": 64,
+    "frames": 9,
+    "source": "fx-slash/comic_slash_pl",
+    "y": 3320
+  },
+  "fx_comic_wedge": {
+    "cell": 64,
+    "frames": 7,
+    "source": "fx-slash/comic_wedge",
+    "y": 3384
+  },
+  "fx_comic_wedge_pl": {
+    "cell": 64,
+    "frames": 9,
+    "source": "fx-slash/comic_wedge_pl",
+    "y": 3448
+  },
+  "fx_comic_wedge_r": {
+    "cell": 64,
+    "frames": 7,
+    "source": "fx-slash/comic_wedge_r",
+    "y": 3512
+  },
+  "fx_comic_wedge_r_pl": {
+    "cell": 64,
+    "frames": 9,
+    "source": "fx-slash/comic_wedge_r_pl",
+    "y": 3576
+  },
+  "fx_crack": {
+    "cell": 64,
+    "frames": 6,
+    "source": "fx-slash/crack",
+    "y": 3640
+  },
+  "fx_crack_diag": {
+    "cell": 64,
+    "frames": 6,
+    "source": "fx-slash/crack_diag",
+    "y": 3704
+  },
+  "fx_crack_diag_pl": {
+    "cell": 64,
+    "frames": 9,
+    "source": "fx-slash/crack_diag_pl",
+    "y": 3768
+  },
+  "fx_crack_pl": {
+    "cell": 64,
+    "frames": 9,
+    "source": "fx-slash/crack_pl",
+    "y": 3832
+  },
+  "fx_crash": {
+    "cell": 64,
+    "frames": 10,
+    "source": "fx-slash/crash",
+    "y": 3896
+  },
+  "fx_double_sweep": {
+    "cell": 64,
+    "frames": 10,
+    "source": "fx-slash/double_sweep",
+    "y": 3960
+  },
+  "fx_dust": {
+    "cell": 64,
+    "frames": 8,
+    "source": "fx-slash/dust",
+    "y": 4024
+  },
+  "fx_dust_pl": {
+    "cell": 64,
+    "frames": 9,
+    "source": "fx-slash/dust_pl",
+    "y": 4088
+  },
+  "fx_dust_small": {
+    "cell": 64,
+    "frames": 6,
+    "source": "fx-slash/dust_small",
+    "y": 4152
+  },
+  "fx_dust_small_pl": {
+    "cell": 64,
+    "frames": 9,
+    "source": "fx-slash/dust_small_pl",
+    "y": 4216
+  },
+  "fx_flurry": {
+    "cell": 64,
+    "frames": 10,
+    "source": "fx-slash/flurry",
+    "y": 4280
+  },
+  "fx_ink_crash": {
+    "cell": 64,
+    "frames": 9,
+    "source": "fx-slash/ink_crash",
+    "y": 4344
+  },
+  "fx_ink_crash_pl": {
+    "cell": 64,
+    "frames": 9,
+    "source": "fx-slash/ink_crash_pl",
+    "y": 4408
+  },
+  "fx_ink_dark": {
+    "cell": 64,
+    "frames": 6,
+    "source": "fx-slash/ink_dark",
+    "y": 4472
+  },
+  "fx_ink_dark_pl": {
+    "cell": 64,
+    "frames": 9,
+    "source": "fx-slash/ink_dark_pl",
+    "y": 4536
+  },
+  "fx_ink_slash": {
+    "cell": 64,
+    "frames": 6,
+    "source": "fx-slash/ink_slash",
+    "y": 4600
+  },
+  "fx_ink_slash_pl": {
+    "cell": 64,
+    "frames": 9,
+    "source": "fx-slash/ink_slash_pl",
+    "y": 4664
+  },
+  "fx_ink_sweep": {
+    "cell": 64,
+    "frames": 7,
+    "source": "fx-slash/ink_sweep",
+    "y": 4728
+  },
+  "fx_ink_sweep_pl": {
+    "cell": 64,
+    "frames": 9,
+    "source": "fx-slash/ink_sweep_pl",
+    "y": 4792
+  },
+  "fx_judgement_cut": {
+    "cell": 64,
+    "frames": 6,
+    "source": "fx-slash/judgement_cut",
+    "y": 4856
+  },
+  "fx_judgement_cut_big": {
+    "cell": 64,
+    "frames": 8,
+    "source": "fx-slash/judgement_cut_big",
+    "y": 4920
+  },
+  "fx_judgement_cut_gold": {
+    "cell": 64,
+    "frames": 6,
+    "source": "fx-slash/judgement_cut_gold",
+    "y": 4984
+  },
+  "fx_judgement_cut_lines": {
+    "cell": 64,
+    "frames": 8,
+    "source": "fx-slash/judgement_cut_lines",
+    "y": 5048
+  },
+  "fx_judgement_cut_pl": {
+    "cell": 64,
+    "frames": 13,
+    "source": "fx-slash/judgement_cut_pl",
+    "y": 5112
+  },
+  "fx_judgement_cut_sphere": {
+    "cell": 64,
+    "frames": 10,
+    "source": "fx-slash/judgement_cut_sphere",
+    "y": 5176
+  },
+  "fx_lines_diag": {
+    "cell": 64,
+    "frames": 6,
+    "source": "fx-slash/lines_diag",
+    "y": 5240
+  },
+  "fx_lines_diag_pl": {
+    "cell": 64,
+    "frames": 9,
+    "source": "fx-slash/lines_diag_pl",
+    "y": 5304
+  },
+  "fx_lines_fwd": {
+    "cell": 64,
+    "frames": 6,
+    "source": "fx-slash/lines_fwd",
+    "y": 5368
+  },
+  "fx_lines_fwd_pl": {
+    "cell": 64,
+    "frames": 9,
+    "source": "fx-slash/lines_fwd_pl",
+    "y": 5432
+  },
+  "fx_lines_stab": {
+    "cell": 64,
+    "frames": 8,
+    "source": "fx-slash/lines_stab",
+    "y": 5496
+  },
+  "fx_lines_stab_pl": {
+    "cell": 64,
+    "frames": 9,
+    "source": "fx-slash/lines_stab_pl",
+    "y": 5560
+  },
+  "fx_lines_up": {
+    "cell": 64,
+    "frames": 6,
+    "source": "fx-slash/lines_up",
+    "y": 5624
+  },
+  "fx_lines_up_pl": {
+    "cell": 64,
+    "frames": 9,
+    "source": "fx-slash/lines_up_pl",
+    "y": 5688
+  },
+  "fx_pierce": {
+    "cell": 64,
+    "frames": 6,
+    "source": "fx-slash/pierce",
+    "y": 5752
+  },
+  "fx_shock_ink": {
+    "cell": 64,
+    "frames": 7,
+    "source": "fx-slash/shock_ink",
+    "y": 5816
+  },
+  "fx_shock_ink_pl": {
+    "cell": 64,
+    "frames": 9,
+    "source": "fx-slash/shock_ink_pl",
+    "y": 5880
+  },
+  "fx_shockwave": {
+    "cell": 64,
+    "frames": 7,
+    "source": "fx-slash/shockwave",
+    "y": 5944
+  },
+  "fx_shockwave_pl": {
+    "cell": 64,
+    "frames": 9,
+    "source": "fx-slash/shockwave_pl",
+    "y": 6008
+  },
+  "fx_slash_diag": {
+    "cell": 64,
+    "frames": 8,
+    "source": "fx-slash/slash_diag",
+    "y": 6072
+  },
+  "fx_slash_diag_r": {
+    "cell": 64,
+    "frames": 8,
+    "source": "fx-slash/slash_diag_r",
+    "y": 6136
+  },
+  "fx_slash_x": {
+    "cell": 64,
+    "frames": 11,
+    "source": "fx-slash/slash_x",
+    "y": 6200
+  },
+  "fx_spin": {
+    "cell": 64,
+    "frames": 10,
+    "source": "fx-slash/spin",
+    "y": 6264
+  },
+  "fx_spin_blue": {
+    "cell": 64,
+    "frames": 10,
+    "source": "fx-slash/spin_blue",
+    "y": 6328
+  },
+  "fx_stab_blue": {
+    "cell": 64,
+    "frames": 6,
+    "source": "fx-slash/stab_blue",
+    "y": 6392
+  },
+  "fx_stab_diag": {
+    "cell": 64,
+    "frames": 6,
+    "source": "fx-slash/stab_diag",
+    "y": 6456
+  },
+  "fx_stab_triple": {
+    "cell": 64,
+    "frames": 7,
+    "source": "fx-slash/stab_triple",
+    "y": 6520
+  },
+  "fx_stab_up": {
+    "cell": 64,
+    "frames": 6,
+    "source": "fx-slash/stab_up",
+    "y": 6584
   },
   "fx_sweep": {
     "cell": 64,
     "frames": 8,
     "source": "fx-slash/sweep",
-    "y": 2552
+    "y": 6648
   },
   "fx_sweep_blue": {
     "cell": 64,
     "frames": 8,
     "source": "fx-slash/sweep_blue",
-    "y": 2616
+    "y": 6712
+  },
+  "fx_sweep_green": {
+    "cell": 64,
+    "frames": 8,
+    "source": "fx-slash/sweep_green",
+    "y": 6776
+  },
+  "fx_sweep_red": {
+    "cell": 64,
+    "frames": 8,
+    "source": "fx-slash/sweep_red",
+    "y": 6840
   },
   "fx_sweep_thin": {
     "cell": 256,
     "frames": 8,
     "source": "fx-slash/sweep_thin",
-    "y": 2680
+    "y": 6904
   },
   "fx_thrust": {
     "cell": 64,
     "frames": 5,
     "source": "fx-slash/thrust",
-    "y": 2936
+    "y": 7160
+  },
+  "fx_uppercut": {
+    "cell": 64,
+    "frames": 8,
+    "source": "fx-slash/uppercut",
+    "y": 7224
   }
 }

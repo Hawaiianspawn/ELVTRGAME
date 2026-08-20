@@ -14,13 +14,13 @@ import sys
 import urllib.error
 import urllib.request
 
-FRAMES = 9  # frame_count 8 plus the untouched input frame at index 0
+FRAMES = 9  # frame_count 8 plus the untouched input frame at index 0; jobs.json "frames" overrides per job
 URL = "https://api.pixellab.ai/mcp/images/%s/download?index=%d"
 
 
-def fetch(job, dest):
+def fetch(job, dest, frames=FRAMES):
     got = 0
-    for i in range(FRAMES):
+    for i in range(frames):
         out = os.path.join(dest, "frame_%d.png" % i)
         if os.path.exists(out) and os.path.getsize(out) > 0:
             got += 1
@@ -44,9 +44,10 @@ def main(root):
     for look, actions in sorted(spec["jobs"].items()):
         for action, job in sorted(actions.items()):
             dest = os.path.join(root, "raw", look, action)
-            got = fetch(job, dest)
-            if got < FRAMES:
-                missing.append("%s/%s %d/%d" % (look, action, got, FRAMES))
+            want = spec.get("frames", {}).get(look, FRAMES)
+            got = fetch(job, dest, want)
+            if got < want:
+                missing.append("%s/%s %d/%d" % (look, action, got, want))
     if missing:
         print("still pending (%d):" % len(missing))
         for m in missing:

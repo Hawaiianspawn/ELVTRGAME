@@ -16,6 +16,7 @@ from atlas import DIRECTIONS  # column contract shared with the UE atlases
 
 SELECTS = os.path.join(REPO, "RawArt", "Aaron Selects", "selects.json")
 ROSTER = os.path.join(REPO, "godot", "data", "roster.json")
+UNITS = os.path.join(REPO, "godot", "data", "units.json")
 OUT = os.path.join(REPO, "godot", "assets", "sprites")
 
 
@@ -32,6 +33,10 @@ def rotations_dir(ref, selects):
 def main():
     selects = json.load(open(SELECTS, encoding="utf-8"))
     roster = json.load(open(ROSTER, encoding="utf-8"))
+    # units.json "attack_frames": keep only the first N frames of a unit's attack clip (trailing
+    # rest-pose duplicates are cut at pack time so the raw PixelLab frames stay untouched).
+    cut = {u["sprite"]: int(u["attack_frames"]) for u in json.load(open(UNITS, encoding="utf-8")).values()
+           if isinstance(u, dict) and u.get("attack_frames")}
     os.makedirs(OUT, exist_ok=True)
     manifest = {}
     strips = []
@@ -67,6 +72,8 @@ def main():
                 continue
             names = sorted((f for f in os.listdir(adir) if f.startswith("frame_") and f.endswith(".png")),
                            key=lambda f: int(f[6:-4]))
+            if clip == "attack" and name in cut:
+                names = names[:cut[name]]
             frames = [Image.open(os.path.join(adir, f)).convert("RGBA") for f in names]
             strip = Image.new("RGBA", (cell * len(frames), cell))
             for i, im in enumerate(frames):

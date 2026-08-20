@@ -410,13 +410,13 @@ def turnaround(rot_dir, scale=2, ms=140):
     return buf.getvalue()
 
 
-def clip_webp(clip_dir, scale=2, ms=70, hold_ms=0, rest=None):
+def clip_webp(clip_dir, scale=2, ms=70, hold_ms=0, rest=None, n=0):
     """frame_N.png in a clip dir as one looping lossless WebP, bottom-aligned like turnaround.
     hold_ms lingers on the last frame (the strike) the way Unit.gd's attack_hold does; rest is
     an optional standing frame (the north rotation) shown between loops so the clip reads as
     strike-then-guard rather than a spinning loop."""
     from PIL import Image
-    files = sorted(clip_dir.glob("frame_*.png"), key=lambda f: int(f.stem[6:]))
+    files = sorted(clip_dir.glob("frame_*.png"), key=lambda f: int(f.stem[6:]))[:n or None]
     if not files:
         raise Fail("no frames in %s" % clip_dir)
     ims = [Image.open(f).convert("RGBA") for f in files]
@@ -465,7 +465,7 @@ def attacks_page():
         q = "ref=%s&name=%s" % (esc(ref), esc(name))
         cards.append(
             '<div class="card"><div class="pair">'
-            '<img class="rot" src="/still?key=%(ref)s&zoom=4" alt="" title="rotations">'
+            '<img class="rot" src="/still?key=%(ref)s&sel=1&zoom=4" alt="" title="rotations">'
             '<img class="rot" src="/anim?%(q)s&zoom=4&hold=%(hold)d" alt="" title="clip, with in-game hold">'
             '</div><img class="strip" src="/anim?%(q)s&zoom=2&strip=1" alt="">'
             '<b>%(slug)s</b><span class="sub">%(fam)s &middot; %(name)s &middot; %(n)d frames &middot; %(facing)s'
@@ -487,6 +487,107 @@ Unit.gd speed, last frame held for the unit's <code>attack_hold</code>, then the
 Below: the frame strip. Clips come from <code>py Scripts/art/fetch_anim.py &lt;family&gt;/&lt;slug&gt; &lt;character_id&gt;</code>
 and pack into the Godot atlas with <code>godot_pack.py</code>.</p>
 </header><div class="cards">%s</div></div></body></html>""" % (SELECTS_CSS, "".join(cards))
+
+
+UNITS_JSON = REPO / "godot" / "data" / "units.json"
+GAME_FIELDS = ("hp", "dmg", "range", "speed", "cooldown", "attack_hold", "attack_frames", "slash", "slash_y", "sfx")
+
+
+def clip_root(fam, slug):
+    """Where a unit's clips live: the Selects copy when the owner has edited one there, else raw."""
+    d = select_dir(slug)
+    return d if d and any(d.glob("attack_*")) else vp.RENDERS / fam / "raw" / slug
+
+
+def game_page():
+    """Only what the Godot game uses: every units.json entry with its art, attack clip,
+    slash fx and stats. Inputs write straight back to units.json (Godot reads it at boot)."""
+    units = vp.load_json(UNITS_JSON)
+    roster = vp.load_json(REPO / "godot" / "data" / "roster.json")
+    slashes = sorted(d.name for d in (vp.RENDERS / "fx-slash" / "raw").glob("*") if d.is_dir())
+    cards = []
+    for key, u in units.items():
+        if not isinstance(u, dict):
+            continue
+        ref = roster.get(u.get("sprite"), "")
+        fam, _, slug = ref.partition("/")
+        hold = float(u.get("attack_hold", 0.0))
+        clip = next(iter(sorted(clip_root(fam, slug).glob("attack_*/frame_0.png"))), None) if ref else None
+        panes = '<img src="/still?key=%(ref)s&sel=1&zoom=4" alt="" title="stand" onmouseenter="this.src=\'/turn?key=%(ref)s&sel=1&zoom=4\'" onmouseleave="this.src=\'/still?key=%(ref)s&sel=1&zoom=4\'">' % {"ref": esc(ref)} if ref else '<span class="none">no art</span>'
+        strip = ""
+        if clip:
+            q = "ref=%s&name=%s&n=%d" % (esc(ref), esc(clip.parent.name), int(u.get("attack_frames", 0)))
+            panes += '<img src="/anim?%s&zoom=4&hold=%d" alt="" title="attack clip + hold">' % (q, int(hold * 1000))
+            strip = '<img class="strip" src="/anim?%s&zoom=2&strip=1" alt=""><span class="sub">%s &middot; %d frames</span>' % (
+                q, esc(clip.parent.name), int(u.get("attack_frames") or len(list(clip.parent.glob("frame_*.png")))))
+        else:
+            panes += '<span class="none">no attack clip</span>'
+        sl = u.get("slash") or ""
+        panes += ('<img src="/anim?ref=fx-slash/%s&name=frames&zoom=4" alt="" title="slash fx">' % esc(sl)) if sl else '<span class="none">no slash</span>'
+
+        def inp(f, w=4):
+            v = u.get(f, "")
+            if f == "slash":
+                return '<select onchange="gf(\'%s\',\'slash\',this)"><option value=""></option>%s</select>' % (
+                    esc(key), "".join('<option%s>%s</option>' % (" selected" if x == v else "", esc(x)) for x in slashes))
+            return '<input value="%s" size="%d" onchange="gf(\'%s\',\'%s\',this)">' % (esc(str(v)), w, esc(key), f)
+        stats = "".join('<label>%s %s</label>' % (f, inp(f, 14 if f == "sfx" else 4)) for f in GAME_FIELDS)
+        ab = ('<p class="ab"><b>%s</b> &middot; cd %s &middot; %s</p>' % (esc(u.get("ability_label", "")), u.get("ability_cd", "-"), esc(u.get("ability_desc", "")))) if u.get("ability") else ""
+        cards.append(
+            '<div class="card ok"><b>%s</b><span class="sub">%s &middot; %s</span>'
+            '<div class="pair">%s</div>%s<div class="stats">%s</div>%s'
+            '<span class="sub">counters: %s</span></div>'
+            % (esc(u.get("label", key)), esc(key), esc(ref) or "no sprite", panes, strip, stats, ab,
+               esc(", ".join(u.get("counters") or [])) or "-"))
+    return """<!doctype html><html><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Kindled &middot; game units</title><style>%s
+.pair{display:flex;gap:.4rem;align-items:flex-end;min-height:6rem;} .pair img{image-rendering:pixelated;width:auto;}
+.pair .none{font-family:var(--mono);font-size:.6rem;opacity:.5;align-self:center;}
+.strip{image-rendering:pixelated;max-width:100%%;display:block;height:auto;}
+.cards{grid-template-columns:repeat(auto-fill,minmax(26rem,1fr));}
+.stats{display:flex;flex-wrap:wrap;gap:.3rem .6rem;} .stats label{font-family:var(--mono);font-size:.62rem;}
+.stats input,.stats select{background:var(--sunk);color:var(--ink);border:1px solid var(--line);font-family:var(--mono);font-size:.62rem;padding:.1rem .25rem;}
+.ab{font-size:.7rem;margin:0;}
+</style></head><body><div class="wrap"><header>
+<p class="eyebrow"><a href="/" style="color:var(--bone)">&larr; roster</a> &middot; <a href="/attacks" style="color:var(--bone)">attack clips</a> &middot; game units</p>
+<h1>Game units</h1>
+<p>Every entry in <code>godot/data/units.json</code>: standing art (hover to turn), attack clip with its
+<code>attack_hold</code>, slash fx, and stats. Edits save on blur straight into units.json; Godot reads it at boot.
+<code>sfx</code> is a slot only -- no audio is wired in the game yet.</p>
+</header><div class="cards">%s</div></div>
+<script>
+function gf(unit, field, el){
+  fetch('/api/game/field',{method:'POST',headers:{'content-type':'application/json'},
+    body:JSON.stringify({unit:unit,field:field,value:el.value})})
+  .then(r=>r.ok?r.json():r.json().then(j=>{throw j.detail}))
+  .then(()=>{el.style.borderColor='var(--bone)';if(field=='slash'||field=='attack_hold'||field=='attack_frames')location.reload();})
+  .catch(e=>{el.style.borderColor='red';alert(e);});
+}
+</script></body></html>""" % (SELECTS_CSS, "".join(cards))
+
+
+def set_game_field(unit, field, value):
+    """One units.json stat. Type follows the existing value; empty clears optional keys."""
+    units = vp.load_json(UNITS_JSON)
+    u = units.get(unit)
+    if not isinstance(u, dict) or field not in GAME_FIELDS:
+        raise Fail("bad unit/field %r/%r" % (unit, field))
+    value = (value or "").strip()
+    if value == "":
+        if field in ("hp", "dmg", "range", "speed", "cooldown"):
+            raise Fail("%s is required" % field)
+        u.pop(field, None)
+    elif field in ("slash", "sfx"):
+        u[field] = value
+    else:
+        try:
+            n = float(value)
+        except ValueError:
+            raise Fail("%s must be a number" % field)
+        u[field] = int(n) if n == int(n) and not isinstance(u.get(field), float) else n
+    UNITS_JSON.write_text(json.dumps(units, indent=2) + "\n", encoding="utf-8")
+    return u
 
 
 def poll(family):
@@ -1257,7 +1358,7 @@ def roster_page():
                         % (len(rejected), "".join(roster_row(u, groups) for u in rejected)))
 
     fams = sorted({u["family"] for u in units if u.get("family")})
-    nav = '<a href="/official">&#9733; official</a> <a href="/selects">&#10003; selects</a> ' + \
+    nav = '<a href="/official">&#9733; official</a> <a href="/selects">&#10003; selects</a> <a href="/game">&#9876; game</a> ' + \
           " ".join('<a href="/family/%s">%s</a>' % (esc(f), esc(f)) for f in fams)
 
     return """<!doctype html><html><head><meta charset="utf-8">
@@ -1983,13 +2084,21 @@ def build_app(family, atlas, prefix, scale):
     def attacks_view():
         return guard(attacks_page)
 
+    @app.get("/game", response_class=HTMLResponse)
+    def game_view():
+        return guard(game_page)
+
+    @app.post("/api/game/field")
+    def api_game_field(body: dict):
+        return {"unit": guard(set_game_field, body.get("unit"), body.get("field"), body.get("value"))}
+
     @app.get("/anim")
-    def api_anim(ref: str, name: str, zoom: int = 2, hold: int = 0, strip: int = 0):
+    def api_anim(ref: str, name: str, zoom: int = 2, hold: int = 0, strip: int = 0, n: int = 0):
         fam, slug = ref.split("/", 1)
-        d = vp.RENDERS / fam / "raw" / slug / name
+        d = clip_root(fam, slug) / name
         if strip:
             from PIL import Image
-            files = sorted(d.glob("frame_*.png"), key=lambda f: int(f.stem[6:]))
+            files = sorted(d.glob("frame_*.png"), key=lambda f: int(f.stem[6:]))[:n or None]
             ims = [Image.open(f).convert("RGBA") for f in files]
             w, h = max(i.width for i in ims), max(i.height for i in ims)
             sheet = Image.new("RGBA", (w * len(ims), h), (0, 0, 0, 0))
@@ -1999,8 +2108,8 @@ def build_app(family, atlas, prefix, scale):
             buf = __import__("io").BytesIO(); sheet.save(buf, "PNG")
             return Response(buf.getvalue(), media_type="image/png", headers={"Cache-Control": "no-store"})
         facing = name.split("_")[-1]
-        rest = vp.RENDERS / fam / "raw" / slug / "rotations" / ("%s.png" % facing)
-        webp = guard(lambda: clip_webp(d, zoom, 60, hold, rest))
+        rest = clip_root(fam, slug) / "rotations" / ("%s.png" % facing)
+        webp = guard(lambda: clip_webp(d, zoom, 60, hold, rest, n))
         return Response(webp, media_type="image/webp", headers={"Cache-Control": "no-store"})
 
     @app.get("/turn")
@@ -2091,6 +2200,12 @@ def selftest():
             raise AssertionError("accepted bad slug %r" % bad)
         except Fail:
             pass
+
+    # the game page renders every units.json entry
+    html = game_page()
+    for k, v in vp.load_json(UNITS_JSON).items():
+        if isinstance(v, dict):
+            assert "gf('%s'" % k in html, k
 
     # verdict round-trips without touching judge's own verdict key, carries the recipe,
     # and never rewrites family.json (whose compact hand-authored arrays a json.dump

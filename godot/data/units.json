@@ -16,7 +16,7 @@
     "ability_desc": "Veterans spin for 4s: dodge rolls with i-frames, striking anyone in reach",
     "ability_cd": 12,
     "attack_hold": 0.3,
-    "slash": "sweep_blue",
+    "slash": "judgement_cut",
     "slash_y": -14
   },
   "halberdier": {
@@ -50,7 +50,9 @@
     "ability": "slam",
     "ability_label": "Slam",
     "ability_desc": "Stuns enemies ahead 2.5s, 20 dmg",
-    "ability_cd": 10
+    "ability_cd": 10,
+    "attack_frames": 5,
+    "slash": "shockwave"
   },
   "vet_ranged": {
     "hp": 28,
