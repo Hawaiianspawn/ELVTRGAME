@@ -5,7 +5,7 @@ extends RefCounted
 
 const RANK_X := 36.0
 const RANK_STEP := 24.0
-const TYPES := ["veteran", "halberdier", "hammer", "sheathed", "vet_ranged"]
+const TYPES := ["veteran", "halberdier", "hammer", "vet_ranged"]
 
 
 ## Interleave a {type: count} mix into a repeating pattern so every rank reads as a mixed line.
@@ -25,13 +25,15 @@ static func pattern(mix: Dictionary) -> Array[String]:
 
 
 ## Slot positions for `rows` ranks, `half` world units either side of centre, first rank at depth `d0`.
-static func slots(half: float, rows: int, d0: float, rng: RandomNumberGenerator) -> Array[Vector2]:
-	var per_row := int(floor(half * 2.0 / RANK_X)) + 1
+## `cols` > 0 fixes the file count and spreads it across `half*2`; 0 packs at RANK_X. `step` is the rank depth spacing.
+static func slots(half: float, rows: int, d0: float, rng: RandomNumberGenerator, cols := 0, step := RANK_STEP) -> Array[Vector2]:
+	var per_row := cols if cols > 0 else int(floor(half * 2.0 / RANK_X)) + 1
+	var dx := half * 2.0 / maxf(per_row - 1, 1) if cols > 0 else RANK_X
 	var out: Array[Vector2] = []
 	for k in range(per_row * rows):
 		var row := k / per_row
 		var col := k % per_row
-		out.append(Vector2(-half + col * RANK_X + (row % 2) * RANK_X * 0.5 + rng.randf_range(-3, 3), d0 - row * RANK_STEP + rng.randf_range(-2, 2)))
+		out.append(Vector2(-half + col * dx + (row % 2) * dx * 0.5 + rng.randf_range(-3, 3), d0 - row * step + rng.randf_range(-2, 2)))
 	return out
 
 

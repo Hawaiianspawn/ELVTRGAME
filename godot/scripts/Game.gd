@@ -23,6 +23,7 @@ var dialogue: Dictionary
 var wave: int = 0
 var magic: float = 0.0
 var magic_ever: float = 0.0      # relic thresholds read this
+var score: int = 0               # juggle kills: enemies that die in the air
 var relics: Array[String] = []
 var hero_hp: float = 100.0
 var charged := false             # the ride-and-circle segment was played; Cavalry resumes at the killing stroke
@@ -97,6 +98,22 @@ func make_sprite(name: String, facing: int = 0) -> Sprite2D:
 	# feet on the origin: cell is square, sprite bottom-aligned in the cell
 	var cell: int = int(sprites[name]["cell"])
 	s.offset = Vector2(0, -cell / 2.0)
+	return s
+
+
+## A one-shot effect strip from the atlas (manifest fx_* rows): hframes = clip length, frame 0, centred.
+func make_fx(name: String) -> Sprite2D:
+	if _atlas == null:
+		_atlas = load("res://assets/sprites/atlas.png")
+	var s := Sprite2D.new()
+	var at := AtlasTexture.new()
+	at.atlas = _atlas
+	var cell: int = int(sprites[name]["cell"])
+	var n: int = int(sprites[name]["frames"])
+	at.region = Rect2(0, int(sprites[name]["y"]), cell * n, cell)
+	s.texture = at
+	s.hframes = n
+	s.frame = 0
 	return s
 
 

@@ -8,17 +8,21 @@
     "sprite": "veteran",
     "label": "Veterans",
     "counters": [
-      "archer_undead"
+      "archer_undead",
+      "undead"
     ],
     "ability": "whirl",
     "ability_label": "Whirl",
     "ability_desc": "Veterans spin for 4s: dodge rolls with i-frames, striking anyone in reach",
-    "ability_cd": 12
+    "ability_cd": 12,
+    "attack_hold": 0.3,
+    "slash": "sweep_blue",
+    "slash_y": -14
   },
   "halberdier": {
     "hp": 45,
     "dmg": 11,
-    "range": 75,
+    "range": 120,
     "speed": 40,
     "cooldown": 1.2,
     "sprite": "halberdier",
@@ -28,8 +32,9 @@
     ],
     "ability": "sweep",
     "ability_label": "Sweep",
-    "ability_desc": "Hits every enemy in reach for 2x, knocks back",
-    "ability_cd": 9
+    "ability_desc": "Hits every enemy in reach for 2x, launches them airborne",
+    "ability_cd": 9,
+    "slash": "thrust"
   },
   "hammer": {
     "hp": 55,
@@ -47,22 +52,6 @@
     "ability_desc": "Stuns enemies ahead 2.5s, 20 dmg",
     "ability_cd": 10
   },
-  "sheathed": {
-    "hp": 40,
-    "dmg": 9,
-    "range": 42,
-    "speed": 44,
-    "cooldown": 0.9,
-    "sprite": "sheathed",
-    "label": "Primary Sheathed",
-    "counters": [
-      "undead"
-    ],
-    "ability": "draw",
-    "ability_label": "Draw",
-    "ability_desc": "Unsheathes: first strike deals 45 to the nearest enemy",
-    "ability_cd": 7
-  },
   "vet_ranged": {
     "hp": 28,
     "dmg": 8,
@@ -76,14 +65,14 @@
     ],
     "ability": "volley",
     "ability_label": "Volley",
-    "ability_desc": "Arrow at every enemy in range, 12 each",
+    "ability_desc": "Backup volley: 4 salvos of 18 arrows slam the box ahead of the hero, 6 each; pierces airborne foes",
     "ability_cd": 8
   },
   "ooze": {
     "hp": 30,
     "dmg": 5,
     "range": 35,
-    "speed": 30,
+    "speed": 66,
     "cooldown": 1.0,
     "sprite": "ooze",
     "label": "Ooze",
@@ -93,17 +82,47 @@
     "hp": 40,
     "dmg": 7,
     "range": 40,
-    "speed": 35,
+    "speed": 77,
     "cooldown": 1.1,
     "sprite": "undead",
     "label": "Undead",
+    "counters": []
+  },
+  "mace_undead": {
+    "hp": 50,
+    "dmg": 9,
+    "range": 40,
+    "speed": 66,
+    "cooldown": 1.3,
+    "sprite": "mace_undead",
+    "label": "Mace shambler",
+    "counters": []
+  },
+  "staff_undead": {
+    "hp": 40,
+    "dmg": 7,
+    "range": 55,
+    "speed": 70,
+    "cooldown": 1.1,
+    "sprite": "staff_undead",
+    "label": "Staff shambler",
+    "counters": []
+  },
+  "bow_undead": {
+    "hp": 25,
+    "dmg": 6,
+    "range": 200,
+    "speed": 66,
+    "cooldown": 1.5,
+    "sprite": "bow_undead",
+    "label": "Hooded archer",
     "counters": []
   },
   "archer_undead": {
     "hp": 25,
     "dmg": 6,
     "range": 200,
-    "speed": 30,
+    "speed": 66,
     "cooldown": 1.5,
     "sprite": "undead2",
     "label": "Bone archer",
@@ -113,7 +132,7 @@
     "hp": 70,
     "dmg": 12,
     "range": 45,
-    "speed": 70,
+    "speed": 154,
     "cooldown": 1.3,
     "sprite": "horse_undead",
     "label": "Dead horse",
@@ -123,7 +142,7 @@
     "hp": 160,
     "dmg": 12,
     "range": 45,
-    "speed": 22,
+    "speed": 48,
     "cooldown": 1.4,
     "sprite": "armored",
     "label": "Armored",

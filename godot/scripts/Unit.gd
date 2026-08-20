@@ -7,6 +7,13 @@ signal died(unit: Unit)
 const ALLY := 0
 const ENEMY := 1
 const RUSH := 10.0
+const GRAV := 520.0          # gravity while rising
+const GRAV_FALL := 150.0     # floaty descent — the juggle window
+const FALL_MAX := 120.0      # terminal fall speed
+const JUGGLE_MULT := 1.5     # damage bonus while airborne
+const POP := 220.0           # each juggle hit re-launches at least this
+const AGGRO := 150.0         # ranks wake up to enemies this close (was 90: only the first row ever fought)
+const SUPPORT_DMG := 0.5     # rank hits beyond own weapon reach land at this fraction
 enum State { RANK, ADVANCE, FIGHT, RETREAT }
 
 var type: String
@@ -35,11 +42,26 @@ var dead := false
 var opening := false        # fires the swap-in ability when it reaches the line
 var guard_until := 0.0
 var spin_until := 0.0        # whirl: spinning dodge rolls until then, i-frames in take()
+var spin_phase := 0.0        # 0 or 1: staggers the burst/breather beat so the field alternates
 var _roll_goal := Vector2.ZERO
 var rush := false            # ADVANCE/RETREAT at rush speed (swaps route behind the camera)
+var sky_slam := false        # hammer entrance: dropped from the sky, slams the ground on landing
+var air_h := 0.0             # height above the ground; > 0 = airborne, helpless, juggleable
+var air_v := 0.0             # vertical speed
+var _spin := 0.0             # rad/s tumble while airborne
+var _pivot := 0.0            # px from feet up to the center of mass; spin pivots here
+var _base_offset := Vector2.ZERO   # make_sprite's feet-on-origin offset, restored on landing
+var _juggles := 0            # hits taken while airborne; scales the air-kill score
 var _leg := 0                # RETREAT: 0 = run back past the camera, 1 = walk into the vacated slot
 var battle: Node2D
 var sprite: Sprite2D
+const ATK_DT := 0.06               # seconds per attack frame
+var _atk_t := -1.0                 # time into the active clip, <0 = idle
+var _atk := {}                     # manifest "attack" entry: {frames, y}; empty = no clip packed
+var _slam := {}                    # manifest "slam" entry: sky-drop landing clip
+var _clip := {}                    # whichever clip is playing
+var _atk_hold := 0.0               # units.json attack_hold: seconds the strike frame lingers before guard
+var _rot_region: Rect2
 
 
 func setup(p_type: String, p_team: int, p_battle: Node2D) -> void:
@@ -57,6 +79,47 @@ func setup(p_type: String, p_team: int, p_battle: Node2D) -> void:
 	counters = d["counters"]
 	sprite = Game.make_sprite(d["sprite"], 4 if team == ALLY else 0)
 	add_child(sprite)
+	_rot_region = (sprite.texture as AtlasTexture).region
+	_base_offset = sprite.offset
+	# alpha-centroid height above the feet, measured at pack time (godot_pack.py "com")
+	_pivot = float(Game.sprites[d["sprite"]].get("com", _rot_region.size.y * 0.42))
+	_atk = Game.sprites[d["sprite"]].get("attack", {})
+	_slam = Game.sprites[d["sprite"]].get("slam", {})
+	_atk_hold = float(d.get("attack_hold", 0.0))
+
+
+## Play the packed north-facing attack clip; the static frame comes back when it ends.
+func attack_anim() -> void:
+	if Time.get_ticks_msec() / 1000.0 < spin_until:
+		return   # the spin IS the attack anim; the clip would freeze the twirl
+	if not _atk.is_empty() and team == ALLY:
+		_clip = _atk
+		_atk_t = 0.0
+
+
+## Play the packed north-facing slam clip (sky-drop landing).
+func slam_anim() -> void:
+	if not _slam.is_empty():
+		_clip = _slam
+		_atk_t = 0.0
+
+
+func _tick_attack(delta: float) -> void:
+	if _atk_t < 0.0:
+		return
+	_atk_t += delta
+	var n := int(_clip["frames"])
+	var i := mini(int(_atk_t / ATK_DT), n - 1)   # last frame is the strike: it holds for attack_hold
+	var at: AtlasTexture = sprite.texture
+	if _atk_t >= n * ATK_DT + _atk_hold:
+		_atk_t = -1.0
+		at.region = _rot_region
+		sprite.hframes = 8
+		sprite.frame = 4
+	else:
+		at.region = Rect2(0, int(_clip["y"]), _rot_region.size.x / 8.0 * n, _rot_region.size.y)
+		sprite.hframes = n
+		sprite.frame = i
 
 
 func _process(delta: float) -> void:
@@ -67,6 +130,22 @@ func _process(delta: float) -> void:
 	_moving = false
 	if Time.get_ticks_msec() / 1000.0 < rooted_until:
 		sprite.modulate = Color(0.6, 1.0, 0.6)
+	elif air_h > 0.0 or air_v > 0.0:
+		# airborne: gravity only — no walking, no swinging, just tumble and be juggled
+		# sky-dropped hammers plummet; juggled units keep the floaty cap
+		air_v = maxf(air_v - (GRAV if air_v > 0.0 else GRAV_FALL) * delta, -FALL_MAX * (4.0 if sky_slam else 1.0))
+		air_h = maxf(0.0, air_h + air_v * delta)
+		sprite.rotation += _spin * delta
+		if air_h == 0.0:
+			air_v = 0.0
+			_spin = 0.0
+			sprite.rotation = 0.0
+			sprite.offset = _base_offset
+			if sky_slam:
+				sky_slam = false
+				slam_anim()
+				battle.sky_landing(self)
+		sprite.modulate = sprite.modulate.lerp(battle.view.fog(wd), delta * 8.0)
 	elif Time.get_ticks_msec() / 1000.0 < spin_until and (state == State.FIGHT or state == State.RANK):
 		# whirl: 1s spin bursts with 1s breathers. Spinning = hard lateral darts angled slightly
 		# back, i-frames in take(), blade clips anyone in reach. Breather = plant, face N or S.
@@ -100,13 +179,21 @@ func _process(delta: float) -> void:
 				here += (home - here) * minf(1.0, 3.0 * delta) + push * delta
 				wx = here.x
 				wd = here.y
-				# anything that breaks through gets fought where it stands
-				var foe: Unit = battle.near_enemy(self, 90.0)
+				# anything that breaks through gets fought where it stands; rows further back
+				# join in with half-strength support hits over the shoulders of the row ahead
+				# long weapons wake up further out: reach scales the aggro bubble
+				var aggro := maxf(AGGRO, rng + 60.0)
+				var foe: Unit = battle.near_enemy(self, aggro)
 				if foe:
 					sprite.frame = Game.facing_from(Vector2(foe.wx - wx, -(foe.wd - wd)))
-					if _dist(foe) <= maxf(rng, 45.0) and _cd <= 0.0:
-						_cd = cooldown
-						battle.hit(self, foe)
+					if _cd <= 0.0:
+						var d_foe := _dist(foe)
+						if d_foe <= maxf(rng, 45.0):
+							_cd = cooldown
+							battle.hit(self, foe)
+						elif d_foe <= aggro:
+							_cd = cooldown
+							battle.hit(self, foe, SUPPORT_DMG)
 				elif not _moving:
 					sprite.frame = 4
 			State.RETREAT:
@@ -145,11 +232,14 @@ func _process(delta: float) -> void:
 					_step(goal, delta)
 	if team == ENEMY:
 		wd -= battle.CREEP * delta          # treadmill: the army pushes up, so the field slides toward the camera
+	_tick_attack(delta)
 	_place()
 
 
 func _dist(o: Node2D) -> float:
-	return Vector2(wx, wd).distance_to(Vector2(o.wx, o.wd))
+	# the hero target is a plain Node2D; its world coords live on the battle
+	var p := Vector2(o.wx, o.wd) if o is Unit else Vector2(battle.hero_wx, battle.hero_wd)
+	return Vector2(wx, wd).distance_to(p)
 
 
 func _step(goal: Vector2, delta: float) -> void:
@@ -175,17 +265,31 @@ func _place() -> void:
 	_lunge = _lunge.lerp(Vector2.ZERO, 0.18)
 	_recoil = _recoil.lerp(Vector2.ZERO, 0.2)
 	var bob := -absf(sin(_t * 12.0 * _gait)) * 3.0 if _moving else 0.0
-	sprite.position = _lunge + _recoil + Vector2(0, bob)
+	var lift := air_h
+	if _spin != 0.0:
+		# spin around the center of mass: origin moves up to it, and the offset re-centres the
+		# texture so the mass point (not the cell centre) sits ON the rotation pivot
+		lift += _pivot
+		sprite.offset = Vector2(0, _pivot - _rot_region.size.y * 0.5)
+	sprite.position = _lunge + _recoil + Vector2(0, bob - lift)
 
 
 func lunge(v: Vector2) -> void:
 	_lunge = v / maxf(scale.x, 0.01)
 
 
+## Knock into the air. Velocity only; height builds next frame, so the launching hit itself isn't a juggle.
+func launch(v: float) -> void:
+	if not dead:
+		air_v = maxf(air_v, v)
+		_spin = randf_range(6.0, 11.0) * (1.0 if randf() < 0.5 else -1.0)
+
+
 ## Whirl phase: 1s on / 1s off across the spin window; i-frames and the blade only while on.
+## spin_phase flips the beat so alternating units cover each other's breathers.
 func spinning() -> bool:
 	var left := spin_until - Time.get_ticks_msec() / 1000.0
-	return left > 0.0 and fmod(left, 2.0) > 1.0
+	return left > 0.0 and fmod(left + spin_phase, 2.0) > 1.0
 
 
 func take(amount: float, push := Vector2.ZERO) -> void:
@@ -193,16 +297,24 @@ func take(amount: float, push := Vector2.ZERO) -> void:
 		return
 	if spinning():
 		return   # i-frames: the roll dodges it clean
+	if air_h > 0.0:
+		amount *= JUGGLE_MULT
+		_juggles += 1
+		air_v = maxf(air_v, POP)     # every hit keeps it up there
 	hp -= amount
 	sprite.modulate = Color(2.0, 2.0, 2.0)
 	_recoil = push / maxf(scale.x, 0.01)
 	if hp <= 0.0:
 		dead = true
+		if air_h > 0.0 and team == ENEMY:
+			Game.score += int(max_hp * (1.0 + 0.5 * _juggles))
 		died.emit(self)
 		_gib(push)
 		# fall: topple away from the blow, sink, fade
 		var side := 1.0 if push.x >= 0.0 else -1.0
 		var tw := create_tween().set_parallel(true)
+		if air_h > 0.0:
+			tw.tween_property(sprite, "position:y", 0.0, 0.3).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_IN)
 		tw.tween_property(sprite, "rotation", side * PI / 2.0, 0.35).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_IN)
 		tw.tween_property(sprite, "modulate", Color(0.4, 0.4, 0.4, 0.0), 1.1).set_delay(0.3)
 		tw.chain().tween_callback(queue_free)

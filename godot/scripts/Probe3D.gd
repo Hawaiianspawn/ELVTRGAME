@@ -55,7 +55,7 @@ func _ready() -> void:
 
 	var rng := RandomNumberGenerator.new()
 	rng.seed = 7
-	var names := ["veteran", "halberdier", "hammer", "sheathed", "vet_ranged", "mage"]
+	var names := ["veteran", "halberdier", "hammer", "vet_ranged", "mage"]
 	for row in range(12):
 		for col in range(-8, 9):
 			var name: String = names[(row + col) % names.size() if (row + col) >= 0 else 0]

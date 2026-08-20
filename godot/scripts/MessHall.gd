@@ -15,7 +15,7 @@ func _ready() -> void:
 	var world := Node2D.new()
 	world.y_sort_enabled = true
 	add_child(world)
-	var pool := ["veteran", "halberdier", "hammer", "sheathed", "vet_ranged", "mage"]
+	var pool := ["veteran", "halberdier", "hammer", "vet_ranged", "mage"]
 	for r in range(3):
 		for c in range(3):
 			var tp := Vector2(240 + c * 240, 200 + r * 110)

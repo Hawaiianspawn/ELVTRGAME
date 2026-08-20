@@ -93,7 +93,7 @@ func _ready() -> void:
 	army = Army.block(self, world, Game.waves[3]["reserves"], 436.0, 7, 285.0, _rng)
 	for i in range(9):
 		var f := Unit.new()
-		f.setup(["veteran", "halberdier", "hammer", "sheathed", "vet_ranged"][i % 5], Unit.ALLY, self)
+		f.setup(Army.TYPES[i % Army.TYPES.size()], Unit.ALLY, self)
 		f.state = Unit.State.RANK
 		f.wx = (i - 4) * 64.0
 		f.wd = 320.0
