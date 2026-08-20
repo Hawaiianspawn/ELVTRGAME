@@ -2,106 +2,189 @@
   "mage": {
     "cell": 92,
     "source": "pathfinder-line/Convert_to_Mage",
+    "com": 23.4,
     "y": 0
   },
   "ooze": {
     "cell": 88,
-    "source": "brood-ooze/state00_base",
+    "source": "melee-undead/z2_spearlevel_undead",
+    "com": 21.4,
     "y": 92
   },
   "undead": {
     "cell": 88,
-    "source": "undead-green/Undead",
+    "source": "melee-undead/z1_barestance_undead",
+    "com": 21.1,
     "y": 180
   },
   "armored": {
     "cell": 88,
-    "source": "enemy-armored/v5_slabshield",
+    "source": "melee-undead/z3_heavycloak_undead",
+    "com": 20.9,
     "y": 268
   },
   "horse_jaxx": {
     "cell": 88,
     "source": "horse-proto/c08_blueroan",
+    "com": 43.3,
     "y": 356
   },
   "horse_clyde": {
     "cell": 88,
     "source": "horse-proto/horse_p5_clydesdale",
+    "com": 43.9,
     "y": 444
   },
   "horse_white": {
     "cell": 88,
     "source": "horse-proto/horse_p7_clydesdale_white",
+    "com": 43.3,
     "y": 532
   },
   "horse_undead": {
     "cell": 92,
     "source": "horse-proto/horse_p4_undead",
+    "com": 33.3,
     "y": 620
   },
   "undead2": {
     "cell": 88,
-    "source": "undead-simple/02_bulk",
+    "source": "ranged-undead/z8_crossbowbrace_undead",
+    "com": 20.9,
     "y": 712
+  },
+  "mace_undead": {
+    "cell": 88,
+    "source": "melee-undead/z4_maceraised_undead",
+    "com": 24.0,
+    "y": 800
+  },
+  "staff_undead": {
+    "cell": 88,
+    "source": "melee-undead/z5_bracedstaff_undead_greeneyes",
+    "com": 22.1,
+    "y": 888
+  },
+  "bow_undead": {
+    "cell": 88,
+    "source": "ranged-undead/z6_narrowstrung_undead_hood",
+    "com": 22.5,
+    "y": 976
   },
   "veteran": {
     "cell": 88,
-    "source": "knight-greatsword/g0_bulwark_parent",
-    "y": 800
+    "source": "knight-melee-v2/v8_heavycloak",
+    "com": 20.3,
+    "attack": {
+      "frames": 8,
+      "y": 1152
+    },
+    "y": 1064
   },
   "halberdier": {
     "cell": 88,
     "source": "melee-tropes/halberdier",
-    "y": 888
+    "com": 24.2,
+    "attack": {
+      "frames": 8,
+      "y": 1328
+    },
+    "y": 1240
   },
   "hammer": {
     "cell": 88,
     "source": "melee-tropes/hammer-knight",
-    "y": 976
-  },
-  "sheathed": {
-    "cell": 88,
-    "source": "melee-tropes/man-at-arms",
-    "y": 1064
+    "com": 23.7,
+    "attack": {
+      "frames": 8,
+      "y": 1504
+    },
+    "slam": {
+      "frames": 8,
+      "y": 1592
+    },
+    "y": 1416
   },
   "vet_ranged": {
     "cell": 88,
     "source": "archer-medieval/v2_bowextended",
-    "y": 1152
+    "com": 23.6,
+    "attack": {
+      "frames": 8,
+      "y": 1768
+    },
+    "y": 1680
   },
   "hero_knight": {
     "cell": 88,
     "source": "knight-greatsword/g1_seed",
-    "y": 1240
+    "com": 22.7,
+    "y": 1856
   },
   "hero_turret": {
     "cell": 92,
     "source": "pathfinder-line/Can_you_make_a_Turre",
-    "y": 1328
+    "com": 23.2,
+    "y": 1944
   },
   "hero_sackhauler": {
     "cell": 92,
     "source": "pathfinder-line/sackhauler",
-    "y": 1420
+    "com": 25.5,
+    "y": 2036
   },
   "hero_dwarf": {
     "cell": 92,
     "source": "pathfinder-line/dwarf_version_which",
-    "y": 1512
+    "com": 23.9,
+    "y": 2128
   },
   "hero_cover": {
     "cell": 92,
     "source": "pathfinder-line/Can_we_have_one_cove",
-    "y": 1604
+    "com": 23.7,
+    "y": 2220
   },
   "hero_samurai": {
     "cell": 88,
     "source": "melee-tropes/samurai",
-    "y": 1696
+    "com": 23.2,
+    "y": 2312
   },
   "hero_ranger": {
     "cell": 88,
     "source": "archer-medieval/v1_narrowstrung_helm",
-    "y": 1784
+    "com": 22.1,
+    "y": 2400
+  },
+  "fx_chop": {
+    "cell": 64,
+    "frames": 9,
+    "source": "fx-slash/chop",
+    "y": 2488
+  },
+  "fx_sweep": {
+    "cell": 64,
+    "frames": 8,
+    "source": "fx-slash/sweep",
+    "y": 2552
+  },
+  "fx_sweep_blue": {
+    "cell": 64,
+    "frames": 8,
+    "source": "fx-slash/sweep_blue",
+    "y": 2616
+  },
+  "fx_sweep_thin": {
+    "cell": 256,
+    "frames": 8,
+    "source": "fx-slash/sweep_thin",
+    "y": 2680
+  },
+  "fx_thrust": {
+    "cell": 64,
+    "frames": 5,
+    "source": "fx-slash/thrust",
+    "y": 2936
   }
 }

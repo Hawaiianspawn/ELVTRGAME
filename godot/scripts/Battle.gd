@@ -320,9 +320,10 @@ func _vortex(wp: Vector2, k: float, dmg: float, secs := 2.0) -> void:
 	n.set_meta("vortex", true)
 	n.position = view.project(wp.x, wp.y)
 	n.scale = Vector2.ONE * view.sprite_scale(wp.y) * k
-	var s := Game.make_fx("fx_sweep_blue")
+	var s := Game.make_fx("fx_sweep_thin")
+	s.scale = Vector2.ONE * 0.25           # clip is 4x upscaled so the ring stays a thin line
 	s.position = Vector2(0, -48.0 / k)     # head height stays put as the circle grows
-	s.modulate.a = 0.8
+	s.modulate = Color(3.0, 3.0, 3.0, 0.95)   # blown out near white; the blue only survives at the edges
 	n.add_child(s)
 	world.add_child(n)
 	# never in lockstep: random facing, random spin direction, own phase and cadence

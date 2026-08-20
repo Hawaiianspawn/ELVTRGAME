@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://drapw0dmt768a"
-path="res://.godot/imported/sheathed.png-88a59deffa5e1ac29a24016b0ee29d2c.ctex"
+uid="uid://dc18bpsj680ct"
+path="res://.godot/imported/staff_undead.png-02cf770aa4272721859e0a89ea1329d0.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://assets/sprites/sheathed.png"
-dest_files=["res://.godot/imported/sheathed.png-88a59deffa5e1ac29a24016b0ee29d2c.ctex"]
+source_file="res://assets/sprites/staff_undead.png"
+dest_files=["res://.godot/imported/staff_undead.png-02cf770aa4272721859e0a89ea1329d0.ctex"]
 
 [params]
 
