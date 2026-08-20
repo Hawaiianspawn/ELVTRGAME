@@ -35,7 +35,7 @@ func _run(spec: String) -> void:
 		assert(stragglers == 0, "old type still on the field: %d" % stragglers)
 		print("PROBE swap ok: %s -> %s, %d on field, pool[%s]=%d" % [old_type, b.army_type, b.units.filter(func(x): return x.team == 0).size(), old_type, b.pool[old_type]])
 	if parts.size() > 2 and parts[2] == "whirl":
-		# self-check: swapping back to veterans fires whirl — the field spin-dodges under i-frames
+		# self-check: swapping back to veterans fires whirl — the field spin-dodges under guard
 		await get_tree().create_timer(6.0).timeout
 		var b := get_tree().current_scene
 		b._cycle_army(1)
@@ -57,7 +57,48 @@ func _run(spec: String) -> void:
 				var hp0: float = u.hp
 				u.take(999.0)
 				assert(u.hp == hp0 and not u.dead, "spinning veteran took damage — no i-frames")
-		print("PROBE whirl ok: %d veterans in spin burst" % whirling)
+		var vortexes: int = b.world.get_children().filter(func(c): return c.has_meta("vortex")).size()
+		assert(vortexes >= b.VORTEX_COLS * b.VORTEX_ROWS, "whirl spread missing: %d vortex cleaves" % vortexes)
+		print("PROBE whirl ok: %d veterans in spin burst, %d vortex cleaves live" % [whirling, vortexes])
+	if parts.size() > 2 and parts[2] == "volley":
+		# self-check: loft a few enemies, swap to vet_ranged — the flurry must fire; count
+		# how many lofted enemies an arrow ran through (informational, timing-dependent)
+		await get_tree().create_timer(6.0).timeout
+		var b := get_tree().current_scene
+		var lofted := []
+		for o in b.units:
+			if o.team == 1 and o.wd < 700.0:
+				o.launch(300.0)
+				lofted.append(o)
+				if lofted.size() == 6:
+					break
+		b._cycle_army(-1)   # veteran -> vet_ranged
+		await get_tree().create_timer(2.5).timeout
+		assert(b._ability_cd_left("vet_ranged") > 0.0, "volley did not fire")
+		var clipped := 0
+		for o in lofted:
+			if not is_instance_valid(o) or o.dead or o.hp < o.max_hp:
+				clipped += 1
+		print("PROBE volley ok: fired, %d/%d lofted enemies clipped" % [clipped, lofted.size()])
+	if parts.size() > 2 and parts[2] == "hammer":
+		# self-check: swapping to hammers drops them from the sky; every one lands and slams
+		await get_tree().create_timer(6.0).timeout
+		var b := get_tree().current_scene
+		while b.army_type != "hammer":
+			b._cycle_army(1)
+			await get_tree().create_timer(0.1).timeout
+		var falling := 0
+		for u in b.units:
+			if u.team == 0 and u.type == "hammer" and u.air_h > 0.0 and u.sky_slam:
+				falling += 1
+		assert(falling > 0, "no hammers falling from the sky")
+		await get_tree().create_timer(4.0).timeout
+		var stuck := 0
+		for u in b.units:
+			if u.team == 0 and u.sky_slam:
+				stuck += 1
+		assert(stuck == 0, "hammers never landed/slammed: %d" % stuck)
+		print("PROBE hammer ok: %d dropped from sky, all landed" % falling)
 	if parts.size() > 2 and parts[2].begins_with("stress"):
 		# stress: grow the block to N rows (default 20) and report FPS after `secs`
 		var rows := int(parts[2].trim_prefix("stress")) if parts[2].length() > 6 else 20
@@ -83,7 +124,10 @@ func _run(spec: String) -> void:
 			if u.team == 0 and u.state == Unit.State.RANK:
 				wds.append(snappedf(u.wd, 1.0))
 		wds.sort()
-		print("PROBE rank wd min=%s max=%s n=%d  screen y of min=%s" % [wds[0], wds[-1], wds.size(), sc.view.project(0, wds[0]).y])
+		print("PROBE rank wd min=%s max=%s n=%d  screen y of min=%s cam_h=%s horizon=%s focal=%s" % [wds[0], wds[-1], wds.size(), sc.view.project(0, wds[0]).y, sc.view.cam_h, sc.view.horizon, sc.view.focal])
+		for u in sc.units:
+			if u.team == 0 and u.state == Unit.State.RANK and (snappedf(u.wd, 1.0) == wds[0] or snappedf(u.wd, 1.0) == wds[-1]):
+				print("PROBE unit wd=%s pos=%s scale=%s spr=%s" % [u.wd, u.position, u.scale, u.sprite.position])
 	var img := get_viewport().get_texture().get_image()
 	var path := "user://probe_%s.png" % scene
 	img.save_png(path)

@@ -11,9 +11,19 @@ const HERO_MIN_D := 150.0
 const HERO_MAX_D := 290.0
 const RANK_D0 := 285.0          # first rank behind the front line
 const CREEP := 14.0             # the push: world units / s the field slides toward the camera
-const RANK_ROWS := 7            # depth of the company block down to the camera; every slot is a real unit
+const RANK_ROWS := 6            # depth of the company block down to the camera; every slot is a real unit
+const RANK_COLS := 8            # files across; the block fills the frame edge to edge
+const RANK_HALF := 320.0        # half-width of the block in world units
+const RANK_STEP := 28.0
 const BEHIND_D := 55.0          # just behind the lens: where swaps come from and go to
-const TYPES := ["veteran", "halberdier", "hammer", "sheathed", "vet_ranged"]
+const SWEEP_W := 240.0          # launch zone half-width, centered on the hero — spans the whole field
+const SWEEP_LEN := 520.0        # launch zone depth ahead of the hero — everything short of fresh spawns
+const TYPES := Army.TYPES
+const VORTEX_HZ := 2.0          # vortex cleave hits per second
+const VORTEX_R := 34.0          # cleave reach in world units at k=1
+const VORTEX_DMG := 0.35        # fraction of the veteran's dmg per cleave tick
+const VORTEX_COLS := 4          # whirl: vortex field ahead of the line, cols x rows
+const VORTEX_ROWS := 2
 
 var view := View.new()
 var lanes := 5
@@ -57,6 +67,9 @@ var _done := false
 
 
 func _ready() -> void:
+	view.horizon = 305.0            # lens tilted up: the block sits in the bottom third, helmets from ~y350, legs below the frame
+	view.cam_h = 150.0
+	view.sprite_k = 2.2             # the 8x6 block fills the frame edge to edge
 	_rng.randomize()
 	world = Node2D.new()
 	world.y_sort_enabled = true
@@ -140,19 +153,13 @@ func start_wave(i: int) -> void:
 	_build_ranks(w["reserves"])
 	spawn_t = 2.0
 	hero_hp = 100.0
-	# camera: a touch higher and wider each wave so the widening army still fits
-	var t := i / 3.0
-	var tw := create_tween().set_parallel(true)
-	tw.tween_property(view, "focal", lerpf(360.0, 310.0, t), 1.5)
-	tw.tween_property(view, "cam_h", lerpf(150.0, 175.0, t), 1.5)
 	say("Wave %d / 4" % (i + 1))
 
 
 func _build_ranks(reserves: Dictionary) -> void:
 	# waves.json reserves = per-type pools. The block is one type at a time; deploy fills every slot from the pool.
 	pool = reserves.duplicate()
-	var half := (lanes - 1) / 2.0 * LANE_W + 180.0
-	slots = Army.slots(half, RANK_ROWS, RANK_D0, _rng)
+	slots = Army.slots(RANK_HALF, RANK_ROWS, RANK_D0, _rng, RANK_COLS, RANK_STEP)
 	_deploy(army_type, false)
 
 
@@ -171,9 +178,17 @@ func _deploy(type: String, rush: bool) -> void:
 		u.hold_d = sl.y
 		if rush:
 			u.wx = sl.x + _rng.randf_range(-6, 6)
-			u.wd = BEHIND_D
-			u.rush = true
-			u.state = Unit.State.ADVANCE
+			if type == "hammer":
+				# hammers don't march in: they drop out of the sky onto their slot and slam
+				u.wd = sl.y
+				u.air_h = _rng.randf_range(220.0, 320.0)
+				u.air_v = -280.0
+				u.sky_slam = true
+				u.state = Unit.State.RANK
+			else:
+				u.wd = BEHIND_D
+				u.rush = true
+				u.state = Unit.State.ADVANCE
 		else:
 			u.wx = sl.x
 			u.wd = sl.y
@@ -238,6 +253,8 @@ func find_target(u: Unit) -> Node2D:
 			continue          # ranks only matter once you're on top of them
 		if u.team == Unit.ALLY and d > u.rng + 50.0:
 			continue          # the line holds; it doesn't chase
+		if u.team == Unit.ALLY and o.air_h > 0.0:
+			d -= 999.0        # juggle focus: an airborne foe in reach beats any grounded one
 		if d < best_d:
 			best_d = d
 			best = o
@@ -246,20 +263,27 @@ func find_target(u: Unit) -> Node2D:
 	return best
 
 
-func hit(a: Unit, t: Node2D) -> void:
-	var d := a.dmg
+func hit(a: Unit, t: Node2D, mult := 1.0) -> void:
+	var d := a.dmg * mult
 	if t is Unit and t.type in a.counters:
 		d *= float(Game.units["counter_mult"])
 	if a.team == Unit.ALLY:
 		d *= 1.0 + Game.relic_bonus("dmg")
 	var to := t.position - a.position
+	a.attack_anim()
 	if a.rng > 100.0:
 		_arrow(a.position + Vector2(0, -50 * a.scale.y), t.position + Vector2(0, -30 * t.scale.y))
 		await get_tree().create_timer(0.12).timeout
 		if not is_instance_valid(t):
 			return
+	elif t is Unit and Game.units[a.type].get("ability", "") == "whirl":
+		# veterans don't swing: every strike parks a vortex cleave over the target's head —
+		# narrowed when the fight is toe to toe so it doesn't swallow the rank
+		a.lunge(to.normalized() * 14.0 * a.scale.x)
+		_vortex(Vector2(t.wx, t.wd), 1.0 if _dist(a, t) < 45.0 else 1.8, a.dmg * VORTEX_DMG)
 	else:
 		a.lunge(to.normalized() * 14.0 * a.scale.x)
+		_slash(a, to)
 	_impact(t.position + Vector2(0, -34 * t.scale.y), 6.0 * t.scale.y)
 	if t is Unit:
 		if t.guard_until > _now():
@@ -268,6 +292,60 @@ func hit(a: Unit, t: Node2D) -> void:
 	elif t == hero:
 		hero_hp -= d
 		hero_sprite.modulate = Color(2, 1, 1)
+
+
+## Pixel slash clip over the attacker's head, so a strike reads from behind the front line where the
+## sprite's own arm is hidden by the rank in front. units.json "slash": sweep | chop | thrust -> fx_<name>.
+func _slash(a: Unit, to: Vector2) -> void:
+	var kind: String = Game.units[a.type].get("slash", "")
+	if kind == "" or not Game.sprites.has("fx_" + kind):
+		return
+	# ride the attacker so it y-sorts with the ranks instead of floating over the whole field
+	var s := Game.make_fx("fx_" + kind)
+	s.position = Vector2(0, float(Game.units[a.type].get("slash_y", -40.0))) + to.normalized() * 8.0
+	s.scale = Vector2.ONE * 0.9
+	s.flip_h = to.x < 0.0
+	a.add_child(s)
+	var n := s.hframes
+	var tw := s.create_tween()
+	tw.tween_property(s, "frame", n - 1, 0.05 * n)
+	tw.tween_callback(s.queue_free)
+
+
+## Vortex cleave: the blue sweep clip parked in the world, spinning in place and cleaving every
+## enemy inside its radius twice a second for a few seconds. Hovers at head height so the
+## circle isn't wasted on ground nobody stands on. k scales size and reach together.
+func _vortex(wp: Vector2, k: float, dmg: float, secs := 2.0) -> void:
+	var n := Node2D.new()
+	n.set_meta("vortex", true)
+	n.position = view.project(wp.x, wp.y)
+	n.scale = Vector2.ONE * view.sprite_scale(wp.y) * k
+	var s := Game.make_fx("fx_sweep_blue")
+	s.position = Vector2(0, -48.0 / k)     # head height stays put as the circle grows
+	s.modulate.a = 0.8
+	n.add_child(s)
+	world.add_child(n)
+	# never in lockstep: random facing, random spin direction, own phase and cadence
+	s.rotation = _rng.randf() * TAU
+	s.flip_h = _rng.randf() < 0.5
+	var phase := _rng.randf()
+	var spin := n.create_tween().set_loops()
+	spin.tween_method(func(t: float): s.frame = wrapi(int((t + phase) * s.hframes), 0, s.hframes), 0.0, 1.0, _rng.randf_range(0.32, 0.5))
+	var beat := n.create_tween().set_loops(int(secs * VORTEX_HZ))
+	beat.tween_interval(1.0 / VORTEX_HZ)
+	beat.tween_callback(func():
+		for o in units:
+			if o.team == Unit.ENEMY and not o.dead and Vector2(o.wx, o.wd).distance_to(wp) < VORTEX_R * k:
+				_impact(o.position + Vector2(0, -34 * o.scale.y), 4.0 * o.scale.y)
+				o.take(dmg))
+	var life := n.create_tween()
+	life.tween_interval(secs)
+	life.tween_property(n, "modulate:a", 0.0, 0.2)
+	life.tween_callback(n.queue_free)
+
+
+func _dist(a: Unit, b: Unit) -> float:
+	return Vector2(a.wx, a.wd).distance_to(Vector2(b.wx, b.wd))
 
 
 func _impact(p: Vector2, r: float) -> void:
@@ -353,11 +431,11 @@ func _rebuild_grid() -> void:
 		_grid[c].append(u)
 
 
-func _around(wx: float, wd: float) -> Array:
+func _around(wx: float, wd: float, r: int = 1) -> Array:
 	var out := []
 	var c := _cell(wx, wd)
-	for dx in range(-1, 2):
-		for dy in range(-1, 2):
+	for dx in range(-r, r + 1):
+		for dy in range(-r, r + 1):
 			var arr = _grid.get(Vector2i(c.x + dx, c.y + dy))
 			if arr:
 				out.append_array(arr)
@@ -384,14 +462,18 @@ func separation(u: Unit) -> Vector2:
 
 func near_enemy(u: Unit, radius: float) -> Unit:
 	var best: Unit = null
-	var best_d := radius
+	var best_score := radius
 	var here := Vector2(u.wx, u.wd)
-	for o in _around(u.wx, u.wd):
+	for o in _around(u.wx, u.wd, maxi(1, int(ceil(radius / CELL)))):
 		if o.team == u.team:
 			continue
 		var d := here.distance_to(Vector2(o.wx, o.wd))
-		if d < best_d:
-			best_d = d
+		if d >= radius:
+			continue
+		# juggle focus: airborne foes in reach always take the hit first
+		var score := d - (999.0 if o.air_h > 0.0 else 0.0)
+		if score < best_score:
+			best_score = score
 			best = o
 	return best
 
@@ -416,7 +498,9 @@ func _process(delta: float) -> void:
 	spawn_t -= delta
 	if spawn_t <= 0.0 and not spawn_queue.is_empty():
 		spawn_t = spawn_interval
-		_spawn_enemy(spawn_queue.pop_back())
+		# bursts: the horde arrives in clumps, not a drip
+		for i in range(mini(3, spawn_queue.size())):
+			_spawn_enemy(spawn_queue.pop_back())
 	# refill front slots from the ranks
 	for l in range(lanes):
 		if front[l] == null:
@@ -538,6 +622,9 @@ func _set_army(type: String) -> void:
 			u.rush = true
 			u.sprite.frame = 0
 	_deploy(type, true)
+	# the swap beat: the world holds its breath for a blink
+	Engine.time_scale = 0.05
+	get_tree().create_timer(0.09, true, false, true).timeout.connect(func(): Engine.time_scale = 1.0)
 	var d: Dictionary = Game.units[type]
 	var cd := _ability_cd_left(type)
 	say("%s step up - %s%s" % [d["label"], d["ability_label"], "" if cd <= 0.0 else " (on cooldown %.0fs)" % cd])
@@ -572,17 +659,31 @@ func _opening(u: Unit) -> void:
 	near.sort_custom(func(a, b): return here.distance_to(Vector2(a.wx, a.wd)) < here.distance_to(Vector2(b.wx, b.wd)))
 	match Game.units[u.type]["ability"]:
 		"whirl":
-			# every veteran on the field spin-dodges: i-frames live in Unit.take, blades out
+			# every veteran on the field spin-dodges: i-frames live in Unit.take, blades out.
+			# alternate the beat so half spin while the other half plants, in and out
+			var flip := 0.0
 			for o in units:
 				if o.team == Unit.ALLY and o.type == u.type and not o.dead:
 					o.spin_until = _now() + 4.0
+					o.spin_phase = flip
+					flip = 1.0 - flip
 					_flash(Vector2(o.wx, o.wd), 22.0, Color(0.7, 0.9, 1.0, 0.4))
+			# and a field of vortex cleaves ahead of the line: jittered grid = random but even
+			for i in range(VORTEX_COLS):
+				for j in range(VORTEX_ROWS):
+					var cx := -RANK_HALF + RANK_HALF * 2.0 * (i + 0.5) / VORTEX_COLS
+					var cd := FRONT_D + 40.0 + 110.0 * j
+					_vortex(Vector2(cx + _rng.randf_range(-30.0, 30.0), cd + _rng.randf_range(-35.0, 35.0)), 2.6, u.dmg * VORTEX_DMG, 4.0)
 		"sweep":
-			_flash(here + Vector2(0, 40), 70.0, Color(1.0, 0.9, 0.6, 0.45))
-			for o in near:
-				o.take(u.dmg * 2.0, Vector2(0, 8))
-				o.wd += 35.0
+			# launch zone: a box in front of the player, everything in it goes up
+			_flash(Vector2(hero_wx, hero_wd + SWEEP_LEN * 0.5), SWEEP_W, Color(1.0, 0.9, 0.6, 0.45))
+			for o in units:
+				if o.team == Unit.ENEMY and absf(o.wx - hero_wx) < SWEEP_W \
+						and o.wd > hero_wd and o.wd < hero_wd + SWEEP_LEN:
+					o.launch(340.0)
+					o.take(u.dmg * 2.0, Vector2(0, 8))
 		"slam":
+			u.slam_anim()
 			_flash(here + Vector2(0, 40), 60.0, Color(1.0, 0.8, 0.5, 0.6))
 			for o in near:
 				o.take(20.0)
@@ -593,10 +694,87 @@ func _opening(u: Unit) -> void:
 				_impact(near[0].position + Vector2(0, -34 * near[0].scale.y), 9.0 * near[0].scale.y)
 				near[0].take(45.0, Vector2(0, 6))
 		"volley":
-			for o in units:
-				if o.team == Unit.ENEMY and here.distance_to(Vector2(o.wx, o.wd)) < u.rng:
-					_arrow(u.position + Vector2(0, -50 * u.scale.y), o.position + Vector2(0, -30 * o.scale.y))
-					o.take(12.0)
+			# backup volley: one salvo a second slams the kill box in front of the hero
+			var tw := create_tween()
+			tw.set_loops(4)
+			tw.tween_callback(_rain_salvo.bind(6.0))
+			tw.tween_interval(1.0)
+
+
+## One salvo of the backup volley: 18 arrows at once into a box ahead of the hero — most
+## seek a random enemy inside it (led if still marching), the rest hammer its ground.
+func _rain_salvo(dmg: float) -> void:
+	var x0 := hero_wx
+	var d0 := hero_wd + 80.0
+	var d1 := hero_wd + 320.0
+	_flash(Vector2(x0, (d0 + d1) * 0.5), 100.0, Color(1.0, 0.9, 0.6, 0.25))
+	var foes: Array = []
+	for o in units:
+		if o.team == Unit.ENEMY and not o.dead and absf(o.wx - x0) < 130.0 and o.wd > d0 and o.wd < d1:
+			foes.append(o)
+	for i in range(18):
+		var mark: Vector2
+		if not foes.is_empty() and _rng.randf() < 0.6:
+			var o: Unit = foes[_rng.randi() % foes.size()]
+			var lead := o.speed * 0.5 if o.wd > FRONT_D + 60.0 else 0.0
+			mark = Vector2(o.wx + _rng.randf_range(-16.0, 16.0), o.wd - lead + _rng.randf_range(-12.0, 12.0))
+		else:
+			mark = Vector2(x0 + _rng.randf_range(-120.0, 120.0), _rng.randf_range(d0, d1))
+		_volley_arrow(mark, dmg)
+
+
+## One volley arrow: launched behind the camera above the ranks, arcing down onto `mark`.
+## Airborne enemies along the path are run through — damaged plus a small juggle tap —
+## without stopping the arrow; whoever stands at the mark when it lands takes the hit.
+func _volley_arrow(mark: Vector2, dmg: float) -> void:
+	var from := Vector2(mark.x + _rng.randf_range(-70.0, 70.0), BEHIND_D)
+	var l := Line2D.new()
+	l.width = 1.5
+	l.default_color = Color(0.9, 0.85, 0.7)
+	l.add_point(Vector2.ZERO)
+	l.add_point(Vector2.ZERO)
+	l.visible = false
+	fx.add_child(l)
+	var pierced := {}
+	var prev := [Vector2.INF]
+	var tw := create_tween()
+	tw.tween_interval(_rng.randf_range(0.0, 0.1))   # a breath of jitter so the wave shimmers
+	tw.tween_method(func(k: float):
+		var wp := from.lerp(mark, k)
+		var h := 62.0 * (1.0 - k * k) + sin(k * PI) * 8.0   # whiz over the helmets, dive late
+		var p := view.project(wp.x, wp.y) + Vector2(0, -h * view.sprite_scale(wp.y))
+		l.visible = true
+		l.set_point_position(0, p)
+		var tail: Vector2 = p if prev[0] == Vector2.INF else prev[0]
+		var cap := 5.0 * view.sprite_scale(wp.y)   # short dart, scaled with depth
+		if p.distance_to(tail) > cap:
+			tail = p + (tail - p).normalized() * cap
+		l.set_point_position(1, tail)
+		prev[0] = p
+		for o in units:
+			if o.team == Unit.ENEMY and not o.dead and o.air_h > 0.0 and not pierced.has(o) \
+					and absf(o.wx - wp.x) < 20.0 and absf(o.wd - wp.y) < 28.0 and absf(o.air_h - h) < 45.0:
+				pierced[o] = true
+				o.take(dmg)
+				o.air_v = 130.0   # a tap back up, not a full re-launch
+		, 0.0, 1.0, 0.4)
+	tw.tween_callback(func():
+		for o in units:
+			if o.team == Unit.ENEMY and not o.dead and o.air_h == 0.0 and Vector2(o.wx, o.wd).distance_to(mark) < 26.0:
+				o.take(dmg)
+				break
+		_impact(view.project(mark.x, mark.y), 5.0)
+		l.queue_free())
+
+
+## A sky-dropped hammer hit the ground: shockwave — same numbers as its slam ability.
+func sky_landing(u: Unit) -> void:
+	var here := Vector2(u.wx, u.wd)
+	_flash(here, 60.0, Color(1.0, 0.8, 0.5, 0.6))
+	for o in units:
+		if o.team == Unit.ENEMY and here.distance_to(Vector2(o.wx, o.wd)) < 90.0:
+			o.take(20.0)
+			o.rooted_until = _now() + 2.5
 
 
 func _spell(id: String) -> Dictionary:
@@ -672,6 +850,6 @@ func _draw_hud() -> void:
 			lb.text = "%s x%d  %s%s" % [Game.units[ty]["label"], _rank_count(ty), Game.units[ty]["ability_label"], "" if cd <= 0.0 else " %.0fs" % cd]
 			lb.position.x = 8 + i * 190
 			lb.add_theme_color_override("font_color", Color("#f0c260") if ty == army_type else Color("#a0a08b"))
-	hud_text.text = "WAVE %d / 4\nHERO %d\nMAGIC %d  (lifetime %d)\nZ Bolt 8   X Mend 20   C Wall 30    Q/E cycle the army    RMB siphon\nRelics: %s\nFPS %d" % [
-		Game.wave + 1, int(hero_hp), int(Game.magic), int(Game.magic_ever), ", ".join(Game.relics), Engine.get_frames_per_second()]
+	hud_text.text = "WAVE %d / 4\nHERO %d\nMAGIC %d  (lifetime %d)\nSCORE %d\nZ Bolt 8   X Mend 20   C Wall 30    Q/E cycle the army    RMB siphon\nRelics: %s\nFPS %d" % [
+		Game.wave + 1, int(hero_hp), int(Game.magic), int(Game.magic_ever), Game.score, ", ".join(Game.relics), Engine.get_frames_per_second()]
 	toast_label.text = toast if toast_t > 0.0 else ""
