@@ -41,17 +41,23 @@ func _run(spec: String) -> void:
 		b._cycle_army(1)
 		await get_tree().create_timer(4.0).timeout
 		b._cycle_army(-1)
-		await get_tree().create_timer(2.0).timeout
-		var now := Time.get_ticks_msec() / 1000.0
-		var spinning := 0
+		# whirl pulses 1s on / 1s off: wait until a burst is live, then check the i-frames
+		var whirling := 0
+		for _i in range(60):
+			await get_tree().create_timer(0.1).timeout
+			whirling = 0
+			for u in b.units:
+				if u.team == 0 and u.type == "veteran" and u.spinning():
+					whirling += 1
+			if whirling > 0:
+				break
+		assert(whirling > 0, "no veterans spinning after swap-in")
 		for u in b.units:
-			if u.team == 0 and u.type == "veteran" and u.spin_until > now:
-				spinning += 1
+			if u.team == 0 and u.type == "veteran" and u.spinning():
 				var hp0: float = u.hp
 				u.take(999.0)
 				assert(u.hp == hp0 and not u.dead, "spinning veteran took damage — no i-frames")
-		assert(spinning > 0, "no veterans spinning after swap-in")
-		print("PROBE whirl ok: %d veterans spin-dodging" % spinning)
+		print("PROBE whirl ok: %d veterans in spin burst" % whirling)
 	if parts.size() > 2 and parts[2].begins_with("stress"):
 		# stress: grow the block to N rows (default 20) and report FPS after `secs`
 		var rows := int(parts[2].trim_prefix("stress")) if parts[2].length() > 6 else 20

@@ -68,18 +68,23 @@ func _process(delta: float) -> void:
 	if Time.get_ticks_msec() / 1000.0 < rooted_until:
 		sprite.modulate = Color(0.6, 1.0, 0.6)
 	elif Time.get_ticks_msec() / 1000.0 < spin_until and (state == State.FIGHT or state == State.RANK):
-		# spinning dodge roll: hard lateral darts angled slightly back; take() grants i-frames,
-		# anything in reach gets clipped by the spinning blade
+		# whirl: 1s spin bursts with 1s breathers. Spinning = hard lateral darts angled slightly
+		# back, i-frames in take(), blade clips anyone in reach. Breather = plant, face N or S.
 		sprite.modulate = sprite.modulate.lerp(battle.view.fog(wd), delta * 8.0)
-		if _roll_goal == Vector2.ZERO or Vector2(wx, wd).distance_to(_roll_goal) < 4.0:
-			var side := 1.0 if randf() < 0.5 else -1.0
-			_roll_goal = Vector2(clampf(wx + side * randf_range(60.0, 100.0), -320.0, 320.0), wd - randf_range(10.0, 25.0))   # rank half-width
-		_step(_roll_goal, delta)
-		sprite.frame = wrapi(int(_t * 22.0), 0, 8)
-		var foe: Unit = battle.near_enemy(self, 45.0)
-		if foe and _cd <= 0.0:
-			_cd = cooldown
-			battle.hit(self, foe)
+		if spinning():
+			# erratic: short darts at double speed, ~1.5 mid-dart rethinks a second
+			if _roll_goal == Vector2.ZERO or Vector2(wx, wd).distance_to(_roll_goal) < 4.0 or randf() < 1.5 * delta:
+				var side := 1.0 if randf() < 0.5 else -1.0
+				_roll_goal = Vector2(clampf(wx + side * randf_range(30.0, 90.0), -320.0, 320.0), wd + randf_range(-28.0, 6.0))   # rank half-width
+			_step(_roll_goal, delta, 2.0)
+			sprite.frame = wrapi(int(_t * 22.0), 0, 8)
+			var foe: Unit = battle.near_enemy(self, 45.0)
+			if foe and _cd <= 0.0:
+				_cd = cooldown
+				battle.hit(self, foe)
+		else:
+			_roll_goal = Vector2.ZERO
+			sprite.frame = 4 if absi(sprite.frame - 4) <= 2 else 0   # exit the spin facing N or S
 	else:
 		sprite.modulate = sprite.modulate.lerp(battle.view.fog(wd), delta * 8.0)
 		match state:
@@ -143,11 +148,11 @@ func _dist(o: Node2D) -> float:
 	return Vector2(wx, wd).distance_to(Vector2(o.wx, o.wd))
 
 
-func _step(goal: Vector2, delta: float) -> void:
+func _step(goal: Vector2, delta: float, mult := 1.0) -> void:
 	var here := Vector2(wx, wd)
 	if here.distance_to(goal) > 2.0:
 		var v := (goal - here).normalized()
-		var sp := speed * (RUSH if rush else 1.0)
+		var sp := speed * (RUSH if rush else 1.0) * mult
 		if here.distance_to(goal) < sp * delta:
 			here = goal
 		else:
@@ -173,10 +178,16 @@ func lunge(v: Vector2) -> void:
 	_lunge = v / maxf(scale.x, 0.01)
 
 
+## Whirl phase: 1s on / 1s off across the spin window; i-frames and the blade only while on.
+func spinning() -> bool:
+	var left := spin_until - Time.get_ticks_msec() / 1000.0
+	return left > 0.0 and fmod(left, 2.0) > 1.0
+
+
 func take(amount: float, push := Vector2.ZERO) -> void:
 	if dead:
 		return
-	if Time.get_ticks_msec() / 1000.0 < spin_until:
+	if spinning():
 		return   # i-frames: the roll dodges it clean
 	hp -= amount
 	sprite.modulate = Color(2.0, 2.0, 2.0)
