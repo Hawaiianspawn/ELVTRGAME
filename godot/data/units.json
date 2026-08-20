@@ -10,9 +10,9 @@
     "counters": [
       "archer_undead"
     ],
-    "ability": "bulwark",
-    "ability_label": "Bulwark",
-    "ability_desc": "Front line takes 70% less damage for 4s",
+    "ability": "whirl",
+    "ability_label": "Whirl",
+    "ability_desc": "Veterans spin for 4s: dodge rolls with i-frames, striking anyone in reach",
     "ability_cd": 12
   },
   "halberdier": {

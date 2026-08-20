@@ -571,11 +571,12 @@ func _opening(u: Unit) -> void:
 			near.append(o)
 	near.sort_custom(func(a, b): return here.distance_to(Vector2(a.wx, a.wd)) < here.distance_to(Vector2(b.wx, b.wd)))
 	match Game.units[u.type]["ability"]:
-		"bulwark":
-			for f in front:
-				if f != null and is_instance_valid(f):
-					f.guard_until = _now() + 4.0
-					_flash(Vector2(f.wx, f.wd), 26.0, Color(1.0, 0.85, 0.4, 0.5))
+		"whirl":
+			# every veteran on the field spin-dodges: i-frames live in Unit.take, blades out
+			for o in units:
+				if o.team == Unit.ALLY and o.type == u.type and not o.dead:
+					o.spin_until = _now() + 4.0
+					_flash(Vector2(o.wx, o.wd), 22.0, Color(0.7, 0.9, 1.0, 0.4))
 		"sweep":
 			_flash(here + Vector2(0, 40), 70.0, Color(1.0, 0.9, 0.6, 0.45))
 			for o in near:

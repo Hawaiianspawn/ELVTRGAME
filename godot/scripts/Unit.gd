@@ -34,6 +34,8 @@ var _recoil := Vector2.ZERO
 var dead := false
 var opening := false        # fires the swap-in ability when it reaches the line
 var guard_until := 0.0
+var spin_until := 0.0        # whirl: spinning dodge rolls until then, i-frames in take()
+var _roll_goal := Vector2.ZERO
 var rush := false            # ADVANCE/RETREAT at rush speed (swaps route behind the camera)
 var _leg := 0                # RETREAT: 0 = run back past the camera, 1 = walk into the vacated slot
 var battle: Node2D
@@ -65,6 +67,19 @@ func _process(delta: float) -> void:
 	_moving = false
 	if Time.get_ticks_msec() / 1000.0 < rooted_until:
 		sprite.modulate = Color(0.6, 1.0, 0.6)
+	elif Time.get_ticks_msec() / 1000.0 < spin_until and (state == State.FIGHT or state == State.RANK):
+		# spinning dodge roll: hard lateral darts angled slightly back; take() grants i-frames,
+		# anything in reach gets clipped by the spinning blade
+		sprite.modulate = sprite.modulate.lerp(battle.view.fog(wd), delta * 8.0)
+		if _roll_goal == Vector2.ZERO or Vector2(wx, wd).distance_to(_roll_goal) < 4.0:
+			var side := 1.0 if randf() < 0.5 else -1.0
+			_roll_goal = Vector2(clampf(wx + side * randf_range(60.0, 100.0), -320.0, 320.0), wd - randf_range(10.0, 25.0))   # rank half-width
+		_step(_roll_goal, delta)
+		sprite.frame = wrapi(int(_t * 22.0), 0, 8)
+		var foe: Unit = battle.near_enemy(self, 45.0)
+		if foe and _cd <= 0.0:
+			_cd = cooldown
+			battle.hit(self, foe)
 	else:
 		sprite.modulate = sprite.modulate.lerp(battle.view.fog(wd), delta * 8.0)
 		match state:
@@ -161,6 +176,8 @@ func lunge(v: Vector2) -> void:
 func take(amount: float, push := Vector2.ZERO) -> void:
 	if dead:
 		return
+	if Time.get_ticks_msec() / 1000.0 < spin_until:
+		return   # i-frames: the roll dodges it clean
 	hp -= amount
 	sprite.modulate = Color(2.0, 2.0, 2.0)
 	_recoil = push / maxf(scale.x, 0.01)

@@ -34,6 +34,24 @@ func _run(spec: String) -> void:
 				stragglers += 1
 		assert(stragglers == 0, "old type still on the field: %d" % stragglers)
 		print("PROBE swap ok: %s -> %s, %d on field, pool[%s]=%d" % [old_type, b.army_type, b.units.filter(func(x): return x.team == 0).size(), old_type, b.pool[old_type]])
+	if parts.size() > 2 and parts[2] == "whirl":
+		# self-check: swapping back to veterans fires whirl — the field spin-dodges under i-frames
+		await get_tree().create_timer(6.0).timeout
+		var b := get_tree().current_scene
+		b._cycle_army(1)
+		await get_tree().create_timer(4.0).timeout
+		b._cycle_army(-1)
+		await get_tree().create_timer(2.0).timeout
+		var now := Time.get_ticks_msec() / 1000.0
+		var spinning := 0
+		for u in b.units:
+			if u.team == 0 and u.type == "veteran" and u.spin_until > now:
+				spinning += 1
+				var hp0: float = u.hp
+				u.take(999.0)
+				assert(u.hp == hp0 and not u.dead, "spinning veteran took damage — no i-frames")
+		assert(spinning > 0, "no veterans spinning after swap-in")
+		print("PROBE whirl ok: %d veterans spin-dodging" % spinning)
 	if parts.size() > 2 and parts[2].begins_with("stress"):
 		# stress: grow the block to N rows (default 20) and report FPS after `secs`
 		var rows := int(parts[2].trim_prefix("stress")) if parts[2].length() > 6 else 20
