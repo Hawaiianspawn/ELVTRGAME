@@ -59,7 +59,7 @@
     },
     "pathfinder-line/Merle_Pathfinder": {
       "group": "team",
-      "title": "Merle_Pathfinder",
+      "title": "Primary",
       "expectation": "shared freed rung for all 3 archer branches (variant_index 11) -- docs/art/adaptation-roster.md"
     },
     "pathfinder-line/One_with_Hollow_blac": {
@@ -125,7 +125,7 @@
     },
     "knight-melee-v2/v10_bracedstaff": {
       "group": "team",
-      "title": "v10_bracedstaff"
+      "title": "Pike"
     },
     "knight-melee-v2/v11_midguard": {
       "group": "team",
@@ -133,7 +133,7 @@
     },
     "knight-melee-v2/v13_maceraised": {
       "group": "team",
-      "title": "v13_maceraised"
+      "title": "Mace"
     },
     "knight-melee-v1/v1_narrowguard": {
       "group": "team",
@@ -148,7 +148,7 @@
     },
     "archer-medieval/v2_bowextended": {
       "group": "team",
-      "title": "v2_bowextended"
+      "title": "Leveled Up"
     },
     "knight-melee-v1/v2_lanceout": {
       "group": "team",
@@ -173,7 +173,7 @@
     },
     "knight-melee-v2/v8_heavycloak": {
       "group": "team",
-      "title": "v8_heavycloak",
+      "title": "Veteran",
       "expectation": "spearmen-line bannerman/captain rung (variant_index 7) -- docs/art/adaptation-roster.md"
     },
     "request/soldier-05": {
@@ -294,7 +294,7 @@
     },
     "brood-ooze-colour/rotations": {
       "group": "unsorted",
-      "title": "rotations"
+      "title": "Sword"
     },
     "pathfinder-line/shinobi": {
       "group": "unsorted",
@@ -470,7 +470,7 @@
     },
     "archer-medieval/v1_narrowstrung": {
       "group": "unsorted",
-      "title": "v1_narrowstrung"
+      "title": "Veteran Ranged"
     },
     "enemy-armored/v1_pike": {
       "group": "unsorted",
@@ -502,7 +502,7 @@
     },
     "knight-mass/v4_pike": {
       "group": "unsorted",
-      "title": "v4_pike"
+      "title": "and spea"
     },
     "archer-medieval/v4_quiverreach": {
       "group": "unsorted",
@@ -518,7 +518,7 @@
     },
     "archer-medieval/v5_crossbowbrace": {
       "group": "unsorted",
-      "title": "v5_crossbowbrace"
+      "title": "Leveled Up Again"
     },
     "enemy-armored/v5_slabshield": {
       "group": "unsorted",
@@ -601,6 +601,12 @@
       "group": "heroes",
       "expectation": "v1 class roster per docs/narrative/FLAME-FOUNDATION.md. No art and no design brief yet -- expectation needs writing.",
       "notes": []
+    },
+    "knight-greatsword/g2_sweep": {
+      "title": "Primary "
+    },
+    "knight-greatsword/g1_seed": {
+      "title": "Primary Sheathed"
     }
   }
 }

@@ -410,6 +410,85 @@ def turnaround(rot_dir, scale=2, ms=140):
     return buf.getvalue()
 
 
+def clip_webp(clip_dir, scale=2, ms=70, hold_ms=0, rest=None):
+    """frame_N.png in a clip dir as one looping lossless WebP, bottom-aligned like turnaround.
+    hold_ms lingers on the last frame (the strike) the way Unit.gd's attack_hold does; rest is
+    an optional standing frame (the north rotation) shown between loops so the clip reads as
+    strike-then-guard rather than a spinning loop."""
+    from PIL import Image
+    files = sorted(clip_dir.glob("frame_*.png"), key=lambda f: int(f.stem[6:]))
+    if not files:
+        raise Fail("no frames in %s" % clip_dir)
+    ims = [Image.open(f).convert("RGBA") for f in files]
+    if rest is not None and rest.exists():
+        ims.append(Image.open(rest).convert("RGBA"))
+    w = max(i.width for i in ims) * scale
+    h = max(i.height for i in ims) * scale
+    frames = []
+    for i in ims:
+        r = i.resize((i.width * scale, i.height * scale), Image.NEAREST)
+        f = Image.new("RGBA", (w, h), (0, 0, 0, 0))
+        f.alpha_composite(r, ((w - r.width) // 2, h - r.height))
+        frames.append(f)
+    dur = [ms] * len(files)
+    dur[-1] += hold_ms
+    if rest is not None and rest.exists():
+        dur.append(400)
+    buf = __import__("io").BytesIO()
+    frames[0].save(buf, "WEBP", save_all=True, append_images=frames[1:],
+                   duration=dur, loop=0, lossless=True, minimize_size=True)
+    return buf.getvalue()
+
+
+def clips():
+    """Every <family>/<slug>/<clip>/ dir with frame_*.png under Renders, newest first."""
+    out = []
+    for f in vp.RENDERS.glob("*/raw/*/attack*/frame_0.png"):
+        out.append((f.parents[2].name, f.parents[1].name, f.parent.name, f.parent))
+    out.sort(key=lambda t: t[3].stat().st_mtime, reverse=True)
+    return out
+
+
+def attacks_page():
+    """Review every generated attack/action clip next to its standing frame, in-game hold and all."""
+    units = vp.load_json(REPO / "godot" / "data" / "units.json")
+    roster = vp.load_json(REPO / "godot" / "data" / "roster.json")
+    by_ref = {v: k for k, v in roster.items()}
+    cards = []
+    for fam, slug, name, d in clips():
+        ref = "%s/%s" % (fam, slug)
+        unit = by_ref.get(ref)
+        u = units.get(unit) or {}
+        hold = float(u.get("attack_hold", 0.0))
+        n = len(list(d.glob("frame_*.png")))
+        facing = name.split("_")[-1] if "_" in name else "south"
+        q = "ref=%s&name=%s" % (esc(ref), esc(name))
+        cards.append(
+            '<div class="card"><div class="pair">'
+            '<img class="rot" src="/still?key=%(ref)s&zoom=4" alt="" title="rotations">'
+            '<img class="rot" src="/anim?%(q)s&zoom=4&hold=%(hold)d" alt="" title="clip, with in-game hold">'
+            '</div><img class="strip" src="/anim?%(q)s&zoom=2&strip=1" alt="">'
+            '<b>%(slug)s</b><span class="sub">%(fam)s &middot; %(name)s &middot; %(n)d frames &middot; %(facing)s'
+            '%(unit)s</span></div>'
+            % {"ref": esc(ref), "q": q, "hold": int(hold * 1000), "slug": esc(slug), "fam": esc(fam),
+               "name": esc(name), "n": n, "facing": esc(facing),
+               "unit": (" &middot; in game as <b>%s</b>%s" % (esc(unit), (", hold %.2fs" % hold) if hold else "")) if unit else ""})
+    return """<!doctype html><html><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Kindled &middot; attack clips</title><style>%s
+.pair{display:flex;gap:.4rem;align-items:flex-end;} .pair img{image-rendering:pixelated;}
+.strip{image-rendering:pixelated;max-width:100%%;display:block;margin:.3rem 0;}
+.cards{grid-template-columns:repeat(auto-fill,minmax(24rem,1fr));}
+</style></head><body><div class="wrap"><header>
+<p class="eyebrow"><a href="/" style="color:var(--bone)">&larr; roster</a> &middot; attack clips</p>
+<h1>Attack animations</h1>
+<p>Left: the standing rotations (hover on other pages to turn). Right: the generated clip played at
+Unit.gd speed, last frame held for the unit's <code>attack_hold</code>, then the standing north frame.
+Below: the frame strip. Clips come from <code>py Scripts/art/fetch_anim.py &lt;family&gt;/&lt;slug&gt; &lt;character_id&gt;</code>
+and pack into the Godot atlas with <code>godot_pack.py</code>.</p>
+</header><div class="cards">%s</div></div></body></html>""" % (SELECTS_CSS, "".join(cards))
+
+
 def poll(family):
     """Advance every pending job. Returns the number that completed this pass.
 
@@ -1437,10 +1516,21 @@ def selects_page():
     fams = {}
     for fam, slug, d in cands:
         fams.setdefault(fam, []).append((slug, d))
+    # newest first -- a look just generated is the one being judged, so it sits on top.
+    # mtime of the south frame is the generation time: the downloader writes all eight at once.
+    born = lambda sd: (Path(sd[1]) / "south.png").stat().st_mtime
+    for v in fams.values():
+        v.sort(key=born, reverse=True)
 
     sections = []
     tot = {"approve": 0, "deny": 0, "pending": 0}
-    for fam in sorted(fams):
+    by_type = {}
+    for fam in sorted(fams, key=lambda f: born(fams[f][0]), reverse=True):
+        by_type.setdefault(unit_type(fam), []).append(fam)
+    for utype in UNIT_TYPES + ("other",):
+      if utype in by_type:
+        sections.append('<h1 class="side">%s</h1>' % esc(utype))
+      for fam in by_type.get(utype, []):
         cards, n = [], {"approve": 0, "deny": 0, "pending": 0}
         for slug, d in fams[fam]:
             key = "%s/%s" % (fam, slug)
@@ -1470,7 +1560,26 @@ def selects_page():
                n["approve"], n["deny"], n["pending"], "".join(cards)))
 
     bopts = "".join('<option>%s</option>' % esc(b) for b in selects_branches())
-    return """<!doctype html><html><head><meta charset="utf-8">
+    return SELECTS_PAGE % {
+        "css": SELECTS_CSS, "js": SELECTS_JS, "bopts": bopts,
+        "sections": "".join(sections), "a": tot["approve"], "d": tot["deny"], "p": tot["pending"]}
+
+
+# Selects groups families by what the unit IS, not by which generation run made it.
+# First matching substring wins; anything unmatched lands under "other".
+UNIT_TYPES = ("undead", "brood / flesh", "enemy armoured / boss", "cavalry", "ranged", "melee")
+_TYPE_RULES = (("undead", "undead"), ("brood", "brood / flesh"), ("flesh", "brood / flesh"),
+               ("enemy", "enemy armoured / boss"), ("boss", "enemy armoured / boss"),
+               ("horse", "cavalry"), ("archer", "ranged"), ("pathfinder", "ranged"),
+               ("ranged", "ranged"), ("knight", "melee"), ("melee", "melee"),
+               ("soldier", "melee"), ("retinue", "melee"))
+
+
+def unit_type(family):
+    return next((t for k, t in _TYPE_RULES if k in family), "other")
+
+
+SELECTS_PAGE = """<!doctype html><html><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Kindled &middot; selects</title><style>%(css)s</style></head><body class="hide-denied">
 <div class="wrap">
@@ -1491,10 +1600,7 @@ def selects_page():
   </div>
 %(sections)s
 </div>
-<script>%(js)s</script></body></html>""" % {
-        "css": SELECTS_CSS, "js": SELECTS_JS, "bopts": bopts,
-        "a": tot["approve"], "d": tot["deny"], "p": tot["pending"],
-        "sections": "\n".join(sections)}
+<script>%(js)s</script></body></html>"""
 
 
 def palette_colours(png, q=24, floor=0.02):
@@ -1872,6 +1978,30 @@ def build_app(family, atlas, prefix, scale):
         png = guard(lambda: still(rot_for(key, sel), zoom or max(1, scale - 1)))
         return Response(png, media_type="image/webp",
                         headers={"Cache-Control": "no-store"})
+
+    @app.get("/attacks", response_class=HTMLResponse)
+    def attacks_view():
+        return guard(attacks_page)
+
+    @app.get("/anim")
+    def api_anim(ref: str, name: str, zoom: int = 2, hold: int = 0, strip: int = 0):
+        fam, slug = ref.split("/", 1)
+        d = vp.RENDERS / fam / "raw" / slug / name
+        if strip:
+            from PIL import Image
+            files = sorted(d.glob("frame_*.png"), key=lambda f: int(f.stem[6:]))
+            ims = [Image.open(f).convert("RGBA") for f in files]
+            w, h = max(i.width for i in ims), max(i.height for i in ims)
+            sheet = Image.new("RGBA", (w * len(ims), h), (0, 0, 0, 0))
+            for i, im in enumerate(ims):
+                sheet.alpha_composite(im, (i * w + (w - im.width) // 2, h - im.height))
+            sheet = sheet.resize((sheet.width * zoom, sheet.height * zoom), Image.NEAREST)
+            buf = __import__("io").BytesIO(); sheet.save(buf, "PNG")
+            return Response(buf.getvalue(), media_type="image/png", headers={"Cache-Control": "no-store"})
+        facing = name.split("_")[-1]
+        rest = vp.RENDERS / fam / "raw" / slug / "rotations" / ("%s.png" % facing)
+        webp = guard(lambda: clip_webp(d, zoom, 60, hold, rest))
+        return Response(webp, media_type="image/webp", headers={"Cache-Control": "no-store"})
 
     @app.get("/turn")
     def api_turn(key: str, sel: int = 0, zoom: int = 0):

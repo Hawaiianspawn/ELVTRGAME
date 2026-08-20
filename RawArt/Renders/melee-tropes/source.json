@@ -1,0 +1,32 @@
+{
+ "base": "94760c79-5ebc-4917-9d37-641676115b19",
+ "queued": "2026-08-16",
+ "state_ids": {
+  "samurai": "f39da65f-a3c2-4919-89e6-2d4152675280",
+  "gladiator": "41f0203d-77fe-4541-afec-9111425d593a",
+  "riot-trooper": "7f6c013c-c141-4cca-9b8c-43117bedc3c7",
+  "monk": "07f1251a-8efc-4390-976a-a5d52757f47c",
+  "headsman": "b94b0dd9-5a6a-46f5-b891-24105f4659e0",
+  "duelist": "e4e35406-6ea8-4d6a-8ab5-4cbb7b3d4de8",
+  "crusader": "2271c4a9-4acb-47bc-8b05-f80c52709b28",
+  "hammer-knight": "45cdecc0-1df1-4272-b8c3-698c2bc1eca1",
+  "flail-knight": "50b1021d-5950-4f9f-b658-3b0ad6bd7749",
+  "halberdier": "fa1904f1-3495-47f2-bbd8-2ee4ce3b8c48",
+  "man-at-arms": "d05abbb1-7f5e-4f5f-9a65-d8b49a6a9fd5",
+  "twin-axes": "2eb9b669-5dc6-4558-b420-3d93ff245c85"
+ },
+ "palette_from_reference": {
+  "samurai": true,
+  "monk": true,
+  "headsman": true,
+  "gladiator": false,
+  "riot-trooper": false,
+  "duelist": false,
+  "crusader": true,
+  "hammer-knight": true,
+  "flail-knight": true,
+  "halberdier": true,
+  "man-at-arms": true,
+  "twin-axes": true
+ }
+}

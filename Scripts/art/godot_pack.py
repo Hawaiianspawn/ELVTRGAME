@@ -39,13 +39,57 @@ def main():
         d = rotations_dir(ref, selects)
         frames = [Image.open(os.path.join(d, "%s.png" % f)).convert("RGBA") for f in DIRECTIONS]
         cell = max(max(im.size) for im in frames)
+        # Feet on the cell floor: sources carry transparent padding under the feet, and Godot puts the
+        # cell bottom on the unit origin, so any padding becomes a float that grows with sprite scale.
+        floor_y = max(im.getbbox()[3] for im in frames if im.getbbox())
         strip = Image.new("RGBA", (cell * 8, cell))
         for i, im in enumerate(frames):
-            strip.paste(im, (i * cell + (cell - im.width) // 2, cell - im.height))
+            strip.paste(im, (i * cell + (cell - im.width) // 2, cell - floor_y))
         strip.save(os.path.join(OUT, name + ".png"))
-        manifest[name] = {"cell": cell, "source": ref}
+        # Alpha centroid height above the feet, averaged over the 8 rotations: the airborne
+        # spin pivot. Box-resize to 1px wide = mean alpha per row, so weapons and headroom
+        # weigh in exactly as much pixel mass as they have.
+        coms = []
+        for im in frames:
+            rows = list(im.split()[3].resize((1, im.height), Image.BOX).getdata())
+            m = sum(rows)
+            if m:
+                coms.append(floor_y - sum(yy * v for yy, v in enumerate(rows)) / m)
+        manifest[name] = {"cell": cell, "source": ref,
+                          "com": round(sum(coms) / len(coms), 1) if coms else cell * 0.42}
         strips.append((name, strip))
         print("%-24s %3dpx  %s" % (name, cell, ref))
+        # Optional clip rows: <rotations>/../<clip>_north/frame_*.png (PixelLab v3 frames, same
+        # canvas as the rotations) packed as extra strips right under the unit's rotations.
+        for clip in ("attack", "slam"):
+            adir = os.path.join(os.path.dirname(d), clip + "_north")
+            if not os.path.isdir(adir):
+                continue
+            names = sorted((f for f in os.listdir(adir) if f.startswith("frame_") and f.endswith(".png")),
+                           key=lambda f: int(f[6:-4]))
+            frames = [Image.open(os.path.join(adir, f)).convert("RGBA") for f in names]
+            strip = Image.new("RGBA", (cell * len(frames), cell))
+            for i, im in enumerate(frames):
+                strip.paste(im, (i * cell + (cell - im.width) // 2, cell - floor_y))
+            manifest[name][clip] = {"frames": len(frames)}
+            strips.append((name + "/" + clip, strip))
+            print("%-24s %s_north x%d" % ("", clip, len(frames)))
+    # Effect clips: RawArt/Renders/fx-slash/raw/<name>/frames/frame_N.png -> "fx_<name>" row, no rotations.
+    fxroot = os.path.join(REPO, "RawArt", "Renders", "fx-slash", "raw")
+    for fx in sorted(os.listdir(fxroot)) if os.path.isdir(fxroot) else []:
+        fdir = os.path.join(fxroot, fx, "frames")
+        if not os.path.isdir(fdir):
+            continue
+        names = sorted((f for f in os.listdir(fdir) if f.startswith("frame_") and f.endswith(".png")),
+                       key=lambda f: int(f[6:-4]))
+        frames = [Image.open(os.path.join(fdir, f)).convert("RGBA") for f in names]
+        cell = max(max(im.size) for im in frames)
+        strip = Image.new("RGBA", (cell * len(frames), cell))
+        for i, im in enumerate(frames):
+            strip.paste(im, (i * cell, 0))
+        manifest["fx_" + fx] = {"cell": cell, "frames": len(frames), "source": "fx-slash/" + fx}
+        strips.append(("fx_" + fx, strip))
+        print("%-24s %3dpx  fx x%d" % ("fx_" + fx, cell, len(frames)))
     # One atlas for the whole roster: every sprite shares a texture so the 2D batcher keeps them in one draw call.
     width = max(im.width for _, im in strips)
     height = sum(im.height for _, im in strips)
@@ -53,7 +97,11 @@ def main():
     y = 0
     for name, im in strips:
         atlas.paste(im, (0, y))
-        manifest[name]["y"] = y
+        if "/" in name:
+            base, clip = name.split("/")
+            manifest[base][clip]["y"] = y
+        else:
+            manifest[name]["y"] = y
         y += im.height
     atlas.save(os.path.join(OUT, "atlas.png"))
     print("atlas %dx%d" % (width, height))

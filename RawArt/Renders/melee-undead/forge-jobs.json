@@ -1,0 +1,118 @@
+{
+  "z5_bracedstaff_undead_greeneyes": {
+    "slug": "z5_bracedstaff_undead_greeneyes",
+    "base_id": "95cda399-c8cf-4f8f-9b2f-cf19712d81e6",
+    "character_id": "87f6a6c2-bb9e-4180-ac23-afe5dc341947",
+    "edit": "pink eyes -> necrotic green glowing eyes",
+    "started": "2026-08-19T07:31:04+00:00",
+    "status": "done",
+    "parent": "z5_bracedstaff_undead",
+    "fetched": "2026-08-19T07:32:07+00:00",
+    "canvas": [
+      88,
+      88
+    ],
+    "pixellab_name": "Hallam (Vanguard)",
+    "group_id": "2cc3ab61-4230-4786-98fa-b94da9e99218"
+  },
+  "z1-tilt-left": {
+    "slug": "z1-tilt-left",
+    "base_id": "6dd19c16-8dc3-4a2c-87a9-53cff161e120",
+    "character_id": "f2d855a3-9712-478a-a5f9-a5c3a1e614e2",
+    "background_job_id": "8cf81828-0f12-42a8-bbbc-4737fb3377b0",
+    "edit": "Same undead soldier, head tilted hard toward the left shoulder, jaw hanging slack",
+    "tail": "Keep the head and legs clearly visible. Match the existing color palette exactly, no new colors, no glowing parts.",
+    "prompt": "Same undead soldier, head tilted hard toward the left shoulder, jaw hanging slack. Keep the head and legs clearly visible. Match the existing color palette exactly, no new colors, no glowing parts.",
+    "seed": null,
+    "usage": null,
+    "started": "2026-08-20T00:48:43+00:00",
+    "status": "done",
+    "fetched": "2026-08-20T00:51:03+00:00",
+    "canvas": [
+      88,
+      88
+    ],
+    "pixellab_name": "Hallam (Vanguard)",
+    "group_id": "2cc3ab61-4230-4786-98fa-b94da9e99218"
+  },
+  "z1-tilt-right": {
+    "slug": "z1-tilt-right",
+    "base_id": "6dd19c16-8dc3-4a2c-87a9-53cff161e120",
+    "character_id": "af4ff4e8-780c-47c4-8c77-87c7039193a7",
+    "background_job_id": "fcd63e68-a9ed-41eb-bdff-857568bb9436",
+    "edit": "Same undead soldier, head tilted toward the right shoulder, hunched deeper, one arm dangling limp",
+    "tail": "Keep the head and legs clearly visible. Match the existing color palette exactly, no new colors, no glowing parts.",
+    "prompt": "Same undead soldier, head tilted toward the right shoulder, hunched deeper, one arm dangling limp. Keep the head and legs clearly visible. Match the existing color palette exactly, no new colors, no glowing parts.",
+    "seed": null,
+    "usage": null,
+    "started": "2026-08-20T00:48:44+00:00",
+    "status": "done",
+    "fetched": "2026-08-20T00:51:08+00:00",
+    "canvas": [
+      88,
+      88
+    ],
+    "pixellab_name": "Hallam (Vanguard)",
+    "group_id": "2cc3ab61-4230-4786-98fa-b94da9e99218"
+  },
+  "z1-lolled": {
+    "slug": "z1-lolled",
+    "base_id": "6dd19c16-8dc3-4a2c-87a9-53cff161e120",
+    "character_id": "86cb4264-68f6-44f3-ac2f-5e4759fffa5f",
+    "background_job_id": "6833df9c-00aa-4b31-98f9-cf77ab467126",
+    "edit": "Same undead soldier, head lolled backward, mouth agape, both arms hanging dead at the sides",
+    "tail": "Keep the head and legs clearly visible. Match the existing color palette exactly, no new colors, no glowing parts.",
+    "prompt": "Same undead soldier, head lolled backward, mouth agape, both arms hanging dead at the sides. Keep the head and legs clearly visible. Match the existing color palette exactly, no new colors, no glowing parts.",
+    "seed": null,
+    "usage": null,
+    "started": "2026-08-20T00:48:45+00:00",
+    "status": "done",
+    "fetched": "2026-08-20T00:51:14+00:00",
+    "canvas": [
+      88,
+      88
+    ],
+    "pixellab_name": "Hallam (Vanguard)",
+    "group_id": "2cc3ab61-4230-4786-98fa-b94da9e99218"
+  },
+  "z3-tilt-right": {
+    "slug": "z3-tilt-right",
+    "base_id": "d4f4a4fc-7ce0-435d-868c-5bc26009fa8b",
+    "character_id": "e14bee31-31a3-457b-8cce-d796fb723ae1",
+    "background_job_id": "d93a0436-2b1d-4c30-ba33-b448209643ef",
+    "edit": "Same armored undead, head tilted toward the right shoulder, shield arm drooping low",
+    "tail": "Keep the head and legs clearly visible. Match the existing color palette exactly, no new colors, no glowing parts.",
+    "prompt": "Same armored undead, head tilted toward the right shoulder, shield arm drooping low. Keep the head and legs clearly visible. Match the existing color palette exactly, no new colors, no glowing parts.",
+    "seed": null,
+    "usage": null,
+    "started": "2026-08-20T00:48:45+00:00",
+    "status": "done",
+    "fetched": "2026-08-20T00:51:19+00:00",
+    "canvas": [
+      88,
+      88
+    ],
+    "pixellab_name": "Hallam (Vanguard)",
+    "group_id": "2cc3ab61-4230-4786-98fa-b94da9e99218"
+  },
+  "z4-tilt-left": {
+    "slug": "z4-tilt-left",
+    "base_id": "3bd22c75-91be-4b52-aee5-60c3c6674b73",
+    "character_id": "627edbb2-3dc5-4ea9-84f4-0d8bb4799941",
+    "background_job_id": "e0e21001-2ed2-45af-a55c-75b93519bf8b",
+    "edit": "Same undead soldier, head tilted hard toward the left shoulder, mace arm sagging lower",
+    "tail": "Keep the head and legs clearly visible. Match the existing color palette exactly, no new colors, no glowing parts.",
+    "prompt": "Same undead soldier, head tilted hard toward the left shoulder, mace arm sagging lower. Keep the head and legs clearly visible. Match the existing color palette exactly, no new colors, no glowing parts.",
+    "seed": null,
+    "usage": null,
+    "started": "2026-08-20T00:48:46+00:00",
+    "status": "done",
+    "fetched": "2026-08-20T00:51:24+00:00",
+    "canvas": [
+      88,
+      88
+    ],
+    "pixellab_name": "Hallam (Vanguard)",
+    "group_id": "2cc3ab61-4230-4786-98fa-b94da9e99218"
+  }
+}

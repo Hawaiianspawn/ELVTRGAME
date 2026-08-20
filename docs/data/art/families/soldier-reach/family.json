@@ -1,0 +1,27 @@
+{
+  "family": "soldier-reach",
+  "note": "Probe family, opened 2026-08-15. The soldier families on disk (knight-melee-v1/v2, knight-mass, knight-types) all land inside a 1.7x aspect spread, while ranged-roster reaches 4.0x by owning the tall-narrow end -- unit06_spire-lancer measures 0.26 where the narrowest knight variant is 0.68. This family tests whether a soldier can reach that end at all. One variant only until the owner approves the direction from the south frame; the rest of the axis is not queued.",
+  "base": {
+    "character_id": "1c935515-0ea3-459b-8c63-e7f8cf368272",
+    "canvas_size": 88,
+    "note": "Hallam (Vanguard), the same base knight-melee-v1/v2 build on."
+  },
+  "axis": {
+    "name": "aspect",
+    "description": "Vertical reach. Each variant spends height rather than width -- a long vertical implement and a closed stance -- pushing toward the 0.26-0.35 aspect band ranged-roster proved reachable and no soldier family has entered."
+  },
+  "constant": "Same character, palette, chibi proportions and 88px canvas as knight-melee-v1/v2. Only the carried implement and the stance change.",
+  "forge": {
+    "atlas": "team-units",
+    "prefix": "soldier-",
+    "tail": "Keep the head and legs clearly visible. Match the existing color palette exactly, no new colors, no glowing parts."
+  },
+  "variants": [
+    {
+      "slug": "s1_pikevertical",
+      "silhouette_target": 0.35,
+      "source": "generated",
+      "edit_description": "A very long pike or spear held straight up and down, vertical, gripped in one hand close to the body, its shaft rising well above the head and its butt dropping near the feet, so the weapon adds height and no width at all. The body itself kept as narrow as possible: legs together, shoulders squared forward, the free arm held flat against the side, nothing extending sideways past the shoulders. The overall silhouette should be a tall thin column roughly three times taller than it is wide. Keep the head and legs clearly visible. Match the existing color palette exactly, no new colors, no glowing parts."
+    }
+  ]
+}

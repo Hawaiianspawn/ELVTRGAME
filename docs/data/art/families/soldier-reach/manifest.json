@@ -1,0 +1,70 @@
+{
+  "family": "soldier-reach",
+  "variants": {
+    "s1_pikevertical": {
+      "urls": [
+        "https://backblaze.pixellab.ai/file/pixellab-characters/af7def4e-5692-4b18-9246-874d5382befb/fd27638d-f0d5-4e55-91e7-2e5eb8fe9c6d/rotations/south.png?t=1786834187",
+        "https://backblaze.pixellab.ai/file/pixellab-characters/af7def4e-5692-4b18-9246-874d5382befb/fd27638d-f0d5-4e55-91e7-2e5eb8fe9c6d/rotations/east.png?t=1786834187",
+        "https://backblaze.pixellab.ai/file/pixellab-characters/af7def4e-5692-4b18-9246-874d5382befb/fd27638d-f0d5-4e55-91e7-2e5eb8fe9c6d/rotations/north.png?t=1786834187",
+        "https://backblaze.pixellab.ai/file/pixellab-characters/af7def4e-5692-4b18-9246-874d5382befb/fd27638d-f0d5-4e55-91e7-2e5eb8fe9c6d/rotations/west.png?t=1786834187",
+        "https://backblaze.pixellab.ai/file/pixellab-characters/af7def4e-5692-4b18-9246-874d5382befb/fd27638d-f0d5-4e55-91e7-2e5eb8fe9c6d/rotations/south-east.png?t=1786834187",
+        "https://backblaze.pixellab.ai/file/pixellab-characters/af7def4e-5692-4b18-9246-874d5382befb/fd27638d-f0d5-4e55-91e7-2e5eb8fe9c6d/rotations/north-east.png?t=1786834187",
+        "https://backblaze.pixellab.ai/file/pixellab-characters/af7def4e-5692-4b18-9246-874d5382befb/fd27638d-f0d5-4e55-91e7-2e5eb8fe9c6d/rotations/north-west.png?t=1786834187",
+        "https://backblaze.pixellab.ai/file/pixellab-characters/af7def4e-5692-4b18-9246-874d5382befb/fd27638d-f0d5-4e55-91e7-2e5eb8fe9c6d/rotations/south-west.png?t=1786834187"
+      ],
+      "fetched": "2026-08-15T22:52:15+00:00",
+      "files": [
+        "east.png",
+        "north-east.png",
+        "north-west.png",
+        "north.png",
+        "south-east.png",
+        "south-west.png",
+        "south.png",
+        "west.png"
+      ],
+      "measured": {
+        "canvas": [
+          88,
+          88
+        ],
+        "content": [
+          28,
+          48
+        ],
+        "aspect": 0.5833333333333334,
+        "solidity": 0.6808035714285714,
+        "asymmetry": 0.2863387978142076,
+        "holes": 0,
+        "hole_px": 0,
+        "luma_mean": 0.2438845593056895,
+        "luma_p95": 0.6688674509803921,
+        "opaque": 915,
+        "distinct": 39,
+        "off_ramp": 915,
+        "binary_alpha": true
+      },
+      "band": {
+        "aspect": [
+          0.42857142857142855,
+          0.625
+        ],
+        "solidity": [
+          0.6319444444444444,
+          0.7083333333333334
+        ],
+        "asymmetry": [
+          0.12058823529411765,
+          0.4810400866738895
+        ],
+        "holes": [
+          0,
+          1
+        ]
+      },
+      "verdict": "keep",
+      "reasons": []
+    }
+  },
+  "judged": "2026-08-15T22:52:15+00:00"
+}

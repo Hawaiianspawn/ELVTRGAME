@@ -89,7 +89,13 @@
         ]
       },
       "verdict": "keep",
-      "reasons": []
+      "reasons": [],
+      "owner": {
+        "verdict": "deny",
+        "at": "2026-08-16T22:51:24+00:00",
+        "note": "",
+        "shipped": null
+      }
     },
     "type2_pikeman": {
       "measured": {

@@ -62,7 +62,13 @@
         ]
       },
       "verdict": "keep",
-      "reasons": []
+      "reasons": [],
+      "owner": {
+        "verdict": "deny",
+        "at": "2026-08-16T05:13:51+00:00",
+        "note": "",
+        "shipped": null
+      }
     },
     "v2_lanceout": {
       "urls": [
@@ -125,7 +131,13 @@
         ]
       },
       "verdict": "keep",
-      "reasons": []
+      "reasons": [],
+      "owner": {
+        "verdict": "deny",
+        "at": "2026-08-16T05:13:52+00:00",
+        "note": "",
+        "shipped": null
+      }
     },
     "v3_shieldbreak": {
       "urls": [
@@ -189,7 +201,13 @@
         ]
       },
       "verdict": "keep",
-      "reasons": []
+      "reasons": [],
+      "owner": {
+        "verdict": "deny",
+        "at": "2026-08-16T05:13:53+00:00",
+        "note": "",
+        "shipped": null
+      }
     },
     "v4_overhead": {
       "urls": [
@@ -254,20 +272,26 @@
         ]
       },
       "verdict": "keep",
-      "reasons": []
+      "reasons": [],
+      "owner": {
+        "verdict": "deny",
+        "at": "2026-08-16T05:13:54+00:00",
+        "note": "",
+        "shipped": null
+      }
     },
     "v5_widecross": {
       "urls": [
-        "https://backblaze.pixellab.ai/file/pixellab-characters/af7def4e-5692-4b18-9246-874d5382befb/d6695238-46c4-4159-9f60-0b09b9ebf6d6/rotations/south.png?t=1785375725",
-        "https://backblaze.pixellab.ai/file/pixellab-characters/af7def4e-5692-4b18-9246-874d5382befb/d6695238-46c4-4159-9f60-0b09b9ebf6d6/rotations/east.png?t=1785375725",
-        "https://backblaze.pixellab.ai/file/pixellab-characters/af7def4e-5692-4b18-9246-874d5382befb/d6695238-46c4-4159-9f60-0b09b9ebf6d6/rotations/north.png?t=1785375725",
-        "https://backblaze.pixellab.ai/file/pixellab-characters/af7def4e-5692-4b18-9246-874d5382befb/d6695238-46c4-4159-9f60-0b09b9ebf6d6/rotations/west.png?t=1785375725",
-        "https://backblaze.pixellab.ai/file/pixellab-characters/af7def4e-5692-4b18-9246-874d5382befb/d6695238-46c4-4159-9f60-0b09b9ebf6d6/rotations/south-east.png?t=1785375725",
-        "https://backblaze.pixellab.ai/file/pixellab-characters/af7def4e-5692-4b18-9246-874d5382befb/d6695238-46c4-4159-9f60-0b09b9ebf6d6/rotations/north-east.png?t=1785375725",
-        "https://backblaze.pixellab.ai/file/pixellab-characters/af7def4e-5692-4b18-9246-874d5382befb/d6695238-46c4-4159-9f60-0b09b9ebf6d6/rotations/north-west.png?t=1785375725",
-        "https://backblaze.pixellab.ai/file/pixellab-characters/af7def4e-5692-4b18-9246-874d5382befb/d6695238-46c4-4159-9f60-0b09b9ebf6d6/rotations/south-west.png?t=1785375725"
+        "https://backblaze.pixellab.ai/file/pixellab-characters/af7def4e-5692-4b18-9246-874d5382befb/d42095b2-8348-4194-a876-1d3a63f1982f/rotations/south.png?t=1786834956",
+        "https://backblaze.pixellab.ai/file/pixellab-characters/af7def4e-5692-4b18-9246-874d5382befb/d42095b2-8348-4194-a876-1d3a63f1982f/rotations/east.png?t=1786834956",
+        "https://backblaze.pixellab.ai/file/pixellab-characters/af7def4e-5692-4b18-9246-874d5382befb/d42095b2-8348-4194-a876-1d3a63f1982f/rotations/north.png?t=1786834956",
+        "https://backblaze.pixellab.ai/file/pixellab-characters/af7def4e-5692-4b18-9246-874d5382befb/d42095b2-8348-4194-a876-1d3a63f1982f/rotations/west.png?t=1786834956",
+        "https://backblaze.pixellab.ai/file/pixellab-characters/af7def4e-5692-4b18-9246-874d5382befb/d42095b2-8348-4194-a876-1d3a63f1982f/rotations/south-east.png?t=1786834956",
+        "https://backblaze.pixellab.ai/file/pixellab-characters/af7def4e-5692-4b18-9246-874d5382befb/d42095b2-8348-4194-a876-1d3a63f1982f/rotations/north-east.png?t=1786834956",
+        "https://backblaze.pixellab.ai/file/pixellab-characters/af7def4e-5692-4b18-9246-874d5382befb/d42095b2-8348-4194-a876-1d3a63f1982f/rotations/north-west.png?t=1786834956",
+        "https://backblaze.pixellab.ai/file/pixellab-characters/af7def4e-5692-4b18-9246-874d5382befb/d42095b2-8348-4194-a876-1d3a63f1982f/rotations/south-west.png?t=1786834956"
       ],
-      "fetched": "2026-07-30T01:43:10+00:00",
+      "fetched": "2026-08-15T23:06:08+00:00",
       "files": [
         "east.png",
         "north-east.png",
@@ -317,10 +341,38 @@
           1
         ]
       },
-      "verdict": "flag",
-      "reasons": [
-        "aspect target 1.60 falls outside the measured 0.98-1.23 band across all 8 rotations"
-      ]
+      "verdict": "keep",
+      "reasons": [],
+      "refine": {
+        "attempts": 2,
+        "history": [
+          {
+            "attempt": 1,
+            "at": "2026-08-15T22:19:40+00:00",
+            "verdict": "flag",
+            "reasons": [
+              "aspect target 1.60 falls outside the measured 0.98-1.23 band across all 8 rotations"
+            ],
+            "sent": "A wide guard stance with both arms spread away from the torso: the shield held out to one side at arm's length and the sword held out to the other side at arm's length, at the same time, both clearly separated from the body by open air reaching the sprite's edge on each side. Overall silhouette roughly one and a half to one and three-quarter times wider than tall. Keep the head and legs clearly visible between the two spread arms. Match the existing color palette exactly, no new colors, no glowing parts. The previous attempt came out too narrow: measured aspect 0.98-1.23 across 8 rotations against a 1.60 target. Make the form WIDER -- spread the arms or stance, extend the carried gear further from the body."
+          },
+          {
+            "attempt": 2,
+            "at": "2026-08-15T23:00:42+00:00",
+            "verdict": "flag",
+            "reasons": [
+              "aspect target 1.60 falls outside the measured 0.84-1.18 band across all 8 rotations"
+            ],
+            "sent": "A wide guard stance with both arms spread away from the torso: the shield held out to one side at arm's length and the sword held out to the other side at arm's length, at the same time, both clearly separated from the body by open air reaching the sprite's edge on each side. Overall silhouette roughly one and a half to one and three-quarter times wider than tall. Keep the head and legs clearly visible between the two spread arms. Match the existing color palette exactly, no new colors, no glowing parts. The previous attempt came out too narrow: measured aspect 0.84-1.18 across 8 rotations against a 1.60 target. Make the form WIDER -- spread the arms or stance, extend the carried gear further from the body."
+          }
+        ],
+        "original": "A wide guard stance with both arms spread away from the torso: the shield held out to one side at arm's length and the sword held out to the other side at arm's length, at the same time, both clearly separated from the body by open air reaching the sprite's edge on each side. Overall silhouette roughly one and a half to one and three-quarter times wider than tall. Keep the head and legs clearly visible between the two spread arms. Match the existing color palette exactly, no new colors, no glowing parts."
+      },
+      "owner": {
+        "verdict": "deny",
+        "at": "2026-08-16T05:13:55+00:00",
+        "note": "",
+        "shipped": null
+      }
     },
     "v6_simplecolumn": {
       "urls": [
@@ -383,8 +435,14 @@
         ]
       },
       "verdict": "keep",
-      "reasons": []
+      "reasons": [],
+      "owner": {
+        "verdict": "deny",
+        "at": "2026-08-16T05:13:56+00:00",
+        "note": "",
+        "shipped": null
+      }
     }
   },
-  "judged": "2026-07-30T01:47:58+00:00"
+  "judged": "2026-08-18T23:22:58+00:00"
 }

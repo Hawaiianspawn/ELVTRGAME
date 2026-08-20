@@ -1,0 +1,16 @@
+{
+  "name": "boss-batch-2-ramp",
+  "derived_from": [
+    "boss-genre-probe/twists/spider-broodmother (sole approved boss)"
+  ],
+  "colors": [
+    "#09051d",
+    "#2a1c39",
+    "#76728c",
+    "#a7756d",
+    "#614151",
+    "#4a3349",
+    "#c69376",
+    "#f4e2ac"
+  ]
+}

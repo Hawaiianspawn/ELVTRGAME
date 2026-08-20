@@ -1,0 +1,19 @@
+{
+  "note": "animate_image job ids, south rotation only, seed 1, 8 frames. Same three action descriptions across all nine looks so the ONLY variable is the body shape -- owner asked whether hurt/walk fail on blob mass or on the prompt. state01_sump ran first (2026-08-18) off the unquantized source; the other eight ran off Scripts-quantized copies in src/, verified pixel-identical to the originals.",
+  "actions": {
+    "bite": "lunging forward and biting, jaws opening wide then snapping shut",
+    "hurt": "recoiling backward from a heavy blow, body flinching and folding, then recovering",
+    "walk": "walking forward, body oozing and lurching side to side"
+  },
+  "jobs": {
+    "state00_base":  {"bite": "f2098d92-e0af-4623-a2fa-4c8fb4a092b8", "hurt": "a20677ea-4f42-428b-89f5-dce542cd71e9", "walk": "cf0ec54f-a058-4306-adb1-f24eea348b64"},
+    "state01_sump":  {"bite": "15d6ea36-8c3d-4898-ae2b-45a591e1ba18", "hurt": "b3f8fe84-d009-4f21-8f85-d45f47d83c01", "walk": "09ea5185-7351-4bb1-af53-5a37689bb4e8"},
+    "state02_bell":  {"bite": "3872d360-74fc-49c3-be45-034697d87c51", "hurt": "a424e99d-7ab4-4a47-97ce-e48e7bed49e5", "walk": "5f3cec8e-71ab-46fd-b433-d750d23200e9"},
+    "state03_stalk": {"bite": "2c3fb418-6979-45d9-9058-855b5c43b5ee", "hurt": "be911327-e586-428a-bed1-0524657fbe15", "walk": "ba670914-76ee-4ae0-87eb-2aa7f012549f"},
+    "state04_wedge": {"bite": "5d9561d9-0783-4a0c-9869-614185f6906c", "hurt": "fe03bc21-1497-44a8-9e8d-340706a2df1b", "walk": "f1cd214b-c9db-4eb7-b868-bc88b03354d9"},
+    "state05_ridge": {"bite": "79133370-ce39-426f-ba85-c6d8435bb109", "hurt": "47f12afd-03e3-4cbc-aa7a-b28be4ed309d", "walk": "35240be8-4e75-4992-8dd2-924629679ad0"},
+    "state06_crown": {"bite": "0444187a-e139-4712-87d1-2f520fb86743", "hurt": "3e91c21c-4f1c-4a74-b55b-96f762e8e0ae", "walk": "aea281da-ed68-4928-bb2f-5bb9be3ba242"},
+    "state07_twin":  {"bite": "b8844edc-39da-421e-a1bf-c0f6f88b35c4", "hurt": "71ff71da-8772-4479-bb45-691946766d7e", "walk": "2cdee7b9-7a9b-45da-9c22-14d77f296f80"},
+    "state08_slug":  {"bite": "9fdabf1b-0de8-44b2-8bdc-a6ae7a9dbd74", "hurt": "5fbd2922-0247-4572-87be-adbfb9dd8886", "walk": "1bda72ad-0895-4424-80b4-9cfd3dad0e13"}
+  }
+}

@@ -1,0 +1,93 @@
+{
+  "family": "melee-tropes",
+  "note": "Melee counterpart to pathfinder-line's task-140 round (six character TROPES as the concept seed, genre deliberately allowed to stray past medieval). Base is knight-melee-v2's v7_barestance -- the leanest knight in the roster, no shield, no cloak, sword sheathed -- picked per SKILL.md step 1 because it carries no dominant prop to anchor every child. Base confirmed live via get_character 2026-08-16: 88x88, id 94760c79-5ebc-4917-9d37-641676115b19 (state 'Standing narrow and' in group 2cc3ab61-4230-4786-98fa-b94da9e99218; a second state 0b629df4 shares that name -- 94760c79 is the one whose rotations are on disk under knight-melee-v2/raw/v7_barestance). PALETTE: owner ruled 2026-08-16 that this family need NOT hold the base palette on every unit -- 'we do not entirely need to keep color pallet exactly the same, some units can be a different variety'. So samurai, monk and headsman are sent with use_color_palette_from_reference=True (cohesion with the knight line); riot-trooper, gladiator and duelist are sent with it FALSE and the palette clause dropped from their prompt, so the genre stretch is allowed to bring its own colours. Queued over MCP directly rather than through forge.py, which hardcodes the palette flag True. ROUND 2 (2026-08-16, owner: 'more variety, now with some similarities to the source -- 80% familiar but different'): six knight-adjacent variants that KEEP the source helmet, plate and palette (all use_color_palette_from_reference=True) and spend the 20% on one weapon/kit signature each: crusader, hammer-knight, flail-knight, halberdier, man-at-arms, twin-axes.",
+  "base": {
+    "character_id": "94760c79-5ebc-4917-9d37-641676115b19",
+    "canvas_size": 88,
+    "note": "v7_barestance of knight-melee-v2. create_character_state inherits the 88px canvas."
+  },
+  "axis": {
+    "name": "mixed",
+    "description": "Trope-seeded, each spending a different silhouette axis: samurai (topology -- wide hanging sleeves plus a long curved blade angled up behind the shoulder), gladiator (asymmetry -- one oversized pauldron and a net/trident pair, the two sides deliberately unlike), riot-trooper (solidity -- a tall rectangular shield covering the whole front, near-rectangle primitive), monk (aspect narrow -- bare-handed, robes tight, a vertical bo staff, the slimmest form), headsman (topology top-heavy -- broad hooded shoulders and a greataxe head above the skull), duelist (asymmetry via a cape swept off one shoulder plus a thin rapier held out level, wide-by-extension)."
+  },
+  "constant": "Base 94760c79 (v7_barestance), 88px canvas, full colour, glow banned in every prompt, head and legs visible, every variant nameable as a foot soldier from its outline. Palette held on three (samurai, monk, headsman), free on three (riot-trooper, gladiator, duelist) -- see note.",
+  "forge": {
+    "atlas": "team-units",
+    "prefix": "knight-",
+    "note": "Same block as knight-melee-v2 ships into."
+  },
+  "variants": [
+    {
+      "slug": "samurai",
+      "silhouette_target": "wide hanging kimono sleeves doubling the arm width, a long curved katana angled up past one shoulder -- a broad mid-body with one diagonal spike, a topology no knight variant uses",
+      "edit_description": "A samurai: wide hanging kimono sleeves that double the width of the arms, layered lamellar chest armor, hair in a topknot instead of a helmet, a long curved katana held in both hands angled up past one shoulder. Keep the head and legs clearly visible. Match the existing color palette exactly, no new colors, no glowing parts.",
+      "source": "generated"
+    },
+    {
+      "slug": "gladiator",
+      "silhouette_target": "genuine left-right asymmetry from the body itself -- one oversized shoulder pauldron and a bare other shoulder, a trident held upright in one hand and a weighted net hanging from the other",
+      "edit_description": "A gladiator: bare chest and arms, one oversized segmented shoulder pauldron on one side only and the other shoulder bare, a crested visored helmet, a three-pronged trident held upright in one hand and a weighted rope net hanging from the other hand. The two sides of the body must be clearly different, not mirrored. Keep the head and legs clearly visible. No glowing parts.",
+      "source": "generated"
+    },
+    {
+      "slug": "riot-trooper",
+      "silhouette_target": "a tall rectangular riot shield covering the whole front from knee to eye line -- solidity near 1.0, the closest-to-rectangle primitive in the melee block, and a front/back asymmetry since the back is a plain armored figure",
+      "edit_description": "A modern riot control trooper: full-face visored helmet, black tactical body armor, a tall flat rectangular polycarbonate riot shield held in front covering the body from knee to eye level, a baton in the other hand. From the front the shield outline dominates as a solid rectangle; from the back the plain armored figure shows. Keep the head and legs clearly visible. No glowing parts.",
+      "source": "generated"
+    },
+    {
+      "slug": "monk",
+      "silhouette_target": 0.5,
+      "edit_description": "A martial-arts monk: shaved head, no helmet, no armor, plain wrapped robes tight against the body, sash at the waist, arms tucked in holding a long straight wooden bo staff vertically against the body. The slimmest, narrowest figure possible, roughly half as wide as tall, legs together. Keep the head and legs clearly visible. Match the existing color palette exactly, no new colors, no glowing parts.",
+      "source": "generated"
+    },
+    {
+      "slug": "headsman",
+      "silhouette_target": "top-heavy topology -- broad hooded shoulders and a heavy greataxe head carried above the skull, the widest point of the outline sits above the head",
+      "edit_description": "An executioner headsman: black hood covering the whole head, massive broad hunched shoulders, bare heavy arms, leather apron, a huge two-handed greataxe rested on one shoulder so its wide axe head sits above and behind the head. The silhouette should be widest at the top and narrow toward the legs. Keep the head and legs clearly visible. Match the existing color palette exactly, no new colors, no glowing parts.",
+      "source": "generated"
+    },
+    {
+      "slug": "duelist",
+      "silhouette_target": 1.4,
+      "edit_description": "A swashbuckling duelist: wide-brimmed feathered hat, short cape swept back off one shoulder only, a thin rapier held out level to one side at full arm extension so it reaches well past the body's edge, the other hand on the hip. Roughly one and a half times wider than tall overall. Keep the head and legs clearly visible. No glowing parts.",
+      "source": "generated"
+    },
+    {
+      "slug": "crusader",
+      "silhouette_target": "topology -- bucket great helm (flat-topped head) plus a long surcoat hem, sword point-down in both hands: a squared head and a straight-sided lower body",
+      "edit_description": "A crusader knight: flat-topped bucket great helm with a cross-slit visor, a long cloth surcoat with a cross over the plate armor hanging to the knees, longsword held point-down in both hands in front of the body. Keep the same knight helmet, plate armor and overall body as the source. Keep the head and legs clearly visible. Match the existing color palette exactly, no new colors, no glowing parts.",
+      "source": "generated"
+    },
+    {
+      "slug": "hammer-knight",
+      "silhouette_target": "topology top-heavy -- a two-handed warhammer rested on the shoulder, its heavy head sitting beside and above the helmet",
+      "edit_description": "The same knight carrying a heavy two-handed warhammer rested on one shoulder, the big hammer head sitting up beside and above the helmet, both hands on the shaft. Keep the same knight helmet, plate armor and overall body as the source. Keep the head and legs clearly visible. Match the existing color palette exactly, no new colors, no glowing parts.",
+      "source": "generated"
+    },
+    {
+      "slug": "flail-knight",
+      "silhouette_target": "asymmetry plus a hole -- a chained flail ball swung out level to one side, chain enclosing a gap against the body",
+      "edit_description": "The same knight swinging a spiked flail: the chained ball held out level to one side at arm's length so the chain and ball are clear of the body, a small round buckler strapped to the other forearm. The two sides must read differently. Keep the same knight helmet, plate armor and overall body as the source. Keep the head and legs clearly visible. Match the existing color palette exactly, no new colors, no glowing parts.",
+      "source": "generated"
+    },
+    {
+      "slug": "halberdier",
+      "silhouette_target": 0.55,
+      "edit_description": "The same knight holding a tall halberd upright in both hands, the shaft vertical beside the body and the axe-blade-and-spike head well above the helmet. Arms tucked in, legs together, the whole figure narrow and tall, roughly half as wide as tall. Keep the same knight helmet, plate armor and overall body as the source. Keep the head and legs clearly visible. Match the existing color palette exactly, no new colors, no glowing parts.",
+      "source": "generated"
+    },
+    {
+      "slug": "man-at-arms",
+      "silhouette_target": "solidity -- a heater shield held square across the chest plus a short arming sword low at the hip, the most enclosed, shield-fronted knight outline",
+      "edit_description": "The same knight as a man-at-arms: a heater shield held square across the chest covering the torso, a short arming sword held low beside the hip, feet planted apart. Solid, closed outline with no gaps. Keep the same knight helmet, plate armor and overall body as the source. Keep the head and legs clearly visible. Match the existing color palette exactly, no new colors, no glowing parts.",
+      "source": "generated"
+    },
+    {
+      "slug": "twin-axes",
+      "silhouette_target": 1.2,
+      "edit_description": "The same knight holding two hand axes, one in each hand, both arms held out and slightly down from the body so the axe heads sit clear of the hips on both sides, symmetric and wide. Roughly as wide as tall. Keep the same knight helmet, plate armor and overall body as the source. Keep the head and legs clearly visible. Match the existing color palette exactly, no new colors, no glowing parts.",
+      "source": "generated"
+    }
+  ]
+}

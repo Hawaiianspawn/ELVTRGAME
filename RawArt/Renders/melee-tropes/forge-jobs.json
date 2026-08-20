@@ -1,0 +1,248 @@
+{
+  "samurai": {
+    "slug": "samurai",
+    "base_id": "94760c79-5ebc-4917-9d37-641676115b19",
+    "character_id": "f39da65f-a3c2-4919-89e6-2d4152675280",
+    "edit": "A samurai: wide hanging kimono sleeves that double the width of the arms, layered lamellar chest armor, hair in a topknot instead of a helmet, a long curved katana held in both hands angled up past one shoulder. Keep the head and legs clearly visible. Match the existing color palette exactly, no new colors, no glowing parts.",
+    "tail": "",
+    "prompt": "A samurai: wide hanging kimono sleeves that double the width of the arms, layered lamellar chest armor, hair in a topknot instead of a helmet, a long curved katana held in both hands angled up past one shoulder. Keep the head and legs clearly visible. Match the existing color palette exactly, no new colors, no glowing parts.",
+    "seed": null,
+    "use_color_palette_from_reference": true,
+    "started": "2026-08-17T00:15:46+00:00",
+    "status": "done",
+    "via": "mcp",
+    "fetched": "2026-08-17T00:16:29+00:00",
+    "canvas": [
+      88,
+      88
+    ],
+    "pixellab_name": "Hallam (Vanguard)",
+    "group_id": "2cc3ab61-4230-4786-98fa-b94da9e99218"
+  },
+  "gladiator": {
+    "slug": "gladiator",
+    "base_id": "94760c79-5ebc-4917-9d37-641676115b19",
+    "character_id": "41f0203d-77fe-4541-afec-9111425d593a",
+    "edit": "A gladiator: bare chest and arms, one oversized segmented shoulder pauldron on one side only and the other shoulder bare, a crested visored helmet, a three-pronged trident held upright in one hand and a weighted rope net hanging from the other hand. The two sides of the body must be clearly different, not mirrored. Keep the head and legs clearly visible. No glowing parts.",
+    "tail": "",
+    "prompt": "A gladiator: bare chest and arms, one oversized segmented shoulder pauldron on one side only and the other shoulder bare, a crested visored helmet, a three-pronged trident held upright in one hand and a weighted rope net hanging from the other hand. The two sides of the body must be clearly different, not mirrored. Keep the head and legs clearly visible. No glowing parts.",
+    "seed": null,
+    "use_color_palette_from_reference": false,
+    "started": "2026-08-17T00:15:46+00:00",
+    "status": "done",
+    "via": "mcp",
+    "fetched": "2026-08-17T00:17:11+00:00",
+    "canvas": [
+      88,
+      88
+    ],
+    "pixellab_name": "Hallam (Vanguard)",
+    "group_id": "2cc3ab61-4230-4786-98fa-b94da9e99218"
+  },
+  "riot-trooper": {
+    "slug": "riot-trooper",
+    "base_id": "94760c79-5ebc-4917-9d37-641676115b19",
+    "character_id": "7f6c013c-c141-4cca-9b8c-43117bedc3c7",
+    "edit": "A modern riot control trooper: full-face visored helmet, black tactical body armor, a tall flat rectangular polycarbonate riot shield held in front covering the body from knee to eye level, a baton in the other hand. From the front the shield outline dominates as a solid rectangle; from the back the plain armored figure shows. Keep the head and legs clearly visible. No glowing parts.",
+    "tail": "",
+    "prompt": "A modern riot control trooper: full-face visored helmet, black tactical body armor, a tall flat rectangular polycarbonate riot shield held in front covering the body from knee to eye level, a baton in the other hand. From the front the shield outline dominates as a solid rectangle; from the back the plain armored figure shows. Keep the head and legs clearly visible. No glowing parts.",
+    "seed": null,
+    "use_color_palette_from_reference": false,
+    "started": "2026-08-17T00:15:46+00:00",
+    "status": "done",
+    "via": "mcp",
+    "fetched": "2026-08-17T00:17:15+00:00",
+    "canvas": [
+      88,
+      88
+    ],
+    "pixellab_name": "Hallam (Vanguard)",
+    "group_id": "2cc3ab61-4230-4786-98fa-b94da9e99218"
+  },
+  "monk": {
+    "slug": "monk",
+    "base_id": "94760c79-5ebc-4917-9d37-641676115b19",
+    "character_id": "07f1251a-8efc-4390-976a-a5d52757f47c",
+    "edit": "A martial-arts monk: shaved head, no helmet, no armor, plain wrapped robes tight against the body, sash at the waist, arms tucked in holding a long straight wooden bo staff vertically against the body. The slimmest, narrowest figure possible, roughly half as wide as tall, legs together. Keep the head and legs clearly visible. Match the existing color palette exactly, no new colors, no glowing parts.",
+    "tail": "",
+    "prompt": "A martial-arts monk: shaved head, no helmet, no armor, plain wrapped robes tight against the body, sash at the waist, arms tucked in holding a long straight wooden bo staff vertically against the body. The slimmest, narrowest figure possible, roughly half as wide as tall, legs together. Keep the head and legs clearly visible. Match the existing color palette exactly, no new colors, no glowing parts.",
+    "seed": null,
+    "use_color_palette_from_reference": true,
+    "started": "2026-08-17T00:15:46+00:00",
+    "status": "done",
+    "via": "mcp",
+    "fetched": "2026-08-17T00:16:36+00:00",
+    "canvas": [
+      88,
+      88
+    ],
+    "pixellab_name": "Hallam (Vanguard)",
+    "group_id": "2cc3ab61-4230-4786-98fa-b94da9e99218"
+  },
+  "headsman": {
+    "slug": "headsman",
+    "base_id": "94760c79-5ebc-4917-9d37-641676115b19",
+    "character_id": "b94b0dd9-5a6a-46f5-b891-24105f4659e0",
+    "edit": "An executioner headsman: black hood covering the whole head, massive broad hunched shoulders, bare heavy arms, leather apron, a huge two-handed greataxe rested on one shoulder so its wide axe head sits above and behind the head. The silhouette should be widest at the top and narrow toward the legs. Keep the head and legs clearly visible. Match the existing color palette exactly, no new colors, no glowing parts.",
+    "tail": "",
+    "prompt": "An executioner headsman: black hood covering the whole head, massive broad hunched shoulders, bare heavy arms, leather apron, a huge two-handed greataxe rested on one shoulder so its wide axe head sits above and behind the head. The silhouette should be widest at the top and narrow toward the legs. Keep the head and legs clearly visible. Match the existing color palette exactly, no new colors, no glowing parts.",
+    "seed": null,
+    "use_color_palette_from_reference": true,
+    "started": "2026-08-17T00:15:46+00:00",
+    "status": "done",
+    "via": "mcp",
+    "fetched": "2026-08-17T00:17:19+00:00",
+    "canvas": [
+      88,
+      88
+    ],
+    "pixellab_name": "Hallam (Vanguard)",
+    "group_id": "2cc3ab61-4230-4786-98fa-b94da9e99218"
+  },
+  "duelist": {
+    "slug": "duelist",
+    "base_id": "94760c79-5ebc-4917-9d37-641676115b19",
+    "character_id": "e4e35406-6ea8-4d6a-8ab5-4cbb7b3d4de8",
+    "edit": "A swashbuckling duelist: wide-brimmed feathered hat, short cape swept back off one shoulder only, a thin rapier held out level to one side at full arm extension so it reaches well past the body's edge, the other hand on the hip. Roughly one and a half times wider than tall overall. Keep the head and legs clearly visible. No glowing parts.",
+    "tail": "",
+    "prompt": "A swashbuckling duelist: wide-brimmed feathered hat, short cape swept back off one shoulder only, a thin rapier held out level to one side at full arm extension so it reaches well past the body's edge, the other hand on the hip. Roughly one and a half times wider than tall overall. Keep the head and legs clearly visible. No glowing parts.",
+    "seed": null,
+    "use_color_palette_from_reference": false,
+    "started": "2026-08-17T00:15:46+00:00",
+    "status": "done",
+    "via": "mcp",
+    "fetched": "2026-08-17T00:17:23+00:00",
+    "canvas": [
+      88,
+      88
+    ],
+    "pixellab_name": "Hallam (Vanguard)",
+    "group_id": "2cc3ab61-4230-4786-98fa-b94da9e99218"
+  },
+  "crusader": {
+    "slug": "crusader",
+    "base_id": "94760c79-5ebc-4917-9d37-641676115b19",
+    "character_id": "2271c4a9-4acb-47bc-8b05-f80c52709b28",
+    "background_job_id": "ca6b0b38-56fc-4568-b221-f9b092dbda55",
+    "edit": "A crusader knight: flat-topped bucket great helm with a cross-slit visor, a long cloth surcoat with a cross over the plate armor hanging to the knees, longsword held point-down in both hands in front of the body. Keep the same knight helmet, plate armor and overall body as the source. Keep the head and legs clearly visible. Match the existing color palette exactly, no new colors, no glowing parts.",
+    "tail": "",
+    "prompt": "A crusader knight: flat-topped bucket great helm with a cross-slit visor, a long cloth surcoat with a cross over the plate armor hanging to the knees, longsword held point-down in both hands in front of the body. Keep the same knight helmet, plate armor and overall body as the source. Keep the head and legs clearly visible. Match the existing color palette exactly, no new colors, no glowing parts.",
+    "seed": null,
+    "usage": null,
+    "started": "2026-08-17T00:24:33+00:00",
+    "status": "done",
+    "round": 2,
+    "fetched": "2026-08-17T00:26:37+00:00",
+    "canvas": [
+      88,
+      88
+    ],
+    "pixellab_name": "Hallam (Vanguard)",
+    "group_id": "2cc3ab61-4230-4786-98fa-b94da9e99218"
+  },
+  "hammer-knight": {
+    "slug": "hammer-knight",
+    "base_id": "94760c79-5ebc-4917-9d37-641676115b19",
+    "character_id": "45cdecc0-1df1-4272-b8c3-698c2bc1eca1",
+    "background_job_id": "264e134a-b265-4d5f-9b07-b33c6e1a8209",
+    "edit": "The same knight carrying a heavy two-handed warhammer rested on one shoulder, the big hammer head sitting up beside and above the helmet, both hands on the shaft. Keep the same knight helmet, plate armor and overall body as the source. Keep the head and legs clearly visible. Match the existing color palette exactly, no new colors, no glowing parts.",
+    "tail": "",
+    "prompt": "The same knight carrying a heavy two-handed warhammer rested on one shoulder, the big hammer head sitting up beside and above the helmet, both hands on the shaft. Keep the same knight helmet, plate armor and overall body as the source. Keep the head and legs clearly visible. Match the existing color palette exactly, no new colors, no glowing parts.",
+    "seed": null,
+    "usage": null,
+    "started": "2026-08-17T00:24:33+00:00",
+    "status": "done",
+    "round": 2,
+    "fetched": "2026-08-17T00:25:56+00:00",
+    "canvas": [
+      88,
+      88
+    ],
+    "pixellab_name": "Hallam (Vanguard)",
+    "group_id": "2cc3ab61-4230-4786-98fa-b94da9e99218"
+  },
+  "flail-knight": {
+    "slug": "flail-knight",
+    "base_id": "94760c79-5ebc-4917-9d37-641676115b19",
+    "character_id": "50b1021d-5950-4f9f-b658-3b0ad6bd7749",
+    "background_job_id": "11093180-b98f-4159-8a26-938ce1734383",
+    "edit": "The same knight swinging a spiked flail: the chained ball held out level to one side at arm's length so the chain and ball are clear of the body, a small round buckler strapped to the other forearm. The two sides must read differently. Keep the same knight helmet, plate armor and overall body as the source. Keep the head and legs clearly visible. Match the existing color palette exactly, no new colors, no glowing parts.",
+    "tail": "",
+    "prompt": "The same knight swinging a spiked flail: the chained ball held out level to one side at arm's length so the chain and ball are clear of the body, a small round buckler strapped to the other forearm. The two sides must read differently. Keep the same knight helmet, plate armor and overall body as the source. Keep the head and legs clearly visible. Match the existing color palette exactly, no new colors, no glowing parts.",
+    "seed": null,
+    "usage": null,
+    "started": "2026-08-17T00:24:34+00:00",
+    "status": "done",
+    "round": 2,
+    "fetched": "2026-08-17T00:26:41+00:00",
+    "canvas": [
+      88,
+      88
+    ],
+    "pixellab_name": "Hallam (Vanguard)",
+    "group_id": "2cc3ab61-4230-4786-98fa-b94da9e99218"
+  },
+  "halberdier": {
+    "slug": "halberdier",
+    "base_id": "94760c79-5ebc-4917-9d37-641676115b19",
+    "character_id": "fa1904f1-3495-47f2-bbd8-2ee4ce3b8c48",
+    "background_job_id": "26f94510-18d3-4553-b4f3-82cb9e47d6a7",
+    "edit": "The same knight holding a tall halberd upright in both hands, the shaft vertical beside the body and the axe-blade-and-spike head well above the helmet. Arms tucked in, legs together, the whole figure narrow and tall, roughly half as wide as tall. Keep the same knight helmet, plate armor and overall body as the source. Keep the head and legs clearly visible. Match the existing color palette exactly, no new colors, no glowing parts.",
+    "tail": "",
+    "prompt": "The same knight holding a tall halberd upright in both hands, the shaft vertical beside the body and the axe-blade-and-spike head well above the helmet. Arms tucked in, legs together, the whole figure narrow and tall, roughly half as wide as tall. Keep the same knight helmet, plate armor and overall body as the source. Keep the head and legs clearly visible. Match the existing color palette exactly, no new colors, no glowing parts.",
+    "seed": null,
+    "usage": null,
+    "started": "2026-08-17T00:24:35+00:00",
+    "status": "done",
+    "round": 2,
+    "fetched": "2026-08-17T00:26:45+00:00",
+    "canvas": [
+      88,
+      88
+    ],
+    "pixellab_name": "Hallam (Vanguard)",
+    "group_id": "2cc3ab61-4230-4786-98fa-b94da9e99218"
+  },
+  "man-at-arms": {
+    "slug": "man-at-arms",
+    "base_id": "94760c79-5ebc-4917-9d37-641676115b19",
+    "character_id": "d05abbb1-7f5e-4f5f-9a65-d8b49a6a9fd5",
+    "background_job_id": "5e6edf28-be6d-47fa-9c65-e27a7b7882c3",
+    "edit": "The same knight as a man-at-arms: a heater shield held square across the chest covering the torso, a short arming sword held low beside the hip, feet planted apart. Solid, closed outline with no gaps. Keep the same knight helmet, plate armor and overall body as the source. Keep the head and legs clearly visible. Match the existing color palette exactly, no new colors, no glowing parts.",
+    "tail": "",
+    "prompt": "The same knight as a man-at-arms: a heater shield held square across the chest covering the torso, a short arming sword held low beside the hip, feet planted apart. Solid, closed outline with no gaps. Keep the same knight helmet, plate armor and overall body as the source. Keep the head and legs clearly visible. Match the existing color palette exactly, no new colors, no glowing parts.",
+    "seed": null,
+    "usage": null,
+    "started": "2026-08-17T00:24:36+00:00",
+    "status": "done",
+    "round": 2,
+    "fetched": "2026-08-17T00:26:50+00:00",
+    "canvas": [
+      88,
+      88
+    ],
+    "pixellab_name": "Hallam (Vanguard)",
+    "group_id": "2cc3ab61-4230-4786-98fa-b94da9e99218"
+  },
+  "twin-axes": {
+    "slug": "twin-axes",
+    "base_id": "94760c79-5ebc-4917-9d37-641676115b19",
+    "character_id": "2eb9b669-5dc6-4558-b420-3d93ff245c85",
+    "background_job_id": "c9ba7ce6-af33-4596-83f5-6ac0449f419e",
+    "edit": "The same knight holding two hand axes, one in each hand, both arms held out and slightly down from the body so the axe heads sit clear of the hips on both sides, symmetric and wide. Roughly as wide as tall. Keep the same knight helmet, plate armor and overall body as the source. Keep the head and legs clearly visible. Match the existing color palette exactly, no new colors, no glowing parts.",
+    "tail": "",
+    "prompt": "The same knight holding two hand axes, one in each hand, both arms held out and slightly down from the body so the axe heads sit clear of the hips on both sides, symmetric and wide. Roughly as wide as tall. Keep the same knight helmet, plate armor and overall body as the source. Keep the head and legs clearly visible. Match the existing color palette exactly, no new colors, no glowing parts.",
+    "seed": null,
+    "usage": null,
+    "started": "2026-08-17T00:24:36+00:00",
+    "status": "done",
+    "round": 2,
+    "fetched": "2026-08-17T00:26:02+00:00",
+    "canvas": [
+      88,
+      88
+    ],
+    "pixellab_name": "Hallam (Vanguard)",
+    "group_id": "2cc3ab61-4230-4786-98fa-b94da9e99218"
+  }
+}

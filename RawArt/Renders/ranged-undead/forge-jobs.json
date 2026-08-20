@@ -1,0 +1,38 @@
+{
+  "z6_narrowstrung_undead_hood": {
+    "slug": "z6_narrowstrung_undead_hood",
+    "base_id": "e5af555f-26d8-4fc6-8d6c-f12ec8b763e0",
+    "character_id": "68f49a0b-756e-49e6-88f6-467576ebbaed",
+    "edit": "cloth hood in all 8 facings, no helmet",
+    "started": "2026-08-19T07:31:04+00:00",
+    "status": "done",
+    "parent": "z6_narrowstrung_undead",
+    "fetched": "2026-08-19T07:32:12+00:00",
+    "canvas": [
+      88,
+      88
+    ],
+    "pixellab_name": "Hallam (Vanguard)",
+    "group_id": "2cc3ab61-4230-4786-98fa-b94da9e99218"
+  },
+  "z8-tilt-right": {
+    "slug": "z8-tilt-right",
+    "base_id": "7d5ec5e3-df79-40c2-8c65-99252be05c6f",
+    "character_id": "3934cc25-06fb-4757-a8a4-9fbf46dcdfaf",
+    "background_job_id": "df7b3151-1074-4f9e-9980-0b769ec09a30",
+    "edit": "Same undead crossbowman, head tilted toward the right shoulder, slumped stance",
+    "tail": "Keep the head and legs clearly visible. Match the existing color palette exactly, no new colors, no glowing parts.",
+    "prompt": "Same undead crossbowman, head tilted toward the right shoulder, slumped stance. Keep the head and legs clearly visible. Match the existing color palette exactly, no new colors, no glowing parts.",
+    "seed": null,
+    "usage": null,
+    "started": "2026-08-20T00:48:47+00:00",
+    "status": "done",
+    "fetched": "2026-08-20T00:50:58+00:00",
+    "canvas": [
+      88,
+      88
+    ],
+    "pixellab_name": "Hallam (Vanguard)",
+    "group_id": "2cc3ab61-4230-4786-98fa-b94da9e99218"
+  }
+}

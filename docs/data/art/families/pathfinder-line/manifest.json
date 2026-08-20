@@ -928,8 +928,8 @@
         "luma 0.176 -- not automatically wrong (SKILL.md), but the outline is doing all the work"
       ],
       "owner": {
-        "verdict": "approve",
-        "at": "2026-08-16T05:11:00+00:00",
+        "verdict": "deny",
+        "at": "2026-08-16T17:20:47+00:00",
         "note": "",
         "shipped": null
       }
@@ -978,8 +978,8 @@
         "luma 0.178 -- not automatically wrong (SKILL.md), but the outline is doing all the work"
       ],
       "owner": {
-        "verdict": "approve",
-        "at": "2026-08-16T05:11:06+00:00",
+        "verdict": "deny",
+        "at": "2026-08-16T17:20:53+00:00",
         "note": "",
         "shipped": null
       }

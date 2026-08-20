@@ -1,0 +1,928 @@
+{
+  "family": "melee-tropes",
+  "variants": {
+    "samurai": {
+      "urls": [
+        "https://backblaze.pixellab.ai/file/pixellab-characters/af7def4e-5692-4b18-9246-874d5382befb/f39da65f-a3c2-4919-89e6-2d4152675280/rotations/south.png?t=1786925781",
+        "https://backblaze.pixellab.ai/file/pixellab-characters/af7def4e-5692-4b18-9246-874d5382befb/f39da65f-a3c2-4919-89e6-2d4152675280/rotations/south-east.png?t=1786925781",
+        "https://backblaze.pixellab.ai/file/pixellab-characters/af7def4e-5692-4b18-9246-874d5382befb/f39da65f-a3c2-4919-89e6-2d4152675280/rotations/east.png?t=1786925781",
+        "https://backblaze.pixellab.ai/file/pixellab-characters/af7def4e-5692-4b18-9246-874d5382befb/f39da65f-a3c2-4919-89e6-2d4152675280/rotations/north-east.png?t=1786925781",
+        "https://backblaze.pixellab.ai/file/pixellab-characters/af7def4e-5692-4b18-9246-874d5382befb/f39da65f-a3c2-4919-89e6-2d4152675280/rotations/north.png?t=1786925781",
+        "https://backblaze.pixellab.ai/file/pixellab-characters/af7def4e-5692-4b18-9246-874d5382befb/f39da65f-a3c2-4919-89e6-2d4152675280/rotations/north-west.png?t=1786925781",
+        "https://backblaze.pixellab.ai/file/pixellab-characters/af7def4e-5692-4b18-9246-874d5382befb/f39da65f-a3c2-4919-89e6-2d4152675280/rotations/west.png?t=1786925781",
+        "https://backblaze.pixellab.ai/file/pixellab-characters/af7def4e-5692-4b18-9246-874d5382befb/f39da65f-a3c2-4919-89e6-2d4152675280/rotations/south-west.png?t=1786925781"
+      ],
+      "fetched": "2026-08-17T00:16:29+00:00",
+      "files": [
+        "east.png",
+        "north-east.png",
+        "north-west.png",
+        "north.png",
+        "south-east.png",
+        "south-west.png",
+        "south.png",
+        "west.png"
+      ],
+      "measured": {
+        "canvas": [
+          88,
+          88
+        ],
+        "content": [
+          42,
+          44
+        ],
+        "aspect": 0.9545454545454546,
+        "solidity": 0.5378787878787878,
+        "asymmetry": 0.2857142857142857,
+        "holes": 0,
+        "hole_px": 0,
+        "luma_mean": 0.23906975894583188,
+        "luma_p95": 0.6885239215686274,
+        "opaque": 994,
+        "distinct": 26,
+        "off_ramp": 994,
+        "binary_alpha": true
+      },
+      "band": {
+        "aspect": [
+          0.6222222222222222,
+          0.9772727272727273
+        ],
+        "solidity": [
+          0.42046783625730993,
+          0.6833333333333333
+        ],
+        "asymmetry": [
+          0.26248548199767713,
+          1.4809160305343512
+        ],
+        "holes": [
+          0
+        ]
+      },
+      "verdict": "keep",
+      "reasons": [],
+      "owner": {
+        "verdict": "approve",
+        "at": "2026-08-17T00:19:03+00:00",
+        "note": "",
+        "shipped": null,
+        "generated": {
+          "base_id": "94760c79-5ebc-4917-9d37-641676115b19",
+          "character_id": "f39da65f-a3c2-4919-89e6-2d4152675280",
+          "edit_description": "A samurai: wide hanging kimono sleeves that double the width of the arms, layered lamellar chest armor, hair in a topknot instead of a helmet, a long curved katana held in both hands angled up past one shoulder. Keep the head and legs clearly visible. Match the existing color palette exactly, no new colors, no glowing parts.",
+          "seed": null,
+          "tool": "forge.py create-character-state"
+        }
+      }
+    },
+    "monk": {
+      "urls": [
+        "https://backblaze.pixellab.ai/file/pixellab-characters/af7def4e-5692-4b18-9246-874d5382befb/07f1251a-8efc-4390-976a-a5d52757f47c/rotations/south.png?t=1786925781",
+        "https://backblaze.pixellab.ai/file/pixellab-characters/af7def4e-5692-4b18-9246-874d5382befb/07f1251a-8efc-4390-976a-a5d52757f47c/rotations/south-east.png?t=1786925781",
+        "https://backblaze.pixellab.ai/file/pixellab-characters/af7def4e-5692-4b18-9246-874d5382befb/07f1251a-8efc-4390-976a-a5d52757f47c/rotations/east.png?t=1786925781",
+        "https://backblaze.pixellab.ai/file/pixellab-characters/af7def4e-5692-4b18-9246-874d5382befb/07f1251a-8efc-4390-976a-a5d52757f47c/rotations/north-east.png?t=1786925781",
+        "https://backblaze.pixellab.ai/file/pixellab-characters/af7def4e-5692-4b18-9246-874d5382befb/07f1251a-8efc-4390-976a-a5d52757f47c/rotations/north.png?t=1786925781",
+        "https://backblaze.pixellab.ai/file/pixellab-characters/af7def4e-5692-4b18-9246-874d5382befb/07f1251a-8efc-4390-976a-a5d52757f47c/rotations/north-west.png?t=1786925781",
+        "https://backblaze.pixellab.ai/file/pixellab-characters/af7def4e-5692-4b18-9246-874d5382befb/07f1251a-8efc-4390-976a-a5d52757f47c/rotations/west.png?t=1786925781",
+        "https://backblaze.pixellab.ai/file/pixellab-characters/af7def4e-5692-4b18-9246-874d5382befb/07f1251a-8efc-4390-976a-a5d52757f47c/rotations/south-west.png?t=1786925781"
+      ],
+      "fetched": "2026-08-17T00:16:36+00:00",
+      "files": [
+        "east.png",
+        "north-east.png",
+        "north-west.png",
+        "north.png",
+        "south-east.png",
+        "south-west.png",
+        "south.png",
+        "west.png"
+      ],
+      "measured": {
+        "canvas": [
+          88,
+          88
+        ],
+        "content": [
+          28,
+          45
+        ],
+        "aspect": 0.6222222222222222,
+        "solidity": 0.7174603174603175,
+        "asymmetry": 0.3053097345132743,
+        "holes": 0,
+        "hole_px": 0,
+        "luma_mean": 0.2909091254554919,
+        "luma_p95": 0.6885239215686274,
+        "opaque": 904,
+        "distinct": 20,
+        "off_ramp": 904,
+        "binary_alpha": true
+      },
+      "band": {
+        "aspect": [
+          0.4782608695652174,
+          0.6363636363636364
+        ],
+        "solidity": [
+          0.677257525083612,
+          0.7561188811188811
+        ],
+        "asymmetry": [
+          0.27296587926509186,
+          0.4111245465538089
+        ],
+        "holes": [
+          0,
+          1
+        ]
+      },
+      "verdict": "keep",
+      "reasons": [],
+      "owner": {
+        "verdict": "approve",
+        "at": "2026-08-17T00:19:06+00:00",
+        "note": "",
+        "shipped": null,
+        "generated": {
+          "base_id": "94760c79-5ebc-4917-9d37-641676115b19",
+          "character_id": "07f1251a-8efc-4390-976a-a5d52757f47c",
+          "edit_description": "A martial-arts monk: shaved head, no helmet, no armor, plain wrapped robes tight against the body, sash at the waist, arms tucked in holding a long straight wooden bo staff vertically against the body. The slimmest, narrowest figure possible, roughly half as wide as tall, legs together. Keep the head and legs clearly visible. Match the existing color palette exactly, no new colors, no glowing parts.",
+          "seed": null,
+          "tool": "forge.py create-character-state"
+        }
+      }
+    },
+    "gladiator": {
+      "urls": [
+        "https://backblaze.pixellab.ai/file/pixellab-characters/af7def4e-5692-4b18-9246-874d5382befb/41f0203d-77fe-4541-afec-9111425d593a/rotations/south.png?t=1786925808",
+        "https://backblaze.pixellab.ai/file/pixellab-characters/af7def4e-5692-4b18-9246-874d5382befb/41f0203d-77fe-4541-afec-9111425d593a/rotations/south-east.png?t=1786925808",
+        "https://backblaze.pixellab.ai/file/pixellab-characters/af7def4e-5692-4b18-9246-874d5382befb/41f0203d-77fe-4541-afec-9111425d593a/rotations/east.png?t=1786925808",
+        "https://backblaze.pixellab.ai/file/pixellab-characters/af7def4e-5692-4b18-9246-874d5382befb/41f0203d-77fe-4541-afec-9111425d593a/rotations/north-east.png?t=1786925808",
+        "https://backblaze.pixellab.ai/file/pixellab-characters/af7def4e-5692-4b18-9246-874d5382befb/41f0203d-77fe-4541-afec-9111425d593a/rotations/north.png?t=1786925808",
+        "https://backblaze.pixellab.ai/file/pixellab-characters/af7def4e-5692-4b18-9246-874d5382befb/41f0203d-77fe-4541-afec-9111425d593a/rotations/north-west.png?t=1786925808",
+        "https://backblaze.pixellab.ai/file/pixellab-characters/af7def4e-5692-4b18-9246-874d5382befb/41f0203d-77fe-4541-afec-9111425d593a/rotations/west.png?t=1786925808",
+        "https://backblaze.pixellab.ai/file/pixellab-characters/af7def4e-5692-4b18-9246-874d5382befb/41f0203d-77fe-4541-afec-9111425d593a/rotations/south-west.png?t=1786925808"
+      ],
+      "fetched": "2026-08-17T00:17:11+00:00",
+      "files": [
+        "east.png",
+        "north-east.png",
+        "north-west.png",
+        "north.png",
+        "south-east.png",
+        "south-west.png",
+        "south.png",
+        "west.png"
+      ],
+      "measured": {
+        "canvas": [
+          88,
+          88
+        ],
+        "content": [
+          37,
+          44
+        ],
+        "aspect": 0.8409090909090909,
+        "solidity": 0.601965601965602,
+        "asymmetry": 0.5448979591836735,
+        "holes": 3,
+        "hole_px": 9,
+        "luma_mean": 0.2932268227290916,
+        "luma_p95": 0.6604721568627451,
+        "opaque": 980,
+        "distinct": 19,
+        "off_ramp": 980,
+        "binary_alpha": true
+      },
+      "band": {
+        "aspect": [
+          0.5957446808510638,
+          0.8409090909090909
+        ],
+        "solidity": [
+          0.5621621621621622,
+          0.6325385694249649
+        ],
+        "asymmetry": [
+          0.44871794871794873,
+          0.6217008797653959
+        ],
+        "holes": [
+          0,
+          1,
+          2,
+          3
+        ]
+      },
+      "verdict": "keep",
+      "reasons": [],
+      "owner": {
+        "verdict": "approve",
+        "at": "2026-08-17T00:19:08+00:00",
+        "note": "",
+        "shipped": null,
+        "generated": {
+          "base_id": "94760c79-5ebc-4917-9d37-641676115b19",
+          "character_id": "41f0203d-77fe-4541-afec-9111425d593a",
+          "edit_description": "A gladiator: bare chest and arms, one oversized segmented shoulder pauldron on one side only and the other shoulder bare, a crested visored helmet, a three-pronged trident held upright in one hand and a weighted rope net hanging from the other hand. The two sides of the body must be clearly different, not mirrored. Keep the head and legs clearly visible. No glowing parts.",
+          "seed": null,
+          "tool": "forge.py create-character-state"
+        }
+      }
+    },
+    "riot-trooper": {
+      "urls": [
+        "https://backblaze.pixellab.ai/file/pixellab-characters/af7def4e-5692-4b18-9246-874d5382befb/7f6c013c-c141-4cca-9b8c-43117bedc3c7/rotations/south.png?t=1786925806",
+        "https://backblaze.pixellab.ai/file/pixellab-characters/af7def4e-5692-4b18-9246-874d5382befb/7f6c013c-c141-4cca-9b8c-43117bedc3c7/rotations/south-east.png?t=1786925806",
+        "https://backblaze.pixellab.ai/file/pixellab-characters/af7def4e-5692-4b18-9246-874d5382befb/7f6c013c-c141-4cca-9b8c-43117bedc3c7/rotations/east.png?t=1786925806",
+        "https://backblaze.pixellab.ai/file/pixellab-characters/af7def4e-5692-4b18-9246-874d5382befb/7f6c013c-c141-4cca-9b8c-43117bedc3c7/rotations/north-east.png?t=1786925806",
+        "https://backblaze.pixellab.ai/file/pixellab-characters/af7def4e-5692-4b18-9246-874d5382befb/7f6c013c-c141-4cca-9b8c-43117bedc3c7/rotations/north.png?t=1786925806",
+        "https://backblaze.pixellab.ai/file/pixellab-characters/af7def4e-5692-4b18-9246-874d5382befb/7f6c013c-c141-4cca-9b8c-43117bedc3c7/rotations/north-west.png?t=1786925806",
+        "https://backblaze.pixellab.ai/file/pixellab-characters/af7def4e-5692-4b18-9246-874d5382befb/7f6c013c-c141-4cca-9b8c-43117bedc3c7/rotations/west.png?t=1786925806",
+        "https://backblaze.pixellab.ai/file/pixellab-characters/af7def4e-5692-4b18-9246-874d5382befb/7f6c013c-c141-4cca-9b8c-43117bedc3c7/rotations/south-west.png?t=1786925806"
+      ],
+      "fetched": "2026-08-17T00:17:15+00:00",
+      "files": [
+        "east.png",
+        "north-east.png",
+        "north-west.png",
+        "north.png",
+        "south-east.png",
+        "south-west.png",
+        "south.png",
+        "west.png"
+      ],
+      "measured": {
+        "canvas": [
+          88,
+          88
+        ],
+        "content": [
+          31,
+          45
+        ],
+        "aspect": 0.6888888888888889,
+        "solidity": 0.7268817204301076,
+        "asymmetry": 0.1755424063116371,
+        "holes": 0,
+        "hole_px": 0,
+        "luma_mean": 0.1899185350195305,
+        "luma_p95": 0.5143435294117648,
+        "opaque": 1014,
+        "distinct": 32,
+        "off_ramp": 1014,
+        "binary_alpha": true
+      },
+      "band": {
+        "aspect": [
+          0.6136363636363636,
+          0.6888888888888889
+        ],
+        "solidity": [
+          0.5916666666666667,
+          0.7539184952978056
+        ],
+        "asymmetry": [
+          0.16055045871559634,
+          0.3713188220230474
+        ],
+        "holes": [
+          0
+        ]
+      },
+      "verdict": "keep",
+      "reasons": [
+        "luma 0.190 -- not automatically wrong (SKILL.md), but the outline is doing all the work"
+      ],
+      "owner": {
+        "verdict": "deny",
+        "at": "2026-08-17T00:19:41+00:00",
+        "note": "",
+        "shipped": null,
+        "generated": {
+          "base_id": "94760c79-5ebc-4917-9d37-641676115b19",
+          "character_id": "7f6c013c-c141-4cca-9b8c-43117bedc3c7",
+          "edit_description": "A modern riot control trooper: full-face visored helmet, black tactical body armor, a tall flat rectangular polycarbonate riot shield held in front covering the body from knee to eye level, a baton in the other hand. From the front the shield outline dominates as a solid rectangle; from the back the plain armored figure shows. Keep the head and legs clearly visible. No glowing parts.",
+          "seed": null,
+          "tool": "forge.py create-character-state"
+        }
+      }
+    },
+    "headsman": {
+      "urls": [
+        "https://backblaze.pixellab.ai/file/pixellab-characters/af7def4e-5692-4b18-9246-874d5382befb/b94b0dd9-5a6a-46f5-b891-24105f4659e0/rotations/south.png?t=1786925810",
+        "https://backblaze.pixellab.ai/file/pixellab-characters/af7def4e-5692-4b18-9246-874d5382befb/b94b0dd9-5a6a-46f5-b891-24105f4659e0/rotations/south-east.png?t=1786925810",
+        "https://backblaze.pixellab.ai/file/pixellab-characters/af7def4e-5692-4b18-9246-874d5382befb/b94b0dd9-5a6a-46f5-b891-24105f4659e0/rotations/east.png?t=1786925810",
+        "https://backblaze.pixellab.ai/file/pixellab-characters/af7def4e-5692-4b18-9246-874d5382befb/b94b0dd9-5a6a-46f5-b891-24105f4659e0/rotations/north-east.png?t=1786925810",
+        "https://backblaze.pixellab.ai/file/pixellab-characters/af7def4e-5692-4b18-9246-874d5382befb/b94b0dd9-5a6a-46f5-b891-24105f4659e0/rotations/north.png?t=1786925810",
+        "https://backblaze.pixellab.ai/file/pixellab-characters/af7def4e-5692-4b18-9246-874d5382befb/b94b0dd9-5a6a-46f5-b891-24105f4659e0/rotations/north-west.png?t=1786925810",
+        "https://backblaze.pixellab.ai/file/pixellab-characters/af7def4e-5692-4b18-9246-874d5382befb/b94b0dd9-5a6a-46f5-b891-24105f4659e0/rotations/west.png?t=1786925810",
+        "https://backblaze.pixellab.ai/file/pixellab-characters/af7def4e-5692-4b18-9246-874d5382befb/b94b0dd9-5a6a-46f5-b891-24105f4659e0/rotations/south-west.png?t=1786925810"
+      ],
+      "fetched": "2026-08-17T00:17:19+00:00",
+      "files": [
+        "east.png",
+        "north-east.png",
+        "north-west.png",
+        "north.png",
+        "south-east.png",
+        "south-west.png",
+        "south.png",
+        "west.png"
+      ],
+      "measured": {
+        "canvas": [
+          88,
+          88
+        ],
+        "content": [
+          49,
+          46
+        ],
+        "aspect": 1.065217391304348,
+        "solidity": 0.5066548358473825,
+        "asymmetry": 0.5691768826619965,
+        "holes": 2,
+        "hole_px": 18,
+        "luma_mean": 0.2553020198482195,
+        "luma_p95": 0.6698886274509803,
+        "opaque": 1142,
+        "distinct": 21,
+        "off_ramp": 1142,
+        "binary_alpha": true
+      },
+      "band": {
+        "aspect": [
+          0.7441860465116279,
+          1.065217391304348
+        ],
+        "solidity": [
+          0.5066548358473825,
+          0.6707848837209303
+        ],
+        "asymmetry": [
+          0.04983748645720477,
+          0.9362637362637363
+        ],
+        "holes": [
+          0,
+          1,
+          2
+        ]
+      },
+      "verdict": "keep",
+      "reasons": [],
+      "owner": {
+        "verdict": "deny",
+        "at": "2026-08-17T00:19:47+00:00",
+        "note": "",
+        "shipped": null
+      }
+    },
+    "duelist": {
+      "urls": [
+        "https://backblaze.pixellab.ai/file/pixellab-characters/af7def4e-5692-4b18-9246-874d5382befb/e4e35406-6ea8-4d6a-8ab5-4cbb7b3d4de8/rotations/south.png?t=1786925828",
+        "https://backblaze.pixellab.ai/file/pixellab-characters/af7def4e-5692-4b18-9246-874d5382befb/e4e35406-6ea8-4d6a-8ab5-4cbb7b3d4de8/rotations/south-east.png?t=1786925828",
+        "https://backblaze.pixellab.ai/file/pixellab-characters/af7def4e-5692-4b18-9246-874d5382befb/e4e35406-6ea8-4d6a-8ab5-4cbb7b3d4de8/rotations/east.png?t=1786925828",
+        "https://backblaze.pixellab.ai/file/pixellab-characters/af7def4e-5692-4b18-9246-874d5382befb/e4e35406-6ea8-4d6a-8ab5-4cbb7b3d4de8/rotations/north-east.png?t=1786925828",
+        "https://backblaze.pixellab.ai/file/pixellab-characters/af7def4e-5692-4b18-9246-874d5382befb/e4e35406-6ea8-4d6a-8ab5-4cbb7b3d4de8/rotations/north.png?t=1786925828",
+        "https://backblaze.pixellab.ai/file/pixellab-characters/af7def4e-5692-4b18-9246-874d5382befb/e4e35406-6ea8-4d6a-8ab5-4cbb7b3d4de8/rotations/north-west.png?t=1786925828",
+        "https://backblaze.pixellab.ai/file/pixellab-characters/af7def4e-5692-4b18-9246-874d5382befb/e4e35406-6ea8-4d6a-8ab5-4cbb7b3d4de8/rotations/west.png?t=1786925828",
+        "https://backblaze.pixellab.ai/file/pixellab-characters/af7def4e-5692-4b18-9246-874d5382befb/e4e35406-6ea8-4d6a-8ab5-4cbb7b3d4de8/rotations/south-west.png?t=1786925828"
+      ],
+      "fetched": "2026-08-17T00:17:23+00:00",
+      "files": [
+        "east.png",
+        "north-east.png",
+        "north-west.png",
+        "north.png",
+        "south-east.png",
+        "south-west.png",
+        "south.png",
+        "west.png"
+      ],
+      "measured": {
+        "canvas": [
+          88,
+          88
+        ],
+        "content": [
+          44,
+          45
+        ],
+        "aspect": 0.9777777777777777,
+        "solidity": 0.4621212121212121,
+        "asymmetry": 0.9989071038251366,
+        "holes": 0,
+        "hole_px": 0,
+        "luma_mean": 0.180226264652309,
+        "luma_p95": 0.5875027450980392,
+        "opaque": 915,
+        "distinct": 33,
+        "off_ramp": 915,
+        "binary_alpha": true
+      },
+      "band": {
+        "aspect": [
+          0.7272727272727273,
+          1.0
+        ],
+        "solidity": [
+          0.43428880475932935,
+          0.5582386363636364
+        ],
+        "asymmetry": [
+          0.7531806615776081,
+          1.4104477611940298
+        ],
+        "holes": [
+          0
+        ]
+      },
+      "verdict": "flag",
+      "reasons": [
+        "aspect target 1.40 falls outside the measured 0.73-1.00 band across all 8 rotations",
+        "luma 0.180 -- not automatically wrong (SKILL.md), but the outline is doing all the work"
+      ],
+      "owner": {
+        "verdict": "approve",
+        "at": "2026-08-17T00:19:09+00:00",
+        "note": "",
+        "shipped": null,
+        "generated": {
+          "base_id": "94760c79-5ebc-4917-9d37-641676115b19",
+          "character_id": "e4e35406-6ea8-4d6a-8ab5-4cbb7b3d4de8",
+          "edit_description": "A swashbuckling duelist: wide-brimmed feathered hat, short cape swept back off one shoulder only, a thin rapier held out level to one side at full arm extension so it reaches well past the body's edge, the other hand on the hip. Roughly one and a half times wider than tall overall. Keep the head and legs clearly visible. No glowing parts.",
+          "seed": null,
+          "tool": "forge.py create-character-state"
+        }
+      }
+    },
+    "hammer-knight": {
+      "urls": [
+        "https://backblaze.pixellab.ai/file/pixellab-characters/af7def4e-5692-4b18-9246-874d5382befb/45cdecc0-1df1-4272-b8c3-698c2bc1eca1/rotations/south.png?t=1786926351",
+        "https://backblaze.pixellab.ai/file/pixellab-characters/af7def4e-5692-4b18-9246-874d5382befb/45cdecc0-1df1-4272-b8c3-698c2bc1eca1/rotations/south-east.png?t=1786926351",
+        "https://backblaze.pixellab.ai/file/pixellab-characters/af7def4e-5692-4b18-9246-874d5382befb/45cdecc0-1df1-4272-b8c3-698c2bc1eca1/rotations/east.png?t=1786926351",
+        "https://backblaze.pixellab.ai/file/pixellab-characters/af7def4e-5692-4b18-9246-874d5382befb/45cdecc0-1df1-4272-b8c3-698c2bc1eca1/rotations/north-east.png?t=1786926351",
+        "https://backblaze.pixellab.ai/file/pixellab-characters/af7def4e-5692-4b18-9246-874d5382befb/45cdecc0-1df1-4272-b8c3-698c2bc1eca1/rotations/north.png?t=1786926351",
+        "https://backblaze.pixellab.ai/file/pixellab-characters/af7def4e-5692-4b18-9246-874d5382befb/45cdecc0-1df1-4272-b8c3-698c2bc1eca1/rotations/north-west.png?t=1786926351",
+        "https://backblaze.pixellab.ai/file/pixellab-characters/af7def4e-5692-4b18-9246-874d5382befb/45cdecc0-1df1-4272-b8c3-698c2bc1eca1/rotations/west.png?t=1786926351",
+        "https://backblaze.pixellab.ai/file/pixellab-characters/af7def4e-5692-4b18-9246-874d5382befb/45cdecc0-1df1-4272-b8c3-698c2bc1eca1/rotations/south-west.png?t=1786926351"
+      ],
+      "fetched": "2026-08-17T00:25:56+00:00",
+      "files": [
+        "east.png",
+        "north-east.png",
+        "north-west.png",
+        "north.png",
+        "south-east.png",
+        "south-west.png",
+        "south.png",
+        "west.png"
+      ],
+      "measured": {
+        "canvas": [
+          88,
+          88
+        ],
+        "content": [
+          39,
+          46
+        ],
+        "aspect": 0.8478260869565217,
+        "solidity": 0.5663322185061316,
+        "asymmetry": 0.7952755905511811,
+        "holes": 0,
+        "hole_px": 0,
+        "luma_mean": 0.2473706314651845,
+        "luma_p95": 0.6280580392156863,
+        "opaque": 1016,
+        "distinct": 32,
+        "off_ramp": 1016,
+        "binary_alpha": true
+      },
+      "band": {
+        "aspect": [
+          0.8181818181818182,
+          1.0
+        ],
+        "solidity": [
+          0.5028423772609819,
+          0.5808080808080808
+        ],
+        "asymmetry": [
+          0.5782608695652174,
+          0.7952755905511811
+        ],
+        "holes": [
+          0,
+          1
+        ]
+      },
+      "verdict": "reject",
+      "reasons": [
+        "band sits fully inside 'headsman' on every axis (aspect/solidity/asymmetry/holes) across all 8 rotations"
+      ],
+      "owner": {
+        "verdict": "approve",
+        "at": "2026-08-17T00:31:48+00:00",
+        "note": "",
+        "shipped": null,
+        "generated": {
+          "base_id": "94760c79-5ebc-4917-9d37-641676115b19",
+          "character_id": "45cdecc0-1df1-4272-b8c3-698c2bc1eca1",
+          "edit_description": "The same knight carrying a heavy two-handed warhammer rested on one shoulder, the big hammer head sitting up beside and above the helmet, both hands on the shaft. Keep the same knight helmet, plate armor and overall body as the source. Keep the head and legs clearly visible. Match the existing color palette exactly, no new colors, no glowing parts.",
+          "seed": null,
+          "tool": "forge.py create-character-state"
+        }
+      }
+    },
+    "twin-axes": {
+      "urls": [
+        "https://backblaze.pixellab.ai/file/pixellab-characters/af7def4e-5692-4b18-9246-874d5382befb/2eb9b669-5dc6-4558-b420-3d93ff245c85/rotations/south.png?t=1786926351",
+        "https://backblaze.pixellab.ai/file/pixellab-characters/af7def4e-5692-4b18-9246-874d5382befb/2eb9b669-5dc6-4558-b420-3d93ff245c85/rotations/south-east.png?t=1786926351",
+        "https://backblaze.pixellab.ai/file/pixellab-characters/af7def4e-5692-4b18-9246-874d5382befb/2eb9b669-5dc6-4558-b420-3d93ff245c85/rotations/east.png?t=1786926351",
+        "https://backblaze.pixellab.ai/file/pixellab-characters/af7def4e-5692-4b18-9246-874d5382befb/2eb9b669-5dc6-4558-b420-3d93ff245c85/rotations/north-east.png?t=1786926351",
+        "https://backblaze.pixellab.ai/file/pixellab-characters/af7def4e-5692-4b18-9246-874d5382befb/2eb9b669-5dc6-4558-b420-3d93ff245c85/rotations/north.png?t=1786926351",
+        "https://backblaze.pixellab.ai/file/pixellab-characters/af7def4e-5692-4b18-9246-874d5382befb/2eb9b669-5dc6-4558-b420-3d93ff245c85/rotations/north-west.png?t=1786926351",
+        "https://backblaze.pixellab.ai/file/pixellab-characters/af7def4e-5692-4b18-9246-874d5382befb/2eb9b669-5dc6-4558-b420-3d93ff245c85/rotations/west.png?t=1786926351",
+        "https://backblaze.pixellab.ai/file/pixellab-characters/af7def4e-5692-4b18-9246-874d5382befb/2eb9b669-5dc6-4558-b420-3d93ff245c85/rotations/south-west.png?t=1786926351"
+      ],
+      "fetched": "2026-08-17T00:26:02+00:00",
+      "files": [
+        "east.png",
+        "north-east.png",
+        "north-west.png",
+        "north.png",
+        "south-east.png",
+        "south-west.png",
+        "south.png",
+        "west.png"
+      ],
+      "measured": {
+        "canvas": [
+          88,
+          88
+        ],
+        "content": [
+          53,
+          44
+        ],
+        "aspect": 1.2045454545454546,
+        "solidity": 0.46869639794168094,
+        "asymmetry": 0.03110704483074108,
+        "holes": 0,
+        "hole_px": 0,
+        "luma_mean": 0.2535679687135604,
+        "luma_p95": 0.6280580392156863,
+        "opaque": 1093,
+        "distinct": 33,
+        "off_ramp": 1093,
+        "binary_alpha": true
+      },
+      "band": {
+        "aspect": [
+          0.8409090909090909,
+          1.2045454545454546
+        ],
+        "solidity": [
+          0.46869639794168094,
+          0.5094235033259423
+        ],
+        "asymmetry": [
+          0.0,
+          0.8861985472154964
+        ],
+        "holes": [
+          0
+        ]
+      },
+      "verdict": "keep",
+      "reasons": [],
+      "owner": {
+        "verdict": "deny",
+        "at": "2026-08-20T00:37:03+00:00",
+        "note": "",
+        "shipped": null,
+        "generated": {
+          "base_id": "94760c79-5ebc-4917-9d37-641676115b19",
+          "character_id": "2eb9b669-5dc6-4558-b420-3d93ff245c85",
+          "edit_description": "The same knight holding two hand axes, one in each hand, both arms held out and slightly down from the body so the axe heads sit clear of the hips on both sides, symmetric and wide. Roughly as wide as tall. Keep the same knight helmet, plate armor and overall body as the source. Keep the head and legs clearly visible. Match the existing color palette exactly, no new colors, no glowing parts.",
+          "seed": null,
+          "tool": "forge.py create-character-state"
+        }
+      }
+    },
+    "crusader": {
+      "urls": [
+        "https://backblaze.pixellab.ai/file/pixellab-characters/af7def4e-5692-4b18-9246-874d5382befb/2271c4a9-4acb-47bc-8b05-f80c52709b28/rotations/south.png?t=1786926353",
+        "https://backblaze.pixellab.ai/file/pixellab-characters/af7def4e-5692-4b18-9246-874d5382befb/2271c4a9-4acb-47bc-8b05-f80c52709b28/rotations/south-east.png?t=1786926353",
+        "https://backblaze.pixellab.ai/file/pixellab-characters/af7def4e-5692-4b18-9246-874d5382befb/2271c4a9-4acb-47bc-8b05-f80c52709b28/rotations/east.png?t=1786926353",
+        "https://backblaze.pixellab.ai/file/pixellab-characters/af7def4e-5692-4b18-9246-874d5382befb/2271c4a9-4acb-47bc-8b05-f80c52709b28/rotations/north-east.png?t=1786926353",
+        "https://backblaze.pixellab.ai/file/pixellab-characters/af7def4e-5692-4b18-9246-874d5382befb/2271c4a9-4acb-47bc-8b05-f80c52709b28/rotations/north.png?t=1786926353",
+        "https://backblaze.pixellab.ai/file/pixellab-characters/af7def4e-5692-4b18-9246-874d5382befb/2271c4a9-4acb-47bc-8b05-f80c52709b28/rotations/north-west.png?t=1786926353",
+        "https://backblaze.pixellab.ai/file/pixellab-characters/af7def4e-5692-4b18-9246-874d5382befb/2271c4a9-4acb-47bc-8b05-f80c52709b28/rotations/west.png?t=1786926353",
+        "https://backblaze.pixellab.ai/file/pixellab-characters/af7def4e-5692-4b18-9246-874d5382befb/2271c4a9-4acb-47bc-8b05-f80c52709b28/rotations/south-west.png?t=1786926353"
+      ],
+      "fetched": "2026-08-17T00:26:37+00:00",
+      "files": [
+        "east.png",
+        "north-east.png",
+        "north-west.png",
+        "north.png",
+        "south-east.png",
+        "south-west.png",
+        "south.png",
+        "west.png"
+      ],
+      "measured": {
+        "canvas": [
+          88,
+          88
+        ],
+        "content": [
+          29,
+          47
+        ],
+        "aspect": 0.6170212765957447,
+        "solidity": 0.6588407923697726,
+        "asymmetry": 0.07349665924276169,
+        "holes": 0,
+        "hole_px": 0,
+        "luma_mean": 0.3225950286038692,
+        "luma_p95": 0.7788443529411763,
+        "opaque": 898,
+        "distinct": 26,
+        "off_ramp": 898,
+        "binary_alpha": true
+      },
+      "band": {
+        "aspect": [
+          0.5777777777777777,
+          0.7045454545454546
+        ],
+        "solidity": [
+          0.6214285714285714,
+          0.6818181818181818
+        ],
+        "asymmetry": [
+          0.07056229327453142,
+          0.36082474226804123
+        ],
+        "holes": [
+          0
+        ]
+      },
+      "verdict": "keep",
+      "reasons": [],
+      "owner": {
+        "verdict": "approve",
+        "at": "2026-08-17T00:31:51+00:00",
+        "note": "",
+        "shipped": null,
+        "generated": {
+          "base_id": "94760c79-5ebc-4917-9d37-641676115b19",
+          "character_id": "2271c4a9-4acb-47bc-8b05-f80c52709b28",
+          "edit_description": "A crusader knight: flat-topped bucket great helm with a cross-slit visor, a long cloth surcoat with a cross over the plate armor hanging to the knees, longsword held point-down in both hands in front of the body. Keep the same knight helmet, plate armor and overall body as the source. Keep the head and legs clearly visible. Match the existing color palette exactly, no new colors, no glowing parts.",
+          "seed": null,
+          "tool": "forge.py create-character-state"
+        }
+      }
+    },
+    "flail-knight": {
+      "urls": [
+        "https://backblaze.pixellab.ai/file/pixellab-characters/af7def4e-5692-4b18-9246-874d5382befb/50b1021d-5950-4f9f-b658-3b0ad6bd7749/rotations/south.png?t=1786926381",
+        "https://backblaze.pixellab.ai/file/pixellab-characters/af7def4e-5692-4b18-9246-874d5382befb/50b1021d-5950-4f9f-b658-3b0ad6bd7749/rotations/south-east.png?t=1786926381",
+        "https://backblaze.pixellab.ai/file/pixellab-characters/af7def4e-5692-4b18-9246-874d5382befb/50b1021d-5950-4f9f-b658-3b0ad6bd7749/rotations/east.png?t=1786926381",
+        "https://backblaze.pixellab.ai/file/pixellab-characters/af7def4e-5692-4b18-9246-874d5382befb/50b1021d-5950-4f9f-b658-3b0ad6bd7749/rotations/north-east.png?t=1786926381",
+        "https://backblaze.pixellab.ai/file/pixellab-characters/af7def4e-5692-4b18-9246-874d5382befb/50b1021d-5950-4f9f-b658-3b0ad6bd7749/rotations/north.png?t=1786926381",
+        "https://backblaze.pixellab.ai/file/pixellab-characters/af7def4e-5692-4b18-9246-874d5382befb/50b1021d-5950-4f9f-b658-3b0ad6bd7749/rotations/north-west.png?t=1786926381",
+        "https://backblaze.pixellab.ai/file/pixellab-characters/af7def4e-5692-4b18-9246-874d5382befb/50b1021d-5950-4f9f-b658-3b0ad6bd7749/rotations/west.png?t=1786926381",
+        "https://backblaze.pixellab.ai/file/pixellab-characters/af7def4e-5692-4b18-9246-874d5382befb/50b1021d-5950-4f9f-b658-3b0ad6bd7749/rotations/south-west.png?t=1786926381"
+      ],
+      "fetched": "2026-08-17T00:26:41+00:00",
+      "files": [
+        "east.png",
+        "north-east.png",
+        "north-west.png",
+        "north.png",
+        "south-east.png",
+        "south-west.png",
+        "south.png",
+        "west.png"
+      ],
+      "measured": {
+        "canvas": [
+          88,
+          88
+        ],
+        "content": [
+          47,
+          44
+        ],
+        "aspect": 1.0681818181818181,
+        "solidity": 0.5053191489361702,
+        "asymmetry": 0.7866028708133971,
+        "holes": 0,
+        "hole_px": 0,
+        "luma_mean": 0.2400225221878225,
+        "luma_p95": 0.645204705882353,
+        "opaque": 1045,
+        "distinct": 31,
+        "off_ramp": 1045,
+        "binary_alpha": true
+      },
+      "band": {
+        "aspect": [
+          1.0444444444444445,
+          1.1304347826086956
+        ],
+        "solidity": [
+          0.4352006688963211,
+          0.5053191489361702
+        ],
+        "asymmetry": [
+          0.5859750240153698,
+          0.8143712574850299
+        ],
+        "holes": [
+          0,
+          1
+        ]
+      },
+      "verdict": "keep",
+      "reasons": [],
+      "owner": {
+        "verdict": "approve",
+        "at": "2026-08-17T00:31:50+00:00",
+        "note": "",
+        "shipped": null,
+        "generated": {
+          "base_id": "94760c79-5ebc-4917-9d37-641676115b19",
+          "character_id": "50b1021d-5950-4f9f-b658-3b0ad6bd7749",
+          "edit_description": "The same knight swinging a spiked flail: the chained ball held out level to one side at arm's length so the chain and ball are clear of the body, a small round buckler strapped to the other forearm. The two sides must read differently. Keep the same knight helmet, plate armor and overall body as the source. Keep the head and legs clearly visible. Match the existing color palette exactly, no new colors, no glowing parts.",
+          "seed": null,
+          "tool": "forge.py create-character-state"
+        }
+      }
+    },
+    "halberdier": {
+      "urls": [
+        "https://backblaze.pixellab.ai/file/pixellab-characters/af7def4e-5692-4b18-9246-874d5382befb/fa1904f1-3495-47f2-bbd8-2ee4ce3b8c48/rotations/south.png?t=1786926366",
+        "https://backblaze.pixellab.ai/file/pixellab-characters/af7def4e-5692-4b18-9246-874d5382befb/fa1904f1-3495-47f2-bbd8-2ee4ce3b8c48/rotations/south-east.png?t=1786926366",
+        "https://backblaze.pixellab.ai/file/pixellab-characters/af7def4e-5692-4b18-9246-874d5382befb/fa1904f1-3495-47f2-bbd8-2ee4ce3b8c48/rotations/east.png?t=1786926366",
+        "https://backblaze.pixellab.ai/file/pixellab-characters/af7def4e-5692-4b18-9246-874d5382befb/fa1904f1-3495-47f2-bbd8-2ee4ce3b8c48/rotations/north-east.png?t=1786926366",
+        "https://backblaze.pixellab.ai/file/pixellab-characters/af7def4e-5692-4b18-9246-874d5382befb/fa1904f1-3495-47f2-bbd8-2ee4ce3b8c48/rotations/north.png?t=1786926366",
+        "https://backblaze.pixellab.ai/file/pixellab-characters/af7def4e-5692-4b18-9246-874d5382befb/fa1904f1-3495-47f2-bbd8-2ee4ce3b8c48/rotations/north-west.png?t=1786926366",
+        "https://backblaze.pixellab.ai/file/pixellab-characters/af7def4e-5692-4b18-9246-874d5382befb/fa1904f1-3495-47f2-bbd8-2ee4ce3b8c48/rotations/west.png?t=1786926366",
+        "https://backblaze.pixellab.ai/file/pixellab-characters/af7def4e-5692-4b18-9246-874d5382befb/fa1904f1-3495-47f2-bbd8-2ee4ce3b8c48/rotations/south-west.png?t=1786926366"
+      ],
+      "fetched": "2026-08-17T00:26:45+00:00",
+      "files": [
+        "east.png",
+        "north-east.png",
+        "north-west.png",
+        "north.png",
+        "south-east.png",
+        "south-west.png",
+        "south.png",
+        "west.png"
+      ],
+      "measured": {
+        "canvas": [
+          88,
+          88
+        ],
+        "content": [
+          33,
+          49
+        ],
+        "aspect": 0.673469387755102,
+        "solidity": 0.6351267779839208,
+        "asymmetry": 0.48296007789678674,
+        "holes": 2,
+        "hole_px": 13,
+        "luma_mean": 0.2420379204612712,
+        "luma_p95": 0.6885239215686274,
+        "opaque": 1027,
+        "distinct": 32,
+        "off_ramp": 1027,
+        "binary_alpha": true
+      },
+      "band": {
+        "aspect": [
+          0.6530612244897959,
+          0.7291666666666666
+        ],
+        "solidity": [
+          0.571078431372549,
+          0.6351267779839208
+        ],
+        "asymmetry": [
+          0.4582441113490364,
+          0.6506256015399422
+        ],
+        "holes": [
+          0,
+          1,
+          2
+        ]
+      },
+      "verdict": "keep",
+      "reasons": [],
+      "owner": {
+        "verdict": "approve",
+        "at": "2026-08-17T00:31:49+00:00",
+        "note": "",
+        "shipped": null,
+        "generated": {
+          "base_id": "94760c79-5ebc-4917-9d37-641676115b19",
+          "character_id": "fa1904f1-3495-47f2-bbd8-2ee4ce3b8c48",
+          "edit_description": "The same knight holding a tall halberd upright in both hands, the shaft vertical beside the body and the axe-blade-and-spike head well above the helmet. Arms tucked in, legs together, the whole figure narrow and tall, roughly half as wide as tall. Keep the same knight helmet, plate armor and overall body as the source. Keep the head and legs clearly visible. Match the existing color palette exactly, no new colors, no glowing parts.",
+          "seed": null,
+          "tool": "forge.py create-character-state"
+        }
+      }
+    },
+    "man-at-arms": {
+      "urls": [
+        "https://backblaze.pixellab.ai/file/pixellab-characters/af7def4e-5692-4b18-9246-874d5382befb/d05abbb1-7f5e-4f5f-9a65-d8b49a6a9fd5/rotations/south.png?t=1786926361",
+        "https://backblaze.pixellab.ai/file/pixellab-characters/af7def4e-5692-4b18-9246-874d5382befb/d05abbb1-7f5e-4f5f-9a65-d8b49a6a9fd5/rotations/south-east.png?t=1786926361",
+        "https://backblaze.pixellab.ai/file/pixellab-characters/af7def4e-5692-4b18-9246-874d5382befb/d05abbb1-7f5e-4f5f-9a65-d8b49a6a9fd5/rotations/east.png?t=1786926361",
+        "https://backblaze.pixellab.ai/file/pixellab-characters/af7def4e-5692-4b18-9246-874d5382befb/d05abbb1-7f5e-4f5f-9a65-d8b49a6a9fd5/rotations/north-east.png?t=1786926361",
+        "https://backblaze.pixellab.ai/file/pixellab-characters/af7def4e-5692-4b18-9246-874d5382befb/d05abbb1-7f5e-4f5f-9a65-d8b49a6a9fd5/rotations/north.png?t=1786926361",
+        "https://backblaze.pixellab.ai/file/pixellab-characters/af7def4e-5692-4b18-9246-874d5382befb/d05abbb1-7f5e-4f5f-9a65-d8b49a6a9fd5/rotations/north-west.png?t=1786926361",
+        "https://backblaze.pixellab.ai/file/pixellab-characters/af7def4e-5692-4b18-9246-874d5382befb/d05abbb1-7f5e-4f5f-9a65-d8b49a6a9fd5/rotations/west.png?t=1786926361",
+        "https://backblaze.pixellab.ai/file/pixellab-characters/af7def4e-5692-4b18-9246-874d5382befb/d05abbb1-7f5e-4f5f-9a65-d8b49a6a9fd5/rotations/south-west.png?t=1786926361"
+      ],
+      "fetched": "2026-08-17T00:26:50+00:00",
+      "files": [
+        "east.png",
+        "north-east.png",
+        "north-west.png",
+        "north.png",
+        "south-east.png",
+        "south-west.png",
+        "south.png",
+        "west.png"
+      ],
+      "measured": {
+        "canvas": [
+          88,
+          88
+        ],
+        "content": [
+          34,
+          44
+        ],
+        "aspect": 0.7727272727272727,
+        "solidity": 0.6684491978609626,
+        "asymmetry": 0.104,
+        "holes": 0,
+        "hole_px": 0,
+        "luma_mean": 0.3204940650980392,
+        "luma_p95": 0.6885239215686274,
+        "opaque": 1000,
+        "distinct": 32,
+        "off_ramp": 1000,
+        "binary_alpha": true
+      },
+      "band": {
+        "aspect": [
+          0.6818181818181818,
+          0.7727272727272727
+        ],
+        "solidity": [
+          0.6297653958944281,
+          0.678374655647383
+        ],
+        "asymmetry": [
+          0.104,
+          0.32828870779976715
+        ],
+        "holes": [
+          0
+        ]
+      },
+      "verdict": "keep",
+      "reasons": [],
+      "owner": {
+        "verdict": "approve",
+        "at": "2026-08-17T00:31:46+00:00",
+        "note": "",
+        "shipped": null,
+        "generated": {
+          "base_id": "94760c79-5ebc-4917-9d37-641676115b19",
+          "character_id": "d05abbb1-7f5e-4f5f-9a65-d8b49a6a9fd5",
+          "edit_description": "The same knight as a man-at-arms: a heater shield held square across the chest covering the torso, a short arming sword held low beside the hip, feet planted apart. Solid, closed outline with no gaps. Keep the same knight helmet, plate armor and overall body as the source. Keep the head and legs clearly visible. Match the existing color palette exactly, no new colors, no glowing parts.",
+          "seed": null,
+          "tool": "forge.py create-character-state"
+        }
+      }
+    }
+  },
+  "judged": "2026-08-17T00:27:18+00:00"
+}

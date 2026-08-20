@@ -1,0 +1,84 @@
+{
+  "$schema": "../sprite-request.schema.json",
+  "id": "brood-boss-marks-prototype",
+  "revision": 1,
+  "subject": {
+    "title": "Brood Boss (base anchor, marks-readability prototype)",
+    "kind": "monster",
+    "faction": "none",
+    "class_tie": "none",
+    "brief": null,
+    "spec": "../../../art/boss-marks-prototype.md"
+  },
+  "canon": {
+    "palette": "demichrome-4",
+    "value_dominance": "dark",
+    "pale_usage": "mark",
+    "silhouette": "broad-planted, jagged multi-point base on six thick stub-limbs, low and wide rather than tall — the widest footprint and lowest profile of the three brood tiers, owning scale and stance the way the elite owns height and the walkers own low-and-flowing motion",
+    "reads_as": "the thing that plants itself and does not move — you go through it, not around it",
+    "moving": true,
+    "light_shift_variant": true
+  },
+  "prompt": {
+    "description": "Massive grounded brood-mass on six thick blunt stub-limbs, planted in a jagged, irregularly-spaced ring wider than the body above it. Body rises in one broad low mound, roughly half cell height, never rearing. A single subtle unmarked dorsal ridge runs the spine, flat and quiet. Amorphous tar-flesh surface, torn-membrane texture, zero bilateral symmetry, no straight lines anywhere on the body. The largest and widest of its kind, low-slung and immovable rather than reared.",
+    "must_include": [
+      "six thick blunt stub-limbs in a jagged multi-point base ring",
+      "wide, low, broad mound body, roughly half cell height",
+      "single subtle unmarked central dorsal ridge",
+      "torn-membrane amorphous surface, zero symmetry",
+      "widest footprint of any brood tier"
+    ],
+    "must_avoid": [
+      "red of any shade",
+      "any hex outside #211e20 / #555568 / #a0a08b / #e9efec",
+      "glow, self-illumination, or light emission of any kind",
+      "visible face, eyes, brow, or expression",
+      "gore or viscera",
+      "chibi proportions",
+      "reared vertical posture (reserved to the elite tier)",
+      "smooth continuous dome base (reserved to the walker tier)",
+      "negative-space hole through the body (reserved to the elite tier)",
+      "hard armor plating covering the whole body",
+      "any straight-edged or geometric shape on the unmarked base"
+    ],
+    "style_mode": "flat"
+  },
+  "pixellab": {
+    "mode": "standard",
+    "size": 48,
+    "view": "low top-down",
+    "n_directions": 4,
+    "outline": "single color black outline",
+    "detail": "low detail",
+    "shading": "flat shading",
+    "body_type": "quadruped",
+    "template": "dog"
+  },
+  "anchor": {
+    "strategy": "quantized-self",
+    "source_direction": "south",
+    "approved": false
+  },
+  "animations": [],
+  "output": {
+    "cell": 48,
+    "grid": [4, 2],
+    "texture": "T_BroodBossMarks",
+    "content_path": "/Game/Spike1",
+    "frame_map": {
+      "0": "south.base",
+      "1": "south.quilled",
+      "2": "south.ram",
+      "3": "south.sated",
+      "4": "south.wearing",
+      "5": "south.unblinded",
+      "6": "south.column-fed",
+      "7": "south.compound-ram-column-fed-quilled"
+    },
+    "cell_note": "48px per the pipeline lock (owner decision 2026-07-25), not the 64px the originating brief proposed — see boss-marks-prototype.md header for the correction.",
+    "frame_map_note": "All eight cells are SOUTH-FACING STATES, not directions — this is the readability prototype gate, no rotation spend yet. This request's prompt.description covers cell 0 (the base/anchor) only; cells 1-7 are PixelLab STATES generated against the approved anchor, composed from boss-marks-prototype.md §2's per-mark outline deltas by whoever runs that pass (sprite-request.schema.json has no first-class 'states' array yet — see that spec's §4 schema note)."
+  },
+  "budget": {
+    "max_generations": 12
+  }
+}

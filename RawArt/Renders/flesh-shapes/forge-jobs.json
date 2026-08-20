@@ -1,0 +1,62 @@
+{
+  "dome_flesh": {
+    "slug": "dome_flesh",
+    "base_id": "bb3843ad-e23d-4842-af24-3c898c9dcedc",
+    "character_id": "78f7d996-e274-4ede-9c18-00c3abca561e",
+    "edit": "flesh shape dome_flesh",
+    "started": "2026-08-19T07:59:25+00:00",
+    "status": "done",
+    "fetched": "2026-08-19T08:01:20+00:00",
+    "canvas": [
+      88,
+      88
+    ],
+    "pixellab_name": "A black ghost with sharp",
+    "group_id": "8b4b9811-dcf3-4e9d-baa6-2cb3f8901d0b"
+  },
+  "tall_flesh": {
+    "slug": "tall_flesh",
+    "base_id": "bb3843ad-e23d-4842-af24-3c898c9dcedc",
+    "character_id": "380aece4-0026-4652-8ce6-40189aca4740",
+    "edit": "flesh shape tall_flesh",
+    "started": "2026-08-19T07:59:25+00:00",
+    "status": "done",
+    "fetched": "2026-08-19T08:00:45+00:00",
+    "canvas": [
+      88,
+      88
+    ],
+    "pixellab_name": "A black ghost with sharp",
+    "group_id": "8b4b9811-dcf3-4e9d-baa6-2cb3f8901d0b"
+  },
+  "lops_flesh": {
+    "slug": "lops_flesh",
+    "base_id": "bb3843ad-e23d-4842-af24-3c898c9dcedc",
+    "character_id": "176cf003-c195-4c85-b84f-f6bbd6c981a9",
+    "edit": "flesh shape lops_flesh",
+    "started": "2026-08-19T07:59:25+00:00",
+    "status": "done",
+    "fetched": "2026-08-19T08:01:25+00:00",
+    "canvas": [
+      88,
+      88
+    ],
+    "pixellab_name": "A black ghost with sharp",
+    "group_id": "8b4b9811-dcf3-4e9d-baa6-2cb3f8901d0b"
+  },
+  "crawl_flesh": {
+    "slug": "crawl_flesh",
+    "base_id": "bb3843ad-e23d-4842-af24-3c898c9dcedc",
+    "character_id": "39509b8a-1660-478b-b2f1-eadb7a78ef07",
+    "edit": "flesh shape crawl_flesh",
+    "started": "2026-08-19T07:59:25+00:00",
+    "status": "done",
+    "fetched": "2026-08-19T08:00:50+00:00",
+    "canvas": [
+      88,
+      88
+    ],
+    "pixellab_name": "A black ghost with sharp",
+    "group_id": "8b4b9811-dcf3-4e9d-baa6-2cb3f8901d0b"
+  }
+}
