@@ -21,7 +21,7 @@ func _ready() -> void:
 
 
 func _refresh() -> void:
-	_label.text = "KINDLED\nThe Green Dot\n\n\n\n\nhero: %s   [H] next hero\n\n[Space] begin\n\nWASD move   Mouse aim   LMB cast   RMB hold: siphon\nZ/X/C spells   Q/E set lane unit type (hover lane)\n\ndev: 1-0 jump to phase, Tab next, P 3D probe" % Game.hero.trim_prefix("hero_")
+	_label.text = "KINDLED\nThe Green Dot\n\n\n\n\nhero: %s   [H] next hero\n\n[Space] begin\n\nWASD move   Mouse aim   LMB cast   RMB hold: siphon\nZ/X/C spells   Q/E set lane unit type (hover lane)\n\ndev: 1 siege, 2-5 wave, Tab next, P 3D probe" % Game.hero.trim_prefix("hero_")
 	_portrait.texture = Game.make_sprite(Game.hero, 0).texture
 	_portrait.offset = Game.make_sprite(Game.hero, 0).offset
 
@@ -34,4 +34,4 @@ func _unhandled_input(e: InputEvent) -> void:
 	if e.is_action_pressed("advance"):
 		set_process_unhandled_input(false)
 		Game.reset_run()
-		Game.goto("battle")
+		Game.goto("siege")

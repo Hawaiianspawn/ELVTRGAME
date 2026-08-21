@@ -11,9 +11,10 @@ const HERO_MIN_D := 150.0
 const HERO_MAX_D := 290.0
 const RANK_D0 := 285.0          # first rank behind the front line
 const CREEP := 14.0             # the push: world units / s the field slides toward the camera
-const RANK_ROWS := 6            # depth of the company block down to the camera; every slot is a real unit
-const RANK_COLS := 8            # files across; the block fills the frame edge to edge
-const RANK_HALF := 320.0        # half-width of the block in world units
+const HALL_HALF := 200.0        # hallway half-width: the walls; everything lives between them
+const RANK_ROWS := 8            # depth of the company block down to the camera; every slot is a real unit
+const RANK_COLS := 6            # files across; the block fills the hall wall to wall
+const RANK_HALF := HALL_HALF - 20.0   # half-width of the block in world units
 const RANK_STEP := 28.0
 const BEHIND_D := 55.0          # just behind the lens: where swaps come from and go to
 const SWEEP_W := 240.0          # launch zone half-width, centered on the hero — spans the whole field
@@ -67,8 +68,8 @@ var _done := false
 
 
 func _ready() -> void:
-	view.horizon = 305.0            # lens tilted up: the block sits in the bottom third, helmets from ~y350, legs below the frame
-	view.cam_h = 150.0
+	view.horizon = 250.0            # lens tilted down a touch: more ground, front line mid-frame
+	view.cam_h = 200.0              # higher lens
 	view.sprite_k = 2.2             # the 8x6 block fills the frame edge to edge
 	_rng.randomize()
 	world = Node2D.new()
@@ -136,7 +137,7 @@ func start_wave(i: int) -> void:
 	units.clear()
 	motes.clear()
 	var w: Dictionary = Game.waves[i]
-	lanes = int(w["lanes"])
+	lanes = mini(int(w["lanes"]), int(HALL_HALF * 2.0 / LANE_W))   # never wider than the hall
 	spawn_interval = float(w["spawn_interval"])
 	magic_rate = float(w["magic_rate"])
 	lane_types.resize(lanes)
@@ -153,7 +154,7 @@ func start_wave(i: int) -> void:
 	_build_ranks(w["reserves"])
 	spawn_t = 2.0
 	hero_hp = 100.0
-	say("Wave %d / 4" % (i + 1))
+	say("Hall %d / 4" % (i + 1))
 
 
 func _build_ranks(reserves: Dictionary) -> void:
@@ -392,7 +393,7 @@ func spawn(type: String, team: int) -> Unit:
 func _spawn_enemy(type: String) -> void:
 	var u := spawn(type, Unit.ENEMY)
 	u.lane = _rng.randi_range(0, lanes - 1)
-	u.wx = _rng.randf_range(lane_x(0) - 60.0, lane_x(lanes - 1) + 60.0)
+	u.wx = _rng.randf_range(-HALL_HALF + 20.0, HALL_HALF - 20.0)
 	u.wd = SPAWN_D + _rng.randf_range(0, 160)
 	u.hold_d = FRONT_D + 40.0 + _rng.randf_range(-6, 22)
 
@@ -523,7 +524,7 @@ func _process(delta: float) -> void:
 		motes.append({"wx": _rng.randf_range(lane_x(0), lane_x(lanes - 1)), "wd": _rng.randf_range(400, 900), "v": 3.0})
 	# hero
 	var mv := Input.get_vector("move_left", "move_right", "move_up", "move_down")
-	hero_wx = clampf(hero_wx + mv.x * 130.0 * delta, lane_x(0) - 40, lane_x(lanes - 1) + 40)
+	hero_wx = clampf(hero_wx + mv.x * 130.0 * delta, -HALL_HALF + 30.0, HALL_HALF - 30.0)
 	hero_wd = clampf(hero_wd - mv.y * 110.0 * delta, HERO_MIN_D, HERO_MAX_D)
 	hero.position = view.project(hero_wx, hero_wd)
 	hero.scale = Vector2.ONE * view.sprite_scale(hero_wd)
@@ -561,14 +562,32 @@ func _process(delta: float) -> void:
 func _wave_done() -> void:
 	_done = true
 	if Game.wave >= 3:
-		say("The line holds. Barely.")
-		await get_tree().create_timer(2.0).timeout
-		Game.goto("charge")
+		say("The throne room door. It is already open.\nTO BE CONTINUED")
+		await get_tree().create_timer(4.0).timeout
+		get_tree().change_scene_to_file("res://scenes/Main.tscn")
 	else:
-		say("Wave cleared. Magic siphoned: %d" % int(Game.magic))
-		await get_tree().create_timer(2.5).timeout
+		await _turn(str(Game.waves[Game.wave].get("turn", "")))
 		_done = false
 		start_wave(Game.wave + 1)
+
+
+## The hall bends between waves: swing the lens left/right, or tilt it up a stair, then settle.
+func _turn(kind: String) -> void:
+	var t := create_tween()
+	match kind:
+		"left", "right":
+			say("The hall turns %s." % kind)
+			var dx := -160.0 if kind == "left" else 160.0
+			t.tween_property(view, "cam_x", dx, 1.2).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN_OUT)
+			t.tween_property(view, "cam_x", 0.0, 1.2).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN_OUT)
+		"stairs":
+			say("Stairs. Up.")
+			t.tween_property(view, "horizon", 170.0, 1.2).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN_OUT)
+			t.tween_property(view, "horizon", 250.0, 1.2).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN_OUT)
+		_:
+			say("Hall cleared. Magic siphoned: %d" % int(Game.magic))
+			t.tween_interval(2.5)
+	await t.finished
 
 
 func _relic(id: String) -> Dictionary:
@@ -676,13 +695,10 @@ func _opening(u: Unit) -> void:
 					var cd := FRONT_D + 40.0 + 110.0 * j
 					_vortex(Vector2(cx + _rng.randf_range(-30.0, 30.0), cd + _rng.randf_range(-35.0, 35.0)), 2.6, u.dmg * VORTEX_DMG, 4.0)
 		"sweep":
-			# launch zone: a box in front of the player, everything in it goes up
-			_flash(Vector2(hero_wx, hero_wd + SWEEP_LEN * 0.5), SWEEP_W, Color(1.0, 0.9, 0.6, 0.45))
+			# every halberdier on the field charges down-range, launching all it passes, then falls back in
 			for o in units:
-				if o.team == Unit.ENEMY and absf(o.wx - hero_wx) < SWEEP_W \
-						and o.wd > hero_wd and o.wd < hero_wd + SWEEP_LEN:
-					o.launch(340.0)
-					o.take(u.dmg * 2.0, Vector2(0, 8))
+				if o.team == Unit.ALLY and o.type == u.type and not o.dead:
+					o.charge(o.wd + float(Game.units[u.type].get("charge_len", SWEEP_LEN * 0.5)))   # upgrade stat
 		"slam":
 			u.slam_anim()
 			_flash(here + Vector2(0, 40), 60.0, Color(1.0, 0.8, 0.5, 0.6))
@@ -728,7 +744,7 @@ func _rain_salvo(dmg: float) -> void:
 ## Airborne enemies along the path are run through — damaged plus a small juggle tap —
 ## without stopping the arrow; whoever stands at the mark when it lands takes the hit.
 func _volley_arrow(mark: Vector2, dmg: float) -> void:
-	var from := Vector2(mark.x + _rng.randf_range(-70.0, 70.0), BEHIND_D)
+	var from := Vector2(mark.x + _rng.randf_range(-6.0, 6.0), BEHIND_D)   # straight down-range: lateral jitter at wd 55 reads as sideways flight
 	var l := Line2D.new()
 	l.width = 1.5
 	l.default_color = Color(0.9, 0.85, 0.7)
@@ -739,15 +755,15 @@ func _volley_arrow(mark: Vector2, dmg: float) -> void:
 	var pierced := {}
 	var prev := [Vector2.INF]
 	var tw := create_tween()
-	tw.tween_interval(_rng.randf_range(0.0, 0.1))   # a breath of jitter so the wave shimmers
+	tw.tween_interval(_rng.randf_range(0.0, 0.05))   # a breath of jitter so the volley shimmers but lands as one
 	tw.tween_method(func(k: float):
 		var wp := from.lerp(mark, k)
-		var h := 62.0 * (1.0 - k * k) + sin(k * PI) * 8.0   # whiz over the helmets, dive late
+		var h := 90.0 * (1.0 - k * k) + sin(k * PI) * 8.0   # in from over the lens, above the frame, diving late
 		var p := view.project(wp.x, wp.y) + Vector2(0, -h * view.sprite_scale(wp.y))
 		l.visible = true
 		l.set_point_position(0, p)
 		var tail: Vector2 = p if prev[0] == Vector2.INF else prev[0]
-		var cap := 5.0 * view.sprite_scale(wp.y)   # short dart, scaled with depth
+		var cap := 9.0 * view.sprite_scale(wp.y)   # short dart, scaled with depth
 		if p.distance_to(tail) > cap:
 			tail = p + (tail - p).normalized() * cap
 		l.set_point_position(1, tail)
@@ -827,12 +843,45 @@ func _flash(wp: Vector2, r: float, c: Color) -> void:
 
 func _draw() -> void:
 	# ponytail: procedural ground bands; owner says real terrain lands here later — replace this one call.
-	view.draw_ground(self, scroll, (lanes - 1) / 2.0 * LANE_W + 400.0)
-	# the green dot on the horizon
+	view.draw_ground(self, scroll, HALL_HALF)
+	_draw_walls()
+	# the necromancer's green glow at the far end of the hall
 	var flick := 0.6 + 0.4 * sin(Time.get_ticks_msec() / 90.0)
-	var dot := Vector2(480, view.horizon - 8)
+	var dot := view.project(0.0, view.cam_d + view.fog_end) + Vector2(0, -8)
 	draw_circle(dot, 6.0 + 4.0 * flick, Color(0.4, 1.0, 0.4, flick))
 	draw_line(dot, dot + Vector2(_rng.randf_range(-30, 30), -110), Color(0.5, 1.0, 0.5, 0.5 * flick), 2.0)
+
+
+## Stone walls either side of the hall, near to far, with green sconces every few rows.
+func _draw_walls() -> void:
+	var near_d := view.cam_d + 60.0
+	var far_d := view.cam_d + view.fog_end * 1.5
+	var wall_h := 170.0
+	for side: float in [-1.0, 1.0]:
+		var x: float = side * HALL_HALF
+		var out := Vector2(side * 3000.0, 0)
+		# face in depth bands so it fogs like the floor; ceiling shelf beyond the top edge
+		var segs := 12
+		for i in range(segs):
+			var da := near_d * pow(far_d / near_d, float(i) / segs)
+			var db := near_d * pow(far_d / near_d, float(i + 1) / segs)
+			var a := view.project(x, da)
+			var b := view.project(x, db)
+			var top_a := a - Vector2(0, wall_h * view.s(da))
+			var top_b := b - Vector2(0, wall_h * view.s(db))
+			var f := view.fog(da)
+			draw_colored_polygon(PackedVector2Array([a, b, top_b, top_a]), Color("#3a3a40") * f)
+			draw_colored_polygon(PackedVector2Array([top_a, top_b, top_b + out, top_a + out]), Color("#1c1c20") * f)
+		draw_line(view.project(x, near_d), view.project(x, far_d), Color(0, 0, 0, 0.5), 2.0)
+		# sconces march toward the camera with the push
+		var d := near_d + fposmod(-scroll, 160.0)
+		while d < far_d:
+			var p := view.project(x, d) - Vector2(0, wall_h * 0.6 * view.s(d))
+			var k := view.s(d)
+			var f := view.fog(d)
+			draw_circle(p, 5.0 * k, Color(0.35, 0.95, 0.45, 0.85) * f)
+			draw_circle(p, 12.0 * k, Color(0.3, 0.9, 0.4, 0.18) * f)
+			d += 160.0
 
 
 func _draw_hud() -> void:
@@ -851,6 +900,6 @@ func _draw_hud() -> void:
 			lb.text = "%s x%d  %s%s" % [Game.units[ty]["label"], _rank_count(ty), Game.units[ty]["ability_label"], "" if cd <= 0.0 else " %.0fs" % cd]
 			lb.position.x = 8 + i * 190
 			lb.add_theme_color_override("font_color", Color("#f0c260") if ty == army_type else Color("#a0a08b"))
-	hud_text.text = "WAVE %d / 4\nHERO %d\nMAGIC %d  (lifetime %d)\nSCORE %d\nZ Bolt 8   X Mend 20   C Wall 30    Q/E cycle the army    RMB siphon\nRelics: %s\nFPS %d" % [
+	hud_text.text = "HALL %d / 4\nHERO %d\nMAGIC %d  (lifetime %d)\nSCORE %d\nZ Bolt 8   X Mend 20   C Wall 30    Q/E cycle the army    RMB siphon\nRelics: %s\nFPS %d" % [
 		Game.wave + 1, int(hero_hp), int(Game.magic), int(Game.magic_ever), Game.score, ", ".join(Game.relics), Engine.get_frames_per_second()]
 	toast_label.text = toast if toast_t > 0.0 else ""

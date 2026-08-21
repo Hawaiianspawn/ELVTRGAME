@@ -1,8 +1,8 @@
-# Relaunch the local Godot build of Kindled: The Green Dot, or run the evidence probes against it.
+# Relaunch the local Godot build of Kindled: The Necromancer's Keep, or run the evidence probes against it.
 #   pwsh Scripts\godot-run.ps1                    # kill our previous run, launch the game windowed
 #   pwsh Scripts\godot-run.ps1 -Pack              # repack sprites from roster.json first
 #   pwsh Scripts\godot-run.ps1 -Probe battle,12   # run probe(s), print PROBE lines + png path, no relaunch
-#   pwsh Scripts\godot-run.ps1 -Probe "battle,12,swap;cavalry,8"   # several, ; separated
+#   pwsh Scripts\godot-run.ps1 -Probe "battle,12,swap;siege,6"   # several, ; separated
 # No export step: the engine binary runs the project folder directly, which is the same code the web
 # export ships. Add a Windows export preset only if a standalone .exe is ever needed.
 [CmdletBinding()]

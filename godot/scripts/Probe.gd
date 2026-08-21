@@ -12,7 +12,6 @@ func _run(spec: String) -> void:
 	var parts := spec.split(",")
 	var scene := parts[0]
 	var secs := float(parts[1]) if parts.size() > 1 else 5.0
-	Game.charged = parts.size() > 2 and parts[2] == "charged"
 	await get_tree().process_frame
 	get_viewport().set_disable_input(true)   # never eat the owner's keystrokes
 	get_tree().change_scene_to_file(Game.SCENES[scene])
@@ -60,6 +59,27 @@ func _run(spec: String) -> void:
 		var vortexes: int = b.world.get_children().filter(func(c): return c.has_meta("vortex")).size()
 		assert(vortexes >= b.VORTEX_COLS * b.VORTEX_ROWS, "whirl spread missing: %d vortex cleaves" % vortexes)
 		print("PROBE whirl ok: %d veterans in spin burst, %d vortex cleaves live" % [whirling, vortexes])
+	if parts.size() > 2 and parts[2] == "charge":
+		# self-check: swap to halberdiers — the field charges down-range, then every one is back home
+		await get_tree().create_timer(6.0).timeout
+		var b := get_tree().current_scene
+		b._cycle_army(1)   # veteran -> halberdier
+		var out := 0
+		for _i in range(80):
+			await get_tree().create_timer(0.1).timeout
+			out = b.units.filter(func(u): return u.team == 0 and u.type == "halberdier" and u.charge_to > 0.0).size()
+			if out > 0:
+				break
+		assert(out > 0, "no halberdier charging after swap-in")
+		await get_tree().create_timer(6.0).timeout
+		var stuck := []
+		for u in b.units:
+			if u.team == 0 and u.type == "halberdier" and not u.dead and (u.charge_to > 0.0 or u.wd > b.FRONT_D + 30.0):
+				stuck.append("%s wd=%.0f charge_to=%.0f from=%s moving=%s" % [Unit.State.keys()[u.state], u.wd, u.charge_to, u._charge_from, u._moving])
+		for l in stuck.slice(0, 5):
+			print("PROBE charge STUCK " + l)
+		assert(stuck.is_empty(), "%d halberdiers never came home" % stuck.size())
+		print("PROBE charge ok: %d charged, all home" % out)
 	if parts.size() > 2 and parts[2] == "volley":
 		# self-check: loft a few enemies, swap to vet_ranged — the flurry must fire; count
 		# how many lofted enemies an arrow ran through (informational, timing-dependent)

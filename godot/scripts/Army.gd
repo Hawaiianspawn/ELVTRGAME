@@ -1,7 +1,7 @@
 class_name Army
 extends RefCounted
 ## Builds the company block: packed ranks of real units from the front line down past the camera.
-## `host` must expose `view`, `advancing`, `CREEP`, `lane_x()` (Unit reads them); Battle, Charge and Cavalry all do.
+## `host` must expose `view`, `advancing`, `CREEP`, `lane_x()` (Unit reads them); Battle does.
 
 const RANK_X := 36.0
 const RANK_STEP := 24.0

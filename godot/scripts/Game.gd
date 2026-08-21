@@ -3,13 +3,8 @@ extends Node
 
 const DIRS := ["south", "south-east", "east", "north-east", "north", "north-west", "west", "south-west"]
 const SCENES := {
+	"siege": "res://scenes/siege/Siege.tscn",
 	"battle": "res://scenes/battle/Battle.tscn",
-	"charge": "res://scenes/battle/Charge.tscn",
-	"cavalry": "res://scenes/cutscene/Cavalry.tscn",
-	"messhall": "res://scenes/messhall/MessHall.tscn",
-	"road": "res://scenes/road/Road.tscn",
-	"ride": "res://scenes/ride/Ride.tscn",
-	"reveal": "res://scenes/cutscene/Reveal.tscn",
 	"probe3d": "res://scenes/probe3d/Probe3D.tscn",
 }
 
@@ -17,7 +12,6 @@ var units: Dictionary
 var waves: Array
 var spells: Dictionary
 var sprites: Dictionary          # name -> {cell, source}
-var dialogue: Dictionary
 
 # Run state (survives scene changes; checkpoint = start of wave)
 var wave: int = 0
@@ -26,7 +20,6 @@ var magic_ever: float = 0.0      # relic thresholds read this
 var score: int = 0               # juggle kills: enemies that die in the air
 var relics: Array[String] = []
 var hero_hp: float = 100.0
-var charged := false             # the ride-and-circle segment was played; Cavalry resumes at the killing stroke
 
 ## Playable heroes. First is the knight that falls (g1_seed); the rest are the pick-a-role pool.
 const HEROES := ["hero_knight", "hero_turret", "hero_sackhauler", "hero_dwarf", "hero_cover", "hero_samurai", "hero_ranger"]
@@ -40,7 +33,6 @@ func _ready() -> void:
 	waves = _json("res://data/waves.json")
 	spells = _json("res://data/spells.json")
 	sprites = _json("res://assets/sprites/manifest.json")
-	dialogue = _json("res://data/dialogue/messhall.json")
 	var layer := CanvasLayer.new()
 	layer.layer = 100
 	_fade = ColorRect.new()
@@ -75,7 +67,6 @@ func reset_run() -> void:
 	magic_ever = 0.0
 	relics.clear()
 	hero_hp = 100.0
-	charged = false
 
 
 var _atlas: Texture2D

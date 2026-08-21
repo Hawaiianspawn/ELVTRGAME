@@ -14,7 +14,8 @@
         "type": "ooze",
         "count": 56
       }
-    ]
+    ],
+    "turn": "left"
   },
   {
     "lanes": 6,
@@ -43,7 +44,8 @@
         "type": "ooze",
         "count": 24
       }
-    ]
+    ],
+    "turn": "stairs"
   },
   {
     "lanes": 8,
@@ -76,7 +78,8 @@
         "type": "bow_undead",
         "count": 16
       }
-    ]
+    ],
+    "turn": "right"
   },
   {
     "lanes": 9,
@@ -105,6 +108,7 @@
         "type": "bow_undead",
         "count": 10
       }
-    ]
+    ],
+    "turn": ""
   }
 ]

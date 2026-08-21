@@ -44,6 +44,12 @@ var guard_until := 0.0
 var spin_until := 0.0        # whirl: spinning dodge rolls until then, i-frames in take()
 var spin_phase := 0.0        # 0 or 1: staggers the burst/breather beat so the field alternates
 var _roll_goal := Vector2.ZERO
+var charge_to := 0.0         # halberdier charge: run to this depth launching everyone passed, then fall back
+var _charge_from := Vector2.ZERO
+var _charge_hit := {}
+var _charge_back := false    # leg: false = out, true = home
+const CHARGE_SPEED := 4.0    # x walk speed out; back at rush
+const CHARGE_R := 34.0       # reach either side of the charging halberd
 var rush := false            # ADVANCE/RETREAT at rush speed (swaps route behind the camera)
 var sky_slam := false        # hammer entrance: dropped from the sky, slams the ground on landing
 var air_h := 0.0             # height above the ground; > 0 = airborne, helpless, juggleable
@@ -146,6 +152,30 @@ func _process(delta: float) -> void:
 				slam_anim()
 				battle.sky_landing(self)
 		sprite.modulate = sprite.modulate.lerp(battle.view.fog(wd), delta * 8.0)
+	elif charge_to > 0.0:
+		sprite.modulate = sprite.modulate.lerp(battle.view.fog(wd), delta * 8.0)
+		if not _charge_back:
+			# out: straight down-range, halberd levelled, everything passed goes up
+			wd = minf(charge_to, wd + speed * CHARGE_SPEED * delta)
+			_charge_back = wd >= charge_to
+			_moving = true
+			sprite.frame = 4
+			for o in battle.units:
+				if o.team != team and not o.dead and not _charge_hit.has(o) 						and absf(o.wx - wx) < CHARGE_R and absf(o.wd - wd) < CHARGE_R:
+					_charge_hit[o] = true
+					attack_anim()
+					o.launch(340.0)
+					battle.hit(self, o, 2.0)
+		else:
+			# back: rush home, then the normal state takes over
+			var saved := rush
+			rush = true
+			_step(_charge_from, delta)
+			rush = saved
+			if not _moving:
+				charge_to = 0.0
+				_charge_hit.clear()
+				sprite.frame = 4
 	elif Time.get_ticks_msec() / 1000.0 < spin_until and (state == State.FIGHT or state == State.RANK):
 		# whirl: 1s spin bursts with 1s breathers. Spinning = hard lateral darts angled slightly
 		# back, i-frames in take(), blade clips anyone in reach. Breather = plant, face N or S.
@@ -276,6 +306,16 @@ func _place() -> void:
 
 func lunge(v: Vector2) -> void:
 	_lunge = v / maxf(scale.x, 0.01)
+
+
+## Halberdier opener: charge to depth `to`, launching every enemy passed, then rush back to here.
+func charge(to: float) -> void:
+	if charge_to > 0.0 or air_h > 0.0:
+		return
+	charge_to = to
+	_charge_back = false
+	_charge_from = Vector2(wx, wd)
+	_charge_hit.clear()
 
 
 ## Knock into the air. Velocity only; height builds next frame, so the launching hit itself isn't a juggle.

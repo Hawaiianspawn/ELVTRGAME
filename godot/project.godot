@@ -3,7 +3,7 @@ config_version=5
 
 [application]
 
-config/name="Kindled: The Green Dot"
+config/name="Kindled: The Necromancer's Keep"
 run/main_scene="res://scenes/Main.tscn"
 config/features=PackedStringArray("4.7", "GL Compatibility")
 
