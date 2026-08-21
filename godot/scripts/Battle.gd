@@ -22,7 +22,7 @@ const SWEEP_LEN := 520.0        # launch zone depth ahead of the hero — everyt
 const TYPES := Army.TYPES
 const VORTEX_HZ := 2.0          # vortex cleave hits per second
 const VORTEX_R := 52.0          # cleave reach in world units at k=1
-const VORTEX_LIFT := 120.0      # cleave ticks re-pop airborne foes; they never lift off the ground
+const VORTEX_LIFT := 80.0      # cleave ticks re-pop airborne foes; they never lift off the ground
 const VORTEX_AHEAD := 70.0      # per-strike vortex parks this far past the target, down the hall
 const VORTEX_DMG := 0.35        # fraction of the veteran's dmg per cleave tick
 const VORTEX_COLS := 4          # whirl: vortex field ahead of the line, cols x rows
