@@ -10,6 +10,7 @@ const RUSH := 10.0
 const GRAV := 520.0          # gravity while rising
 const GRAV_FALL := 45.0      # floaty descent — the juggle window (~2.5s from a charge launch)
 const FALL_MAX := 80.0       # terminal fall speed
+const HOVER_V := 40.0        # |air_v| under this = apex: gravity at 20%, the hang
 const JUGGLE_MULT := 2.0     # damage bonus while airborne
 const POP := 260.0           # each juggle hit re-launches at least this
 const AGGRO := 150.0         # ranks wake up to enemies this close (was 90: only the first row ever fought)
@@ -139,7 +140,11 @@ func _process(delta: float) -> void:
 	elif air_h > 0.0 or air_v > 0.0:
 		# airborne: gravity only — no walking, no swinging, just tumble and be juggled
 		# sky-dropped hammers plummet; juggled units keep the floaty cap
-		air_v = maxf(air_v - (GRAV if air_v > 0.0 else GRAV_FALL) * delta, -FALL_MAX * (4.0 if sky_slam else 1.0))
+		# apex hover: near the top of the arc gravity drops away, so a launched foe hangs for the juggle
+		var g := GRAV if air_v > 0.0 else GRAV_FALL
+		if not sky_slam and absf(air_v) < HOVER_V:
+			g *= 0.2
+		air_v = maxf(air_v - g * delta, -FALL_MAX * (4.0 if sky_slam else 1.0))
 		air_h = maxf(0.0, air_h + air_v * delta)
 		sprite.rotation += _spin * delta
 		if air_h == 0.0:
@@ -164,7 +169,7 @@ func _process(delta: float) -> void:
 				if o.team != team and not o.dead and not _charge_hit.has(o) 						and absf(o.wx - wx) < CHARGE_R and absf(o.wd - wd) < CHARGE_R:
 					_charge_hit[o] = true
 					attack_anim()
-					o.launch(340.0)
+					o.launch(420.0)
 					battle.hit(self, o, 2.0)
 		else:
 			# back: rush home, then the normal state takes over
