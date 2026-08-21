@@ -22,7 +22,7 @@ const SWEEP_LEN := 520.0        # launch zone depth ahead of the hero — everyt
 const TYPES := Army.TYPES
 const VORTEX_HZ := 2.0          # vortex cleave hits per second
 const VORTEX_R := 52.0          # cleave reach in world units at k=1
-const VORTEX_LIFT := 300.0      # every cleave tick launches what it hits: the vortex is the juggle engine
+const VORTEX_LIFT := 300.0      # cleave ticks re-pop airborne foes; they never lift off the ground
 const VORTEX_AHEAD := 70.0      # per-strike vortex parks this far past the target, down the hall
 const VORTEX_DMG := 0.35        # fraction of the veteran's dmg per cleave tick
 const VORTEX_COLS := 4          # whirl: vortex field ahead of the line, cols x rows
@@ -345,7 +345,8 @@ func _vortex(wp: Vector2, k: float, dmg: float, secs := 2.0) -> void:
 		for o in units:
 			if o.team == Unit.ENEMY and not o.dead and Vector2(o.wx, o.wd).distance_to(wp) < VORTEX_R * k:
 				_impact(o.position + Vector2(0, -34 * o.scale.y), 4.0 * o.scale.y)
-				o.launch(VORTEX_LIFT)
+				if o.air_h > 0.0:
+					o.launch(VORTEX_LIFT)   # already up: keep it up. Lifting off the ground is the halberdiers' job
 				o.take(dmg))
 	var life := n.create_tween()
 	life.tween_interval(secs)
