@@ -169,10 +169,46 @@ create_ui_asset(
 )
 ```
 
+## Wall + floor finals (2026-08-20, `create_tiles_pro`)
+
+Ran the queued prompt sheet above (walls + floor, both against the #4 wall-strip pick per
+the owner's note), with the "push darker" direction folded into both descriptions. 16
+variations landed for each (`create_tiles_pro` auto-computes count from tile size — the 6
+and 7 named items above are a floor, not a cap; extra slots came back as unlabelled
+palette-matched variants, kept rather than discarded per the retention rule).
+
+| | Tool | Job ID | Style ref | Cost | Size | Files |
+|---|---|---|---|---|---|---|
+| Walls | `create_tiles_pro` | `0892db47-b8c6-4b79-bc67-8e2c10331b0c` | #4 wall-strip (downscaled) | 20-40 gen | 16 x 64x64px | `RawArt/Renders/castle-art-pass/finals/walls/tile_0..15.png` |
+| Floor | `create_tiles_pro` | `aaeaba58-9d67-4f53-aaf6-2eb426d06d2e` | #4 wall-strip (downscaled) | 20-40 gen | 16 x 64x64px | `RawArt/Renders/castle-art-pass/finals/floor/tile_0..15.png` |
+
+Contact sheets: `RawArt/Renders/castle-art-pass/finals/walls-contact.png`,
+`RawArt/Renders/castle-art-pass/finals/floor-contact.png`.
+
+**Verdict (unreviewed by owner):** on-direction at a glance — near-black stone body,
+green survives only as the lit-sconce glow and moss accents, floor set has real material
+variety (plain / cracked / wet / rubble / iron grate / bloodstain / moss). Needs an owner
+pick pass like the original six before anything moves out of `RawArt/Renders/`.
+
+**Known gap vs. the plan above:** `create_tiles_pro`'s `style_images` only accepts inline
+base64, not a URL — the `<CHOSEN_WALL_OR_FACADE_URL>` placeholders in the prompt sheet
+don't work as written despite `agent_help`'s Q2 answer suggesting `url` is accepted (schema
+validation rejects it: `Extra inputs are not permitted`). The full-resolution #4 PNG's
+base64 (256x128, ~36KB encoded) also failed silently as "broken data stream... TRUNCATED in
+transit" when passed inline — this MCP transport has a practical limit well under that. The
+working path: downscale + palette-quantize the reference PNG locally first (this run used
+64x32, 16 colors, ~900 B encoded) before handing it to `style_images`. That's also why the
+output landed at 64x64 rather than the doc's 256x128 target — the tool sizes tiles from the
+style reference's dimensions. If 256px-wide wall strips are needed for the final ship
+asset, the next attempt should feed a reference at that resolution but pre-quantized to a
+small palette so the encoded size stays under whatever this transport's real cap is
+(untested exactly where it sits, only that 36KB fails and 0.9KB works).
+
 ## Files
 
 - Contact sheet: `RawArt/Renders/castle-art-pass/contact.png`
 - All 8 generations (6 kept finals + 2 rejected first attempts): `RawArt/Renders/castle-art-pass/`
+- Finals (walls + floor, unreviewed): `RawArt/Renders/castle-art-pass/finals/`
 - This doc: `docs/art/castle-art-pass.md`
 
 ## Wall material experiment (2026-08-20)
@@ -199,3 +235,9 @@ Findings:
 - Palette is prompt-driven only (no forced palette on tiles_pro) but the "near-black desaturated grey, sickly green only accent" phrasing held in F.
 
 Recipe for task-155 finals: run F again with `outline_mode="segmentation"` (same seed for comparability) for walls; floors via `create_tiles_pro` `tile_view="top-down"`, 32px, numbered 8-variant flagstone prompt, same palette phrasing.
+
+### Floor tiles, flat (2026-08-20)
+
+| G | `create_tiles_pro` square_topdown, `tile_view="top-down"`, 32px, `outline_mode="segmentation"`, seed 2005, 8 numbered flagstone variants | `floor-flat/` 16 tiles, 32x32 full-bleed, no border, seamless, palette held | **the floor recipe** — `contact-floor-flat.png`, `mock-floor-flat.png` |
+
+`tile_view="top-down"` = zero depth, a pure flat square; `segmentation` removes the outline border so tiles butt together clean. Weight plain tiles ~80% when scattering.
