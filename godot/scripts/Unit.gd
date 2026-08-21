@@ -171,7 +171,7 @@ func _process(delta: float) -> void:
 				if o.team != team and not o.dead and not _charge_hit.has(o) 						and absf(o.wx - wx) < CHARGE_R and absf(o.wd - wd) < CHARGE_R:
 					_charge_hit[o] = true
 					attack_anim()
-					o.launch(420.0)
+					o.launch(1260.0)
 					battle.hit(self, o, 2.0)
 		else:
 			# back: rush home, then the normal state takes over
@@ -329,7 +329,7 @@ func charge(to: float) -> void:
 ## so the launching hit itself isn't a juggle.
 func launch(v: float) -> void:
 	if not dead:
-		air_v = minf(air_v + v, 520.0)
+		air_v = minf(air_v + v, 1600.0)
 		hang_t = HANG
 		_spin = randf_range(6.0, 11.0) * (1.0 if randf() < 0.5 else -1.0)
 
@@ -349,7 +349,7 @@ func take(amount: float, push := Vector2.ZERO) -> void:
 	if air_h > 0.0:
 		amount *= JUGGLE_MULT
 		_juggles += 1
-		air_v = minf(maxf(air_v, 0.0) + POP, 520.0)   # impulse, not a reset: every hit adds
+		air_v = minf(maxf(air_v, 0.0) + POP, 1600.0)   # impulse, not a reset: every hit adds
 		hang_t = HANG
 	hp -= amount
 	sprite.modulate = Color(2.0, 2.0, 2.0)
