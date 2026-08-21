@@ -21,7 +21,9 @@ const SWEEP_W := 240.0          # launch zone half-width, centered on the hero �
 const SWEEP_LEN := 520.0        # launch zone depth ahead of the hero — everything short of fresh spawns
 const TYPES := Army.TYPES
 const VORTEX_HZ := 2.0          # vortex cleave hits per second
-const VORTEX_R := 34.0          # cleave reach in world units at k=1
+const VORTEX_R := 52.0          # cleave reach in world units at k=1
+const VORTEX_LIFT := 300.0      # every cleave tick launches what it hits: the vortex is the juggle engine
+const VORTEX_AHEAD := 70.0      # per-strike vortex parks this far past the target, down the hall
 const VORTEX_DMG := 0.35        # fraction of the veteran's dmg per cleave tick
 const VORTEX_COLS := 4          # whirl: vortex field ahead of the line, cols x rows
 const VORTEX_ROWS := 2
@@ -284,7 +286,8 @@ func hit(a: Unit, t: Node2D, mult := 1.0) -> void:
 		# veterans don't swing: every strike parks a vortex cleave over the target's head —
 		# narrowed when the fight is toe to toe so it doesn't swallow the rank
 		a.lunge(to.normalized() * 14.0 * a.scale.x)
-		_vortex(Vector2(t.wx, t.wd), 1.0 if _dist(a, t) < 45.0 else 1.8, a.dmg * VORTEX_DMG)
+		var ahead := 0.0 if _dist(a, t) < 45.0 else VORTEX_AHEAD
+		_vortex(Vector2(t.wx, t.wd + ahead), 1.0 if ahead == 0.0 else 2.2, a.dmg * VORTEX_DMG)
 	else:
 		a.lunge(to.normalized() * 14.0 * a.scale.x)
 		_slash(a, to)
@@ -342,6 +345,7 @@ func _vortex(wp: Vector2, k: float, dmg: float, secs := 2.0) -> void:
 		for o in units:
 			if o.team == Unit.ENEMY and not o.dead and Vector2(o.wx, o.wd).distance_to(wp) < VORTEX_R * k:
 				_impact(o.position + Vector2(0, -34 * o.scale.y), 4.0 * o.scale.y)
+				o.launch(VORTEX_LIFT)
 				o.take(dmg))
 	var life := n.create_tween()
 	life.tween_interval(secs)
@@ -695,7 +699,7 @@ func _opening(u: Unit) -> void:
 			for i in range(VORTEX_COLS):
 				for j in range(VORTEX_ROWS):
 					var cx := -RANK_HALF + RANK_HALF * 2.0 * (i + 0.5) / VORTEX_COLS
-					var cd := FRONT_D + 40.0 + 110.0 * j
+					var cd := FRONT_D + 90.0 + 140.0 * j
 					_vortex(Vector2(cx + _rng.randf_range(-30.0, 30.0), cd + _rng.randf_range(-35.0, 35.0)), 2.6, u.dmg * VORTEX_DMG, 4.0)
 		"sweep":
 			# every halberdier on the field charges down-range, launching all it passes, then falls back in

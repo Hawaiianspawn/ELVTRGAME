@@ -2,7 +2,7 @@
   "veteran": {
     "hp": 70,
     "dmg": 7,
-    "range": 40,
+    "range": 80,
     "speed": 40,
     "cooldown": 1.0,
     "sprite": "veteran",
@@ -13,7 +13,7 @@
     ],
     "ability": "whirl",
     "ability_label": "Whirl",
-    "ability_desc": "Veterans spin for 4s: dodge rolls with i-frames, striking anyone in reach",
+    "ability_desc": "Veterans spin for 4s: dodge rolls with i-frames, vortexes down the hall launch all they touch",
     "ability_cd": 12,
     "attack_hold": 0.3,
     "slash": "judgement_cut",
@@ -32,8 +32,9 @@
     ],
     "ability": "sweep",
     "ability_label": "Sweep",
-    "ability_desc": "Hits every enemy in reach for 2x, launches them airborne",
+    "ability_desc": "Every halberdier charges down-range, hitting all it passes for 2x and launching them, then falls back in",
     "ability_cd": 9,
+    "charge_len": 260,
     "slash": "thrust"
   },
   "hammer": {
@@ -56,8 +57,8 @@
   },
   "vet_ranged": {
     "hp": 28,
-    "dmg": 8,
-    "range": 230,
+    "dmg": 10,
+    "range": 400,
     "speed": 40,
     "cooldown": 1.4,
     "sprite": "vet_ranged",

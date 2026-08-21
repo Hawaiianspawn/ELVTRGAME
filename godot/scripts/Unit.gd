@@ -8,10 +8,10 @@ const ALLY := 0
 const ENEMY := 1
 const RUSH := 10.0
 const GRAV := 520.0          # gravity while rising
-const GRAV_FALL := 150.0     # floaty descent — the juggle window
+const GRAV_FALL := 95.0      # floaty descent — the juggle window
 const FALL_MAX := 120.0      # terminal fall speed
-const JUGGLE_MULT := 1.5     # damage bonus while airborne
-const POP := 220.0           # each juggle hit re-launches at least this
+const JUGGLE_MULT := 2.0     # damage bonus while airborne
+const POP := 260.0           # each juggle hit re-launches at least this
 const AGGRO := 150.0         # ranks wake up to enemies this close (was 90: only the first row ever fought)
 const SUPPORT_DMG := 0.5     # rank hits beyond own weapon reach land at this fraction
 enum State { RANK, ADVANCE, FIGHT, RETREAT }
