@@ -3,8 +3,14 @@ extends Node2D
 ## The lens flies over the battlefield for 3 s to the main gate; the gate opens; the hall begins.
 
 const FLY := 3.0
-const GATE_W := 200.0
-const GATE_H := 240.0
+# facade.png is cropped tight to its art (no padding) at this native size, 16:9.
+const FACADE_IMG_W := 320.0
+const FACADE_IMG_H := 180.0
+const FACADE_WORLD_H := 1008.0                              # world units tall at depth gd
+const FACADE_WORLD_W := FACADE_WORLD_H * FACADE_IMG_W / FACADE_IMG_H
+# the baked portcullis opening's pixel bounds within facade.png, measured once in Pillow
+# (RawArt/Renders/castle-gate/facade-final.png before crop, offset -32,-18 to match the crop).
+const ARCH_PX := Rect2(126.0, 98.0, 68.0, 70.0)
 
 var view := View.new()
 var _t := 0.0
@@ -13,10 +19,18 @@ var _rng := RandomNumberGenerator.new()
 var _smoke: Array = []           # {x, y, r, a}
 var _army: Array[Sprite2D] = []
 var caption: Label
+var _facade_tex: Texture2D
+var _door_l_tex: Texture2D
+var _door_r_tex: Texture2D
+var _glow_tex: Texture2D
 
 
 func _ready() -> void:
 	_rng.randomize()
+	_facade_tex = load("res://assets/env/castle/facade.png")
+	_door_l_tex = load("res://assets/env/castle/door_l.png")
+	_door_r_tex = load("res://assets/env/castle/door_r.png")
+	_glow_tex = load("res://assets/env/castle/hall_glow.png")
 	view.horizon = 250.0
 	view.cam_h = 200.0
 	view.sprite_k = 2.2
@@ -85,32 +99,36 @@ func _process(delta: float) -> void:
 
 func _draw() -> void:
 	view.draw_ground(self, 0.0, 600.0)
-	# castle: a block at depth 2000 with the gate in the middle, green light spilling from the keep
+	# castle: a block at depth 2000, drawn from the painted facade (walls, towers, ruined
+	# battlements and the gate arch are all baked into the art now). Bottom edge of the
+	# texture is flush with its own art (no padding), so pinning it to base.y pins the
+	# flagstone threshold to the projected ground line exactly.
 	var gd := 2000.0
 	var k := view.s(gd)
 	var base := view.project(0.0, gd)
-	var wall_h := 420.0 * k
-	var half_w := 900.0 * k
 	var f := view.fog(gd)
-	var stone := Color("#2b2b30") * f
-	draw_rect(Rect2(base.x - half_w, base.y - wall_h, half_w * 2.0, wall_h), stone)
-	# towers
-	for tx: float in [-700.0, 700.0]:
-		draw_rect(Rect2(base.x + tx * k - 90.0 * k, base.y - wall_h * 1.5, 180.0 * k, wall_h * 1.5), stone * 0.9)
-	# the keep behind, lit green from within
-	var keep_top := base.y - wall_h * 2.4
-	draw_rect(Rect2(base.x - 260.0 * k, keep_top, 520.0 * k, wall_h * 2.4), Color("#1f2523") * f)
-	var flick := 0.7 + 0.3 * sin(_t * 9.0)
-	draw_circle(Vector2(base.x, keep_top), 140.0 * k * flick, Color(0.35, 1.0, 0.45, 0.35 * flick))
-	for i in range(4):
-		draw_line(Vector2(base.x, keep_top), Vector2(base.x + _rng.randf_range(-300, 300) * k, keep_top - 600.0 * k), Color(0.5, 1.0, 0.5, 0.3 * flick), 2.0)
+	var facade_w := FACADE_WORLD_W * k
+	var facade_h := FACADE_WORLD_H * k
+	var fx0 := base.x - facade_w * 0.5
+	var fy0 := base.y - facade_h
+	draw_texture_rect(_facade_tex, Rect2(fx0, fy0, facade_w, facade_h), false, f)
+	# smoke still pours from the keep roofline
+	var keep_top := fy0
 	for m in _smoke:
 		draw_circle(Vector2(base.x + m["x"] * k * 4.0, keep_top + m["y"] * k * 2.0 - 120.0 * k), m["r"] * k * 2.5, Color(0.3, 0.8, 0.4, m["a"] * 0.5))
-	# gate: two doors swinging inward, hall glow behind
-	var gw := GATE_W * k
-	var gh := GATE_H * k
-	draw_rect(Rect2(base.x - gw, base.y - gh, gw * 2.0, gh), Color(0.2, 0.9, 0.4, 0.55 * _gate))
-	var door := gw * (1.0 - _gate)
-	draw_rect(Rect2(base.x - gw, base.y - gh, door, gh), Color("#3a2a1c") * f)
-	draw_rect(Rect2(base.x + gw - door, base.y - gh, door, gh), Color("#3a2a1c") * f)
-	draw_rect(Rect2(base.x - gw, base.y - gh, gw * 2.0, gh), Color(0, 0, 0, 0.6), false, 2.0)
+	# gate: the baked portcullis opening's pixel rect, mapped into the same facade
+	# transform, filled with the hall glow then two doors that squash toward their
+	# hinge (the arch's outer edges) as _gate goes 0..1 — reads as a swing in this
+	# projection, and sits exactly over the bars baked into the art.
+	var sx := facade_w / FACADE_IMG_W
+	var sy := facade_h / FACADE_IMG_H
+	var arch_x0 := fx0 + ARCH_PX.position.x * sx
+	var arch_y0 := fy0 + ARCH_PX.position.y * sy
+	var arch_w := ARCH_PX.size.x * sx
+	var arch_h := ARCH_PX.size.y * sy
+	draw_texture_rect(_glow_tex, Rect2(arch_x0, arch_y0, arch_w, arch_h), false, Color(1.0, 1.0, 1.0, 0.35 + 0.55 * _gate))
+	var half := arch_w * 0.5
+	var door := half * (1.0 - _gate)
+	if door > 0.5:
+		draw_texture_rect(_door_l_tex, Rect2(arch_x0, arch_y0, door, arch_h), false, f)
+		draw_texture_rect(_door_r_tex, Rect2(arch_x0 + arch_w - door, arch_y0, door, arch_h), false, f)

@@ -16,8 +16,15 @@
     "ability_desc": "Veterans spin for 4s: dodge rolls with i-frames, vortexes down the hall launch all they touch",
     "ability_cd": 12,
     "attack_hold": 0.3,
-    "slash": "judgement_cut",
-    "slash_y": -14
+    "slash": "judgement_cut_thin",
+    "slash_y": -14,
+    "tag": "VETERANS",
+    "swap": [
+      "We've done this before, captain. Stay behind the spin.",
+      "That green light isn't natural, captain. We've walked into worse.",
+      "Steel moves before you think it. Just point us."
+    ],
+    "idle": "Veterans hold the center, waiting on your word."
   },
   "halberdier": {
     "hp": 45,
@@ -35,7 +42,14 @@
     "ability_desc": "Every halberdier charges down-range, hitting all it passes for 2x and launching them, then falls back in",
     "ability_cd": 9,
     "charge_len": 260,
-    "slash": "thrust"
+    "slash": "thrust",
+    "tag": "HALBERDIERS",
+    "swap": [
+      "Line's up, captain. Give the word and we go through the rank.",
+      "Long steel, long reach. Nothing stays standing after.",
+      "We charge as one, captain, or we don't charge at all."
+    ],
+    "idle": "Halberdiers hold the flanks, reach longer than steel should."
   },
   "hammer": {
     "hp": 55,
@@ -53,7 +67,14 @@
     "ability_desc": "Stuns enemies ahead 2.5s, 20 dmg",
     "ability_cd": 10,
     "attack_frames": 5,
-    "slash": "shockwave"
+    "slash": "shockwave",
+    "tag": "HAMMER KNIGHTS",
+    "swap": [
+      "Ground shakes when we swing, captain. Stand behind it.",
+      "We don't dodge. We break what's standing in front of us.",
+      "One good hit and the floor finishes the job."
+    ],
+    "idle": "Hammer Knights anchor the line, slow and unmovable."
   },
   "vet_ranged": {
     "hp": 28,
@@ -69,7 +90,14 @@
     "ability": "volley",
     "ability_label": "Volley",
     "ability_desc": "Backup volley: 4 salvos of 18 arrows slam the box ahead of the hero, 6 each; pierces airborne foes",
-    "ability_cd": 8
+    "ability_cd": 8,
+    "tag": "VETERAN RANGED",
+    "swap": [
+      "Arrows are nocked, captain. Just point us at the dark.",
+      "Four volleys coming. Make the first one count.",
+      "We shoot over your head - try not to duck into it."
+    ],
+    "idle": "Veteran Ranged loose arrows over the front line."
   },
   "ooze": {
     "hp": 30,

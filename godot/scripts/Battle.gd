@@ -1,4 +1,4 @@
-extends Node2D
+﻿extends Node2D
 ## Four waves seen from behind the army. World space: x lateral, d depth ahead of the camera (View.gd projects).
 ## Front line holds at FRONT_D; reserves stand in packed ranks behind it and step forward into the lane whose
 ## front unit died, taking the type the player set for that lane. Hero walks the gap between ranks and line,
@@ -10,20 +10,24 @@ const LANE_W := 64.0
 const HERO_MIN_D := 150.0
 const HERO_MAX_D := 290.0
 const RANK_D0 := 285.0          # first rank behind the front line
-const CREEP := 14.0             # the push: world units / s the field slides toward the camera
+const CREEP := 42.0             # the push: world units / s the field slides toward the camera
 const HALL_HALF := 200.0        # hallway half-width: the walls; everything lives between them
 const RANK_ROWS := 8            # depth of the company block down to the camera; every slot is a real unit
 const RANK_COLS := 6            # files across; the block fills the hall wall to wall
 const RANK_HALF := HALL_HALF - 20.0   # half-width of the block in world units
 const RANK_STEP := 28.0
 const BEHIND_D := 55.0          # just behind the lens: where swaps come from and go to
-const SWEEP_W := 240.0          # launch zone half-width, centered on the hero — spans the whole field
-const SWEEP_LEN := 520.0        # launch zone depth ahead of the hero — everything short of fresh spawns
+const SWEEP_W := 240.0          # launch zone half-width, centered on the hero â€” spans the whole field
+const SWEEP_LEN := 520.0        # launch zone depth ahead of the hero â€” everything short of fresh spawns
 const TYPES := Army.TYPES
+const SLASH_ALPHA := 0.2       # slash fx opacity (strike and whirl field)
+const SLASH_STOP := 0.2        # hit stop (real seconds) when a whirl vortex mini hit lands
+const SLASH_R := 40.0           # slash fx area hit reach in world units
+const SLASH_DMG := 0.25         # fraction of dmg per slash mini hit
+const SLASH_EVERY := 2          # slash mini hit every Nth clip frame
 const VORTEX_HZ := 2.0          # vortex cleave hits per second
 const VORTEX_R := 52.0          # cleave reach in world units at k=1
 const VORTEX_LIFT := 80.0      # cleave ticks re-pop airborne foes; they never lift off the ground
-const VORTEX_AHEAD := 70.0      # per-strike vortex parks this far past the target, down the hall
 const VORTEX_DMG := 0.35        # fraction of the veteran's dmg per cleave tick
 const VORTEX_COLS := 4          # whirl: vortex field ahead of the line, cols x rows
 const VORTEX_ROWS := 2
@@ -51,7 +55,7 @@ var fx: Node2D
 var hud: Node2D
 var hud_text: Label
 var toast_label: Label
-var lane_labels: Array[Label] = []
+var army_panels: Array[ArmyPanel] = []
 var scenery: Array[Sprite2D] = []      # foreground rows + far horde, meta wx/wd
 var scroll := 0.0
 var advancing := true
@@ -90,15 +94,12 @@ func _ready() -> void:
 	add_child(cl)
 	hud_text = _label(cl, Vector2(12, 6), 14, Color("#e9efec"))
 	toast_label = _label(cl, Vector2(300, 40), 20, Color("#f0c260"))
-	var strip := ColorRect.new()
-	strip.color = Color(0, 0, 0, 0.55)
-	strip.position = Vector2(0, 512)
-	strip.size = Vector2(960, 28)
-	cl.add_child(strip)
-	for l in range(9):
-		var lb := _label(cl, Vector2(0, 516), 11, Color("#a0a08b"))
-		lb.size = Vector2(190, 16)
-		lane_labels.append(lb)
+	for i in range(TYPES.size()):
+		var ty: String = TYPES[i]
+		var p := ArmyPanel.new(ty, Game.units[ty], 8.0 + i * (ArmyPanel.COMPACT_SIZE.x + 8.0))
+		cl.add_child(p)
+		army_panels.append(p)
+		p.set_selected(ty == army_type, _rng)
 	hero = Node2D.new()
 	hero_sprite = Game.make_sprite(Game.hero, 4)
 	hero.add_child(hero_sprite)
@@ -282,15 +283,10 @@ func hit(a: Unit, t: Node2D, mult := 1.0) -> void:
 		await get_tree().create_timer(0.12).timeout
 		if not is_instance_valid(t):
 			return
-	elif t is Unit and Game.units[a.type].get("ability", "") == "whirl":
-		# veterans don't swing: every strike parks a vortex cleave over the target's head —
-		# narrowed when the fight is toe to toe so it doesn't swallow the rank
-		a.lunge(to.normalized() * 14.0 * a.scale.x)
-		var ahead := 0.0 if _dist(a, t) < 45.0 else VORTEX_AHEAD
-		_vortex(Vector2(t.wx, t.wd + ahead), 1.0 if ahead == 0.0 else 2.2, a.dmg * VORTEX_DMG)
 	else:
 		a.lunge(to.normalized() * 14.0 * a.scale.x)
-		_slash(a, to)
+		if t is Unit:
+			_slash(a, t, to)
 	_impact(t.position + Vector2(0, -34 * t.scale.y), 6.0 * t.scale.y)
 	if t is Unit:
 		if t.guard_until > _now():
@@ -301,36 +297,57 @@ func hit(a: Unit, t: Node2D, mult := 1.0) -> void:
 		hero_sprite.modulate = Color(2, 1, 1)
 
 
-## Pixel slash clip over the attacker's head, so a strike reads from behind the front line where the
-## sprite's own arm is hidden by the rank in front. units.json "slash": sweep | chop | thrust -> fx_<name>.
-func _slash(a: Unit, to: Vector2) -> void:
+## Slash fx: an area hit parked on the target. The clip plays once in the world and every frame
+## tick cleaves each enemy inside SLASH_R for a mini hit, re-popping airborne ones so crowds
+## juggle. The swing itself is the unit's own attack clip. units.json "slash": fx_<name>,
+## "slash_y": height above the target's feet.
+func _slash(a: Unit, t: Unit, to: Vector2) -> void:
 	var kind: String = Game.units[a.type].get("slash", "")
 	if kind == "" or not Game.sprites.has("fx_" + kind):
 		return
-	# ride the attacker so it y-sorts with the ranks instead of floating over the whole field
+	var wp := Vector2(t.wx, t.wd)
+	var n := Node2D.new()
+	n.position = view.project(wp.x, wp.y)
+	n.scale = Vector2.ONE * view.sprite_scale(wp.y)
 	var s := Game.make_fx("fx_" + kind)
-	s.position = Vector2(0, float(Game.units[a.type].get("slash_y", -40.0))) + to.normalized() * 8.0
-	s.scale = Vector2.ONE * 0.9
+	s.position = Vector2(0, float(Game.units[a.type].get("slash_y", -40.0)))
+	s.scale = Vector2.ONE * 0.9 * 64.0 / float(Game.sprites["fx_" + kind]["cell"])
+	s.modulate.a = SLASH_ALPHA
 	s.flip_h = to.x < 0.0
-	a.add_child(s)
-	var n := s.hframes
-	var tw := s.create_tween()
-	tw.tween_property(s, "frame", n - 1, 0.05 * n)
-	tw.tween_callback(s.queue_free)
+	n.add_child(s)
+	world.add_child(n)
+	var frames := s.hframes
+	var dmg := a.dmg * SLASH_DMG
+	var tw := n.create_tween()
+	for f in range(frames):
+		tw.tween_callback(func():
+			s.frame = f
+			if f % SLASH_EVERY != 0:
+				return
+			for o in units:
+				if o != t and o.team != a.team and not o.dead and Vector2(o.wx, o.wd).distance_to(wp) < SLASH_R:
+					_impact(o.position + Vector2(0, -34 * o.scale.y), 4.0 * o.scale.y)
+					if o.air_h > 0.0:
+						o.launch(VORTEX_LIFT)
+					o.take(dmg, to.normalized() * 3.0))
+		tw.tween_interval(0.05)
+	tw.tween_callback(n.queue_free)
 
 
 ## Vortex cleave: the blue sweep clip parked in the world, spinning in place and cleaving every
 ## enemy inside its radius twice a second for a few seconds. Hovers at head height so the
 ## circle isn't wasted on ground nobody stands on. k scales size and reach together.
-func _vortex(wp: Vector2, k: float, dmg: float, secs := 2.0) -> void:
+func _vortex(wp: Vector2, k: float, dmg: float, secs := 2.0, fx := "fx_sweep_thin") -> void:
 	var n := Node2D.new()
 	n.set_meta("vortex", true)
 	n.position = view.project(wp.x, wp.y)
 	n.scale = Vector2.ONE * view.sprite_scale(wp.y) * k
-	var s := Game.make_fx("fx_sweep_thin")
-	s.scale = Vector2.ONE * 0.25           # clip is 4x upscaled so the ring stays a thin line
+	var s := Game.make_fx(fx)
 	s.position = Vector2(0, -48.0 / k)     # head height stays put as the circle grows
-	s.modulate = Color(3.0, 3.0, 3.0, 0.95)   # blown out near white; the blue only survives at the edges
+	s.scale = Vector2.ONE * 64.0 / float(Game.sprites[fx]["cell"])   # hi-res clips shrink back: same size, thinner lines
+	s.modulate.a = SLASH_ALPHA
+	if fx == "fx_sweep_thin":
+		s.modulate = Color(3.0, 3.0, 3.0, 0.95)   # blown out near white; the blue only survives at the edges
 	n.add_child(s)
 	world.add_child(n)
 	# never in lockstep: random facing, random spin direction, own phase and cadence
@@ -347,11 +364,26 @@ func _vortex(wp: Vector2, k: float, dmg: float, secs := 2.0) -> void:
 				_impact(o.position + Vector2(0, -34 * o.scale.y), 4.0 * o.scale.y)
 				if o.air_h > 0.0:
 					o.launch(VORTEX_LIFT)   # already up: keep it up. Lifting off the ground is the halberdiers' job
-				o.take(dmg))
+				o.take(dmg)
+				_hitstop(SLASH_STOP))
 	var life := n.create_tween()
 	life.tween_interval(secs)
 	life.tween_property(n, "modulate:a", 0.0, 0.2)
 	life.tween_callback(n.queue_free)
+
+
+## Hit stop: the world crawls for secs of real time. A later, longer stop extends the hold;
+## the timer that fired last always restores full speed.
+var _stop_until := 0.0
+func _hitstop(secs: float, scale := 0.1) -> void:
+	var now := Time.get_ticks_msec() / 1000.0
+	if now + secs <= _stop_until:
+		return
+	_stop_until = now + secs
+	Engine.time_scale = scale
+	get_tree().create_timer(secs, true, false, true).timeout.connect(func():
+		if Time.get_ticks_msec() / 1000.0 >= _stop_until - 0.005:
+			Engine.time_scale = 1.0)
 
 
 func _dist(a: Unit, b: Unit) -> float:
@@ -639,6 +671,8 @@ func _set_army(type: String) -> void:
 	if type == army_type:
 		return
 	army_type = type
+	for p in army_panels:
+		p.set_selected(p.type == type, _rng)
 	for l in range(lanes):
 		lane_types[l] = type
 		front[l] = null
@@ -650,9 +684,7 @@ func _set_army(type: String) -> void:
 			u.rush = true
 			u.sprite.frame = 0
 	_deploy(type, true)
-	# the swap beat: the world holds its breath for a blink
-	Engine.time_scale = 0.05
-	get_tree().create_timer(0.09, true, false, true).timeout.connect(func(): Engine.time_scale = 1.0)
+	_hitstop(0.09, 0.05)   # the swap beat: the world holds its breath for a blink
 	var d: Dictionary = Game.units[type]
 	var cd := _ability_cd_left(type)
 	say("%s step up - %s%s" % [d["label"], d["ability_label"], "" if cd <= 0.0 else " (on cooldown %.0fs)" % cd])
@@ -701,7 +733,9 @@ func _opening(u: Unit) -> void:
 				for j in range(VORTEX_ROWS):
 					var cx := -RANK_HALF + RANK_HALF * 2.0 * (i + 0.5) / VORTEX_COLS
 					var cd := FRONT_D + 90.0 + 140.0 * j
-					_vortex(Vector2(cx + _rng.randf_range(-30.0, 30.0), cd + _rng.randf_range(-35.0, 35.0)), 2.6, u.dmg * VORTEX_DMG, 4.0)
+					var fx := "fx_" + str(Game.units[u.type].get("slash", ""))
+					_vortex(Vector2(cx + _rng.randf_range(-30.0, 30.0), cd + _rng.randf_range(-35.0, 35.0)), 2.6, u.dmg * VORTEX_DMG, 4.0,
+						fx if Game.sprites.has(fx) else "fx_sweep_thin")
 		"sweep":
 			# every halberdier on the field charges down-range, launching all it passes, then falls back in
 			for o in units:
@@ -719,40 +753,65 @@ func _opening(u: Unit) -> void:
 				_impact(near[0].position + Vector2(0, -34 * near[0].scale.y), 9.0 * near[0].scale.y)
 				near[0].take(45.0, Vector2(0, 6))
 		"volley":
-			# backup volley: one salvo a second slams the kill box in front of the hero
+			# backup volley: three arrow blocks, one every 1.2s, each thrown at a clump in the kill box
 			var tw := create_tween()
-			tw.set_loops(4)
+			tw.set_loops(3)
 			tw.tween_callback(_rain_salvo.bind(6.0))
-			tw.tween_interval(1.0)
+			tw.tween_interval(1.2)
 
 
-## One salvo of the backup volley: 18 arrows at once into a box ahead of the hero — most
-## seek a random enemy inside it (led if still marching), the rest hammer its ground.
+## One salvo of the backup volley: every archer looses at once and the arrows fill an area around an enemy
+## in the kill box (the one with the most neighbours, so the block lands on a clump). Every
+## arrow leaves together from the archers' line and fans out over the area. dmg is the per-foot
+## salvo total, spread over the salvo.
+const VOLLEY_COLS := 6          # block of arrows per salvo, wide x deep
+const VOLLEY_ROWS := 5
+const VOLLEY_W := 220.0         # area filled per salvo, world units wide x deep
+const VOLLEY_D := 600.0
+const VOLLEY_BOX_D := 160.0     # firing box depth behind the lens the archers loose from
+const VOLLEY_SPEED := 1100.0    # arrow speed, world units/s: flight time follows distance
 func _rain_salvo(dmg: float) -> void:
 	var x0 := hero_wx
 	var d0 := hero_wd + 80.0
-	var d1 := hero_wd + 320.0
-	_flash(Vector2(x0, (d0 + d1) * 0.5), 100.0, Color(1.0, 0.9, 0.6, 0.25))
+	var d1 := hero_wd + 700.0
 	var foes: Array = []
 	for o in units:
-		if o.team == Unit.ENEMY and not o.dead and absf(o.wx - x0) < 130.0 and o.wd > d0 and o.wd < d1:
+		if o.team == Unit.ENEMY and not o.dead and absf(o.wx - x0) < 180.0 and o.wd > d0 and o.wd < d1:
 			foes.append(o)
-	for i in range(18):
-		var mark: Vector2
-		if not foes.is_empty() and _rng.randf() < 0.6:
-			var o: Unit = foes[_rng.randi() % foes.size()]
-			var lead := o.speed * 0.5 if o.wd > FRONT_D + 60.0 else 0.0
-			mark = Vector2(o.wx + _rng.randf_range(-16.0, 16.0), o.wd - lead + _rng.randf_range(-12.0, 12.0))
-		else:
-			mark = Vector2(x0 + _rng.randf_range(-120.0, 120.0), _rng.randf_range(d0, d1))
-		_volley_arrow(mark, dmg)
+	var at := Vector2(x0, (d0 + d1) * 0.5)
+	if not foes.is_empty():
+		var best: Unit = foes[0]
+		var best_n := -1
+		for o in foes:
+			var n := 0
+			for q in foes:
+				if Vector2(o.wx, o.wd).distance_to(Vector2(q.wx, q.wd)) < VOLLEY_W * 0.5:
+					n += 1
+			if n > best_n:
+				best_n = n
+				best = o
+		var lead := best.speed * 0.4 if best.wd > FRONT_D + 60.0 else 0.0
+		at = Vector2(best.wx, best.wd - lead)
+	_flash(at, 80.0, Color(1.0, 0.9, 0.6, 0.25))
+	var per := dmg * 18.0 / float(VOLLEY_COLS * VOLLEY_ROWS)
+	for j in range(VOLLEY_ROWS):
+		for i in range(VOLLEY_COLS):
+			# uniform block: archer (i, j) in the firing box shoots mark (i, j) in the landing area, so the
+			# formation flies as one body and lands as one. Jitter is a hair, just enough to not read as a grid.
+			var u := (i + 0.5) / VOLLEY_COLS - 0.5
+			var v := (j + 0.5) / VOLLEY_ROWS - 0.5
+			var mark := Vector2(at.x + u * VOLLEY_W + _rng.randf_range(-5.0, 5.0), at.y + v * VOLLEY_D + _rng.randf_range(-8.0, 8.0))
+			var from := Vector2(hero_wx + u * RANK_HALF * 1.6 + _rng.randf_range(-4.0, 4.0), BEHIND_D - (v + 0.5) * VOLLEY_BOX_D)
+			_volley_arrow(from, mark, per)
 
 
 ## One volley arrow: launched behind the camera above the ranks, arcing down onto `mark`.
-## Airborne enemies along the path are run through — damaged plus a small juggle tap —
+## Airborne enemies along the path are run through â€” damaged plus a small juggle tap â€”
 ## without stopping the arrow; whoever stands at the mark when it lands takes the hit.
-func _volley_arrow(mark: Vector2, dmg: float) -> void:
-	var from := Vector2(mark.x + _rng.randf_range(-6.0, 6.0), BEHIND_D)   # straight down-range: lateral jitter at wd 55 reads as sideways flight
+func _volley_arrow(from: Vector2, mark: Vector2, dmg: float) -> void:
+	# one straight line from the archer's spot to the mark at a shared speed: the block keeps its shape in flight
+	var secs := from.distance_to(mark) / VOLLEY_SPEED
+	var peak := _rng.randf_range(50.0, 130.0)   # each arrow its own arc height: the block has thickness, not a plane
 	var l := Line2D.new()
 	l.width = 1.5
 	l.default_color = Color(0.9, 0.85, 0.7)
@@ -763,15 +822,14 @@ func _volley_arrow(mark: Vector2, dmg: float) -> void:
 	var pierced := {}
 	var prev := [Vector2.INF]
 	var tw := create_tween()
-	tw.tween_interval(_rng.randf_range(0.0, 0.05))   # a breath of jitter so the volley shimmers but lands as one
 	tw.tween_method(func(k: float):
 		var wp := from.lerp(mark, k)
-		var h := 90.0 * (1.0 - k * k) + sin(k * PI) * 8.0   # in from over the lens, above the frame, diving late
+		var h := peak * (1.0 - k * k) + sin(k * PI) * 8.0   # in from over the lens, above the frame, diving late
 		var p := view.project(wp.x, wp.y) + Vector2(0, -h * view.sprite_scale(wp.y))
 		l.visible = true
 		l.set_point_position(0, p)
 		var tail: Vector2 = p if prev[0] == Vector2.INF else prev[0]
-		var cap := 9.0 * view.sprite_scale(wp.y)   # short dart, scaled with depth
+		var cap := 16.0 * view.sprite_scale(wp.y)   # streak, scaled with depth
 		if p.distance_to(tail) > cap:
 			tail = p + (tail - p).normalized() * cap
 		l.set_point_position(1, tail)
@@ -782,17 +840,17 @@ func _volley_arrow(mark: Vector2, dmg: float) -> void:
 				pierced[o] = true
 				o.take(dmg)
 				o.air_v = 130.0   # a tap back up, not a full re-launch
-		, 0.0, 1.0, 0.4)
+		, 0.0, 1.0, secs)
 	tw.tween_callback(func():
 		for o in units:
 			if o.team == Unit.ENEMY and not o.dead and o.air_h == 0.0 and Vector2(o.wx, o.wd).distance_to(mark) < 26.0:
 				o.take(dmg)
+				_impact(view.project(mark.x, mark.y), 5.0)
 				break
-		_impact(view.project(mark.x, mark.y), 5.0)
 		l.queue_free())
 
 
-## A sky-dropped hammer hit the ground: shockwave — same numbers as its slam ability.
+## A sky-dropped hammer hit the ground: shockwave â€” same numbers as its slam ability.
 func sky_landing(u: Unit) -> void:
 	var here := Vector2(u.wx, u.wd)
 	_flash(here, 60.0, Color(1.0, 0.8, 0.5, 0.6))
@@ -850,7 +908,7 @@ func _flash(wp: Vector2, r: float, c: Color) -> void:
 
 
 func _draw() -> void:
-	# ponytail: procedural ground bands; owner says real terrain lands here later — replace this one call.
+	# ponytail: procedural ground bands; owner says real terrain lands here later â€” replace this one call.
 	view.draw_ground(self, scroll, HALL_HALF)
 	_draw_walls()
 	# the necromancer's green glow at the far end of the hall
@@ -898,16 +956,9 @@ func _draw_hud() -> void:
 		var k := view.s(m["wd"])
 		hud.draw_circle(view.project(m["wx"], m["wd"]) + Vector2(0, -10 * k), (2.5 + float(m["v"]) * 0.12) * k, Color(0.4, 1.0, 0.4, 0.9))
 	hud.draw_circle(hero.position + Vector2(0, -60 * hero.scale.y), 4.0 + minf(Game.magic, 200.0) * 0.06, Color(0.4, 1.0, 0.4, 0.8))
-	# bottom strip: the five types, ranks left, ability cooldown; current army type highlighted
-	for i in range(lane_labels.size()):
-		var lb := lane_labels[i]
-		lb.visible = i < TYPES.size()
-		if i < TYPES.size():
-			var ty: String = TYPES[i]
-			var cd := _ability_cd_left(ty)
-			lb.text = "%s x%d  %s%s" % [Game.units[ty]["label"], _rank_count(ty), Game.units[ty]["ability_label"], "" if cd <= 0.0 else " %.0fs" % cd]
-			lb.position.x = 8 + i * 190
-			lb.add_theme_color_override("font_color", Color("#f0c260") if ty == army_type else Color("#a0a08b"))
+	# bottom strip: the four army panels, ranks left, ability cooldown; current army type large + on top
+	for p in army_panels:
+		p.update(_rank_count(p.type), _ability_cd_left(p.type))
 	hud_text.text = "HALL %d / 4\nHERO %d\nMAGIC %d  (lifetime %d)\nSCORE %d\nZ Bolt 8   X Mend 20   C Wall 30    Q/E cycle the army    RMB siphon\nRelics: %s\nFPS %d" % [
 		Game.wave + 1, int(hero_hp), int(Game.magic), int(Game.magic_ever), Game.score, ", ".join(Game.relics), Engine.get_frames_per_second()]
 	toast_label.text = toast if toast_t > 0.0 else ""
