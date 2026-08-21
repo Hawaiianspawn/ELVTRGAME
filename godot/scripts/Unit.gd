@@ -10,9 +10,9 @@ const RUSH := 10.0
 const GRAV := 520.0          # gravity while rising
 const GRAV_FALL := 45.0      # floaty descent — the juggle window (~2.5s from a charge launch)
 const FALL_MAX := 80.0       # terminal fall speed
-const HOVER_V := 40.0        # |air_v| under this = apex: gravity at 20%, the hang
+const HANG := 1.0            # seconds a hit or launch suspends gravity: the juggle window
 const JUGGLE_MULT := 2.0     # damage bonus while airborne
-const POP := 260.0           # each juggle hit re-launches at least this
+const POP := 160.0           # upward impulse added by every juggle hit
 const AGGRO := 150.0         # ranks wake up to enemies this close (was 90: only the first row ever fought)
 const SUPPORT_DMG := 0.5     # rank hits beyond own weapon reach land at this fraction
 enum State { RANK, ADVANCE, FIGHT, RETREAT }
@@ -55,6 +55,7 @@ var rush := false            # ADVANCE/RETREAT at rush speed (swaps route behind
 var sky_slam := false        # hammer entrance: dropped from the sky, slams the ground on landing
 var air_h := 0.0             # height above the ground; > 0 = airborne, helpless, juggleable
 var air_v := 0.0             # vertical speed
+var hang_t := 0.0            # gravity suspended while > 0
 var _spin := 0.0             # rad/s tumble while airborne
 var _pivot := 0.0            # px from feet up to the center of mass; spin pivots here
 var _base_offset := Vector2.ZERO   # make_sprite's feet-on-origin offset, restored on landing
@@ -140,11 +141,12 @@ func _process(delta: float) -> void:
 	elif air_h > 0.0 or air_v > 0.0:
 		# airborne: gravity only — no walking, no swinging, just tumble and be juggled
 		# sky-dropped hammers plummet; juggled units keep the floaty cap
-		# apex hover: near the top of the arc gravity drops away, so a launched foe hangs for the juggle
-		var g := GRAV if air_v > 0.0 else GRAV_FALL
-		if not sky_slam and absf(air_v) < HOVER_V:
-			g *= 0.2
-		air_v = maxf(air_v - g * delta, -FALL_MAX * (4.0 if sky_slam else 1.0))
+		# hang: after a hit the impulse carries it up, bleeds off, and it holds there; gravity only once the hang runs out
+		hang_t -= delta
+		if hang_t > 0.0 and not sky_slam:
+			air_v = lerpf(air_v, 0.0, minf(1.0, 5.0 * delta))
+		else:
+			air_v = maxf(air_v - (GRAV if air_v > 0.0 else GRAV_FALL) * delta, -FALL_MAX * (4.0 if sky_slam else 1.0))
 		air_h = maxf(0.0, air_h + air_v * delta)
 		sprite.rotation += _spin * delta
 		if air_h == 0.0:
@@ -323,10 +325,12 @@ func charge(to: float) -> void:
 	_charge_hit.clear()
 
 
-## Knock into the air. Velocity only; height builds next frame, so the launching hit itself isn't a juggle.
+## Knock into the air: an impulse, added to whatever it already has. Height builds next frame,
+## so the launching hit itself isn't a juggle.
 func launch(v: float) -> void:
 	if not dead:
-		air_v = maxf(air_v, v)
+		air_v = minf(air_v + v, 520.0)
+		hang_t = HANG
 		_spin = randf_range(6.0, 11.0) * (1.0 if randf() < 0.5 else -1.0)
 
 
@@ -345,7 +349,8 @@ func take(amount: float, push := Vector2.ZERO) -> void:
 	if air_h > 0.0:
 		amount *= JUGGLE_MULT
 		_juggles += 1
-		air_v = maxf(air_v, POP)     # every hit keeps it up there
+		air_v = minf(maxf(air_v, 0.0) + POP, 520.0)   # impulse, not a reset: every hit adds
+		hang_t = HANG
 	hp -= amount
 	sprite.modulate = Color(2.0, 2.0, 2.0)
 	_recoil = push / maxf(scale.x, 0.01)
