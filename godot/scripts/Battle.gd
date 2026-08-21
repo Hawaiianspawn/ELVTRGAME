@@ -918,26 +918,67 @@ func _draw() -> void:
 	draw_line(dot, dot + Vector2(_rng.randf_range(-30, 30), -110), Color(0.5, 1.0, 0.5, 0.5 * flick), 2.0)
 
 
-## Stone walls either side of the hall, near to far, with green sconces every few rows.
+# Wall tiles: indices 1,15 are plain, weighted ~70% via repeat count in the pool below.
+const WALL_PLAIN := [preload("res://assets/env/hall/wall_01.png"), preload("res://assets/env/hall/wall_15.png")]
+const WALL_OTHER := [
+	preload("res://assets/env/hall/wall_02.png"), preload("res://assets/env/hall/wall_03.png"),
+	preload("res://assets/env/hall/wall_08.png"), preload("res://assets/env/hall/wall_09.png"),
+	preload("res://assets/env/hall/wall_10.png"), preload("res://assets/env/hall/wall_11.png"),
+	preload("res://assets/env/hall/wall_12.png"), preload("res://assets/env/hall/wall_13.png"),
+	preload("res://assets/env/hall/wall_14.png"),
+]
+static var WALL_POOL: Array = View._build_pool(WALL_PLAIN, WALL_OTHER, 10)   # 2 plain x10 + 9 other = ~69% plain
+const COURSE_H := 42.0     # world-unit height of one wall course (tile is 32x44px, ~4 courses ~= old wall_h)
+const COURSE_LEDGE := 4.0 / 44.0   # top baked ledge as a UV fraction; trimmed on every course but the topmost
+const MAX_COURSES := 4     # ponytail: cap so 2 sides x 12 bands x 4 courses stays cheap; lower if the probe dips
+
+
+## Stone walls either side of the hall, near to far, with green sconces every few rows; courses of the
+## chosen wall tile stack upward per band until the wall top clears the viewport, then fade to black
+## (no baked ceiling edge).
 func _draw_walls() -> void:
 	var near_d := view.cam_d + 60.0
 	var far_d := view.cam_d + view.fog_end * 1.5
-	var wall_h := 170.0
+	var wall_h := COURSE_H * MAX_COURSES   # sconce height reference; texture courses stack independently above
+	var segs := 12
+	var scroll_step := int(scroll / COURSE_H)
 	for side: float in [-1.0, 1.0]:
 		var x: float = side * HALL_HALF
-		var out := Vector2(side * 3000.0, 0)
-		# face in depth bands so it fogs like the floor; ceiling shelf beyond the top edge
-		var segs := 12
 		for i in range(segs):
 			var da := near_d * pow(far_d / near_d, float(i) / segs)
 			var db := near_d * pow(far_d / near_d, float(i + 1) / segs)
 			var a := view.project(x, da)
 			var b := view.project(x, db)
-			var top_a := a - Vector2(0, wall_h * view.s(da))
-			var top_b := b - Vector2(0, wall_h * view.s(db))
 			var f := view.fog(da)
-			draw_colored_polygon(PackedVector2Array([a, b, top_b, top_a]), Color("#3a3a40") * f)
-			draw_colored_polygon(PackedVector2Array([top_a, top_b, top_b + out, top_a + out]), Color("#1c1c20") * f)
+			var sa := view.s(da)
+			var sb := view.s(db)
+			var top_a := a
+			var top_b := b
+			var last_a := a
+			var last_b := b
+			var last_top_a := a
+			var last_top_b := b
+			var course := 0
+			while course < MAX_COURSES and top_a.y > 0.0:
+				var bot_a := a - Vector2(0, course * COURSE_H * sa)
+				var bot_b := b - Vector2(0, course * COURSE_H * sb)
+				top_a = a - Vector2(0, (course + 1) * COURSE_H * sa)
+				top_b = b - Vector2(0, (course + 1) * COURSE_H * sb)
+				var top_uv := 0.0 if course == MAX_COURSES - 1 or top_a.y <= 0.0 else COURSE_LEDGE
+				var tex: Texture2D = View._pool_pick(WALL_POOL, int(side), i + scroll_step + course * 97)
+				draw_polygon(
+					PackedVector2Array([bot_a, bot_b, top_b, top_a]),
+					PackedColorArray([f, f, f, f]),
+					PackedVector2Array([Vector2(0, 1), Vector2(1, 1), Vector2(1, top_uv), Vector2(0, top_uv)]),
+					tex)
+				last_a = bot_a; last_b = bot_b; last_top_a = top_a; last_top_b = top_b
+				course += 1
+			# fade the topmost course's upper 40% to solid black so no ceiling edge exists
+			var mid_a := last_a.lerp(last_top_a, 0.6)
+			var mid_b := last_b.lerp(last_top_b, 0.6)
+			draw_polygon(
+				PackedVector2Array([mid_a, mid_b, last_top_b, last_top_a]),
+				PackedColorArray([Color(0, 0, 0, 0), Color(0, 0, 0, 0), Color.BLACK, Color.BLACK]))
 		draw_line(view.project(x, near_d), view.project(x, far_d), Color(0, 0, 0, 0.5), 2.0)
 		# sconces march toward the camera with the push
 		var d := near_d + fposmod(-scroll, 160.0)

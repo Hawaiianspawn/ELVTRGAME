@@ -14,9 +14,44 @@ var fog_start := 380.0
 var fog_end := 980.0
 var fog_max := 1.0
 var far_color := Color.BLACK
-var sky_color := Color("#3a3b3d")
+var sky_color := Color.BLACK   # was #3a3b3d; walls fade to black now, ceiling above must be true black too
 var sky_low := Color.BLACK
 var near_color := Color("#2a2a2b")
+
+# Floor tiles: indices 0,1 are plain, weighted ~80% via repeat count in the pool below.
+const FLOOR_PLAIN := [preload("res://assets/env/hall/floor_00.png"), preload("res://assets/env/hall/floor_01.png")]
+const FLOOR_OTHER := [
+	preload("res://assets/env/hall/floor_02.png"), preload("res://assets/env/hall/floor_03.png"),
+	preload("res://assets/env/hall/floor_04.png"), preload("res://assets/env/hall/floor_05.png"),
+	preload("res://assets/env/hall/floor_06.png"), preload("res://assets/env/hall/floor_07.png"),
+	preload("res://assets/env/hall/floor_08.png"), preload("res://assets/env/hall/floor_09.png"),
+	preload("res://assets/env/hall/floor_10.png"), preload("res://assets/env/hall/floor_11.png"),
+	preload("res://assets/env/hall/floor_14.png"), preload("res://assets/env/hall/floor_15.png"),
+]
+const FLOOR_TILE_W := 64.0    # world units per floor grid cell
+
+
+## Deterministic integer hash so tile variant choice stays put as `scroll` marches, no flicker.
+static func _hash2(a: int, b: int) -> int:
+	var h := a * 374761393 + b * 668265263
+	h = (h ^ (h >> 13)) * 1274126177
+	return absi(h ^ (h >> 16))
+
+
+static func _pool_pick(pool: Array, a: int, b: int) -> Texture2D:
+	return pool[_hash2(a, b) % pool.size()]
+
+
+static func _build_pool(plain: Array, other: Array, plain_repeat: int) -> Array:
+	var pool: Array = []
+	for t in plain:
+		for i in range(plain_repeat):
+			pool.append(t)
+	pool.append_array(other)
+	return pool
+
+
+static var FLOOR_POOL: Array = _build_pool(FLOOR_PLAIN, FLOOR_OTHER, 24)   # 2 plain x24 + 12 other = 80% plain
 
 
 func s(d: float) -> float:
@@ -51,18 +86,31 @@ func draw_ground(c: CanvasItem, scroll: float, x_half: float) -> void:
 	for i in range(8):
 		var y0 := horizon * i / 8.0
 		c.draw_rect(Rect2(-2000, y0, 5000, horizon / 8.0 + 1), sky_color.lerp(sky_low, (i + 1) / 8.0))
-	# ground as depth bands, near = lighter
+	# ground: grid of textured floor tiles, near->far depth rows x lateral columns.
+	# ponytail: capped grid (rows x cols below) to hold FPS with the full army; shrink further if the probe dips.
 	var d0 := 60.0
-	var steps := 24
-	for i in range(steps):
-		var t0 := float(i) / steps
-		var t1 := float(i + 1) / steps
+	var rows := 12
+	var cols := int(ceil(x_half * 2.0 / FLOOR_TILE_W))
+	var scroll_step := int(scroll / FLOOR_TILE_W)
+	for i in range(rows):
+		var t0 := float(i) / rows
+		var t1 := float(i + 1) / rows
 		var da := d0 * pow(fog_end * 1.5 / d0, t0)
 		var db := d0 * pow(fog_end * 1.5 / d0, t1)
-		var ya := project(0, cam_d + da).y
-		var yb := project(0, cam_d + db).y
-		var col := near_color.lerp(far_color, clampf((da - fog_start) / (fog_end - fog_start), 0.0, 1.0))
-		c.draw_rect(Rect2(-2000, yb, 5000, ya - yb + 1), col)
+		var f := fog(cam_d + da) * near_color   # near_color: floor base tint; fog() darkens with distance same as the walls
+		for col in range(cols):
+			var x0 := -x_half + col * FLOOR_TILE_W
+			var x1 := x0 + FLOOR_TILE_W
+			var near_l := project(x0, cam_d + da)
+			var near_r := project(x1, cam_d + da)
+			var far_l := project(x0, cam_d + db)
+			var far_r := project(x1, cam_d + db)
+			var tex := _pool_pick(FLOOR_POOL, col, i + scroll_step)
+			c.draw_polygon(
+				PackedVector2Array([near_l, near_r, far_r, far_l]),
+				PackedColorArray([f, f, f, f]),
+				PackedVector2Array([Vector2(0, 1), Vector2(1, 1), Vector2(1, 0), Vector2(0, 0)]),
+				tex)
 	# row lines marching toward the camera
 	var step := 80.0
 	var d := d0 + fposmod(-scroll - cam_d, step)
