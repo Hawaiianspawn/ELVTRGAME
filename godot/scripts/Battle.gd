@@ -246,8 +246,11 @@ func find_target(u: Unit) -> Node2D:
 	var best: Node2D = null
 	var best_d := INF
 	var here := Vector2(u.wx, u.wd)
-	for o in units:
-		if not is_instance_valid(o) or o.dead or o.team == u.team or o.state == Unit.State.RETREAT:
+	# grid query, not a scan of every unit: the line doesn't chase, and an enemy
+	# beyond ~3 cells of anyone just marches on. Keeps a 2000-unit hall off the n^2 cliff.
+	var reach := u.rng + 50.0 if u.team == Unit.ALLY else 150.0
+	for o in _around(u.wx, u.wd, maxi(1, int(ceil(reach / CELL)))):
+		if o.team == u.team or o.state == Unit.State.RETREAT:
 			continue
 		var d := here.distance_to(Vector2(o.wx, o.wd))
 		if o.state == Unit.State.RANK and d > 70.0:

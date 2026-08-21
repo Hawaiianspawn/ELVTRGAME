@@ -1,4 +1,4 @@
-extends Node
+﻿extends Node
 ## Evidence tool. `godot --path godot -- --probe=battle,8` loads a scene, waits N seconds,
 ## prints FPS and saves user://probe_<scene>.png. Inert without the arg.
 
@@ -13,6 +13,8 @@ func _run(spec: String) -> void:
 	var scene := parts[0]
 	var secs := float(parts[1]) if parts.size() > 1 else 5.0
 	await get_tree().process_frame
+	DisplayServer.window_set_vsync_mode(DisplayServer.VSYNC_DISABLED)   # uncapped: fps = real headroom
+	Engine.max_fps = 0
 	get_viewport().set_disable_input(true)   # never eat the owner's keystrokes
 	get_tree().change_scene_to_file(Game.SCENES[scene])
 	if parts.size() > 2 and parts[2] == "swap":
@@ -34,7 +36,7 @@ func _run(spec: String) -> void:
 		assert(stragglers == 0, "old type still on the field: %d" % stragglers)
 		print("PROBE swap ok: %s -> %s, %d on field, pool[%s]=%d" % [old_type, b.army_type, b.units.filter(func(x): return x.team == 0).size(), old_type, b.pool[old_type]])
 	if parts.size() > 2 and parts[2] == "whirl":
-		# self-check: swapping back to veterans fires whirl — the field spin-dodges under guard
+		# self-check: swapping back to veterans fires whirl â€” the field spin-dodges under guard
 		await get_tree().create_timer(6.0).timeout
 		var b := get_tree().current_scene
 		b._cycle_army(1)
@@ -55,12 +57,12 @@ func _run(spec: String) -> void:
 			if u.team == 0 and u.type == "veteran" and u.spinning():
 				var hp0: float = u.hp
 				u.take(999.0)
-				assert(u.hp == hp0 and not u.dead, "spinning veteran took damage — no i-frames")
+				assert(u.hp == hp0 and not u.dead, "spinning veteran took damage â€” no i-frames")
 		var vortexes: int = b.world.get_children().filter(func(c): return c.has_meta("vortex")).size()
 		assert(vortexes >= b.VORTEX_COLS * b.VORTEX_ROWS, "whirl spread missing: %d vortex cleaves" % vortexes)
 		print("PROBE whirl ok: %d veterans in spin burst, %d vortex cleaves live" % [whirling, vortexes])
 	if parts.size() > 2 and parts[2] == "charge":
-		# self-check: swap to halberdiers — the field charges down-range, then every one is back home
+		# self-check: swap to halberdiers â€” the field charges down-range, then every one is back home
 		await get_tree().create_timer(6.0).timeout
 		var b := get_tree().current_scene
 		b._cycle_army(1)   # veteran -> halberdier
@@ -81,7 +83,7 @@ func _run(spec: String) -> void:
 		assert(stuck.is_empty(), "%d halberdiers never came home" % stuck.size())
 		print("PROBE charge ok: %d charged, all home" % out)
 	if parts.size() > 2 and parts[2] == "volley":
-		# self-check: loft a few enemies, swap to vet_ranged — the flurry must fire; count
+		# self-check: loft a few enemies, swap to vet_ranged â€” the flurry must fire; count
 		# how many lofted enemies an arrow ran through (informational, timing-dependent)
 		await get_tree().create_timer(6.0).timeout
 		var b := get_tree().current_scene
@@ -129,6 +131,20 @@ func _run(spec: String) -> void:
 			u.died.connect(b._on_died)
 			b.units.append(u)
 		print("PROBE stress units=%d" % b.units.size())
+	if parts.size() > 2 and parts[2].begins_with("horde"):
+		# horde: dump N enemies (default 500) into the hall at once, then fight; report FPS + sim ms
+		var n := int(parts[2].trim_prefix("horde")) if parts[2].length() > 5 else 500
+		await get_tree().create_timer(1.0).timeout
+		var b := get_tree().current_scene
+		b.spawn_queue.clear()
+		for i in range(n):
+			b._spawn_enemy(["undead", "mace_undead", "ooze", "archer_undead"][i % 4])
+			var u: Unit = b.units[-1]
+			u.wd = b.FRONT_D + 60.0 + (i / 8) * 22.0
+			u.hp *= 50.0          # tanky: the count must hold for the measurement
+			u.max_hp = u.hp
+		b._done = true        # no wave reset when the hero falls: units still tick, measurement holds
+		print("PROBE horde spawned=%d units=%d" % [n, b.units.size()])
 	if parts.size() > 2 and parts[2] == "jump":
 		# self-check: every jumper phase loads and runs a second without errors
 		for i in range(Jump.PHASES.size()):
@@ -136,7 +152,11 @@ func _run(spec: String) -> void:
 			await get_tree().create_timer(1.0).timeout
 			print("PROBE jump %d -> %s wave=%d" % [i + 1, get_tree().current_scene.scene_file_path.get_file(), Game.wave])
 	await get_tree().create_timer(secs).timeout
-	print("PROBE %s fps=%d" % [scene, Engine.get_frames_per_second()])
+	var sc0 := get_tree().current_scene
+	var alive: int = sc0.units.size() if "units" in sc0 else 0
+	print("PROBE %s fps=%d process_ms=%.1f physics_ms=%.1f units=%d objects=%d" % [scene, Engine.get_frames_per_second(),
+		Performance.get_monitor(Performance.TIME_PROCESS) * 1000.0, Performance.get_monitor(Performance.TIME_PHYSICS_PROCESS) * 1000.0,
+		alive, Performance.get_monitor(Performance.OBJECT_NODE_COUNT)])
 	var sc := get_tree().current_scene
 	if "units" in sc:
 		var wds := []
