@@ -174,3 +174,28 @@ create_ui_asset(
 - Contact sheet: `RawArt/Renders/castle-art-pass/contact.png`
 - All 8 generations (6 kept finals + 2 rejected first attempts): `RawArt/Renders/castle-art-pass/`
 - This doc: `docs/art/castle-art-pass.md`
+
+## Wall material experiment (2026-08-20)
+
+Six PixelLab calls, ~105 generations. Everything under `RawArt/Renders/castle-hall/wall-materials/`.
+
+| # | Tool / params | Result | Verdict |
+|---|---|---|---|
+| A | `create_tiles_pro` square_topdown, `tile_view="side"`, 32px, seed 2001, numbered 6-variant ashlar prompt | `ashlar/` 16 tiles, 32x32 — but only a **12px wall lip** at the bottom of a floor tile (bbox rows 10-22) | wrong shape: "side" view still paints a floor square with a wall edge |
+| B | same, brick prompt, seed 2002 | `brick/` — same lip shape, darkest set (mean luma 33) | same |
+| C | same, cyclopean prompt, seed 2003 | `cyclopean/` — lip shape, purple-grey drift | same |
+| D | same, plaster prompt, seed 2004 | `plaster/` — lip shape, brightest (luma 46), teal mould off-palette | same |
+| E | `create_image_pixflux` 384x128, side, `text_guidance_scale=14`, seed 3001, 6 numbered segments | `wall-strip-pixflux.png` — full faces, 6 readable variants (crack, rubble, moss, sconce, arch) | usable, 1 generation; mid-grey, no fade |
+| **F** | **`create_tiles_pro` square_topdown, `tile_view_angle=0`, `tile_size=32`, `tile_height=64`, seed 2001, same ashlar prompt** | **`ashlar-face64/` 16 distinct full wall faces, 32x44 usable (crop rows 10-54), near-black, one palette, all 6 asked variants + 10 extra** | **the recipe** — `contact-face64.png`, mock hall in `mock-hall-wall.png` |
+
+![](../../RawArt/Renders/castle-hall/wall-materials/contact-face64.png)
+![](../../RawArt/Renders/castle-hall/wall-materials/mock-hall-wall.png)
+
+Findings:
+- `tile_view="side"` is NOT a wall face. The tile is always a floor square; "side" only deepens its lip. For faces use `tile_view_angle=0` and a tall `tile_height`.
+- One tiles_pro call (20-25 gens) returns 16 variations even when 6 are asked; the extras are free variety.
+- Grid seams in the mock are two things: the `outline_mode="outline"` 1px border on every tile, and the baked top ledge repeating each course. Fix next run with `outline_mode="segmentation"`; and trim the top 4px on non-top courses when stacking.
+- Material family: ashlar reads best at 32px. Brick turns to noise; cyclopean drifts purple; plaster goes too bright and pulls teal.
+- Palette is prompt-driven only (no forced palette on tiles_pro) but the "near-black desaturated grey, sickly green only accent" phrasing held in F.
+
+Recipe for task-155 finals: run F again with `outline_mode="segmentation"` (same seed for comparability) for walls; floors via `create_tiles_pro` `tile_view="top-down"`, 32px, numbered 8-variant flagstone prompt, same palette phrasing.
