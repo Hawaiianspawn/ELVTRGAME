@@ -38,6 +38,8 @@ if ($Probe) {
 }
 
 if ($Adversary) {
+    $udir = Join-Path $env:APPDATA 'Godot/app_userdata/Kindled- The Necromancer''s Keep'
+    Remove-Item (Join-Path $udir "adversary_$($Adversary.Split(',')[2])_f*.png") -ErrorAction SilentlyContinue   # stale per-finding shots
     # 2>&1: Godot prints SCRIPT ERROR on stderr; ToString unwraps the ErrorRecord PS 5.1 wraps it in
     $out = @(& $con --path $proj -- "--adversary=$Adversary" 2>&1 | ForEach-Object { $_.ToString() })
     $out | Where-Object { $_ -match '^ADVERSARY|SCRIPT ERROR|Assertion failed' } | ForEach-Object { Write-Host $_ }
@@ -59,7 +61,8 @@ if ($Adversary) {
     New-Item -ItemType Directory -Force $dst | Out-Null
     $stem = [IO.Path]::GetFileNameWithoutExtension($json)
     $rep | ConvertTo-Json -Depth 12 | Out-File (Join-Path $dst "$stem.json") -Encoding utf8
-    foreach ($ext in 'csv', 'png') { Copy-Item ([IO.Path]::ChangeExtension($json, $ext)) $dst -Force }
+    Copy-Item ([IO.Path]::ChangeExtension($json, 'csv')) $dst -Force
+    Copy-Item (Join-Path (Split-Path $json) "$stem*.png") $dst -Force    # end frame + one per finding
     Write-Host "report: $dst\$stem.json ($($rep.findings.Count) findings, $($errs.Count) engine errors)" -ForegroundColor Green
     exit 0
 }

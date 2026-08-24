@@ -157,6 +157,8 @@ func _sustain() -> void:
 # ---- invariants ------------------------------------------------------------------------
 
 func _check(delta: float) -> void:
+	if _t < 1.5:
+		return   # scene still loading in: the first frames render nothing, so a screenshot would show nothing
 	var fps := Engine.get_frames_per_second()
 	if _t > 3.0 and fps < 20:
 		_fps_low += delta
@@ -259,8 +261,10 @@ func _log(error_type: String, system: String, detail: String, where: Dictionary)
 		"enemies": b.units.filter(func(u): return is_instance_valid(u) and u.team == Unit.ENEMY).size() if b else 0,
 		"fps": Engine.get_frames_per_second(), "held_inputs": _held.duplicate()}
 	_seen[dkey] = _findings.size()
+	var shot := "adversary_%d_f%d.png" % [_seed, _findings.size() + 1]
+	get_viewport().get_texture().get_image().save_png("user://" + shot)   # the frame the rule broke on
 	_findings.append({"id": _findings.size() + 1, "t": snappedf(_t, 0.1), "last_t": snappedf(_t, 0.1), "count": 1,
-		"error_type": error_type, "location": loc, "game_context": ctx, "detail": detail})
+		"error_type": error_type, "location": loc, "game_context": ctx, "detail": detail, "screenshot": shot})
 	print("ADVERSARY %s @%s: %s" % [error_type, system, detail])
 
 
@@ -279,13 +283,13 @@ func _finish() -> void:
 	f.store_string(JSON.stringify(report, "  "))
 	f.close()
 	var c := FileAccess.open(base + ".csv", FileAccess.WRITE)
-	c.store_csv_line(PackedStringArray(["id", "t", "count", "error_type", "scene", "wave", "system", "unit_type", "team", "state", "wx", "wd", "behavior", "magic", "army_type", "units", "enemies", "fps", "detail"]))
+	c.store_csv_line(PackedStringArray(["id", "t", "count", "error_type", "scene", "wave", "system", "unit_type", "team", "state", "wx", "wd", "behavior", "magic", "army_type", "units", "enemies", "fps", "detail", "screenshot"]))
 	for x in _findings:
 		var l: Dictionary = x["location"]
 		var g: Dictionary = x["game_context"]
 		c.store_csv_line(PackedStringArray([str(x["id"]), str(x["t"]), str(x["count"]), x["error_type"], l["scene"], str(l["wave"]), l["system"],
 			str(l.get("unit_type", "")), str(l.get("team", "")), str(l.get("state", "")), str(l.get("wx", "")), str(l.get("wd", "")),
-			g["behavior"], str(g["magic"]), str(g["army_type"]), str(g["units"]), str(g["enemies"]), str(g["fps"]), x["detail"]]))
+			g["behavior"], str(g["magic"]), str(g["army_type"]), str(g["units"]), str(g["enemies"]), str(g["fps"]), x["detail"], x["screenshot"]]))
 	c.close()
 	var img := get_viewport().get_texture().get_image()
 	img.save_png(base + ".png")

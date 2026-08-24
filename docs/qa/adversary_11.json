@@ -1,14 +1,14 @@
 ﻿{
     "findings":  [
                      {
-                         "count":  31293,
-                         "detail":  "unit through the hall wall |wx| 215 \u003e HALL_HALF 200",
+                         "count":  47954,
+                         "detail":  "unit through the hall wall |wx| 217 \u003e HALL_HALF 200",
                          "error_type":  "boundary_break",
                          "game_context":  {
                                               "army_type":  "veteran",
-                                              "behavior":  "horde",
+                                              "behavior":  "launch_all",
                                               "enemies":  0,
-                                              "fps":  1.0,
+                                              "fps":  96.0,
                                               "held_inputs":  [
 
                                                               ],
@@ -17,7 +17,7 @@
                                               "units":  48
                                           },
                          "id":  1,
-                         "last_t":  34.4,
+                         "last_t":  60.0,
                          "location":  {
                                           "scene":  "Battle",
                                           "state":  "RANK",
@@ -26,28 +26,29 @@
                                           "unit_type":  "veteran",
                                           "wave":  0,
                                           "wd":  256.0,
-                                          "wx":  215.0
+                                          "wx":  217.0
                                       },
-                         "t":  0.8
+                         "screenshot":  "adversary_11_f1.png",
+                         "t":  1.5
                      },
                      {
-                         "count":  216,
-                         "detail":  "unit through the hall wall |wx| 215 \u003e HALL_HALF 200",
+                         "count":  816,
+                         "detail":  "unit through the hall wall |wx| 211 \u003e HALL_HALF 200",
                          "error_type":  "boundary_break",
                          "game_context":  {
                                               "army_type":  "vet_ranged",
                                               "behavior":  "swap_spam",
                                               "enemies":  0,
-                                              "fps":  224.0,
+                                              "fps":  241.0,
                                               "held_inputs":  [
 
                                                               ],
                                               "hero_hp":  100.0,
-                                              "magic":  2750000.0,
+                                              "magic":  2750015.0,
                                               "units":  96
                                           },
                          "id":  2,
-                         "last_t":  30.8,
+                         "last_t":  47.5,
                          "location":  {
                                           "scene":  "Battle",
                                           "state":  "ADVANCE",
@@ -56,28 +57,29 @@
                                           "unit_type":  "vet_ranged",
                                           "wave":  1,
                                           "wd":  55.0,
-                                          "wx":  215.0
+                                          "wx":  211.0
                                       },
-                         "t":  30.2
+                         "screenshot":  "adversary_11_f2.png",
+                         "t":  19.3
                      },
                      {
-                         "count":  20292,
-                         "detail":  "unit through the hall wall |wx| 218 \u003e HALL_HALF 200",
+                         "count":  32602,
+                         "detail":  "unit through the hall wall |wx| 212 \u003e HALL_HALF 200",
                          "error_type":  "boundary_break",
                          "game_context":  {
                                               "army_type":  "hammer",
                                               "behavior":  "swap_spam",
                                               "enemies":  0,
-                                              "fps":  224.0,
+                                              "fps":  241.0,
                                               "held_inputs":  [
 
                                                               ],
                                               "hero_hp":  100.0,
-                                              "magic":  2750000.0,
+                                              "magic":  2750015.0,
                                               "units":  144
                                           },
                          "id":  3,
-                         "last_t":  40.8,
+                         "last_t":  47.6,
                          "location":  {
                                           "scene":  "Battle",
                                           "state":  "RANK",
@@ -85,29 +87,30 @@
                                           "team":  "ally",
                                           "unit_type":  "hammer",
                                           "wave":  1,
-                                          "wd":  256.0,
-                                          "wx":  218.0
+                                          "wd":  258.0,
+                                          "wx":  212.0
                                       },
-                         "t":  30.2
+                         "screenshot":  "adversary_11_f3.png",
+                         "t":  19.3
                      },
                      {
-                         "count":  7932,
-                         "detail":  "unit through the hall wall |wx| 221 \u003e HALL_HALF 200",
+                         "count":  5392,
+                         "detail":  "unit through the hall wall |wx| 219 \u003e HALL_HALF 200",
                          "error_type":  "boundary_break",
                          "game_context":  {
                                               "army_type":  "halberdier",
                                               "behavior":  "swap_spam",
                                               "enemies":  0,
-                                              "fps":  224.0,
+                                              "fps":  241.0,
                                               "held_inputs":  [
 
                                                               ],
                                               "hero_hp":  100.0,
-                                              "magic":  2750000.0,
+                                              "magic":  2750015.0,
                                               "units":  192
                                           },
                          "id":  4,
-                         "last_t":  40.8,
+                         "last_t":  47.6,
                          "location":  {
                                           "scene":  "Battle",
                                           "state":  "ADVANCE",
@@ -116,25 +119,26 @@
                                           "unit_type":  "halberdier",
                                           "wave":  1,
                                           "wd":  55.0,
-                                          "wx":  221.0
+                                          "wx":  219.0
                                       },
-                         "t":  30.3
+                         "screenshot":  "adversary_11_f4.png",
+                         "t":  19.4
                      },
                      {
-                         "count":  6966,
+                         "count":  5142,
                          "detail":  "Engine.time_scale=0.05 held 1.0s real time (hit stop re-armed every frame)",
                          "error_type":  "exploit",
                          "game_context":  {
-                                              "army_type":  "halberdier",
-                                              "behavior":  "jump_phase",
-                                              "enemies":  0,
-                                              "fps":  226.0,
+                                              "army_type":  "veteran",
+                                              "behavior":  "swap_spam",
+                                              "enemies":  93,
+                                              "fps":  102.0,
                                               "held_inputs":  [
 
                                                               ],
                                               "hero_hp":  100.0,
-                                              "magic":  2750000.0,
-                                              "units":  215
+                                              "magic":  2749957.0,
+                                              "units":  340
                                           },
                          "id":  5,
                          "last_t":  60.0,
@@ -143,28 +147,28 @@
                                           "system":  "Battle._hitstop",
                                           "wave":  0
                                       },
-                         "t":  31.2
+                         "screenshot":  "adversary_11_f5.png",
+                         "t":  26.3
                      }
                  ],
     "run":  {
                 "behaviors":  {
-                                  "corner_hold":  10,
-                                  "cursor_warp":  3,
-                                  "horde":  1,
-                                  "jump_phase":  3,
-                                  "kill_front":  2,
-                                  "kill_hero":  2,
-                                  "launch_all":  8,
-                                  "magic_drain":  1,
-                                  "magic_flood":  6,
-                                  "move_random":  5,
-                                  "siphon_hold":  4,
-                                  "spell_spam":  7,
-                                  "swap_spam":  2,
-                                  "teleport_hero":  1,
+                                  "corner_hold":  5,
+                                  "horde":  9,
+                                  "jump_phase":  6,
+                                  "kill_front":  6,
+                                  "kill_hero":  7,
+                                  "launch_all":  4,
+                                  "magic_drain":  4,
+                                  "magic_flood":  4,
+                                  "move_random":  1,
+                                  "siphon_hold":  3,
+                                  "spell_spam":  6,
+                                  "swap_spam":  5,
+                                  "teleport_hero":  6,
                                   "wall_hug":  6
                               },
-                "date":  "2026-08-24T14:43:53",
+                "date":  "2026-08-24T14:55:25",
                 "invariants":  [
                                    "hero clamp",
                                    "magic \u003e= 0",
@@ -185,6 +189,20 @@
                 "seed":  11
             },
     "engine_errors":  [
-
+                          {
+                              "message":  "ERROR: Lambda capture at index 3 was freed. Passed \"null\" instead.",
+                              "at":  "at: call (modules/gdscript/gdscript_lambda_callable.cpp:242)",
+                              "count":  45
+                          },
+                          {
+                              "message":  "SCRIPT ERROR: Invalid access to property or key \u0027team\u0027 on a base object of type \u0027Nil\u0027.",
+                              "at":  "at: \u003canonymous lambda\u003e (res://scripts/Battle.gd:332)",
+                              "count":  14
+                          },
+                          {
+                              "message":  "ERROR: Lambda capture at index 2 was freed. Passed \"null\" instead.",
+                              "at":  "at: call (modules/gdscript/gdscript_lambda_callable.cpp:242)",
+                              "count":  30
+                          }
                       ]
 }

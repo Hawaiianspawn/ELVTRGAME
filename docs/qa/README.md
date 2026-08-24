@@ -34,28 +34,41 @@ inside a budget (`RETREAT` 12 s, `ADVANCE` 15 s, charge 10 s, airborne 15 s), `<
 (type, system, unit type) are folded into one finding with a `count`.
 
 Report fields: `error_type`, `location` {scene, wave, system, unit_type, team, state, wx, wd},
-`game_context` {behavior, magic, hero_hp, army_type, units, enemies, fps, held_inputs}, `detail`, `t`, `count`.
+`game_context` {behavior, magic, hero_hp, army_type, units, enemies, fps, held_inputs}, `detail`, `t`, `count`,
+`screenshot` — the frame the rule first broke on, saved as `adversary_<seed>_f<id>.png` next to the report.
+`adversary_<seed>.png` is the final frame. Engine errors carry no screenshot (they come from Godot's stderr).
+
+The seed fixes the behavior order; frame timing does not, so a 60 s run reproduces bugs 1–3 every time and
+bugs 4–6 in some runs. Findings below cite the run they appear in.
 
 ## What it found (seeds 7, 11, 23 — 60 s each)
 
 1. **Rank block sits through the hall wall** — `Army.slots` (`godot/scripts/Army.gd:36`) staggers odd rows by
    half a file: `-180 + 5*72 + 36 = 216`, past `HALL_HALF = 200`. Every wave, every ally type in the outer
-   file (veteran, hammer, halberdier, vet_ranged) stands 9–21 units inside the drawn wall. Reproduced in all
-   three runs from `t=0.8`. Fix: subtract the stagger from `half` (or shrink `RANK_HALF` by `dx/2`).
+   file (veteran, hammer, halberdier, vet_ranged) stands 9–22 units inside the drawn wall. All three runs,
+   from the first checked frame. Fix: subtract the stagger from `half` (or shrink `RANK_HALF` by `dx/2`).
+   Shot: `adversary_7_f1.png` — outer helmets drawn over the bricks on both sides; `adversary_23_f4.png` same
+   after a swap.
 2. **Hit-stop exploit** — `Battle._hitstop` (`godot/scripts/Battle.gd:382`) sets `Engine.time_scale = 0.05`
    and every army swap re-arms it. Mashing Q/E holds the whole world at 5 % speed for as long as the player
    keeps mashing; the agent measured it held for the full spam tick every time. Fix: rate-limit swaps, or
-   don't re-arm hit-stop while one is live.
+   don't re-arm hit-stop while one is live. Shot: `adversary_11_f5.png` / `adversary_23_f5.png` (the swap toast
+   is up; the slowdown itself is in the `detail` field, not visible in a still).
 3. **Slash tween outlives its unit** — `SCRIPT ERROR: Invalid access to property or key 'team' on a base object
-   of type 'Nil'` at `Battle.gd:332`, 20× in seed 7 (plus 77 `Lambda capture ... was freed`). The slash
+   of type 'Nil'` at `Battle.gd:332`, 7–35× per run (plus up to 109 `Lambda capture ... was freed`). The slash
    effect's tween callbacks capture attacker `a` and target `t`; when either dies/gets freed mid-clip
    (kill_front, wave reset, swap) the lambda runs on null. Fix: `if not is_instance_valid(a): return` at the
    top of the callback.
-4. **Perpetual juggling** — seed 23, wave 3: seven unit types (both teams) airborne for 15 s+. `Unit.take`
-   adds `POP` on every hit while airborne and `_slash`/`_vortex` re-launch airborne foes, so a crowd under a
-   whirl field never lands. Allies caught in it can't retreat or advance (`air_h > 0` branch skips movement).
-5. **Enemy walks behind the lens** — seed 7: a `mace_undead` at depth `-0` after a horde. Enemies that push
-   past the hero keep walking toward `wd = 0` and beyond instead of being recalled or hitting the hero.
+4. **Ranged hit after its attacker died** — `SCRIPT ERROR: Invalid access to property or key 'type' on a base
+   object of type 'Nil'` at `Battle.gd:295` in `hit()`: the arrow branch `await`s 0.12 s and then checks
+   `is_instance_valid(t)` but not `a`. Seen in two runs (3× and 12×). Same one-line fix.
+5. **Perpetual juggling** — wave 2–3: units of both teams airborne for 15 s+. `Unit.take` adds `POP` on every
+   hit while airborne and `_slash`/`_vortex` re-launch airborne foes, so a crowd under a whirl field never
+   lands. Allies caught in it can't retreat or advance (`air_h > 0` branch skips movement). Shot:
+   `juggle_seed7_earlier_run.png` — the crowd tumbling above the ceiling line, hero HP untouched.
+6. **Enemy walks behind the lens** — a `mace_undead` at depth `-0` after a horde. Enemies that push past
+   the hero keep walking toward `wd = 0` and beyond instead of being recalled or hitting the hero. Seen once;
+   not in the committed runs.
 
 Not found (the invariants held): hero clamp (teleporting 3000 units out snaps back next frame), magic never
 went negative through the cost gate, no `pool` underflow, no duplicate/dead `front[]` refs, no NaN,
@@ -68,5 +81,5 @@ weeks — the walls are drawn at `HALL_HALF` and the outer file just stands in t
 crowd reads fine. And the hit-stop exploit was found by accident: the agent's own clock crawled because the
 game slowed *itself* down under swap spam, which is exactly the kind of thing a player mashing keys will do
 on the first try. The slash-tween null access was the expected one — captured object lifetimes in tween
-callbacks are a known Godot foot-gun — but 20 hits in a minute says it fires in ordinary play too, not just
+callbacks are a known Godot foot-gun — but 7–35 hits a minute says it fires in ordinary play too, not just
 under abuse. The floating crowd was not on the list at all; the 15 s budget was a guess and it tripped.
