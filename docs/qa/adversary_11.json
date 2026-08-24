@@ -1,0 +1,190 @@
+﻿{
+    "findings":  [
+                     {
+                         "count":  31293,
+                         "detail":  "unit through the hall wall |wx| 215 \u003e HALL_HALF 200",
+                         "error_type":  "boundary_break",
+                         "game_context":  {
+                                              "army_type":  "veteran",
+                                              "behavior":  "horde",
+                                              "enemies":  0,
+                                              "fps":  1.0,
+                                              "held_inputs":  [
+
+                                                              ],
+                                              "hero_hp":  100.0,
+                                              "magic":  0.0,
+                                              "units":  48
+                                          },
+                         "id":  1,
+                         "last_t":  34.4,
+                         "location":  {
+                                          "scene":  "Battle",
+                                          "state":  "RANK",
+                                          "system":  "Battle.hall",
+                                          "team":  "ally",
+                                          "unit_type":  "veteran",
+                                          "wave":  0,
+                                          "wd":  256.0,
+                                          "wx":  215.0
+                                      },
+                         "t":  0.8
+                     },
+                     {
+                         "count":  216,
+                         "detail":  "unit through the hall wall |wx| 215 \u003e HALL_HALF 200",
+                         "error_type":  "boundary_break",
+                         "game_context":  {
+                                              "army_type":  "vet_ranged",
+                                              "behavior":  "swap_spam",
+                                              "enemies":  0,
+                                              "fps":  224.0,
+                                              "held_inputs":  [
+
+                                                              ],
+                                              "hero_hp":  100.0,
+                                              "magic":  2750000.0,
+                                              "units":  96
+                                          },
+                         "id":  2,
+                         "last_t":  30.8,
+                         "location":  {
+                                          "scene":  "Battle",
+                                          "state":  "ADVANCE",
+                                          "system":  "Battle.hall",
+                                          "team":  "ally",
+                                          "unit_type":  "vet_ranged",
+                                          "wave":  1,
+                                          "wd":  55.0,
+                                          "wx":  215.0
+                                      },
+                         "t":  30.2
+                     },
+                     {
+                         "count":  20292,
+                         "detail":  "unit through the hall wall |wx| 218 \u003e HALL_HALF 200",
+                         "error_type":  "boundary_break",
+                         "game_context":  {
+                                              "army_type":  "hammer",
+                                              "behavior":  "swap_spam",
+                                              "enemies":  0,
+                                              "fps":  224.0,
+                                              "held_inputs":  [
+
+                                                              ],
+                                              "hero_hp":  100.0,
+                                              "magic":  2750000.0,
+                                              "units":  144
+                                          },
+                         "id":  3,
+                         "last_t":  40.8,
+                         "location":  {
+                                          "scene":  "Battle",
+                                          "state":  "RANK",
+                                          "system":  "Battle.hall",
+                                          "team":  "ally",
+                                          "unit_type":  "hammer",
+                                          "wave":  1,
+                                          "wd":  256.0,
+                                          "wx":  218.0
+                                      },
+                         "t":  30.2
+                     },
+                     {
+                         "count":  7932,
+                         "detail":  "unit through the hall wall |wx| 221 \u003e HALL_HALF 200",
+                         "error_type":  "boundary_break",
+                         "game_context":  {
+                                              "army_type":  "halberdier",
+                                              "behavior":  "swap_spam",
+                                              "enemies":  0,
+                                              "fps":  224.0,
+                                              "held_inputs":  [
+
+                                                              ],
+                                              "hero_hp":  100.0,
+                                              "magic":  2750000.0,
+                                              "units":  192
+                                          },
+                         "id":  4,
+                         "last_t":  40.8,
+                         "location":  {
+                                          "scene":  "Battle",
+                                          "state":  "ADVANCE",
+                                          "system":  "Battle.hall",
+                                          "team":  "ally",
+                                          "unit_type":  "halberdier",
+                                          "wave":  1,
+                                          "wd":  55.0,
+                                          "wx":  221.0
+                                      },
+                         "t":  30.3
+                     },
+                     {
+                         "count":  6966,
+                         "detail":  "Engine.time_scale=0.05 held 1.0s real time (hit stop re-armed every frame)",
+                         "error_type":  "exploit",
+                         "game_context":  {
+                                              "army_type":  "halberdier",
+                                              "behavior":  "jump_phase",
+                                              "enemies":  0,
+                                              "fps":  226.0,
+                                              "held_inputs":  [
+
+                                                              ],
+                                              "hero_hp":  100.0,
+                                              "magic":  2750000.0,
+                                              "units":  215
+                                          },
+                         "id":  5,
+                         "last_t":  60.0,
+                         "location":  {
+                                          "scene":  "Battle",
+                                          "system":  "Battle._hitstop",
+                                          "wave":  0
+                                      },
+                         "t":  31.2
+                     }
+                 ],
+    "run":  {
+                "behaviors":  {
+                                  "corner_hold":  10,
+                                  "cursor_warp":  3,
+                                  "horde":  1,
+                                  "jump_phase":  3,
+                                  "kill_front":  2,
+                                  "kill_hero":  2,
+                                  "launch_all":  8,
+                                  "magic_drain":  1,
+                                  "magic_flood":  6,
+                                  "move_random":  5,
+                                  "siphon_hold":  4,
+                                  "spell_spam":  7,
+                                  "swap_spam":  2,
+                                  "teleport_hero":  1,
+                                  "wall_hug":  6
+                              },
+                "date":  "2026-08-24T14:43:53",
+                "invariants":  [
+                                   "hero clamp",
+                                   "magic \u003e= 0",
+                                   "unit hp in 0..max",
+                                   "dead flag matches hp",
+                                   "front[] refs live + lane-consistent",
+                                   "pool \u003e= 0",
+                                   "unit inside hall walls + depth range",
+                                   "air_h \u003e= 0",
+                                   "no NaN",
+                                   "transient states end within budget",
+                                   "units[] \u003c 1500",
+                                   "fps \u003e= 20",
+                                   "Engine.time_scale back to 1 within 1s"
+                               ],
+                "scene":  "battle",
+                "seconds":  60.0,
+                "seed":  11
+            },
+    "engine_errors":  [
+
+                      ]
+}

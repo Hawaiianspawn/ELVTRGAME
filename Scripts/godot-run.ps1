@@ -3,10 +3,11 @@
 #   pwsh Scripts\godot-run.ps1 -Pack              # repack sprites from roster.json first
 #   pwsh Scripts\godot-run.ps1 -Probe battle,12   # run probe(s), print PROBE lines + png path, no relaunch
 #   pwsh Scripts\godot-run.ps1 -Probe "battle,12,swap;siege,6"   # several, ; separated
+#   pwsh Scripts\godot-run.ps1 -Adversary battle,60,7   # adversarial QA run: scene,secs,seed -> docs/qa/
 # No export step: the engine binary runs the project folder directly, which is the same code the web
 # export ships. Add a Windows export preset only if a standalone .exe is ever needed.
 [CmdletBinding()]
-param([string]$Probe, [switch]$Pack)
+param([string]$Probe, [string]$Adversary, [switch]$Pack)
 
 $repo = Split-Path $PSScriptRoot -Parent
 $proj = Join-Path $repo 'godot'
@@ -34,6 +35,33 @@ if ($Probe) {
         if ($LASTEXITCODE -ne 0 -or -not ($out -match '^PROBE .* fps=')) { Write-Host "probe $spec FAILED (exit $LASTEXITCODE)" -ForegroundColor Red; $fail = 1 }
     }
     exit $fail
+}
+
+if ($Adversary) {
+    # 2>&1: Godot prints SCRIPT ERROR on stderr; ToString unwraps the ErrorRecord PS 5.1 wraps it in
+    $out = @(& $con --path $proj -- "--adversary=$Adversary" 2>&1 | ForEach-Object { $_.ToString() })
+    $out | Where-Object { $_ -match '^ADVERSARY|SCRIPT ERROR|Assertion failed' } | ForEach-Object { Write-Host $_ }
+    $json = ($out | Select-String 'report=(.*\.json)').Matches[0].Groups[1].Value
+    if (-not $json -or -not (Test-Path $json)) { Write-Host "adversary run produced no report (exit $LASTEXITCODE)" -ForegroundColor Red; exit 1 }
+    # engine-level errors are findings too: fold SCRIPT ERROR lines into the report
+    $rep = Get-Content $json -Raw -Encoding utf8 | ConvertFrom-Json
+    $errs = @(); $seen = @{}
+    for ($i = 0; $i -lt $out.Count - 1; $i++) {
+        if ($out[$i] -notmatch '^(SCRIPT ERROR|ERROR): ' -or $out[$i] -match 'BUG:|RID |leaked|Pages in use|still in use') { continue }
+        $key = "$($out[$i])|$($out[$i+1].Trim())"
+        if ($seen[$key]) { $seen[$key]++; continue }
+        $seen[$key] = 1
+        $errs += [pscustomobject]@{ message = $out[$i]; at = $out[$i+1].Trim(); count = 1 }
+    }
+    foreach ($e in $errs) { $e.count = $seen["$($e.message)|$($e.at)"] }
+    $rep | Add-Member -NotePropertyName engine_errors -NotePropertyValue $errs -Force
+    $dst = Join-Path $repo 'docs\qa'
+    New-Item -ItemType Directory -Force $dst | Out-Null
+    $stem = [IO.Path]::GetFileNameWithoutExtension($json)
+    $rep | ConvertTo-Json -Depth 12 | Out-File (Join-Path $dst "$stem.json") -Encoding utf8
+    foreach ($ext in 'csv', 'png') { Copy-Item ([IO.Path]::ChangeExtension($json, $ext)) $dst -Force }
+    Write-Host "report: $dst\$stem.json ($($rep.findings.Count) findings, $($errs.Count) engine errors)" -ForegroundColor Green
+    exit 0
 }
 
 $p = Start-Process $gui -ArgumentList '--path', "`"$proj`"" -PassThru

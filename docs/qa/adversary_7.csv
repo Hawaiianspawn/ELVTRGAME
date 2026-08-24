@@ -1,0 +1,7 @@
+id,t,count,error_type,scene,wave,system,unit_type,team,state,wx,wd,behavior,magic,army_type,units,enemies,fps,detail
+1,0.8,34452,boundary_break,Battle,0,Battle.hall,veteran,ally,RANK,218.0,256.0,magic_flood,0.0,veteran,48,0,1.0,unit through the hall wall |wx| 218 > HALL_HALF 200
+2,18.8,301,boundary_break,Battle,2,Battle.hall,vet_ranged,ally,ADVANCE,217.0,55.0,swap_spam,40.0,vet_ranged,96,0,221.0,unit through the hall wall |wx| 217 > HALL_HALF 200
+3,18.9,11326,boundary_break,Battle,2,Battle.hall,hammer,ally,RANK,209.0,257.0,swap_spam,40.0,hammer,143,0,221.0,unit through the hall wall |wx| 209 > HALL_HALF 200
+4,18.9,192,boundary_break,Battle,2,Battle.hall,halberdier,ally,ADVANCE,217.0,55.0,swap_spam,40.0,halberdier,143,0,221.0,unit through the hall wall |wx| 217 > HALL_HALF 200
+5,36.8,97,boundary_break,Battle,0,Battle.depth,mace_undead,enemy,FIGHT,-22.0,0.0,horde,1750000.0,veteran,149,119,78.0,unit depth -0 outside 0..1250
+6,44.8,1680,exploit,Battle,0,Battle._hitstop,,,,,,magic_drain,0.0,veteran,201,9,126.0,Engine.time_scale=0.05 held 1.0s real time (hit stop re-armed every frame)

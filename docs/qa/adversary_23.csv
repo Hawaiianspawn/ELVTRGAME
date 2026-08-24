@@ -1,0 +1,13 @@
+id,t,count,error_type,scene,wave,system,unit_type,team,state,wx,wd,behavior,magic,army_type,units,enemies,fps,detail
+1,0.8,23868,boundary_break,Battle,0,Battle.hall,veteran,ally,RANK,215.0,256.0,corner_hold,0.0,veteran,48,0,1.0,unit through the hall wall |wx| 215 > HALL_HALF 200
+2,2.6,1824,boundary_break,Battle,0,Battle.hall,vet_ranged,ally,ADVANCE,211.0,55.0,swap_spam,0.0,vet_ranged,96,0,236.0,unit through the hall wall |wx| 211 > HALL_HALF 200
+3,2.6,44375,boundary_break,Battle,0,Battle.hall,hammer,ally,RANK,217.0,256.0,swap_spam,0.0,hammer,144,0,236.0,unit through the hall wall |wx| 217 > HALL_HALF 200
+4,2.6,19779,boundary_break,Battle,0,Battle.hall,halberdier,ally,ADVANCE,213.0,55.0,swap_spam,0.0,halberdier,144,0,236.0,unit through the hall wall |wx| 213 > HALL_HALF 200
+5,3.6,4886,exploit,Battle,0,Battle._hitstop,,,,,,teleport_hero,0.0,halberdier,178,3,161.0,Engine.time_scale=0.05 held 1.0s real time (hit stop re-armed every frame)
+6,41.6,143,stuck_state,Battle,3,Unit.air,hammer,ally,RETREAT,-179.0,284.0,wall_hug,0.0,halberdier,377,168,86.0,air for 15s (budget 15s)
+7,47.1,6,stuck_state,Battle,3,Unit.air,veteran,ally,RETREAT,-161.0,77.0,wall_hug,1749958.0,halberdier,223,113,111.0,air for 15s (budget 15s)
+8,47.1,43,stuck_state,Battle,3,Unit.air,halberdier,ally,ADVANCE,-164.0,266.0,wall_hug,1749958.0,halberdier,223,113,111.0,air for 15s (budget 15s)
+9,47.1,11,stuck_state,Battle,3,Unit.air,ooze,enemy,FIGHT,162.0,383.0,wall_hug,1749958.0,halberdier,223,113,111.0,air for 15s (budget 15s)
+10,47.1,11,stuck_state,Battle,3,Unit.air,archer_undead,enemy,FIGHT,104.0,387.0,wall_hug,1749958.0,halberdier,223,113,111.0,air for 15s (budget 15s)
+11,47.1,10,stuck_state,Battle,3,Unit.air,undead,enemy,FIGHT,-179.0,382.0,wall_hug,1749958.0,halberdier,223,113,111.0,air for 15s (budget 15s)
+12,47.1,10,stuck_state,Battle,3,Unit.air,mace_undead,enemy,FIGHT,8.0,383.0,wall_hug,1749958.0,halberdier,223,113,111.0,air for 15s (budget 15s)
