@@ -39,9 +39,9 @@
     ],
     "ability": "sweep",
     "ability_label": "Sweep",
-    "ability_desc": "Every halberdier charges down-range, hitting all it passes for 2x and launching them, then falls back in",
+    "ability_desc": "Every halberdier charges down-range, hitting all it passes for 2x and bulldozing them onto one pile line, then falls back in",
     "ability_cd": 9,
-    "charge_len": 260,
+    "pile_d": 60,
     "slash": "thrust",
     "tag": "HALBERDIERS",
     "swap": [

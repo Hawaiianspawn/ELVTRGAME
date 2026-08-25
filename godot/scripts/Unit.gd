@@ -50,6 +50,7 @@ var _charge_hit := {}
 var _charge_back := false    # leg: false = out, true = home
 const CHARGE_SPEED := 4.0    # x walk speed out; back at rush
 const CHARGE_R := 34.0       # reach either side of the charging halberd
+const PILE_HOLD := 2.0       # seconds a bulldozed enemy stays rooted on the pile line
 var rush := false            # ADVANCE/RETREAT at rush speed (swaps route behind the camera)
 var sky_slam := false        # hammer entrance: dropped from the sky, slams the ground on landing
 var air_h := 0.0             # height above the ground; > 0 = airborne, helpless, juggleable
@@ -170,10 +171,15 @@ func _process(delta: float) -> void:
 			_moving = true
 			sprite.frame = 4
 			for o in battle.units:
-				if o.team != team and not o.dead and not _charge_hit.has(o) 						and absf(o.wx - wx) < CHARGE_R and absf(o.wd - wd) < CHARGE_R:
-					_charge_hit[o] = true
-					attack_anim()
-					battle.hit(self, o, 2.0)   # hit() knocks them up and back, same as a hammer blow
+				if o.team != team and not o.dead and absf(o.wx - wx) < CHARGE_R and o.wd >= wd - 4.0 and o.wd < wd + CHARGE_R:
+					if not _charge_hit.has(o):
+						_charge_hit[o] = true
+						attack_anim()
+						battle.hit(self, o, 2.0)   # one blow on contact
+					# then bulldozed: carried on the blade to the pile line, pulled into the file, held there
+					o.wd = wd + CHARGE_R
+					o.wx = move_toward(o.wx, wx, 80.0 * delta)
+					o.rooted_until = Time.get_ticks_msec() / 1000.0 + PILE_HOLD
 		else:
 			# back: rush home, then the normal state takes over
 			var saved := rush

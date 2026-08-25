@@ -199,7 +199,7 @@ func _deploy(type: String, rush: bool) -> void:
 				# down-range through the ranks, launching everything passed, then back to the slot
 				u.wd = BEHIND_D
 				u.state = Unit.State.RANK
-				u.charge(sl.y + float(d.get("charge_len", SWEEP_LEN * 0.5)), sl)
+				u.charge(FRONT_D + float(d.get("pile_d", 60.0)), sl)   # everyone to the same pile line
 			else:
 				u.wd = BEHIND_D
 				u.rush = true
@@ -305,8 +305,8 @@ func hit(a: Unit, t: Node2D, mult := 1.0) -> void:
 		if t.guard_until > _now():
 			d *= 0.3
 		t.take(d, to.normalized() * 6.0)
-		if (a.type == "hammer" or a.charge_to > 0.0) and not t.dead:
-			# hammers and a charging halberd knock up and back: small hop, shoved a step away from the blow
+		if a.type == "hammer" and not t.dead:
+			# hammers knock up and back: small hop, shoved a step away from the hammer
 			t.launch(170.0)
 			t.wd += signf(t.wd - a.wd) * 18.0
 			_hitstop(0.05, 0.15)   # the knock-up beat
@@ -764,10 +764,10 @@ func _opening(u: Unit) -> void:
 					_vortex(Vector2(cx + _rng.randf_range(-30.0, 30.0), cd + _rng.randf_range(-35.0, 35.0)), 2.6, u.dmg * VORTEX_DMG, 4.0,
 						fx if Game.sprites.has(fx) else "fx_sweep_thin")
 		"sweep":
-			# every halberdier on the field charges down-range, launching all it passes, then falls back in
+			# every halberdier on the field bulldozes down-range, piling what it passes on one line, then falls back in
 			for o in units:
 				if o.team == Unit.ALLY and o.type == u.type and not o.dead:
-					o.charge(o.wd + float(Game.units[u.type].get("charge_len", SWEEP_LEN * 0.5)))   # upgrade stat
+					o.charge(FRONT_D + float(Game.units[u.type].get("pile_d", 60.0)))
 		"slam":
 			u.slam_anim()
 			_flash(here + Vector2(0, 40), 60.0, Color(1.0, 0.8, 0.5, 0.6))
