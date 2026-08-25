@@ -8,9 +8,10 @@ const ALLY := 0
 const ENEMY := 1
 const RUSH := 10.0
 const GRAV := 125.0          # one gravity, up and down: a 250 throw peaks at 250 and hangs ~4s, slowing into the apex
-const LAUNCH := 250.0        # halberdier charge throw
 const JUGGLE_MULT := 2.0     # damage bonus while airborne
-const POP := 110.0           # upward impulse added by every juggle hit
+const POP := 45.0            # upward impulse added by every juggle hit: extends the hang, doesn't relaunch
+const FLOAT_V := 50.0        # |air_v| under this = the apex: gravity eases so they hang there
+const FLOAT_G := 0.35
 const AGGRO := 150.0         # ranks wake up to enemies this close (was 90: only the first row ever fought)
 const SUPPORT_DMG := 0.5     # rank hits beyond own weapon reach land at this fraction
 enum State { RANK, ADVANCE, FIGHT, RETREAT }
@@ -53,6 +54,7 @@ var rush := false            # ADVANCE/RETREAT at rush speed (swaps route behind
 var sky_slam := false        # hammer entrance: dropped from the sky, slams the ground on landing
 var air_h := 0.0             # height above the ground; > 0 = airborne, helpless, juggleable
 var air_v := 0.0             # vertical speed
+var air_vx := 0.0            # lateral drift while airborne: scattered on every launch, biased toward screen centre
 var _spin := 0.0             # rad/s tumble while airborne
 var _pivot := 0.0            # px from feet up to the center of mass; spin pivots here
 var _base_offset := Vector2.ZERO   # make_sprite's feet-on-origin offset, restored on landing
@@ -139,8 +141,10 @@ func _process(delta: float) -> void:
 		# airborne: gravity only — no walking, no swinging, just tumble and be juggled
 		# sky-dropped hammers plummet; juggled units keep the floaty cap
 		# plain ballistics: sky-dropped hammers plummet under heavy gravity, everything else floats the same
-		air_v -= GRAV * (6.0 if sky_slam else 1.0) * delta
+		var g := 6.0 if sky_slam else (FLOAT_G if absf(air_v) < FLOAT_V else 1.0)
+		air_v -= GRAV * g * delta
 		air_h = maxf(0.0, air_h + air_v * delta)
+		wx += air_vx * delta
 		var cap := _air_cap()
 		if air_h > cap and not sky_slam:
 			air_h = cap   # juggle as high as you like, but never out of the frame: bounce off the top edge
@@ -148,6 +152,7 @@ func _process(delta: float) -> void:
 		sprite.rotation += _spin * delta
 		if air_h == 0.0:
 			air_v = 0.0
+			air_vx = 0.0
 			_spin = 0.0
 			sprite.rotation = 0.0
 			sprite.offset = _base_offset
@@ -337,6 +342,10 @@ func launch(v: float) -> void:
 	if not dead:
 		air_v = minf(air_v + v, 400.0)
 		_spin = randf_range(6.0, 11.0) * (1.0 if randf() < 0.5 else -1.0)
+		# scatter sideways; the further from centre, the likelier the throw goes back toward it
+		var inward := -signf(wx) if wx != 0.0 else (1.0 if randf() < 0.5 else -1.0)
+		var dir := inward if randf() < 0.5 + 0.5 * absf(wx) / battle.HALL_HALF else -inward
+		air_vx = dir * randf_range(25.0, 70.0)
 
 
 ## Whirl phase: 1s on / 1s off across the spin window; i-frames and the blade only while on.
