@@ -1,6 +1,8 @@
 class_name Unit
-extends Node2D
-## One combatant in world space (wx lateral, wd depth). Static 8-dir art: walk bob + hit flash.
+extends Node3D
+## One combatant in world space (wx lateral, wd depth), standing at Vector3(wx, 0, -wd). Static
+## 8-dir art on a Sprite3D: walk bob + hit flash. Heights and nudges (air_h, bob, lunge, _pivot)
+## stay in SPRITE PIXELS, the unit every constant here is tuned in; Hall3D.PIXEL converts to world.
 
 signal died(unit: Unit)
 
@@ -61,8 +63,8 @@ var _pivot := 0.0            # px from feet up to the center of mass; spin pivot
 var _base_offset := Vector2.ZERO   # make_sprite's feet-on-origin offset, restored on landing
 var _juggles := 0            # hits taken while airborne; scales the air-kill score
 var _leg := 0                # RETREAT: 0 = run back past the camera, 1 = walk into the vacated slot
-var battle: Node2D
-var sprite: Sprite2D
+var battle: Node3D
+var sprite: Sprite3D
 const ATK_DT := 0.06               # seconds per attack frame
 var _atk_t := -1.0                 # time into the active clip, <0 = idle
 var _atk := {}                     # manifest "attack" entry: {frames, y}; empty = no clip packed
@@ -70,9 +72,10 @@ var _slam := {}                    # manifest "slam" entry: sky-drop landing cli
 var _clip := {}                    # whichever clip is playing
 var _atk_hold := 0.0               # units.json attack_hold: seconds the strike frame lingers before guard
 var _rot_region: Rect2
+var _cell := 48.0                  # sprite cell size in px
 
 
-func setup(p_type: String, p_team: int, p_battle: Node2D) -> void:
+func setup(p_type: String, p_team: int, p_battle: Node3D) -> void:
 	type = p_type
 	team = p_team
 	battle = p_battle
@@ -85,9 +88,10 @@ func setup(p_type: String, p_team: int, p_battle: Node2D) -> void:
 	speed = float(d["speed"]) * 2.2
 	cooldown = float(d["cooldown"])
 	counters = d["counters"]
-	sprite = Game.make_sprite(d["sprite"], 4 if team == ALLY else 0)
+	sprite = Hall3D.make_sprite3d(d["sprite"], 4 if team == ALLY else 0)
 	add_child(sprite)
 	_rot_region = (sprite.texture as AtlasTexture).region
+	_cell = _rot_region.size.y
 	_base_offset = sprite.offset
 	# alpha-centroid height above the feet, measured at pack time (godot_pack.py "com")
 	_pivot = float(Game.sprites[d["sprite"]].get("com", _rot_region.size.y * 0.42))
@@ -148,20 +152,20 @@ func _process(delta: float) -> void:
 		if air_h > cap and not sky_slam:
 			air_h = cap   # juggle as high as you like, but never out of the frame: bounce off the top edge
 			air_v = minf(air_v, 0.0)
-		sprite.rotation += _spin * delta
+		sprite.rotation.z -= _spin * delta   # +z is counter-clockwise on screen: negate to tumble the old way
 		if air_h == 0.0:
 			air_v = 0.0
 			air_vx = 0.0
 			_spin = 0.0
-			sprite.rotation = 0.0
+			sprite.rotation.z = 0.0
 			sprite.offset = _base_offset
 			if sky_slam:
 				sky_slam = false
 				slam_anim()
 				battle.sky_landing(self)
-		sprite.modulate = sprite.modulate.lerp(battle.view.fog(wd), delta * 8.0)
+		sprite.modulate = sprite.modulate.lerp(Color.WHITE, delta * 8.0)   # fog is the Environment's job now
 	elif charge_to > 0.0:
-		sprite.modulate = sprite.modulate.lerp(battle.view.fog(wd), delta * 8.0)
+		sprite.modulate = sprite.modulate.lerp(Color.WHITE, delta * 8.0)   # fog is the Environment's job now
 		if not _charge_back:
 			# out: straight down-range, halberd levelled, everything passed goes up
 			wd = minf(charge_to, wd + speed * CHARGE_SPEED * delta)
@@ -191,7 +195,7 @@ func _process(delta: float) -> void:
 	elif Time.get_ticks_msec() / 1000.0 < spin_until and (state == State.FIGHT or state == State.RANK):
 		# whirl: 1s spin bursts with 1s breathers. Spinning = hard lateral darts angled slightly
 		# back, i-frames in take(), blade clips anyone in reach. Breather = plant, face N or S.
-		sprite.modulate = sprite.modulate.lerp(battle.view.fog(wd), delta * 8.0)
+		sprite.modulate = sprite.modulate.lerp(Color.WHITE, delta * 8.0)   # fog is the Environment's job now
 		if spinning():
 			# erratic: short darts, ~1.5 mid-dart rethinks a second; exponential lerp = fast
 			# launch easing out into the stop, the dodge-roll pop
@@ -213,7 +217,7 @@ func _process(delta: float) -> void:
 			if _atk_t < 0.0:
 				sprite.frame = 4
 	else:
-		sprite.modulate = sprite.modulate.lerp(battle.view.fog(wd), delta * 8.0)
+		sprite.modulate = sprite.modulate.lerp(Color.WHITE, delta * 8.0)   # fog is the Environment's job now
 		match state:
 			State.RANK:
 				_moving = battle.advancing
@@ -259,7 +263,7 @@ func _process(delta: float) -> void:
 						state = State.RANK
 						sprite.frame = 4
 			State.FIGHT:
-				var target: Node2D = battle.find_target(self)
+				var target: Node3D = battle.find_target(self)
 				if target and _dist(target) <= rng:
 					if _cd <= 0.0:
 						_cd = cooldown
@@ -275,6 +279,10 @@ func _process(delta: float) -> void:
 					else:
 						goal = Vector2(battle.lane_x(lane), hold_d)
 					_step(goal, delta)
+					# parked on the line: run in place while the hall pushes forward, same as the ranks.
+					# A playing attack clip owns the sprite, so it never bobs mid-swing.
+					if not _moving and _atk_t < 0.0:
+						_moving = battle.advancing
 	if team == ENEMY:
 		wd = maxf(wd - battle.CREEP * delta, battle.ENEMY_MIN_D)   # treadmill toward the camera, floored at the hero's feet
 	wx = clampf(wx, -battle.HALL_HALF + 6.0, battle.HALL_HALF - 6.0)   # the walls are walls, whatever shoved you
@@ -282,8 +290,8 @@ func _process(delta: float) -> void:
 	_place()
 
 
-func _dist(o: Node2D) -> float:
-	# the hero target is a plain Node2D; its world coords live on the battle
+func _dist(o: Node3D) -> float:
+	# the hero target is a plain Node3D; its world coords live on the battle
 	var p := Vector2(o.wx, o.wd) if o is Unit else Vector2(battle.hero_wx, battle.hero_wd)
 	return Vector2(wx, wd).distance_to(p)
 
@@ -305,31 +313,36 @@ func _step(goal: Vector2, delta: float) -> void:
 
 
 func _place() -> void:
-	visible = wd - battle.view.cam_d > 40.0
-	position = battle.view.project(wx, wd)
-	scale = Vector2.ONE * battle.view.sprite_scale(wd)
+	visible = wd > 40.0
+	position = Vector3(wx, 0.0, -wd)
 	_lunge = _lunge.lerp(Vector2.ZERO, 0.18)
 	_recoil = _recoil.lerp(Vector2.ZERO, 0.2)
-	var bob := -absf(sin(_t * 12.0 * _gait)) * 3.0 if _moving else 0.0
+	var bob := absf(sin(_t * 12.0 * _gait)) * 3.0 if _moving else 0.0   # +y is up in 3D: the step lifts, it doesn't dig
 	var lift := air_h
 	if _spin != 0.0:
 		# spin around the center of mass: origin moves up to it, and the offset re-centres the
 		# texture so the mass point (not the cell centre) sits ON the rotation pivot
 		lift += _pivot
-		sprite.offset = Vector2(0, _pivot - _rot_region.size.y * 0.5)
-	sprite.position = _lunge + _recoil + Vector2(0, bob - lift)
+		sprite.offset = Vector2(0, _cell * 0.5 - _pivot)
+	# lunge/recoil were screen nudges toward the target; same magnitude, now on the ground plane
+	var nudge := _lunge + _recoil
+	sprite.position = Vector3(nudge.x, bob + lift, -nudge.y) * Hall3D.PIXEL
+
+
+## Sprite height above the feet in world units, the point Hall3D.sprite_top_screen tracks.
+## _pivot is folded in so a tumbling sprite's swung-out corners stay inside the frame too.
+func top_world() -> float:
+	return (_cell + _pivot) * Hall3D.PIXEL
 
 
 ## Highest air_h that keeps the whole sprite inside the frame at this depth.
 func _air_cap() -> float:
-	var k: float = battle.view.sprite_scale(wd)
-	var cell: float = sprite.texture.region.size.y if sprite.texture is AtlasTexture else 48.0
-	var feet: Vector2 = battle.view.project(wx, wd)
-	return maxf(0.0, (feet.y - (cell + _pivot) * k - 8.0) / k)
+	return Hall3D.air_cap(battle.camera, wd, top_world()) / Hall3D.PIXEL
 
 
+## Ground-plane nudge toward a target, in sprite pixels.
 func lunge(v: Vector2) -> void:
-	_lunge = v / maxf(scale.x, 0.01)
+	_lunge = v
 
 
 ## Halberdier opener: charge to depth `to`, launching every enemy passed, then rush back to `from` (default: here).
@@ -372,7 +385,7 @@ func take(amount: float, push := Vector2.ZERO) -> void:
 		air_v = minf(maxf(air_v, 0.0) + POP, 400.0)   # impulse, not a reset: every hit adds
 	hp -= amount
 	sprite.modulate = Color(2.0, 2.0, 2.0)
-	_recoil = push / maxf(scale.x, 0.01)
+	_recoil = push
 	if hp <= 0.0:
 		dead = true
 		if air_h > 0.0 and team == ENEMY:
@@ -384,20 +397,20 @@ func take(amount: float, push := Vector2.ZERO) -> void:
 		var tw := create_tween().set_parallel(true)
 		if air_h > 0.0:
 			tw.tween_property(sprite, "position:y", 0.0, 0.3).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_IN)
-		tw.tween_property(sprite, "rotation", side * PI / 2.0, 0.35).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_IN)
+		tw.tween_property(sprite, "rotation:z", -side * PI / 2.0, 0.35).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_IN)
 		tw.tween_property(sprite, "modulate", Color(0.4, 0.4, 0.4, 0.0), 1.1).set_delay(0.3)
 		tw.chain().tween_callback(queue_free)
 
 
-## Gibs: chunks torn from this sprite's own pixels, flung away from the blow, gravity pulls them down.
+## Gibs: chunks torn from this sprite's own pixels, flung away from the blow, gravity pulls them
+## down. They spray in the camera plane, so only the lateral half of `push` steers them.
 func _gib(push: Vector2) -> void:
 	var at: AtlasTexture = sprite.texture
 	var cell := at.region.size.y
-	var k := maxf(scale.x, 0.01)
-	var tint: Color = battle.view.fog(wd) if battle != null and "view" in battle else Color.WHITE
+	var k := Hall3D.PIXEL
 	var host := get_parent()
 	for i in range(8):
-		var c := Sprite2D.new()
+		var c := Sprite3D.new()
 		var sub := AtlasTexture.new()
 		sub.atlas = at.atlas
 		var sz := randf_range(4.0, 8.0)
@@ -405,16 +418,19 @@ func _gib(push: Vector2) -> void:
 		var oy := randf_range(cell * 0.25, cell * 0.9 - sz)
 		sub.region = Rect2(at.region.position + Vector2(sprite.frame * cell + ox, oy), Vector2(sz, sz))
 		c.texture = sub
-		c.modulate = tint
-		c.scale = Vector2(k, k)
-		c.z_index = z_index + 1
-		var p0 := global_position + Vector2(ox - cell / 2.0, oy - cell) * k
-		var v := (Vector2(randf_range(-70.0, 70.0), randf_range(-160.0, -60.0)) + push * 0.35) * k
+		c.pixel_size = k
+		c.billboard = BaseMaterial3D.BILLBOARD_DISABLED
+		c.texture_filter = BaseMaterial3D.TEXTURE_FILTER_NEAREST
+		c.alpha_cut = SpriteBase3D.ALPHA_CUT_DISCARD
+		c.alpha_scissor_threshold = 0.35
+		c.shaded = false
+		var p0 := global_position + Vector3(ox - cell / 2.0, cell - oy, 0.0) * k
+		var v := Vector3(randf_range(-70.0, 70.0) + push.x * 0.35, randf_range(60.0, 160.0), 0.0) * k
 		var spin := randf_range(-8.0, 8.0)
 		host.add_child(c)
 		var tw := create_tween()
 		tw.tween_method(func(t: float):
-			c.position = p0 + v * t + Vector2(0.0, 320.0 * k) * t * t
-			c.rotation = spin * t, 0.0, 1.0, 0.8)
+			c.position = p0 + v * t - Vector3(0.0, 320.0 * k, 0.0) * t * t
+			c.rotation.z = spin * t, 0.0, 1.0, 0.8)
 		tw.tween_property(c, "modulate:a", 0.0, 0.4)
 		tw.tween_callback(c.queue_free)

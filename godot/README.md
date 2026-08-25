@@ -12,7 +12,13 @@ A PostToolUse hook in `.claude/settings.json` reruns it after every Edit/Write u
 Adversarial QA: `pwsh Scripts\godot-run.ps1 -Adversary battle,60,7` (report + findings in `docs/qa/`).
 
 Evidence probe (desktop): `godot --path godot -- --probe=battle,12` prints FPS and saves
-`user://probe_battle.png`. Scenes: siege, battle, probe3d.
+`user://probe_battle.png`. Scenes: siege, battle.
+
+The battle is a real 3D scene: `Node3D` + depth-tested `Sprite3D` pixel billboards under a fixed
+`Camera3D`, so the crowd sorts per pixel instead of y-sorting whole sprites. Hall geometry and the
+sim->world/screen helpers live in `scripts/World3D.gd` (`class_name Hall3D` — `World3D` is an
+engine class and can't be shadowed). Sim coordinates are unchanged: a point at (wx lateral, wd
+depth) sits at `Vector3(wx, h, -wd)`. Siege is still 2D on the old pinhole projection.
 
 Data: `data/units.json` (stats + counters), `data/waves.json`, `data/spells.json` (spells + relics),
 Sprites: `assets/sprites/<name>.png` = 8 directions in atlas.py column

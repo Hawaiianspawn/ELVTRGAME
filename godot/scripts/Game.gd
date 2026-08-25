@@ -5,7 +5,6 @@ const DIRS := ["south", "south-east", "east", "north-east", "north", "north-west
 const SCENES := {
 	"siege": "res://scenes/siege/Siege.tscn",
 	"battle": "res://scenes/battle/Battle.tscn",
-	"probe3d": "res://scenes/probe3d/Probe3D.tscn",
 }
 
 var units: Dictionary

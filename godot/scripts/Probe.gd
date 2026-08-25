@@ -35,6 +35,22 @@ func _run(spec: String) -> void:
 				stragglers += 1
 		assert(stragglers == 0, "old type still on the field: %d" % stragglers)
 		print("PROBE swap ok: %s -> %s, %d on field, pool[%s]=%d" % [old_type, b.army_type, b.units.filter(func(x): return x.team == 0).size(), old_type, b.pool[old_type]])
+	if parts.size() > 2 and parts[2] == "turn":
+		# self-check: the between-wave lens moves. "left"/"right" slide the camera and come back,
+		# "stairs" pitches it up to a horizon of 170 and back — all of it must land back at rest.
+		await get_tree().create_timer(2.0).timeout
+		var b := get_tree().current_scene
+		var cam: Camera3D = b.camera
+		var rest := cam.rotation_degrees.x
+		for kind in ["right", "stairs"]:
+			var moved := 0.0
+			b._turn(kind)                       # 2 x 1.2s of tween; sample right through it
+			for _i in range(32):
+				await get_tree().create_timer(0.1).timeout
+				moved = maxf(moved, absf(cam.position.x) + absf(cam.rotation_degrees.x - rest))
+			assert(moved > 5.0, "%s never moved the lens" % kind)   # right slides 160 units, stairs pitches 12 degrees
+			assert(absf(cam.position.x) < 0.5 and absf(cam.rotation_degrees.x - rest) < 0.5, "%s left the lens off its rest pose" % kind)
+			print("PROBE turn ok: %s peaked at %.0f, back to x=%.1f pitch=%.2f" % [kind, moved, cam.position.x, cam.rotation_degrees.x])
 	if parts.size() > 2 and parts[2] == "whirl":
 		# self-check: swapping back to veterans fires whirl â€” the field spin-dodges under guard
 		await get_tree().create_timer(6.0).timeout
@@ -164,10 +180,12 @@ func _run(spec: String) -> void:
 			if u.team == 0 and u.state == Unit.State.RANK:
 				wds.append(snappedf(u.wd, 1.0))
 		wds.sort()
-		print("PROBE rank wd min=%s max=%s n=%d  screen y of min=%s cam_h=%s horizon=%s focal=%s" % [wds[0], wds[-1], wds.size(), sc.view.project(0, wds[0]).y, sc.view.cam_h, sc.view.horizon, sc.view.focal])
+		var cam: Camera3D = sc.camera
+		print("PROBE rank wd min=%s max=%s n=%d  screen y of min=%s fov=%.1f pitch=%.1f height=%s" % [wds[0], wds[-1], wds.size(),
+			Hall3D.unproject(cam, 0.0, wds[0]).y, cam.fov, cam.rotation_degrees.x, cam.position.y])
 		for u in sc.units:
 			if u.team == 0 and u.state == Unit.State.RANK and (snappedf(u.wd, 1.0) == wds[0] or snappedf(u.wd, 1.0) == wds[-1]):
-				print("PROBE unit wd=%s pos=%s scale=%s spr=%s" % [u.wd, u.position, u.scale, u.sprite.position])
+				print("PROBE unit wd=%s pos=%s spr=%s screen=%s" % [u.wd, u.position, u.sprite.position, Hall3D.unproject(cam, u.wx, u.wd)])
 	var img := get_viewport().get_texture().get_image()
 	var path := "user://probe_%s.png" % scene
 	img.save_png(path)

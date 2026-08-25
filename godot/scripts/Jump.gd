@@ -37,7 +37,7 @@ func _phase_index() -> int:
 
 func _refresh() -> void:
 	var i := _phase_index()
-	_label.text = "phase %d/5  [1-5 jump, Tab next, P 3D]" % (i + 1) if i >= 0 else "[1-5 jump, Tab next, P 3D]"
+	_label.text = "phase %d/5  [1-5 jump, Tab next]" % (i + 1) if i >= 0 else "[1-5 jump, Tab next]"
 
 
 func _unhandled_input(e: InputEvent) -> void:
@@ -51,10 +51,6 @@ func _unhandled_input(e: InputEvent) -> void:
 		idx = k - KEY_KP_1
 	elif k == KEY_TAB:
 		idx = mini(_phase_index() + 1, PHASES.size() - 1)
-	elif k == KEY_P:
-		get_viewport().set_input_as_handled()
-		Game.goto("probe3d")     # 3D billboard spike
-		return
 	if idx < 0 or idx >= PHASES.size():
 		return
 	get_viewport().set_input_as_handled()

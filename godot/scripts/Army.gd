@@ -1,7 +1,7 @@
 class_name Army
 extends RefCounted
 ## Builds the company block: packed ranks of real units from the front line down past the camera.
-## `host` must expose `view`, `advancing`, `CREEP`, `lane_x()` (Unit reads them); Battle does.
+## `host` must expose `camera`, `advancing`, `CREEP`, `lane_x()` (Unit reads them); Battle does.
 
 const RANK_X := 36.0
 const RANK_STEP := 24.0
@@ -39,13 +39,13 @@ static func slots(half: float, rows: int, d0: float, rng: RandomNumberGenerator,
 
 
 ## Fill a block with real units (cutscenes): mixed types, standing in rank.
-static func block(host: Node2D, parent: Node2D, mix: Dictionary, half: float, rows: int, d0: float, rng: RandomNumberGenerator, d_offset := 0.0) -> Array[Unit]:
+static func block(host: Node, parent: Node, mix: Dictionary, half: float, rows: int, d0: float, rng: RandomNumberGenerator, d_offset := 0.0) -> Array[Unit]:
 	var pat := pattern(mix)
 	var out: Array[Unit] = []
 	var k := 0
 	for sl in slots(half, rows, d0, rng):
 		var u := Unit.new()
-		u.setup(pat[k % pat.size()], Unit.ALLY, host)
+		u.setup(pat[k % pat.size()], Unit.ALLY, host as Node3D)
 		u.state = Unit.State.RANK
 		u.wx = sl.x
 		u.wd = sl.y + d_offset

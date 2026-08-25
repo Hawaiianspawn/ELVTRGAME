@@ -1,8 +1,11 @@
-﻿extends Node2D
-## Four waves seen from behind the army. World space: x lateral, d depth ahead of the camera (View.gd projects).
-## Front line holds at FRONT_D; reserves stand in packed ranks behind it and step forward into the lane whose
-## front unit died, taking the type the player set for that lane. Hero walks the gap between ranks and line,
-## siphons magic from kills, spends it on spells; relics unlock on lifetime magic.
+extends Node3D
+## Four waves seen from behind the army. World space: x lateral, d depth ahead of the camera; a
+## point stands at Vector3(x, h, -d) and a fixed Camera3D at (cam_x, CAM_H, 0) looks down -Z
+## (Hall3D holds the geometry and the projection helpers). Sprites are depth-tested Sprite3D
+## billboards, so the crowd sorts per pixel and nothing y-sorts.
+## Front line holds at FRONT_D; reserves stand in packed ranks behind it and step forward into the
+## lane whose front unit died, taking the type the player set for that lane. Hero walks the gap
+## between ranks and line, siphons magic from kills, spends it on spells; relics unlock on lifetime magic.
 
 const FRONT_D := 320.0
 const SPAWN_D := 1050.0
@@ -11,18 +14,16 @@ const HERO_MIN_D := 150.0
 const HERO_MAX_D := 290.0
 const ENEMY_MIN_D := 130.0        # enemies stop here, at the hero's feet: nothing walks behind the lens
 const RANK_D0 := 285.0          # first rank behind the front line
-const CREEP := 42.0             # sim treadmill: enemy wd drift (Unit.gd) â€” untouched, not a visual dial
+const CREEP := 42.0             # sim treadmill: enemy wd drift (Unit.gd) - untouched, not a visual dial
 const SCROLL_CREEP_BY_WAVE := [84.0, 112.0, 140.0, 170.0]   # visual-only scroll speed (scenery), ~2x CREEP at wave1, ~2x again by wave4
 const HALL_HALF := 200.0        # hallway half-width: the walls; everything lives between them
-const CURVE_A_BY_WAVE := [0.5, 0.65, 0.85, 1.1]      # per-wave hall curvature (View.curve_a): harder bend each wave
-const CURVE_L_BY_WAVE := [460.0, 380.0, 320.0, 270.0]  # per-wave curvature wavelength (View.curve_l): faster turn each wave
 const RANK_ROWS := 8            # depth of the company block down to the camera; every slot is a real unit
 const RANK_COLS := 6            # files across; the block fills the hall wall to wall
 const RANK_HALF := HALL_HALF - 20.0   # half-width of the block in world units
 const RANK_STEP := 28.0
 const BEHIND_D := 55.0          # just behind the lens: where swaps come from and go to
-const SWEEP_W := 240.0          # launch zone half-width, centered on the hero â€” spans the whole field
-const SWEEP_LEN := 520.0        # launch zone depth ahead of the hero â€” everything short of fresh spawns
+const SWEEP_W := 240.0          # launch zone half-width, centered on the hero - spans the whole field
+const SWEEP_LEN := 520.0        # launch zone depth ahead of the hero - everything short of fresh spawns
 const TYPES := Army.TYPES
 const SLASH_ALPHA := 0.2       # slash fx opacity (strike and whirl field)
 const SLASH_STOP := 0.2        # hit stop (real seconds) when a whirl vortex mini hit lands
@@ -36,7 +37,16 @@ const VORTEX_DMG := 0.35        # fraction of the veteran's dmg per cleave tick
 const VORTEX_COLS := 4          # whirl: vortex field ahead of the line, cols x rows
 const VORTEX_ROWS := 2
 
-var view := View.new()
+# The lens. FOCAL/HALF_H reproduce the old pinhole exactly: vertical fov 2*atan(270/360) on a
+# 540-tall viewport puts 360 screen px on one world unit at depth 1, and a horizon of h means a
+# pitch of -atan((270 - h) / 360).
+const CAM_H := 200.0
+const FOCAL := 360.0
+const HALF_H := 270.0
+const HORIZON := 250.0          # resting horizon; _turn tilts to 170 for the stairs and back
+
+var camera: Camera3D
+var hall: Hall3D
 var lanes := 5
 var lane_types: Array[String] = []
 var army_type := "veteran"
@@ -49,18 +59,18 @@ var magic_rate := 0.6
 var mote_t := 0.0
 var units: Array[Unit] = []
 var motes: Array[Dictionary] = []      # {wx, wd, v}
-var hero: Node2D
-var hero_sprite: Sprite2D
+var hero: Node3D
+var hero_sprite: Sprite3D
 var hero_wx := 0.0
 var hero_wd := 245.0
 var hero_hp := 100.0
-var world: Node2D
+var world: Node3D
+var env2d: Node2D                      # 2D overlay: sconces + the far glow
 var fx: Node2D
 var hud: Node2D
 var hud_text: Label
 var toast_label: Label
 var army_panels: Array[ArmyPanel] = []
-var scenery: Array[Sprite2D] = []      # foreground rows + far horde, meta wx/wd
 var scroll := 0.0
 var scroll_creep := SCROLL_CREEP_BY_WAVE[0]
 var wave_t := 0.0                        # seconds into the hall: the push accelerates the longer you're in it
@@ -71,7 +81,6 @@ var pool: Dictionary = {}              # type -> units of that type not on the f
 var slots: Array[Vector2] = []         # rank slot positions for this wave
 var _grid: Dictionary = {}             # cell -> Array[Unit], rebuilt each frame for separation / near queries
 const CELL := 48.0
-var decor: Array[Sprite2D] = []
 var spell_cd := {"bolt": 0.0, "heal": 0.0, "wall": 0.0}
 var checkpoint_magic := 0.0
 var toast := ""
@@ -83,21 +92,36 @@ const SWAP_CD := 0.5
 
 
 func _ready() -> void:
-	view.horizon = 250.0            # lens tilted down a touch: more ground, front line mid-frame
-	view.cam_h = 200.0              # higher lens
-	view.sprite_k = 2.2             # the 8x6 block fills the frame edge to edge
-	texture_repeat = TEXTURE_REPEAT_ENABLED   # wall bricks use u > 1 to scroll along depth (_draw_walls)
 	_rng.randomize()
-	world = Node2D.new()
-	world.y_sort_enabled = true
+	world = Node3D.new()
 	add_child(world)
+	hall = Hall3D.new()
+	world.add_child(hall)
+	hall.build(HALL_HALF)
+	camera = Camera3D.new()
+	camera.position = Vector3(0.0, CAM_H, 0.0)
+	camera.fov = rad_to_deg(2.0 * atan(HALF_H / FOCAL))
+	camera.keep_aspect = Camera3D.KEEP_HEIGHT
+	camera.rotation_degrees.x = pitch_for(HORIZON)
+	camera.near = 1.0
+	camera.far = 4000.0
+	camera.current = true
+	add_child(camera)
+	# draw-call fx (impacts, arrows, flashes, motes, sconces) stay 2D on an overlay, positioned
+	# with camera.unproject_position; only sprites went 3D.
+	var ov := CanvasLayer.new()
+	ov.layer = 1
+	add_child(ov)
+	env2d = Node2D.new()
+	env2d.draw.connect(_draw_env)
+	ov.add_child(env2d)
 	fx = Node2D.new()
 	fx.z_index = 5
-	add_child(fx)
+	ov.add_child(fx)
 	hud = Node2D.new()
 	hud.z_index = 10
 	hud.draw.connect(_draw_hud)
-	add_child(hud)
+	ov.add_child(hud)
 	# text lives in Labels: draw_string reshapes every frame, which is what the WASM build feels
 	var cl := CanvasLayer.new()
 	cl.layer = 20
@@ -110,12 +134,16 @@ func _ready() -> void:
 		cl.add_child(p)
 		army_panels.append(p)
 		p.set_selected(ty == army_type, _rng)
-	hero = Node2D.new()
-	hero_sprite = Game.make_sprite(Game.hero, 4)
+	hero = Node3D.new()
+	hero_sprite = Hall3D.make_sprite3d(Game.hero, 4)
 	hero.add_child(hero_sprite)
 	world.add_child(hero)
-	_build_scenery()
 	start_wave(Game.wave)
+
+
+## Camera pitch that puts the horizon line at screen y `h`.
+static func pitch_for(h: float) -> float:
+	return -rad_to_deg(atan((HALF_H - h) / FOCAL))
 
 
 func _label(parent: Node, pos: Vector2, size: int, col: Color) -> Label:
@@ -127,28 +155,10 @@ func _label(parent: Node, pos: Vector2, size: int, col: Color) -> Label:
 	return l
 
 
-func _scenery_sprite(name: String, facing: int, wx: float, wd: float, tint: Color, k: float) -> void:
-	var s := Game.make_sprite(name, facing)
-	s.set_meta("k", k)
-	s.set_meta("wx", wx)
-	s.set_meta("wd", wd)
-	s.set_meta("tint", tint)
-	world.add_child(s)
-	scenery.append(s)
-
-
-func _build_scenery() -> void:
-	pass   # the whole army on camera is real units now (see _build_ranks)
-
-
 func start_wave(i: int) -> void:
 	Game.wave = i
 	scroll_creep = SCROLL_CREEP_BY_WAVE[i]   # necromancer speeds the sweep each wave; scenery-only, sim speed (CREEP) untouched
 	wave_t = 0.0
-	var ct := create_tween()        # bend hardens and turns faster too, blended in so the hall doesn't snap
-	ct.set_parallel(true)
-	ct.tween_property(view, "curve_a", CURVE_A_BY_WAVE[i], 2.0).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN_OUT)
-	ct.tween_property(view, "curve_l", CURVE_L_BY_WAVE[i], 2.0).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN_OUT)
 	checkpoint_magic = Game.magic
 	for u in units:
 		if is_instance_valid(u):
@@ -271,8 +281,8 @@ func lane_open(l: int) -> bool:
 	return front[l] == null and _rank_unit(lane_types[l], l) == null
 
 
-func find_target(u: Unit) -> Node2D:
-	var best: Node2D = null
+func find_target(u: Unit) -> Node3D:
+	var best: Node3D = null
 	var best_d := INF
 	var here := Vector2(u.wx, u.wd)
 	# grid query, not a scan of every unit: the line doesn't chase, and an enemy
@@ -296,24 +306,30 @@ func find_target(u: Unit) -> Node2D:
 	return best
 
 
-func hit(a: Unit, t: Node2D, mult := 1.0) -> void:
+## (wx, wd) of a target: units carry their own, the hero's live on the battle.
+func _wpos(n: Node3D) -> Vector2:
+	return Vector2(n.wx, n.wd) if n is Unit else Vector2(hero_wx, hero_wd)
+
+
+func hit(a: Unit, t: Node3D, mult := 1.0) -> void:
 	var d := a.dmg * mult
 	if t is Unit and t.type in a.counters:
 		d *= float(Game.units["counter_mult"])
 	if a.team == Unit.ALLY:
 		d *= 1.0 + Game.relic_bonus("dmg")
-	var to := t.position - a.position
+	var tp := _wpos(t)
+	var to := tp - Vector2(a.wx, a.wd)
 	a.attack_anim()
 	if a.rng > 100.0:
-		_arrow(a.position + Vector2(0, -50 * a.scale.y), t.position + Vector2(0, -30 * t.scale.y))
+		_arrow(Vector2(a.wx, a.wd), 50.0, tp, 30.0)
 		await get_tree().create_timer(0.12).timeout
 		if not is_instance_valid(t) or not is_instance_valid(a):
 			return   # either side can die in flight
 	else:
-		a.lunge(to.normalized() * 14.0 * a.scale.x)
+		a.lunge(to.normalized() * 14.0)
 		if t is Unit:
 			_slash(a, t, to)
-	_impact(t.position + Vector2(0, -34 * t.scale.y), 6.0 * t.scale.y)
+	_impact(tp.x, tp.y, 6.0)
 	if t is Unit:
 		if t.guard_until > _now():
 			d *= 0.3
@@ -337,21 +353,18 @@ func _slash(a: Unit, t: Unit, to: Vector2) -> void:
 	if kind == "" or not Game.sprites.has("fx_" + kind):
 		return
 	var wp := Vector2(t.wx, t.wd)
-	var n := Node2D.new()
-	n.position = view.project(wp.x, wp.y)
-	n.scale = Vector2.ONE * view.sprite_scale(wp.y)
-	var s := Game.make_fx("fx_" + kind)
-	s.position = Vector2(0, float(Game.units[a.type].get("slash_y", -40.0)))
-	s.scale = Vector2.ONE * 0.9 * 64.0 / float(Game.sprites["fx_" + kind]["cell"])
+	var cell := float(Game.sprites["fx_" + kind]["cell"])
+	var s := Hall3D.make_fx3d("fx_" + kind)
+	s.pixel_size = 0.9 * 64.0 * Hall3D.PIXEL / cell     # same on-screen size as the old 2D clip
+	s.position = Hall3D.to_world(wp.x, wp.y, -float(Game.units[a.type].get("slash_y", -40.0)) * Hall3D.PIXEL)
 	s.modulate.a = SLASH_ALPHA
 	s.flip_h = to.x < 0.0
-	n.add_child(s)
-	world.add_child(n)
+	world.add_child(s)
 	var frames := s.hframes
 	var dmg := a.dmg * SLASH_DMG
 	var team := a.team   # by value: the clip outlives the attacker when it dies mid-swing
 	var tid := t.get_instance_id()
-	var tw := n.create_tween()
+	var tw := s.create_tween()
 	for f in range(frames):
 		tw.tween_callback(func():
 			s.frame = f
@@ -359,50 +372,47 @@ func _slash(a: Unit, t: Unit, to: Vector2) -> void:
 				return
 			for o in units:
 				if o.get_instance_id() != tid and o.team != team and not o.dead and Vector2(o.wx, o.wd).distance_to(wp) < SLASH_R:
-					_impact(o.position + Vector2(0, -34 * o.scale.y), 4.0 * o.scale.y)
+					_impact(o.wx, o.wd, 4.0)
 					if o.air_h > 0.0:
 						o.launch(VORTEX_LIFT)
 					o.take(dmg, to.normalized() * 3.0))
 		tw.tween_interval(0.05)
-	tw.tween_callback(n.queue_free)
+	tw.tween_callback(s.queue_free)
 
 
 ## Vortex cleave: the blue sweep clip parked in the world, spinning in place and cleaving every
 ## enemy inside its radius twice a second for a few seconds. Hovers at head height so the
 ## circle isn't wasted on ground nobody stands on. k scales size and reach together.
-func _vortex(wp: Vector2, k: float, dmg: float, secs := 2.0, fx := "fx_sweep_thin") -> void:
-	var n := Node2D.new()
-	n.set_meta("vortex", true)
-	n.position = view.project(wp.x, wp.y)
-	n.scale = Vector2.ONE * view.sprite_scale(wp.y) * k
-	var s := Game.make_fx(fx)
-	s.position = Vector2(0, -48.0 / k)     # head height stays put as the circle grows
-	s.scale = Vector2.ONE * 64.0 / float(Game.sprites[fx]["cell"])   # hi-res clips shrink back: same size, thinner lines
+func _vortex(wp: Vector2, k: float, dmg: float, secs := 2.0, fx_name := "fx_sweep_thin") -> void:
+	var cell := float(Game.sprites[fx_name]["cell"])
+	var s := Hall3D.make_fx3d(fx_name)
+	s.set_meta("vortex", true)
+	s.pixel_size = 64.0 * Hall3D.PIXEL * k / cell      # hi-res clips shrink back: same size, thinner lines
+	s.position = Hall3D.to_world(wp.x, wp.y, 48.0 * Hall3D.PIXEL)   # head height stays put as the circle grows
 	s.modulate.a = SLASH_ALPHA
-	if fx == "fx_sweep_thin":
+	if fx_name == "fx_sweep_thin":
 		s.modulate = Color(3.0, 3.0, 3.0, 0.95)   # blown out near white; the blue only survives at the edges
-	n.add_child(s)
-	world.add_child(n)
+	world.add_child(s)
 	# never in lockstep: random facing, random spin direction, own phase and cadence
-	s.rotation = _rng.randf() * TAU
+	s.rotation.z = _rng.randf() * TAU
 	s.flip_h = _rng.randf() < 0.5
 	var phase := _rng.randf()
-	var spin := n.create_tween().set_loops()
+	var spin := s.create_tween().set_loops()
 	spin.tween_method(func(t: float): s.frame = wrapi(int((t + phase) * s.hframes), 0, s.hframes), 0.0, 1.0, _rng.randf_range(0.32, 0.5))
-	var beat := n.create_tween().set_loops(int(secs * VORTEX_HZ))
+	var beat := s.create_tween().set_loops(int(secs * VORTEX_HZ))
 	beat.tween_interval(1.0 / VORTEX_HZ)
 	beat.tween_callback(func():
 		for o in units:
 			if o.team == Unit.ENEMY and not o.dead and Vector2(o.wx, o.wd).distance_to(wp) < VORTEX_R * k:
-				_impact(o.position + Vector2(0, -34 * o.scale.y), 4.0 * o.scale.y)
+				_impact(o.wx, o.wd, 4.0)
 				if o.air_h > 0.0:
 					o.launch(VORTEX_LIFT)   # already up: keep it up. Lifting off the ground is the halberdiers' job
 				o.take(dmg)
 				_hitstop(SLASH_STOP))
-	var life := n.create_tween()
+	var life := s.create_tween()
 	life.tween_interval(secs)
-	life.tween_property(n, "modulate:a", 0.0, 0.2)
-	life.tween_callback(n.queue_free)
+	life.tween_property(s, "modulate:a", 0.0, 0.2)
+	life.tween_callback(s.queue_free)
 
 
 ## Hit stop: the world crawls for secs of real time. A later, longer stop extends the hold;
@@ -426,7 +436,14 @@ func _dist(a: Unit, b: Unit) -> float:
 	return Vector2(a.wx, a.wd).distance_to(Vector2(b.wx, b.wd))
 
 
-func _impact(p: Vector2, r: float) -> void:
+## Yellow burst on the fx overlay. `r` and `h` are sprite pixels — the unit every fx number in this
+## file is tuned in — so both shrink with depth exactly like a sprite does.
+func _impact(wx: float, wd: float, r := 6.0, h := 34.0) -> void:
+	var k := Hall3D.screen_scale(camera, wd) * Hall3D.PIXEL
+	_burst(Hall3D.unproject(camera, wx, wd, h * Hall3D.PIXEL), r * k)
+
+
+func _burst(p: Vector2, r: float) -> void:
 	var n := Node2D.new()
 	n.position = p
 	n.draw.connect(func():
@@ -440,7 +457,10 @@ func _impact(p: Vector2, r: float) -> void:
 	tw.tween_callback(n.queue_free)
 
 
-func _arrow(from: Vector2, to: Vector2) -> void:
+## Arrow streak between two world spots, each `h` sprite pixels above its own feet.
+func _arrow(from_w: Vector2, from_h: float, to_w: Vector2, to_h: float) -> void:
+	var from := Hall3D.unproject(camera, from_w.x, from_w.y, from_h * Hall3D.PIXEL)
+	var to := Hall3D.unproject(camera, to_w.x, to_w.y, to_h * Hall3D.PIXEL)
 	var l := Line2D.new()
 	l.width = 1.5
 	l.default_color = Color(0.9, 0.85, 0.7)
@@ -489,9 +509,7 @@ func say(t: String) -> void:
 
 
 func _cursor_world() -> Vector2:
-	var c := get_global_mouse_position()
-	var d := clampf(view.depth_at_y(c.y), 60.0, SPAWN_D)
-	return Vector2(view.x_at(c.x, d), d)
+	return Hall3D.cursor_world(camera, get_viewport().get_mouse_position(), SPAWN_D)
 
 
 func _cell(wx: float, wd: float) -> Vector2i:
@@ -557,21 +575,13 @@ func near_enemy(u: Unit, radius: float) -> Unit:
 
 
 func _process(delta: float) -> void:
-	queue_redraw()
+	env2d.queue_redraw()
 	hud.queue_redraw()
 	_rebuild_grid()
 	toast_t -= delta
 	wave_t += delta
 	scroll += scroll_creep * minf(1.0 + wave_t * SCROLL_ACCEL, 2.5) * delta
-	view.scroll = scroll
-	# scenery re-projects every frame (camera tweens per wave)
-	for s in scenery:
-		var wd: float = s.get_meta("wd")
-		s.position = view.project(s.get_meta("wx"), wd)
-		if advancing:
-			s.position.y -= absf(sin(scroll * 0.9 + s.get_meta("wx") * 0.05)) * 3.0 * view.s(wd)
-		s.scale = Vector2.ONE * view.sprite_scale(wd) * float(s.get_meta("k"))
-		s.modulate = (s.get_meta("tint") as Color) * view.fog(wd)
+	hall.set_scroll(scroll)
 	if _done:
 		return
 	# spawns
@@ -604,8 +614,7 @@ func _process(delta: float) -> void:
 	var mv := Input.get_vector("move_left", "move_right", "move_up", "move_down")
 	hero_wx = clampf(hero_wx + mv.x * 130.0 * delta, -HALL_HALF + 30.0, HALL_HALF - 30.0)
 	hero_wd = clampf(hero_wd - mv.y * 110.0 * delta, HERO_MIN_D, HERO_MAX_D)
-	hero.position = view.project(hero_wx, hero_wd)
-	hero.scale = Vector2.ONE * view.sprite_scale(hero_wd)
+	hero.position = Hall3D.to_world(hero_wx, hero_wd)
 	hero_sprite.modulate = hero_sprite.modulate.lerp(Color.WHITE, delta * 6.0)
 	if mv != Vector2.ZERO:
 		hero_sprite.frame = Game.facing_from(mv)
@@ -656,12 +665,12 @@ func _turn(kind: String) -> void:
 		"left", "right":
 			say("The hall turns %s." % kind)
 			var dx := -160.0 if kind == "left" else 160.0
-			t.tween_property(view, "cam_x", dx, 1.2).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN_OUT)
-			t.tween_property(view, "cam_x", 0.0, 1.2).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN_OUT)
+			t.tween_property(camera, "position:x", dx, 1.2).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN_OUT)
+			t.tween_property(camera, "position:x", 0.0, 1.2).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN_OUT)
 		"stairs":
 			say("Stairs. Up.")
-			t.tween_property(view, "horizon", 170.0, 1.2).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN_OUT)
-			t.tween_property(view, "horizon", 250.0, 1.2).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN_OUT)
+			t.tween_property(camera, "rotation_degrees:x", pitch_for(170.0), 1.2).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN_OUT)
+			t.tween_property(camera, "rotation_degrees:x", pitch_for(HORIZON), 1.2).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN_OUT)
 		_:
 			say("Hall cleared. Magic siphoned: %d" % int(Game.magic))
 			t.tween_interval(2.5)
@@ -775,9 +784,9 @@ func _opening(u: Unit) -> void:
 				for j in range(VORTEX_ROWS):
 					var cx := -RANK_HALF + RANK_HALF * 2.0 * (i + 0.5) / VORTEX_COLS
 					var cd := FRONT_D + 90.0 + 140.0 * j
-					var fx := "fx_" + str(Game.units[u.type].get("slash", ""))
+					var fx_name := "fx_" + str(Game.units[u.type].get("slash", ""))
 					_vortex(Vector2(cx + _rng.randf_range(-30.0, 30.0), cd + _rng.randf_range(-35.0, 35.0)), 2.6, u.dmg * VORTEX_DMG, 4.0,
-						fx if Game.sprites.has(fx) else "fx_sweep_thin")
+						fx_name if Game.sprites.has(fx_name) else "fx_sweep_thin")
 		"sweep":
 			# every halberdier on the field bulldozes down-range, piling what it passes on one line, then falls back in
 			for o in units:
@@ -791,9 +800,9 @@ func _opening(u: Unit) -> void:
 				o.rooted_until = _now() + 2.5
 		"draw":
 			if not near.is_empty():
-				u.lunge((Vector2(near[0].wx, near[0].wd) - here).normalized() * 18.0 * u.scale.x)
-				_impact(near[0].position + Vector2(0, -34 * near[0].scale.y), 9.0 * near[0].scale.y)
-				near[0].take(45.0, Vector2(0, 6))
+				u.lunge((Vector2(near[0].wx, near[0].wd) - here).normalized() * 18.0)
+				_impact(near[0].wx, near[0].wd, 9.0)
+				near[0].take(45.0, Vector2(0, -6))
 		"volley":
 			# backup volley: three arrow blocks, one every 1.2s, each thrown at a clump in the kill box
 			var tw := create_tween()
@@ -848,7 +857,7 @@ func _rain_salvo(dmg: float) -> void:
 
 
 ## One volley arrow: launched behind the camera above the ranks, arcing down onto `mark`.
-## Airborne enemies along the path are run through â€” damaged plus a small juggle tap â€”
+## Airborne enemies along the path are run through - damaged plus a small juggle tap -
 ## without stopping the arrow; whoever stands at the mark when it lands takes the hit.
 func _volley_arrow(from: Vector2, mark: Vector2, dmg: float) -> void:
 	# one straight line from the archer's spot to the mark at a shared speed: the block keeps its shape in flight
@@ -867,11 +876,11 @@ func _volley_arrow(from: Vector2, mark: Vector2, dmg: float) -> void:
 	tw.tween_method(func(k: float):
 		var wp := from.lerp(mark, k)
 		var h := peak * (1.0 - k * k) + sin(k * PI) * 8.0   # in from over the lens, above the frame, diving late
-		var p := view.project(wp.x, wp.y) + Vector2(0, -h * view.sprite_scale(wp.y))
+		var p := Hall3D.unproject(camera, wp.x, wp.y, h * Hall3D.PIXEL)
 		l.visible = true
 		l.set_point_position(0, p)
 		var tail: Vector2 = p if prev[0] == Vector2.INF else prev[0]
-		var cap := 16.0 * view.sprite_scale(wp.y)   # streak, scaled with depth
+		var cap := 16.0 * Hall3D.PIXEL * Hall3D.screen_scale(camera, wp.y)   # streak, scaled with depth
 		if p.distance_to(tail) > cap:
 			tail = p + (tail - p).normalized() * cap
 		l.set_point_position(1, tail)
@@ -887,12 +896,12 @@ func _volley_arrow(from: Vector2, mark: Vector2, dmg: float) -> void:
 		for o in units:
 			if o.team == Unit.ENEMY and not o.dead and o.air_h == 0.0 and Vector2(o.wx, o.wd).distance_to(mark) < 26.0:
 				o.take(dmg)
-				_impact(view.project(mark.x, mark.y), 5.0)
+				_burst(Hall3D.unproject(camera, mark.x, mark.y), 5.0)
 				break
 		l.queue_free())
 
 
-## A sky-dropped hammer hit the ground: shockwave â€” same numbers as its slam ability.
+## A sky-dropped hammer hit the ground: shockwave - same numbers as its slam ability.
 func sky_landing(u: Unit) -> void:
 	var here := Vector2(u.wx, u.wd)
 	_flash(here, 60.0, Color(1.0, 0.8, 0.5, 0.6))
@@ -938,10 +947,11 @@ func _cast(id: String) -> void:
 					u.rooted_until = Time.get_ticks_msec() / 1000.0 + 3.0
 
 
+## Ground-level ring on the fx overlay. `r` is in world units.
 func _flash(wp: Vector2, r: float, c: Color) -> void:
 	var n := Node2D.new()
-	n.position = view.project(wp.x, wp.y)
-	var k := view.s(wp.y)
+	n.position = Hall3D.unproject(camera, wp.x, wp.y)
+	var k := Hall3D.screen_scale(camera, wp.y)
 	n.draw.connect(func(): n.draw_circle(Vector2.ZERO, r * k, c))
 	fx.add_child(n)
 	var t := create_tween()
@@ -949,96 +959,37 @@ func _flash(wp: Vector2, r: float, c: Color) -> void:
 	t.tween_callback(n.queue_free)
 
 
-func _draw() -> void:
-	# ponytail: procedural ground bands; owner says real terrain lands here later â€” replace this one call.
-	view.draw_ground(self, scroll, HALL_HALF)
-	_draw_walls()
-	# the necromancer's green glow at the far end of the hall
-	var flick := 0.6 + 0.4 * sin(Time.get_ticks_msec() / 90.0)
-	var dot := view.project(0.0, view.cam_d + view.fog_end) + Vector2(0, -8)
-	draw_circle(dot, 6.0 + 4.0 * flick, Color(0.4, 1.0, 0.4, flick))
-	draw_line(dot, dot + Vector2(_rng.randf_range(-30, 30), -110), Color(0.5, 1.0, 0.5, 0.5 * flick), 2.0)
+const WALL_H := Hall3D.TILE * Hall3D.COURSES   # sconce height reference
 
 
-# Wall: wall_14 with its baked top ledge cropped off (rows 12..43) -> 32x32, loops vertically.
-const WALL_TEX := preload("res://assets/env/hall/wall_flat.png")
-const COURSE_H := 64.0     # world-unit height of one wall course (32px tile drawn 2x so the bricks read)
-const MAX_COURSES := 3     # ponytail: cap so 2 sides x 12 bands x 3 courses stays cheap; lower if the probe dips
-
-
-## Stone walls either side of the hall, near to far, with green sconces every few rows; courses of the
-## chosen wall tile stack upward per band until the wall top clears the viewport, then fade to black
-## (no baked ceiling edge).
-func _draw_walls() -> void:
-	var near_d := view.cam_d + 60.0
-	var far_d := view.cam_d + view.fog_end * 1.5
-	var wall_h := COURSE_H * MAX_COURSES   # sconce height reference; texture courses stack independently above
-	var segs := 14     # was 12; the curve needs enough depth bands to read as a curve, not a polyline
-	# painter's order: far bands first, so where the bend folds a wall over itself the near bricks win
-	for i in range(segs - 1, -1, -1):
-		var da := near_d * pow(far_d / near_d, float(i) / segs)
-		var db := near_d * pow(far_d / near_d, float(i + 1) / segs)
-		var f := view.fog(da)
-		var sa := view.s(da)
-		var sb := view.s(db)
-		# bricks slide toward the camera with the push: u is world depth in brick lengths, so the
-		# texture is pinned to the hall, not to the band (texture_repeat is on for this node)
-		var ua := (da + scroll) / COURSE_H
-		var ub := (db + scroll) / COURSE_H
-		for side: float in [-1.0, 1.0]:
-			var x: float = side * HALL_HALF
-			var a := view.project(x, da)
-			var b := view.project(x, db)
-			if (b.x - a.x) * side > 0.0:
-				continue   # back face: this stretch bends away from the lens, we'd be seeing its far side
-			var top_a := a
-			var top_b := b
-			var last_a := a
-			var last_b := b
-			var last_top_a := a
-			var last_top_b := b
-			var course := 0
-			while course < MAX_COURSES and top_a.y > 0.0:
-				var bot_a := a - Vector2(0, course * COURSE_H * sa)
-				var bot_b := b - Vector2(0, course * COURSE_H * sb)
-				top_a = a - Vector2(0, (course + 1) * COURSE_H * sa)
-				top_b = b - Vector2(0, (course + 1) * COURSE_H * sb)
-				draw_polygon(
-					PackedVector2Array([bot_a, bot_b, top_b, top_a]),
-					PackedColorArray([f, f, f, f]),
-					PackedVector2Array([Vector2(ua, 1), Vector2(ub, 1), Vector2(ub, 0), Vector2(ua, 0)]),
-					WALL_TEX)
-				last_a = bot_a; last_b = bot_b; last_top_a = top_a; last_top_b = top_b
-				course += 1
-			# fade the topmost course's upper 40% to solid black so no ceiling edge exists
-			var mid_a := last_a.lerp(last_top_a, 0.6)
-			var mid_b := last_b.lerp(last_top_b, 0.6)
-			draw_polygon(
-				PackedVector2Array([mid_a, mid_b, last_top_b, last_top_a]),
-				PackedColorArray([Color(0, 0, 0, 0), Color(0, 0, 0, 0), Color.BLACK, Color.BLACK]))
-			draw_line(a, b, Color(0, 0, 0, 0.5), 2.0)   # floor/wall seam, follows the bend band by band
-	# sconces march toward the camera with the push; far to near so near glows sit on top
+## Sconces marching along both walls, and the necromancer's green glow at the far end of the hall.
+## Still draw calls, so still 2D — unprojected onto the overlay instead of drawn under the world.
+func _draw_env() -> void:
 	for side: float in [-1.0, 1.0]:
 		var x: float = side * HALL_HALF
-		var d := near_d + fposmod(-scroll, 160.0)
+		var d := 60.0 + fposmod(-scroll, 160.0)
 		var ds: Array[float] = []
-		while d < far_d:
+		while d < Hall3D.FOG_END * 1.5:
 			ds.append(d)
 			d += 160.0
-		ds.reverse()
+		ds.reverse()   # far to near, so near glows sit on top
 		for sd in ds:
-			var p := view.project(x, sd) - Vector2(0, wall_h * 0.6 * view.s(sd))
-			var k := view.s(sd)
-			var fd := view.fog(sd)
-			draw_circle(p, 5.0 * k, Color(0.35, 0.95, 0.45, 0.85) * fd)
-			draw_circle(p, 12.0 * k, Color(0.3, 0.9, 0.4, 0.18) * fd)
+			var p := Hall3D.unproject(camera, x, sd, WALL_H * 0.6)
+			var k := Hall3D.screen_scale(camera, sd)
+			env2d.draw_circle(p, 5.0 * k, Color(0.35, 0.95, 0.45, 0.85))
+			env2d.draw_circle(p, 12.0 * k, Color(0.3, 0.9, 0.4, 0.18))
+	var flick := 0.6 + 0.4 * sin(Time.get_ticks_msec() / 90.0)
+	var dot := Hall3D.unproject(camera, 0.0, Hall3D.FOG_END, 8.0)
+	env2d.draw_circle(dot, 6.0 + 4.0 * flick, Color(0.4, 1.0, 0.4, flick))
+	env2d.draw_line(dot, dot + Vector2(_rng.randf_range(-30, 30), -110), Color(0.5, 1.0, 0.5, 0.5 * flick), 2.0)
+
 
 func _draw_hud() -> void:
 	# motes + hero flame ride the top layer so they glow over the ranks
 	for m in motes:
-		var k := view.s(m["wd"])
-		hud.draw_circle(view.project(m["wx"], m["wd"]) + Vector2(0, -10 * k), (2.5 + float(m["v"]) * 0.12) * k, Color(0.4, 1.0, 0.4, 0.9))
-	hud.draw_circle(hero.position + Vector2(0, -60 * hero.scale.y), 4.0 + minf(Game.magic, 200.0) * 0.06, Color(0.4, 1.0, 0.4, 0.8))
+		var k := Hall3D.screen_scale(camera, m["wd"])
+		hud.draw_circle(Hall3D.unproject(camera, m["wx"], m["wd"], 10.0), (2.5 + float(m["v"]) * 0.12) * k, Color(0.4, 1.0, 0.4, 0.9))
+	hud.draw_circle(Hall3D.unproject(camera, hero_wx, hero_wd, 60.0 * Hall3D.PIXEL), 4.0 + minf(Game.magic, 200.0) * 0.06, Color(0.4, 1.0, 0.4, 0.8))
 	# bottom strip: the four army panels, ranks left, ability cooldown; current army type large + on top
 	for p in army_panels:
 		p.update(_rank_count(p.type), _ability_cd_left(p.type))

@@ -222,8 +222,7 @@ func _check(delta: float) -> void:
 			_log("boundary_break", "Unit.air", "air_h %.1f below ground" % u.air_h, where)
 		if u.air_h > 0.0 and not u.sky_slam:
 			# juggling is the game; leaving the frame is not: sprite top must stay on screen (sky-drop entrances excepted)
-			var cell: float = u.sprite.texture.region.size.y if u.sprite.texture is AtlasTexture else 48.0
-			var top: float = u.position.y + (u.sprite.position.y - cell) * u.scale.y
+			var top: float = Hall3D.sprite_top_screen(b.camera, u).y
 			if top < -2.0:
 				_log("boundary_break", "Unit.air", "airborne unit above the frame: sprite top y=%.0f air_h=%.0f" % [top, u.air_h], where)
 		if absf(u.wx) > b.HALL_HALF:
