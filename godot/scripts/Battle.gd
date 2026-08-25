@@ -305,6 +305,10 @@ func hit(a: Unit, t: Node2D, mult := 1.0) -> void:
 		if t.guard_until > _now():
 			d *= 0.3
 		t.take(d, to.normalized() * 6.0)
+		if (a.type == "hammer" or a.charge_to > 0.0) and not t.dead:
+			# hammers and a charging halberd knock up and back: small hop, shoved a step away from the blow
+			t.launch(110.0)
+			t.wd += signf(t.wd - a.wd) * 18.0
 	elif t == hero:
 		hero_hp -= d
 		hero_sprite.modulate = Color(2, 1, 1)

@@ -168,8 +168,7 @@ func _process(delta: float) -> void:
 				if o.team != team and not o.dead and not _charge_hit.has(o) 						and absf(o.wx - wx) < CHARGE_R and absf(o.wd - wd) < CHARGE_R:
 					_charge_hit[o] = true
 					attack_anim()
-					battle.hit(self, o, 2.0)   # the blow lands on the ground first...
-					o.launch(LAUNCH)           # ...and the follow-through sends them up: the juggle starts from the hit
+					battle.hit(self, o, 2.0)   # hit() knocks them up and back, same as a hammer blow
 		else:
 			# back: rush home, then the normal state takes over
 			var saved := rush
