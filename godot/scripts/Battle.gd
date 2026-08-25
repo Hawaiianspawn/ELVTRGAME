@@ -63,6 +63,8 @@ var army_panels: Array[ArmyPanel] = []
 var scenery: Array[Sprite2D] = []      # foreground rows + far horde, meta wx/wd
 var scroll := 0.0
 var scroll_creep := SCROLL_CREEP_BY_WAVE[0]
+var wave_t := 0.0                        # seconds into the hall: the push accelerates the longer you're in it
+const SCROLL_ACCEL := 0.02               # +2% scroll speed per second, capped at 2.5x (~75 s in)
 var advancing := true
 var swap_pending: Array[bool] = []
 var pool: Dictionary = {}              # type -> units of that type not on the field
@@ -84,6 +86,7 @@ func _ready() -> void:
 	view.horizon = 250.0            # lens tilted down a touch: more ground, front line mid-frame
 	view.cam_h = 200.0              # higher lens
 	view.sprite_k = 2.2             # the 8x6 block fills the frame edge to edge
+	texture_repeat = TEXTURE_REPEAT_ENABLED   # wall bricks use u > 1 to scroll along depth (_draw_walls)
 	_rng.randomize()
 	world = Node2D.new()
 	world.y_sort_enabled = true
@@ -141,6 +144,7 @@ func _build_scenery() -> void:
 func start_wave(i: int) -> void:
 	Game.wave = i
 	scroll_creep = SCROLL_CREEP_BY_WAVE[i]   # necromancer speeds the sweep each wave; scenery-only, sim speed (CREEP) untouched
+	wave_t = 0.0
 	var ct := create_tween()        # bend hardens and turns faster too, blended in so the hall doesn't snap
 	ct.set_parallel(true)
 	ct.tween_property(view, "curve_a", CURVE_A_BY_WAVE[i], 2.0).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN_OUT)
@@ -557,7 +561,8 @@ func _process(delta: float) -> void:
 	hud.queue_redraw()
 	_rebuild_grid()
 	toast_t -= delta
-	scroll += scroll_creep * delta
+	wave_t += delta
+	scroll += scroll_creep * minf(1.0 + wave_t * SCROLL_ACCEL, 2.5) * delta
 	view.scroll = scroll
 	# scenery re-projects every frame (camera tweens per wave)
 	for s in scenery:
@@ -985,6 +990,10 @@ func _draw_walls() -> void:
 			var last_b := b
 			var last_top_a := a
 			var last_top_b := b
+			# bricks slide toward the camera with the push: u is world depth in brick lengths, so the
+			# texture is pinned to the hall, not to the band (texture_repeat is on for this node)
+			var ua := (da + scroll) / COURSE_H
+			var ub := (db + scroll) / COURSE_H
 			var course := 0
 			while course < MAX_COURSES and top_a.y > 0.0:
 				var bot_a := a - Vector2(0, course * COURSE_H * sa)
@@ -994,7 +1003,7 @@ func _draw_walls() -> void:
 				draw_polygon(
 					PackedVector2Array([bot_a, bot_b, top_b, top_a]),
 					PackedColorArray([f, f, f, f]),
-					PackedVector2Array([Vector2(0, 1), Vector2(1, 1), Vector2(1, 0), Vector2(0, 0)]),
+					PackedVector2Array([Vector2(ua, 1), Vector2(ub, 1), Vector2(ub, 0), Vector2(ua, 0)]),
 					WALL_TEX)
 				last_a = bot_a; last_b = bot_b; last_top_a = top_a; last_top_b = top_b
 				course += 1
