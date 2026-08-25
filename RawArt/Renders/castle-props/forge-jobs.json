@@ -1,0 +1,470 @@
+{
+  "flame_sconce": {
+    "kind": "objects",
+    "character_id": "dbb4c04d-cf01-4437-ad8c-6913995c4723",
+    "status": "done",
+    "queued": "2026-08-25T04:47:10+00:00",
+    "fetched": "2026-08-25T04:48:21+00:00",
+    "canvas": [
+      68,
+      68
+    ],
+    "pixellab_name": "Rusted iron wall sconce bracke",
+    "group_id": "843c23bd-5627-4243-8353-7c99dabc2e63"
+  },
+  "flame_brazier": {
+    "kind": "objects",
+    "character_id": "316c6b4e-9f28-4c93-b92b-5546636f9824",
+    "status": "done",
+    "queued": "2026-08-25T04:47:10+00:00",
+    "fetched": "2026-08-25T04:48:26+00:00",
+    "canvas": [
+      68,
+      68
+    ],
+    "pixellab_name": "Wide low iron floor brazier bo",
+    "group_id": "f4f85ee9-137b-4318-a0ef-6776e1edf3ff"
+  },
+  "flame_candelabra": {
+    "kind": "objects",
+    "character_id": "95a64c84-668e-47c3-a16c-3ae8382a3f2d",
+    "status": "done",
+    "queued": "2026-08-25T04:47:10+00:00",
+    "fetched": "2026-08-25T04:48:31+00:00",
+    "canvas": [
+      68,
+      68
+    ],
+    "pixellab_name": "Tall thin tarnished iron stand",
+    "group_id": "c6ed0b90-6332-4227-b0d9-bd4361ef310f"
+  },
+  "flame_skull_lantern": {
+    "kind": "objects",
+    "character_id": "9540d1cf-2b6b-4b26-9556-b0b515193581",
+    "status": "done",
+    "queued": "2026-08-25T04:47:10+00:00",
+    "fetched": "2026-08-25T04:47:19+00:00",
+    "canvas": [
+      68,
+      68
+    ],
+    "pixellab_name": "Skull mounted on a short iron ",
+    "group_id": "094ce26f-7b96-4991-be2c-bc52f5b53ee2"
+  },
+  "flame_cage_lamp": {
+    "kind": "objects",
+    "character_id": "d5c72df1-0eaf-4186-9183-ac9e086114a8",
+    "status": "done",
+    "queued": "2026-08-25T04:47:10+00:00",
+    "fetched": "2026-08-25T04:47:24+00:00",
+    "canvas": [
+      68,
+      68
+    ],
+    "pixellab_name": "Hanging rusted iron cage lamp ",
+    "group_id": "6b1404ad-27d0-462f-adc2-3bf0223113c2"
+  },
+  "flame_urn": {
+    "kind": "objects",
+    "character_id": "8d2fdd3e-a725-421d-9ffb-a76d6af33e95",
+    "status": "done",
+    "queued": "2026-08-25T04:47:10+00:00",
+    "fetched": "2026-08-25T04:47:29+00:00",
+    "canvas": [
+      68,
+      68
+    ],
+    "pixellab_name": "Cracked stone urn on the floor",
+    "group_id": "1a43ddea-0c0a-4b76-bab8-2de3a6291dcf"
+  },
+  "table_trestle": {
+    "kind": "objects",
+    "character_id": "85a2ec4d-e390-45ac-8588-1f89957ebbe0",
+    "status": "done",
+    "queued": "2026-08-25T04:47:10+00:00",
+    "fetched": "2026-08-25T04:47:34+00:00",
+    "canvas": [
+      68,
+      68
+    ],
+    "pixellab_name": "Long low wooden trestle table,",
+    "group_id": "9290e099-abcc-4667-8931-85ac116b2d95"
+  },
+  "table_round": {
+    "kind": "objects",
+    "character_id": "867c2bec-b6f7-4ea7-a175-06771cc09ebf",
+    "status": "done",
+    "queued": "2026-08-25T04:47:10+00:00",
+    "fetched": "2026-08-25T04:47:38+00:00",
+    "canvas": [
+      68,
+      68
+    ],
+    "pixellab_name": "Round wooden table on a single",
+    "group_id": "e5ac0fdb-9286-4e5b-860f-b167bcb6cfc4"
+  },
+  "table_broken": {
+    "kind": "objects",
+    "character_id": "5cc292db-1b78-4cd3-ad5a-fcf06046c415",
+    "status": "done",
+    "queued": "2026-08-25T04:47:10+00:00",
+    "fetched": "2026-08-25T04:48:36+00:00",
+    "canvas": [
+      68,
+      68
+    ],
+    "pixellab_name": "Rectangular wooden table with ",
+    "group_id": "b8b3cef7-9502-479a-8175-e1e9234501e1"
+  },
+  "table_cloth": {
+    "kind": "objects",
+    "character_id": "b3c68028-efa2-4397-ae44-e6446e4140ee",
+    "status": "done",
+    "queued": "2026-08-25T04:47:10+00:00",
+    "fetched": "2026-08-25T04:48:42+00:00",
+    "canvas": [
+      68,
+      68
+    ],
+    "pixellab_name": "Square table fully draped in a",
+    "group_id": "6e660298-fa3f-4a0f-b642-10ae882b9664"
+  },
+  "table_map": {
+    "kind": "objects",
+    "character_id": "53015a8c-ac5e-4f15-a94b-a88b3b915790",
+    "status": "done",
+    "queued": "2026-08-25T04:47:10+00:00",
+    "fetched": "2026-08-25T04:48:47+00:00",
+    "canvas": [
+      68,
+      68
+    ],
+    "pixellab_name": "Rectangular wooden map table c",
+    "group_id": "4d3d6049-fb0f-4a4e-92e4-6d6e0da53559"
+  },
+  "table_overturned": {
+    "kind": "objects",
+    "character_id": "581c0a79-503f-4308-a599-2da9ee49e1e8",
+    "status": "done",
+    "queued": "2026-08-25T04:47:10+00:00",
+    "fetched": "2026-08-25T04:48:52+00:00",
+    "canvas": [
+      68,
+      68
+    ],
+    "pixellab_name": "Wooden table overturned on its",
+    "group_id": "daa5f787-524e-41b0-a707-a37c12d6c0c5"
+  },
+  "chair_throne": {
+    "kind": "objects",
+    "character_id": "1de5ae3e-2e34-4f60-81a2-b2607f3f0d1d",
+    "status": "done",
+    "queued": "2026-08-25T04:47:10+00:00",
+    "fetched": "2026-08-25T04:48:57+00:00",
+    "canvas": [
+      68,
+      68
+    ],
+    "pixellab_name": "Very tall high-backed wooden t",
+    "group_id": "8da17887-2171-4aa1-97ff-de238bec3ea5"
+  },
+  "chair_stool": {
+    "kind": "objects",
+    "character_id": "13e257f9-699f-4bd4-bb7e-f13d7a79c90c",
+    "status": "done",
+    "queued": "2026-08-25T04:47:10+00:00",
+    "fetched": "2026-08-25T04:49:03+00:00",
+    "canvas": [
+      68,
+      68
+    ],
+    "pixellab_name": "Small three-legged wooden stoo",
+    "group_id": "6c8e02f0-d6c9-4200-80e4-9a06fdc72fc2"
+  },
+  "chair_bench": {
+    "kind": "objects",
+    "character_id": "c256d7b3-00ca-417c-8bbc-80a0f1b266c4",
+    "status": "done",
+    "queued": "2026-08-25T04:47:10+00:00",
+    "fetched": "2026-08-25T04:49:10+00:00",
+    "canvas": [
+      68,
+      68
+    ],
+    "pixellab_name": "Long low wooden bench, no back",
+    "group_id": "c09278ba-b1f5-4a7e-808c-150da6d32f11"
+  },
+  "chair_broken": {
+    "kind": "objects",
+    "character_id": "4af361d2-7d8f-406d-b412-4af536cbecdb",
+    "status": "done",
+    "queued": "2026-08-25T04:47:10+00:00",
+    "fetched": "2026-08-25T04:49:16+00:00",
+    "canvas": [
+      68,
+      68
+    ],
+    "pixellab_name": "Wooden chair with its back sna",
+    "group_id": "900fd158-51a7-4554-935a-f1af5a488867"
+  },
+  "chair_iron": {
+    "kind": "objects",
+    "character_id": "1aef10df-27b1-44eb-9ba8-574cf12cdc05",
+    "status": "done",
+    "queued": "2026-08-25T04:47:10+00:00",
+    "fetched": "2026-08-25T04:49:26+00:00",
+    "canvas": [
+      68,
+      68
+    ],
+    "pixellab_name": "Chair made of thin rusted iron",
+    "group_id": "af27823a-7a3e-464a-84a2-2005817c7e77"
+  },
+  "chair_toppled": {
+    "kind": "objects",
+    "character_id": "78416739-9699-4757-a74d-a998ae9d2a0a",
+    "status": "done",
+    "queued": "2026-08-25T04:47:10+00:00",
+    "fetched": "2026-08-25T04:49:32+00:00",
+    "canvas": [
+      68,
+      68
+    ],
+    "pixellab_name": "Wooden chair knocked over lyin",
+    "group_id": "7b813767-4e45-42fb-a2b0-c0cddc3cdcda"
+  },
+  "mirror_ornate": {
+    "kind": "objects",
+    "character_id": "e6bed2e6-d8fc-4bd1-927e-c68f7fd1941d",
+    "status": "done",
+    "queued": "2026-08-25T04:47:10+00:00",
+    "fetched": "2026-08-25T04:49:37+00:00",
+    "canvas": [
+      68,
+      68
+    ],
+    "pixellab_name": "Tall rectangular standing mirr",
+    "group_id": "0a78a435-2c2a-4ba6-9cf5-60b2beeb1d7d"
+  },
+  "mirror_iron": {
+    "kind": "objects",
+    "character_id": "ab2d065f-3b8e-472f-965f-42e905f08b54",
+    "status": "done",
+    "queued": "2026-08-25T04:47:10+00:00",
+    "fetched": "2026-08-25T04:49:42+00:00",
+    "canvas": [
+      68,
+      68
+    ],
+    "pixellab_name": "Plain rectangular mirror in a ",
+    "group_id": "2606be27-7444-44f0-a8b0-0b3cf648be03"
+  },
+  "mirror_oval": {
+    "kind": "objects",
+    "character_id": "6d7240d1-7006-4eb2-8a6d-2d7ed6969860",
+    "status": "done",
+    "queued": "2026-08-25T04:50:29+00:00",
+    "fetched": "2026-08-25T04:53:05+00:00",
+    "canvas": [
+      68,
+      68
+    ],
+    "pixellab_name": "Oval mirror on a stand, glass ",
+    "group_id": "b57fa8d1-9ad1-47fd-99d9-e832a1bf0680"
+  },
+  "mirror_cheval": {
+    "kind": "objects",
+    "character_id": "5d8007a3-9fba-4492-8a48-c9484a80c3df",
+    "status": "done",
+    "queued": "2026-08-25T04:50:29+00:00",
+    "fetched": "2026-08-25T04:51:48+00:00",
+    "canvas": [
+      68,
+      68
+    ],
+    "pixellab_name": "Tall full-length cheval mirror",
+    "group_id": "4ef8e0ef-228d-4704-bc84-37a01dc2e818"
+  },
+  "mirror_shard": {
+    "kind": "objects",
+    "character_id": "b9a0318d-50d1-4cf5-92a9-78cf9a041c64",
+    "status": "done",
+    "queued": "2026-08-25T04:50:29+00:00",
+    "fetched": "2026-08-25T04:51:52+00:00",
+    "canvas": [
+      68,
+      68
+    ],
+    "pixellab_name": "Rectangular standing mirror wi",
+    "group_id": "48b397e4-53e0-4175-91b4-ea598415b9a2"
+  },
+  "mirror_draped": {
+    "kind": "objects",
+    "character_id": "def4ead0-dbd6-4e95-b13f-8734f747c879",
+    "status": "done",
+    "queued": "2026-08-25T04:50:29+00:00",
+    "fetched": "2026-08-25T04:51:57+00:00",
+    "canvas": [
+      68,
+      68
+    ],
+    "pixellab_name": "Square standing mirror with a ",
+    "group_id": "edf92389-f2fe-4687-bce7-63137785eef4"
+  },
+  "chest_wooden": {
+    "kind": "objects",
+    "character_id": "f3968c1d-64b6-46dc-b75b-0fb21e391fe8",
+    "status": "done",
+    "queued": "2026-08-25T04:50:29+00:00",
+    "fetched": "2026-08-25T04:52:02+00:00",
+    "canvas": [
+      68,
+      68
+    ],
+    "pixellab_name": "Closed wooden plank treasure c",
+    "group_id": "9112bcb1-7a9a-4141-8106-cde75b4d3e6e"
+  },
+  "chest_iron": {
+    "kind": "objects",
+    "character_id": "a039ad98-79b7-475c-bb72-54b208b4a079",
+    "status": "done",
+    "queued": "2026-08-25T04:50:29+00:00",
+    "fetched": "2026-08-25T04:52:09+00:00",
+    "canvas": [
+      68,
+      68
+    ],
+    "pixellab_name": "Closed squat chest fully plate",
+    "group_id": "41dbfced-c11c-4a6b-a096-fc6f0bb33e09"
+  },
+  "chest_ornate": {
+    "kind": "objects",
+    "character_id": "1aea47ec-a9d6-4d5a-8e82-53d614f105ce",
+    "status": "done",
+    "queued": "2026-08-25T04:50:29+00:00",
+    "fetched": "2026-08-25T04:52:14+00:00",
+    "canvas": [
+      68,
+      68
+    ],
+    "pixellab_name": "Closed ornate carved chest tal",
+    "group_id": "51e9d478-0ab6-479c-ae42-bba54f1075b2"
+  },
+  "chest_coffer": {
+    "kind": "objects",
+    "character_id": "2907759f-29b4-48f5-a4bc-8fe3e6fcca4e",
+    "status": "done",
+    "queued": "2026-08-25T04:50:29+00:00",
+    "fetched": "2026-08-25T04:52:19+00:00",
+    "canvas": [
+      68,
+      68
+    ],
+    "pixellab_name": "Closed small wooden coffer box",
+    "group_id": "526e4489-cf08-4970-9234-fe327341eb8a"
+  },
+  "chest_mimic": {
+    "kind": "objects",
+    "character_id": "32f24f11-c654-4931-aa4c-d1274c79e4e6",
+    "status": "done",
+    "queued": "2026-08-25T04:50:29+00:00",
+    "fetched": "2026-08-25T04:52:25+00:00",
+    "canvas": [
+      68,
+      68
+    ],
+    "pixellab_name": "Closed wooden chest with the l",
+    "group_id": "8e62e86d-cb30-4b7d-927b-8fd5329f5214"
+  },
+  "chest_bone": {
+    "kind": "objects",
+    "character_id": "0ab39c2a-e4ae-451d-969f-d2b693cdb4c7",
+    "status": "done",
+    "queued": "2026-08-25T04:50:29+00:00",
+    "fetched": "2026-08-25T04:52:30+00:00",
+    "canvas": [
+      68,
+      68
+    ],
+    "pixellab_name": "Closed chest built from bleach",
+    "group_id": "3727e62d-c12b-421c-bd71-389da2ed56a1"
+  },
+  "chest_wooden_open": {
+    "kind": "objects",
+    "character_id": "412e8eaa-8058-4979-9e93-914d58e9c637",
+    "status": "done",
+    "queued": "2026-08-25T04:53:37+00:00",
+    "fetched": "2026-08-25T04:55:17+00:00",
+    "canvas": [
+      68,
+      68
+    ],
+    "pixellab_name": "Closed wooden plank treasure c",
+    "group_id": "9112bcb1-7a9a-4141-8106-cde75b4d3e6e"
+  },
+  "chest_iron_open": {
+    "kind": "objects",
+    "character_id": "1f38b990-1614-4024-b561-dc37aec51312",
+    "status": "done",
+    "queued": "2026-08-25T04:53:37+00:00",
+    "fetched": "2026-08-25T04:55:23+00:00",
+    "canvas": [
+      68,
+      68
+    ],
+    "pixellab_name": "Closed squat chest fully plate",
+    "group_id": "41dbfced-c11c-4a6b-a096-fc6f0bb33e09"
+  },
+  "chest_ornate_open": {
+    "kind": "objects",
+    "character_id": "2c577402-68f3-4383-bc11-8c1e7d8fb51d",
+    "status": "done",
+    "queued": "2026-08-25T04:53:37+00:00",
+    "fetched": "2026-08-25T04:55:28+00:00",
+    "canvas": [
+      68,
+      68
+    ],
+    "pixellab_name": "Closed ornate carved chest tal",
+    "group_id": "51e9d478-0ab6-479c-ae42-bba54f1075b2"
+  },
+  "chest_coffer_open": {
+    "kind": "objects",
+    "character_id": "6910c749-38de-4c01-be6f-32475d3ed78c",
+    "status": "done",
+    "queued": "2026-08-25T04:53:37+00:00",
+    "fetched": "2026-08-25T04:55:33+00:00",
+    "canvas": [
+      68,
+      68
+    ],
+    "pixellab_name": "Closed small wooden coffer box",
+    "group_id": "526e4489-cf08-4970-9234-fe327341eb8a"
+  },
+  "chest_mimic_open": {
+    "kind": "objects",
+    "character_id": "cb5fcc9d-0693-4722-b12f-d4a2abba66a3",
+    "status": "done",
+    "queued": "2026-08-25T04:53:37+00:00",
+    "fetched": "2026-08-25T04:55:38+00:00",
+    "canvas": [
+      68,
+      68
+    ],
+    "pixellab_name": "Closed wooden chest with the l",
+    "group_id": "8e62e86d-cb30-4b7d-927b-8fd5329f5214"
+  },
+  "chest_bone_open": {
+    "kind": "objects",
+    "character_id": "c355317d-9a4d-430a-aa96-5690235971f4",
+    "status": "done",
+    "queued": "2026-08-25T04:53:37+00:00",
+    "fetched": "2026-08-25T04:55:43+00:00",
+    "canvas": [
+      68,
+      68
+    ],
+    "pixellab_name": "Closed chest built from bleach",
+    "group_id": "3727e62d-c12b-421c-bd71-389da2ed56a1"
+  }
+}

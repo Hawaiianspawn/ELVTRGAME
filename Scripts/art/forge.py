@@ -416,7 +416,7 @@ def clip_webp(clip_dir, scale=2, ms=70, hold_ms=0, rest=None, n=0):
     an optional standing frame (the north rotation) shown between loops so the clip reads as
     strike-then-guard rather than a spinning loop."""
     from PIL import Image
-    files = sorted(clip_dir.glob("frame_*.png"), key=lambda f: int(f.stem[6:]))[:n or None]
+    files = frames_in(clip_dir)[:n or None]
     if not files:
         raise Fail("no frames in %s" % clip_dir)
     ims = [Image.open(f).convert("RGBA") for f in files]
@@ -460,7 +460,7 @@ def attacks_page():
         unit = by_ref.get(ref)
         u = units.get(unit) or {}
         hold = float(u.get("attack_hold", 0.0))
-        n = len(list(d.glob("frame_*.png")))
+        n = len(frames_in(d))
         facing = name.split("_")[-1] if "_" in name else "south"
         q = "ref=%s&name=%s" % (esc(ref), esc(name))
         cards.append(
@@ -493,6 +493,11 @@ UNITS_JSON = REPO / "godot" / "data" / "units.json"
 GAME_FIELDS = ("hp", "dmg", "range", "speed", "cooldown", "attack_hold", "attack_frames", "slash", "slash_y", "sfx")
 
 
+
+def frames_in(d):
+    """frame_N.png files in clip order; skips editor backups like frame_0.prehelm.png."""
+    return sorted((f for f in d.glob("frame_*.png") if f.stem[6:].isdigit()), key=lambda f: int(f.stem[6:]))
+
 def clip_root(fam, slug):
     """Where a unit's clips live: the Selects copy when the owner has edited one there, else raw."""
     d = select_dir(slug)
@@ -519,7 +524,7 @@ def game_page():
             q = "ref=%s&name=%s&n=%d" % (esc(ref), esc(clip.parent.name), int(u.get("attack_frames", 0)))
             panes += '<img src="/anim?%s&zoom=4&hold=%d" alt="" title="attack clip + hold">' % (q, int(hold * 1000))
             strip = '<img class="strip" src="/anim?%s&zoom=2&strip=1" alt=""><span class="sub">%s &middot; %d frames</span>' % (
-                q, esc(clip.parent.name), int(u.get("attack_frames") or len(list(clip.parent.glob("frame_*.png")))))
+                q, esc(clip.parent.name), int(u.get("attack_frames") or len(frames_in(clip.parent))))
         else:
             panes += '<span class="none">no attack clip</span>'
         sl = u.get("slash") or ""
@@ -603,7 +608,8 @@ def poll(family):
         if j.get("status") != "pending":
             continue
         try:
-            d = pl("GET", "/characters/%s" % j["character_id"], timeout=30)
+            # kind: "objects" for 8-direction props (same record shape: status + rotation_urls)
+            d = pl("GET", "/%s/%s" % (j.get("kind", "characters"), j["character_id"]), timeout=30)
         except Fail as e:
             j["last_error"] = str(e)
             continue
@@ -2098,7 +2104,7 @@ def build_app(family, atlas, prefix, scale):
         d = clip_root(fam, slug) / name
         if strip:
             from PIL import Image
-            files = sorted(d.glob("frame_*.png"), key=lambda f: int(f.stem[6:]))[:n or None]
+            files = frames_in(d)[:n or None]
             ims = [Image.open(f).convert("RGBA") for f in files]
             w, h = max(i.width for i in ims), max(i.height for i in ims)
             sheet = Image.new("RGBA", (w * len(ims), h), (0, 0, 0, 0))
