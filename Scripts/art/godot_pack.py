@@ -7,6 +7,7 @@ RawArt/Aaron Selects/selects.json (or a raw RawArt/Renders path when the value a
 one), and writes godot/assets/sprites/<out-name>.png: 8 cells wide, one direction each,
 in the shared atlas column order from atlas.py. Cell size = tallest source (88 or 92).
 """
+import re
 import json, os, sys
 from PIL import Image
 
@@ -70,7 +71,7 @@ def main():
             adir = os.path.join(os.path.dirname(d), clip + "_north")
             if not os.path.isdir(adir):
                 continue
-            names = sorted((f for f in os.listdir(adir) if f.startswith("frame_") and f.endswith(".png")),
+            names = sorted((f for f in os.listdir(adir) if re.fullmatch(r"frame_\d+\.png", f)),
                            key=lambda f: int(f[6:-4]))
             if clip == "attack" and name in cut:
                 names = names[:cut[name]]
@@ -87,7 +88,7 @@ def main():
         fdir = os.path.join(fxroot, fx, "frames")
         if not os.path.isdir(fdir):
             continue
-        names = sorted((f for f in os.listdir(fdir) if f.startswith("frame_") and f.endswith(".png")),
+        names = sorted((f for f in os.listdir(fdir) if re.fullmatch(r"frame_\d+\.png", f)),
                        key=lambda f: int(f[6:-4]))
         frames = [Image.open(os.path.join(fdir, f)).convert("RGBA") for f in names]
         cell = max(max(im.size) for im in frames)

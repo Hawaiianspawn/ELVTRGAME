@@ -180,7 +180,7 @@ palette-matched variants, kept rather than discarded per the retention rule).
 | | Tool | Job ID | Style ref | Cost | Size | Files |
 |---|---|---|---|---|---|---|
 | Walls | `create_tiles_pro` | `0892db47-b8c6-4b79-bc67-8e2c10331b0c` | #4 wall-strip (downscaled) | 20-40 gen | 16 x 64x64px | `RawArt/Renders/castle-art-pass/finals/walls/tile_0..15.png` |
-| Floor | `create_tiles_pro` | `aaeaba58-9d67-4f53-aaf6-2eb426d06d2e` | #4 wall-strip (downscaled) | 20-40 gen | 16 x 64x64px | `RawArt/Renders/castle-art-pass/finals/floor/tile_0..15.png` |
+| Floor | `create_tiles_pro` | `aaeaba58` — deleted 2026-08-20 (read olive-yellow; hall floor uses the floor-flat set) | | | | |
 
 Contact sheets: `RawArt/Renders/castle-art-pass/finals/walls-contact.png`,
 `RawArt/Renders/castle-art-pass/finals/floor-contact.png`.

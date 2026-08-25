@@ -98,8 +98,6 @@ func setup(p_type: String, p_team: int, p_battle: Node2D) -> void:
 
 ## Play the packed north-facing attack clip; the static frame comes back when it ends.
 func attack_anim() -> void:
-	if Time.get_ticks_msec() / 1000.0 < spin_until:
-		return   # the spin IS the attack anim; the clip would freeze the twirl
 	if not _atk.is_empty() and team == ALLY:
 		_clip = _atk
 		_atk_t = 0.0
@@ -204,14 +202,16 @@ func _process(delta: float) -> void:
 			wx = here.x
 			wd = here.y
 			_moving = true
-			sprite.frame = wrapi(int(_t * 22.0), 0, 8)
+			if _atk_t < 0.0:
+				sprite.frame = 4   # the sheet's attack clip is the only swing art; no rotation twirl
 			var foe: Unit = battle.near_enemy(self, 45.0)
 			if foe and _cd <= 0.0:
 				_cd = cooldown
 				battle.hit(self, foe)
 		else:
 			_roll_goal = Vector2.ZERO
-			sprite.frame = 4 if absi(sprite.frame - 4) <= 2 else 0   # exit the spin facing N or S
+			if _atk_t < 0.0:
+				sprite.frame = 4
 	else:
 		sprite.modulate = sprite.modulate.lerp(battle.view.fog(wd), delta * 8.0)
 		match state:

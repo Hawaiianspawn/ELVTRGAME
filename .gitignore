@@ -52,3 +52,7 @@ Scripts/snap*.txt
 Scripts/slate-snapshot.txt
 _to_delete/
 build/
+
+# Local run artifacts: godot-run/bg-run logs and screenshots; and the dev/null Windows redirect mishap
+Saved/
+dev/null/

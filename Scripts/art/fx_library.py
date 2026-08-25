@@ -23,8 +23,10 @@ GREEN = ((40, 130, 70), (110, 230, 120), (225, 255, 225))
 
 
 def _put(px, x, y, c):
-    if 0 <= x < S and 0 <= y < S:
-        px[x, y] = c + (255,)
+    try:
+        px[x, y] = c + (255,)   # PixelAccess raises off-canvas, whatever the canvas size
+    except IndexError:
+        pass
 
 
 def arc(frames, cx, cy, r, a0, a1, thick=4, tail=0.55, pal=GOLD, phase=0.0):
@@ -122,8 +124,8 @@ def burst(frames, cx, cy, rays=8, rmax=26, pal=GOLD):
             sparkles(im, cx, cy, 10, pal, rmax)
 
 
-def new(n):
-    return [Image.new("RGBA", (S, S)) for _ in range(n)]
+def new(n, size=S):
+    return [Image.new("RGBA", (size, size)) for _ in range(n)]
 
 
 def compose(*clips):
@@ -530,7 +532,15 @@ LIBRARY.update({
     "judgement_cut_gold": lambda: _clip(6, swipes, pal=GOLD, seed=6),
     "judgement_cut_lines": lambda: _clip(8, judgement_cut, sphere_on=False, spread=0.10),
     "judgement_cut_sphere": lambda: _clip(10, judgement_cut, spread=0.4),
+    # 2x canvas, still 1px cuts: the game scales it back down so the lines stay hairline at any zoom
+    "judgement_cut_thin": lambda: _thin(6, swipes, cx=64, cy=64, r=44),
 })
+
+
+def _thin(n, fn, *a, **k):
+    fr = new(n, S * 2)
+    fn(fr, *a, **k)
+    return fr
 
 
 def write(name, frames):
