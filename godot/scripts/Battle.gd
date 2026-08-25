@@ -11,8 +11,11 @@ const HERO_MIN_D := 150.0
 const HERO_MAX_D := 290.0
 const ENEMY_MIN_D := 130.0        # enemies stop here, at the hero's feet: nothing walks behind the lens
 const RANK_D0 := 285.0          # first rank behind the front line
-const CREEP := 42.0             # the push: world units / s the field slides toward the camera
+const CREEP := 42.0             # sim treadmill: enemy wd drift (Unit.gd) â€” untouched, not a visual dial
+const SCROLL_CREEP_BY_WAVE := [84.0, 112.0, 140.0, 170.0]   # visual-only scroll speed (scenery), ~2x CREEP at wave1, ~2x again by wave4
 const HALL_HALF := 200.0        # hallway half-width: the walls; everything lives between them
+const CURVE_A_BY_WAVE := [0.5, 0.65, 0.85, 1.1]      # per-wave hall curvature (View.curve_a): harder bend each wave
+const CURVE_L_BY_WAVE := [460.0, 380.0, 320.0, 270.0]  # per-wave curvature wavelength (View.curve_l): faster turn each wave
 const RANK_ROWS := 8            # depth of the company block down to the camera; every slot is a real unit
 const RANK_COLS := 6            # files across; the block fills the hall wall to wall
 const RANK_HALF := HALL_HALF - 20.0   # half-width of the block in world units
@@ -59,6 +62,7 @@ var toast_label: Label
 var army_panels: Array[ArmyPanel] = []
 var scenery: Array[Sprite2D] = []      # foreground rows + far horde, meta wx/wd
 var scroll := 0.0
+var scroll_creep := SCROLL_CREEP_BY_WAVE[0]
 var advancing := true
 var swap_pending: Array[bool] = []
 var pool: Dictionary = {}              # type -> units of that type not on the field
@@ -136,6 +140,11 @@ func _build_scenery() -> void:
 
 func start_wave(i: int) -> void:
 	Game.wave = i
+	scroll_creep = SCROLL_CREEP_BY_WAVE[i]   # necromancer speeds the sweep each wave; scenery-only, sim speed (CREEP) untouched
+	var ct := create_tween()        # bend hardens and turns faster too, blended in so the hall doesn't snap
+	ct.set_parallel(true)
+	ct.tween_property(view, "curve_a", CURVE_A_BY_WAVE[i], 2.0).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN_OUT)
+	ct.tween_property(view, "curve_l", CURVE_L_BY_WAVE[i], 2.0).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN_OUT)
 	checkpoint_magic = Game.magic
 	for u in units:
 		if is_instance_valid(u):
@@ -548,7 +557,7 @@ func _process(delta: float) -> void:
 	hud.queue_redraw()
 	_rebuild_grid()
 	toast_t -= delta
-	scroll += CREEP * delta
+	scroll += scroll_creep * delta
 	view.scroll = scroll
 	# scenery re-projects every frame (camera tweens per wave)
 	for s in scenery:
