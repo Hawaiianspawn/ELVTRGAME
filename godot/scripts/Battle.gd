@@ -974,26 +974,29 @@ func _draw_walls() -> void:
 	var far_d := view.cam_d + view.fog_end * 1.5
 	var wall_h := COURSE_H * MAX_COURSES   # sconce height reference; texture courses stack independently above
 	var segs := 14     # was 12; the curve needs enough depth bands to read as a curve, not a polyline
-	for side: float in [-1.0, 1.0]:
-		var x: float = side * HALL_HALF
-		for i in range(segs):
-			var da := near_d * pow(far_d / near_d, float(i) / segs)
-			var db := near_d * pow(far_d / near_d, float(i + 1) / segs)
+	# painter's order: far bands first, so where the bend folds a wall over itself the near bricks win
+	for i in range(segs - 1, -1, -1):
+		var da := near_d * pow(far_d / near_d, float(i) / segs)
+		var db := near_d * pow(far_d / near_d, float(i + 1) / segs)
+		var f := view.fog(da)
+		var sa := view.s(da)
+		var sb := view.s(db)
+		# bricks slide toward the camera with the push: u is world depth in brick lengths, so the
+		# texture is pinned to the hall, not to the band (texture_repeat is on for this node)
+		var ua := (da + scroll) / COURSE_H
+		var ub := (db + scroll) / COURSE_H
+		for side: float in [-1.0, 1.0]:
+			var x: float = side * HALL_HALF
 			var a := view.project(x, da)
 			var b := view.project(x, db)
-			var f := view.fog(da)
-			var sa := view.s(da)
-			var sb := view.s(db)
+			if (b.x - a.x) * side > 0.0:
+				continue   # back face: this stretch bends away from the lens, we'd be seeing its far side
 			var top_a := a
 			var top_b := b
 			var last_a := a
 			var last_b := b
 			var last_top_a := a
 			var last_top_b := b
-			# bricks slide toward the camera with the push: u is world depth in brick lengths, so the
-			# texture is pinned to the hall, not to the band (texture_repeat is on for this node)
-			var ua := (da + scroll) / COURSE_H
-			var ub := (db + scroll) / COURSE_H
 			var course := 0
 			while course < MAX_COURSES and top_a.y > 0.0:
 				var bot_a := a - Vector2(0, course * COURSE_H * sa)
@@ -1013,17 +1016,22 @@ func _draw_walls() -> void:
 			draw_polygon(
 				PackedVector2Array([mid_a, mid_b, last_top_b, last_top_a]),
 				PackedColorArray([Color(0, 0, 0, 0), Color(0, 0, 0, 0), Color.BLACK, Color.BLACK]))
-		draw_line(view.project(x, near_d), view.project(x, far_d), Color(0, 0, 0, 0.5), 2.0)
-		# sconces march toward the camera with the push
+			draw_line(a, b, Color(0, 0, 0, 0.5), 2.0)   # floor/wall seam, follows the bend band by band
+	# sconces march toward the camera with the push; far to near so near glows sit on top
+	for side: float in [-1.0, 1.0]:
+		var x: float = side * HALL_HALF
 		var d := near_d + fposmod(-scroll, 160.0)
+		var ds: Array[float] = []
 		while d < far_d:
-			var p := view.project(x, d) - Vector2(0, wall_h * 0.6 * view.s(d))
-			var k := view.s(d)
-			var f := view.fog(d)
-			draw_circle(p, 5.0 * k, Color(0.35, 0.95, 0.45, 0.85) * f)
-			draw_circle(p, 12.0 * k, Color(0.3, 0.9, 0.4, 0.18) * f)
+			ds.append(d)
 			d += 160.0
-
+		ds.reverse()
+		for sd in ds:
+			var p := view.project(x, sd) - Vector2(0, wall_h * 0.6 * view.s(sd))
+			var k := view.s(sd)
+			var fd := view.fog(sd)
+			draw_circle(p, 5.0 * k, Color(0.35, 0.95, 0.45, 0.85) * fd)
+			draw_circle(p, 12.0 * k, Color(0.3, 0.9, 0.4, 0.18) * fd)
 
 func _draw_hud() -> void:
 	# motes + hero flame ride the top layer so they glow over the ranks
