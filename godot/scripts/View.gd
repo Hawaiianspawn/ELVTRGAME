@@ -8,6 +8,9 @@ var focal := 360.0
 var cam_h := 150.0
 var cam_x := 0.0
 var cam_d := 0.0              # camera position along depth; d values are absolute
+var scroll := 0.0             # forward creep (world units); Battle sets this each frame, shifts the hall's bend over time
+var curve_a := 0.5            # OutRun-style hall curvature: max lateral slope per depth unit
+var curve_l := 460.0          # curvature wavelength divisor; bend completes ~half a cycle by fog_end*1.5
 var sprite_k := 1.3           # sprite pixel scale at s == 1
 var fog_color := Color.BLACK
 var fog_start := 380.0
@@ -58,9 +61,16 @@ func s(d: float) -> float:
 	return focal / maxf(d - cam_d, 20.0)
 
 
+## Lateral drift of the hall's centerline at depth d, camera-relative (0 at d == cam_d).
+## Closed-form integral of curvature k(u) = curve_a * sin((u + scroll) / curve_l) du from cam_d to d.
+## scroll shifts the sine's phase over time, so the bend sweeps like an OutRun road curve.
+func curve_dx(d: float) -> float:
+	return curve_a * curve_l * (cos((cam_d + scroll) / curve_l) - cos((d + scroll) / curve_l))
+
+
 func project(x: float, d: float) -> Vector2:
 	var k := s(d)
-	return Vector2(480.0 + (x - cam_x) * k, horizon + cam_h * k)
+	return Vector2(480.0 + (x - cam_x + curve_dx(d)) * k, horizon + cam_h * k)
 
 
 func sprite_scale(d: float) -> float:
@@ -77,7 +87,7 @@ func depth_at_y(y: float) -> float:
 
 
 func x_at(sx: float, d: float) -> float:
-	return (sx - 480.0) / s(d) + cam_x
+	return (sx - 480.0) / s(d) - curve_dx(d) + cam_x
 
 
 ## Sky, fogged ground, receding row lines. `scroll` = forward creep in world units.
@@ -89,7 +99,7 @@ func draw_ground(c: CanvasItem, scroll: float, x_half: float) -> void:
 	# ground: grid of textured floor tiles, near->far depth rows x lateral columns.
 	# ponytail: capped grid (rows x cols below) to hold FPS with the full army; shrink further if the probe dips.
 	var d0 := 60.0
-	var rows := 12
+	var rows := 14     # was 12; the curve needs enough depth bands to read as a curve, not a polyline
 	var cols := int(ceil(x_half * 2.0 / FLOOR_TILE_W))
 	var scroll_step := int(scroll / FLOOR_TILE_W)
 	for i in range(rows):

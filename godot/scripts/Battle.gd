@@ -549,6 +549,7 @@ func _process(delta: float) -> void:
 	_rebuild_grid()
 	toast_t -= delta
 	scroll += CREEP * delta
+	view.scroll = scroll
 	# scenery re-projects every frame (camera tweens per wave)
 	for s in scenery:
 		var wd: float = s.get_meta("wd")
@@ -945,19 +946,10 @@ func _draw() -> void:
 	draw_line(dot, dot + Vector2(_rng.randf_range(-30, 30), -110), Color(0.5, 1.0, 0.5, 0.5 * flick), 2.0)
 
 
-# Wall tiles: indices 1,15 are plain, weighted ~70% via repeat count in the pool below.
-const WALL_PLAIN := [preload("res://assets/env/hall/wall_01.png"), preload("res://assets/env/hall/wall_15.png")]
-const WALL_OTHER := [
-	preload("res://assets/env/hall/wall_02.png"), preload("res://assets/env/hall/wall_03.png"),
-	preload("res://assets/env/hall/wall_08.png"), preload("res://assets/env/hall/wall_09.png"),
-	preload("res://assets/env/hall/wall_10.png"), preload("res://assets/env/hall/wall_11.png"),
-	preload("res://assets/env/hall/wall_12.png"), preload("res://assets/env/hall/wall_13.png"),
-	preload("res://assets/env/hall/wall_14.png"),
-]
-static var WALL_POOL: Array = View._build_pool(WALL_PLAIN, WALL_OTHER, 10)   # 2 plain x10 + 9 other = ~69% plain
-const COURSE_H := 42.0     # world-unit height of one wall course (tile is 32x44px, ~4 courses ~= old wall_h)
-const COURSE_LEDGE := 4.0 / 44.0   # top baked ledge as a UV fraction; trimmed on every course but the topmost
-const MAX_COURSES := 4     # ponytail: cap so 2 sides x 12 bands x 4 courses stays cheap; lower if the probe dips
+# Wall: wall_14 with its baked top ledge cropped off (rows 12..43) -> 32x32, loops vertically.
+const WALL_TEX := preload("res://assets/env/hall/wall_flat.png")
+const COURSE_H := 64.0     # world-unit height of one wall course (32px tile drawn 2x so the bricks read)
+const MAX_COURSES := 3     # ponytail: cap so 2 sides x 12 bands x 3 courses stays cheap; lower if the probe dips
 
 
 ## Stone walls either side of the hall, near to far, with green sconces every few rows; courses of the
@@ -967,8 +959,7 @@ func _draw_walls() -> void:
 	var near_d := view.cam_d + 60.0
 	var far_d := view.cam_d + view.fog_end * 1.5
 	var wall_h := COURSE_H * MAX_COURSES   # sconce height reference; texture courses stack independently above
-	var segs := 12
-	var scroll_step := int(scroll / COURSE_H)
+	var segs := 14     # was 12; the curve needs enough depth bands to read as a curve, not a polyline
 	for side: float in [-1.0, 1.0]:
 		var x: float = side * HALL_HALF
 		for i in range(segs):
@@ -991,13 +982,11 @@ func _draw_walls() -> void:
 				var bot_b := b - Vector2(0, course * COURSE_H * sb)
 				top_a = a - Vector2(0, (course + 1) * COURSE_H * sa)
 				top_b = b - Vector2(0, (course + 1) * COURSE_H * sb)
-				var top_uv := 0.0 if course == MAX_COURSES - 1 or top_a.y <= 0.0 else COURSE_LEDGE
-				var tex: Texture2D = View._pool_pick(WALL_POOL, int(side), i + scroll_step + course * 97)
 				draw_polygon(
 					PackedVector2Array([bot_a, bot_b, top_b, top_a]),
 					PackedColorArray([f, f, f, f]),
-					PackedVector2Array([Vector2(0, 1), Vector2(1, 1), Vector2(1, top_uv), Vector2(0, top_uv)]),
-					tex)
+					PackedVector2Array([Vector2(0, 1), Vector2(1, 1), Vector2(1, 0), Vector2(0, 0)]),
+					WALL_TEX)
 				last_a = bot_a; last_b = bot_b; last_top_a = top_a; last_top_b = top_b
 				course += 1
 			# fade the topmost course's upper 40% to solid black so no ceiling edge exists
