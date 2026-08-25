@@ -176,6 +176,8 @@ func _deploy(type: String, rush: bool) -> void:
 	for u in units:
 		if u.team == Unit.ALLY and not u.dead and u.state != Unit.State.RETREAT:
 			taken[u.home] = true
+	var d: Dictionary = Game.units[type]
+	var charge_in: bool = rush and str(d.get("ability", "")) == "sweep" and _ability_cd_left(type) <= 0.0
 	for sl in slots:
 		if taken.has(sl) or int(pool.get(type, 0)) <= 0:
 			continue
@@ -192,6 +194,12 @@ func _deploy(type: String, rush: bool) -> void:
 				u.air_v = -280.0
 				u.sky_slam = true
 				u.state = Unit.State.RANK
+			elif charge_in:
+				# halberdiers don't march in either: the deploy IS the charge, from behind the lens straight
+				# down-range through the ranks, launching everything passed, then back to the slot
+				u.wd = BEHIND_D
+				u.state = Unit.State.RANK
+				u.charge(sl.y + float(d.get("charge_len", SWEEP_LEN * 0.5)), sl)
 			else:
 				u.wd = BEHIND_D
 				u.rush = true
@@ -200,6 +208,8 @@ func _deploy(type: String, rush: bool) -> void:
 			u.wx = sl.x
 			u.wd = sl.y
 			u.state = Unit.State.RANK
+	if charge_in:
+		ability_ready[type] = _now() + float(d["ability_cd"])   # the entrance was the opener: arrived() won't fire it again
 
 
 ## A retreating unit made it behind the lens: back into the pool, off the field.
@@ -692,10 +702,10 @@ func _set_army(type: String) -> void:
 			u.state = Unit.State.RETREAT
 			u.rush = true
 			u.sprite.frame = 0
+	var d: Dictionary = Game.units[type]
+	var cd := _ability_cd_left(type)   # before deploy: a charge-in entrance starts the cooldown itself
 	_deploy(type, true)
 	_hitstop(0.09, 0.05)   # the swap beat: the world holds its breath for a blink
-	var d: Dictionary = Game.units[type]
-	var cd := _ability_cd_left(type)
 	say("%s step up - %s%s" % [d["label"], d["ability_label"], "" if cd <= 0.0 else " (on cooldown %.0fs)" % cd])
 
 

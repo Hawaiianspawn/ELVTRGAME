@@ -168,8 +168,8 @@ func _process(delta: float) -> void:
 				if o.team != team and not o.dead and not _charge_hit.has(o) 						and absf(o.wx - wx) < CHARGE_R and absf(o.wd - wd) < CHARGE_R:
 					_charge_hit[o] = true
 					attack_anim()
-					o.launch(LAUNCH)
-					battle.hit(self, o, 2.0)
+					battle.hit(self, o, 2.0)   # the blow lands on the ground first...
+					o.launch(LAUNCH)           # ...and the follow-through sends them up: the juggle starts from the hit
 		else:
 			# back: rush home, then the normal state takes over
 			var saved := rush
@@ -322,13 +322,13 @@ func lunge(v: Vector2) -> void:
 	_lunge = v / maxf(scale.x, 0.01)
 
 
-## Halberdier opener: charge to depth `to`, launching every enemy passed, then rush back to here.
-func charge(to: float) -> void:
+## Halberdier opener: charge to depth `to`, launching every enemy passed, then rush back to `from` (default: here).
+func charge(to: float, from := Vector2(INF, INF)) -> void:
 	if charge_to > 0.0 or air_h > 0.0:
 		return
 	charge_to = to
 	_charge_back = false
-	_charge_from = Vector2(wx, wd)
+	_charge_from = Vector2(wx, wd) if from.x == INF else from
 	_charge_hit.clear()
 
 
