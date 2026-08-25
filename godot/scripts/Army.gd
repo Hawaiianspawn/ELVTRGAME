@@ -28,7 +28,8 @@ static func pattern(mix: Dictionary) -> Array[String]:
 ## `cols` > 0 fixes the file count and spreads it across `half*2`; 0 packs at RANK_X. `step` is the rank depth spacing.
 static func slots(half: float, rows: int, d0: float, rng: RandomNumberGenerator, cols := 0, step := RANK_STEP) -> Array[Vector2]:
 	var per_row := cols if cols > 0 else int(floor(half * 2.0 / RANK_X)) + 1
-	var dx := half * 2.0 / maxf(per_row - 1, 1) if cols > 0 else RANK_X
+	# the odd rows sit half a file over, so the span is per_row - 0.5 files: the outer file lands ON half, not past it
+	var dx := half * 2.0 / maxf(per_row - 0.5, 1) if cols > 0 else RANK_X
 	var out: Array[Vector2] = []
 	for k in range(per_row * rows):
 		var row := k / per_row

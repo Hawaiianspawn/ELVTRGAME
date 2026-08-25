@@ -5,7 +5,7 @@ extends Node
 ## Inert without the arg. "Broken" = any invariant below; each is a rule the game's own code claims.
 
 const TICK := 0.6                       # seconds a behavior is held before the next pick
-const STUCK := {"RETREAT": 12.0, "ADVANCE": 15.0, "charge": 10.0, "air": 15.0}
+const STUCK := {"RETREAT": 12.0, "ADVANCE": 15.0, "charge": 10.0}
 const BEHAVIORS := [
 	"move_random", "wall_hug", "corner_hold", "cursor_warp", "siphon_hold",
 	"spell_spam", "swap_spam", "teleport_hero", "magic_flood", "magic_drain",
@@ -31,6 +31,7 @@ var _slow_since := -1.0                 # wall time Engine.time_scale first drop
 
 
 func _ready() -> void:
+	set_process(false)   # inert: _process is on by default for any node that defines it
 	for a in OS.get_cmdline_user_args():
 		if a.begins_with("--adversary="):
 			_run(a.trim_prefix("--adversary="))
@@ -219,16 +220,21 @@ func _check(delta: float) -> void:
 			_log("dangling_ref", "Battle.front", "dead ally still fronting a lane", where)
 		if u.air_h < 0.0:
 			_log("boundary_break", "Unit.air", "air_h %.1f below ground" % u.air_h, where)
+		if u.air_h > 0.0 and not u.sky_slam:
+			# juggling is the game; leaving the frame is not: sprite top must stay on screen (sky-drop entrances excepted)
+			var cell: float = u.sprite.texture.region.size.y if u.sprite.texture is AtlasTexture else 48.0
+			var top: float = u.position.y + (u.sprite.position.y - cell) * u.scale.y
+			if top < -2.0:
+				_log("boundary_break", "Unit.air", "airborne unit above the frame: sprite top y=%.0f air_h=%.0f" % [top, u.air_h], where)
 		if absf(u.wx) > b.HALL_HALF:
 			_log("boundary_break", "Battle.hall", "unit through the hall wall |wx| %.0f > HALL_HALF %.0f" % [absf(u.wx), b.HALL_HALF], where)
-		if u.wd < 0.0 or u.wd > b.SPAWN_D + 200.0:
-			_log("boundary_break", "Battle.depth", "unit depth %.0f outside 0..%.0f" % [u.wd, b.SPAWN_D + 200.0], where)
+		var floor_d: float = b.ENEMY_MIN_D - 1.0 if u.team == Unit.ENEMY else 0.0
+		if u.wd < floor_d or u.wd > b.SPAWN_D + 200.0:
+			_log("boundary_break", "Battle.depth", "unit depth %.0f outside %.0f..%.0f" % [u.wd, floor_d, b.SPAWN_D + 200.0], where)
 		# stuck: same transient key held longer than its budget
 		var key := ""
 		if u.charge_to > 0.0:
 			key = "charge"
-		elif u.air_h > 0.0:
-			key = "air"
 		elif u.state == Unit.State.RETREAT:
 			key = "RETREAT"
 		elif u.state == Unit.State.ADVANCE:
@@ -275,7 +281,7 @@ func _finish() -> void:
 		"run": {"scene": _scene, "seconds": snappedf(_t, 0.1), "seed": _seed, "date": Time.get_datetime_string_from_system(),
 			"behaviors": _behavior_runs, "invariants": ["hero clamp", "magic >= 0", "unit hp in 0..max", "dead flag matches hp",
 			"front[] refs live + lane-consistent", "pool >= 0", "unit inside hall walls + depth range", "air_h >= 0",
-			"no NaN", "transient states end within budget", "units[] < 1500", "fps >= 20", "Engine.time_scale back to 1 within 1s"]},
+			"no NaN", "airborne units stay inside the frame", "enemies never below ENEMY_MIN_D", "transient states end within budget", "units[] < 1500", "fps >= 20", "Engine.time_scale back to 1 within 1s"]},
 		"findings": _findings,
 	}
 	var base := "user://adversary_%d" % _seed

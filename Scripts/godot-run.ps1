@@ -43,6 +43,7 @@ if ($Adversary) {
     # 2>&1: Godot prints SCRIPT ERROR on stderr; ToString unwraps the ErrorRecord PS 5.1 wraps it in
     $out = @(& $con --path $proj -- "--adversary=$Adversary" 2>&1 | ForEach-Object { $_.ToString() })
     $out | Where-Object { $_ -match '^ADVERSARY|SCRIPT ERROR|Assertion failed' } | ForEach-Object { Write-Host $_ }
+    if ($out -match 'Parse Error|Compile Error') { Write-Host 'adversary run hit a script parse/compile error: fix the game first' -ForegroundColor Red; exit 1 }
     $json = ($out | Select-String 'report=(.*\.json)').Matches[0].Groups[1].Value
     if (-not $json -or -not (Test-Path $json)) { Write-Host "adversary run produced no report (exit $LASTEXITCODE)" -ForegroundColor Red; exit 1 }
     # engine-level errors are findings too: fold SCRIPT ERROR lines into the report

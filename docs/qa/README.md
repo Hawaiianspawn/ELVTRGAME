@@ -74,6 +74,26 @@ Not found (the invariants held): hero clamp (teleporting 3000 units out snaps ba
 went negative through the cost gate, no `pool` underflow, no duplicate/dead `front[]` refs, no NaN,
 no fps collapse even with 4× hordes on top of each other.
 
+## After the fixes (same three seeds, re-run)
+
+All six were fixed in the game and the agent re-run on seeds 7, 11, 23: **0 findings, 0 engine errors** in
+each 60 s run (reports in `after/`), and the four existing self-check probes (`swap`, `hammer`, `whirl`,
+`charge`) still pass. The before-fix reports stay in this folder as the evidence for the findings above.
+
+| bug | fix |
+|---|---|
+| 1 rank block through the wall | `Army.slots` spaces `per_row - 0.5` files across `half`, so the staggered outer file lands on the edge, not past it; `Unit` also clamps `wx` inside `HALL_HALF` every frame |
+| 2 hit-stop exploit | `_set_army` accepts a swap every 0.5 s; `_hitstop` never extends a live stop; the restore timer calls `Engine.set_time_scale` with no lambda and `Battle._exit_tree` resets it, so a stop can't outlive the scene |
+| 3 slash tween on freed unit | the clip captures `a.team` and `t`'s instance id by value |
+| 4 `hit()` after `await` | `is_instance_valid(a)` alongside the `t` check; the echo-relic callback resolves its unit through `instance_from_id` |
+| 5 juggling | kept — it's the design. `Unit._air_cap()` caps `air_h` at the height where the sprite top would leave the frame at that depth, so a juggled crowd bounces off the top edge instead of vanishing. Sky-drop entrances are exempt |
+| 6 enemy behind the lens | `ENEMY_MIN_D = 130`: the treadmill floors enemies at the hero's feet; whirl dodge-darts clamp to their slot depth so allies stop drifting backwards |
+
+The agent's rules changed with the design: the "airborne 15 s" budget became "an airborne sprite's top stays
+on screen", and the depth floor became `ENEMY_MIN_D` for enemies. Two things the re-run also caught in the
+agent itself: `_process` was on by default, so the agent was running in ordinary launches too (fixed with
+`set_process(false)` in `_ready`), and the runner treated a parse error as "0 findings" (now a red failure).
+
 ## Was I surprised?
 
 Yes, twice. The wall bug is in the very first second of a normal game and had been in every screenshot for

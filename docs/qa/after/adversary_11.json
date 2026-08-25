@@ -1,0 +1,48 @@
+﻿{
+    "findings":  [
+
+                 ],
+    "run":  {
+                "behaviors":  {
+                                  "corner_hold":  7,
+                                  "cursor_warp":  6,
+                                  "horde":  3,
+                                  "jump_phase":  2,
+                                  "kill_front":  5,
+                                  "kill_hero":  4,
+                                  "launch_all":  4,
+                                  "magic_drain":  3,
+                                  "magic_flood":  8,
+                                  "move_random":  9,
+                                  "siphon_hold":  3,
+                                  "spell_spam":  4,
+                                  "swap_spam":  7,
+                                  "teleport_hero":  3,
+                                  "wall_hug":  5
+                              },
+                "date":  "2026-08-24T19:57:35",
+                "invariants":  [
+                                   "hero clamp",
+                                   "magic \u003e= 0",
+                                   "unit hp in 0..max",
+                                   "dead flag matches hp",
+                                   "front[] refs live + lane-consistent",
+                                   "pool \u003e= 0",
+                                   "unit inside hall walls + depth range",
+                                   "air_h \u003e= 0",
+                                   "no NaN",
+                                   "airborne units stay inside the frame",
+                                   "enemies never below ENEMY_MIN_D",
+                                   "transient states end within budget",
+                                   "units[] \u003c 1500",
+                                   "fps \u003e= 20",
+                                   "Engine.time_scale back to 1 within 1s"
+                               ],
+                "scene":  "battle",
+                "seconds":  60.0,
+                "seed":  11
+            },
+    "engine_errors":  [
+
+                      ]
+}

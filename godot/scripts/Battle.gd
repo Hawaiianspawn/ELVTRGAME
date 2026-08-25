@@ -9,6 +9,7 @@ const SPAWN_D := 1050.0
 const LANE_W := 64.0
 const HERO_MIN_D := 150.0
 const HERO_MAX_D := 290.0
+const ENEMY_MIN_D := 130.0        # enemies stop here, at the hero's feet: nothing walks behind the lens
 const RANK_D0 := 285.0          # first rank behind the front line
 const CREEP := 42.0             # the push: world units / s the field slides toward the camera
 const HALL_HALF := 200.0        # hallway half-width: the walls; everything lives between them
@@ -71,6 +72,8 @@ var toast := ""
 var toast_t := 0.0
 var _rng := RandomNumberGenerator.new()
 var _done := false
+var _swap_at := 0.0                    # next time (s) a swap is accepted: mashing Q/E can't re-arm the hit stop every frame
+const SWAP_CD := 0.5
 
 
 func _ready() -> void:
@@ -281,8 +284,8 @@ func hit(a: Unit, t: Node2D, mult := 1.0) -> void:
 	if a.rng > 100.0:
 		_arrow(a.position + Vector2(0, -50 * a.scale.y), t.position + Vector2(0, -30 * t.scale.y))
 		await get_tree().create_timer(0.12).timeout
-		if not is_instance_valid(t):
-			return
+		if not is_instance_valid(t) or not is_instance_valid(a):
+			return   # either side can die in flight
 	else:
 		a.lunge(to.normalized() * 14.0 * a.scale.x)
 		if t is Unit:
@@ -318,6 +321,8 @@ func _slash(a: Unit, t: Unit, to: Vector2) -> void:
 	world.add_child(n)
 	var frames := s.hframes
 	var dmg := a.dmg * SLASH_DMG
+	var team := a.team   # by value: the clip outlives the attacker when it dies mid-swing
+	var tid := t.get_instance_id()
 	var tw := n.create_tween()
 	for f in range(frames):
 		tw.tween_callback(func():
@@ -325,7 +330,7 @@ func _slash(a: Unit, t: Unit, to: Vector2) -> void:
 			if f % SLASH_EVERY != 0:
 				return
 			for o in units:
-				if o != t and o.team != a.team and not o.dead and Vector2(o.wx, o.wd).distance_to(wp) < SLASH_R:
+				if o.get_instance_id() != tid and o.team != team and not o.dead and Vector2(o.wx, o.wd).distance_to(wp) < SLASH_R:
 					_impact(o.position + Vector2(0, -34 * o.scale.y), 4.0 * o.scale.y)
 					if o.air_h > 0.0:
 						o.launch(VORTEX_LIFT)
@@ -377,13 +382,16 @@ func _vortex(wp: Vector2, k: float, dmg: float, secs := 2.0, fx := "fx_sweep_thi
 var _stop_until := 0.0
 func _hitstop(secs: float, scale := 0.1) -> void:
 	var now := Time.get_ticks_msec() / 1000.0
-	if now + secs <= _stop_until:
-		return
+	if now < _stop_until:
+		return   # one at a time: a live stop is never extended, so no caller can pin the clock
 	_stop_until = now + secs
 	Engine.time_scale = scale
-	get_tree().create_timer(secs, true, false, true).timeout.connect(func():
-		if Time.get_ticks_msec() / 1000.0 >= _stop_until - 0.005:
-			Engine.time_scale = 1.0)
+	# no lambda: the timer must restore the clock even if this scene is gone by then
+	get_tree().create_timer(secs, true, false, true).timeout.connect(Engine.set_time_scale.bind(1.0))
+
+
+func _exit_tree() -> void:
+	Engine.time_scale = 1.0   # a stop must never outlive the battle
 
 
 func _dist(a: Unit, b: Unit) -> float:
@@ -668,8 +676,9 @@ func _cycle_army(dir: int) -> void:
 
 ## Whole front line cycles out; the new type steps up in every lane and fires its swap-in ability (if off cooldown).
 func _set_army(type: String) -> void:
-	if type == army_type:
+	if type == army_type or _now() < _swap_at:
 		return
+	_swap_at = _now() + SWAP_CD
 	army_type = type
 	for p in army_panels:
 		p.set_selected(p.type == type, _rng)
@@ -705,9 +714,12 @@ func arrived(u: Unit) -> void:
 	ability_ready[u.type] = _now() + float(Game.units[u.type]["ability_cd"])
 	_opening(u)
 	if Game.has_relic_flag("echo"):
+		var uid := u.get_instance_id()   # id, not the unit: it may be gone in 1.5s
 		var tw := create_tween()
 		tw.tween_interval(1.5)
-		tw.tween_callback(func(): if is_instance_valid(u) and not u.dead: _opening(u))
+		tw.tween_callback(func():
+			var v = instance_from_id(uid)
+			if v != null and not v.dead: _opening(v))
 
 
 func _opening(u: Unit) -> void:

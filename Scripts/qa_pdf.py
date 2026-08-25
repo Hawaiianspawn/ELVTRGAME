@@ -19,6 +19,8 @@ SHOTS = [  # (file, caption)
     ("adversary_11_f5.png", "Bug 2 — the frame Engine.time_scale had been pinned at 0.05 for a full second (seed 11)."),
     ("juggle_seed7_earlier_run.png", "Bug 5 — both teams tumbling above the ceiling line 15 s after launch, hero untouched (seed 7, earlier run)."),
     ("adversary_7.png", "Final frame of seed 7: 4 hordes deep, wave 1 still ticking."),
+    ("after/adversary_23.png", "After the fixes — seed 23 final frame: the outer file now sits inside the bricks."),
+    ("after/adversary_7.png", "After the fixes — seed 7 final frame: a juggled crowd held inside the frame by Unit._air_cap()."),
 ]
 
 RUBRIC = [
@@ -42,10 +44,12 @@ def main() -> None:
     excerpt = {"run": rep["run"], "findings": rep["findings"][:2] + ["… %d more" % max(0, len(rep["findings"]) - 2)],
                "engine_errors": rep["engine_errors"]}
     csv_head = "\n".join((QA / "adversary_7.csv").read_text(encoding="utf-8").splitlines()[:4])
-    runs = "".join(
-        f"<tr><td>{p.stem}</td><td>{len(d['findings'])}</td><td>{sum(e['count'] for e in d.get('engine_errors', []))}</td>"
-        f"<td>{', '.join(sorted({f['error_type'] for f in d['findings']}))}</td></tr>"
-        for p in sorted(QA.glob("adversary_*.json")) for d in [json.loads(p.read_text(encoding="utf-8-sig"))])
+    def run_rows(folder: Path, tag: str) -> str:
+        return "".join(
+            f"<tr><td>{tag}</td><td>{p.stem}</td><td>{len(d['findings'])}</td><td>{sum(e['count'] for e in d.get('engine_errors', []))}</td>"
+            f"<td>{', '.join(sorted({f['error_type'] for f in d['findings']})) or '—'}</td></tr>"
+            for p in sorted(folder.glob("adversary_*.json")) for d in [json.loads(p.read_text(encoding="utf-8-sig"))])
+    runs = run_rows(QA, "before fixes") + run_rows(QA / "after", "after fixes")
     html = f"""<!doctype html><html><head><meta charset="utf-8">
 <title>Kindled — Adversarial QA Agent (Assignment #09)</title>
 <style>
@@ -67,7 +71,7 @@ Game: Kindled (Godot 4.7, <code>godot/</code>) · Agent: <code>godot/scripts/Adv
 <h2>Rubric map</h2>
 <table><tr><th>Criterion</th><th>Pts</th><th>Where the evidence is</th></tr>{rubric}</table>
 <h2>Committed runs</h2>
-<table><tr><th>Run</th><th>Findings</th><th>Engine errors</th><th>Error types</th></tr>{runs}</table>
+<table><tr><th></th><th>Run</th><th>Findings</th><th>Engine errors</th><th>Error types</th></tr>{runs}</table>
 <div class="break"></div>
 {body}
 <div class="break"></div>

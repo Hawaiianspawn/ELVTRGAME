@@ -141,6 +141,10 @@ func _process(delta: float) -> void:
 		# plain ballistics: sky-dropped hammers plummet under heavy gravity, everything else floats the same
 		air_v -= GRAV * (6.0 if sky_slam else 1.0) * delta
 		air_h = maxf(0.0, air_h + air_v * delta)
+		var cap := _air_cap()
+		if air_h > cap and not sky_slam:
+			air_h = cap   # juggle as high as you like, but never out of the frame: bounce off the top edge
+			air_v = minf(air_v, 0.0)
 		sprite.rotation += _spin * delta
 		if air_h == 0.0:
 			air_v = 0.0
@@ -185,7 +189,7 @@ func _process(delta: float) -> void:
 			# launch easing out into the stop, the dodge-roll pop
 			if _roll_goal == Vector2.ZERO or Vector2(wx, wd).distance_to(_roll_goal) < 4.0 or randf() < 1.5 * delta:
 				var side := 1.0 if randf() < 0.5 else -1.0
-				_roll_goal = Vector2(clampf(wx + side * randf_range(30.0, 90.0), -320.0, 320.0), wd + randf_range(-28.0, 6.0))   # rank half-width
+				_roll_goal = Vector2(clampf(wx + side * randf_range(30.0, 90.0), -320.0, 320.0), clampf(wd + randf_range(-28.0, 6.0), hold_d - 40.0, hold_d + 20.0))   # darts drift, but never off the slot
 			var here := Vector2(wx, wd).lerp(_roll_goal, 1.0 - exp(-7.0 * delta))
 			wx = here.x
 			wd = here.y
@@ -215,7 +219,8 @@ func _process(delta: float) -> void:
 				var aggro := maxf(AGGRO, rng + 60.0)
 				var foe: Unit = battle.near_enemy(self, aggro)
 				if foe:
-					sprite.frame = Game.facing_from(Vector2(foe.wx - wx, -(foe.wd - wd)))
+					if _atk_t < 0.0:   # a playing clip owns the frame index (clips are 5 wide, facings 8)
+						sprite.frame = Game.facing_from(Vector2(foe.wx - wx, -(foe.wd - wd)))
 					if _cd <= 0.0:
 						var d_foe := _dist(foe)
 						if d_foe <= maxf(rng, 45.0):
@@ -261,7 +266,8 @@ func _process(delta: float) -> void:
 						goal = Vector2(battle.lane_x(lane), hold_d)
 					_step(goal, delta)
 	if team == ENEMY:
-		wd -= battle.CREEP * delta          # treadmill: the army pushes up, so the field slides toward the camera
+		wd = maxf(wd - battle.CREEP * delta, battle.ENEMY_MIN_D)   # treadmill toward the camera, floored at the hero's feet
+	wx = clampf(wx, -battle.HALL_HALF + 6.0, battle.HALL_HALF - 6.0)   # the walls are walls, whatever shoved you
 	_tick_attack(delta)
 	_place()
 
@@ -302,6 +308,14 @@ func _place() -> void:
 		lift += _pivot
 		sprite.offset = Vector2(0, _pivot - _rot_region.size.y * 0.5)
 	sprite.position = _lunge + _recoil + Vector2(0, bob - lift)
+
+
+## Highest air_h that keeps the whole sprite inside the frame at this depth.
+func _air_cap() -> float:
+	var k: float = battle.view.sprite_scale(wd)
+	var cell: float = sprite.texture.region.size.y if sprite.texture is AtlasTexture else 48.0
+	var feet: Vector2 = battle.view.project(wx, wd)
+	return maxf(0.0, (feet.y - (cell + _pivot) * k - 8.0) / k)
 
 
 func lunge(v: Vector2) -> void:
