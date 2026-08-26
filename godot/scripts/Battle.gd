@@ -989,21 +989,15 @@ func _draw_env() -> void:
 ## the far end — the wrap (a big depth jump) is also the "un-break" moment.
 func _spawn_props() -> void:
 	var range_d := Hall3D.FOG_END * 1.5 - 60.0
-	# wall items alternate lamp/mirror every 80 depth -> each is 160 apart, interleaved at the midpoint.
-	# lamp_candelabra and lamp_brazier are owner-cut (wall lamps = cage only); mirror_ornate reads as
-	# a candelabra to the owner, so only mirror_oval spawns (mirror_ornate stays in roster, unused).
+	# wall items: cage lamps only, every 160 depth. Candelabra, brazier and both mirrors are
+	# owner-cut from the wall (they stay in roster, unused).
 	for side: float in [-1.0, 1.0]:
 		var wx: float = side * HALL_HALF   # flush on the wall face, not inset
 		var facing := 2 if side < 0.0 else 6   # east / west: faces into the hall
 		var d := 0.0
-		var i := 0
 		while d < range_d:
-			if i % 2 == 0:
-				_add_prop("lamp_cage", wx, d, facing, false, Hall3D.TILE * Hall3D.COURSES * 1.3, "", 1.15)
-			else:
-				_add_prop("mirror_oval", wx, d, facing, false, Hall3D.TILE * Hall3D.COURSES * 0.9, "", 1.0)
-			i += 1
-			d += 80.0
+			_add_prop("lamp_cage", wx, d, facing, false, Hall3D.TILE * Hall3D.COURSES * 1.3, "", 1.15)
+			d += 160.0
 	# floor clutter: tables/chairs/chests, kept off the rank lane and away from the front line
 	var floor_names := ["table_map", "table_trestle", "chair_bench", "chest_coffer", "chest_ornate"]
 	var broken_of := {"chair_bench": "chair_broken", "chest_ornate": "chest_ornate_open"}
