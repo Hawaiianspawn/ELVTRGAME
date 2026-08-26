@@ -28,6 +28,7 @@ const CHARGE_GAP := 56.0        # depth between rank rows on a halberdier charge
 const SWEEP_W := 240.0          # launch zone half-width, centered on the hero - spans the whole field
 const SWEEP_LEN := 520.0        # launch zone depth ahead of the hero - everything short of fresh spawns
 const TYPES := Army.TYPES
+const LAMP_SHADER := preload("res://assets/shaders/prop_lamp.gdshader")   # wall lamps fade to black toward the top (task-169)
 const SLASH_ALPHA := 0.2       # slash fx opacity (strike and whirl field)
 const SLASH_STOP := 0.2        # hit stop (real seconds) when a whirl vortex mini hit lands
 const SLASH_R := 40.0           # slash fx area hit reach in world units
@@ -1027,6 +1028,10 @@ func _floor_wx() -> float:
 func _add_prop(name: String, wx: float, base_d: float, facing: int, is_floor: bool, h: float, broken_name: String, sc: float) -> void:
 	var s := Hall3D.make_sprite3d(name, facing)
 	s.scale *= sc
+	if name == "lamp_cage":   # hung from darkness above: fade the top of the sprite to black
+		var lamp_mat: ShaderMaterial = s.material_override
+		lamp_mat.shader = LAMP_SHADER
+		lamp_mat.set_shader_parameter("top_y", float(Game.sprites[name]["cell"]) * Hall3D.PIXEL)
 	world.add_child(s)
 	# one strip for both walls: the west generation has stray sparks the owner cut, so east is
 	# flipped for the far wall instead of packing a second clip

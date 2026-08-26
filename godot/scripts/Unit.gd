@@ -52,12 +52,14 @@ var _charge_hit := {}        # enemy -> its wd at the moment first hit (for the 
 var _charge_back := false    # leg: false = out, true = home
 var _charge_dur := -1.0      # this charge's synced-arrival duration (T); -1 = not yet armed
 var _charge_wd0 := 0.0       # this charger's own wd when the out leg started
+var _charge_end := 0.0       # this charger's own out-leg landing depth (rows keep their gap, not stack on charge_to)
 var _charge_t0 := 0.0        # wall-clock time the out leg started
 var _charge_thrown := false  # true while this unit is mid-flight from a charge blow (skip a second throw)
 var _charge_hold_until := -1.0   # wall-clock: charger stands at the line until this, then falls back; -1 = not holding
 const CHARGE_SPEED := 4.0    # x walk speed out; back at rush
 const CHARGE_R := 34.0       # reach either side of the charging halberd
 const CHARGE_HOLD := 0.15    # seconds the charger freezes at the line before the fall-back leg starts
+const CHARGE_KEEP := 1.0     # 1.0 = rows land with the same gap they started with; lower closes it up
 const PILE_HOLD := 2.0       # seconds a bulldozed enemy stays rooted on the pile line
 var rush := false            # ADVANCE/RETREAT at rush speed (swaps route behind the camera)
 var sky_slam := false        # hammer entrance: dropped from the sky, slams the ground on landing
@@ -189,10 +191,11 @@ func _process(delta: float) -> void:
 						lead_wd = maxf(lead_wd, o2.wd)
 				_charge_dur = maxf(0.15, (charge_to - lead_wd) / (speed * CHARGE_SPEED))
 				_charge_wd0 = wd
+				_charge_end = charge_to - (lead_wd - wd) * CHARGE_KEEP
 				_charge_t0 = Time.get_ticks_msec() / 1000.0
 			var ct := clampf((Time.get_ticks_msec() / 1000.0 - _charge_t0) / _charge_dur, 0.0, 1.0)
-			wd = lerpf(_charge_wd0, charge_to, ct)
-			var arrived := wd >= charge_to
+			wd = lerpf(_charge_wd0, _charge_end, ct)
+			var arrived := wd >= _charge_end
 			_moving = true
 			sprite.frame = 4
 			for o in battle.units:
