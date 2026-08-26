@@ -17,6 +17,11 @@ func _run(spec: String) -> void:
 	Engine.max_fps = 0
 	get_viewport().set_disable_input(true)   # never eat the owner's keystrokes
 	get_tree().change_scene_to_file(Game.SCENES[scene])
+	var post_preset := -1
+	if parts.size() > 2 and parts[2].begins_with("post="):
+		post_preset = int(parts[2].trim_prefix("post="))
+		await get_tree().create_timer(1.0).timeout
+		get_tree().current_scene.post.set_preset(post_preset)
 	if parts.size() > 2 and parts[2] == "swap":
 		# self-check: swapping lane 2's type sends its front unit home and marches the new type up
 		await get_tree().create_timer(6.0).timeout
@@ -187,7 +192,7 @@ func _run(spec: String) -> void:
 			if u.team == 0 and u.state == Unit.State.RANK and (snappedf(u.wd, 1.0) == wds[0] or snappedf(u.wd, 1.0) == wds[-1]):
 				print("PROBE unit wd=%s pos=%s spr=%s screen=%s" % [u.wd, u.position, u.sprite.position, Hall3D.unproject(cam, u.wx, u.wd)])
 	var img := get_viewport().get_texture().get_image()
-	var path := "user://probe_%s.png" % scene
+	var path := "user://probe_%s_post%d.png" % [scene, post_preset] if post_preset >= 0 else "user://probe_%s.png" % scene
 	img.save_png(path)
 	print("PROBE saved ", ProjectSettings.globalize_path(path))
 	get_tree().quit()

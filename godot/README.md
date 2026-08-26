@@ -12,7 +12,10 @@ A PostToolUse hook in `.claude/settings.json` reruns it after every Edit/Write u
 Adversarial QA: `pwsh Scripts\godot-run.ps1 -Adversary battle,60,7` (report + findings in `docs/qa/`).
 
 Evidence probe (desktop): `godot --path godot -- --probe=battle,12` prints FPS and saves
-`user://probe_battle.png`. Scenes: siege, battle.
+`user://probe_battle.png`. Scenes: siege, battle. `--probe=battle,12,post=N` applies
+post-process preset `N` first and saves `user://probe_battle_postN.png` (see
+docs/art/post-process-presets.md). In the battle scene, `[` / `]` cycle the
+post-process preset live; the HUD readout shows which one is active.
 
 The battle is a real 3D scene: `Node3D` + depth-tested `Sprite3D` pixel billboards under a fixed
 `Camera3D`, so the crowd sorts per pixel instead of y-sorting whole sprites. Hall geometry and the

@@ -68,6 +68,7 @@ var hero_wx := 0.0
 var hero_wd := 245.0
 var hero_hp := 100.0
 var world: Node3D
+var post: Post                         # post-process preset layer, between world/props (1) and HUD text (20)
 var env2d: Node2D                      # 2D overlay: props + the far glow
 var _props: Array[Dictionary] = []     # {node, wx, base_d, last_d, alive, is_table}
 var _prop_tick := 0
@@ -128,6 +129,8 @@ func _ready() -> void:
 	hud.z_index = 10
 	hud.draw.connect(_draw_hud)
 	ov.add_child(hud)
+	post = Post.new()
+	add_child(post)
 	# text lives in Labels: draw_string reshapes every frame, which is what the WASM build feels
 	var cl := CanvasLayer.new()
 	cl.layer = 20
@@ -708,6 +711,8 @@ func _unhandled_input(e: InputEvent) -> void:
 			KEY_C: _cast("wall")
 			KEY_Q: _cycle_army(-1)
 			KEY_E: _cycle_army(1)
+			KEY_BRACKETRIGHT: post.cycle(1)
+			KEY_BRACKETLEFT: post.cycle(-1)
 
 
 func _hover_lane() -> int:
@@ -1124,6 +1129,6 @@ func _draw_hud() -> void:
 	# bottom strip: the four army panels, ranks left, ability cooldown; current army type large + on top
 	for p in army_panels:
 		p.update(_rank_count(p.type), _ability_cd_left(p.type))
-	hud_text.text = "HALL %d / 4\nHERO %d\nMAGIC %d  (lifetime %d)\nSCORE %d\nZ Bolt 8   X Mend 20   C Wall 30    Q/E cycle the army    RMB siphon\nRelics: %s\nFPS %d" % [
-		Game.wave + 1, int(hero_hp), int(Game.magic), int(Game.magic_ever), Game.score, ", ".join(Game.relics), Engine.get_frames_per_second()]
+	hud_text.text = "HALL %d / 4\nHERO %d\nMAGIC %d  (lifetime %d)\nSCORE %d\nZ Bolt 8   X Mend 20   C Wall 30    Q/E cycle the army    RMB siphon    [ ] post: %s\nRelics: %s\nFPS %d" % [
+		Game.wave + 1, int(hero_hp), int(Game.magic), int(Game.magic_ever), Game.score, post.preset_name(), ", ".join(Game.relics), Engine.get_frames_per_second()]
 	toast_label.text = toast if toast_t > 0.0 else ""
