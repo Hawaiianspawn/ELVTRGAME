@@ -68,10 +68,9 @@ def main():
         # Optional clip rows: <rotations>/../<clip>_north/frame_*.png (PixelLab v3 frames, same
         # canvas as the rotations) packed as extra strips right under the unit's rotations.
         # (clip, direction suffix, manifest key): attack/slam are always "_north"; flicker is
-        # packed once per facing actually used on screen (Battle.gd's wall lamps only ever show
-        # east/west), so both strips land under distinct keys.
+        # packed from the east frames only; Battle.gd flips that strip for the west wall.
         for clip, suffix, key in (("attack", "north", "attack"), ("slam", "north", "slam"),
-                                   ("flicker", "east", "flicker_east"), ("flicker", "west", "flicker_west")):
+                                   ("flicker", "east", "flicker_east")):
             adir = os.path.join(os.path.dirname(d), "%s_%s" % (clip, suffix))
             if not os.path.isdir(adir):
                 continue

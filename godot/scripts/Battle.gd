@@ -1018,14 +1018,16 @@ func _floor_wx() -> float:
 
 ## A prop's flicker frames (if packed for this facing) fully replace its rotation strip, then a
 ## looping tween cycles s.frame over it — random per-lamp duration so the wall doesn't blink in
-## lockstep. Packed per facing (flicker_east / flicker_west) since that's all the hall ever shows.
+## lockstep. Only flicker_east is packed; the west wall mirrors it.
 func _add_prop(name: String, wx: float, base_d: float, facing: int, is_floor: bool, h: float, broken_name: String, sc: float) -> void:
 	var s := Hall3D.make_sprite3d(name, facing)
 	s.scale *= sc
 	world.add_child(s)
-	var clip_key := "flicker_east" if facing == 2 else "flicker_west" if facing == 6 else ""
-	var clip: Dictionary = Game.sprites[name].get(clip_key, {}) if clip_key != "" else {}
+	# one strip for both walls: the west generation has stray sparks the owner cut, so east is
+	# flipped for the far wall instead of packing a second clip
+	var clip: Dictionary = Game.sprites[name].get("flicker_east", {}) if facing == 2 or facing == 6 else {}
 	if not clip.is_empty():
+		s.flip_h = facing == 6
 		var at: AtlasTexture = s.texture
 		var n := int(clip["frames"])
 		at.region = Rect2(0, int(clip["y"]), at.region.size.x / 8.0 * n, at.region.size.y)
