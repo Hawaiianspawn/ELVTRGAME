@@ -67,8 +67,12 @@ def main():
         print("%-24s %3dpx  %s" % (name, cell, ref))
         # Optional clip rows: <rotations>/../<clip>_north/frame_*.png (PixelLab v3 frames, same
         # canvas as the rotations) packed as extra strips right under the unit's rotations.
-        for clip in ("attack", "slam"):
-            adir = os.path.join(os.path.dirname(d), clip + "_north")
+        # (clip, direction suffix, manifest key): attack/slam are always "_north"; flicker is
+        # packed once per facing actually used on screen (Battle.gd's wall lamps only ever show
+        # east/west), so both strips land under distinct keys.
+        for clip, suffix, key in (("attack", "north", "attack"), ("slam", "north", "slam"),
+                                   ("flicker", "east", "flicker_east"), ("flicker", "west", "flicker_west")):
+            adir = os.path.join(os.path.dirname(d), "%s_%s" % (clip, suffix))
             if not os.path.isdir(adir):
                 continue
             names = sorted((f for f in os.listdir(adir) if re.fullmatch(r"frame_\d+\.png", f)),
@@ -79,9 +83,9 @@ def main():
             strip = Image.new("RGBA", (cell * len(frames), cell))
             for i, im in enumerate(frames):
                 strip.paste(im, (i * cell + (cell - im.width) // 2, cell - floor_y))
-            manifest[name][clip] = {"frames": len(frames)}
-            strips.append((name + "/" + clip, strip))
-            print("%-24s %s_north x%d" % ("", clip, len(frames)))
+            manifest[name][key] = {"frames": len(frames)}
+            strips.append((name + "/" + key, strip))
+            print("%-24s %s_%s x%d" % ("", clip, suffix, len(frames)))
     # Effect clips: RawArt/Renders/fx-slash/raw/<name>/frames/frame_N.png -> "fx_<name>" row, no rotations.
     fxroot = os.path.join(REPO, "RawArt", "Renders", "fx-slash", "raw")
     for fx in sorted(os.listdir(fxroot)) if os.path.isdir(fxroot) else []:

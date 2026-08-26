@@ -68,7 +68,10 @@ var hero_wx := 0.0
 var hero_wd := 245.0
 var hero_hp := 100.0
 var world: Node3D
-var env2d: Node2D                      # 2D overlay: sconces + the far glow
+var env2d: Node2D                      # 2D overlay: props + the far glow
+var _props: Array[Dictionary] = []     # {node, wx, base_d, last_d, alive, is_table}
+var _prop_tick := 0
+const PROP_BREAK_R := 18.0
 var fx: Node2D
 var hud: Node2D
 var hud_text: Label
@@ -142,6 +145,7 @@ func _ready() -> void:
 	hero.add_child(hero_sprite)
 	world.add_child(hero)
 	start_wave(Game.wave)
+	_spawn_props()
 
 
 ## Camera pitch that puts the horizon line at screen y `h`.
@@ -591,6 +595,7 @@ func _process(delta: float) -> void:
 	wave_t += delta
 	scroll += scroll_creep * minf(1.0 + wave_t * SCROLL_ACCEL, 2.5) * delta
 	hall.set_scroll(scroll)
+	_update_props()
 	if _done:
 		return
 	# spawns
@@ -968,29 +973,150 @@ func _flash(wp: Vector2, r: float, c: Color) -> void:
 	t.tween_callback(n.queue_free)
 
 
-const WALL_H := Hall3D.TILE * Hall3D.COURSES   # sconce height reference
-
-
-## Sconces marching along both walls, and the necromancer's green glow at the far end of the hall.
-## Still draw calls, so still 2D — unprojected onto the overlay instead of drawn under the world.
+## The necromancer's green glow at the far end of the hall. Wall lamps and floor tables are real
+## Sprite3D props (see _spawn_props / _update_props) now that castle-prop sprites exist.
 func _draw_env() -> void:
-	for side: float in [-1.0, 1.0]:
-		var x: float = side * HALL_HALF
-		var d := 60.0 + fposmod(-scroll, 160.0)
-		var ds: Array[float] = []
-		while d < Hall3D.FOG_END * 1.5:
-			ds.append(d)
-			d += 160.0
-		ds.reverse()   # far to near, so near glows sit on top
-		for sd in ds:
-			var p := Hall3D.unproject(camera, x, sd, WALL_H * 0.6)
-			var k := Hall3D.screen_scale(camera, sd)
-			env2d.draw_circle(p, 5.0 * k, Color(0.35, 0.95, 0.45, 0.85))
-			env2d.draw_circle(p, 12.0 * k, Color(0.3, 0.9, 0.4, 0.18))
 	var flick := 0.6 + 0.4 * sin(Time.get_ticks_msec() / 90.0)
 	var dot := Hall3D.unproject(camera, 0.0, Hall3D.FOG_END, 8.0)
 	env2d.draw_circle(dot, 6.0 + 4.0 * flick, Color(0.4, 1.0, 0.4, flick))
 	env2d.draw_line(dot, dot + Vector2(_rng.randf_range(-30, 30), -110), Color(0.5, 1.0, 0.5, 0.5 * flick), 2.0)
+
+
+## Wall lamps (treadmill down both walls) + floor tables: persistent Sprite3D props that scroll
+## with the hall on the same wrap math the old sconces used, and go dark when something walks into
+## them. base_d is each prop's fixed offset into the 60..FOG_END*1.5 cycle; the live depth is
+## `60 + fposmod(base_d - scroll, range)`, which treadmills toward the camera and wraps back to
+## the far end — the wrap (a big depth jump) is also the "un-break" moment.
+func _spawn_props() -> void:
+	var range_d := Hall3D.FOG_END * 1.5 - 60.0
+	# wall items alternate lamp/mirror every 80 depth -> each is 160 apart, interleaved at the midpoint.
+	# lamp_candelabra and lamp_brazier are owner-cut (wall lamps = cage only); mirror_ornate reads as
+	# a candelabra to the owner, so only mirror_oval spawns (mirror_ornate stays in roster, unused).
+	for side: float in [-1.0, 1.0]:
+		var wx: float = side * HALL_HALF   # flush on the wall face, not inset
+		var facing := 2 if side < 0.0 else 6   # east / west: faces into the hall
+		var d := 0.0
+		var i := 0
+		while d < range_d:
+			if i % 2 == 0:
+				_add_prop("lamp_cage", wx, d, facing, false, Hall3D.TILE * Hall3D.COURSES * 1.3, "", 1.15)
+			else:
+				_add_prop("mirror_oval", wx, d, facing, false, Hall3D.TILE * Hall3D.COURSES * 0.9, "", 1.0)
+			i += 1
+			d += 80.0
+	# floor clutter: tables/chairs/chests, kept off the rank lane and away from the front line
+	var floor_names := ["table_map", "table_trestle", "chair_bench", "chest_coffer", "chest_ornate"]
+	var broken_of := {"chair_bench": "chair_broken", "chest_ornate": "chest_ornate_open"}
+	var n := 20
+	for t in range(n):
+		var d0: float = fmod(t * (range_d / n), range_d)
+		if absf(d0 - FRONT_D) < 60.0:   # don't spawn right on the front line
+			d0 += range_d / (n * 2.0)
+		var fname: String = floor_names[t % floor_names.size()]
+		_add_prop(fname, _floor_wx(), d0, 0, true, 0.0, broken_of.get(fname, ""), 1.1)
+
+
+## Random wx hugging a wall, clear of the rank block that fills the centre of the hall.
+func _floor_wx() -> float:
+	var side := 1.0 if _rng.randf() < 0.5 else -1.0
+	return side * _rng.randf_range(RANK_HALF * 0.6, HALL_HALF - 40.0)
+
+
+## A prop's flicker frames (if packed for this facing) fully replace its rotation strip, then a
+## looping tween cycles s.frame over it — random per-lamp duration so the wall doesn't blink in
+## lockstep. Packed per facing (flicker_east / flicker_west) since that's all the hall ever shows.
+func _add_prop(name: String, wx: float, base_d: float, facing: int, is_floor: bool, h: float, broken_name: String, sc: float) -> void:
+	var s := Hall3D.make_sprite3d(name, facing)
+	s.scale *= sc
+	world.add_child(s)
+	var clip_key := "flicker_east" if facing == 2 else "flicker_west" if facing == 6 else ""
+	var clip: Dictionary = Game.sprites[name].get(clip_key, {}) if clip_key != "" else {}
+	if not clip.is_empty():
+		var at: AtlasTexture = s.texture
+		var n := int(clip["frames"])
+		at.region = Rect2(0, int(clip["y"]), at.region.size.x / 8.0 * n, at.region.size.y)
+		s.hframes = n
+		var dur := _rng.randf_range(0.6, 0.9)
+		var tw := create_tween()
+		tw.set_loops()
+		tw.tween_method(func(t: float): s.frame = int(t) % n, 0.0, float(n), dur).set_delay(_rng.randf_range(0.0, dur))
+	var bn: Sprite3D = null
+	if broken_name != "":
+		bn = Hall3D.make_sprite3d(broken_name, facing)
+		bn.scale = s.scale
+		bn.visible = false
+		world.add_child(bn)
+	_props.append({"node": s, "broken": bn, "wx": wx, "base_d": base_d, "last_d": 0.0, "alive": true, "is_floor": is_floor, "h": h})
+
+
+func _update_props() -> void:
+	var range_d := Hall3D.FOG_END * 1.5 - 60.0
+	_prop_tick += 1
+	var check := _prop_tick % 4 == 0
+	for p: Dictionary in _props:
+		var d: float = 60.0 + fposmod(p["base_d"] - scroll, range_d)
+		if d > p["last_d"] + range_d * 0.5:   # wrapped from near back to far: reset + un-break
+			p["alive"] = true
+			p["node"].visible = true
+			if p["broken"]:
+				p["broken"].visible = false
+			if p["is_floor"]:
+				p["wx"] = _floor_wx()
+		p["last_d"] = d
+		var wp := Hall3D.to_world(p["wx"], d, p["h"])
+		p["node"].position = wp
+		if p["broken"]:
+			p["broken"].position = wp
+		if not check or not p["alive"]:
+			continue
+		var here := Vector2(p["wx"], d)
+		var hit := here.distance_to(Vector2(hero_wx, hero_wd)) < PROP_BREAK_R
+		if not hit:
+			for u in units:
+				if not u.dead and here.distance_to(Vector2(u.wx, u.wd)) < PROP_BREAK_R:
+					hit = true
+					break
+		if not hit:
+			continue
+		p["alive"] = false
+		_impact(p["wx"], d)
+		_flash(here, 10.0, Color(0.9, 0.8, 0.5))
+		p["node"].visible = false
+		if p["broken"]:
+			p["broken"].visible = true   # smashed-open state does the talking
+		else:
+			_prop_debris(p["node"])
+
+
+## Debris chunks torn from a prop's own texture on break — same recipe as Unit._gib, just fewer
+## and shorter-lived, and parented under world instead of the unit.
+func _prop_debris(s: Sprite3D) -> void:
+	var at: AtlasTexture = s.texture
+	var cell: float = at.region.size.y
+	var k := Hall3D.PIXEL
+	for i in range(_rng.randi_range(4, 6)):
+		var c := Sprite3D.new()
+		var sub := AtlasTexture.new()
+		sub.atlas = at.atlas
+		var sz := _rng.randf_range(4.0, 9.0)
+		var ox := _rng.randf_range(cell * 0.2, cell * 0.8 - sz)
+		var oy := _rng.randf_range(cell * 0.2, cell * 0.9 - sz)
+		sub.region = Rect2(at.region.position + Vector2(s.frame * cell + ox, oy), Vector2(sz, sz))
+		c.texture = sub
+		c.pixel_size = k
+		c.billboard = BaseMaterial3D.BILLBOARD_DISABLED
+		c.texture_filter = BaseMaterial3D.TEXTURE_FILTER_NEAREST
+		c.alpha_cut = SpriteBase3D.ALPHA_CUT_DISCARD
+		c.alpha_scissor_threshold = 0.35
+		c.shaded = false
+		var p0 := s.global_position + Vector3(ox - cell / 2.0, cell - oy, 0.0) * k
+		var v := Vector3(_rng.randf_range(-60.0, 60.0), _rng.randf_range(50.0, 140.0), 0.0) * k
+		c.position = p0
+		world.add_child(c)
+		var tw := create_tween()
+		tw.tween_method(func(t: float): c.position = p0 + v * t - Vector3(0.0, 300.0 * k, 0.0) * t * t, 0.0, 1.0, 0.6)
+		tw.tween_property(c, "modulate:a", 0.0, 0.3).set_delay(0.3)
+		tw.tween_callback(c.queue_free)
 
 
 func _draw_hud() -> void:

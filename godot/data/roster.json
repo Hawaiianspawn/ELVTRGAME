@@ -21,5 +21,15 @@
   "hero_dwarf": "pathfinder-line/dwarf_version_which",
   "hero_cover": "pathfinder-line/Can_we_have_one_cove",
   "hero_samurai": "melee-tropes/samurai",
-  "hero_ranger": "archer-medieval/v1_narrowstrung_helm"
+  "hero_ranger": "archer-medieval/v1_narrowstrung_helm",
+  "lamp_cage": "castle-props/flame_cage_lamp",
+  "table_map": "castle-props/table_map",
+  "table_trestle": "castle-props/table_trestle",
+  "chair_bench": "castle-props/chair_bench",
+  "chair_broken": "castle-props/chair_broken",
+  "chest_coffer": "castle-props/chest_coffer",
+  "chest_ornate": "castle-props/chest_ornate",
+  "chest_ornate_open": "castle-props/chest_ornate_open",
+  "mirror_ornate": "castle-props/mirror_ornate",
+  "mirror_oval": "castle-props/mirror_oval"
 }

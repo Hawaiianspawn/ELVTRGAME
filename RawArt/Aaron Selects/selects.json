@@ -1514,5 +1514,77 @@
     "verdict": "approve",
     "at": "2026-08-25T05:00:15+00:00",
     "source": "RawArt/Renders/ranged-undead/raw/z8-tilt-right/rotations"
+  },
+  "castle-props/flame_candelabra": {
+    "branch": "Elf Branch",
+    "verdict": "approve",
+    "at": "2026-08-25T05:01:37+00:00",
+    "source": "RawArt/Renders/castle-props/raw/flame_candelabra/rotations"
+  },
+  "castle-props/flame_brazier": {
+    "branch": "Elf Branch",
+    "verdict": "deny",
+    "at": "2026-08-26T02:31:27+00:00",
+    "source": "RawArt/Renders/castle-props/raw/flame_brazier/rotations"
+  },
+  "castle-props/flame_cage_lamp": {
+    "branch": "Elf Branch",
+    "verdict": "approve",
+    "at": "2026-08-25T05:01:41+00:00",
+    "source": "RawArt/Renders/castle-props/raw/flame_cage_lamp/rotations"
+  },
+  "castle-props/table_map": {
+    "branch": "Elf Branch",
+    "verdict": "approve",
+    "at": "2026-08-25T05:01:49+00:00",
+    "source": "RawArt/Renders/castle-props/raw/table_map/rotations"
+  },
+  "castle-props/chair_bench": {
+    "branch": "Elf Branch",
+    "verdict": "approve",
+    "at": "2026-08-25T05:01:54+00:00",
+    "source": "RawArt/Renders/castle-props/raw/chair_bench/rotations"
+  },
+  "castle-props/chair_broken": {
+    "branch": "Elf Branch",
+    "verdict": "approve",
+    "at": "2026-08-25T05:01:54+00:00",
+    "source": "RawArt/Renders/castle-props/raw/chair_broken/rotations"
+  },
+  "castle-props/table_trestle": {
+    "branch": "Elf Branch",
+    "verdict": "approve",
+    "at": "2026-08-25T05:02:01+00:00",
+    "source": "RawArt/Renders/castle-props/raw/table_trestle/rotations"
+  },
+  "castle-props/mirror_ornate": {
+    "branch": "Elf Branch",
+    "verdict": "approve",
+    "at": "2026-08-25T05:02:09+00:00",
+    "source": "RawArt/Renders/castle-props/raw/mirror_ornate/rotations"
+  },
+  "castle-props/chest_ornate": {
+    "branch": "Elf Branch",
+    "verdict": "approve",
+    "at": "2026-08-25T05:02:11+00:00",
+    "source": "RawArt/Renders/castle-props/raw/chest_ornate/rotations"
+  },
+  "castle-props/chest_coffer": {
+    "branch": "Elf Branch",
+    "verdict": "approve",
+    "at": "2026-08-25T05:02:12+00:00",
+    "source": "RawArt/Renders/castle-props/raw/chest_coffer/rotations"
+  },
+  "castle-props/mirror_oval": {
+    "branch": "Elf Branch",
+    "verdict": "approve",
+    "at": "2026-08-25T05:02:18+00:00",
+    "source": "RawArt/Renders/castle-props/raw/mirror_oval/rotations"
+  },
+  "castle-props/chest_ornate_open": {
+    "branch": "Elf Branch",
+    "verdict": "approve",
+    "at": "2026-08-25T05:02:19+00:00",
+    "source": "RawArt/Renders/castle-props/raw/chest_ornate_open/rotations"
   }
 }
