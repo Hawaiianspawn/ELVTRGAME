@@ -1002,7 +1002,7 @@ func _spawn_props() -> void:
 		var facing := 2 if side < 0.0 else 6   # east / west: faces into the hall
 		var d := 0.0
 		while d < range_d:
-			_add_prop("lamp_cage", wx, d, facing, false, Hall3D.TILE * Hall3D.COURSES * 1.3, "", 1.15)
+			_add_prop("lamp_cage", wx, d, facing, false, Hall3D.TILE * Hall3D.COURSES * 0.65, "", 1.15)
 			d += 160.0
 	# floor clutter: tables/chairs/chests, kept off the rank lane and away from the front line
 	var floor_names := ["table_map", "table_trestle", "chair_bench", "chest_coffer", "chest_ornate"]
