@@ -48,16 +48,23 @@ var spin_phase := 0.0        # 0 or 1: staggers the burst/breather beat so the f
 var _roll_goal := Vector2.ZERO
 var charge_to := 0.0         # halberdier charge: run to this depth launching everyone passed, then fall back
 var _charge_from := Vector2.ZERO
-var _charge_hit := {}
+var _charge_hit := {}        # enemy -> its wd at the moment first hit (for the arrival blow's throw distance)
 var _charge_back := false    # leg: false = out, true = home
+var _charge_dur := -1.0      # this charge's synced-arrival duration (T); -1 = not yet armed
+var _charge_wd0 := 0.0       # this charger's own wd when the out leg started
+var _charge_t0 := 0.0        # wall-clock time the out leg started
+var _charge_thrown := false  # true while this unit is mid-flight from a charge blow (skip a second throw)
+var _charge_hold_until := -1.0   # wall-clock: charger stands at the line until this, then falls back; -1 = not holding
 const CHARGE_SPEED := 4.0    # x walk speed out; back at rush
 const CHARGE_R := 34.0       # reach either side of the charging halberd
+const CHARGE_HOLD := 0.15    # seconds the charger freezes at the line before the fall-back leg starts
 const PILE_HOLD := 2.0       # seconds a bulldozed enemy stays rooted on the pile line
 var rush := false            # ADVANCE/RETREAT at rush speed (swaps route behind the camera)
 var sky_slam := false        # hammer entrance: dropped from the sky, slams the ground on landing
 var air_h := 0.0             # height above the ground; > 0 = airborne, helpless, juggleable
 var air_v := 0.0             # vertical speed
 var air_vx := 0.0            # lateral drift while airborne: scattered on every launch, biased toward screen centre
+var air_vd := 0.0            # depth drift while airborne: the charge blow throws with this, aimed at a landing depth
 var _spin := 0.0             # rad/s tumble while airborne
 var _pivot := 0.0            # px from feet up to the center of mass; spin pivots here
 var _base_offset := Vector2.ZERO   # make_sprite's feet-on-origin offset, restored on landing
@@ -148,6 +155,7 @@ func _process(delta: float) -> void:
 		air_v -= GRAV * g * delta
 		air_h = maxf(0.0, air_h + air_v * delta)
 		wx += air_vx * delta
+		wd += air_vd * delta
 		var cap := _air_cap()
 		if air_h > cap and not sky_slam:
 			air_h = cap   # juggle as high as you like, but never out of the frame: bounce off the top edge
@@ -156,9 +164,13 @@ func _process(delta: float) -> void:
 		if air_h == 0.0:
 			air_v = 0.0
 			air_vx = 0.0
+			air_vd = 0.0
 			_spin = 0.0
 			sprite.rotation.z = 0.0
 			sprite.offset = _base_offset
+			if _charge_thrown:
+				_charge_thrown = false
+				rooted_until = Time.get_ticks_msec() / 1000.0 + PILE_HOLD
 			if sky_slam:
 				sky_slam = false
 				slam_anim()
@@ -168,20 +180,39 @@ func _process(delta: float) -> void:
 		sprite.modulate = sprite.modulate.lerp(Color.WHITE, delta * 8.0)   # fog is the Environment's job now
 		if not _charge_back:
 			# out: straight down-range, halberd levelled, everything passed goes up
-			wd = minf(charge_to, wd + speed * CHARGE_SPEED * delta)
-			_charge_back = wd >= charge_to
+			if _charge_dur < 0.0:
+				# first out-leg frame: sync to the lead of this same charge (same type/team/target)
+				# so every row's block compresses to zero depth and lands the blow together
+				var lead_wd := wd
+				for o2 in battle.units:
+					if o2 != self and o2.team == team and o2.type == type and o2.charge_to == charge_to and not o2.dead:
+						lead_wd = maxf(lead_wd, o2.wd)
+				_charge_dur = maxf(0.15, (charge_to - lead_wd) / (speed * CHARGE_SPEED))
+				_charge_wd0 = wd
+				_charge_t0 = Time.get_ticks_msec() / 1000.0
+			var ct := clampf((Time.get_ticks_msec() / 1000.0 - _charge_t0) / _charge_dur, 0.0, 1.0)
+			wd = lerpf(_charge_wd0, charge_to, ct)
+			var arrived := wd >= charge_to
 			_moving = true
 			sprite.frame = 4
 			for o in battle.units:
 				if o.team != team and not o.dead and absf(o.wx - wx) < CHARGE_R and o.wd >= wd - 4.0 and o.wd < wd + CHARGE_R:
 					if not _charge_hit.has(o):
-						_charge_hit[o] = true
+						_charge_hit[o] = o.wd   # depth at first contact: how the arrival blow throws it
 						attack_anim()
 						battle.hit(self, o, 2.0)   # one blow on contact
 					# then bulldozed: carried on the blade to the pile line, pulled into the file, held there
 					o.wd = wd + CHARGE_R
 					o.wx = move_toward(o.wx, wx, 80.0 * delta)
 					o.rooted_until = Time.get_ticks_msec() / 1000.0 + PILE_HOLD
+			if arrived and _charge_hold_until < 0.0:
+				# freeze at the line for a beat so the block is still there when the blow lands,
+				# instead of already peeling off into the fall-back leg
+				_charge_hold_until = Time.get_ticks_msec() / 1000.0 + CHARGE_HOLD
+				_deliver_blow()
+			if _charge_hold_until >= 0.0 and Time.get_ticks_msec() / 1000.0 >= _charge_hold_until:
+				_charge_back = true
+				_charge_hold_until = -1.0
 		else:
 			# back: rush home, then the normal state takes over
 			var saved := rush
@@ -352,13 +383,37 @@ func charge(to: float, from := Vector2(INF, INF)) -> void:
 		return
 	charge_to = to
 	_charge_back = false
+	_charge_dur = -1.0
+	_charge_hold_until = -1.0
 	_charge_from = Vector2(wx, wd) if from.x == INF else from
 	_charge_hit.clear()
 
 
+## Arrival blow: every enemy this charger carried gets launched into a real arc that lands
+## past the pile line, the ones it picked up earliest (farthest from the line) thrown farthest
+## and highest so the cluster visibly fans out. Every charger in the same synced charge reaches
+## this the same frame, so the whole pile goes up together.
+func _deliver_blow() -> void:
+	for o in _charge_hit:
+		if not is_instance_valid(o) or o.dead or o._charge_thrown:
+			continue
+		var hit_wd: float = _charge_hit[o]
+		var target_wd := minf(charge_to + (charge_to - hit_wd), battle.SPAWN_D)
+		var dist: float = target_wd - o.wd
+		o._charge_thrown = true
+		# scale the impulse with throw distance so the fling is visible, not just a hop; hang time
+		# from GRAV's own "peaks at V, hangs ~2V/GRAV" (see the GRAV comment) aims the depth speed
+		# at landing on target_wd when it comes down. ponytail: ignores the floaty apex easing
+		# (FLOAT_G), so it's an aim not a guarantee — ok for a spectacle throw, not physics sim.
+		var v := clampf(220.0 + dist * (100.0 / 600.0), 220.0, 320.0)
+		var hang := 2.0 * v / GRAV
+		o.launch(v, dist / hang)
+
+
 ## Knock into the air: an impulse, added to whatever it already has. Height builds next frame,
-## so the launching hit itself isn't a juggle.
-func launch(v: float) -> void:
+## so the launching hit itself isn't a juggle. `vd` aims a depth throw (the charge blow); other
+## callers land wherever the walk/creep drags them, same as before.
+func launch(v: float, vd := 0.0) -> void:
 	if not dead:
 		air_v = minf(air_v + v, 400.0)
 		_spin = randf_range(6.0, 11.0) * (1.0 if randf() < 0.5 else -1.0)
@@ -366,6 +421,7 @@ func launch(v: float) -> void:
 		var inward := -signf(wx) if wx != 0.0 else (1.0 if randf() < 0.5 else -1.0)
 		var dir := inward if randf() < 0.5 + 0.5 * absf(wx) / battle.HALL_HALF else -inward
 		air_vx = dir * randf_range(25.0, 70.0)
+		air_vd = vd
 
 
 ## Whirl phase: 1s on / 1s off across the spin window; i-frames and the blade only while on.
