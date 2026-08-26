@@ -93,7 +93,18 @@ static func make_sprite3d(name: String, facing := 0) -> Sprite3D:
 	s.alpha_cut = SpriteBase3D.ALPHA_CUT_DISCARD
 	s.alpha_scissor_threshold = 0.35
 	s.offset = Vector2(0, int(Game.sprites[name]["cell"]) / 2.0)
+	# own material per sprite: gl_compatibility has no instance uniforms, and the hit flash is a
+	# per-unit uniform. The override drops Sprite3D's filter/scissor, so the shader carries them.
+	var m := ShaderMaterial.new()
+	m.shader = UNIT_SHADER
+	m.set_shader_parameter("texture_albedo", _atlas)
+	s.material_override = m
 	return s
+
+
+## Hit flash 0..1 on a make_sprite3d sprite; Unit._place drives it from the modulate pulse.
+static func set_flash(s: Sprite3D, f: float) -> void:
+	(s.material_override as ShaderMaterial).set_shader_parameter("flash", f)
 
 
 ## One-shot effect clip (manifest fx_* rows): hframes = clip length, frame 0, centred on the origin.
@@ -107,8 +118,22 @@ static func make_fx3d(name: String) -> Sprite3D:
 
 # ---- projection ------------------------------------------------------------------------------
 
+## OutRun bend: render-space only. The sim stays on a straight hall; every consumer of to_world /
+## unproject picks the shift up, cursor_world takes it back out. Statics, because the projection
+## helpers are static. Battle tweens curve_a/curve_l per wave; set_scroll feeds phase and pushes
+## all three into the hall_bend shader so floor and walls bend by the same closed form.
+static var curve_a := 0.0       # max lateral slope per depth unit; 0 = straight
+static var curve_l := 460.0     # wavelength divisor
+static var phase := 0.0         # = scroll, so the bend sweeps under you as the hall creeps
+
+
+## Lateral shift at depth d: integral of curve_a * sin((u + phase) / curve_l) du from 0 to d.
+static func curve_dx(d: float) -> float:
+	return curve_a * curve_l * (cos(phase / curve_l) - cos((d + phase) / curve_l))
+
+
 static func to_world(wx: float, wd: float, h := 0.0) -> Vector3:
-	return Vector3(wx, h, -wd)
+	return Vector3(wx + curve_dx(wd), h, -wd)
 
 
 ## Half the viewport height over tan(fov/2): screen pixels per world unit at depth 1.
@@ -155,33 +180,40 @@ static func cursor_world(cam: Camera3D, screen_pos: Vector2, max_d: float) -> Ve
 	if n.y < -0.000001:
 		d = clampf(-(o.z + n.z * (-o.y / n.y)), 60.0, max_d)
 	if absf(n.z) < 0.000001:
-		return Vector2(o.x, d)
-	return Vector2(o.x + n.x * (o.z + d) / -n.z, d)
+		return Vector2(o.x - curve_dx(d), d)
+	return Vector2(o.x + n.x * (o.z + d) / -n.z - curve_dx(d), d)   # back onto the straight sim lane
 
 
 # ---- the hall --------------------------------------------------------------------------------
 
 var _floor: Node3D
 var _tiles: Array[MeshInstance3D] = []
-var _pool_mats: Array[StandardMaterial3D] = []   # parallel to FLOOR_POOL
-var _wall_mat: StandardMaterial3D
+var _pool_mats: Array[ShaderMaterial] = []   # parallel to FLOOR_POOL
+var _wall_mat: ShaderMaterial
+var _bend_mats: Array[ShaderMaterial] = []   # every material the bend uniforms go to
 var _cols := 0
 var _rows := 0
 var _shift := -0x7FFFFFFF
 
+const BEND_SHADER := preload("res://assets/shaders/hall_bend.gdshader")
+const UNIT_SHADER := preload("res://assets/shaders/unit_sprite.gdshader")
+const WALL_SEGS := 24           # depth bands per wall quad so the bend reads as a curve, not a kink
 
-static func _unshaded(tex: Texture2D, tint: Color) -> StandardMaterial3D:
-	var m := StandardMaterial3D.new()
-	m.albedo_texture = tex
-	m.albedo_color = tint
-	m.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
-	m.texture_filter = BaseMaterial3D.TEXTURE_FILTER_NEAREST
-	m.specular_mode = BaseMaterial3D.SPECULAR_DISABLED
+
+## Nearest-filtered tile x tint, unshaded, on the bend shader (straight until curve_a is set).
+func _unshaded(tex: Texture2D, tint: Color) -> ShaderMaterial:
+	var m := ShaderMaterial.new()
+	m.shader = BEND_SHADER
+	m.set_shader_parameter("tex", tex)
+	m.set_shader_parameter("tint", tint)
+	_bend_mats.append(m)
 	return m
 
 
 ## Floor, walls and the black fog, for a hall `half` world units either side of centre.
 func build(half: float) -> void:
+	curve_a = 0.0   # a fresh hall starts straight; Battle ramps it per wave
+	phase = 0.0
 	var we := WorldEnvironment.new()
 	var e := Environment.new()
 	e.background_mode = Environment.BG_COLOR
@@ -255,25 +287,28 @@ func _build_walls(half: float) -> void:
 		_wall_quad(st, side * half, mid, top, Color.WHITE, Color.BLACK)
 	var mi := MeshInstance3D.new()
 	mi.mesh = st.commit()
-	_wall_mat = _unshaded(WALL_TEX, Color.WHITE)
-	_wall_mat.vertex_color_use_as_albedo = true
-	_wall_mat.cull_mode = BaseMaterial3D.CULL_DISABLED
+	_wall_mat = _unshaded(WALL_TEX, Color.WHITE)   # vertex colour and no culling are in the shader
 	mi.material_override = _wall_mat
 	add_child(mi)
 
 
+## One band of wall, WALL_SEGS quads down its depth: the bend shader moves vertices, so a single
+## quad would only bend at its two ends.
 func _wall_quad(st: SurfaceTool, x: float, y0: float, y1: float, c0: Color, c1: Color) -> void:
 	var top := TILE * COURSES
-	var u0 := WALL_D0 / TILE
-	var u1 := WALL_D1 / TILE
-	var p := [Vector3(x, y0, -WALL_D0), Vector3(x, y0, -WALL_D1), Vector3(x, y1, -WALL_D1), Vector3(x, y1, -WALL_D0)]
-	var uv := [Vector2(u0, (top - y0) / TILE), Vector2(u1, (top - y0) / TILE), Vector2(u1, (top - y1) / TILE), Vector2(u0, (top - y1) / TILE)]
-	var col := [c0, c0, c1, c1]
-	for i in [0, 1, 2, 0, 2, 3]:
-		st.set_color(col[i])
-		st.set_uv(uv[i])
-		st.set_normal(Vector3(-signf(x), 0.0, 0.0))
-		st.add_vertex(p[i])
+	for seg in range(WALL_SEGS):
+		var da := lerpf(WALL_D0, WALL_D1, float(seg) / WALL_SEGS)
+		var db := lerpf(WALL_D0, WALL_D1, float(seg + 1) / WALL_SEGS)
+		var ua := da / TILE
+		var ub := db / TILE
+		var p := [Vector3(x, y0, -da), Vector3(x, y0, -db), Vector3(x, y1, -db), Vector3(x, y1, -da)]
+		var uv := [Vector2(ua, (top - y0) / TILE), Vector2(ub, (top - y0) / TILE), Vector2(ub, (top - y1) / TILE), Vector2(ua, (top - y1) / TILE)]
+		var col := [c0, c0, c1, c1]
+		for i in [0, 1, 2, 0, 2, 3]:
+			st.set_color(col[i])
+			st.set_uv(uv[i])
+			st.set_normal(Vector3(-signf(x), 0.0, 0.0))
+			st.add_vertex(p[i])
 
 
 ## Forward creep: floor tiles march toward the camera and wrap a cell at a time (the variant grid
@@ -281,4 +316,9 @@ func _wall_quad(st: SurfaceTool, x: float, y0: float, y1: float, c0: Color, c1: 
 func set_scroll(s: float) -> void:
 	_floor.position.z = fposmod(s, TILE)
 	_apply_variants(int(floor(s / TILE)))
-	_wall_mat.uv1_offset.x = s / TILE
+	_wall_mat.set_shader_parameter("uv_offset", Vector2(s / TILE, 0.0))
+	phase = s
+	for m in _bend_mats:   # ponytail: ~16 materials x 3 params a frame; shader globals if it ever shows
+		m.set_shader_parameter("curve_a", curve_a)
+		m.set_shader_parameter("curve_l", curve_l)
+		m.set_shader_parameter("phase", phase)

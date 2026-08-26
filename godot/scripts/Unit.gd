@@ -314,7 +314,8 @@ func _step(goal: Vector2, delta: float) -> void:
 
 func _place() -> void:
 	visible = wd > 40.0
-	position = Vector3(wx, 0.0, -wd)
+	position = Hall3D.to_world(wx, wd)   # carries the hall bend; wx/wd stay straight
+	Hall3D.set_flash(sprite, clampf(sprite.modulate.r - 1.0, 0.0, 1.0))   # take() sets 2.0, _process lerps it home
 	_lunge = _lunge.lerp(Vector2.ZERO, 0.18)
 	_recoil = _recoil.lerp(Vector2.ZERO, 0.2)
 	var bob := absf(sin(_t * 12.0 * _gait)) * 3.0 if _moving else 0.0   # +y is up in 3D: the step lifts, it doesn't dig

@@ -16,12 +16,15 @@ const ENEMY_MIN_D := 130.0        # enemies stop here, at the hero's feet: nothi
 const RANK_D0 := 285.0          # first rank behind the front line
 const CREEP := 42.0             # sim treadmill: enemy wd drift (Unit.gd) - untouched, not a visual dial
 const SCROLL_CREEP_BY_WAVE := [84.0, 112.0, 140.0, 170.0]   # visual-only scroll speed (scenery), ~2x CREEP at wave1, ~2x again by wave4
+const CURVE_A_BY_WAVE := [0.5, 0.65, 0.85, 1.1]     # OutRun bend amplitude per wave (Hall3D.curve_a), render-only
+const CURVE_L_BY_WAVE := [460.0, 380.0, 320.0, 270.0]   # bend wavelength divisor per wave: shorter = turns quicker
 const HALL_HALF := 200.0        # hallway half-width: the walls; everything lives between them
 const RANK_ROWS := 8            # depth of the company block down to the camera; every slot is a real unit
 const RANK_COLS := 6            # files across; the block fills the hall wall to wall
 const RANK_HALF := HALL_HALF - 20.0   # half-width of the block in world units
 const RANK_STEP := 28.0
 const BEHIND_D := 55.0          # just behind the lens: where swaps come from and go to
+const CHARGE_GAP := 56.0        # depth between rank rows on a halberdier charge-in: 2x RANK_STEP so the files read apart
 const SWEEP_W := 240.0          # launch zone half-width, centered on the hero - spans the whole field
 const SWEEP_LEN := 520.0        # launch zone depth ahead of the hero - everything short of fresh spawns
 const TYPES := Army.TYPES
@@ -158,6 +161,10 @@ func _label(parent: Node, pos: Vector2, size: int, col: Color) -> Label:
 func start_wave(i: int) -> void:
 	Game.wave = i
 	scroll_creep = SCROLL_CREEP_BY_WAVE[i]   # necromancer speeds the sweep each wave; scenery-only, sim speed (CREEP) untouched
+	var ct := create_tween()        # bend hardens and turns faster too, blended in so the hall doesn't snap
+	ct.set_parallel(true)
+	ct.tween_method(func(v: float) -> void: Hall3D.curve_a = v, Hall3D.curve_a, CURVE_A_BY_WAVE[i], 2.0).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN_OUT)
+	ct.tween_method(func(v: float) -> void: Hall3D.curve_l = v, Hall3D.curve_l, CURVE_L_BY_WAVE[i], 2.0).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN_OUT)
 	wave_t = 0.0
 	checkpoint_magic = Game.magic
 	for u in units:
@@ -219,8 +226,10 @@ func _deploy(type: String, rush: bool) -> void:
 				u.state = Unit.State.RANK
 			elif charge_in:
 				# halberdiers don't march in either: the deploy IS the charge, from behind the lens straight
-				# down-range through the ranks, launching everything passed, then back to the slot
-				u.wd = BEHIND_D
+				# down-range through the ranks, launching everything passed, then back to the slot.
+				# Staggered by rank row so the files run spaced out instead of one stacked clump; the
+				# front row leads and everyone still bulldozes onto the same pile line.
+				u.wd = BEHIND_D - CHARGE_GAP * roundf((RANK_D0 - sl.y) / RANK_STEP)
 				u.state = Unit.State.RANK
 				u.charge(FRONT_D + float(d.get("pile_d", 60.0)), sl)   # everyone to the same pile line
 			else:
