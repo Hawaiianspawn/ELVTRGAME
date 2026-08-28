@@ -490,7 +490,20 @@ and pack into the Godot atlas with <code>godot_pack.py</code>.</p>
 
 
 UNITS_JSON = REPO / "godot" / "data" / "units.json"
-GAME_FIELDS = ("hp", "dmg", "range", "speed", "cooldown", "attack_hold", "attack_frames", "slash", "slash_y", "sfx")
+SPELLS_JSON = REPO / "godot" / "data" / "spells.json"
+GAME_FIELDS = ("hp", "dmg", "range", "speed", "cooldown", "attack_hold", "attack_frames", "slash", "slash_y")
+SFX_DIR = REPO / "godot" / "assets" / "sfx"
+HERO_SFX_CUES = ("attack", "hit", "low_hp", "wave_clear", "lose", "relic")
+LIB = REPO / "RawArt" / "Audio" / "sonniss"
+
+
+def sfx_files():
+    """Every packed cue file in godot/assets/sfx, sorted -- .import sidecars excluded."""
+    return sorted(f.name for f in SFX_DIR.glob("*") if f.suffix.lower() in (".wav", ".ogg"))
+
+
+def unit_sfx_cues(u):
+    return ("attack", "hit", "death", "ability") if u.get("ability") else ("attack", "hit", "death")
 
 
 
@@ -504,15 +517,39 @@ def clip_root(fam, slug):
     return d if d and any(d.glob("attack_*")) else vp.RENDERS / fam / "raw" / slug
 
 
+def sfx_row(target, cue, current, files, label=None):
+    """One cue: a file select (blank first) + a play button. target/cue are our own keys,
+    not user input, so this follows the same light-escaping style as gf()'s inputs above."""
+    sel_id = "sfx_%s_%s" % (target.replace(":", "-"), cue)
+    opts = "".join('<option value="%s"%s>%s</option>' % (esc(f), " selected" if f == current else "", esc(f))
+                   for f in files)
+    return ('<div class="sfxrow"><span class="cue">%s</span>'
+            '<select id="%s" onchange="sfxSet(\'%s\',\'%s\',this)"><option value=""%s></option>%s</select>'
+            '<button type="button" onclick="sfxPlay(document.getElementById(\'%s\').value)">&#9654;</button></div>'
+            % (esc(label or cue), sel_id, target, cue, "" if current else " selected", opts, sel_id))
+
+
 def game_page():
     """Only what the Godot game uses: every units.json entry with its art, attack clip,
-    slash fx and stats. Inputs write straight back to units.json (Godot reads it at boot)."""
+    slash fx, stats and sound cues. Edits write straight back to units.json/spells.json
+    (Godot reads them at boot); play buttons audition the packed file."""
     units = vp.load_json(UNITS_JSON)
     roster = vp.load_json(REPO / "godot" / "data" / "roster.json")
+    spells = vp.load_json(SPELLS_JSON)
     slashes = sorted(d.name for d in (vp.RENDERS / "fx-slash" / "raw").glob("*") if d.is_dir())
-    cards = []
+    files = sfx_files()
+
+    hero_tab = units.get("hero_sfx") or {}
+    hero_rows = "".join(sfx_row("hero_sfx", c, hero_tab.get(c, ""), files) for c in HERO_SFX_CUES)
+    cards = ['<div class="card ok"><b>Hero</b><span class="sub">hero_sfx</span>'
+             '<div class="sfxblock">%s</div></div>' % hero_rows]
+    spell_rows = "".join(sfx_row("spell:%s" % s["id"], "sfx", s.get("sfx", ""), files, label=s.get("label", s["id"]))
+                          for s in spells.get("spells", []))
+    cards.append('<div class="card ok"><b>Spells</b><span class="sub">spells.json</span>'
+                 '<div class="sfxblock">%s</div></div>' % spell_rows)
+
     for key, u in units.items():
-        if not isinstance(u, dict):
+        if key == "hero_sfx" or not isinstance(u, dict) or not u.get("sprite"):
             continue
         ref = roster.get(u.get("sprite"), "")
         fam, _, slug = ref.partition("/")
@@ -536,13 +573,17 @@ def game_page():
                 return '<select onchange="gf(\'%s\',\'slash\',this)"><option value=""></option>%s</select>' % (
                     esc(key), "".join('<option%s>%s</option>' % (" selected" if x == v else "", esc(x)) for x in slashes))
             return '<input value="%s" size="%d" onchange="gf(\'%s\',\'%s\',this)">' % (esc(str(v)), w, esc(key), f)
-        stats = "".join('<label>%s %s</label>' % (f, inp(f, 14 if f == "sfx" else 4)) for f in GAME_FIELDS)
+        stats = "".join('<label>%s %s</label>' % (f, inp(f)) for f in GAME_FIELDS)
         ab = ('<p class="ab"><b>%s</b> &middot; cd %s &middot; %s</p>' % (esc(u.get("ability_label", "")), u.get("ability_cd", "-"), esc(u.get("ability_desc", "")))) if u.get("ability") else ""
+        sfxtab = u.get("sfx") or {}
+        sfx_rows = "".join(sfx_row(key, c, sfxtab.get(c, ""), files) for c in unit_sfx_cues(u))
+        sfx_html = ('<div class="sfxblock">%s<button type="button" onclick="sfxAll(\'%s\')">&#9654; all</button></div>'
+                    % (sfx_rows, key))
         cards.append(
             '<div class="card ok"><b>%s</b><span class="sub">%s &middot; %s</span>'
-            '<div class="pair">%s</div>%s<div class="stats">%s</div>%s'
+            '<div class="pair">%s</div>%s<div class="stats">%s</div>%s%s'
             '<span class="sub">counters: %s</span></div>'
-            % (esc(u.get("label", key)), esc(key), esc(ref) or "no sprite", panes, strip, stats, ab,
+            % (esc(u.get("label", key)), esc(key), esc(ref) or "no sprite", panes, strip, stats, ab, sfx_html,
                esc(", ".join(u.get("counters") or [])) or "-"))
     return """<!doctype html><html><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
@@ -554,13 +595,24 @@ def game_page():
 .stats{display:flex;flex-wrap:wrap;gap:.3rem .6rem;} .stats label{font-family:var(--mono);font-size:.62rem;}
 .stats input,.stats select{background:var(--sunk);color:var(--ink);border:1px solid var(--line);font-family:var(--mono);font-size:.62rem;padding:.1rem .25rem;}
 .ab{font-size:.7rem;margin:0;}
+.sfxblock{display:flex;flex-direction:column;gap:.25rem;border-top:1px solid var(--line);padding-top:.35rem;}
+.sfxrow{display:flex;align-items:center;gap:.35rem;font-family:var(--mono);font-size:.62rem;}
+.sfxrow .cue{width:5rem;flex:none;opacity:.75;}
+.sfxrow select{flex:1;background:var(--sunk);color:var(--ink);border:1px solid var(--line);font-family:var(--mono);font-size:.62rem;padding:.1rem .25rem;}
+.sfxblock button{background:var(--sunk);color:var(--ink);border:1px solid var(--line);font-family:var(--mono);font-size:.62rem;padding:.1rem .4rem;cursor:pointer;}
+.sfxblock button:hover{border-color:var(--bone);}
+.libpanel{margin-top:1rem;} .libpanel input{width:100%%;box-sizing:border-box;background:var(--sunk);color:var(--ink);
+  border:1px solid var(--line);font-family:var(--mono);font-size:.7rem;padding:.3rem;}
+.libhit{display:flex;align-items:center;gap:.4rem;font-family:var(--mono);font-size:.62rem;padding:.2rem 0;
+  border-bottom:1px solid var(--line);}
+.libhit .path{flex:1;overflow-wrap:anywhere;}
 </style></head><body><div class="wrap"><header>
 <p class="eyebrow"><a href="/" style="color:var(--bone)">&larr; roster</a> &middot; <a href="/attacks" style="color:var(--bone)">attack clips</a> &middot; game units</p>
 <h1>Game units</h1>
 <p>Every entry in <code>godot/data/units.json</code>: standing art (hover to turn), attack clip with its
-<code>attack_hold</code>, slash fx, and stats. Edits save on blur straight into units.json; Godot reads it at boot.
-<code>sfx</code> is a slot only -- no audio is wired in the game yet.</p>
-</header><div class="cards">%s</div></div>
+<code>attack_hold</code>, slash fx, and stats. Sound cues are per unit (plus hero_sfx and spells.json) --
+edits save on change straight into units.json/spells.json; play buttons audition the packed file.</p>
+</header><div class="cards">%s</div>%s</div>
 <script>
 function gf(unit, field, el){
   fetch('/api/game/field',{method:'POST',headers:{'content-type':'application/json'},
@@ -569,7 +621,85 @@ function gf(unit, field, el){
   .then(()=>{el.style.borderColor='var(--bone)';if(field=='slash'||field=='attack_hold'||field=='attack_frames')location.reload();})
   .catch(e=>{el.style.borderColor='red';alert(e);});
 }
-</script></body></html>""" % (SELECTS_CSS, "".join(cards))
+function playUrl(url){ new Audio(url).play().catch(()=>{}); }
+function sfxUrl(file){ return '/sfx/' + encodeURIComponent(file); }
+function sfxPlay(file){ if(file) playUrl(sfxUrl(file)); }
+function playChain(files, i){
+  if(i >= files.length) return;
+  const a = new Audio(sfxUrl(files[i]));
+  const next = () => playChain(files, i + 1);
+  a.addEventListener('ended', next);
+  a.play().catch(next);
+}
+function sfxAll(unit){
+  const files = ['attack','hit','death'].map(c => {
+    const el = document.getElementById('sfx_' + unit + '_' + c);
+    return el ? el.value : '';
+  }).filter(f => f);
+  playChain(files, 0);
+}
+function sfxSet(unit, cue, el){
+  fetch('/api/game/sfx',{method:'POST',headers:{'content-type':'application/json'},
+    body:JSON.stringify({unit:unit,cue:cue,file:el.value})})
+  .then(r=>r.ok?r.json():r.json().then(j=>{throw j.detail}))
+  .then(()=>{el.style.borderColor='var(--bone)';})
+  .catch(e=>{el.style.borderColor='red';alert(e);});
+}
+%s
+</script></body></html>""" % (SELECTS_CSS, "".join(cards), library_panel_html(), library_panel_js())
+
+
+def library_panel_html():
+    if not LIB.is_dir():
+        return ('<p class="sub libpanel">Sonniss library not found &mdash; drop the GameAudioGDC bundle at '
+                '<code>RawArt/Audio/sonniss/</code> and reload.</p>')
+    return ('<div class="libpanel"><h2>Sonniss library</h2>'
+            '<input id="libq" placeholder="search sonniss..." oninput="libSearch()">'
+            '<div id="libhits"></div></div>')
+
+
+def library_panel_js():
+    if not LIB.is_dir():
+        return ""
+    targets = [["hero_sfx", "Hero"]]
+    units = vp.load_json(UNITS_JSON)
+    targets += [[k, u.get("label", k)] for k, u in units.items()
+                if isinstance(u, dict) and k != "hero_sfx" and u.get("sprite")]
+    spells = vp.load_json(SPELLS_JSON)
+    targets += [["spell:%s" % s["id"], "Spell: %s" % s.get("label", s["id"])] for s in spells.get("spells", [])]
+    cues = ["attack", "hit", "death", "ability"] + list(HERO_SFX_CUES) + ["sfx"]
+    cues = sorted(set(cues))
+    return """
+const LIB_TARGETS = %s, LIB_CUES = %s;
+let libTimer = null;
+function libSearch(){
+  clearTimeout(libTimer);
+  libTimer = setTimeout(async () => {
+    const q = document.getElementById('libq').value;
+    const r = await fetch('/api/sfx/library?q=' + encodeURIComponent(q));
+    const j = await r.json();
+    const tOpts = LIB_TARGETS.map(t => `<option value="${t[0]}">${t[1]}</option>`).join('');
+    const cOpts = LIB_CUES.map(c => `<option value="${c}">${c}</option>`).join('');
+    document.getElementById('libhits').innerHTML = j.hits.map(h => `
+      <div class="libhit"><button type="button" onclick="playUrl('/sfx/raw?path=${encodeURIComponent(h.path)}')">&#9654;</button>
+      <span class="path">${h.path}</span>
+      <select class="libtarget">${tOpts}</select><select class="libcue">${cOpts}</select>
+      <button type="button" onclick="libUse(this, ${JSON.stringify(h.path)})">use as</button></div>`).join('')
+      || '<p class="sub">no matches</p>';
+  }, 200);
+}
+async function libUse(btn, path){
+  const row = btn.closest('.libhit');
+  const unit = row.querySelector('.libtarget').value, cue = row.querySelector('.libcue').value;
+  try{
+    const r = await fetch('/api/sfx/pick',{method:'POST',headers:{'content-type':'application/json'},
+      body:JSON.stringify({path:path,unit:unit,cue:cue})});
+    if(!r.ok) throw (await r.json()).detail;
+    location.reload();
+  }catch(e){ alert(e); }
+}
+libSearch();
+""" % (json.dumps(targets), json.dumps(cues))
 
 
 def set_game_field(unit, field, value):
@@ -583,7 +713,7 @@ def set_game_field(unit, field, value):
         if field in ("hp", "dmg", "range", "speed", "cooldown"):
             raise Fail("%s is required" % field)
         u.pop(field, None)
-    elif field in ("slash", "sfx"):
+    elif field == "slash":
         u[field] = value
     else:
         try:
@@ -593,6 +723,78 @@ def set_game_field(unit, field, value):
         u[field] = int(n) if n == int(n) and not isinstance(u.get(field), float) else n
     UNITS_JSON.write_text(json.dumps(units, indent=2) + "\n", encoding="utf-8")
     return u
+
+
+def set_game_sfx(unit, cue, file):
+    """One sound cue on a unit, hero_sfx, or a spell. Empty file clears the key."""
+    file = (file or "").strip()
+    if file and file not in sfx_files():
+        raise Fail("unknown sfx file %r" % file)
+
+    if unit == "hero_sfx":
+        if cue not in HERO_SFX_CUES:
+            raise Fail("bad hero_sfx cue %r" % cue)
+        units = vp.load_json(UNITS_JSON)
+        table = units.setdefault("hero_sfx", {})
+        if file:
+            table[cue] = file
+        else:
+            table.pop(cue, None)
+        UNITS_JSON.write_text(json.dumps(units, indent=2) + "\n", encoding="utf-8")
+        return table
+
+    if unit.startswith("spell:"):
+        if cue != "sfx":
+            raise Fail("bad spell cue %r" % cue)
+        sid = unit.split(":", 1)[1]
+        spells = vp.load_json(SPELLS_JSON)
+        sp = next((s for s in spells.get("spells", []) if s.get("id") == sid), None)
+        if sp is None:
+            raise Fail("unknown spell %r" % sid)
+        if file:
+            sp["sfx"] = file
+        else:
+            sp.pop("sfx", None)
+        SPELLS_JSON.write_text(json.dumps(spells, indent=2) + "\n", encoding="utf-8")
+        return sp
+
+    units = vp.load_json(UNITS_JSON)
+    u = units.get(unit)
+    if not isinstance(u, dict) or unit == "hero_sfx":
+        raise Fail("bad unit %r" % unit)
+    if cue not in unit_sfx_cues(u):
+        raise Fail("bad cue %r for %r" % (cue, unit))
+    table = u.setdefault("sfx", {})
+    if file:
+        table[cue] = file
+    else:
+        table.pop(cue, None)
+    UNITS_JSON.write_text(json.dumps(units, indent=2) + "\n", encoding="utf-8")
+    return u
+
+
+def pick_sfx(path, unit, cue):
+    """Run sfx.py pick against a Sonniss library file, then assign the packed cue."""
+    if not LIB.is_dir():
+        raise Fail("sonniss library not found")
+    rel = (path or "").strip()
+    if not rel:
+        raise Fail("no path")
+    src = (LIB / rel).resolve()
+    try:
+        src.relative_to(LIB.resolve())
+    except ValueError:
+        raise Fail("path escapes library")
+    if not src.is_file():
+        raise Fail("source file not found: %s" % rel)
+    unit = (unit or "").strip()
+    cue = (cue or "").strip()
+    slug = re.sub(r"[^a-z0-9]+", "_", unit.lower()).strip("_")
+    out_name = "%s_%s.wav" % (slug, cue)
+    r = run([sys.executable, str(REPO / "Scripts" / "art" / "sfx.py"), "pick", str(src), out_name])
+    if r["rc"] != 0:
+        raise Fail("sfx.py pick failed: %s" % r["out"])
+    return set_game_sfx(unit, cue, out_name)
 
 
 def poll(family):
@@ -2098,6 +2300,50 @@ def build_app(family, atlas, prefix, scale):
     def api_game_field(body: dict):
         return {"unit": guard(set_game_field, body.get("unit"), body.get("field"), body.get("value"))}
 
+    @app.post("/api/game/sfx")
+    def api_game_sfx(body: dict):
+        return {"unit": guard(set_game_sfx, body.get("unit"), body.get("cue"), body.get("file"))}
+
+    @app.get("/sfx/raw")
+    def api_sfx_raw(path: str):
+        p = (LIB / (path or "")).resolve()
+        try:
+            p.relative_to(LIB.resolve())
+        except ValueError:
+            raise HTTPException(status_code=404, detail="not in library")
+        if not p.is_file():
+            raise HTTPException(status_code=404, detail="not found")
+        return Response(p.read_bytes(), media_type="audio/wav", headers={"Cache-Control": "no-store"})
+
+    @app.get("/sfx/{name}")
+    def api_sfx(name: str):
+        if "/" in name or "\\" in name or ".." in name:
+            raise HTTPException(status_code=404, detail="bad name")
+        p = SFX_DIR / name
+        if not p.is_file():
+            raise HTTPException(status_code=404, detail="not found")
+        media = "audio/ogg" if p.suffix.lower() == ".ogg" else "audio/wav"
+        return Response(p.read_bytes(), media_type=media, headers={"Cache-Control": "no-store"})
+
+    @app.get("/api/sfx/library")
+    def api_sfx_library(q: str = ""):
+        if not LIB.is_dir():
+            return {"hits": []}
+        ql = q.lower()
+        hits = []
+        for f in LIB.rglob("*.wav"):
+            rel = f.relative_to(LIB).as_posix()
+            if ql and ql not in rel.lower():
+                continue
+            hits.append({"path": rel, "size": f.stat().st_size})
+            if len(hits) >= 50:
+                break
+        return {"hits": hits}
+
+    @app.post("/api/sfx/pick")
+    def api_sfx_pick(body: dict):
+        return {"unit": guard(pick_sfx, body.get("path"), body.get("unit"), body.get("cue"))}
+
     @app.get("/anim")
     def api_anim(ref: str, name: str, zoom: int = 2, hold: int = 0, strip: int = 0, n: int = 0):
         fam, slug = ref.split("/", 1)
@@ -2207,11 +2453,15 @@ def selftest():
         except Fail:
             pass
 
-    # the game page renders every units.json entry
+    # the game page renders every units.json entry, plus a sound-cue row per unit/hero/spell
     html = game_page()
     for k, v in vp.load_json(UNITS_JSON).items():
-        if isinstance(v, dict):
+        if isinstance(v, dict) and v.get("sprite"):
             assert "gf('%s'" % k in html, k
+            assert "sfxSet('%s'" % k in html, k
+    assert "sfxSet('hero_sfx'" in html
+    for s in vp.load_json(SPELLS_JSON).get("spells", []):
+        assert "sfxSet('spell:%s'" % s["id"] in html, s["id"]
 
     # verdict round-trips without touching judge's own verdict key, carries the recipe,
     # and never rewrites family.json (whose compact hand-authored arrays a json.dump
