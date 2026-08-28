@@ -14,14 +14,21 @@ func _ready() -> void:
 	_label.add_theme_color_override("font_color", Color("#a0a08b"))
 	add_child(_label)
 	_portrait = Game.make_sprite(Game.hero, 0)
-	_portrait.position = Vector2(480, 150)
-	_portrait.scale = Vector2(2, 2)
+	# Shrunk + parked above the heading (text block starts ~y=100): at scale 2 the portrait's
+	# 176px height ate into every line down to "v0.1.0". At scale 1 (88px) it clears the gap.
+	_portrait.position = Vector2(480, 65)
+	_portrait.scale = Vector2(1, 1)
 	add_child(_portrait)
 	_refresh()
 
 
 func _refresh() -> void:
-	_label.text = "KINDLED\nThe Green Dot\n\n\n\n\nhero: %s   [H] next hero\n\n[Space] begin\n\nWASD move   Mouse aim   LMB cast   RMB hold: siphon\nZ/X/C spells   Q/E set lane unit type (hover lane)\n\ndev: 1 siege, 2-5 wave, Tab next" % Game.hero.trim_prefix("hero_")
+	# v-line reuses a blank line below the tagline (kept clear of the portrait sprite) so line
+	# count matches the pre-version layout and nothing else shifts.
+	var text := "KINDLED\nThe Green Dot\nv%s\n\n\n\nhero: %s   [H] next hero\n\n[Space] begin\n\nWASD move   Mouse aim   LMB cast   RMB hold: siphon\nZ/X/C spells   Q/E set lane unit type (hover lane)" % [Game.VERSION, Game.hero.trim_prefix("hero_")]
+	if not OS.has_feature("web"):
+		text += "\n\ndev: 1 siege, 2-5 wave, Tab next"
+	_label.text = text
 	_portrait.texture = Game.make_sprite(Game.hero, 0).texture
 	_portrait.offset = Game.make_sprite(Game.hero, 0).offset
 

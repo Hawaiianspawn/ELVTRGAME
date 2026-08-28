@@ -9,6 +9,9 @@ var _label: Label
 
 
 func _ready() -> void:
+	if OS.has_feature("web"):
+		set_process_unhandled_input(false)
+		return
 	var cl := CanvasLayer.new()
 	cl.layer = 90
 	_label = Label.new()

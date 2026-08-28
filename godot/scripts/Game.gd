@@ -1,6 +1,7 @@
 extends Node
 ## Autoload. Owns data tables, run state, scene routing and the shared sprite helper.
 
+const VERSION := "0.1.0"
 const DIRS := ["south", "south-east", "east", "north-east", "north", "north-west", "west", "south-west"]
 const SCENES := {
 	"siege": "res://scenes/siege/Siege.tscn",
