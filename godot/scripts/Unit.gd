@@ -114,6 +114,7 @@ func attack_anim() -> void:
 	if not _atk.is_empty() and team == ALLY:
 		_clip = _atk
 		_atk_t = 0.0
+	Sound.unit(type, "attack", wx)
 
 
 ## Play the packed north-facing slam clip (sky-drop landing).
@@ -447,7 +448,11 @@ func take(amount: float, push := Vector2.ZERO) -> void:
 	sprite.modulate = Color(2.0, 2.0, 2.0)
 	_recoil = push
 	if hp <= 0.0:
+		Sound.unit(type, "death", wx)
 		dead = true
+	else:
+		Sound.unit(type, "hit", wx)
+	if dead:
 		if air_h > 0.0 and team == ENEMY:
 			Game.score += int(max_hp * (1.0 + 0.5 * _juggles))
 		died.emit(self)

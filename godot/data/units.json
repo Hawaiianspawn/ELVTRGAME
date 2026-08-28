@@ -18,6 +18,12 @@
     "attack_hold": 0.3,
     "slash": "judgement_cut_thin",
     "slash_y": -14,
+    "sfx": {
+      "attack": "sword_swing_metal.wav",
+      "hit": "impact_flesh_light.wav",
+      "death": "death_grunt_male.wav",
+      "ability": "whoosh_blade_spin.wav"
+    },
     "tag": "VETERANS",
     "swap": [
       "We've done this before, captain. Stay behind the spin.",
@@ -43,6 +49,12 @@
     "ability_cd": 9,
     "pile_d": 120,
     "slash": "thrust",
+    "sfx": {
+      "attack": "spear_thrust_metal.wav",
+      "hit": "impact_flesh_light.wav",
+      "death": "death_grunt_male.wav",
+      "ability": "impact_bulldoze_heavy.wav"
+    },
     "tag": "HALBERDIERS",
     "swap": [
       "Line's up, captain. Give the word and we go through the rank.",
@@ -68,6 +80,12 @@
     "ability_cd": 10,
     "attack_frames": 5,
     "slash": "shockwave",
+    "sfx": {
+      "attack": "hammer_swing_heavy.wav",
+      "hit": "impact_armor_heavy.wav",
+      "death": "death_grunt_heavy.wav",
+      "ability": "impact_ground_slam.wav"
+    },
     "tag": "HAMMER KNIGHTS",
     "swap": [
       "Ground shakes when we swing, captain. Stand behind it.",
@@ -91,6 +109,12 @@
     "ability_label": "Volley",
     "ability_desc": "Backup volley: 4 salvos of 18 arrows slam the box ahead of the hero, 6 each; pierces airborne foes",
     "ability_cd": 8,
+    "sfx": {
+      "attack": "bow_release_arrow.wav",
+      "hit": "impact_flesh_light.wav",
+      "death": "death_grunt_male.wav",
+      "ability": "arrow_volley_whoosh.wav"
+    },
     "tag": "VETERAN RANGED",
     "swap": [
       "Arrows are nocked, captain. Just point us at the dark.",
@@ -107,7 +131,12 @@
     "cooldown": 1.0,
     "sprite": "ooze",
     "label": "Ooze",
-    "counters": []
+    "counters": [],
+    "sfx": {
+      "attack": "ooze_splat_wet.wav",
+      "hit": "impact_flesh_wet.wav",
+      "death": "death_ooze_dissolve.wav"
+    }
   },
   "undead": {
     "hp": 40,
@@ -117,7 +146,12 @@
     "cooldown": 1.1,
     "sprite": "undead",
     "label": "Undead",
-    "counters": []
+    "counters": [],
+    "sfx": {
+      "attack": "bone_swing_light.wav",
+      "hit": "impact_bone_crack.wav",
+      "death": "death_undead_collapse.wav"
+    }
   },
   "mace_undead": {
     "hp": 50,
@@ -127,7 +161,12 @@
     "cooldown": 1.3,
     "sprite": "mace_undead",
     "label": "Mace shambler",
-    "counters": []
+    "counters": [],
+    "sfx": {
+      "attack": "mace_swing_heavy.wav",
+      "hit": "impact_bone_crack.wav",
+      "death": "death_undead_collapse.wav"
+    }
   },
   "staff_undead": {
     "hp": 40,
@@ -137,7 +176,12 @@
     "cooldown": 1.1,
     "sprite": "staff_undead",
     "label": "Staff shambler",
-    "counters": []
+    "counters": [],
+    "sfx": {
+      "attack": "magic_staff_cast.wav",
+      "hit": "impact_bone_crack.wav",
+      "death": "death_undead_collapse.wav"
+    }
   },
   "bow_undead": {
     "hp": 25,
@@ -147,7 +191,12 @@
     "cooldown": 1.5,
     "sprite": "bow_undead",
     "label": "Hooded archer",
-    "counters": []
+    "counters": [],
+    "sfx": {
+      "attack": "bow_release_arrow.wav",
+      "hit": "impact_bone_crack.wav",
+      "death": "death_undead_collapse.wav"
+    }
   },
   "archer_undead": {
     "hp": 25,
@@ -157,7 +206,12 @@
     "cooldown": 1.5,
     "sprite": "undead2",
     "label": "Bone archer",
-    "counters": []
+    "counters": [],
+    "sfx": {
+      "attack": "bow_release_arrow.wav",
+      "hit": "impact_bone_crack.wav",
+      "death": "death_undead_collapse.wav"
+    }
   },
   "horse_undead": {
     "hp": 70,
@@ -167,7 +221,12 @@
     "cooldown": 1.3,
     "sprite": "horse_undead",
     "label": "Dead horse",
-    "counters": []
+    "counters": [],
+    "sfx": {
+      "attack": "horse_charge_impact.wav",
+      "hit": "impact_bone_crack_heavy.wav",
+      "death": "death_horse_collapse.wav"
+    }
   },
   "armored": {
     "hp": 160,
@@ -177,7 +236,20 @@
     "cooldown": 1.4,
     "sprite": "armored",
     "label": "Armored",
-    "counters": []
+    "counters": [],
+    "sfx": {
+      "attack": "armor_swing_heavy.wav",
+      "hit": "impact_armor_heavy.wav",
+      "death": "death_armor_collapse.wav"
+    }
   },
-  "counter_mult": 2.0
+  "counter_mult": 2.0,
+  "hero_sfx": {
+    "attack": "hero_weapon_swing.wav",
+    "hit": "hero_hurt_grunt.wav",
+    "low_hp": "hero_low_hp_warn.wav",
+    "wave_clear": "stinger_victory.wav",
+    "lose": "stinger_defeat.wav",
+    "relic": "ui_relic_chime.wav"
+  }
 }

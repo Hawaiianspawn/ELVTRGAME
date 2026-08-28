@@ -6,7 +6,8 @@
       "label": "Bolt",
       "cost": 8,
       "cooldown": 0.6,
-      "desc": "Green fire at cursor. 25 dmg."
+      "desc": "Green fire at cursor. 25 dmg.",
+      "sfx": "magic_bolt_cast.wav"
     },
     {
       "id": "heal",
@@ -14,7 +15,8 @@
       "label": "Mend",
       "cost": 20,
       "cooldown": 3.0,
-      "desc": "Heal every front-line unit 25."
+      "desc": "Heal every front-line unit 25.",
+      "sfx": "magic_heal_chime.wav"
     },
     {
       "id": "wall",
@@ -22,7 +24,8 @@
       "label": "Wall",
       "cost": 30,
       "cooldown": 6.0,
-      "desc": "Root every enemy near cursor 3s."
+      "desc": "Root every enemy near cursor 3s.",
+      "sfx": "magic_wall_cast.wav"
     }
   ],
   "relics": [

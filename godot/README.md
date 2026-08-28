@@ -25,4 +25,6 @@ depth) sits at `Vector3(wx, h, -wd)`. Siege is still 2D on the old pinhole proje
 
 Data: `data/units.json` (stats + counters), `data/waves.json`, `data/spells.json` (spells + relics),
 Sprites: `assets/sprites/<name>.png` = 8 directions in atlas.py column
-order, one strip per roster entry.
+order, one strip per roster entry. Sound: `data/units.json` "sfx"/"hero_sfx" and `data/spells.json`
+"sfx" name files under `assets/sfx/`, played by the `Sound` autoload (`scripts/Sound.gd`); see
+docs/art/CHARACTER-PIPELINE.md#sound.

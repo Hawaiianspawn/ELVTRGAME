@@ -97,6 +97,7 @@ var _rng := RandomNumberGenerator.new()
 var _done := false
 var _swap_at := 0.0                    # next time (s) a swap is accepted: mashing Q/E can't re-arm the hit stop every frame
 const SWAP_CD := 0.5
+var _low_hp_played := false            # hero_sfx.low_hp fires once per wave on crossing below 25
 
 
 func _ready() -> void:
@@ -198,6 +199,7 @@ func start_wave(i: int) -> void:
 	_build_ranks(w["reserves"])
 	spawn_t = 2.0
 	hero_hp = 100.0
+	_low_hp_played = false
 	say("Hall %d / 4" % (i + 1))
 
 
@@ -250,6 +252,7 @@ func _deploy(type: String, rush: bool) -> void:
 			u.state = Unit.State.RANK
 	if charge_in:
 		ability_ready[type] = _now() + float(d["ability_cd"])   # the entrance was the opener: arrived() won't fire it again
+		Sound.unit(type, "ability", 0.0)
 
 
 ## A retreating unit made it behind the lens: back into the pool, off the field.
@@ -359,6 +362,10 @@ func hit(a: Unit, t: Node3D, mult := 1.0) -> void:
 	elif t == hero:
 		hero_hp -= d
 		hero_sprite.modulate = Color(2, 1, 1)
+		Sound.play(str(Game.units["hero_sfx"].get("hit", "")), hero_wx)
+		if hero_hp < 25.0 and not _low_hp_played:
+			_low_hp_played = true
+			Sound.play(str(Game.units["hero_sfx"].get("low_hp", "")), hero_wx)
 
 
 ## Slash fx: an area hit parked on the target. The clip plays once in the world and every frame
@@ -650,6 +657,7 @@ func _process(delta: float) -> void:
 		if p.distance_to(Vector2(hero_wx, hero_wd)) < 22.0:
 			for r in Game.gain_magic(float(m["v"])):
 				say("Relic: " + _relic(r)["label"] + " - " + _relic(r)["desc"])
+				Sound.play(str(Game.units["hero_sfx"].get("relic", "")), hero_wx)
 			motes.erase(m)
 		elif p.y < 80.0:
 			motes.erase(m)
@@ -658,6 +666,7 @@ func _process(delta: float) -> void:
 	# lose / win
 	if hero_hp <= 0.0:
 		say("The line breaks. Again.")
+		Sound.play(str(Game.units["hero_sfx"].get("lose", "")), hero_wx)
 		Game.magic = checkpoint_magic
 		start_wave(Game.wave)
 	elif spawn_queue.is_empty() and units.filter(func(u): return is_instance_valid(u) and u.team == Unit.ENEMY).is_empty():
@@ -666,6 +675,7 @@ func _process(delta: float) -> void:
 
 func _wave_done() -> void:
 	_done = true
+	Sound.play(str(Game.units["hero_sfx"].get("wave_clear", "")), hero_wx)
 	if Game.wave >= 3:
 		say("The throne room door. It is already open.\nTO BE CONTINUED")
 		await get_tree().create_timer(4.0).timeout
@@ -771,6 +781,7 @@ func arrived(u: Unit) -> void:
 	if _ability_cd_left(u.type) > 0.0:
 		return
 	ability_ready[u.type] = _now() + float(Game.units[u.type]["ability_cd"])
+	Sound.unit(u.type, "ability", u.wx)
 	_opening(u)
 	if Game.has_relic_flag("echo"):
 		var uid := u.get_instance_id()   # id, not the unit: it may be gone in 1.5s
@@ -947,6 +958,7 @@ func _cast(id: String) -> void:
 		return
 	Game.magic -= float(s["cost"])
 	spell_cd[id] = float(s["cooldown"])
+	Sound.play(str(s.get("sfx", "")), hero_wx)
 	var cur := _cursor_world()
 	match id:
 		"bolt":

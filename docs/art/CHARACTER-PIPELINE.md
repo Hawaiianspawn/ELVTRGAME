@@ -112,3 +112,30 @@ Costs: `standard` 1, `v3` 2 (≤48px), template animation 1/direction, portrait 
 Deeper detail: `.claude/skills/sprite/SKILL.md` (constraints, per-stage traps),
 `.claude/skills/variants/SKILL.md` (family measurements), `.claude/skills/atlas/SKILL.md`,
 `Scripts/art/README.md` (what quantize actually does).
+
+## Sound
+
+This section is the **Godot side** — everything above (Route A/B, `/atlas`) is the frozen Unreal
+atlas path; the Godot browser build (`godot/`) has its own SFX system, sitting on top of the same
+character roster.
+
+Every unit in `godot/data/units.json` that has a `sprite` gets a `"sfx"` dict: `attack`, `hit`,
+`death`, and `ability` (only if the unit has an `ability` field). Values are filenames relative to
+`godot/assets/sfx/`; two units may share a file. Heroes aren't `units.json` entries (they're sprite
+names in `Game.HEROES`), so their cues live in one top-level `"hero_sfx"` table instead:
+`attack`, `hit`, `low_hp`, plus the three global keys `wave_clear`, `lose`, `relic`. Spells in
+`godot/data/spells.json` each get a `"sfx"` filename.
+
+`godot/scripts/Sound.gd` (autoload, registered after `Game`) plays them: `Sound.play(file,
+x_lateral)` for a raw file, `Sound.unit(u_type, cue, x_lateral)` to resolve through units.json. A
+cue is recorded in `docs/qa/sfx.md`'s table (source pack, original filename, duration) the moment
+it's picked from the library — that table is the sound equivalent of the sprite provenance
+manifest.
+
+Source library: Sonniss GameAudioGDC bundles (royalty-free). Pick a clip into game-ready form with:
+
+    py Scripts/art/sfx.py pick <src.wav> <out-name> [--len 1.2]
+
+`py Scripts/art/sfx.py placeholders` writes silent stand-ins for any cue named in units.json/
+spells.json that doesn't have a file yet, so the wiring always resolves even before the library is
+picked from.

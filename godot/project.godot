@@ -17,6 +17,7 @@ config/features=PackedStringArray("4.7", "GL Compatibility")
 [autoload]
 
 Game="*res://scripts/Game.gd"
+Sound="*res://scripts/Sound.gd"
 Probe="*res://scripts/Probe.gd"
 Jump="*res://scripts/Jump.gd"
 Adversary="*res://scripts/Adversary.gd"
