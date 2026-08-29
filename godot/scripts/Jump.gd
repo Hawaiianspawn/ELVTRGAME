@@ -15,10 +15,10 @@ func _ready() -> void:
 	var cl := CanvasLayer.new()
 	cl.layer = 90
 	_label = Label.new()
-	_label.position = Vector2(700, 8)
+	_label.position = Vector2(700, 124)
 	_label.size = Vector2(250, 20)
 	_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
-	_label.add_theme_font_size_override("font_size", 12)
+	_label.add_theme_font_size_override("font_size", 16)
 	_label.modulate = Color(1, 1, 1, 0.55)
 	cl.add_child(_label)
 	add_child(cl)

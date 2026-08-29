@@ -75,8 +75,8 @@ func _ready() -> void:
 	caption.position = Vector2(0, 440)
 	caption.size = Vector2(960, 80)
 	caption.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	caption.add_theme_font_size_override("font_size", 22)
-	caption.add_theme_color_override("font_color", Color("#e9efec"))
+	caption.add_theme_font_size_override("font_size", 16)
+	caption.add_theme_color_override("font_color", Ui.COL_TEXT)
 	cl.add_child(caption)
 	_run()
 

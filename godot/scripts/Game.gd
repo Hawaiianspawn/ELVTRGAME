@@ -4,6 +4,7 @@ extends Node
 const VERSION := "0.1.0"
 const DIRS := ["south", "south-east", "east", "north-east", "north", "north-west", "west", "south-west"]
 const SCENES := {
+	"main": "res://scenes/Main.tscn",
 	"siege": "res://scenes/siege/Siege.tscn",
 	"battle": "res://scenes/battle/Battle.tscn",
 }
@@ -33,6 +34,8 @@ func _ready() -> void:
 	waves = _json("res://data/waves.json")
 	spells = _json("res://data/spells.json")
 	sprites = _json("res://assets/sprites/manifest.json")
+	# every Label takes the pixel body font from assets/ui/kindled.tres (project.godot gui/theme/custom)
+	Input.set_custom_mouse_cursor(Ui.tex("cursor"), Input.CURSOR_ARROW, Vector2(3, 2))
 	var layer := CanvasLayer.new()
 	layer.layer = 100
 	_fade = ColorRect.new()

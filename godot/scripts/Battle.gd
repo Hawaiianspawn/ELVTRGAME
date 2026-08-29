@@ -73,7 +73,13 @@ var _prop_tick := 0
 const PROP_BREAK_R := 18.0
 var fx: Node2D
 var hud: Node2D
-var hud_text: Label
+var hp_bar: Dictionary                 # Ui.bar: kit housing + fill + label
+var mp_bar: Dictionary
+var hall_label: Label
+var score_label: Label
+var spell_slots: Dictionary = {}       # spell id -> {frame, icon, cd}
+var relic_slots: Dictionary = {}       # relic id -> {frame, icon}
+var toast_banner: NinePatchRect
 var toast_label: Label
 var army_panels: Array[ArmyPanel] = []
 var scroll := 0.0
@@ -133,8 +139,8 @@ func _ready() -> void:
 	var cl := CanvasLayer.new()
 	cl.layer = 20
 	add_child(cl)
-	hud_text = _label(cl, Vector2(12, 6), 14, Color("#e9efec"))
-	toast_label = _label(cl, Vector2(300, 40), 20, Color("#f0c260"))
+	_build_hud(cl)
+	Input.set_custom_mouse_cursor(Ui.tex("crosshair"), Input.CURSOR_ARROW, Vector2(16, 16))
 	for i in range(TYPES.size()):
 		var ty: String = TYPES[i]
 		var p := ArmyPanel.new(ty, Game.units[ty], 8.0 + i * (ArmyPanel.COMPACT_SIZE.x + 8.0))
@@ -154,13 +160,28 @@ static func pitch_for(h: float) -> float:
 	return -rad_to_deg(atan((HALF_H - h) / FOCAL))
 
 
-func _label(parent: Node, pos: Vector2, size: int, col: Color) -> Label:
-	var l := Label.new()
-	l.position = pos
-	l.add_theme_font_size_override("font_size", size)
-	l.add_theme_color_override("font_color", col)
-	parent.add_child(l)
-	return l
+## Kit HUD: meters top-left, spell chips + relic sockets top-right, toast banner top-centre.
+## The army panels sit under it on the bottom strip (ArmyPanel).
+func _build_hud(cl: CanvasLayer) -> void:
+	hp_bar = Ui.bar(cl, Vector2(12, 8), Ui.COL_EMBER, "")
+	mp_bar = Ui.bar(cl, Vector2(12, 40), Ui.COL_GREEN, "")
+	hall_label = Ui.label(cl, "", Vector2(16, 74), Ui.COL_TEXT)
+	score_label = Ui.label(cl, "", Vector2(16, 94), Ui.COL_DIM)
+	var x := 960.0 - 12.0 - 3 * 61.0
+	for s in Game.spells["spells"]:
+		var slot := Ui.slot(cl, "chip", str(s["id"]), Vector2(x, 8))
+		Ui.label(slot["frame"], str(s["key"]), Vector2(5, 1), Ui.COL_EMBER)
+		Ui.label(slot["frame"], str(int(s["cost"])), Vector2(0, 39), Ui.COL_DIM, 16, 57.0)
+		slot["cd"] = Ui.label(slot["frame"], "", Vector2(0, 20), Ui.COL_HOT, 16, 57.0)
+		spell_slots[str(s["id"])] = slot
+		x += 61.0
+	x = 960.0 - 12.0 - 5 * 49.0
+	for r in Game.spells["relics"]:
+		relic_slots[str(r["id"])] = Ui.slot(cl, "socket", str(r["id"]), Vector2(x, 72))
+		x += 49.0
+	toast_banner = Ui.patch(cl, "banner", Vector2(250, 0), Vector2(460, 150), [70, 45, 70, 72])
+	toast_label = Ui.label(toast_banner, "", Vector2(40, 36), Ui.COL_HOT, 16, 380.0)
+	toast_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 
 
 func start_wave(i: int) -> void:
@@ -1106,7 +1127,17 @@ func _draw_hud() -> void:
 	# bottom strip: the four army panels, ranks left, ability cooldown; current army type large + on top
 	for p in army_panels:
 		p.update(_rank_count(p.type), _ability_cd_left(p.type))
-	var post_hint := ("    [ ] post: %s" % post.preset_name()) if not OS.has_feature("web") else ""
-	hud_text.text = "HALL %d / 4\nHERO %d\nMAGIC %d  (lifetime %d)\nSCORE %d\nZ Bolt 8   X Mend 20   C Wall 30    Q/E cycle the army%s\nRelics: %s\nFPS %d" % [
-		Game.wave + 1, int(hero_hp), int(Game.magic), int(Game.magic_ever), Game.score, post_hint, ", ".join(Game.relics), Engine.get_frames_per_second()]
-	toast_label.text = toast if toast_t > 0.0 else ""
+	Ui.set_bar(hp_bar, hero_hp / 100.0, "HERO %d" % int(hero_hp))
+	Ui.set_bar(mp_bar, minf(Game.magic, 200.0) / 200.0, "MAGIC %d" % int(Game.magic))
+	hall_label.text = "HALL %d / 4" % (Game.wave + 1)
+	var dev := ("   post %s   FPS %d" % [post.preset_name(), Engine.get_frames_per_second()]) if not OS.has_feature("web") else ""
+	score_label.text = "SCORE %d%s" % [Game.score, dev]
+	for id in spell_slots:
+		var s: Dictionary = spell_slots[id]
+		var cd: float = spell_cd[id]
+		s["icon"].modulate = Color(0.3, 0.3, 0.3) if cd > 0.0 or Game.magic < float(_spell(id)["cost"]) else Color.WHITE
+		s["cd"].text = ("%d" % ceili(cd)) if cd > 0.0 else ""
+	for id in relic_slots:
+		relic_slots[id]["icon"].visible = id in Game.relics
+	toast_banner.visible = toast_t > 0.0
+	toast_label.text = toast

@@ -1,36 +1,40 @@
 extends Node2D
-## Title card: pick a hero, then route into the battle.
+## Title card: pick a hero, then route into the battle. Kit lintel holds the wordmark, a kit
+## hero card holds the pick at 2x, the plate under it names the role.
 
-var _label: Label
+var _name: Label
+var _hint: Label
 var _portrait: Sprite2D
 
 
 func _ready() -> void:
-	_label = Label.new()
-	_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	_label.size = Vector2(960, 540)
-	_label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
-	_label.add_theme_font_size_override("font_size", 22)
-	_label.add_theme_color_override("font_color", Color("#a0a08b"))
-	add_child(_label)
+	Input.set_custom_mouse_cursor(Ui.tex("cursor"), Input.CURSOR_ARROW, Vector2(3, 2))
+	var ui := Control.new()
+	add_child(ui)
+	Ui.sprite(ui, "frame_lintel", Vector2(240, 14))
+	Ui.label(ui, "KINDLED", Vector2(240, 48), Ui.COL_EMBER, 32, 481.0).add_theme_font_override("font", Ui.font("title32"))
+	Ui.label(ui, "The Green Dot", Vector2(240, 88), Ui.COL_DIM, 16, 481.0)
+	Ui.sprite(ui, "hero_card", Vector2(396, 150))
+	var plate := Ui.sprite(ui, "plate", Vector2(384, 368))
+	_name = Ui.label(plate, "", Vector2(0, 10), Ui.COL_TEXT, 16, 193.0)
+	_hint = Ui.label(ui, "", Vector2(0, 424), Ui.COL_DIM, 16, 960.0)
+	Ui.label(ui, "v" + Game.VERSION, Vector2(0, 516), Ui.COL_DIM, 16, 950.0).horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
 	_portrait = Game.make_sprite(Game.hero, 0)
-	# Shrunk + parked above the heading (text block starts ~y=100): at scale 2 the portrait's
-	# 176px height ate into every line down to "v0.1.0". At scale 1 (88px) it clears the gap.
-	_portrait.position = Vector2(480, 65)
-	_portrait.scale = Vector2(1, 1)
+	_portrait.position = Vector2(480, 344)   # feet at the card's lower well edge; 88px cell at 2x fills the well
+	_portrait.scale = Vector2(2, 2)
 	add_child(_portrait)
 	_refresh()
 
 
 func _refresh() -> void:
-	# v-line reuses a blank line below the tagline (kept clear of the portrait sprite) so line
-	# count matches the pre-version layout and nothing else shifts.
-	var text := "KINDLED\nThe Green Dot\nv%s\n\n\n\nhero: %s   [H] next hero\n\n[Space] begin\n\nWASD move   Mouse aim   LMB cast\nZ/X/C spells   Q/E set lane unit type (hover lane)" % [Game.VERSION, Game.hero.trim_prefix("hero_")]
+	_name.text = Game.hero.trim_prefix("hero_").to_upper()
+	var text := "[H] next hero      [Space] begin\n\nWASD move   Mouse aim   LMB cast   Z/X/C spells   Q/E set lane unit type"
 	if not OS.has_feature("web"):
-		text += "\n\ndev: 1 siege, 2-5 wave, Tab next"
-	_label.text = text
-	_portrait.texture = Game.make_sprite(Game.hero, 0).texture
-	_portrait.offset = Game.make_sprite(Game.hero, 0).offset
+		text += "\ndev: 1 siege, 2-5 wave, Tab next"
+	_hint.text = text
+	var s := Game.make_sprite(Game.hero, 0)
+	_portrait.texture = s.texture
+	_portrait.offset = s.offset
 
 
 func _unhandled_input(e: InputEvent) -> void:
