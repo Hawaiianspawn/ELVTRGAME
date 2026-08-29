@@ -132,6 +132,7 @@
     "sprite": "ooze",
     "label": "Ooze",
     "counters": [],
+    "magic": 8,
     "sfx": {
       "attack": "ooze_splat_wet.wav",
       "hit": "impact_flesh_wet.wav",
@@ -147,6 +148,7 @@
     "sprite": "undead",
     "label": "Undead",
     "counters": [],
+    "magic": 9,
     "sfx": {
       "attack": "bone_swing_light.wav",
       "hit": "impact_bone_crack.wav",
@@ -162,6 +164,7 @@
     "sprite": "mace_undead",
     "label": "Mace shambler",
     "counters": [],
+    "magic": 10,
     "sfx": {
       "attack": "mace_swing_heavy.wav",
       "hit": "impact_bone_crack.wav",
@@ -177,6 +180,7 @@
     "sprite": "staff_undead",
     "label": "Staff shambler",
     "counters": [],
+    "magic": 9,
     "sfx": {
       "attack": "magic_staff_cast.wav",
       "hit": "impact_bone_crack.wav",
@@ -192,6 +196,7 @@
     "sprite": "bow_undead",
     "label": "Hooded archer",
     "counters": [],
+    "magic": 8,
     "sfx": {
       "attack": "bow_release_arrow.wav",
       "hit": "impact_bone_crack.wav",
@@ -207,6 +212,7 @@
     "sprite": "undead2",
     "label": "Bone archer",
     "counters": [],
+    "magic": 8,
     "sfx": {
       "attack": "bow_release_arrow.wav",
       "hit": "impact_bone_crack.wav",
@@ -222,6 +228,7 @@
     "sprite": "horse_undead",
     "label": "Dead horse",
     "counters": [],
+    "magic": 12,
     "sfx": {
       "attack": "horse_charge_impact.wav",
       "hit": "impact_bone_crack_heavy.wav",
@@ -237,6 +244,7 @@
     "sprite": "armored",
     "label": "Armored",
     "counters": [],
+    "magic": 19,
     "sfx": {
       "attack": "armor_swing_heavy.wav",
       "hit": "impact_armor_heavy.wav",
@@ -245,7 +253,6 @@
   },
   "counter_mult": 2.0,
   "hero_sfx": {
-    "siphon": "hero_siphon_start.wav",
     "hit": "hero_hurt_grunt.wav",
     "low_hp": "hero_low_hp_warn.wav",
     "wave_clear": "stinger_victory.wav",

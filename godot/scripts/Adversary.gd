@@ -7,7 +7,7 @@ extends Node
 const TICK := 0.6                       # seconds a behavior is held before the next pick
 const STUCK := {"RETREAT": 12.0, "ADVANCE": 15.0, "charge": 10.0}
 const BEHAVIORS := [
-	"move_random", "wall_hug", "corner_hold", "cursor_warp", "siphon_hold",
+	"move_random", "wall_hug", "corner_hold", "cursor_warp",
 	"spell_spam", "swap_spam", "teleport_hero", "magic_flood", "magic_drain",
 	"horde", "launch_all", "kill_front", "kill_hero", "jump_phase",
 ]
@@ -106,8 +106,6 @@ func _act() -> void:
 			_tick_left = TICK * 3.0
 		"cursor_warp":
 			Input.warp_mouse(Vector2(_rng.randf_range(-200, 1200), _rng.randf_range(-200, 800)))
-		"siphon_hold":
-			_hold(["siphon"])
 		"jump_phase":
 			_since.clear()
 			Jump._go(_rng.randi_range(0, Jump.PHASES.size() - 1))

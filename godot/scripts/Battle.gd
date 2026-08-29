@@ -5,7 +5,7 @@ extends Node3D
 ## billboards, so the crowd sorts per pixel and nothing y-sorts.
 ## Front line holds at FRONT_D; reserves stand in packed ranks behind it and step forward into the
 ## lane whose front unit died, taking the type the player set for that lane. Hero walks the gap
-## between ranks and line, siphons magic from kills, spends it on spells; relics unlock on lifetime magic.
+## between ranks and line; magic is credited on kills, spends it on spells; relics unlock on lifetime magic.
 
 const FRONT_D := 320.0
 const SPAWN_D := 1050.0
@@ -59,10 +59,7 @@ var front: Array = []             # Unit or null per lane
 var spawn_queue: Array[String] = []
 var spawn_t := 0.0
 var spawn_interval := 1.5
-var magic_rate := 0.6
-var mote_t := 0.0
 var units: Array[Unit] = []
-var motes: Array[Dictionary] = []      # {wx, wd, v}
 var hero: Node3D
 var hero_sprite: Sprite3D
 var hero_wx := 0.0
@@ -116,7 +113,7 @@ func _ready() -> void:
 	camera.far = 4000.0
 	camera.current = true
 	add_child(camera)
-	# draw-call fx (impacts, arrows, flashes, motes, sconces) stay 2D on an overlay, positioned
+	# draw-call fx (impacts, arrows, flashes, sconces) stay 2D on an overlay, positioned
 	# with camera.unproject_position; only sprites went 3D.
 	var ov := CanvasLayer.new()
 	ov.layer = 1
@@ -180,11 +177,9 @@ func start_wave(i: int) -> void:
 		if is_instance_valid(u):
 			u.queue_free()
 	units.clear()
-	motes.clear()
 	var w: Dictionary = Game.waves[i]
 	lanes = mini(int(w["lanes"]), int(HALL_HALF * 2.0 / LANE_W))   # never wider than the hall
 	spawn_interval = float(w["spawn_interval"])
-	magic_rate = float(w["magic_rate"])
 	lane_types.resize(lanes)
 	lane_types.fill(army_type)
 	front.resize(lanes)
@@ -524,7 +519,9 @@ func _on_died(u: Unit) -> void:
 		if u.lane >= 0 and front[u.lane] == u:
 			front[u.lane] = null
 	else:
-		motes.append({"wx": u.wx, "wd": u.wd, "v": 6.0 + u.max_hp * 0.08})
+		for r in Game.gain_magic(float(Game.units[u.type].get("magic", 0))):
+			say("Relic: " + _relic(r)["label"] + " - " + _relic(r)["desc"])
+			Sound.play(str(Game.units["hero_sfx"].get("relic", "")), hero_wx)
 
 
 func say(t: String) -> void:
@@ -630,11 +627,6 @@ func _process(delta: float) -> void:
 					_shuffle_up(u.home)
 				swap_pending[l] = false
 				front[l] = u
-	# ambient magic from the ground veins
-	mote_t -= delta
-	if mote_t <= 0.0:
-		mote_t = 1.0 / magic_rate
-		motes.append({"wx": _rng.randf_range(lane_x(0), lane_x(lanes - 1)), "wd": _rng.randf_range(400, 900), "v": 3.0})
 	# hero
 	var mv := Input.get_vector("move_left", "move_right", "move_up", "move_down")
 	hero_wx = clampf(hero_wx + mv.x * 130.0 * delta, -HALL_HALF + 30.0, HALL_HALF - 30.0)
@@ -643,26 +635,6 @@ func _process(delta: float) -> void:
 	hero_sprite.modulate = hero_sprite.modulate.lerp(Color.WHITE, delta * 6.0)
 	if mv != Vector2.ZERO:
 		hero_sprite.frame = Game.facing_from(mv)
-	# siphon: hold RMB, motes near the cursor stream to the hero
-	if Input.is_action_just_pressed("siphon"):
-		Sound.play(str(Game.units["hero_sfx"].get("siphon", "")), hero_wx)
-	var siphoning := Input.is_action_pressed("siphon")
-	var cur := _cursor_world()
-	for m in motes.duplicate():
-		var p := Vector2(m["wx"], m["wd"])
-		var vel := Vector2(0, -22.0)
-		if siphoning and p.distance_to(cur) < 120.0:
-			vel = (Vector2(hero_wx, hero_wd) - p).normalized() * 380.0
-		p += vel * delta
-		m["wx"] = p.x
-		m["wd"] = p.y
-		if p.distance_to(Vector2(hero_wx, hero_wd)) < 22.0:
-			for r in Game.gain_magic(float(m["v"])):
-				say("Relic: " + _relic(r)["label"] + " - " + _relic(r)["desc"])
-				Sound.play(str(Game.units["hero_sfx"].get("relic", "")), hero_wx)
-			motes.erase(m)
-		elif p.y < 80.0:
-			motes.erase(m)
 	for k in spell_cd:
 		spell_cd[k] -= delta
 	# lose / win
@@ -702,7 +674,7 @@ func _turn(kind: String) -> void:
 			t.tween_property(camera, "rotation_degrees:x", pitch_for(170.0), 1.2).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN_OUT)
 			t.tween_property(camera, "rotation_degrees:x", pitch_for(HORIZON), 1.2).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN_OUT)
 		_:
-			say("Hall cleared. Magic siphoned: %d" % int(Game.magic))
+			say("Hall cleared. Magic gathered: %d" % int(Game.magic))
 			t.tween_interval(2.5)
 	await t.finished
 
@@ -1140,15 +1112,12 @@ func _prop_debris(s: Sprite3D) -> void:
 
 
 func _draw_hud() -> void:
-	# motes + hero flame ride the top layer so they glow over the ranks
-	for m in motes:
-		var k := Hall3D.screen_scale(camera, m["wd"])
-		hud.draw_circle(Hall3D.unproject(camera, m["wx"], m["wd"], 10.0), (2.5 + float(m["v"]) * 0.12) * k, Color(0.4, 1.0, 0.4, 0.9))
+	# hero flame rides the top layer so it glows over the ranks
 	hud.draw_circle(Hall3D.unproject(camera, hero_wx, hero_wd, 60.0 * Hall3D.PIXEL), 4.0 + minf(Game.magic, 200.0) * 0.06, Color(0.4, 1.0, 0.4, 0.8))
 	# bottom strip: the four army panels, ranks left, ability cooldown; current army type large + on top
 	for p in army_panels:
 		p.update(_rank_count(p.type), _ability_cd_left(p.type))
 	var post_hint := ("    [ ] post: %s" % post.preset_name()) if not OS.has_feature("web") else ""
-	hud_text.text = "HALL %d / 4\nHERO %d\nMAGIC %d  (lifetime %d)\nSCORE %d\nZ Bolt 8   X Mend 20   C Wall 30    Q/E cycle the army    RMB siphon%s\nRelics: %s\nFPS %d" % [
+	hud_text.text = "HALL %d / 4\nHERO %d\nMAGIC %d  (lifetime %d)\nSCORE %d\nZ Bolt 8   X Mend 20   C Wall 30    Q/E cycle the army%s\nRelics: %s\nFPS %d" % [
 		Game.wave + 1, int(hero_hp), int(Game.magic), int(Game.magic_ever), Game.score, post_hint, ", ".join(Game.relics), Engine.get_frames_per_second()]
 	toast_label.text = toast if toast_t > 0.0 else ""

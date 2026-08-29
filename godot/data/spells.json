@@ -33,7 +33,7 @@
       "id": "ember_ring",
       "at": 60,
       "label": "Ember Ring",
-      "desc": "+25% siphon rate",
+      "desc": "+25% magic per kill",
       "gather": 0.25
     },
     {
@@ -61,7 +61,7 @@
       "id": "witch_lamp",
       "at": 520,
       "label": "Witch Lamp",
-      "desc": "Bolt splash, +50% siphon",
+      "desc": "Bolt splash, +50% magic per kill",
       "gather": 0.5,
       "splash": true
     }

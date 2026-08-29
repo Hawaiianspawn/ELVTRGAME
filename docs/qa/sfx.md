@@ -63,7 +63,6 @@ that a cue has been picked (per `docs/art/CHARACTER-PIPELINE.md`).
 
 | Cue | File | Search terms | Source pack | Original filename | Duration | Wired? |
 |---|---|---|---|---|---|---|
-| siphon | `hero_siphon_start.wav` | magic, drone, suction, whoosh | PENDING sonniss dump | — | — | Yes — RMB siphon press, `Battle.gd` |
 | hit | `hero_hurt_grunt.wav` | voice, hurt, grunt, pain | PENDING sonniss dump | — | — | Yes — `Battle.gd` where `hero_hp -= d` |
 | low_hp | `hero_low_hp_warn.wav` | ui, stinger, warn, heartbeat | PENDING sonniss dump | — | — | Yes — once per wave, crossing below 25 hp |
 | wave_clear | `stinger_victory.wav` | stinger, drum, victory, fanfare | PENDING sonniss dump | — | — | Yes — `Battle._wave_done()` |

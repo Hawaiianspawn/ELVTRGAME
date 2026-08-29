@@ -25,7 +25,7 @@ func _ready() -> void:
 func _refresh() -> void:
 	# v-line reuses a blank line below the tagline (kept clear of the portrait sprite) so line
 	# count matches the pre-version layout and nothing else shifts.
-	var text := "KINDLED\nThe Green Dot\nv%s\n\n\n\nhero: %s   [H] next hero\n\n[Space] begin\n\nWASD move   Mouse aim   LMB cast   RMB hold: siphon\nZ/X/C spells   Q/E set lane unit type (hover lane)" % [Game.VERSION, Game.hero.trim_prefix("hero_")]
+	var text := "KINDLED\nThe Green Dot\nv%s\n\n\n\nhero: %s   [H] next hero\n\n[Space] begin\n\nWASD move   Mouse aim   LMB cast\nZ/X/C spells   Q/E set lane unit type (hover lane)" % [Game.VERSION, Game.hero.trim_prefix("hero_")]
 	if not OS.has_feature("web"):
 		text += "\n\ndev: 1 siege, 2-5 wave, Tab next"
 	_label.text = text
