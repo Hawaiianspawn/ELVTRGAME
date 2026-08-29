@@ -75,7 +75,8 @@ var _gatling_cd := 0.0
 var gatling_rate_mult := 1.0
 const GATLING_RATE := 12.0      # shots/s at 1.0x
 const GATLING_DMG := 4.0
-const TANK_MOUNT_H := 100.0     # sprite px: hero's feet height standing on the dome's peak (tuned by eye, north.png)
+const TANK_SCALE := 0.55        # owner call: the dome hid the crowd at native size, shrink it
+const TANK_MOUNT_H := 55.0      # sprite px: hero's feet height standing on the dome's peak (100 * TANK_SCALE)
 var tank_sprite: Sprite3D
 var _cannon_cd := 0.0
 var cannon_reload_mult := 1.0
@@ -174,6 +175,7 @@ func _ready() -> void:
 	if Game.sprites.has("tank"):
 		tank_sprite = Hall3D.make_sprite3d("tank", 4)   # north: the dome's back, gun mount pointing away from the lens
 		tank_sprite.name = "tank"
+		tank_sprite.scale *= TANK_SCALE
 		tank_sprite.position = Hall3D.to_world(hero_wx, hero_wd)
 		world.add_child(tank_sprite)
 	hero = Node3D.new()
