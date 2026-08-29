@@ -199,6 +199,7 @@ func _build_hud(cl: CanvasLayer) -> void:
 func start_wave(i: int) -> void:
 	Game.wave = i
 	scroll_creep = SCROLL_CREEP_BY_WAVE[i]   # necromancer speeds the sweep each wave; scenery-only, sim speed (CREEP) untouched
+	hall.set_hall(i)
 	var ct := create_tween()        # bend hardens and turns faster too, blended in so the hall doesn't snap
 	ct.set_parallel(true)
 	ct.tween_method(func(v: float) -> void: Hall3D.curve_a = v, Hall3D.curve_a, CURVE_A_BY_WAVE[i], 2.0).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN_OUT)

@@ -37,6 +37,12 @@ const FLOOR_OTHER := [
 ]
 # Wall: wall_14 with its baked top ledge cropped off (rows 12..43) -> 32x32, loops both ways.
 const WALL_TEX := preload("res://assets/env/hall/wall_flat.png")
+# Per-hall materials (index = wave): hall 1 keeps the originals; later halls swap the plain floor
+# tiles and the wall texture (img2img over the originals, so the tiling still lines up).
+const HALL_FLOOR: Array = [null, preload("res://assets/env/hall/hall2_floor.png"),
+	preload("res://assets/env/hall/hall3_floor.png"), preload("res://assets/env/hall/hall4_floor.png")]
+const HALL_WALL: Array = [null, preload("res://assets/env/hall/hall2_wall.png"),
+	preload("res://assets/env/hall/hall3_wall.png"), preload("res://assets/env/hall/hall4_wall.png")]
 
 
 ## Deterministic integer hash so tile variant choice stays put as `scroll` marches, no flicker.
@@ -224,6 +230,16 @@ func _unshaded(tex: Texture2D, tint: Color) -> ShaderMaterial:
 	m.set_shader_parameter("tint", tint)
 	_bend_mats.append(m)
 	return m
+
+
+## Swap the plain floor tiles and the wall texture for hall `i` (wave index); detail floor tiles stay.
+func set_hall(i: int) -> void:
+	var f: Texture2D = HALL_FLOOR[i] if i < HALL_FLOOR.size() else null
+	var w: Texture2D = HALL_WALL[i] if i < HALL_WALL.size() else null
+	for k in range(FLOOR_POOL.size()):
+		if FLOOR_POOL[k] in FLOOR_PLAIN:
+			_pool_mats[k].set_shader_parameter("tex", f if f else FLOOR_POOL[k])
+	_wall_mat.set_shader_parameter("tex", w if w else WALL_TEX)
 
 
 ## Floor, walls and the black fog, for a hall `half` world units either side of centre.
