@@ -736,21 +736,25 @@ func _process(delta: float) -> void:
 	# including an adversary poke -- can drift it, and so to_world's curve offset (which moves as
 	# the hall bends) keeps tracking it
 	hero_wx = 0.0
-	hero_wd = 245.0
+	hero_wd = 300.0
 	hero.position = Hall3D.to_world(hero_wx, hero_wd, TANK_MOUNT_H * Hall3D.PIXEL)
 	if tank_sprite:
 		tank_sprite.position = Hall3D.to_world(hero_wx, hero_wd)
 	hero_sprite.modulate = hero_sprite.modulate.lerp(Color.WHITE, delta * 6.0)
+	# faces the cursor (same facing_from convention Unit.gd uses for its own targets) whenever
+	# no attack/hurt clip is playing; a clip owns the frame until it finishes.
+	var cursor_wp := _cursor_world()
+	var facing := Game.facing_from(Vector2(cursor_wp.x - hero_wx, -(cursor_wp.y - hero_wd)))
 	if _hero_t >= 0.0:
 		_hero_t += delta
 		var n := int(_hero_clip["frames"])
 		if _hero_t >= n * Unit.ATK_DT:
 			_hero_t = -1.0
-			Hall3D.rotation_frame(hero_sprite, _hero_rot, 4)
+			Hall3D.rotation_frame(hero_sprite, _hero_rot, facing)
 		else:
 			Hall3D.clip_frame(hero_sprite, _hero_rot, _hero_clip, int(_hero_t / Unit.ATK_DT))
 	else:
-		Hall3D.rotation_frame(hero_sprite, _hero_rot, 4)
+		Hall3D.rotation_frame(hero_sprite, _hero_rot, facing)
 	# gatling: hold LMB ("cast" action, unchanged in project.godot) to fire at rate
 	_gatling_cd -= delta
 	_cannon_cd -= delta
