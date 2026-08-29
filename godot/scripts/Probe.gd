@@ -157,6 +157,13 @@ func _run(spec: String) -> void:
 		# well before hall 1 clears (observed ~15s+ into a full run).
 		await get_tree().create_timer(7.0).timeout
 		var b := get_tree().current_scene
+		# task-185: the tank body stands under the hero, who rides mounted on its dome cap
+		var tank_node = b.world.get_node_or_null("tank")
+		assert(tank_node != null, "no tank sprite node under world")
+		assert(b.hero.position.y >= 30.0 * Hall3D.PIXEL, "hero not mounted on the tank (y=%.1f)" % b.hero.position.y)
+		var sprite_shot := "user://probe_tank_sprite.png"
+		get_viewport().get_texture().get_image().save_png(sprite_shot)
+		print("PROBE tank sprite ok: tank=%s hero.y=%.1f mount_h=%.0f saved=%s" % [tank_node.name, b.hero.position.y, b.TANK_MOUNT_H, ProjectSettings.globalize_path(sprite_shot)])
 		assert(not Game.SCENES.has("siege"), "siege scene still registered")
 		# (a) gatling hit on a grounded, unrooted enemy's screen point launches it. Rooted units
 		# (piled by a halberdier charge / hammer slam) hold air_h at 0 for a beat regardless of

@@ -50,11 +50,19 @@ packed by `Scripts/art/godot_pack.py` (sprites, clips, fx).
 | 6 boss + tropes | ~140 | `8282689` | necromancer (96 px pro), ghoul / wraith / bone_knight / plague_priest states, 15 clips; placeholder stats in units.json + waves.json |
 | 7 boss hurt clips take1 | 7 | (rejected) | animate_image v3 text prompts on the south rotation only varied the staff flame, not the body; kept at raw/necromancer/hurtN_south_take1, not packed |
 | 7 boss hurt clips take2 | 8 | `1534b8a`+ | animate_character template mode (taking-punch/leg-sweep/cross-punch/crouching/surprise-uppercut/hurricane-kick/getting-up) gives real torso/leg displacement; 7 necromancer hurt clips (4-7 frames each), combo playback in Unit.gd |
+| 8 stone tank concepts | 6 | (uncommitted) | 6 rear 3/4 stone-tank concepts (turtle-dome, ziggurat, gothic, war-cart, obelisk, golem-borne) for owner pick; no retries needed |
+| 7 hurt2/hurt5 regen | 2 | (pending) | owner sent back: hurt2 leg-sweep dropped the staff -> lead-jab keeps both hands (3f, old take at hurt2_south_take2); hurt5 surprise-uppercut never lifted the feet -> two-footed-jump (7f, old take at hurt5_south_take2) - still no clean liftoff, best of what templates gave |
+| 9 turtle-dome variants | 6 | (uncommitted) | owner picked turtle-dome; 6 axis variants (heavy, mossy, wide, tall, treads, ember) for owner pick; no retries needed |
+| 10 tall revision | 2 | (uncommitted) | d-tall: wider furnace mouth, bronze top ornament removed; take1 rendered blank/grey (kept as reject), take2 clean, sheet cell swapped to turtle_d_tall_r2 |
+| 11 golem-borne variants | 6 | (uncommitted) | owner switched direction to 06 golem-borne; 6 axis variants (base, heavy, lean, runic, armoured, walking) round-body knuckle-walker read, flat top mount; no retries; arms/legs read more biped than knuckle-walk in most takes, flagged for owner |
 
-| 7 hurt2/hurt5 regen | 2 | `37ba3e0` | hurt2 leg-sweep dropped the staff -> lead-jab keeps both hands (3f, old take at hurt2_south_take2); hurt5 surprise-uppercut never lifted the feet -> two-footed-jump (7f, old take at hurt5_south_take2), rejected on review: dropped the staff same as hurt2 |
-| 7 hurt5 recoil v4 | 1 | (pending) | dropped the liftoff goal (engine already lifts on launch); v3 custom "strong backward recoil, staff never leaves hands" - verified by per-frame green-pixel count (108-198px every frame, no drop to 0), 6f, old take at hurt5_south_take3 |
+**Balance after bucket 11: 5,646 generations remaining** (4,354 used this cycle). Expires 2026-09-10.
+| 12 turtle_d_tall cupola removal | 20 | (uncommitted) | owner picked job 9706f739 (turtle_d_tall); inpaint_image masked to the top ornament, closed with plain stone cap; clean on first try, rest pixel-identical. Note: inpaint_image billed ~20 gens for this 128px edit, not the ~1-3 assumed going in — flagged, budget for future single-region edits accordingly |
 
-**Balance after bucket 7 + hurt regen: 5,660 generations remaining** (4,340 used this cycle). Expires 2026-09-10.
+**Balance after bucket 12: 5,626 generations remaining** (4,374 used this cycle). Expires 2026-09-10.
+| 13 task-185 tank rotation | 2 | (uncommitted) | `create_character(mode="v3", reference_image_url=...)` on the owner's turtle_d_tall edit_01 concept — `create_8_direction_object`'s reference_image_base64 has no url variant and truncated the 13 KB inline payload twice (a known transport bug, not this request); v3 mode's reference_image_url sidestepped it cleanly. 8 clean rotations, no retries; north reads as the plain dome back + gun-mount nub, landed in game as the hero_turret's mount |
+
+**Balance after bucket 13: 5,624 generations remaining** (4,376 used this cycle). Expires 2026-09-10.
 
 ## Reserve menu (owner picks)
 

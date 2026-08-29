@@ -75,7 +75,8 @@ var _gatling_cd := 0.0
 var gatling_rate_mult := 1.0
 const GATLING_RATE := 12.0      # shots/s at 1.0x
 const GATLING_DMG := 4.0
-const GATLING_MUZZLE := Vector2(480.0, 520.0)
+const TANK_MOUNT_H := 100.0     # sprite px: hero's feet height standing on the dome's peak (tuned by eye, north.png)
+var tank_sprite: Sprite3D
 var _cannon_cd := 0.0
 var cannon_reload_mult := 1.0
 var cannon_radius_mult := 1.0
@@ -170,6 +171,11 @@ func _ready() -> void:
 		cl.add_child(p)
 		army_panels.append(p)
 		p.set_selected(ty == army_type, _rng)
+	if Game.sprites.has("tank"):
+		tank_sprite = Hall3D.make_sprite3d("tank", 4)   # north: the dome's back, gun mount pointing away from the lens
+		tank_sprite.name = "tank"
+		tank_sprite.position = Hall3D.to_world(hero_wx, hero_wd)
+		world.add_child(tank_sprite)
 	hero = Node3D.new()
 	hero_sprite = Hall3D.make_sprite3d(Game.hero, 4)
 	_hero_rot = (hero_sprite.texture as AtlasTexture).region
@@ -729,7 +735,9 @@ func _process(delta: float) -> void:
 	# the hall bends) keeps tracking it
 	hero_wx = 0.0
 	hero_wd = 245.0
-	hero.position = Hall3D.to_world(hero_wx, hero_wd)
+	hero.position = Hall3D.to_world(hero_wx, hero_wd, TANK_MOUNT_H * Hall3D.PIXEL)
+	if tank_sprite:
+		tank_sprite.position = Hall3D.to_world(hero_wx, hero_wd)
 	hero_sprite.modulate = hero_sprite.modulate.lerp(Color.WHITE, delta * 6.0)
 	if _hero_t >= 0.0:
 		_hero_t += delta
@@ -1083,23 +1091,30 @@ func _fire_gatling() -> void:
 	_gatling_hit_at(cursor)
 
 
-## Impact point is always the aim pixel (cursor + spread) -- never the enemy's own body point.
-## No target search, no snapping, no lead: an enemy only takes the hit if its screen rect covers
-## that exact pixel (_screen_pick's point test, front-most by depth on overlap). Nothing under the
-## cursor just means the round hits the floor -- still a spark, no damage.
+## Screen point of the turret's muzzle: the hero's mount height plus a little rise, recomputed
+## every call since the hero rides the fixed tank spot (hero_wx/hero_wd never move).
+func _muzzle() -> Vector2:
+	return Hall3D.unproject(camera, hero_wx, hero_wd, (TANK_MOUNT_H + 20.0) * Hall3D.PIXEL)
+
+
+## Aim is always the aim pixel (cursor + spread) -- no target search, no snapping, no lead: an
+## enemy only takes the hit if its screen rect covers that exact pixel (_screen_pick's point test,
+## front-most by depth on overlap). A hit sparks on the enemy's own body (the standard melee flash,
+## _impact); nothing under the cursor just means the round hits the floor -- a small spark there instead.
 func _gatling_hit_at(cursor: Vector2) -> void:
-	_burst(GATLING_MUZZLE, 10.0)
+	_burst(_muzzle(), 10.0)
 	var target := _screen_pick(cursor)
 	if target:
 		target.take(GATLING_DMG)
 		if target.air_h == 0.0:
 			target.launch(120.0)
+		_impact(target.wx, target.wd, 6.0)
+	else:
+		_burst(cursor, 8.0)
 	var chest := _screen_pick_chest(cursor)
 	if not chest.is_empty():
 		_pop_chest(chest)
-	var r := 6.0 * Hall3D.PIXEL * Hall3D.screen_scale(camera, target.wd) if target else 8.0
-	_burst(cursor, r)
-	_tracer(GATLING_MUZZLE, cursor)
+	_tracer(_muzzle(), cursor)
 
 
 ## One-frame tracer from the muzzle to the hit point.
@@ -1122,7 +1137,7 @@ func _fire_cannon() -> void:
 	var to := _cursor_world()
 	var from := Vector2(hero_wx, hero_wd)
 	Sound.play("impact_ground_slam.wav", hero_wx)
-	_burst(GATLING_MUZZLE, 14.0)
+	_burst(_muzzle(), 14.0)
 	var l := Line2D.new()
 	l.width = 2.5
 	l.default_color = Color(1.0, 0.75, 0.35)

@@ -21,8 +21,8 @@ var score: int = 0               # juggle kills: enemies that die in the air
 var relics: Array[String] = []
 var hero_hp: float = 100.0
 
-## Playable heroes. First is the knight that falls (g1_seed); the rest are the pick-a-role pool.
-const HEROES := ["hero_knight", "hero_turret", "hero_sackhauler", "hero_dwarf", "hero_cover", "hero_samurai", "hero_ranger", "hero_paladin", "hero_witchhunter", "hero_berserker"]
+## Playable heroes. First is the tank turret (default); the rest are the pick-a-role pool.
+const HEROES := ["hero_turret", "hero_knight", "hero_sackhauler", "hero_dwarf", "hero_cover", "hero_samurai", "hero_ranger", "hero_paladin", "hero_witchhunter", "hero_berserker"]
 var hero: String = HEROES[0]     # sprite name of the hero the player is running as
 
 var _fade: ColorRect
