@@ -62,6 +62,9 @@ var spawn_interval := 1.5
 var units: Array[Unit] = []
 var hero: Node3D
 var hero_sprite: Sprite3D
+var _hero_rot: Rect2                   # hero_sprite's rotation region; clips (attack/hurt/walk) swap it out
+var _hero_clip := {}
+var _hero_t := -1.0                    # time into the playing one-shot clip, <0 = none
 var hero_wx := 0.0
 var hero_wd := 245.0
 var hero_hp := 100.0
@@ -149,6 +152,7 @@ func _ready() -> void:
 		p.set_selected(ty == army_type, _rng)
 	hero = Node3D.new()
 	hero_sprite = Hall3D.make_sprite3d(Game.hero, 4)
+	_hero_rot = (hero_sprite.texture as AtlasTexture).region
 	hero.add_child(hero_sprite)
 	world.add_child(hero)
 	start_wave(Game.wave)
@@ -378,6 +382,7 @@ func hit(a: Unit, t: Node3D, mult := 1.0) -> void:
 	elif t == hero:
 		hero_hp -= d
 		hero_sprite.modulate = Color(2, 1, 1)
+		_hero_play("hurt")
 		Sound.play(str(Game.units["hero_sfx"].get("hit", "")), hero_wx)
 		if hero_hp < 25.0 and not _low_hp_played:
 			_low_hp_played = true
@@ -653,8 +658,19 @@ func _process(delta: float) -> void:
 	hero_wd = clampf(hero_wd - mv.y * 110.0 * delta, HERO_MIN_D, HERO_MAX_D)
 	hero.position = Hall3D.to_world(hero_wx, hero_wd)
 	hero_sprite.modulate = hero_sprite.modulate.lerp(Color.WHITE, delta * 6.0)
-	if mv != Vector2.ZERO:
-		hero_sprite.frame = Game.facing_from(mv)
+	if _hero_t >= 0.0:
+		_hero_t += delta
+		var n := int(_hero_clip["frames"])
+		if _hero_t >= n * Unit.ATK_DT:
+			_hero_t = -1.0
+			Hall3D.rotation_frame(hero_sprite, _hero_rot, 4)
+		else:
+			Hall3D.clip_frame(hero_sprite, _hero_rot, _hero_clip, int(_hero_t / Unit.ATK_DT))
+	elif mv != Vector2.ZERO and Game.sprites[Game.hero].has("walk"):
+		var w: Dictionary = Game.sprites[Game.hero]["walk"]
+		Hall3D.clip_frame(hero_sprite, _hero_rot, w, int(wave_t * 10.0) % int(w["frames"]))
+	else:
+		Hall3D.rotation_frame(hero_sprite, _hero_rot, Game.facing_from(mv) if mv != Vector2.ZERO else 4)
 	for k in spell_cd:
 		spell_cd[k] -= delta
 	# lose / win
@@ -943,6 +959,14 @@ func _spell(id: String) -> Dictionary:
 	return {}
 
 
+## Start a packed hero clip (attack / hurt) if this hero has one; walk loops on its own in _process.
+func _hero_play(key: String) -> void:
+	var c: Dictionary = Game.sprites[Game.hero].get(key, {})
+	if not c.is_empty():
+		_hero_clip = c
+		_hero_t = 0.0
+
+
 func _cast(id: String) -> void:
 	var s := _spell(id)
 	if spell_cd[id] > 0.0:
@@ -952,6 +976,7 @@ func _cast(id: String) -> void:
 		return
 	Game.magic -= float(s["cost"])
 	spell_cd[id] = float(s["cooldown"])
+	_hero_play("attack")
 	Sound.play(str(s.get("sfx", "")), hero_wx)
 	var cur := _cursor_world()
 	match id:

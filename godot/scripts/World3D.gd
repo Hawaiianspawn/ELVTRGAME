@@ -102,6 +102,22 @@ static func make_sprite3d(name: String, facing := 0) -> Sprite3D:
 	return s
 
 
+## Show frame `i` of a packed clip row ({frames, y}, manifest attack/death/walk/hurt) on a
+## make_sprite3d sprite; `rot` is the sprite's 8-facing rotation region.
+static func clip_frame(s: Sprite3D, rot: Rect2, clip: Dictionary, i: int) -> void:
+	var n := int(clip["frames"])
+	(s.texture as AtlasTexture).region = Rect2(0, int(clip["y"]), rot.size.x / 8.0 * n, rot.size.y)
+	s.hframes = n
+	s.frame = clampi(i, 0, n - 1)
+
+
+## Back to the rotation row at `facing`.
+static func rotation_frame(s: Sprite3D, rot: Rect2, facing: int) -> void:
+	(s.texture as AtlasTexture).region = rot
+	s.hframes = 8
+	s.frame = facing
+
+
 ## Hit flash 0..1 on a make_sprite3d sprite; Unit._place drives it from the modulate pulse.
 static func set_flash(s: Sprite3D, f: float) -> void:
 	(s.material_override as ShaderMaterial).set_shader_parameter("flash", f)

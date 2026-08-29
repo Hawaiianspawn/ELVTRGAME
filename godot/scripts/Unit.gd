@@ -78,6 +78,9 @@ const ATK_DT := 0.06               # seconds per attack frame
 var _atk_t := -1.0                 # time into the active clip, <0 = idle
 var _atk := {}                     # manifest "attack" entry: {frames, y}; empty = no clip packed
 var _slam := {}                    # manifest "slam" entry: sky-drop landing clip
+var _death := {}                   # manifest "death" entry: collapse, holds its last frame
+var _walk := {}                    # manifest "walk" entry: loop while _moving, replaces the bob
+var _walking := false
 var _clip := {}                    # whichever clip is playing
 var _atk_hold := 0.0               # units.json attack_hold: seconds the strike frame lingers before guard
 var _rot_region: Rect2
@@ -106,12 +109,14 @@ func setup(p_type: String, p_team: int, p_battle: Node3D) -> void:
 	_pivot = float(Game.sprites[d["sprite"]].get("com", _rot_region.size.y * 0.42))
 	_atk = Game.sprites[d["sprite"]].get("attack", {})
 	_slam = Game.sprites[d["sprite"]].get("slam", {})
+	_death = Game.sprites[d["sprite"]].get("death", {})
+	_walk = Game.sprites[d["sprite"]].get("walk", {})
 	_atk_hold = float(d.get("attack_hold", 0.0))
 
 
-## Play the packed north-facing attack clip; the static frame comes back when it ends.
+## Play the packed attack clip (allies north, enemies south); the static frame comes back when it ends.
 func attack_anim() -> void:
-	if not _atk.is_empty() and team == ALLY:
+	if not _atk.is_empty():
 		_clip = _atk
 		_atk_t = 0.0
 	Sound.unit(type, "attack", wx)
@@ -130,20 +135,18 @@ func _tick_attack(delta: float) -> void:
 	_atk_t += delta
 	var n := int(_clip["frames"])
 	var i := mini(int(_atk_t / ATK_DT), n - 1)   # last frame is the strike: it holds for attack_hold
-	var at: AtlasTexture = sprite.texture
-	if _atk_t >= n * ATK_DT + _atk_hold:
+	if _clip == _death:
+		Hall3D.clip_frame(sprite, _rot_region, _clip, i)   # a corpse holds its last frame
+	elif _atk_t >= n * ATK_DT + _atk_hold:
 		_atk_t = -1.0
-		at.region = _rot_region
-		sprite.hframes = 8
-		sprite.frame = 4
+		Hall3D.rotation_frame(sprite, _rot_region, 4 if team == ALLY else 0)
 	else:
-		at.region = Rect2(0, int(_clip["y"]), _rot_region.size.x / 8.0 * n, _rot_region.size.y)
-		sprite.hframes = n
-		sprite.frame = i
+		Hall3D.clip_frame(sprite, _rot_region, _clip, i)
 
 
 func _process(delta: float) -> void:
 	if dead:
+		_tick_attack(delta)   # the death clip keeps playing under the fade
 		return
 	_t += delta
 	_cd -= delta
@@ -353,7 +356,16 @@ func _place() -> void:
 	Hall3D.set_flash(sprite, clampf(sprite.modulate.r - 1.0, 0.0, 1.0))   # take() sets 2.0, _process lerps it home
 	_lunge = _lunge.lerp(Vector2.ZERO, 0.18)
 	_recoil = _recoil.lerp(Vector2.ZERO, 0.2)
-	var bob := absf(sin(_t * 12.0 * _gait)) * 3.0 if _moving else 0.0   # +y is up in 3D: the step lifts, it doesn't dig
+	var bob := 0.0
+	if _atk_t < 0.0:
+		if _moving and not _walk.is_empty():
+			Hall3D.clip_frame(sprite, _rot_region, _walk, int(_t * 10.0 * _gait) % int(_walk["frames"]))   # packed walk loop owns the frame
+			_walking = true
+		elif _walking:
+			Hall3D.rotation_frame(sprite, _rot_region, 4 if team == ALLY else 0)
+			_walking = false
+		elif _moving:
+			bob = absf(sin(_t * 12.0 * _gait)) * 3.0   # +y is up in 3D: the step lifts, it doesn't dig
 	var lift := air_h
 	if _spin != 0.0:
 		# spin around the center of mass: origin moves up to it, and the offset re-centres the
@@ -462,7 +474,11 @@ func take(amount: float, push := Vector2.ZERO) -> void:
 		var tw := create_tween().set_parallel(true)
 		if air_h > 0.0:
 			tw.tween_property(sprite, "position:y", 0.0, 0.3).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_IN)
-		tw.tween_property(sprite, "rotation:z", -side * PI / 2.0, 0.35).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_IN)
+		if _death.is_empty():
+			tw.tween_property(sprite, "rotation:z", -side * PI / 2.0, 0.35).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_IN)
+		else:
+			_clip = _death   # packed collapse instead of the topple
+			_atk_t = 0.0
 		tw.tween_property(sprite, "modulate", Color(0.4, 0.4, 0.4, 0.0), 1.1).set_delay(0.3)
 		tw.chain().tween_callback(queue_free)
 

@@ -70,11 +70,18 @@ def main():
         # (clip, direction suffix, manifest key): attack/slam are always "_north"; flicker is
         # packed from flicker_east_clean (east frames masked to the idle silhouette: the generator
         # sprinkles stray spark pixels); Battle.gd flips that strip for the west wall.
-        for clip, suffix, key in (("attack", "north", "attack"), ("slam", "north", "slam"),
-                                   ("flicker", "east_clean", "flicker_east")):
-            adir = os.path.join(os.path.dirname(d), "%s_%s" % (clip, suffix))
-            if not os.path.isdir(adir):
-                continue
+        # Any <clip>_<facing> dir next to the rotations packs as a row keyed by clip name
+        # (flicker keeps its legacy key). Enemies face south, allies/heroes north, so one
+        # facing per clip; the manifest doesn't record it.
+        raw = os.path.dirname(d)
+        clips = []
+        for entry in sorted(os.listdir(raw)):
+            m = re.fullmatch(r"(attack|slam|death|walk|hurt)_(north|south)|(flicker)_(east_clean)", entry)
+            if m and os.path.isdir(os.path.join(raw, entry)):
+                clip = m.group(1) or m.group(3)
+                clips.append((clip, m.group(2) or m.group(4), "flicker_east" if clip == "flicker" else clip))
+        for clip, suffix, key in clips:
+            adir = os.path.join(raw, "%s_%s" % (clip, suffix))
             names = sorted((f for f in os.listdir(adir) if re.fullmatch(r"frame_\d+\.png", f)),
                            key=lambda f: int(f[6:-4]))
             if clip == "attack" and name in cut:
