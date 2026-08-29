@@ -54,7 +54,12 @@ def patch_banner(path: Path) -> None:
     im.save(path)
 
 
+HEROES = ["hero_knight", "hero_turret", "hero_sackhauler", "hero_dwarf", "hero_cover", "hero_samurai", "hero_ranger"]
+
+
 def main() -> None:
+    for h in HEROES:   # 64px busts from create_portrait_character(character_to_portrait)
+        KEEP[f"../portraits/out/{h}.png"] = f"portraits/{h}.png"
     for src, dst in KEEP.items():
         d = OUT / dst
         d.parent.mkdir(parents=True, exist_ok=True)

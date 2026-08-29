@@ -163,10 +163,11 @@ static func pitch_for(h: float) -> float:
 ## Kit HUD: meters top-left, spell chips + relic sockets top-right, toast banner top-centre.
 ## The army panels sit under it on the bottom strip (ArmyPanel).
 func _build_hud(cl: CanvasLayer) -> void:
-	hp_bar = Ui.bar(cl, Vector2(12, 8), Ui.COL_EMBER, "")
-	mp_bar = Ui.bar(cl, Vector2(12, 40), Ui.COL_GREEN, "")
-	hall_label = Ui.label(cl, "", Vector2(16, 74), Ui.COL_TEXT)
-	score_label = Ui.label(cl, "", Vector2(16, 94), Ui.COL_DIM)
+	Ui.portrait(cl, Game.hero, Vector2(6, 4))
+	hp_bar = Ui.bar(cl, Vector2(104, 12), Ui.COL_EMBER, "")
+	mp_bar = Ui.bar(cl, Vector2(104, 44), Ui.COL_GREEN, "")
+	hall_label = Ui.label(cl, "", Vector2(108, 78), Ui.COL_TEXT)
+	score_label = Ui.label(cl, "", Vector2(108, 98), Ui.COL_DIM)
 	var x := 960.0 - 12.0 - 3 * 61.0
 	for s in Game.spells["spells"]:
 		var slot := Ui.slot(cl, "chip", str(s["id"]), Vector2(x, 8))
@@ -179,8 +180,8 @@ func _build_hud(cl: CanvasLayer) -> void:
 	for r in Game.spells["relics"]:
 		relic_slots[str(r["id"])] = Ui.slot(cl, "socket", str(r["id"]), Vector2(x, 72))
 		x += 49.0
-	toast_banner = Ui.patch(cl, "banner", Vector2(250, 0), Vector2(460, 150), [70, 45, 70, 72])
-	toast_label = Ui.label(toast_banner, "", Vector2(40, 36), Ui.COL_HOT, 16, 380.0)
+	toast_banner = Ui.patch(cl, "banner", Vector2(396, 0), Vector2(370, 150), [70, 45, 70, 72])
+	toast_label = Ui.label(toast_banner, "", Vector2(36, 36), Ui.COL_HOT, 16, 298.0)
 	toast_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 
 

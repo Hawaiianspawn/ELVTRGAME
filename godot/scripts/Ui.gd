@@ -79,6 +79,14 @@ static func slot(parent: Node, frame_name: String, icon_name: String, pos: Vecto
 	return {"frame": f, "icon": i}
 
 
+## Kit medallion with the hero's 64px bust centred in the ring. Returns the medallion so the bust
+## can be swapped (child 0) when the hero changes.
+static func portrait(parent: Node, hero: String, pos: Vector2) -> TextureRect:
+	var m := sprite(parent, "medallion", pos)
+	sprite(m, "portraits/" + hero, Vector2(17, 17))
+	return m
+
+
 ## Horizontal bar: kit housing + a fill ColorRect inside the trough. Returns {frame, fill, label}.
 static func bar(parent: Node, pos: Vector2, col: Color, text: String) -> Dictionary:
 	var f := sprite(parent, "bar", pos)

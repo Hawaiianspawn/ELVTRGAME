@@ -5,6 +5,7 @@ extends Node2D
 var _name: Label
 var _hint: Label
 var _portrait: Sprite2D
+var _medallion: TextureRect
 
 
 func _ready() -> void:
@@ -17,6 +18,7 @@ func _ready() -> void:
 	Ui.sprite(ui, "hero_card", Vector2(396, 150))
 	var plate := Ui.sprite(ui, "plate", Vector2(384, 368))
 	_name = Ui.label(plate, "", Vector2(0, 10), Ui.COL_TEXT, 16, 193.0)
+	_medallion = Ui.portrait(ui, Game.hero, Vector2(278, 207))
 	_hint = Ui.label(ui, "", Vector2(0, 424), Ui.COL_DIM, 16, 960.0)
 	Ui.label(ui, "v" + Game.VERSION, Vector2(0, 516), Ui.COL_DIM, 16, 950.0).horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
 	_portrait = Game.make_sprite(Game.hero, 0)
@@ -28,6 +30,7 @@ func _ready() -> void:
 
 func _refresh() -> void:
 	_name.text = Game.hero.trim_prefix("hero_").to_upper()
+	(_medallion.get_child(0) as TextureRect).texture = Ui.tex("portraits/" + Game.hero)
 	var text := "[H] next hero      [Space] begin\n\nWASD move   Mouse aim   LMB cast   Z/X/C spells   Q/E set lane unit type"
 	if not OS.has_feature("web"):
 		text += "\ndev: 1 siege, 2-5 wave, Tab next"
