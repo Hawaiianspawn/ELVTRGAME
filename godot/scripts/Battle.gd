@@ -496,8 +496,16 @@ func _impact(wx: float, wd: float, r := 6.0, h := 34.0) -> void:
 	_burst(Hall3D.unproject(camera, wx, wd, h * Hall3D.PIXEL), r * k)
 
 
+## Melee hit spark: 4-frame 32px flash (~0.1 s), star / x alternating so a crowd of hits doesn't
+## read as one shape. Falls back to the longer spark burst when the snappy rows aren't packed.
+const HIT_FX := ["fx_hit_star", "fx_hit_x"]
+const HIT_DT := 0.025
 func _burst(p: Vector2, r: float) -> void:
-	_clip2d("fx_burst_big", p, r * 4.8 / 64.0, 0.03)   # spark burst spans ~2.4r each way, like the old spokes
+	var name: String = HIT_FX[_rng.randi() % HIT_FX.size()]
+	if Game.sprites.has(name):
+		_clip2d(name, p, r * 3.2 / float(Game.sprites[name]["cell"]), HIT_DT).rotation = _rng.randf() * TAU
+	else:
+		_clip2d("fx_burst_big", p, r * 4.8 / 64.0, 0.03)
 
 
 ## Atlas fx clip parked in the world at `wp`, `h` sprite px above the feet, `size` sprite px across

@@ -117,6 +117,10 @@ FX = {
     "mend": ("6500e32c-34ce-46cb-93f2-25b180349ce9", 6, True),
     "orb": ("0bfe229b-e6cc-4c6f-8ed4-64e46f0dd295", 4, False),
     "relic": ("b05eddad-3dfd-46f2-ae57-0c044ec1b5ef", 6, True),
+    # snappy hit sparks (32 px, 4 frames): melee impact alternates star / x
+    "hit_star": ("0033daa5-595e-4842-ab83-d08d5e78690f", 4, True),
+    "hit_x": ("b9e59957-54b3-4749-a6f6-fc1f85f761eb", 4, True),
+    "hit_ring": ("19dfd740-ce48-42c3-a287-c9dc47d9dc9f", 4, True),
 }
 
 
