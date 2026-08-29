@@ -27,14 +27,14 @@ var _gate := 0.0                 # 0 shut .. 1 open
 var _rng := RandomNumberGenerator.new()
 var _smoke: Array = []           # {x, y, r, a}, facade-relative screen-space overlay puffs
 var caption: Label
-var _door_l: Sprite3D
-var _door_r: Sprite3D
+var _gate_sprite: Sprite3D          # gate_open.png: 7-frame swing, frame follows _gate
 var _glow: Sprite3D
 var _arch_half_w := 0.0
 var _arch_h := 0.0
 var _arch_cx := 0.0
 var _arch_cy := 0.0
 var smoke_layer: Node2D
+var _puffs: Array[Sprite2D] = []   # one fx_smoke_green sprite per _smoke particle
 
 
 func _ready() -> void:
@@ -132,8 +132,12 @@ func _build_facade() -> void:
 	_glow.modulate.a = 0.35
 	_glow.position = Vector3(_arch_cx, _arch_cy, -(GATE_D + 4.0))
 	world.add_child(_glow)
-	_door_l = _door(load("res://assets/env/castle/door_l.png"))
-	_door_r = _door(load("res://assets/env/castle/door_r.png"))
+	# one 7-frame swing clip (PixelLab animate_image over door_l+door_r) sized to the arch
+	_gate_sprite = _door(load("res://assets/env/castle/gate_open.png"))
+	_gate_sprite.hframes = 7
+	var natural_w: float = 96.0 * _gate_sprite.pixel_size
+	_gate_sprite.scale.x = _arch_half_w * 2.0 / natural_w
+	_gate_sprite.position = Vector3(_arch_cx, _arch_cy, -(GATE_D - 4.0))
 	_update_gate()
 
 
@@ -153,13 +157,8 @@ func _door(tex: Texture2D) -> Sprite3D:
 ## width-stretch trick the old 2D draw used (draw_texture_rect ignoring source aspect), done here
 ## with a fixed-height pixel_size plus a per-frame scale.x and reposition so the hinge edge holds.
 func _update_gate() -> void:
-	var door_w := _arch_half_w * (1.0 - _gate)
-	for side: float in [-1.0, 1.0]:
-		var d: Sprite3D = _door_l if side < 0.0 else _door_r
-		var natural_w: float = d.texture.get_width() * d.pixel_size
-		d.scale.x = door_w / natural_w if natural_w > 0.0 else 0.0
-		d.position = Vector3(_arch_cx + side * (_arch_half_w - door_w * 0.5), _arch_cy, -(GATE_D - 4.0))
-		d.visible = door_w > 0.25
+	_gate_sprite.frame = mini(6, int(_gate * 7.0))   # swing clip: frame 0 shut .. 6 wide open
+	_gate_sprite.visible = _gate < 0.98
 	_glow.modulate.a = 0.35 + 0.55 * _gate
 
 
@@ -201,5 +200,16 @@ func _draw_smoke() -> void:
 	var base := Hall3D.unproject(camera, 0.0, GATE_D)
 	var k := Hall3D.screen_scale(camera, GATE_D)
 	var keep_top := base.y - FACADE_WORLD_H * k
-	for m in _smoke:
-		smoke_layer.draw_circle(Vector2(base.x + m["x"] * k * 4.0, keep_top + m["y"] * k * 2.0 - 120.0 * k), m["r"] * k * 2.5, Color(0.3, 0.8, 0.4, m["a"] * 0.5))
+	# packed green puff (fx_smoke_green, 64px cell, 4-frame loop) per particle instead of a flat disc
+	if _puffs.is_empty():
+		for m in _smoke:
+			var s := Game.make_fx("fx_smoke_green")
+			smoke_layer.add_child(s)
+			_puffs.append(s)
+	for i in range(_smoke.size()):
+		var m: Dictionary = _smoke[i]
+		var s: Sprite2D = _puffs[i]
+		s.position = Vector2(base.x + m["x"] * k * 4.0, keep_top + m["y"] * k * 2.0 - 300.0 * k)   # pours from the roofline
+		s.scale = Vector2.ONE * m["r"] * k * 5.0 / 64.0
+		s.modulate = Color(1.0, 1.0, 1.0, m["a"] * 0.8)
+		s.frame = (int(_t * 6.0) + i) % s.hframes
