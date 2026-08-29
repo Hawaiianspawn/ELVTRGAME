@@ -739,7 +739,7 @@ func _process(delta: float) -> void:
 	# including an adversary poke -- can drift it, and so to_world's curve offset (which moves as
 	# the hall bends) keeps tracking it
 	hero_wx = 0.0
-	hero_wd = 335.0
+	hero_wd = 245.0
 	hero.position = Hall3D.to_world(hero_wx, hero_wd, TANK_MOUNT_H * Hall3D.PIXEL)
 	if tank_sprite:
 		tank_sprite.position = Hall3D.to_world(hero_wx, hero_wd)
@@ -1111,7 +1111,6 @@ func _muzzle() -> Vector2:
 ## front-most by depth on overlap). A hit sparks on the enemy's own body (the standard melee flash,
 ## _impact); nothing under the cursor just means the round hits the floor -- a small spark there instead.
 func _gatling_hit_at(cursor: Vector2) -> void:
-	_burst(_muzzle(), 10.0)
 	var target := _screen_pick(cursor)
 	if target:
 		target.take(GATLING_DMG)
@@ -1146,7 +1145,6 @@ func _fire_cannon() -> void:
 	var to := _cursor_world()
 	var from := Vector2(hero_wx, hero_wd)
 	Sound.play("impact_ground_slam.wav", hero_wx)
-	_burst(_muzzle(), 14.0)
 	var l := Line2D.new()
 	l.width = 2.5
 	l.default_color = Color(1.0, 0.75, 0.35)
