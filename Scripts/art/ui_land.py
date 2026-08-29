@@ -54,7 +54,7 @@ def patch_banner(path: Path) -> None:
     im.save(path)
 
 
-HEROES = ["hero_knight", "hero_turret", "hero_sackhauler", "hero_dwarf", "hero_cover", "hero_samurai", "hero_ranger"]
+HEROES = ["hero_knight", "hero_turret", "hero_sackhauler", "hero_dwarf", "hero_cover", "hero_samurai", "hero_ranger", "hero_paladin", "hero_witchhunter", "hero_berserker"]
 
 
 def main() -> None:

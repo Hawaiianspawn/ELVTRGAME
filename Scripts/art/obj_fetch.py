@@ -30,6 +30,16 @@ OBJECTS = {
     "7c17616f-6469-49bb-9a3c-71b267d495e8": "altar",
     "743db6ba-cb74-4e66-9bc8-0cd2e2a6a02d": "barrel",
     "fdd396c0-0836-43f1-8c97-18a8539c107f": "weapon_rack",
+    "3ab36758-3598-4133-960c-f18bcee29add": "coffin",
+    "2a6cd62f-b08a-4c89-a5c5-32449f7a3571": "gravestone",
+    "407259ff-32c7-4fe6-9a2f-f16d7a41dc18": "cauldron",
+    "26ca3d83-ed33-4bb3-b5f3-fff4158f9c05": "bookshelf",
+    "62a51b6b-8165-449d-a079-7aca5c49d8eb": "throne",
+    "0cbe547b-d593-4c03-8f4c-599cb4ba4820": "bone_pile",
+    "16f53b40-d457-4aa5-ab9d-f560658d23e7": "stocks",
+    "09868bb8-60f9-4792-8cf6-653956ab7ce6": "anvil",
+    "ba3ca4f0-64f6-4408-8742-e16143af92da": "sarcophagus",
+    "ddacf1e9-a4b7-43ff-86b0-c0507867d2a4": "crates",
 }
 
 
@@ -41,6 +51,9 @@ CHARACTERS = {
     "a6f83e96-f157-4211-a11a-6e2d4b7e4b60": ("melee-undead", "wraith"),
     "0780b162-10f6-4063-b1c8-9f7f6d4c69c9": ("melee-undead", "bone_knight"),
     "9acbce74-7e95-4b8c-8c12-c2ddc19bcb42": ("melee-undead", "plague_priest"),
+    "e43275b4-c184-42f6-9d0e-971ad7d15c4b": ("melee-tropes", "hero_paladin"),
+    "a85407c5-daf0-4d7c-bcf0-0a084c68d8a1": ("melee-tropes", "hero_witchhunter"),
+    "a3fbf000-6d8b-450c-8228-b45de1d6d03f": ("melee-tropes", "hero_berserker"),
 }
 
 

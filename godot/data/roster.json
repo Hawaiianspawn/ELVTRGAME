@@ -46,5 +46,18 @@
   "wraith": "melee-undead/wraith",
   "bone_knight": "melee-undead/bone_knight",
   "plague_priest": "melee-undead/plague_priest",
-  "necromancer": "boss/necromancer"
+  "necromancer": "boss/necromancer",
+  "coffin": "castle-props/coffin",
+  "gravestone": "castle-props/gravestone",
+  "cauldron": "castle-props/cauldron",
+  "bookshelf": "castle-props/bookshelf",
+  "throne": "castle-props/throne",
+  "bone_pile": "castle-props/bone_pile",
+  "stocks": "castle-props/stocks",
+  "anvil": "castle-props/anvil",
+  "sarcophagus": "castle-props/sarcophagus",
+  "crates": "castle-props/crates",
+  "hero_paladin": "melee-tropes/hero_paladin",
+  "hero_witchhunter": "melee-tropes/hero_witchhunter",
+  "hero_berserker": "melee-tropes/hero_berserker"
 }

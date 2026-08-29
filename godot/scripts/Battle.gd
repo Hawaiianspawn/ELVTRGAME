@@ -1084,7 +1084,7 @@ func _spawn_props() -> void:
 			_add_prop("lamp_cage", wx, d, facing, false, Hall3D.TILE * Hall3D.COURSES * 1.3, "", 0.575)
 			d += 160.0
 	# floor clutter: tables/chairs/chests, kept off the rank lane and away from the front line
-	var floor_names := ["table_map", "table_trestle", "chair_bench", "chest_coffer", "chest_ornate", "brazier", "column_stump", "statue_knight", "banner_pole", "rubble", "barricade", "cage_skeleton", "altar", "barrel", "weapon_rack"]
+	var floor_names := ["table_map", "table_trestle", "chair_bench", "chest_coffer", "chest_ornate", "brazier", "column_stump", "statue_knight", "banner_pole", "rubble", "barricade", "cage_skeleton", "altar", "barrel", "weapon_rack", "coffin", "gravestone", "cauldron", "bookshelf", "throne", "bone_pile", "stocks", "anvil", "sarcophagus", "crates"]
 	var broken_of := {"chair_bench": "chair_broken", "chest_ornate": "chest_ornate_open"}
 	var n := 20
 	for t in range(n):

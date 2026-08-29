@@ -93,6 +93,15 @@ JOBS = {
     ("necromancer", "death", "south"): ("dd578101-ed5e-4a5e-9ef7-cdc4263709e0", 6),
     ("necromancer", "attack", "south"): ("43656436-7d70-4e59-81c9-25ec40c447cb", 8),
     ("necromancer", "walk", "south"): ("ec21d987-26fc-4443-9547-4fd3f24b5285", 8),
+    ("hero_paladin", "attack", "north"): ("413208b0-327f-4115-835a-cdb01780b7e7", 8),
+    ("hero_paladin", "hurt", "north"): ("5cc64dcd-a115-408d-b298-b7c9c9648bee", 4),
+    ("hero_paladin", "walk", "north"): ("efbc15ba-183f-44a7-9269-76e886821444", 8),
+    ("hero_witchhunter", "attack", "north"): ("120f41bc-8d02-4419-ae30-4c458ad9ab03", 8),
+    ("hero_witchhunter", "hurt", "north"): ("a2d5b8c4-cb7c-44e3-aad6-83f4bf704519", 4),
+    ("hero_witchhunter", "walk", "north"): ("c818ad5d-f0e1-4311-baea-2e50510cb9e1", 8),
+    ("hero_berserker", "attack", "north"): ("6875c318-e9ed-48da-81c5-d4c3e5305cac", 8),
+    ("hero_berserker", "hurt", "north"): ("a609c9ea-63b3-47da-a81b-4966c056eed8", 4),
+    ("hero_berserker", "walk", "north"): ("1a38f02b-8f9d-44f7-b1e7-fc0cb79434e6", 8),
 }
 
 
