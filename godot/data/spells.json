@@ -31,35 +31,35 @@
   "relics": [
     {
       "id": "ember_ring",
-      "at": 60,
+      "at": 220,
       "label": "Ember Ring",
       "desc": "+25% magic per kill",
       "gather": 0.25
     },
     {
       "id": "iron_hymn",
-      "at": 160,
+      "at": 1120,
       "label": "Iron Hymn",
       "desc": "+30% unit HP",
       "hp": 0.3
     },
     {
       "id": "echo_bell",
-      "at": 240,
+      "at": 1740,
       "label": "Echo Bell",
       "desc": "Swap-in abilities echo once",
       "echo": true
     },
     {
       "id": "green_tooth",
-      "at": 340,
+      "at": 2360,
       "label": "Green Tooth",
       "desc": "+30% unit damage",
       "dmg": 0.3
     },
     {
       "id": "witch_lamp",
-      "at": 520,
+      "at": 3510,
       "label": "Witch Lamp",
       "desc": "Bolt splash, +50% magic per kill",
       "gather": 0.5,

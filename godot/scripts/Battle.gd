@@ -67,7 +67,7 @@ var hero_wd := 245.0
 var hero_hp := 100.0
 var world: Node3D
 var post: Post                         # post-process preset layer, between world/props (1) and HUD text (20)
-var env2d: Node2D                      # 2D overlay: props + the far glow
+var env2d: Node2D                      # 2D overlay for props
 var _props: Array[Dictionary] = []     # {node, wx, base_d, last_d, alive, is_table}
 var _prop_tick := 0
 const PROP_BREAK_R := 18.0
@@ -119,7 +119,6 @@ func _ready() -> void:
 	ov.layer = 1
 	add_child(ov)
 	env2d = Node2D.new()
-	env2d.draw.connect(_draw_env)
 	ov.add_child(env2d)
 	fx = Node2D.new()
 	fx.z_index = 5
@@ -596,7 +595,6 @@ func near_enemy(u: Unit, radius: float) -> Unit:
 
 
 func _process(delta: float) -> void:
-	env2d.queue_redraw()
 	hud.queue_redraw()
 	_rebuild_grid()
 	toast_t -= delta
@@ -963,15 +961,6 @@ func _flash(wp: Vector2, r: float, c: Color) -> void:
 	var t := create_tween()
 	t.tween_property(n, "modulate:a", 0.0, 0.35)
 	t.tween_callback(n.queue_free)
-
-
-## The necromancer's green glow at the far end of the hall. Wall lamps and floor tables are real
-## Sprite3D props (see _spawn_props / _update_props) now that castle-prop sprites exist.
-func _draw_env() -> void:
-	var flick := 0.6 + 0.4 * sin(Time.get_ticks_msec() / 90.0)
-	var dot := Hall3D.unproject(camera, 0.0, Hall3D.FOG_END, 8.0)
-	env2d.draw_circle(dot, 6.0 + 4.0 * flick, Color(0.4, 1.0, 0.4, flick))
-	env2d.draw_line(dot, dot + Vector2(_rng.randf_range(-30, 30), -110), Color(0.5, 1.0, 0.5, 0.5 * flick), 2.0)
 
 
 ## Wall lamps (treadmill down both walls) + floor tables: persistent Sprite3D props that scroll
