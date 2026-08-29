@@ -237,7 +237,9 @@ func start_wave(i: int) -> void:
 
 
 ## Hall 1 opens on a gate at the far end: 7-frame swing over ~1.2s, then the rush pours through
-## (spawn_t's own 2s delay already clears the animation before the first burst).
+## (spawn_t's own 2s delay already clears the animation before the first burst). Placed inside
+## Hall3D.FOG_END (980), not at SPAWN_D (1050) -- past the fog end it's fully black, invisible.
+const GATE_D := 780.0
 func _open_gate() -> void:
 	var g := Sprite3D.new()
 	g.texture = GATE_TEX
@@ -248,10 +250,11 @@ func _open_gate() -> void:
 	g.alpha_cut = SpriteBase3D.ALPHA_CUT_DISCARD
 	var frame_w := GATE_TEX.get_width() / 7.0
 	g.pixel_size = HALL_HALF * 2.0 * 0.9 / frame_w
-	g.position = Hall3D.to_world(0.0, SPAWN_D, GATE_TEX.get_height() * g.pixel_size * 0.5)
+	g.position = Hall3D.to_world(0.0, GATE_D, GATE_TEX.get_height() * g.pixel_size * 0.5)
 	world.add_child(g)
 	var tw := create_tween()
 	tw.tween_method(func(f: float): g.frame = mini(6, int(f)), 0.0, 7.0, 1.2)
+	tw.tween_interval(8.0)   # held open through the rush's approach, not freed the instant the swing ends
 	tw.tween_callback(g.queue_free)
 
 
@@ -1076,20 +1079,23 @@ func _fire_gatling() -> void:
 	_gatling_hit_at(cursor)
 
 
+## Impact point is always the aim pixel (cursor + spread) -- never the enemy's own body point.
+## No target search, no snapping, no lead: an enemy only takes the hit if its screen rect covers
+## that exact pixel (_screen_pick's point test, front-most by depth on overlap). Nothing under the
+## cursor just means the round hits the floor -- still a spark, no damage.
 func _gatling_hit_at(cursor: Vector2) -> void:
 	_burst(GATLING_MUZZLE, 10.0)
 	var target := _screen_pick(cursor)
-	var hit_point := cursor
 	if target:
-		hit_point = Hall3D.unproject(camera, target.wx, target.wd, 34.0 * Hall3D.PIXEL)
-		_impact(target.wx, target.wd, 6.0)
 		target.take(GATLING_DMG)
 		if target.air_h == 0.0:
 			target.launch(120.0)
 	var chest := _screen_pick_chest(cursor)
 	if not chest.is_empty():
 		_pop_chest(chest)
-	_tracer(GATLING_MUZZLE, hit_point)
+	var r := 6.0 * Hall3D.PIXEL * Hall3D.screen_scale(camera, target.wd) if target else 8.0
+	_burst(cursor, r)
+	_tracer(GATLING_MUZZLE, cursor)
 
 
 ## One-frame tracer from the muzzle to the hit point.
@@ -1145,9 +1151,11 @@ func _cannon_explode_at(at: Vector2) -> void:
 	_clip2d("fx_burst_big", Hall3D.unproject(camera, at.x, at.y), CANNON_RADIUS * cannon_radius_mult * k * 2.0 / 64.0, 0.03)
 	for u in units.duplicate():
 		if u.team == Unit.ENEMY and not u.dead and Vector2(u.wx, u.wd).distance_to(at) < CANNON_RADIUS * cannon_radius_mult:
-			u.take(CANNON_DMG)
+			# launch before take: a one-shot kill (hall-1 fodder) still needs the knock-up to read,
+			# and take() would otherwise mark it dead first, making launch() a no-op
 			if u.air_h == 0.0:
 				u.launch(230.0)
+			u.take(CANNON_DMG)
 	for c in _up_chests:
 		if c["alive"] and Vector2(c["wx"], c["d"]).distance_to(at) < CHEST_POP_R:
 			_pop_chest(c)

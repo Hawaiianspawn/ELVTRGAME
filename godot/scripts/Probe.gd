@@ -145,13 +145,17 @@ func _run(spec: String) -> void:
 		assert(stuck == 0, "hammers never landed/slammed: %d" % stuck)
 		print("PROBE hammer ok: %d dropped from sky, all landed" % falling)
 	if parts.size() > 2 and parts[2] == "tank":
-		# self-check: siege is gone, and the gatling/cannon/chest weapons work
-		await get_tree().create_timer(6.0).timeout
+		# self-check: siege is gone, and the gatling/cannon/chest weapons work. 7s (not the shared
+		# tail's own later wait): enough for the rush to creep inside FOG_END and read on camera,
+		# well before hall 1 clears (observed ~15s+ into a full run).
+		await get_tree().create_timer(7.0).timeout
 		var b := get_tree().current_scene
 		assert(not Game.SCENES.has("siege"), "siege scene still registered")
 		# (a) gatling hit on a grounded, unrooted enemy's screen point launches it. Rooted units
 		# (piled by a halberdier charge / hammer slam) hold air_h at 0 for a beat regardless of
-		# launch(), so they're excluded here -- that's a Unit.gd state, not a gatling bug.
+		# launch(), so they're excluded here -- that's a Unit.gd state, not a gatling bug. Picks the
+		# oldest surviving candidate (first spawned, first in units[]): well onto the field and
+		# rendered, not a freshly-spawned one still sitting at spawn depth with a degenerate rect.
 		var now_s := Time.get_ticks_msec() / 1000.0
 		var target: Unit = null
 		for u in b.units:
@@ -159,12 +163,13 @@ func _run(spec: String) -> void:
 				target = u
 				break
 		assert(target != null, "no grounded, unrooted enemy found for the gatling test")
-		var p := Hall3D.unproject(b.camera, target.wx, target.wd)
-		# a crowded screen point can resolve to a different (nearer-depth) overlapping enemy than
-		# the one picked above; re-resolve so the assertion checks whichever unit actually gets hit
-		target = b._screen_pick(p)
-		assert(target != null, "screen pick found nothing at the chosen enemy's own screen point")
+		var p := Hall3D.unproject(b.camera, target.wx, target.wd)   # a real pixel on its own sprite
 		b._gatling_hit_at(p)
+		# capture right here: gate + wave-1 rush + a live tracer/spark on a real hit, at ~t=5s
+		# before the hall clears (the generic end-of-run shot below lands well into hall 2)
+		var shot_path := "user://probe_tank_shot.png"
+		get_viewport().get_texture().get_image().save_png(shot_path)
+		print("PROBE saved ", ProjectSettings.globalize_path(shot_path))
 		for _i in range(3):
 			await get_tree().process_frame
 		assert(target.air_h > 0.0, "gatling hit did not launch the grounded target")
@@ -188,12 +193,12 @@ func _run(spec: String) -> void:
 		b._cannon_explode_at(Vector2(best.wx, best.wd))
 		for _i in range(3):
 			await get_tree().process_frame
-		# CANNON_DMG (40) one-shots hall-1 fodder (ooze hp 30, undead hp 40) -- take() already marks
-		# them dead before the launch() call, and launch() correctly no-ops on a dead unit, so a
-		# killed neighbour is exactly as much evidence the blast landed as a launched one.
+		# CANNON_DMG (40) one-shots hall-1 fodder (ooze hp 30, undead hp 40) -- Battle.gd launches
+		# before it damages, so the knock-up still reads even on a killed unit; air_v catches units
+		# launched this same frame (air_h hasn't climbed off 0 yet).
 		var affected := 0
 		for u in grounded:
-			if not is_instance_valid(u) or u.dead or u.air_h > 0.0:
+			if not is_instance_valid(u) or u.dead or u.air_h > 0.0 or u.air_v > 0.0:
 				affected += 1
 		assert(affected >= 3, "cannon blast only affected %d/%d clustered grounded enemies" % [affected, grounded.size()])
 		print("PROBE tank cannon ok: %d/%d killed or launched" % [affected, grounded.size()])
