@@ -316,7 +316,7 @@ func _process(delta: float) -> void:
 					if _cd <= 0.0:
 						_cd = cooldown
 						battle.hit(self, target)
-					if team == ENEMY:
+					if team == ENEMY and _atk_t < 0.0:   # a playing clip owns the frame index
 						sprite.frame = Game.facing_from(Vector2(target.wx - wx, -(target.wd - wd)) if target is Unit else Vector2(0, 1))
 				else:
 					var goal: Vector2
