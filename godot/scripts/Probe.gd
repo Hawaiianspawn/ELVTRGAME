@@ -151,6 +151,63 @@ func _run(spec: String) -> void:
 				stuck += 1
 		assert(stuck == 0, "hammers never landed/slammed: %d" % stuck)
 		print("PROBE hammer ok: %d dropped from sky, all landed" % falling)
+	if check == "barrel":
+		# self-check: the cannon neck yaws toward the cursor's ground point and the rider turns with
+		# it. Warps the mouse in-engine (OS cursor moves don't reach a Godot window reliably).
+		await get_tree().create_timer(3.0).timeout
+		get_viewport().set_disable_input(false)   # get_mouse_position only updates through input
+		var b := get_tree().current_scene
+		assert(b._barrel != null, "no barrel sprite")
+		var piv: Vector2 = b._pivot()
+		# left of the turret, right of it, dead ahead down the hall; expected screen angle of the
+		# neck and the rider facings that count as "turned that way"
+		var spots := [[Vector2(80.0, piv.y - 60.0), 180.0, [5, 6, 7]], [Vector2(880.0, piv.y - 60.0), 0.0, [1, 2, 3]], [Vector2(piv.x, 150.0), 90.0, [3, 4, 5]]]
+		var got := []
+		for i in spots.size():
+			Input.warp_mouse(spots[i][0])
+			await get_tree().process_frame
+			await get_tree().process_frame
+			var ang := rad_to_deg(b._barrel.rotation.z)
+			assert(absf(angle_difference(deg_to_rad(ang), deg_to_rad(spots[i][1]))) < deg_to_rad(40.0), "barrel screen angle %.0f, wanted ~%.0f (spot %d)" % [ang, spots[i][1], i])
+			assert(b.hero_sprite.frame in spots[i][2], "rider frame %d not facing spot %d" % [b.hero_sprite.frame, i])
+			got.append("%.0f/x%.2f/f%d" % [ang, b._barrel.scale.x, b.hero_sprite.frame])
+			get_viewport().get_texture().get_image().save_png("user://probe_barrel_%d.png" % i)
+		assert(b._barrel.scale.x < 0.6, "up-hall barrel should foreshorten: scale.x=%.2f" % b._barrel.scale.x)
+		print("PROBE barrel ok: pivot=%s angle/len/rider=%s" % [piv, ",".join(got)])
+	if check == "cannon":
+		# self-check: a shell burst plays the explosion clip, kicks the camera and flashes the screen.
+		await get_tree().create_timer(4.0).timeout
+		var b := get_tree().current_scene
+		var before: int = b.fx.get_child_count()
+		# a fodder unit parked at ground zero dies to the shell and must still take the ride up
+		var victim: Unit = null
+		for u in b.units:
+			if u.team == Unit.ENEMY and not u.dead and u.air_h == 0.0:
+				victim = u
+				break
+		assert(victim != null, "no grounded enemy to blast")
+		victim.wx = 0.0
+		victim.wd = 420.0
+		victim.hp = 1.0
+		b._cannon_explode_at(Vector2(0.0, 420.0))
+		assert(victim.dead, "ground-zero fodder survived the shell")
+		assert(b._shake_t > 0.0, "cannon did not arm the shake")
+		assert(b._flash_rect != null and b._flash_rect.color.a > 0.2, "no blast flash")
+		await get_tree().process_frame
+		await get_tree().process_frame
+		assert(b.camera.h_offset != 0.0 or b.camera.v_offset != 0.0, "shake never moved the camera")
+		await get_tree().create_timer(0.1).timeout   # past the after-bursts, inside the clip
+		assert(is_instance_valid(victim) and victim.sprite.position.y > 20.0 * Hall3D.PIXEL, "blast kill did not go up (sprite y=%.1f)" % (victim.sprite.position.y if is_instance_valid(victim) else -1.0))
+		var clips := 0
+		for c in b.fx.get_children():
+			if c is Sprite2D and c.hframes == int(Game.sprites[b.EXPLOSION_FX]["frames"]):
+				clips += 1
+		assert(clips >= 3, "expected main + 2 after-bursts, found %d" % clips)
+		var shot := "user://probe_cannon.png"
+		get_viewport().get_texture().get_image().save_png(shot)
+		await get_tree().create_timer(0.6).timeout
+		assert(b._shake_t <= 0.0 and b.camera.h_offset == 0.0, "shake did not settle")
+		print("PROBE cannon ok: %s clips=%d fx_children %d->%d kill_rose=yes saved=%s" % [b.EXPLOSION_FX, clips, before, b.fx.get_child_count(), ProjectSettings.globalize_path(shot)])
 	if check == "tank":
 		# self-check: siege is gone, and the gatling/cannon/chest weapons work. 7s (not the shared
 		# tail's own later wait): enough for the rush to creep inside FOG_END and read on camera,

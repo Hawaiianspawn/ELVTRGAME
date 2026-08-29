@@ -76,16 +76,27 @@ var gatling_rate_mult := 1.0
 const GATLING_RATE := 12.0      # shots/s at 1.0x
 const GATLING_DMG := 4.0
 const TANK_SCALE := 0.55        # owner call: the dome hid the crowd at native size, shrink it
-const TANK_MOUNT_H := 55.0      # sprite px: hero's feet height standing on the dome's peak (100 * TANK_SCALE)
+const TANK_MOUNT_H := 45.0      # sprite px: hero's feet height on the stone tank's turret roof (~82 tank px * TANK_SCALE)
 const TANK_FOOTPRINT_R := 75.0  # world units: dome's on-screen radius at TANK_SCALE, for separation()'s hero shove
 var tank_sprite: Sprite3D
+var _barrel: Sprite3D                   # cannon neck: yaws at the turret toward the cursor's ground point
+var _barrel_yaw := PI / 2.0             # ground-plane aim, radians: 0 = +wx (screen right), PI/2 = deeper down the hall
+const BARREL_TEX := preload("res://assets/sprites/tank_barrel.png")   # 34x14, cut from the tank's west frame, points +x
+const BARREL_LEN := 34.0                # sprite px
+const BARREL_SCALE := 0.8               # not TANK_SCALE: at 0.55 the rider's base swallows it whole
 var _cannon_cd := 0.0
 var cannon_reload_mult := 1.0
 var cannon_radius_mult := 1.0
 const CANNON_CD := 1.5
 const CANNON_DMG := 40.0
-const CANNON_RADIUS := 90.0
+const CANNON_RADIUS := 200.0
 const CANNON_FLIGHT := 0.35
+const EXPLOSION_FX := "fx_explosion"    # 12-frame 96px shell burst (fx_library.py explosion); swap to fx_explosion_pl to try the PixelLab take
+const SHAKE_AMP := 14.0                 # world units of camera h/v offset at the first frame of a cannon shake (~10 px at the gate)
+var _shake_t := 0.0
+var _shake_dur := 0.4
+var _shake_amp := 0.0
+var _flash_rect: ColorRect              # full-screen blast flash on the fx overlay
 const GATE_TEX := preload("res://assets/env/castle/gate_open.png")   # 7-frame swing, 96x120/frame
 var burst := 3                          # per-wave spawn burst size (waves.json "burst", default 3)
 var _up_chests: Array[Dictionary] = []  # upgrade chests: {node, broken, wx, base_d, d, last_d, alive}
@@ -183,6 +194,17 @@ func _ready() -> void:
 	hero_sprite = Hall3D.make_sprite3d(Game.hero, 4)
 	if tank_sprite:
 		hero_sprite.scale *= TANK_SCALE   # the rider matches the tank's scale; set once, clip playback never touches .scale
+		_barrel = Sprite3D.new()
+		_barrel.texture = BARREL_TEX
+		_barrel.pixel_size = Hall3D.PIXEL
+		_barrel.billboard = BaseMaterial3D.BILLBOARD_DISABLED
+		_barrel.texture_filter = BaseMaterial3D.TEXTURE_FILTER_NEAREST
+		_barrel.shaded = false
+		_barrel.alpha_cut = SpriteBase3D.ALPHA_CUT_DISCARD
+		_barrel.offset = Vector2(BARREL_LEN / 2.0, 0.0)   # base end on the node origin, so rotation swings the muzzle
+		_barrel.scale *= BARREL_SCALE
+		_barrel.position = Vector3(0.0, 4.0 * Hall3D.PIXEL, -3.0)   # rider's base, a hair behind the rider so it sorts under
+		hero.add_child(_barrel)
 	_hero_rot = (hero_sprite.texture as AtlasTexture).region
 	hero.add_child(hero_sprite)
 	if Game.sprites.has("fx_orb"):
@@ -513,6 +535,39 @@ func _vortex(wp: Vector2, k: float, dmg: float, secs := 2.0, fx_name := "fx_swee
 ## Hit stop: the world crawls for secs of real time. A later, longer stop extends the hold;
 ## the timer that fired last always restores full speed.
 var _stop_until := 0.0
+## Decaying two-axis camera shake: `amp` world units at t=0, quadratic falloff over `dur` real
+## seconds (runs on real time so it isn't frozen by the hit stop). Re-arming takes the larger.
+func _shake(amp: float, dur: float) -> void:
+	_shake_amp = maxf(amp, _shake_amp * _shake_t / maxf(_shake_dur, 0.01))
+	_shake_dur = dur
+	_shake_t = dur
+
+
+func _tick_shake(delta: float) -> void:
+	if _shake_t <= 0.0:
+		return
+	_shake_t -= delta / maxf(Engine.time_scale, 0.01)
+	if _shake_t <= 0.0:
+		camera.h_offset = 0.0
+		camera.v_offset = 0.0
+		return
+	var a := _shake_amp * pow(_shake_t / _shake_dur, 2.0)
+	camera.h_offset = _rng.randf_range(-a, a)
+	camera.v_offset = _rng.randf_range(-a, a) * 0.7
+
+
+## One-frame orange screen flash that fades over 0.15 s.
+func _blast_flash() -> void:
+	if not _flash_rect:
+		_flash_rect = ColorRect.new()
+		_flash_rect.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		_flash_rect.size = get_viewport().get_visible_rect().size   # fx is a Node2D: no anchors, size it by hand
+		fx.add_child(_flash_rect)
+	_flash_rect.color = Color(1.0, 0.75, 0.4, 0.35)
+	var tw := create_tween()
+	tw.tween_property(_flash_rect, "color:a", 0.0, 0.15).set_ease(Tween.EASE_OUT)
+
+
 func _hitstop(secs: float, scale := 0.1) -> void:
 	var now := Time.get_ticks_msec() / 1000.0
 	if now < _stop_until:
@@ -699,6 +754,7 @@ func near_enemy(u: Unit, radius: float) -> Unit:
 
 
 func _process(delta: float) -> void:
+	_tick_shake(delta)
 	hud.queue_redraw()
 	_rebuild_grid()
 	toast_t -= delta
@@ -744,10 +800,19 @@ func _process(delta: float) -> void:
 	if tank_sprite:
 		tank_sprite.position = Hall3D.to_world(hero_wx, hero_wd)
 	hero_sprite.modulate = hero_sprite.modulate.lerp(Color.WHITE, delta * 6.0)
-	# faces the cursor (same facing_from convention Unit.gd uses for its own targets) whenever
-	# no attack/hurt clip is playing; a clip owns the frame until it finishes.
+	# rider and cannon neck both track the cursor's ground point. The neck only yaws (no pitch): its
+	# world tip is projected through the camera, so up-hall foreshortens to a stub and sideways
+	# shows the full length.
 	var cursor_wp := _cursor_world()
 	var facing := Game.facing_from(Vector2(cursor_wp.x - hero_wx, -(cursor_wp.y - hero_wd)))
+	if _barrel:
+		_barrel_yaw = atan2(cursor_wp.y - hero_wd, cursor_wp.x - hero_wx)
+		var p0 := _pivot()
+		var v := _muzzle() - p0
+		_barrel.rotation.z = atan2(-v.y, v.x)
+		var k := Hall3D.screen_scale(camera, hero_wd)
+		_barrel.scale.x = maxf(v.length() / (BARREL_LEN * Hall3D.PIXEL * k), 0.2)   # projected length; never below a nub
+		_barrel.position.z = 2.0 - 6.0 * sin(_barrel_yaw)   # deeper: behind the rider; toward the lens: in front
 	if _hero_t >= 0.0:
 		_hero_t += delta
 		var n := int(_hero_clip["frames"])
@@ -1100,10 +1165,17 @@ func _fire_gatling() -> void:
 	_gatling_hit_at(cursor)
 
 
-## Screen point of the turret's muzzle: the hero's mount height plus a little rise, recomputed
-## every call since the hero rides the fixed tank spot (hero_wx/hero_wd never move).
+## Screen point of the barrel tip: the yawed world tip projected through the camera.
 func _muzzle() -> Vector2:
-	return Hall3D.unproject(camera, hero_wx, hero_wd, (TANK_MOUNT_H + 20.0 * TANK_SCALE) * Hall3D.PIXEL)
+	if not _barrel:
+		return Hall3D.unproject(camera, hero_wx, hero_wd, (TANK_MOUNT_H + 20.0 * TANK_SCALE) * Hall3D.PIXEL)
+	var l := BARREL_LEN * BARREL_SCALE * Hall3D.PIXEL   # world units
+	return Hall3D.unproject(camera, hero_wx + cos(_barrel_yaw) * l, hero_wd + sin(_barrel_yaw) * l, (TANK_MOUNT_H + 4.0) * Hall3D.PIXEL)
+
+
+## Screen point of the barrel's pivot on the turret cap.
+func _pivot() -> Vector2:
+	return Hall3D.unproject(camera, hero_wx, hero_wd, (TANK_MOUNT_H + 4.0) * Hall3D.PIXEL)
 
 
 ## Aim is always the aim pixel (cursor + spread) -- no target search, no snapping, no lead: an
@@ -1142,7 +1214,10 @@ func _fire_cannon() -> void:
 	if _cannon_cd > 0.0:
 		return
 	_cannon_cd = CANNON_CD * cannon_reload_mult
-	var to := _cursor_world()
+	# land on the enemy under the cursor if there is one (its body sits above its feet, so the
+	# floor point under the cursor would be deeper down the hall than what you're pointing at)
+	var picked := _screen_pick(get_viewport().get_mouse_position())
+	var to := Vector2(picked.wx, picked.wd) if picked else _cursor_world()
 	var from := Vector2(hero_wx, hero_wd)
 	Sound.play("impact_ground_slam.wav", hero_wx)
 	var l := Line2D.new()
@@ -1172,20 +1247,39 @@ func _fire_cannon() -> void:
 
 
 func _cannon_explode_at(at: Vector2) -> void:
-	_flash(at, CANNON_RADIUS * cannon_radius_mult, Color(1.0, 0.6, 0.3, 0.7))
+	var r := CANNON_RADIUS * cannon_radius_mult
+	_flash(at, r, Color(1.0, 0.6, 0.3, 0.7))
 	var k := Hall3D.screen_scale(camera, at.y)
-	_clip2d("fx_burst_big", Hall3D.unproject(camera, at.x, at.y), CANNON_RADIUS * cannon_radius_mult * k * 2.0 / 64.0, 0.03)
+	var p := Hall3D.unproject(camera, at.x, at.y, 28.0 * Hall3D.PIXEL)   # centred a body-height up, not half under the floor
+	# main fireball sized to the blast radius, then two smaller after-bursts off-centre a beat
+	# later so the blast rolls instead of popping
+	var cell := float(Game.sprites[EXPLOSION_FX]["cell"])
+	var main := _clip2d(EXPLOSION_FX, p, r * k * 2.4 / cell, 0.025, Color(1.0, 1.0, 1.0, 0.5))   # ~300 ms, half-transparent: never blocks the fight
+	main.rotation = 0.0   # smoke rises: keep the clip upright
+	for i in 2:
+		var off := Vector2(_rng.randf_range(-0.6, 0.6), _rng.randf_range(-0.35, 0.1)) * r * k
+		get_tree().create_timer(0.04 + 0.04 * i).timeout.connect(func():
+			var s := _clip2d(EXPLOSION_FX, p + off, r * k * 1.2 / cell, 0.02, Color(1.0, 0.85, 0.6, 0.5))
+			s.rotation = 0.0)
+	_shake(SHAKE_AMP, 0.4)
+	_blast_flash()
 	for u in units.duplicate():
-		if u.team == Unit.ENEMY and not u.dead and Vector2(u.wx, u.wd).distance_to(at) < CANNON_RADIUS * cannon_radius_mult:
+		var d := Vector2(u.wx, u.wd).distance_to(at)
+		if u.team == Unit.ENEMY and not u.dead and d < r:
 			# launch before take: a one-shot kill (hall-1 fodder) still needs the knock-up to read,
 			# and take() would otherwise mark it dead first, making launch() a no-op
+			var near := 1.0 - d / r   # 1 at ground zero, 0 at the rim
 			if u.air_h == 0.0:
-				u.launch(230.0)
+				u.launch(180.0 + 140.0 * near)
+			# radial throw: everyone flies away from the blast, hardest at the centre
+			var away := (Vector2(u.wx, u.wd) - at).normalized() if d > 1.0 else Vector2.RIGHT.rotated(_rng.randf() * TAU)
+			u.air_vx = away.x * (40.0 + 120.0 * near)
+			u.air_vd = away.y * (40.0 + 120.0 * near)
 			u.take(CANNON_DMG)
 	for c in _up_chests:
 		if c["alive"] and Vector2(c["wx"], c["d"]).distance_to(at) < CHEST_POP_R:
 			_pop_chest(c)
-	_hitstop(0.08, 0.1)
+	_hitstop(0.12, 0.05)
 
 
 ## Spawn one upgrade chest at the far end of the treadmill (or an explicit spot, for the probe).

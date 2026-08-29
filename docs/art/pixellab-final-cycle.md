@@ -63,6 +63,12 @@ packed by `Scripts/art/godot_pack.py` (sprites, clips, fx).
 | 13 task-185 tank rotation | 2 | (uncommitted) | `create_character(mode="v3", reference_image_url=...)` on the owner's turtle_d_tall edit_01 concept — `create_8_direction_object`'s reference_image_base64 has no url variant and truncated the 13 KB inline payload twice (a known transport bug, not this request); v3 mode's reference_image_url sidestepped it cleanly. 8 clean rotations, no retries; north reads as the plain dome back + gun-mount nub, landed in game as the hero_turret's mount |
 
 **Balance after bucket 13: 5,624 generations remaining** (4,376 used this cycle). Expires 2026-09-10.
+| 14 stone tank takes | 9 | (uncommitted) | owner: "regular stone tank", not the turtle dome. 3 text-only `create_character` v3 128px takes (stone_a_plain, stone_b_heavy, stone_c_landship), all clean first try, land at `tank-concepts/raw/stone_*`; owner pick: stone_a_plain |
+
+**Balance after bucket 14: 5,615 generations remaining** (4,385 used this cycle). Expires 2026-09-10.
+| 15 cannon explosion | 3 | (uncommitted) | pixflux 96px fireball first frame (1) + `animate_image` 12 frames (2): white-hot mushroom burning down to smoke, static stem, starts at peak. Landed at `fx-slash/raw/explosion_pl` (packs as `fx_explosion_pl`); the zero-credit `fx_library.py explosion` (flash + swell + debris + hollowing smoke) is the default in `Battle.EXPLOSION_FX` |
+
+**Balance after bucket 15: 5,612 generations remaining** (4,388 used this cycle). Expires 2026-09-10.
 
 ## Reserve menu (owner picks)
 

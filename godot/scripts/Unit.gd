@@ -37,6 +37,7 @@ var rooted_until := 0.0
 var _cd := 0.0
 var _t := randf() * 10.0           # desynced walk phase
 var _gait := randf_range(0.85, 1.2)
+var _mirror := false                # enemy-only: sprite flipped left/right so a crowd of one look reads as two
 var _moving := false
 var _lunge := Vector2.ZERO
 var _recoil := Vector2.ZERO
@@ -104,6 +105,9 @@ func setup(p_type: String, p_team: int, p_battle: Node3D) -> void:
 	cooldown = float(d["cooldown"])
 	counters = d["counters"]
 	sprite = Hall3D.make_sprite3d(d["sprite"], 4 if team == ALLY else 0)
+	if team == ENEMY and randf() < 0.5:
+		_mirror = true
+		sprite.flip_h = true
 	add_child(sprite)
 	_rot_region = (sprite.texture as AtlasTexture).region
 	_cell = _rot_region.size.y
@@ -282,7 +286,7 @@ func _process(delta: float) -> void:
 				var foe: Unit = battle.near_enemy(self, aggro)
 				if foe:
 					if _atk_t < 0.0:   # a playing clip owns the frame index (clips are 5 wide, facings 8)
-						sprite.frame = Game.facing_from(Vector2(foe.wx - wx, -(foe.wd - wd)))
+						_face(Vector2(foe.wx - wx, -(foe.wd - wd)))
 					if _cd <= 0.0:
 						var d_foe := _dist(foe)
 						if d_foe <= maxf(rng, 45.0):
@@ -317,7 +321,7 @@ func _process(delta: float) -> void:
 						_cd = cooldown
 						battle.hit(self, target)
 					if team == ENEMY and _atk_t < 0.0:   # a playing clip owns the frame index
-						sprite.frame = Game.facing_from(Vector2(target.wx - wx, -(target.wd - wd)) if target is Unit else Vector2(0, 1))
+						_face(Vector2(target.wx - wx, -(target.wd - wd)) if target is Unit else Vector2(0, 1))
 				else:
 					var goal: Vector2
 					if team == ENEMY:
@@ -357,7 +361,13 @@ func _step(goal: Vector2, delta: float) -> void:
 		wd = here.y
 		_moving = true
 		# facing: +y in world is away from camera == screen north
-		sprite.frame = Game.facing_from(Vector2(v.x, -v.y))
+		_face(Vector2(v.x, -v.y))
+
+
+## Rotation frame toward screen-space `v`; a mirrored sprite swaps east/west so flip_h still faces the target.
+func _face(v: Vector2) -> void:
+	var f := Game.facing_from(v)
+	sprite.frame = (8 - f) % 8 if _mirror else f
 
 
 func _place() -> void:
@@ -481,21 +491,35 @@ func take(amount: float, push := Vector2.ZERO) -> void:
 			_clip = _hurt[_hurt_combo % _hurt.size()]
 			_atk_t = 0.0
 	if dead:
-		if air_h > 0.0 and team == ENEMY:
+		if (air_h > 0.0 or air_v > 0.0) and team == ENEMY:
 			Game.score += int(max_hp * (1.0 + 0.5 * _juggles))
 		died.emit(self)
 		_gib(push)
 		# fall: topple away from the blow, sink, fade
 		var side := 1.0 if push.x >= 0.0 else -1.0
 		var tw := create_tween().set_parallel(true)
-		if air_h > 0.0:
+		var hang := 0.3
+		if air_v > 0.0:
+			# killed on the launch frame (cannon blast): _process stops ticking a corpse, so the
+			# ride it was owed plays as a tween -- up on the throw, tumbling and drifting, then down
+			var peak := (air_h + _pivot + air_v * 0.45) * Hall3D.PIXEL
+			sprite.offset = Vector2(0, _cell * 0.5 - _pivot)   # spin about the mass point, as _place does
+			var up := create_tween()
+			up.tween_property(sprite, "position:y", peak, 0.35).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
+			up.tween_property(sprite, "position:y", 0.0, 0.5).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_IN)
+			tw.tween_property(sprite, "position:x", sprite.position.x + air_vx * 0.85 * Hall3D.PIXEL, 0.85)
+			tw.tween_property(sprite, "rotation:z", sprite.rotation.z - side * TAU * 1.5, 0.85)
+			hang = 0.85
+		elif air_h > 0.0:
 			tw.tween_property(sprite, "position:y", 0.0, 0.3).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_IN)
-		if _death.is_empty():
+		if air_v > 0.0:
+			pass   # the tumble owns the rotation
+		elif _death.is_empty():
 			tw.tween_property(sprite, "rotation:z", -side * PI / 2.0, 0.35).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_IN)
 		else:
 			_clip = _death   # packed collapse instead of the topple
 			_atk_t = 0.0
-		tw.tween_property(sprite, "modulate", Color(0.4, 0.4, 0.4, 0.0), 1.1).set_delay(0.3)
+		tw.tween_property(sprite, "modulate", Color(0.4, 0.4, 0.4, 0.0), 1.1).set_delay(hang)
 		tw.chain().tween_callback(queue_free)
 
 
