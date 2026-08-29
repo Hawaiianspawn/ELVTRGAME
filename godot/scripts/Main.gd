@@ -34,9 +34,9 @@ func _ready() -> void:
 func _refresh() -> void:
 	_name.text = Game.hero.trim_prefix("hero_").to_upper()
 	(_medallion.get_child(0) as TextureRect).texture = Ui.tex("portraits/" + Game.hero)
-	var text := "[H] next hero      [Space] begin\n\nWASD move   Mouse aim   LMB cast   Z/X/C spells   Q/E set lane unit type"
+	var text := "[H] next hero   [Space] begin  /  Mouse aim   LMB gatling   RMB cannon   Q/E set lane unit type"
 	if not OS.has_feature("web"):
-		text += "\ndev: 1 siege, 2-5 wave, Tab next"
+		text += "\ndev: 1-4 wave, Tab next"
 	_hint.text = text
 	var s := Game.make_sprite(Game.hero, 0)
 	_portrait.texture = s.texture
@@ -51,4 +51,4 @@ func _unhandled_input(e: InputEvent) -> void:
 	if e.is_action_pressed("advance"):
 		set_process_unhandled_input(false)
 		Game.reset_run()
-		Game.goto("siege")
+		Game.goto("battle")

@@ -144,6 +144,67 @@ func _run(spec: String) -> void:
 				stuck += 1
 		assert(stuck == 0, "hammers never landed/slammed: %d" % stuck)
 		print("PROBE hammer ok: %d dropped from sky, all landed" % falling)
+	if parts.size() > 2 and parts[2] == "tank":
+		# self-check: siege is gone, and the gatling/cannon/chest weapons work
+		await get_tree().create_timer(6.0).timeout
+		var b := get_tree().current_scene
+		assert(not Game.SCENES.has("siege"), "siege scene still registered")
+		# (a) gatling hit on a grounded, unrooted enemy's screen point launches it. Rooted units
+		# (piled by a halberdier charge / hammer slam) hold air_h at 0 for a beat regardless of
+		# launch(), so they're excluded here -- that's a Unit.gd state, not a gatling bug.
+		var now_s := Time.get_ticks_msec() / 1000.0
+		var target: Unit = null
+		for u in b.units:
+			if u.team == Unit.ENEMY and not u.dead and u.air_h == 0.0 and u.rooted_until <= now_s:
+				target = u
+				break
+		assert(target != null, "no grounded, unrooted enemy found for the gatling test")
+		var p := Hall3D.unproject(b.camera, target.wx, target.wd)
+		# a crowded screen point can resolve to a different (nearer-depth) overlapping enemy than
+		# the one picked above; re-resolve so the assertion checks whichever unit actually gets hit
+		target = b._screen_pick(p)
+		assert(target != null, "screen pick found nothing at the chosen enemy's own screen point")
+		b._gatling_hit_at(p)
+		for _i in range(3):
+			await get_tree().process_frame
+		assert(target.air_h > 0.0, "gatling hit did not launch the grounded target")
+		print("PROBE tank gatling ok: launched %s air_h=%.1f" % [target.type, target.air_h])
+		# (b) cannon blast at the densest grounded, unrooted cluster launches >= 3 of them
+		var grounded: Array[Unit] = []
+		for u in b.units:
+			if u.team == Unit.ENEMY and not u.dead and u.air_h == 0.0 and u.rooted_until <= now_s:
+				grounded.append(u)
+		assert(grounded.size() >= 3, "not enough grounded, unrooted enemies to test the cannon on")
+		var best: Unit = grounded[0]
+		var best_n := -1
+		for o in grounded:
+			var n := 0
+			for q in grounded:
+				if Vector2(o.wx, o.wd).distance_to(Vector2(q.wx, q.wd)) < b.CANNON_RADIUS:
+					n += 1
+			if n > best_n:
+				best_n = n
+				best = o
+		b._cannon_explode_at(Vector2(best.wx, best.wd))
+		for _i in range(3):
+			await get_tree().process_frame
+		# CANNON_DMG (40) one-shots hall-1 fodder (ooze hp 30, undead hp 40) -- take() already marks
+		# them dead before the launch() call, and launch() correctly no-ops on a dead unit, so a
+		# killed neighbour is exactly as much evidence the blast landed as a launched one.
+		var affected := 0
+		for u in grounded:
+			if not is_instance_valid(u) or u.dead or u.air_h > 0.0:
+				affected += 1
+		assert(affected >= 3, "cannon blast only affected %d/%d clustered grounded enemies" % [affected, grounded.size()])
+		print("PROBE tank cannon ok: %d/%d killed or launched" % [affected, grounded.size()])
+		# (c) popping a chest applies the gatling rate upgrade (first in the cycle)
+		var before: float = b.gatling_rate_mult
+		b._spawn_chest(0.0, 300.0)
+		var chest: Dictionary = b._up_chests[-1]
+		b._gatling_hit_at(Hall3D.unproject(b.camera, chest["wx"], chest["d"]))
+		assert(b.gatling_rate_mult > before, "chest pop did not apply the gatling rate upgrade")
+		print("PROBE tank chest ok: gatling_rate_mult %.2f -> %.2f" % [before, b.gatling_rate_mult])
+		print("PROBE tank ok: siege removed, gatling/cannon/chest all landed")
 	if parts.size() > 2 and parts[2].begins_with("stress"):
 		# stress: grow the block to N rows (default 20) and report FPS after `secs`
 		var rows := int(parts[2].trim_prefix("stress")) if parts[2].length() > 6 else 20

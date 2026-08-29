@@ -69,6 +69,27 @@ var _hero_t := -1.0                    # time into the playing one-shot clip, <0
 var hero_wx := 0.0
 var hero_wd := 245.0
 var hero_hp := 100.0
+var tank_max_hp := 100.0
+var _gatling_cd := 0.0
+var gatling_rate_mult := 1.0
+const GATLING_RATE := 12.0      # shots/s at 1.0x
+const GATLING_DMG := 4.0
+const GATLING_MUZZLE := Vector2(480.0, 520.0)
+var _cannon_cd := 0.0
+var cannon_reload_mult := 1.0
+var cannon_radius_mult := 1.0
+const CANNON_CD := 1.5
+const CANNON_DMG := 40.0
+const CANNON_RADIUS := 90.0
+const CANNON_FLIGHT := 0.35
+const GATE_TEX := preload("res://assets/env/castle/gate_open.png")   # 7-frame swing, 96x120/frame
+var burst := 3                          # per-wave spawn burst size (waves.json "burst", default 3)
+var _up_chests: Array[Dictionary] = []  # upgrade chests: {node, broken, wx, base_d, d, last_d, alive}
+var _chest_t := 0.0
+const CHEST_INTERVAL := 18.0
+const CHEST_POP_R := 30.0
+const UPGRADE_CYCLE := ["gatling_rate", "cannon_radius", "cannon_reload", "tank_hp"]
+var _upgrade_i := 0
 var world: Node3D
 var post: Post                         # post-process preset layer, between world/props (1) and HUD text (20)
 var env2d: Node2D                      # 2D overlay for props
@@ -77,12 +98,9 @@ var _prop_tick := 0
 const PROP_BREAK_R := 18.0
 var fx: Node2D
 var hud: Node2D
-var hp_bar: Dictionary                 # Ui.bar: kit housing + fill + label
-var mp_bar: Dictionary
+var hp_bar: Dictionary                 # Ui.bar: kit housing + fill + label (labelled TANK)
 var hall_label: Label
 var score_label: Label
-var spell_slots: Dictionary = {}       # spell id -> {frame, icon, cd}
-var relic_slots: Dictionary = {}       # relic id -> {frame, icon}
 var _ui: CanvasLayer                   # HUD layer; win / lose cards land on it
 var toast_banner: NinePatchRect
 var toast_label: Label
@@ -97,8 +115,6 @@ var pool: Dictionary = {}              # type -> units of that type not on the f
 var slots: Array[Vector2] = []         # rank slot positions for this wave
 var _grid: Dictionary = {}             # cell -> Array[Unit], rebuilt each frame for separation / near queries
 const CELL := 48.0
-var spell_cd := {"bolt": 0.0, "heal": 0.0, "wall": 0.0}
-var checkpoint_magic := 0.0
 var toast := ""
 var toast_t := 0.0
 var _rng := RandomNumberGenerator.new()
@@ -171,26 +187,13 @@ static func pitch_for(h: float) -> float:
 	return -rad_to_deg(atan((HALF_H - h) / FOCAL))
 
 
-## Kit HUD: meters top-left, spell chips + relic sockets top-right, toast banner top-centre.
-## The army panels sit under it on the bottom strip (ArmyPanel).
+## Kit HUD: tank meter top-left, toast banner top-centre. The army panels sit under it on the
+## bottom strip (ArmyPanel); the cannon cooldown ring is drawn under the crosshair in _draw_hud.
 func _build_hud(cl: CanvasLayer) -> void:
 	Ui.portrait(cl, Game.hero, Vector2(6, 4))
 	hp_bar = Ui.bar(cl, Vector2(104, 12), Ui.COL_EMBER, "")
-	mp_bar = Ui.bar(cl, Vector2(104, 44), Ui.COL_GREEN, "")
-	hall_label = Ui.label(cl, "", Vector2(108, 78), Ui.COL_TEXT)
-	score_label = Ui.label(cl, "", Vector2(108, 98), Ui.COL_DIM)
-	var x := 960.0 - 12.0 - 3 * 61.0
-	for s in Game.spells["spells"]:
-		var slot := Ui.slot(cl, "chip", str(s["id"]), Vector2(x, 8))
-		Ui.label(slot["frame"], str(s["key"]), Vector2(5, 1), Ui.COL_EMBER)
-		Ui.label(slot["frame"], str(int(s["cost"])), Vector2(0, 39), Ui.COL_DIM, 16, 57.0)
-		slot["cd"] = Ui.label(slot["frame"], "", Vector2(0, 20), Ui.COL_HOT, 16, 57.0)
-		spell_slots[str(s["id"])] = slot
-		x += 61.0
-	x = 960.0 - 12.0 - 5 * 49.0
-	for r in Game.spells["relics"]:
-		relic_slots[str(r["id"])] = Ui.slot(cl, "socket", str(r["id"]), Vector2(x, 72))
-		x += 49.0
+	hall_label = Ui.label(cl, "", Vector2(108, 44), Ui.COL_TEXT)
+	score_label = Ui.label(cl, "", Vector2(108, 64), Ui.COL_DIM)
 	toast_banner = Ui.patch(cl, "banner", Vector2(396, 0), Vector2(370, 150), [70, 45, 70, 72])
 	toast_label = Ui.label(toast_banner, "", Vector2(36, 36), Ui.COL_HOT, 16, 298.0)
 	toast_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
@@ -205,7 +208,6 @@ func start_wave(i: int) -> void:
 	ct.tween_method(func(v: float) -> void: Hall3D.curve_a = v, Hall3D.curve_a, CURVE_A_BY_WAVE[i], 2.0).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN_OUT)
 	ct.tween_method(func(v: float) -> void: Hall3D.curve_l = v, Hall3D.curve_l, CURVE_L_BY_WAVE[i], 2.0).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN_OUT)
 	wave_t = 0.0
-	checkpoint_magic = Game.magic
 	for u in units:
 		if is_instance_valid(u):
 			u.queue_free()
@@ -213,6 +215,7 @@ func start_wave(i: int) -> void:
 	var w: Dictionary = Game.waves[i]
 	lanes = mini(int(w["lanes"]), int(HALL_HALF * 2.0 / LANE_W))   # never wider than the hall
 	spawn_interval = float(w["spawn_interval"])
+	burst = int(w.get("burst", 3))
 	lane_types.resize(lanes)
 	lane_types.fill(army_type)
 	front.resize(lanes)
@@ -226,9 +229,30 @@ func start_wave(i: int) -> void:
 	spawn_queue.shuffle()
 	_build_ranks(w["reserves"])
 	spawn_t = 2.0
-	hero_hp = 100.0
+	hero_hp = tank_max_hp
 	_low_hp_played = false
+	if i == 0:
+		_open_gate()
 	say("Hall %d / 4" % (i + 1))
+
+
+## Hall 1 opens on a gate at the far end: 7-frame swing over ~1.2s, then the rush pours through
+## (spawn_t's own 2s delay already clears the animation before the first burst).
+func _open_gate() -> void:
+	var g := Sprite3D.new()
+	g.texture = GATE_TEX
+	g.hframes = 7
+	g.texture_filter = BaseMaterial3D.TEXTURE_FILTER_NEAREST
+	g.shaded = false
+	g.billboard = BaseMaterial3D.BILLBOARD_DISABLED
+	g.alpha_cut = SpriteBase3D.ALPHA_CUT_DISCARD
+	var frame_w := GATE_TEX.get_width() / 7.0
+	g.pixel_size = HALL_HALF * 2.0 * 0.9 / frame_w
+	g.position = Hall3D.to_world(0.0, SPAWN_D, GATE_TEX.get_height() * g.pixel_size * 0.5)
+	world.add_child(g)
+	var tw := create_tween()
+	tw.tween_method(func(f: float): g.frame = mini(6, int(f)), 0.0, 7.0, 1.2)
+	tw.tween_callback(g.queue_free)
 
 
 func _build_ranks(reserves: Dictionary) -> void:
@@ -581,15 +605,8 @@ func _spawn_enemy(type: String) -> void:
 
 func _on_died(u: Unit) -> void:
 	units.erase(u)
-	if u.team == Unit.ALLY:
-		if u.lane >= 0 and front[u.lane] == u:
-			front[u.lane] = null
-	else:
-		for r in Game.gain_magic(float(Game.units[u.type].get("magic", 0))):
-			say("Relic: " + _relic(r)["label"] + " - " + _relic(r)["desc"])
-			Sound.play(str(Game.units["hero_sfx"].get("relic", "")), hero_wx)
-			if Game.sprites.has("fx_relic"):
-				_clip3d("fx_relic", Vector2(hero_wx, hero_wd), 44.0, 64.0, 0.07)
+	if u.team == Unit.ALLY and u.lane >= 0 and front[u.lane] == u:
+		front[u.lane] = null
 
 
 func say(t: String) -> void:
@@ -671,6 +688,7 @@ func _process(delta: float) -> void:
 	scroll += scroll_creep * minf(1.0 + wave_t * SCROLL_ACCEL, 2.5) * delta
 	hall.set_scroll(scroll)
 	_update_props()
+	_update_chests()
 	if _done:
 		return
 	# spawns
@@ -678,8 +696,13 @@ func _process(delta: float) -> void:
 	if spawn_t <= 0.0 and not spawn_queue.is_empty():
 		spawn_t = spawn_interval
 		# bursts: the horde arrives in clumps, not a drip
-		for i in range(mini(3, spawn_queue.size())):
+		for i in range(mini(burst, spawn_queue.size())):
 			_spawn_enemy(spawn_queue.pop_back())
+	# upgrade chests: one every ~18s, scrolling in on the same treadmill as the props
+	_chest_t -= delta
+	if _chest_t <= 0.0:
+		_chest_t = CHEST_INTERVAL
+		_spawn_chest()
 	# refill front slots from the ranks
 	for l in range(lanes):
 		if front[l] == null:
@@ -694,10 +717,11 @@ func _process(delta: float) -> void:
 					_shuffle_up(u.home)
 				swap_pending[l] = false
 				front[l] = u
-	# hero
-	var mv := Input.get_vector("move_left", "move_right", "move_up", "move_down")
-	hero_wx = clampf(hero_wx + mv.x * 130.0 * delta, -HALL_HALF + 30.0, HALL_HALF - 30.0)
-	hero_wd = clampf(hero_wd - mv.y * 110.0 * delta, HERO_MIN_D, HERO_MAX_D)
+	# the tank stands fixed at the gate; pinned every frame (not just set once) so nothing --
+	# including an adversary poke -- can drift it, and so to_world's curve offset (which moves as
+	# the hall bends) keeps tracking it
+	hero_wx = 0.0
+	hero_wd = 245.0
 	hero.position = Hall3D.to_world(hero_wx, hero_wd)
 	hero_sprite.modulate = hero_sprite.modulate.lerp(Color.WHITE, delta * 6.0)
 	if _hero_t >= 0.0:
@@ -708,19 +732,19 @@ func _process(delta: float) -> void:
 			Hall3D.rotation_frame(hero_sprite, _hero_rot, 4)
 		else:
 			Hall3D.clip_frame(hero_sprite, _hero_rot, _hero_clip, int(_hero_t / Unit.ATK_DT))
-	elif mv != Vector2.ZERO and Game.sprites[Game.hero].has("walk"):
-		var w: Dictionary = Game.sprites[Game.hero]["walk"]
-		Hall3D.clip_frame(hero_sprite, _hero_rot, w, int(wave_t * 10.0) % int(w["frames"]))
 	else:
-		Hall3D.rotation_frame(hero_sprite, _hero_rot, Game.facing_from(mv) if mv != Vector2.ZERO else 4)
-	for k in spell_cd:
-		spell_cd[k] -= delta
+		Hall3D.rotation_frame(hero_sprite, _hero_rot, 4)
+	# gatling: hold LMB ("cast" action, unchanged in project.godot) to fire at rate
+	_gatling_cd -= delta
+	_cannon_cd -= delta
+	if Input.is_action_pressed("cast") and _gatling_cd <= 0.0:
+		_gatling_cd = 1.0 / (GATLING_RATE * gatling_rate_mult)
+		_fire_gatling()
 	# lose / win
 	if hero_hp <= 0.0:
 		say("The line breaks. Again.")
 		_card("card_lose", "The line breaks.", 2.5)
 		Sound.play(str(Game.units["hero_sfx"].get("lose", "")), hero_wx)
-		Game.magic = checkpoint_magic
 		start_wave(Game.wave)
 	elif spawn_queue.is_empty() and units.filter(func(u): return is_instance_valid(u) and u.team == Unit.ENEMY).is_empty():
 		_wave_done()
@@ -754,26 +778,16 @@ func _turn(kind: String) -> void:
 			t.tween_property(camera, "rotation_degrees:x", pitch_for(170.0), 1.2).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN_OUT)
 			t.tween_property(camera, "rotation_degrees:x", pitch_for(HORIZON), 1.2).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN_OUT)
 		_:
-			say("Hall cleared. Magic gathered: %d" % int(Game.magic))
+			say("Hall cleared.")
 			t.tween_interval(2.5)
 	await t.finished
 
 
-func _relic(id: String) -> Dictionary:
-	for r in Game.spells["relics"]:
-		if r["id"] == id:
-			return r
-	return {}
-
-
 func _unhandled_input(e: InputEvent) -> void:
-	if e.is_action_pressed("cast"):
-		_cast("bolt")
+	if e is InputEventMouseButton and e.pressed and e.button_index == MOUSE_BUTTON_RIGHT:
+		_fire_cannon()
 	elif e is InputEventKey and e.pressed and not e.echo:
 		match e.keycode:
-			KEY_Z: _cast("bolt")
-			KEY_X: _cast("heal")
-			KEY_C: _cast("wall")
 			KEY_Q: _cycle_army(-1)
 			KEY_E: _cycle_army(1)
 			KEY_BRACKETRIGHT: post.cycle(1)
@@ -996,13 +1010,6 @@ func sky_landing(u: Unit) -> void:
 			o.rooted_until = _now() + 2.5
 
 
-func _spell(id: String) -> Dictionary:
-	for s in Game.spells["spells"]:
-		if s["id"] == id:
-			return s
-	return {}
-
-
 ## Full-screen illustration card (assets/ui/<name>.png, 400x224 drawn at 2x) with a title in the
 ## blackletter face, fading out after `secs`. Win and lose both go through here.
 func _card(name: String, title: String, secs: float) -> void:
@@ -1028,42 +1035,185 @@ func _hero_play(key: String) -> void:
 		_hero_t = 0.0
 
 
-func _cast(id: String) -> void:
-	var s := _spell(id)
-	if spell_cd[id] > 0.0:
+## Screen-space target pick: the enemy whose unprojected sprite rect (feet + top from
+## Hall3D.sprite_top_screen, width from its cell scaled by depth) contains `cursor`; ties broken
+## by nearest depth (smallest wd, i.e. the one drawn in front).
+func _screen_pick(cursor: Vector2) -> Unit:
+	var best: Unit = null
+	var best_wd := INF
+	for u in units:
+		if u.team != Unit.ENEMY or u.dead:
+			continue
+		var feet := Hall3D.unproject(camera, u.wx, u.wd)
+		var top := Hall3D.sprite_top_screen(camera, u)
+		var cell := float(Game.sprites[Game.units[u.type]["sprite"]]["cell"])
+		var w := cell * Hall3D.PIXEL * Hall3D.screen_scale(camera, u.wd)
+		if absf(cursor.x - feet.x) <= w * 0.5 and cursor.y >= top.y and cursor.y <= feet.y and u.wd < best_wd:
+			best_wd = u.wd
+			best = u
+	return best
+
+
+## Same screen-rect test, for the live upgrade chests.
+func _screen_pick_chest(cursor: Vector2) -> Dictionary:
+	for c in _up_chests:
+		if not c["alive"]:
+			continue
+		var feet := Hall3D.unproject(camera, c["wx"], c["d"])
+		var cell := float(Game.sprites["chest_ornate"]["cell"])
+		var w := cell * Hall3D.PIXEL * Hall3D.screen_scale(camera, c["d"])
+		if absf(cursor.x - feet.x) <= w * 0.5 and absf(cursor.y - feet.y) <= w * 0.5:
+			return c
+	return {}
+
+
+## LMB, held: ~12 shots/s hitscan. Every hit pops the juggle (take's own POP) and, if the target
+## was grounded, adds a launch so the player has to keep tracking it. Also test-called by
+## Probe/Adversary with an explicit screen point.
+func _fire_gatling() -> void:
+	Sound.play("bow_release_arrow.wav", hero_wx)
+	var cursor := get_viewport().get_mouse_position() + Vector2(_rng.randf_range(-6.0, 6.0), _rng.randf_range(-6.0, 6.0))
+	_gatling_hit_at(cursor)
+
+
+func _gatling_hit_at(cursor: Vector2) -> void:
+	_burst(GATLING_MUZZLE, 10.0)
+	var target := _screen_pick(cursor)
+	var hit_point := cursor
+	if target:
+		hit_point = Hall3D.unproject(camera, target.wx, target.wd, 34.0 * Hall3D.PIXEL)
+		_impact(target.wx, target.wd, 6.0)
+		target.take(GATLING_DMG)
+		if target.air_h == 0.0:
+			target.launch(120.0)
+	var chest := _screen_pick_chest(cursor)
+	if not chest.is_empty():
+		_pop_chest(chest)
+	_tracer(GATLING_MUZZLE, hit_point)
+
+
+## One-frame tracer from the muzzle to the hit point.
+func _tracer(from: Vector2, to: Vector2) -> void:
+	var l := Line2D.new()
+	l.width = 2.0
+	l.default_color = Color(1.0, 0.9, 0.5, 0.9)
+	l.points = PackedVector2Array([from, to])
+	fx.add_child(l)
+	await get_tree().process_frame
+	l.queue_free()
+
+
+## RMB: one shell per press, on a cooldown. Flies to the cursor's ground point along an arc
+## (same tail-cap Line2D streak _rain_salvo's _volley_arrow uses), then explodes.
+func _fire_cannon() -> void:
+	if _cannon_cd > 0.0:
 		return
-	if Game.magic < float(s["cost"]):
-		say("Not enough magic (%d)" % int(s["cost"]))
+	_cannon_cd = CANNON_CD * cannon_reload_mult
+	var to := _cursor_world()
+	var from := Vector2(hero_wx, hero_wd)
+	Sound.play("impact_ground_slam.wav", hero_wx)
+	_burst(GATLING_MUZZLE, 14.0)
+	var l := Line2D.new()
+	l.width = 2.5
+	l.default_color = Color(1.0, 0.75, 0.35)
+	l.add_point(Vector2.ZERO)
+	l.add_point(Vector2.ZERO)
+	l.visible = false
+	fx.add_child(l)
+	var prev := [Vector2.INF]
+	var tw := create_tween()
+	tw.tween_method(func(k: float):
+		var wp := from.lerp(to, k)
+		var h := 90.0 * sin(k * PI)
+		var p := Hall3D.unproject(camera, wp.x, wp.y, h * Hall3D.PIXEL)
+		l.visible = true
+		l.set_point_position(0, p)
+		var tail: Vector2 = p if prev[0] == Vector2.INF else prev[0]
+		var cap := 22.0 * Hall3D.PIXEL * Hall3D.screen_scale(camera, wp.y)
+		if p.distance_to(tail) > cap:
+			tail = p + (tail - p).normalized() * cap
+		l.set_point_position(1, tail)
+		prev[0] = p, 0.0, 1.0, CANNON_FLIGHT)
+	tw.tween_callback(func():
+		l.queue_free()
+		_cannon_explode_at(to))
+
+
+func _cannon_explode_at(at: Vector2) -> void:
+	_flash(at, CANNON_RADIUS * cannon_radius_mult, Color(1.0, 0.6, 0.3, 0.7))
+	var k := Hall3D.screen_scale(camera, at.y)
+	_clip2d("fx_burst_big", Hall3D.unproject(camera, at.x, at.y), CANNON_RADIUS * cannon_radius_mult * k * 2.0 / 64.0, 0.03)
+	for u in units.duplicate():
+		if u.team == Unit.ENEMY and not u.dead and Vector2(u.wx, u.wd).distance_to(at) < CANNON_RADIUS * cannon_radius_mult:
+			u.take(CANNON_DMG)
+			if u.air_h == 0.0:
+				u.launch(230.0)
+	for c in _up_chests:
+		if c["alive"] and Vector2(c["wx"], c["d"]).distance_to(at) < CHEST_POP_R:
+			_pop_chest(c)
+	_hitstop(0.08, 0.1)
+
+
+## Spawn one upgrade chest at the far end of the treadmill (or an explicit spot, for the probe).
+func _spawn_chest(wx := INF, d := INF) -> void:
+	var range_d := Hall3D.FOG_END * 1.5 - 60.0
+	var use_d: float = d if d != INF else range_d - 10.0
+	var use_wx: float = wx if wx != INF else _floor_wx()
+	var s := Hall3D.make_sprite3d("chest_ornate", 0)
+	s.scale *= 1.1   # matches the ambient floor props' scale (_add_prop)
+	world.add_child(s)
+	var bn := Hall3D.make_sprite3d("chest_ornate_open", 0)
+	bn.scale = s.scale
+	bn.visible = false
+	world.add_child(bn)
+	_up_chests.append({"node": s, "broken": bn, "wx": use_wx, "base_d": scroll + use_d, "d": use_d, "alive": true})
+
+
+## Move every live chest along the same treadmill the floor props use; one that scrolls behind the
+## lens without being popped is lost.
+func _update_chests() -> void:
+	var range_d := Hall3D.FOG_END * 1.5 - 60.0
+	for c in _up_chests.duplicate():
+		var d: float = 60.0 + fposmod(c["base_d"] - scroll, range_d)
+		if c.has("last_d") and d < float(c["last_d"]) - range_d * 0.5:
+			c["node"].queue_free()
+			c["broken"].queue_free()
+			_up_chests.erase(c)
+			continue
+		c["last_d"] = d
+		c["d"] = d
+		var wp := Hall3D.to_world(c["wx"], d, 0.0)
+		c["node"].position = wp
+		c["broken"].position = wp
+
+
+func _pop_chest(c: Dictionary) -> void:
+	if not c["alive"]:
 		return
-	Game.magic -= float(s["cost"])
-	spell_cd[id] = float(s["cooldown"])
-	_hero_play("attack")
-	Sound.play(str(s.get("sfx", "")), hero_wx)
-	var cur := _cursor_world()
-	match id:
-		"bolt":
-			var r := 70.0 if Game.has_relic_flag("splash") else 32.0
-			_flash(cur, r, Color(0.5, 1.0, 0.5))
-			if Game.sprites.has("fx_bolt_hit"):
-				_clip3d("fx_bolt_hit", cur, 16.0, 2.6 * r / Hall3D.PIXEL, 0.04)
-			for u in units.duplicate():
-				if u.team == Unit.ENEMY and Vector2(u.wx, u.wd).distance_to(cur) < r:
-					u.take(25.0)
-		"heal":
-			for u in front:
-				if u != null and is_instance_valid(u):
-					u.hp = minf(u.max_hp, u.hp + 25.0)
-					_flash(Vector2(u.wx, u.wd), 20.0, Color(1.0, 0.9, 0.5))
-					if Game.sprites.has("fx_mend"):
-						_clip3d("fx_mend", Vector2(u.wx, u.wd), 30.0, 48.0, 0.05)
-		"wall":
-			_flash(cur, 90.0, Color(0.3, 0.9, 0.3, 0.6))
-			if Game.sprites.has("fx_wall_fire"):
-				var fire := _clip3d("fx_wall_fire", cur, 0.0, 96.0, 0.08, Color.WHITE, 0)
-				get_tree().create_timer(3.0).timeout.connect(fire.queue_free)   # roots last 3 s
-			for u in units:
-				if u.team == Unit.ENEMY and Vector2(u.wx, u.wd).distance_to(cur) < 90.0:
-					u.rooted_until = Time.get_ticks_msec() / 1000.0 + 3.0
+	c["alive"] = false
+	c["node"].visible = false
+	c["broken"].visible = true
+	_clip3d("fx_smash", Vector2(c["wx"], c["d"]), 14.0, 48.0, 0.05)
+	_grant_upgrade()
+
+
+func _grant_upgrade() -> void:
+	var kind: String = UPGRADE_CYCLE[_upgrade_i % UPGRADE_CYCLE.size()]
+	_upgrade_i += 1
+	match kind:
+		"gatling_rate":
+			gatling_rate_mult *= 1.25
+			say("GATLING RATE +25%")
+		"cannon_radius":
+			cannon_radius_mult *= 1.20
+			say("CANNON RADIUS +20%")
+		"cannon_reload":
+			cannon_reload_mult *= 0.80
+			say("CANNON RELOAD -20%")
+		"tank_hp":
+			tank_max_hp += 25.0
+			hero_hp = minf(tank_max_hp, hero_hp + 25.0)
+			say("TANK +25 HP")
 
 
 ## Ground-level ring on the fx overlay. `r` is in world units.
@@ -1092,8 +1242,9 @@ func _spawn_props() -> void:
 			_add_prop("lamp_cage", wx, d, facing, false, Hall3D.TILE * Hall3D.COURSES * 1.3, "", 0.575)
 			d += 160.0
 	# floor clutter: tables/chairs/chests, kept off the rank lane and away from the front line
-	var floor_names := ["table_map", "table_trestle", "chair_bench", "chest_coffer", "chest_ornate", "brazier", "column_stump", "statue_knight", "banner_pole", "rubble", "barricade", "cage_skeleton", "altar", "barrel", "weapon_rack", "coffin", "gravestone", "cauldron", "bookshelf", "throne", "bone_pile", "stocks", "anvil", "sarcophagus", "crates"]
-	var broken_of := {"chair_bench": "chair_broken", "chest_ornate": "chest_ornate_open"}
+	# chest_ornate is a dedicated upgrade prop now (_spawn_chest); chest_coffer stays ambient clutter
+	var floor_names := ["table_map", "table_trestle", "chair_bench", "chest_coffer", "brazier", "column_stump", "statue_knight", "banner_pole", "rubble", "barricade", "cage_skeleton", "altar", "barrel", "weapon_rack", "coffin", "gravestone", "cauldron", "bookshelf", "throne", "bone_pile", "stocks", "anvil", "sarcophagus", "crates"]
+	var broken_of := {"chair_bench": "chair_broken"}
 	var n := 20
 	for t in range(n):
 		var d0: float = fmod(t * (range_d / n), range_d)
@@ -1225,17 +1376,13 @@ func _draw_hud() -> void:
 	# bottom strip: the four army panels, ranks left, ability cooldown; current army type large + on top
 	for p in army_panels:
 		p.update(_rank_count(p.type), _ability_cd_left(p.type))
-	Ui.set_bar(hp_bar, hero_hp / 100.0, "HERO %d" % int(hero_hp))
-	Ui.set_bar(mp_bar, minf(Game.magic, 200.0) / 200.0, "MAGIC %d" % int(Game.magic))
+	Ui.set_bar(hp_bar, hero_hp / tank_max_hp, "TANK %d" % int(hero_hp))
 	hall_label.text = "HALL %d / 4" % (Game.wave + 1)
 	var dev := ("   post %s   FPS %d" % [post.preset_name(), Engine.get_frames_per_second()]) if not OS.has_feature("web") else ""
 	score_label.text = "SCORE %d%s" % [Game.score, dev]
-	for id in spell_slots:
-		var s: Dictionary = spell_slots[id]
-		var cd: float = spell_cd[id]
-		s["icon"].modulate = Color(0.3, 0.3, 0.3) if cd > 0.0 or Game.magic < float(_spell(id)["cost"]) else Color.WHITE
-		s["cd"].text = ("%d" % ceili(cd)) if cd > 0.0 else ""
-	for id in relic_slots:
-		relic_slots[id]["icon"].visible = id in Game.relics
+	# cannon cooldown ring under the crosshair
+	if _cannon_cd > 0.0:
+		var frac := clampf(_cannon_cd / (CANNON_CD * cannon_reload_mult), 0.0, 1.0)
+		hud.draw_arc(get_viewport().get_mouse_position(), 16.0, -PI * 0.5, -PI * 0.5 + TAU * (1.0 - frac), 24, Color(1.0, 0.7, 0.3, 0.85), 2.0)
 	toast_banner.visible = toast_t > 0.0
 	toast_label.text = toast

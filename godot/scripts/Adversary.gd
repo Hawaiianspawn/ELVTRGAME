@@ -8,7 +8,7 @@ const TICK := 0.6                       # seconds a behavior is held before the 
 const STUCK := {"RETREAT": 12.0, "ADVANCE": 15.0, "charge": 10.0}
 const BEHAVIORS := [
 	"move_random", "wall_hug", "corner_hold", "cursor_warp",
-	"spell_spam", "swap_spam", "teleport_hero", "magic_flood", "magic_drain",
+	"gatling_spam", "swap_spam", "teleport_hero", "upgrade_flood", "cannon_spam",
 	"horde", "launch_all", "kill_front", "kill_hero", "jump_phase",
 ]
 
@@ -117,13 +117,10 @@ func _act() -> void:
 					b.hero_wx = _rng.randf_range(-3000, 3000)
 					b.hero_wd = _rng.randf_range(-3000, 3000)
 					_skip_frames = 2
-				"magic_flood":
-					Game.gain_magic(1.0e6)
-				"magic_drain":
-					# empty the pool, then cast everything: only the cost gate stands between 0 and negative
-					Game.magic = 0.0
-					for id in ["bolt", "heal", "wall"]:
-						b._cast(id)
+				"upgrade_flood":
+					# every chest upgrade repeatedly: watch for overflow/NaN in the stacked multipliers
+					for i in range(20):
+						b._grant_upgrade()
 				"horde":
 					for i in range(60):
 						b._spawn_enemy(["undead", "mace_undead", "ooze", "archer_undead"][i % 4])
@@ -147,8 +144,11 @@ func _sustain() -> void:
 	if b == null:
 		return
 	match _behavior:
-		"spell_spam":
-			b._cast(["bolt", "heal", "wall"][_rng.randi_range(0, 2)])
+		"gatling_spam":
+			b._gatling_hit_at(Vector2(_rng.randf_range(0.0, 960.0), _rng.randf_range(0.0, 540.0)))
+		"cannon_spam":
+			# bypass the reload cooldown to stress the blast/hitstop path every frame
+			b._cannon_explode_at(Hall3D.cursor_world(b.camera, Vector2(_rng.randf_range(0.0, 960.0), _rng.randf_range(0.0, 540.0)), b.SPAWN_D))
 		"swap_spam":
 			b._cycle_army(1 if _rng.randf() < 0.5 else -1)
 

@@ -5,7 +5,6 @@ const VERSION := "0.1.0"
 const DIRS := ["south", "south-east", "east", "north-east", "north", "north-west", "west", "south-west"]
 const SCENES := {
 	"main": "res://scenes/Main.tscn",
-	"siege": "res://scenes/siege/Siege.tscn",
 	"battle": "res://scenes/battle/Battle.tscn",
 }
 

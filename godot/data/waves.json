@@ -1,7 +1,8 @@
 [
   {
     "lanes": 5,
-    "spawn_interval": 0.43,
+    "spawn_interval": 0.3,
+    "burst": 8,
     "reserves": {
       "veteran": 110,
       "halberdier": 110,
@@ -11,7 +12,11 @@
     "enemies": [
       {
         "type": "ooze",
-        "count": 56
+        "count": 70
+      },
+      {
+        "type": "undead",
+        "count": 50
       }
     ],
     "turn": "left"

@@ -1,9 +1,9 @@
 extends Node
 ## Dev jumper. Number row / numpad jumps straight to a phase, Tab advances to the next one.
-##   1 siege (gate)   2-5 hall wave 1-4
+##   1-4 hall wave 1-4
 
 const PHASES := [
-	["siege", 0], ["battle", 0], ["battle", 1], ["battle", 2], ["battle", 3],
+	["battle", 0], ["battle", 1], ["battle", 2], ["battle", 3],
 ]
 var _label: Label
 
@@ -40,7 +40,7 @@ func _phase_index() -> int:
 
 func _refresh() -> void:
 	var i := _phase_index()
-	_label.text = "phase %d/5  [1-5 jump, Tab next]" % (i + 1) if i >= 0 else "[1-5 jump, Tab next]"
+	_label.text = "phase %d/4  [1-4 jump, Tab next]" % (i + 1) if i >= 0 else "[1-4 jump, Tab next]"
 
 
 func _unhandled_input(e: InputEvent) -> void:
