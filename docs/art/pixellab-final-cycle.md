@@ -51,7 +51,9 @@ packed by `Scripts/art/godot_pack.py` (sprites, clips, fx).
 | 7 boss hurt clips take1 | 7 | (rejected) | animate_image v3 text prompts on the south rotation only varied the staff flame, not the body; kept at raw/necromancer/hurtN_south_take1, not packed |
 | 7 boss hurt clips take2 | 8 | `1534b8a`+ | animate_character template mode (taking-punch/leg-sweep/cross-punch/crouching/surprise-uppercut/hurricane-kick/getting-up) gives real torso/leg displacement; 7 necromancer hurt clips (4-7 frames each), combo playback in Unit.gd |
 
-**Balance after bucket 7: 5,672 generations remaining** (4,328 used this cycle). Expires 2026-09-10.
+| 7 hurt2/hurt5 regen | 2 | (pending) | owner sent back: hurt2 leg-sweep dropped the staff -> lead-jab keeps both hands (3f, old take at hurt2_south_take2); hurt5 surprise-uppercut never lifted the feet -> two-footed-jump (7f, old take at hurt5_south_take2) - still no clean liftoff, best of what templates gave |
+
+**Balance after bucket 7 + hurt regen: 5,664 generations remaining** (4,336 used this cycle). Expires 2026-09-10.
 
 ## Reserve menu (owner picks)
 
