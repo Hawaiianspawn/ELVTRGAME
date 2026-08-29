@@ -54,6 +54,9 @@ CHARACTERS = {
     "e43275b4-c184-42f6-9d0e-971ad7d15c4b": ("melee-tropes", "hero_paladin"),
     "a85407c5-daf0-4d7c-bcf0-0a084c68d8a1": ("melee-tropes", "hero_witchhunter"),
     "a3fbf000-6d8b-450c-8228-b45de1d6d03f": ("melee-tropes", "hero_berserker"),
+    "f6fcf684-be77-4179-b0d2-21755998e5ea": ("tank-concepts", "stone_a_plain"),
+    "7d790274-ff30-4591-86eb-fb5471e921d8": ("tank-concepts", "stone_b_heavy"),
+    "c9a4f5c3-eeb0-4292-8048-e1069a08160b": ("tank-concepts", "stone_c_landship"),
 }
 
 
