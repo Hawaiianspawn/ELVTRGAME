@@ -82,6 +82,9 @@ var _death := {}                   # manifest "death" entry: collapse, holds its
 var _walk := {}                    # manifest "walk" entry: loop while _moving, replaces the bob
 var _walking := false
 var _clip := {}                    # whichever clip is playing
+var _hurt: Array = []              # manifest hurt1..hurt7 (+ bare "hurt") clips; empty = no hit-reactions
+var _hurt_combo := 0               # cycles through _hurt while hits land inside the combo window
+var _last_hurt_t := -10.0          # wall-clock of the last hurt clip; combo resets past 0.8s idle
 var _atk_hold := 0.0               # units.json attack_hold: seconds the strike frame lingers before guard
 var _rot_region: Rect2
 var _cell := 48.0                  # sprite cell size in px
@@ -112,6 +115,13 @@ func setup(p_type: String, p_team: int, p_battle: Node3D) -> void:
 	_death = Game.sprites[d["sprite"]].get("death", {})
 	_walk = Game.sprites[d["sprite"]].get("walk", {})
 	_atk_hold = float(d.get("attack_hold", 0.0))
+	var sd: Dictionary = Game.sprites[d["sprite"]]
+	var i := 1
+	while sd.has("hurt%d" % i):
+		_hurt.append(sd["hurt%d" % i])
+		i += 1
+	if sd.has("hurt"):
+		_hurt.append(sd["hurt"])
 
 
 ## Play the packed attack clip (allies north, enemies south); the static frame comes back when it ends.
@@ -464,6 +474,12 @@ func take(amount: float, push := Vector2.ZERO) -> void:
 		dead = true
 	else:
 		Sound.unit(type, "hit", wx)
+		if not _hurt.is_empty():
+			var now := Time.get_ticks_msec() / 1000.0
+			_hurt_combo = (_hurt_combo + 1) if now - _last_hurt_t <= 0.8 else 0
+			_last_hurt_t = now
+			_clip = _hurt[_hurt_combo % _hurt.size()]
+			_atk_t = 0.0
 	if dead:
 		if air_h > 0.0 and team == ENEMY:
 			Game.score += int(max_hp * (1.0 + 0.5 * _juggles))

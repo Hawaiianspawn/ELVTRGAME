@@ -76,7 +76,7 @@ def main():
         raw = os.path.dirname(d)
         clips = []
         for entry in sorted(os.listdir(raw)):
-            m = re.fullmatch(r"(attack|slam|death|walk|hurt)_(north|south)|(flicker)_(east_clean)", entry)
+            m = re.fullmatch(r"(attack|slam|death|walk|hurt\d?)_(north|south)|(flicker)_(east_clean)", entry)
             if m and os.path.isdir(os.path.join(raw, entry)):
                 clip = m.group(1) or m.group(3)
                 clips.append((clip, m.group(2) or m.group(4), "flicker_east" if clip == "flicker" else clip))

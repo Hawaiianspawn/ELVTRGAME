@@ -102,6 +102,13 @@ JOBS = {
     ("hero_berserker", "attack", "north"): ("6875c318-e9ed-48da-81c5-d4c3e5305cac", 8),
     ("hero_berserker", "hurt", "north"): ("a609c9ea-63b3-47da-a81b-4966c056eed8", 4),
     ("hero_berserker", "walk", "north"): ("1a38f02b-8f9d-44f7-b1e7-fc0cb79434e6", 8),
+    ("necromancer", "hurt1", "south"): ("05140d4d-c05b-495a-b68e-267e8a1836af", 6),
+    ("necromancer", "hurt2", "south"): ("ec37908d-f39f-4518-87b0-7413d66b5052", 6),
+    ("necromancer", "hurt3", "south"): ("cdf5123b-a5b5-4f5c-a240-34bc3481f721", 6),
+    ("necromancer", "hurt4", "south"): ("a95f5928-39a3-4d51-860f-d23be0ec3ef4", 6),
+    ("necromancer", "hurt5", "south"): ("a3ddb66b-9ea6-44e3-b989-b757375ff4e2", 6),
+    ("necromancer", "hurt6", "south"): ("59dcb4a6-39dc-4af9-8e7f-d2bb00b511a1", 6),
+    ("necromancer", "hurt7", "south"): ("5d68be55-e18e-48db-9fd2-1b475cfcb22c", 6),
 }
 
 

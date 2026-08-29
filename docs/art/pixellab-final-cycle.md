@@ -48,9 +48,9 @@ packed by `Scripts/art/godot_pack.py` (sprites, clips, fx).
 | 4 VFX | ~20 | `c5a360f` | bolt, bolt_hit, mend, wall_fire, ring, smash, smoke_green, orb, relic, arrow |
 | 5 screens + props | ~215 | `09e6114` | title_bg, card_win, card_lose, 10 castle props; retained not wired: door backdrop ×2, 4 wall variants |
 | 6 boss + tropes | ~140 | `8282689` | necromancer (96 px pro), ghoul / wraith / bone_knight / plague_priest states, 15 clips; placeholder stats in units.json + waves.json |
+| 7 boss hurt clips | 7 | (pending) | necromancer 7 south hurt reactions (hurt1-hurt7, 6 frames + wind-up each), combo playback in Unit.gd |
 
-**Balance after bucket 6: 6,045 generations remaining** (3,955 used this cycle, of which ~1,350
-in this pass). Expires 2026-09-10.
+**Balance after bucket 7: 5,680 generations remaining** (4,320 used this cycle). Expires 2026-09-10.
 
 ## Reserve menu (owner picks)
 
