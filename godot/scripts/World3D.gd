@@ -216,6 +216,10 @@ var _bend_mats: Array[ShaderMaterial] = []   # every material the bend uniforms 
 var _cols := 0
 var _rows := 0
 var _shift := -0x7FFFFFFF
+var _far: MeshInstance3D
+var _far_mat: ShaderMaterial
+var _wall_mesh: MeshInstance3D
+var _half := -1.0
 
 const BEND_SHADER := preload("res://assets/shaders/hall_bend.gdshader")
 const UNIT_SHADER := preload("res://assets/shaders/unit_sprite.gdshader")
@@ -265,6 +269,31 @@ func build(half: float) -> void:
 	add_child(we)
 	_build_floor(half)
 	_build_walls(half)
+	_half = half
+
+
+## Rebuild the floor columns and both wall meshes at a new half-width — called between halls
+## (under the turn/toast, never mid-fight). Old geometry and its bend materials are freed first so
+## _bend_mats doesn't grow every hall; Battle.set_hall re-applies the hall's floor/wall art after.
+func set_half(half: float) -> void:
+	if is_equal_approx(half, _half):
+		return
+	_half = half
+	for m in _pool_mats:
+		_bend_mats.erase(m)
+	_bend_mats.erase(_far_mat)
+	_bend_mats.erase(_wall_mat)
+	if _floor:
+		_floor.queue_free()
+	if _far:
+		_far.queue_free()
+	if _wall_mesh:
+		_wall_mesh.queue_free()
+	_tiles.clear()
+	_pool_mats.clear()
+	_shift = -0x7FFFFFFF
+	_build_floor(half)
+	_build_walls(half)
 
 
 ## One quad per grid cell sharing 14 materials, all under one node so the treadmill is a single
@@ -288,13 +317,14 @@ func _build_floor(half: float) -> void:
 			mi.position = Vector3(-half + (col + 0.5) * TILE, FLOOR_Y, -(NEAR_D + (row + 0.5) * TILE))
 			_tiles.append(mi)
 			_floor.add_child(mi)
-	var far := MeshInstance3D.new()
+	_far = MeshInstance3D.new()
 	var fm := PlaneMesh.new()
 	fm.size = Vector2(half * 2.0 + TILE * 2.0, EDGE_D - FAR_D)
-	far.mesh = fm
-	far.material_override = _unshaded(FLOOR_PLAIN[0], FLOOR_TINT)
-	far.position = Vector3(0, FLOOR_Y, -(FAR_D + EDGE_D) * 0.5)
-	add_child(far)
+	_far.mesh = fm
+	_far_mat = _unshaded(FLOOR_PLAIN[0], FLOOR_TINT)
+	_far.material_override = _far_mat
+	_far.position = Vector3(0, FLOOR_Y, -(FAR_D + EDGE_D) * 0.5)
+	add_child(_far)
 	_apply_variants(0)
 
 
@@ -317,11 +347,11 @@ func _build_walls(half: float) -> void:
 	for side: float in [-1.0, 1.0]:
 		_wall_quad(st, side * half, 0.0, mid, Color.WHITE, Color.WHITE)
 		_wall_quad(st, side * half, mid, top, Color.WHITE, Color.BLACK)
-	var mi := MeshInstance3D.new()
-	mi.mesh = st.commit()
+	_wall_mesh = MeshInstance3D.new()
+	_wall_mesh.mesh = st.commit()
 	_wall_mat = _unshaded(WALL_TEX, Color.WHITE)   # vertex colour and no culling are in the shader
-	mi.material_override = _wall_mat
-	add_child(mi)
+	_wall_mesh.material_override = _wall_mat
+	add_child(_wall_mesh)
 
 
 ## One band of wall, WALL_SEGS quads down its depth: the bend shader moves vertices, so a single

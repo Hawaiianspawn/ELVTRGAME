@@ -16,15 +16,22 @@ func _run(spec: String) -> void:
 	DisplayServer.window_set_vsync_mode(DisplayServer.VSYNC_DISABLED)   # uncapped: fps = real headroom
 	Engine.max_fps = 0
 	get_viewport().set_disable_input(true)   # never eat the owner's keystrokes
-	if parts.size() > 2 and parts[2].begins_with("wave="):
-		Game.wave = int(parts[2].trim_prefix("wave="))   # Battle._ready starts from Game.wave
-	get_tree().change_scene_to_file(Game.SCENES[scene])
+	# extra comma args (index 2+) compose: wave=N and post=N apply wherever they land, whatever's
+	# left over (if anything) is the self-check keyword.
+	var check := ""
 	var post_preset := -1
-	if parts.size() > 2 and parts[2].begins_with("post="):
-		post_preset = int(parts[2].trim_prefix("post="))
+	for e in parts.slice(2):
+		if e.begins_with("wave="):
+			Game.wave = int(e.trim_prefix("wave="))   # Battle._ready starts from Game.wave
+		elif e.begins_with("post="):
+			post_preset = int(e.trim_prefix("post="))
+		else:
+			check = e
+	get_tree().change_scene_to_file(Game.SCENES[scene])
+	if post_preset >= 0:
 		await get_tree().create_timer(1.0).timeout
 		get_tree().current_scene.post.set_preset(post_preset)
-	if parts.size() > 2 and parts[2] == "swap":
+	if check == "swap":
 		# self-check: swapping lane 2's type sends its front unit home and marches the new type up
 		await get_tree().create_timer(6.0).timeout
 		var b := get_tree().current_scene
@@ -42,7 +49,7 @@ func _run(spec: String) -> void:
 				stragglers += 1
 		assert(stragglers == 0, "old type still on the field: %d" % stragglers)
 		print("PROBE swap ok: %s -> %s, %d on field, pool[%s]=%d" % [old_type, b.army_type, b.units.filter(func(x): return x.team == 0).size(), old_type, b.pool[old_type]])
-	if parts.size() > 2 and parts[2] == "turn":
+	if check == "turn":
 		# self-check: the between-wave lens moves. "left"/"right" slide the camera and come back,
 		# "stairs" pitches it up to a horizon of 170 and back — all of it must land back at rest.
 		await get_tree().create_timer(2.0).timeout
@@ -58,7 +65,7 @@ func _run(spec: String) -> void:
 			assert(moved > 5.0, "%s never moved the lens" % kind)   # right slides 160 units, stairs pitches 12 degrees
 			assert(absf(cam.position.x) < 0.5 and absf(cam.rotation_degrees.x - rest) < 0.5, "%s left the lens off its rest pose" % kind)
 			print("PROBE turn ok: %s peaked at %.0f, back to x=%.1f pitch=%.2f" % [kind, moved, cam.position.x, cam.rotation_degrees.x])
-	if parts.size() > 2 and parts[2] == "whirl":
+	if check == "whirl":
 		# self-check: swapping back to veterans fires whirl â€” the field spin-dodges under guard
 		await get_tree().create_timer(6.0).timeout
 		var b := get_tree().current_scene
@@ -84,7 +91,7 @@ func _run(spec: String) -> void:
 		var vortexes: int = b.world.get_children().filter(func(c): return c.has_meta("vortex")).size()
 		assert(vortexes >= b.VORTEX_COLS * b.VORTEX_ROWS, "whirl spread missing: %d vortex cleaves" % vortexes)
 		print("PROBE whirl ok: %d veterans in spin burst, %d vortex cleaves live" % [whirling, vortexes])
-	if parts.size() > 2 and parts[2] == "charge":
+	if check == "charge":
 		# self-check: swap to halberdiers â€” the field charges down-range, then every one is back home
 		await get_tree().create_timer(6.0).timeout
 		var b := get_tree().current_scene
@@ -105,7 +112,7 @@ func _run(spec: String) -> void:
 			print("PROBE charge STUCK " + l)
 		assert(stuck.is_empty(), "%d halberdiers never came home" % stuck.size())
 		print("PROBE charge ok: %d charged, all home" % out)
-	if parts.size() > 2 and parts[2] == "volley":
+	if check == "volley":
 		# self-check: loft a few enemies, swap to vet_ranged â€” the flurry must fire; count
 		# how many lofted enemies an arrow ran through (informational, timing-dependent)
 		await get_tree().create_timer(6.0).timeout
@@ -125,7 +132,7 @@ func _run(spec: String) -> void:
 			if not is_instance_valid(o) or o.dead or o.hp < o.max_hp:
 				clipped += 1
 		print("PROBE volley ok: fired, %d/%d lofted enemies clipped" % [clipped, lofted.size()])
-	if parts.size() > 2 and parts[2] == "hammer":
+	if check == "hammer":
 		# self-check: swapping to hammers drops them from the sky; every one lands and slams
 		await get_tree().create_timer(6.0).timeout
 		var b := get_tree().current_scene
@@ -144,7 +151,7 @@ func _run(spec: String) -> void:
 				stuck += 1
 		assert(stuck == 0, "hammers never landed/slammed: %d" % stuck)
 		print("PROBE hammer ok: %d dropped from sky, all landed" % falling)
-	if parts.size() > 2 and parts[2] == "tank":
+	if check == "tank":
 		# self-check: siege is gone, and the gatling/cannon/chest weapons work. 7s (not the shared
 		# tail's own later wait): enough for the rush to creep inside FOG_END and read on camera,
 		# well before hall 1 clears (observed ~15s+ into a full run).
@@ -210,9 +217,30 @@ func _run(spec: String) -> void:
 		assert(b.gatling_rate_mult > before, "chest pop did not apply the gatling rate upgrade")
 		print("PROBE tank chest ok: gatling_rate_mult %.2f -> %.2f" % [before, b.gatling_rate_mult])
 		print("PROBE tank ok: siege removed, gatling/cannon/chest all landed")
-	if parts.size() > 2 and parts[2].begins_with("stress"):
+	if check == "walls":
+		# self-check: hall half matches HALF_BY_WAVE for Game.wave, every live unit/prop stays
+		# inside the walls, and the bend eases in to CURVE_A_BY_WAVE within the 2s tween-in.
+		await get_tree().create_timer(3.0).timeout
+		var b := get_tree().current_scene
+		var half: float = b.HALF_BY_WAVE[Game.wave]
+		assert(is_equal_approx(b.HALL_HALF, half), "HALL_HALF %.0f != table %.0f for wave %d" % [b.HALL_HALF, half, Game.wave])
+		var bad := 0
+		for u in b.units:
+			if is_instance_valid(u) and absf(u.wx) >= half:
+				bad += 1
+		for p: Dictionary in b._props:
+			if p["is_floor"] and absf(p["wx"]) >= half:   # wall lamps sit flush on the wall face by design
+				bad += 1
+		assert(bad == 0, "%d units/floor props at or outside half %.0f" % [bad, half])
+		assert(absf(Hall3D.curve_a - b.CURVE_A_BY_WAVE[Game.wave]) < 0.01, "curve_a %.3f != table %.3f after 3s" % [Hall3D.curve_a, b.CURVE_A_BY_WAVE[Game.wave]])
+		var lx := Hall3D.unproject(b.camera, -half, b.FRONT_D).x
+		var rx := Hall3D.unproject(b.camera, half, b.FRONT_D).x
+		var shot := "user://probe_walls_hall%d.png" % (Game.wave + 1)
+		get_viewport().get_texture().get_image().save_png(shot)
+		print("PROBE walls ok: hall=%d half=%.0f units=%d curve_a=%.3f wall_sep_px=%.0f saved=%s" % [Game.wave + 1, half, b.units.size(), Hall3D.curve_a, rx - lx, ProjectSettings.globalize_path(shot)])
+	if check.begins_with("stress"):
 		# stress: grow the block to N rows (default 20) and report FPS after `secs`
-		var rows := int(parts[2].trim_prefix("stress")) if parts[2].length() > 6 else 20
+		var rows := int(check.trim_prefix("stress")) if check.length() > 6 else 20
 		await get_tree().create_timer(1.0).timeout
 		var b := get_tree().current_scene
 		var extra := Army.block(b, b.world, Game.waves[Game.wave]["reserves"], 700.0, rows, 285.0 - 7 * Army.RANK_STEP, b._rng)
@@ -220,9 +248,9 @@ func _run(spec: String) -> void:
 			u.died.connect(b._on_died)
 			b.units.append(u)
 		print("PROBE stress units=%d" % b.units.size())
-	if parts.size() > 2 and parts[2].begins_with("horde"):
+	if check.begins_with("horde"):
 		# horde: dump N enemies (default 500) into the hall at once, then fight; report FPS + sim ms
-		var n := int(parts[2].trim_prefix("horde")) if parts[2].length() > 5 else 500
+		var n := int(check.trim_prefix("horde")) if check.length() > 5 else 500
 		await get_tree().create_timer(1.0).timeout
 		var b := get_tree().current_scene
 		b.spawn_queue.clear()
@@ -234,7 +262,7 @@ func _run(spec: String) -> void:
 			u.max_hp = u.hp
 		b._done = true        # no wave reset when the hero falls: units still tick, measurement holds
 		print("PROBE horde spawned=%d units=%d" % [n, b.units.size()])
-	if parts.size() > 2 and parts[2] == "jump":
+	if check == "jump":
 		# self-check: every jumper phase loads and runs a second without errors
 		for i in range(Jump.PHASES.size()):
 			await Jump._go(i)

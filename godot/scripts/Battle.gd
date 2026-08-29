@@ -16,12 +16,13 @@ const ENEMY_MIN_D := 130.0        # enemies stop here, at the hero's feet: nothi
 const RANK_D0 := 285.0          # first rank behind the front line
 const CREEP := 42.0             # sim treadmill: enemy wd drift (Unit.gd) - untouched, not a visual dial
 const SCROLL_CREEP_BY_WAVE := [84.0, 112.0, 140.0, 170.0]   # visual-only scroll speed (scenery), ~2x CREEP at wave1, ~2x again by wave4
-const CURVE_A_BY_WAVE := [0.5, 0.65, 0.85, 1.1]     # OutRun bend amplitude per wave (Hall3D.curve_a), render-only
-const CURVE_L_BY_WAVE := [460.0, 380.0, 320.0, 270.0]   # bend wavelength divisor per wave: shorter = turns quicker
-const HALL_HALF := 200.0        # hallway half-width: the walls; everything lives between them
+const CURVE_A_BY_WAVE := [0.15, 0.45, 0.9, 1.6]     # OutRun bend amplitude per wave (Hall3D.curve_a), render-only: hall 1 near-straight, hall 4 clearly wavier
+const CURVE_L_BY_WAVE := [600.0, 420.0, 320.0, 240.0]   # bend wavelength divisor per wave: shorter = turns quicker
+const HALF_BY_WAVE := [520.0, 400.0, 280.0, 200.0]   # hallway half-width per hall: wide past the gate, narrows to today's width by hall 4
+var HALL_HALF := HALF_BY_WAVE[0]   # live half-width for the current hall; start_wave sets it and rebuilds the hall/lamps to match
 const RANK_ROWS := 8            # depth of the company block down to the camera; every slot is a real unit
 const RANK_COLS := 6            # files across; the block fills the hall wall to wall
-const RANK_HALF := HALL_HALF - 20.0   # half-width of the block in world units
+const RANK_HALF := 180.0        # half-width of the rank block: fixed, does NOT widen with the hall
 const RANK_STEP := 28.0
 const BEHIND_D := 55.0          # just behind the lens: where swaps come from and go to
 const CHARGE_GAP := 56.0        # depth between rank rows on a halberdier charge-in: 2x RANK_STEP so the files read apart
@@ -202,7 +203,10 @@ func _build_hud(cl: CanvasLayer) -> void:
 func start_wave(i: int) -> void:
 	Game.wave = i
 	scroll_creep = SCROLL_CREEP_BY_WAVE[i]   # necromancer speeds the sweep each wave; scenery-only, sim speed (CREEP) untouched
+	HALL_HALF = HALF_BY_WAVE[i]
+	hall.set_half(HALL_HALF)   # rebuild floor + walls at this hall's width first, art applied next
 	hall.set_hall(i)
+	_flush_wall_props()        # walls moved: snap the wall lamps back onto the new wall face
 	var ct := create_tween()        # bend hardens and turns faster too, blended in so the hall doesn't snap
 	ct.set_parallel(true)
 	ct.tween_method(func(v: float) -> void: Hall3D.curve_a = v, Hall3D.curve_a, CURVE_A_BY_WAVE[i], 2.0).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN_OUT)
@@ -1260,6 +1264,14 @@ func _spawn_props() -> void:
 			d0 += range_d / (n * 2.0)
 		var fname: String = floor_names[t % floor_names.size()]
 		_add_prop(fname, _floor_wx(), d0, 0, true, 0.0, broken_of.get(fname, ""), 1.1)
+
+
+## The wall lamps sit flush on the wall face (_spawn_props); a hall change moves the walls, so
+## snap every lamp's wx onto the new half, keeping the side it was already on.
+func _flush_wall_props() -> void:
+	for p in _props:
+		if not p["is_floor"]:
+			p["wx"] = signf(p["wx"]) * HALL_HALF
 
 
 ## Random wx hugging a wall, clear of the rank block that fills the centre of the hall.
