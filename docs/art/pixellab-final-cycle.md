@@ -48,9 +48,10 @@ packed by `Scripts/art/godot_pack.py` (sprites, clips, fx).
 | 4 VFX | ~20 | `c5a360f` | bolt, bolt_hit, mend, wall_fire, ring, smash, smoke_green, orb, relic, arrow |
 | 5 screens + props | ~215 | `09e6114` | title_bg, card_win, card_lose, 10 castle props; retained not wired: door backdrop ×2, 4 wall variants |
 | 6 boss + tropes | ~140 | `8282689` | necromancer (96 px pro), ghoul / wraith / bone_knight / plague_priest states, 15 clips; placeholder stats in units.json + waves.json |
-| 7 boss hurt clips | 7 | (pending) | necromancer 7 south hurt reactions (hurt1-hurt7, 6 frames + wind-up each), combo playback in Unit.gd |
+| 7 boss hurt clips take1 | 7 | (rejected) | animate_image v3 text prompts on the south rotation only varied the staff flame, not the body; kept at raw/necromancer/hurtN_south_take1, not packed |
+| 7 boss hurt clips take2 | 8 | `1534b8a`+ | animate_character template mode (taking-punch/leg-sweep/cross-punch/crouching/surprise-uppercut/hurricane-kick/getting-up) gives real torso/leg displacement; 7 necromancer hurt clips (4-7 frames each), combo playback in Unit.gd |
 
-**Balance after bucket 7: 5,680 generations remaining** (4,320 used this cycle). Expires 2026-09-10.
+**Balance after bucket 7: 5,672 generations remaining** (4,328 used this cycle). Expires 2026-09-10.
 
 ## Reserve menu (owner picks)
 
