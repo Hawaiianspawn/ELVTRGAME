@@ -16,7 +16,7 @@ const ENEMY_MIN_D := 130.0        # enemies stop here, at the hero's feet: nothi
 const RANK_D0 := 285.0          # first rank behind the front line
 const CREEP := 42.0             # sim treadmill: enemy wd drift (Unit.gd) - untouched, not a visual dial
 const SCROLL_CREEP_BY_WAVE := [84.0, 112.0, 140.0, 170.0]   # visual-only scroll speed (scenery), ~2x CREEP at wave1, ~2x again by wave4
-const CURVE_A_BY_WAVE := [0.15, 0.45, 0.9, 1.6]     # OutRun bend amplitude per wave (Hall3D.curve_a), render-only: hall 1 near-straight, hall 4 clearly wavier
+const CURVE_A_BY_WAVE := [0.05, 0.15, 0.35, 0.48]     # OutRun bend amplitude per wave (Hall3D.curve_a), render-only: capped so the bend never carries a wall off screen (docs/qa/walls.md)
 const CURVE_L_BY_WAVE := [600.0, 420.0, 320.0, 240.0]   # bend wavelength divisor per wave: shorter = turns quicker
 const HALF_BY_WAVE := [520.0, 400.0, 280.0, 200.0]   # hallway half-width per hall: wide past the gate, narrows to today's width by hall 4
 var HALL_HALF := HALF_BY_WAVE[0]   # live half-width for the current hall; start_wave sets it and rebuilds the hall/lamps to match

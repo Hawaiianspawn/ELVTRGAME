@@ -233,11 +233,54 @@ func _run(spec: String) -> void:
 				bad += 1
 		assert(bad == 0, "%d units/floor props at or outside half %.0f" % [bad, half])
 		assert(absf(Hall3D.curve_a - b.CURVE_A_BY_WAVE[Game.wave]) < 0.01, "curve_a %.3f != table %.3f after 3s" % [Hall3D.curve_a, b.CURVE_A_BY_WAVE[Game.wave]])
+		# owner directive: the bend must never carry a wall off screen. Sweep from d0 -- the first
+		# depth (snapped to the 64-step sample grid) where the wall could appear on screen AT ALL
+		# with zero bend: below Hall3D.NEAR_D the floor row itself renders below the viewport
+		# (Hall3D.NEAR_D=128 sits under the visible frame; it only appears ~d=240), and below the
+		# hall's own static-fit depth the UNBENT wall is already wider than the viewport -- hall
+		# geometry vs camera FOV, nothing the bend can fix. From d0 on, curve_a/curve_l must not
+		# push either wall's screen x outside a 40px margin, across one full phase cycle.
+		var vp_w: float = get_viewport().get_visible_rect().size.x
+		var vp_h: float = get_viewport().get_visible_rect().size.y
+		var margin := 40.0
+		var l: float = b.CURVE_L_BY_WAVE[Game.wave]
+		var d0 := 0.0
+		for dd in range(128, 1000, 4):
+			if Hall3D.unproject(b.camera, 0.0, dd).y <= vp_h and Hall3D.unproject(b.camera, -half, dd).x >= margin and Hall3D.unproject(b.camera, half, dd).x <= vp_w - margin:
+				d0 = dd
+				break
+		d0 = ceil(d0 / 64.0) * 64.0   # one step of slack on the sweep's own 64-unit sample grid
+		var saved_phase := Hall3D.phase
+		var lo := INF
+		var hi := -INF
+		var worst_phase := 0.0
+		var worst_extent := 0.0   # biggest |screen_x - center|, to pose the screenshot at the strongest swing found
+		var center := vp_w * 0.5
+		var d := d0
+		while d <= Hall3D.FOG_END:
+			for i in range(33):
+				var ph := TAU * l * i / 32.0
+				Hall3D.phase = ph
+				var lxi := Hall3D.unproject(b.camera, -half, d).x
+				var rxi := Hall3D.unproject(b.camera, half, d).x
+				lo = minf(lo, minf(lxi, rxi))
+				hi = maxf(hi, maxf(lxi, rxi))
+				var extent := maxf(absf(lxi - center), absf(rxi - center))
+				if extent > worst_extent:
+					worst_extent = extent
+					worst_phase = ph
+			d += 64.0
+		Hall3D.phase = saved_phase
+		print("PROBE walls sweep hall=%d half=%.0f a=%.3f l=%.0f d0=%.0f x_range=[%.0f, %.0f] bound=[%.0f, %.0f]" % [Game.wave + 1, half, Hall3D.curve_a, l, d0, lo, hi, margin, vp_w - margin])
+		assert(lo >= margin and hi <= vp_w - margin, "bend carried a wall off frame: hall=%d x in [%.0f, %.0f] outside [%.0f, %.0f] from d0=%.0f" % [Game.wave + 1, lo, hi, margin, vp_w - margin, d0])
 		var lx := Hall3D.unproject(b.camera, -half, b.FRONT_D).x
 		var rx := Hall3D.unproject(b.camera, half, b.FRONT_D).x
+		b.scroll = worst_phase   # pose the screenshot at the sweep's strongest swing, not whatever phase happened to be live
+		for _i in range(3):
+			await get_tree().process_frame
 		var shot := "user://probe_walls_hall%d.png" % (Game.wave + 1)
 		get_viewport().get_texture().get_image().save_png(shot)
-		print("PROBE walls ok: hall=%d half=%.0f units=%d curve_a=%.3f wall_sep_px=%.0f saved=%s" % [Game.wave + 1, half, b.units.size(), Hall3D.curve_a, rx - lx, ProjectSettings.globalize_path(shot)])
+		print("PROBE walls ok: hall=%d half=%.0f units=%d curve_a=%.3f wall_sep_px=%.0f worst_phase=%.0f saved=%s" % [Game.wave + 1, half, b.units.size(), Hall3D.curve_a, rx - lx, worst_phase, ProjectSettings.globalize_path(shot)])
 	if check.begins_with("stress"):
 		# stress: grow the block to N rows (default 20) and report FPS after `secs`
 		var rows := int(check.trim_prefix("stress")) if check.length() > 6 else 20
