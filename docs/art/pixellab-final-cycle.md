@@ -46,7 +46,19 @@ packed by `Scripts/art/godot_pack.py` (sprites, clips, fx).
 | 2 portraits | ~175 | `2c1bfc8` | 7 hero busts (64 px) |
 | 3 animations | ~70 | `76c7021` | 53 clips: 8 enemies × death/attack/walk, 4 allies × death/walk, 7 heroes × attack/hurt/walk |
 | 4 VFX | ~20 | `c5a360f` | bolt, bolt_hit, mend, wall_fire, ring, smash, smoke_green, orb, relic, arrow |
-| 5 screens + props | ~215 | (this commit) | title_bg, card_win, card_lose, 10 castle props; retained not wired: door backdrop ×2, 4 wall variants |
+| 5 screens + props | ~215 | `09e6114` | title_bg, card_win, card_lose, 10 castle props; retained not wired: door backdrop ×2, 4 wall variants |
+| 6 boss + tropes | ~140 | `8282689` | necromancer (96 px pro), ghoul / wraith / bone_knight / plague_priest states, 15 clips; placeholder stats in units.json + waves.json |
+
+**Balance after bucket 6: 6,045 generations remaining** (3,955 used this cycle, of which ~1,350
+in this pass). Expires 2026-09-10.
+
+## Reserve menu (owner picks)
+
+- Re-roll seeds: every unit clip ×2 more seeds for choice (~120), UI kits ×3 (~120), portraits ×1 (~175).
+- More halls: `create_tiles_pro` floor/wall pairs for halls 2–4 (~100) — needs `World3D` per-wave texture swap.
+- More props ×10 (~200), more tropes ×4 (~120), 2–3 new hero looks (~100 + 3 clips each).
+- Siege screen: gate-open clip from `assets/env/castle/door_*.png` (~2), green smoke uses `fx_smoke_green` (0).
+- Pro re-rolls of the weakest existing sprites (`create_character` pro, ~25 each).
 
 Rejected / retained only: `army_sel_a` (baked checkerboard), `relic_tray` (opaque), `meters` v1
 (auto-placed), Body 8 A/B (illegible), Title 32 A (rounded, not blackletter), door backdrops
