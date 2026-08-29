@@ -161,6 +161,100 @@ def _burst_clip(n, *a, **k):
     return fr
 
 
+FIRE = ((150, 40, 30), (240, 120, 50), (255, 214, 120), (255, 250, 225))   # rim, mid, hot, core
+SMOKE = ((45, 40, 45), (85, 80, 85), (120, 115, 120))
+
+
+def explosion(n=12, size=96, seed=3):
+    """Cannon shell: white flash, a ragged fireball that swells then hollows into rising smoke,
+    rock chunks thrown out on arcs. Colour bands by distance into the blob; last frames dither out."""
+    rnd = random.Random(seed)
+    fr = new(n, size)
+    cx = cy = size / 2.0
+    R = size * 0.36
+    lobes = [(rnd.uniform(0, math.tau), rnd.uniform(0.45, 0.8), rnd.uniform(0.3, 0.55)) for _ in range(7)]
+    chunks = [(rnd.uniform(0, math.tau), rnd.uniform(1.8, 3.6), rnd.choice((2, 2, 3))) for _ in range(12)]
+    puffs = [(rnd.uniform(0, math.tau), rnd.uniform(0.5, 0.95), rnd.uniform(0.25, 0.45), rnd.uniform(0.3, 0.7)) for _ in range(9)]
+    for f, im in enumerate(fr):
+        px = im.load()
+        t = f / (n - 1.0)
+        grow = min(1.0, (f + 1) / 3.5)                       # swells over the first 3-4 frames
+        r = R * grow
+        hollow = max(0.0, (t - 0.45) / 0.55)                 # inside burns out after the peak
+        fade = max(0.0, (t - 0.78) / 0.22)                   # dither dissolve at the tail
+        # fireball: a core disc plus lobes; each pixel's depth = 1 - dist/edge_radius along its angle
+        if f == 0:
+            for y in range(size):
+                for x in range(size):
+                    d = math.hypot(x + 0.5 - cx, y + 0.5 - cy)
+                    a = math.atan2(y + 0.5 - cy, x + 0.5 - cx)
+                    spike = 1.0 + 0.9 * max(0.0, math.cos(a * 8.0)) ** 6
+                    if d < R * 0.32 * spike:
+                        _put(px, x, y, FIRE[3] if d < R * 0.2 else FIRE[2])
+            continue
+        for y in range(size):
+            for x in range(size):
+                dx, dy = x + 0.5 - cx, y + 0.5 - cy
+                d = math.hypot(dx, dy)
+                if d > r * 1.35:
+                    continue
+                a = math.atan2(dy, dx)
+                edge = r
+                for la, lr, lw in lobes:
+                    da = abs((a - la + math.pi) % math.tau - math.pi)
+                    edge = max(edge, r * (1.0 + lr * 0.45 * max(0.0, 1.0 - (da / lw) ** 2)))
+                if d > edge:
+                    continue
+                depth = 1.0 - d / edge                       # 0 at the rim, 1 at the centre
+                if depth < hollow * 0.9 and depth > hollow * 0.9 - 0.18:
+                    c = SMOKE[1] if (x + y) % 2 else SMOKE[0]   # dark inner smoke at the burnt-out core
+                elif depth < hollow * 0.9:
+                    if rnd.random() < 0.35:
+                        continue
+                    c = SMOKE[0]
+                elif depth < 0.18:
+                    c = FIRE[0]
+                elif depth < 0.42 + 0.3 * t:
+                    c = FIRE[1]
+                elif depth < 0.72 + 0.3 * t:
+                    c = FIRE[2]
+                else:
+                    c = FIRE[3]
+                if fade and rnd.random() < fade:
+                    continue
+                _put(px, x, y, c)
+        # smoke puffs ride the rim outward and drift up, greying as they go
+        if t > 0.3:
+            for pa, pr, ps, pu in puffs:
+                k = (t - 0.3) / 0.7
+                sx = cx + math.cos(pa) * (R * pr * (0.8 + 0.5 * k))
+                sy = cy + math.sin(pa) * (R * pr * (0.8 + 0.5 * k)) - R * pu * k * 1.4
+                sr = R * ps * (0.5 + 0.9 * k)
+                for y in range(int(sy - sr), int(sy + sr) + 1):
+                    for x in range(int(sx - sr), int(sx + sr) + 1):
+                        dd = math.hypot(x + 0.5 - sx, y + 0.5 - sy)
+                        if dd > sr or (fade and rnd.random() < fade * 1.2):
+                            continue
+                        c = SMOKE[2] if dd < sr * 0.45 and k < 0.5 else (SMOKE[1] if dd < sr * 0.8 else SMOKE[0])
+                        _put(px, x, y, c)
+        # debris chunks on arcs, with a hot trail early
+        g = 0.22
+        for ca, cv, cs in chunks:
+            tt = f * 1.0
+            bx = cx + math.cos(ca) * cv * tt * 2.2
+            by = cy + math.sin(ca) * cv * tt * 1.4 - cv * tt * 1.2 + g * tt * tt
+            if not (0 <= bx < size and 0 <= by < size):
+                continue
+            if fade and rnd.random() < fade:
+                continue
+            for oy in range(cs):
+                for ox in range(cs):
+                    _put(px, int(bx) + ox, int(by) + oy, SMOKE[0] if (ox + oy) % 2 else FIRE[0])
+            if f < 5:
+                _put(px, int(bx) - int(math.cos(ca) * 2), int(by) - int(math.sin(ca) * 2), FIRE[2])
+    return fr
+
+
 D = math.radians
 LIBRARY = {
     # crescents
@@ -190,6 +284,7 @@ LIBRARY = {
     # impacts
     "burst":        lambda: _burst_clip(7, 32, 32),
     "burst_big":    lambda: _burst_clip(8, 32, 32, rays=12, rmax=30),
+    "explosion":    lambda: explosion(),                                                       # cannon shell, 96px
     "burst_blue":   lambda: _burst_clip(7, 32, 32, pal=BLUE),
     "burst_red":    lambda: _burst_clip(7, 32, 32, rays=6, pal=RED),
     "crash":        lambda: compose(_arc_clip(8, 32, 40, 24, D(200), D(340), thick=5, tail=0.7),
