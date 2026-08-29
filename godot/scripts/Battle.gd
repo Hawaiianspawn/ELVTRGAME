@@ -77,6 +77,7 @@ const GATLING_RATE := 12.0      # shots/s at 1.0x
 const GATLING_DMG := 4.0
 const TANK_SCALE := 0.55        # owner call: the dome hid the crowd at native size, shrink it
 const TANK_MOUNT_H := 55.0      # sprite px: hero's feet height standing on the dome's peak (100 * TANK_SCALE)
+const TANK_FOOTPRINT_R := 75.0  # world units: dome's on-screen radius at TANK_SCALE, for separation()'s hero shove
 var tank_sprite: Sprite3D
 var _cannon_cd := 0.0
 var cannon_reload_mult := 1.0
@@ -180,6 +181,8 @@ func _ready() -> void:
 		world.add_child(tank_sprite)
 	hero = Node3D.new()
 	hero_sprite = Hall3D.make_sprite3d(Game.hero, 4)
+	if tank_sprite:
+		hero_sprite.scale *= TANK_SCALE   # the rider matches the tank's scale; set once, clip playback never touches .scale
 	_hero_rot = (hero_sprite.texture as AtlasTexture).region
 	hero.add_child(hero_sprite)
 	if Game.sprites.has("fx_orb"):
@@ -672,8 +675,8 @@ func separation(u: Unit) -> Vector2:
 			push += d / l * (24.0 - l) * 6.0
 	var hd := here - Vector2(hero_wx, hero_wd)
 	var hl := hd.length()
-	if hl < 34.0 and hl > 0.01:
-		push += hd / hl * (34.0 - hl) * 14.0
+	if hl < TANK_FOOTPRINT_R and hl > 0.01:
+		push += hd / hl * (TANK_FOOTPRINT_R - hl) * 14.0
 	return push
 
 
@@ -736,7 +739,7 @@ func _process(delta: float) -> void:
 	# including an adversary poke -- can drift it, and so to_world's curve offset (which moves as
 	# the hall bends) keeps tracking it
 	hero_wx = 0.0
-	hero_wd = 300.0
+	hero_wd = 335.0
 	hero.position = Hall3D.to_world(hero_wx, hero_wd, TANK_MOUNT_H * Hall3D.PIXEL)
 	if tank_sprite:
 		tank_sprite.position = Hall3D.to_world(hero_wx, hero_wd)
@@ -1100,7 +1103,7 @@ func _fire_gatling() -> void:
 ## Screen point of the turret's muzzle: the hero's mount height plus a little rise, recomputed
 ## every call since the hero rides the fixed tank spot (hero_wx/hero_wd never move).
 func _muzzle() -> Vector2:
-	return Hall3D.unproject(camera, hero_wx, hero_wd, (TANK_MOUNT_H + 20.0) * Hall3D.PIXEL)
+	return Hall3D.unproject(camera, hero_wx, hero_wd, (TANK_MOUNT_H + 20.0 * TANK_SCALE) * Hall3D.PIXEL)
 
 
 ## Aim is always the aim pixel (cursor + spread) -- no target search, no snapping, no lead: an
