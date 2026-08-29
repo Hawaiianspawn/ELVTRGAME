@@ -739,7 +739,7 @@ func _process(delta: float) -> void:
 	# including an adversary poke -- can drift it, and so to_world's curve offset (which moves as
 	# the hall bends) keeps tracking it
 	hero_wx = 0.0
-	hero_wd = 245.0
+	hero_wd = 190.0
 	hero.position = Hall3D.to_world(hero_wx, hero_wd, TANK_MOUNT_H * Hall3D.PIXEL)
 	if tank_sprite:
 		tank_sprite.position = Hall3D.to_world(hero_wx, hero_wd)

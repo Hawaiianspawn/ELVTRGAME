@@ -7,4 +7,6 @@
 
 Owner round 4, two corrections: "back" meant toward the camera, not deeper down the hall -- `hero_wd` scrapped from the round-3 335 back to 245 (the original depth; at TANK_SCALE=0.55 it now fits inside frame with no clipping, unlike the old full-size dome). And the muzzle flash sprite is gone from both weapons (`_burst(_muzzle(), ...)` deleted from `_gatling_hit_at` and `_fire_cannon`) -- kept: the `_impact` star/X on a gatling hit, the small burst on a floor miss, the tracer line, the cannon blast. `TANK_MOUNT_H` stays 55 (scale-relative, not depth-relative, so the round-3 retune already covers this).
 
+Owner round 5: even nearer the lens, `hero_wd` 245 -> 190 (old HERO_MIN_D floor was 150). Still fits inside frame with no clipping at `TANK_SCALE = 0.55`, so no scale drop to 0.45 needed.
+
 Pre-existing `_gatling_hit_at` target-launch assertion in the same probe fails intermittently on unmodified `master` too (reproduced by stashing this task's changes and re-running) — unrelated to this task, left alone.
