@@ -433,442 +433,502 @@
     "com": 25.6,
     "y": 7892
   },
+  "fx_arrow": {
+    "cell": 32,
+    "frames": 1,
+    "source": "fx-slash/arrow",
+    "y": 7960
+  },
+  "fx_bolt": {
+    "cell": 32,
+    "frames": 4,
+    "source": "fx-slash/bolt",
+    "y": 7992
+  },
+  "fx_bolt_hit": {
+    "cell": 64,
+    "frames": 7,
+    "source": "fx-slash/bolt_hit",
+    "y": 8024
+  },
   "fx_burst": {
     "cell": 64,
     "frames": 7,
     "source": "fx-slash/burst",
-    "y": 7960
+    "y": 8088
   },
   "fx_burst_big": {
     "cell": 64,
     "frames": 8,
     "source": "fx-slash/burst_big",
-    "y": 8024
+    "y": 8152
   },
   "fx_burst_blue": {
     "cell": 64,
     "frames": 7,
     "source": "fx-slash/burst_blue",
-    "y": 8088
+    "y": 8216
   },
   "fx_burst_red": {
     "cell": 64,
     "frames": 7,
     "source": "fx-slash/burst_red",
-    "y": 8152
+    "y": 8280
   },
   "fx_chips": {
     "cell": 64,
     "frames": 8,
     "source": "fx-slash/chips",
-    "y": 8216
+    "y": 8344
   },
   "fx_chips_blood": {
     "cell": 64,
     "frames": 8,
     "source": "fx-slash/chips_blood",
-    "y": 8280
+    "y": 8408
   },
   "fx_chips_blood_pl": {
     "cell": 64,
     "frames": 9,
     "source": "fx-slash/chips_blood_pl",
-    "y": 8344
+    "y": 8472
   },
   "fx_chips_pl": {
     "cell": 64,
     "frames": 9,
     "source": "fx-slash/chips_pl",
-    "y": 8408
+    "y": 8536
   },
   "fx_chop": {
     "cell": 64,
     "frames": 9,
     "source": "fx-slash/chop",
-    "y": 8472
+    "y": 8600
   },
   "fx_cleave_heavy": {
     "cell": 64,
     "frames": 9,
     "source": "fx-slash/cleave_heavy",
-    "y": 8536
+    "y": 8664
   },
   "fx_comic_hit": {
     "cell": 64,
     "frames": 9,
     "source": "fx-slash/comic_hit",
-    "y": 8600
+    "y": 8728
   },
   "fx_comic_hit_pl": {
     "cell": 64,
     "frames": 9,
     "source": "fx-slash/comic_hit_pl",
-    "y": 8664
+    "y": 8792
   },
   "fx_comic_slash": {
     "cell": 64,
     "frames": 7,
     "source": "fx-slash/comic_slash",
-    "y": 8728
+    "y": 8856
   },
   "fx_comic_slash_pl": {
     "cell": 64,
     "frames": 9,
     "source": "fx-slash/comic_slash_pl",
-    "y": 8792
+    "y": 8920
   },
   "fx_comic_wedge": {
     "cell": 64,
     "frames": 7,
     "source": "fx-slash/comic_wedge",
-    "y": 8856
+    "y": 8984
   },
   "fx_comic_wedge_pl": {
     "cell": 64,
     "frames": 9,
     "source": "fx-slash/comic_wedge_pl",
-    "y": 8920
+    "y": 9048
   },
   "fx_comic_wedge_r": {
     "cell": 64,
     "frames": 7,
     "source": "fx-slash/comic_wedge_r",
-    "y": 8984
+    "y": 9112
   },
   "fx_comic_wedge_r_pl": {
     "cell": 64,
     "frames": 9,
     "source": "fx-slash/comic_wedge_r_pl",
-    "y": 9048
+    "y": 9176
   },
   "fx_crack": {
     "cell": 64,
     "frames": 6,
     "source": "fx-slash/crack",
-    "y": 9112
+    "y": 9240
   },
   "fx_crack_diag": {
     "cell": 64,
     "frames": 6,
     "source": "fx-slash/crack_diag",
-    "y": 9176
+    "y": 9304
   },
   "fx_crack_diag_pl": {
     "cell": 64,
     "frames": 9,
     "source": "fx-slash/crack_diag_pl",
-    "y": 9240
+    "y": 9368
   },
   "fx_crack_pl": {
     "cell": 64,
     "frames": 9,
     "source": "fx-slash/crack_pl",
-    "y": 9304
+    "y": 9432
   },
   "fx_crash": {
     "cell": 64,
     "frames": 10,
     "source": "fx-slash/crash",
-    "y": 9368
+    "y": 9496
   },
   "fx_double_sweep": {
     "cell": 64,
     "frames": 10,
     "source": "fx-slash/double_sweep",
-    "y": 9432
+    "y": 9560
   },
   "fx_dust": {
     "cell": 64,
     "frames": 8,
     "source": "fx-slash/dust",
-    "y": 9496
+    "y": 9624
   },
   "fx_dust_pl": {
     "cell": 64,
     "frames": 9,
     "source": "fx-slash/dust_pl",
-    "y": 9560
+    "y": 9688
   },
   "fx_dust_small": {
     "cell": 64,
     "frames": 6,
     "source": "fx-slash/dust_small",
-    "y": 9624
+    "y": 9752
   },
   "fx_dust_small_pl": {
     "cell": 64,
     "frames": 9,
     "source": "fx-slash/dust_small_pl",
-    "y": 9688
+    "y": 9816
   },
   "fx_flurry": {
     "cell": 64,
     "frames": 10,
     "source": "fx-slash/flurry",
-    "y": 9752
+    "y": 9880
   },
   "fx_ink_crash": {
     "cell": 64,
     "frames": 9,
     "source": "fx-slash/ink_crash",
-    "y": 9816
+    "y": 9944
   },
   "fx_ink_crash_pl": {
     "cell": 64,
     "frames": 9,
     "source": "fx-slash/ink_crash_pl",
-    "y": 9880
+    "y": 10008
   },
   "fx_ink_dark": {
     "cell": 64,
     "frames": 6,
     "source": "fx-slash/ink_dark",
-    "y": 9944
+    "y": 10072
   },
   "fx_ink_dark_pl": {
     "cell": 64,
     "frames": 9,
     "source": "fx-slash/ink_dark_pl",
-    "y": 10008
+    "y": 10136
   },
   "fx_ink_slash": {
     "cell": 64,
     "frames": 6,
     "source": "fx-slash/ink_slash",
-    "y": 10072
+    "y": 10200
   },
   "fx_ink_slash_pl": {
     "cell": 64,
     "frames": 9,
     "source": "fx-slash/ink_slash_pl",
-    "y": 10136
+    "y": 10264
   },
   "fx_ink_sweep": {
     "cell": 64,
     "frames": 7,
     "source": "fx-slash/ink_sweep",
-    "y": 10200
+    "y": 10328
   },
   "fx_ink_sweep_pl": {
     "cell": 64,
     "frames": 9,
     "source": "fx-slash/ink_sweep_pl",
-    "y": 10264
+    "y": 10392
   },
   "fx_judgement_cut": {
     "cell": 64,
     "frames": 6,
     "source": "fx-slash/judgement_cut",
-    "y": 10328
+    "y": 10456
   },
   "fx_judgement_cut_big": {
     "cell": 64,
     "frames": 8,
     "source": "fx-slash/judgement_cut_big",
-    "y": 10392
+    "y": 10520
   },
   "fx_judgement_cut_gold": {
     "cell": 64,
     "frames": 6,
     "source": "fx-slash/judgement_cut_gold",
-    "y": 10456
+    "y": 10584
   },
   "fx_judgement_cut_lines": {
     "cell": 64,
     "frames": 8,
     "source": "fx-slash/judgement_cut_lines",
-    "y": 10520
+    "y": 10648
   },
   "fx_judgement_cut_pl": {
     "cell": 64,
     "frames": 13,
     "source": "fx-slash/judgement_cut_pl",
-    "y": 10584
+    "y": 10712
   },
   "fx_judgement_cut_sphere": {
     "cell": 64,
     "frames": 10,
     "source": "fx-slash/judgement_cut_sphere",
-    "y": 10648
+    "y": 10776
   },
   "fx_judgement_cut_thin": {
     "cell": 128,
     "frames": 6,
     "source": "fx-slash/judgement_cut_thin",
-    "y": 10712
+    "y": 10840
   },
   "fx_lines_diag": {
     "cell": 64,
     "frames": 6,
     "source": "fx-slash/lines_diag",
-    "y": 10840
+    "y": 10968
   },
   "fx_lines_diag_pl": {
     "cell": 64,
     "frames": 9,
     "source": "fx-slash/lines_diag_pl",
-    "y": 10904
+    "y": 11032
   },
   "fx_lines_fwd": {
     "cell": 64,
     "frames": 6,
     "source": "fx-slash/lines_fwd",
-    "y": 10968
+    "y": 11096
   },
   "fx_lines_fwd_pl": {
     "cell": 64,
     "frames": 9,
     "source": "fx-slash/lines_fwd_pl",
-    "y": 11032
+    "y": 11160
   },
   "fx_lines_stab": {
     "cell": 64,
     "frames": 8,
     "source": "fx-slash/lines_stab",
-    "y": 11096
+    "y": 11224
   },
   "fx_lines_stab_pl": {
     "cell": 64,
     "frames": 9,
     "source": "fx-slash/lines_stab_pl",
-    "y": 11160
+    "y": 11288
   },
   "fx_lines_up": {
     "cell": 64,
     "frames": 6,
     "source": "fx-slash/lines_up",
-    "y": 11224
+    "y": 11352
   },
   "fx_lines_up_pl": {
     "cell": 64,
     "frames": 9,
     "source": "fx-slash/lines_up_pl",
-    "y": 11288
+    "y": 11416
+  },
+  "fx_mend": {
+    "cell": 64,
+    "frames": 7,
+    "source": "fx-slash/mend",
+    "y": 11480
+  },
+  "fx_orb": {
+    "cell": 32,
+    "frames": 4,
+    "source": "fx-slash/orb",
+    "y": 11544
   },
   "fx_pierce": {
     "cell": 64,
     "frames": 6,
     "source": "fx-slash/pierce",
-    "y": 11352
+    "y": 11576
+  },
+  "fx_relic": {
+    "cell": 64,
+    "frames": 7,
+    "source": "fx-slash/relic",
+    "y": 11640
+  },
+  "fx_ring": {
+    "cell": 128,
+    "frames": 7,
+    "source": "fx-slash/ring",
+    "y": 11704
   },
   "fx_shock_ink": {
     "cell": 64,
     "frames": 7,
     "source": "fx-slash/shock_ink",
-    "y": 11416
+    "y": 11832
   },
   "fx_shock_ink_pl": {
     "cell": 64,
     "frames": 9,
     "source": "fx-slash/shock_ink_pl",
-    "y": 11480
+    "y": 11896
   },
   "fx_shockwave": {
     "cell": 64,
     "frames": 7,
     "source": "fx-slash/shockwave",
-    "y": 11544
+    "y": 11960
   },
   "fx_shockwave_pl": {
     "cell": 64,
     "frames": 9,
     "source": "fx-slash/shockwave_pl",
-    "y": 11608
+    "y": 12024
   },
   "fx_slash_diag": {
     "cell": 64,
     "frames": 8,
     "source": "fx-slash/slash_diag",
-    "y": 11672
+    "y": 12088
   },
   "fx_slash_diag_r": {
     "cell": 64,
     "frames": 8,
     "source": "fx-slash/slash_diag_r",
-    "y": 11736
+    "y": 12152
   },
   "fx_slash_x": {
     "cell": 64,
     "frames": 11,
     "source": "fx-slash/slash_x",
-    "y": 11800
+    "y": 12216
+  },
+  "fx_smash": {
+    "cell": 64,
+    "frames": 7,
+    "source": "fx-slash/smash",
+    "y": 12280
+  },
+  "fx_smoke_green": {
+    "cell": 64,
+    "frames": 4,
+    "source": "fx-slash/smoke_green",
+    "y": 12344
   },
   "fx_spin": {
     "cell": 64,
     "frames": 10,
     "source": "fx-slash/spin",
-    "y": 11864
+    "y": 12408
   },
   "fx_spin_blue": {
     "cell": 64,
     "frames": 10,
     "source": "fx-slash/spin_blue",
-    "y": 11928
+    "y": 12472
   },
   "fx_stab_blue": {
     "cell": 64,
     "frames": 6,
     "source": "fx-slash/stab_blue",
-    "y": 11992
+    "y": 12536
   },
   "fx_stab_diag": {
     "cell": 64,
     "frames": 6,
     "source": "fx-slash/stab_diag",
-    "y": 12056
+    "y": 12600
   },
   "fx_stab_triple": {
     "cell": 64,
     "frames": 7,
     "source": "fx-slash/stab_triple",
-    "y": 12120
+    "y": 12664
   },
   "fx_stab_up": {
     "cell": 64,
     "frames": 6,
     "source": "fx-slash/stab_up",
-    "y": 12184
+    "y": 12728
   },
   "fx_sweep": {
     "cell": 64,
     "frames": 8,
     "source": "fx-slash/sweep",
-    "y": 12248
+    "y": 12792
   },
   "fx_sweep_blue": {
     "cell": 64,
     "frames": 8,
     "source": "fx-slash/sweep_blue",
-    "y": 12312
+    "y": 12856
   },
   "fx_sweep_green": {
     "cell": 64,
     "frames": 8,
     "source": "fx-slash/sweep_green",
-    "y": 12376
+    "y": 12920
   },
   "fx_sweep_red": {
     "cell": 64,
     "frames": 8,
     "source": "fx-slash/sweep_red",
-    "y": 12440
+    "y": 12984
   },
   "fx_sweep_thin": {
     "cell": 256,
     "frames": 8,
     "source": "fx-slash/sweep_thin",
-    "y": 12504
+    "y": 13048
   },
   "fx_thrust": {
     "cell": 64,
     "frames": 5,
     "source": "fx-slash/thrust",
-    "y": 12760
+    "y": 13304
   },
   "fx_uppercut": {
     "cell": 64,
     "frames": 8,
     "source": "fx-slash/uppercut",
-    "y": 12824
+    "y": 13368
+  },
+  "fx_wall_fire": {
+    "cell": 96,
+    "frames": 4,
+    "source": "fx-slash/wall_fire",
+    "y": 13432
   }
 }

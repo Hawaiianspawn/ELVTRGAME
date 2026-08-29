@@ -64,6 +64,7 @@ var hero: Node3D
 var hero_sprite: Sprite3D
 var _hero_rot: Rect2                   # hero_sprite's rotation region; clips (attack/hurt/walk) swap it out
 var _hero_clip := {}
+var _orb: Sprite3D                     # magic wisp over the hero (fx_orb), null when the row isn't packed
 var _hero_t := -1.0                    # time into the playing one-shot clip, <0 = none
 var hero_wx := 0.0
 var hero_wd := 245.0
@@ -154,6 +155,10 @@ func _ready() -> void:
 	hero_sprite = Hall3D.make_sprite3d(Game.hero, 4)
 	_hero_rot = (hero_sprite.texture as AtlasTexture).region
 	hero.add_child(hero_sprite)
+	if Game.sprites.has("fx_orb"):
+		_orb = Hall3D.make_fx3d("fx_orb")   # the green flame over the hero: packed wisp loop, sized in _draw_hud
+		_orb.position = Vector3(0.0, 60.0 * Hall3D.PIXEL, 0.0)
+		hero.add_child(_orb)
 	world.add_child(hero)
 	start_wave(Game.wave)
 	_spawn_props()
@@ -489,37 +494,61 @@ func _impact(wx: float, wd: float, r := 6.0, h := 34.0) -> void:
 
 
 func _burst(p: Vector2, r: float) -> void:
-	var n := Node2D.new()
-	n.position = p
-	n.draw.connect(func():
-		n.draw_circle(Vector2.ZERO, r, Color(1.0, 0.95, 0.7))
-		for i in range(5):
-			var v := Vector2.RIGHT.rotated(i * TAU / 5.0 + _rng.randf() * 0.6) * r * 2.4
-			n.draw_line(v * 0.4, v, Color(1.0, 0.9, 0.5), 1.5))
-	fx.add_child(n)
+	_clip2d("fx_burst_big", p, r * 4.8 / 64.0, 0.03)   # spark burst spans ~2.4r each way, like the old spokes
+
+
+## Atlas fx clip parked in the world at `wp`, `h` sprite px above the feet, `size` sprite px across
+## its cell. loops 0 = forever (caller frees), n = play n times then free.
+func _clip3d(name: String, wp: Vector2, h: float, size: float, dt: float, tint := Color.WHITE, loops := 1) -> Sprite3D:
+	var s := Hall3D.make_fx3d(name)
+	s.pixel_size = size * Hall3D.PIXEL / float(Game.sprites[name]["cell"])
+	s.position = Hall3D.to_world(wp.x, wp.y, h * Hall3D.PIXEL)
+	s.modulate = tint
+	world.add_child(s)
+	var tw := s.create_tween()
+	tw.set_loops(loops)
+	for f in range(s.hframes):
+		tw.tween_callback(func(): s.frame = f)
+		tw.tween_interval(dt)
+	if loops > 0:
+		tw.finished.connect(s.queue_free)
+	return s
+
+
+## One-shot atlas fx clip on the 2D overlay at screen point `p`, `scale` per 64px cell.
+func _clip2d(name: String, p: Vector2, scale: float, dt: float, tint := Color.WHITE) -> Sprite2D:
+	var s := Game.make_fx(name)
+	s.position = p
+	s.scale = Vector2.ONE * scale
+	s.modulate = tint
+	s.rotation = _rng.randf_range(-0.3, 0.3)
+	fx.add_child(s)
 	var tw := create_tween()
-	tw.tween_property(n, "modulate:a", 0.0, 0.18)
-	tw.tween_callback(n.queue_free)
+	for f in range(s.hframes):
+		tw.tween_callback(func(): s.frame = f)
+		tw.tween_interval(dt)
+	tw.tween_callback(s.queue_free)
+	return s
 
 
 ## Arrow streak between two world spots, each `h` sprite pixels above its own feet.
 func _arrow(from_w: Vector2, from_h: float, to_w: Vector2, to_h: float) -> void:
 	var from := Hall3D.unproject(camera, from_w.x, from_w.y, from_h * Hall3D.PIXEL)
 	var to := Hall3D.unproject(camera, to_w.x, to_w.y, to_h * Hall3D.PIXEL)
-	var l := Line2D.new()
-	l.width = 1.5
-	l.default_color = Color(0.9, 0.85, 0.7)
-	l.add_point(from)
-	l.add_point(from)
-	fx.add_child(l)
+	# packed arrow sprite (fx_arrow, points right) flown along a shallow arc, sized to the far end
+	var a := Game.make_fx("fx_arrow")
+	a.position = from
+	a.scale = Vector2.ONE * Hall3D.screen_scale(camera, to_w.y) * 0.6
+	fx.add_child(a)
 	var tw := create_tween()
 	tw.tween_method(func(k: float):
-		var mid := from.lerp(to, k)
-		mid.y -= sin(k * PI) * from.distance_to(to) * 0.12
-		l.set_point_position(1, mid)
-		l.set_point_position(0, from.lerp(mid, 0.7)), 0.0, 1.0, 0.12)
-	tw.tween_property(l, "modulate:a", 0.0, 0.08)
-	tw.tween_callback(l.queue_free)
+		var prev := a.position
+		var p := from.lerp(to, k)
+		p.y -= sin(k * PI) * from.distance_to(to) * 0.12
+		a.position = p
+		if p != prev:
+			a.rotation = (p - prev).angle(), 0.0, 1.0, 0.12)
+	tw.tween_callback(a.queue_free)
 
 
 func spawn(type: String, team: int) -> Unit:
@@ -548,6 +577,8 @@ func _on_died(u: Unit) -> void:
 		for r in Game.gain_magic(float(Game.units[u.type].get("magic", 0))):
 			say("Relic: " + _relic(r)["label"] + " - " + _relic(r)["desc"])
 			Sound.play(str(Game.units["hero_sfx"].get("relic", "")), hero_wx)
+			if Game.sprites.has("fx_relic"):
+				_clip3d("fx_relic", Vector2(hero_wx, hero_wd), 44.0, 64.0, 0.07)
 
 
 func say(t: String) -> void:
@@ -983,6 +1014,8 @@ func _cast(id: String) -> void:
 		"bolt":
 			var r := 70.0 if Game.has_relic_flag("splash") else 32.0
 			_flash(cur, r, Color(0.5, 1.0, 0.5))
+			if Game.sprites.has("fx_bolt_hit"):
+				_clip3d("fx_bolt_hit", cur, 16.0, 2.6 * r / Hall3D.PIXEL, 0.04)
 			for u in units.duplicate():
 				if u.team == Unit.ENEMY and Vector2(u.wx, u.wd).distance_to(cur) < r:
 					u.take(25.0)
@@ -991,8 +1024,13 @@ func _cast(id: String) -> void:
 				if u != null and is_instance_valid(u):
 					u.hp = minf(u.max_hp, u.hp + 25.0)
 					_flash(Vector2(u.wx, u.wd), 20.0, Color(1.0, 0.9, 0.5))
+					if Game.sprites.has("fx_mend"):
+						_clip3d("fx_mend", Vector2(u.wx, u.wd), 30.0, 48.0, 0.05)
 		"wall":
 			_flash(cur, 90.0, Color(0.3, 0.9, 0.3, 0.6))
+			if Game.sprites.has("fx_wall_fire"):
+				var fire := _clip3d("fx_wall_fire", cur, 0.0, 96.0, 0.08, Color.WHITE, 0)
+				get_tree().create_timer(3.0).timeout.connect(fire.queue_free)   # roots last 3 s
 			for u in units:
 				if u.team == Unit.ENEMY and Vector2(u.wx, u.wd).distance_to(cur) < 90.0:
 					u.rooted_until = Time.get_ticks_msec() / 1000.0 + 3.0
@@ -1000,14 +1038,11 @@ func _cast(id: String) -> void:
 
 ## Ground-level ring on the fx overlay. `r` is in world units.
 func _flash(wp: Vector2, r: float, c: Color) -> void:
-	var n := Node2D.new()
-	n.position = Hall3D.unproject(camera, wp.x, wp.y)
+	# expanding ring decal squashed onto the floor; the ring's last frame spans ~56px of its 64 cell
 	var k := Hall3D.screen_scale(camera, wp.y)
-	n.draw.connect(func(): n.draw_circle(Vector2.ZERO, r * k, c))
-	fx.add_child(n)
-	var t := create_tween()
-	t.tween_property(n, "modulate:a", 0.0, 0.35)
-	t.tween_callback(n.queue_free)
+	var s := _clip2d("fx_shockwave", Hall3D.unproject(camera, wp.x, wp.y), r * k * 2.0 / 56.0, 0.05, c)
+	s.rotation = 0.0
+	s.scale.y *= 0.45
 
 
 ## Wall lamps (treadmill down both walls) + floor tables: persistent Sprite3D props that scroll
@@ -1108,7 +1143,10 @@ func _update_props() -> void:
 			continue
 		p["alive"] = false
 		_impact(p["wx"], d)
-		_flash(here, 10.0, Color(0.9, 0.8, 0.5))
+		if Game.sprites.has("fx_smash"):
+			_clip3d("fx_smash", here, 14.0, 48.0, 0.05)
+		else:
+			_flash(here, 10.0, Color(0.9, 0.8, 0.5))
 		p["node"].visible = false
 		if p["broken"]:
 			p["broken"].visible = true   # smashed-open state does the talking
@@ -1149,7 +1187,11 @@ func _prop_debris(s: Sprite3D) -> void:
 
 func _draw_hud() -> void:
 	# hero flame rides the top layer so it glows over the ranks
-	hud.draw_circle(Hall3D.unproject(camera, hero_wx, hero_wd, 60.0 * Hall3D.PIXEL), 4.0 + minf(Game.magic, 200.0) * 0.06, Color(0.4, 1.0, 0.4, 0.8))
+	if _orb:
+		_orb.pixel_size = Hall3D.PIXEL * (0.6 + minf(Game.magic, 200.0) / 200.0)   # 32px wisp grows with the pool
+		_orb.frame = int(wave_t * 8.0) % _orb.hframes
+	else:
+		hud.draw_circle(Hall3D.unproject(camera, hero_wx, hero_wd, 60.0 * Hall3D.PIXEL), 4.0 + minf(Game.magic, 200.0) * 0.06, Color(0.4, 1.0, 0.4, 0.8))
 	# bottom strip: the four army panels, ranks left, ability cooldown; current army type large + on top
 	for p in army_panels:
 		p.update(_rank_count(p.type), _ability_cd_left(p.type))

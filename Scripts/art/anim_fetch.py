@@ -81,6 +81,42 @@ JOBS = {
 }
 
 
+# Loose effect clips: name -> (job id, generated frame count, keep index 0?). Land at
+# RawArt/Renders/fx-slash/raw/<name>/frames/frame_N.png, which godot_pack.py packs as fx_<name>.
+FX = {
+    "bolt": ("7db9d1ec-ea12-4cba-81b7-4c89b315c446", 4, False),
+    "bolt_hit": ("6ffe1e78-150f-4bee-b82a-26c27b356630", 6, True),
+    "wall_fire": ("abb38e25-8d1f-493f-8388-198bf369380e", 4, False),
+    "ring": ("92517467-006b-4d74-a6a0-7726ca992467", 6, True),
+    "smash": ("1f5ca7ac-cc8c-402e-8f6a-01ff41904c92", 6, True),
+    "smoke_green": ("400b2600-1361-40f2-a3f2-0c18afae7ad2", 4, False),
+    "mend": ("6500e32c-34ce-46cb-93f2-25b180349ce9", 6, True),
+    "orb": ("0bfe229b-e6cc-4c6f-8ed4-64e46f0dd295", 4, False),
+    "relic": ("b05eddad-3dfd-46f2-ae57-0c044ec1b5ef", 6, True),
+}
+
+
+def fetch_fx() -> int:
+    pending = 0
+    for name, (job, n, keep0) in FX.items():
+        if not job:
+            continue
+        d = REPO / "RawArt" / "Renders" / "fx-slash" / "raw" / name / "frames"
+        first = 0 if keep0 else 1
+        if all((d / f"frame_{i - first}.png").exists() for i in range(first, n + 1)):
+            print(f"done     fx_{name}")
+            continue
+        d.mkdir(parents=True, exist_ok=True)
+        if all(fetch(job, i, d / f"frame_{i - first}.png") for i in range(first, n + 1)):
+            print(f"fetched  fx_{name} x{n + 1 - first}")
+        else:
+            for f in d.glob("frame_*.png"):
+                f.unlink()
+            pending += 1
+            print(f"pending  fx_{name}")
+    return pending
+
+
 def dest_dir(unit: str, clip: str, facing: str) -> Path:
     return Path(gp.rotations_dir(ROSTER[unit], SELECTS)).parent / f"{clip}_{facing}"
 
@@ -125,6 +161,8 @@ def main() -> None:
             print(f"pending  {unit:16s} {clip}_{facing}")
         else:
             print(f"fetched  {unit:16s} {clip}_{facing} x{len(want)}")
+    if not status_only:
+        pending += fetch_fx()
     print(f"{pending} pending")
 
 
