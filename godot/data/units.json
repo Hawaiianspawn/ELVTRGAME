@@ -245,7 +245,7 @@
   },
   "counter_mult": 2.0,
   "hero_sfx": {
-    "attack": "hero_weapon_swing.wav",
+    "siphon": "hero_siphon_start.wav",
     "hit": "hero_hurt_grunt.wav",
     "low_hp": "hero_low_hp_warn.wav",
     "wave_clear": "stinger_victory.wav",

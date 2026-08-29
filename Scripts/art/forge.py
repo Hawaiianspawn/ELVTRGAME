@@ -493,7 +493,7 @@ UNITS_JSON = REPO / "godot" / "data" / "units.json"
 SPELLS_JSON = REPO / "godot" / "data" / "spells.json"
 GAME_FIELDS = ("hp", "dmg", "range", "speed", "cooldown", "attack_hold", "attack_frames", "slash", "slash_y")
 SFX_DIR = REPO / "godot" / "assets" / "sfx"
-HERO_SFX_CUES = ("attack", "hit", "low_hp", "wave_clear", "lose", "relic")
+HERO_SFX_CUES = ("siphon", "hit", "low_hp", "wave_clear", "lose", "relic")
 LIB = REPO / "RawArt" / "Audio" / "sonniss"
 
 

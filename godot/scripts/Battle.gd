@@ -644,6 +644,8 @@ func _process(delta: float) -> void:
 	if mv != Vector2.ZERO:
 		hero_sprite.frame = Game.facing_from(mv)
 	# siphon: hold RMB, motes near the cursor stream to the hero
+	if Input.is_action_just_pressed("siphon"):
+		Sound.play(str(Game.units["hero_sfx"].get("siphon", "")), hero_wx)
 	var siphoning := Input.is_action_pressed("siphon")
 	var cur := _cursor_world()
 	for m in motes.duplicate():
@@ -1146,6 +1148,7 @@ func _draw_hud() -> void:
 	# bottom strip: the four army panels, ranks left, ability cooldown; current army type large + on top
 	for p in army_panels:
 		p.update(_rank_count(p.type), _ability_cd_left(p.type))
-	hud_text.text = "HALL %d / 4\nHERO %d\nMAGIC %d  (lifetime %d)\nSCORE %d\nZ Bolt 8   X Mend 20   C Wall 30    Q/E cycle the army    RMB siphon    [ ] post: %s\nRelics: %s\nFPS %d" % [
-		Game.wave + 1, int(hero_hp), int(Game.magic), int(Game.magic_ever), Game.score, post.preset_name(), ", ".join(Game.relics), Engine.get_frames_per_second()]
+	var post_hint := ("    [ ] post: %s" % post.preset_name()) if not OS.has_feature("web") else ""
+	hud_text.text = "HALL %d / 4\nHERO %d\nMAGIC %d  (lifetime %d)\nSCORE %d\nZ Bolt 8   X Mend 20   C Wall 30    Q/E cycle the army    RMB siphon%s\nRelics: %s\nFPS %d" % [
+		Game.wave + 1, int(hero_hp), int(Game.magic), int(Game.magic_ever), Game.score, post_hint, ", ".join(Game.relics), Engine.get_frames_per_second()]
 	toast_label.text = toast if toast_t > 0.0 else ""

@@ -63,7 +63,7 @@ that a cue has been picked (per `docs/art/CHARACTER-PIPELINE.md`).
 
 | Cue | File | Search terms | Source pack | Original filename | Duration | Wired? |
 |---|---|---|---|---|---|---|
-| attack | `hero_weapon_swing.wav` | sword, whoosh, swing | PENDING sonniss dump | — | — | **No trigger site named in the task brief** — the hero never has a melee action in `Battle.gd`/`Unit.gd`. Schema field exists and a placeholder is landed; not hooked. Flag for the lead if this should map to something (e.g. a future melee hero action). |
+| siphon | `hero_siphon_start.wav` | magic, drone, suction, whoosh | PENDING sonniss dump | — | — | Yes — RMB siphon press, `Battle.gd` |
 | hit | `hero_hurt_grunt.wav` | voice, hurt, grunt, pain | PENDING sonniss dump | — | — | Yes — `Battle.gd` where `hero_hp -= d` |
 | low_hp | `hero_low_hp_warn.wav` | ui, stinger, warn, heartbeat | PENDING sonniss dump | — | — | Yes — once per wave, crossing below 25 hp |
 | wave_clear | `stinger_victory.wav` | stinger, drum, victory, fanfare | PENDING sonniss dump | — | — | Yes — `Battle._wave_done()` |
