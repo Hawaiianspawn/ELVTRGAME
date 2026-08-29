@@ -83,6 +83,7 @@ var hall_label: Label
 var score_label: Label
 var spell_slots: Dictionary = {}       # spell id -> {frame, icon, cd}
 var relic_slots: Dictionary = {}       # relic id -> {frame, icon}
+var _ui: CanvasLayer                   # HUD layer; win / lose cards land on it
 var toast_banner: NinePatchRect
 var toast_label: Label
 var army_panels: Array[ArmyPanel] = []
@@ -143,6 +144,7 @@ func _ready() -> void:
 	var cl := CanvasLayer.new()
 	cl.layer = 20
 	add_child(cl)
+	_ui = cl
 	_build_hud(cl)
 	Input.set_custom_mouse_cursor(Ui.tex("crosshair"), Input.CURSOR_ARROW, Vector2(16, 16))
 	for i in range(TYPES.size()):
@@ -707,6 +709,7 @@ func _process(delta: float) -> void:
 	# lose / win
 	if hero_hp <= 0.0:
 		say("The line breaks. Again.")
+		_card("card_lose", "The line breaks.", 2.5)
 		Sound.play(str(Game.units["hero_sfx"].get("lose", "")), hero_wx)
 		Game.magic = checkpoint_magic
 		start_wave(Game.wave)
@@ -719,6 +722,7 @@ func _wave_done() -> void:
 	Sound.play(str(Game.units["hero_sfx"].get("wave_clear", "")), hero_wx)
 	if Game.wave >= 3:
 		say("The throne room door. It is already open.\nTO BE CONTINUED")
+		_card("card_win", "The door is already open.", 4.0)
 		await get_tree().create_timer(4.0).timeout
 		get_tree().change_scene_to_file("res://scenes/Main.tscn")
 	else:
@@ -990,6 +994,23 @@ func _spell(id: String) -> Dictionary:
 	return {}
 
 
+## Full-screen illustration card (assets/ui/<name>.png, 400x224 drawn at 2x) with a title in the
+## blackletter face, fading out after `secs`. Win and lose both go through here.
+func _card(name: String, title: String, secs: float) -> void:
+	var dim := ColorRect.new()
+	dim.color = Color(0, 0, 0, 0.7)
+	dim.size = Vector2(960, 540)
+	dim.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_ui.add_child(dim)
+	var pic := Ui.sprite(dim, name, Vector2(80, 30))
+	pic.scale = Vector2(2, 2)
+	Ui.label(dim, title, Vector2(0, 486), Ui.COL_EMBER, 32, 960.0).add_theme_font_override("font", Ui.font("title32"))
+	var tw := create_tween()
+	tw.tween_interval(secs - 0.5)
+	tw.tween_property(dim, "modulate:a", 0.0, 0.5)
+	tw.tween_callback(dim.queue_free)
+
+
 ## Start a packed hero clip (attack / hurt) if this hero has one; walk loops on its own in _process.
 func _hero_play(key: String) -> void:
 	var c: Dictionary = Game.sprites[Game.hero].get(key, {})
@@ -1062,7 +1083,7 @@ func _spawn_props() -> void:
 			_add_prop("lamp_cage", wx, d, facing, false, Hall3D.TILE * Hall3D.COURSES * 1.3, "", 0.575)
 			d += 160.0
 	# floor clutter: tables/chairs/chests, kept off the rank lane and away from the front line
-	var floor_names := ["table_map", "table_trestle", "chair_bench", "chest_coffer", "chest_ornate"]
+	var floor_names := ["table_map", "table_trestle", "chair_bench", "chest_coffer", "chest_ornate", "brazier", "column_stump", "statue_knight", "banner_pole", "rubble", "barricade", "cage_skeleton", "altar", "barrel", "weapon_rack"]
 	var broken_of := {"chair_bench": "chair_broken", "chest_ornate": "chest_ornate_open"}
 	var n := 20
 	for t in range(n):

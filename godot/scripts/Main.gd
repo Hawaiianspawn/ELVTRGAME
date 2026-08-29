@@ -12,6 +12,9 @@ func _ready() -> void:
 	Input.set_custom_mouse_cursor(Ui.tex("cursor"), Input.CURSOR_ARROW, Vector2(3, 2))
 	var ui := Control.new()
 	add_child(ui)
+	var bg := Ui.sprite(ui, "title_bg", Vector2(80, 46))   # 400x224 hall illustration at 2x, dimmed under the chrome
+	bg.scale = Vector2(2, 2)
+	bg.modulate = Color(0.55, 0.55, 0.55)
 	Ui.sprite(ui, "frame_lintel", Vector2(240, 14))
 	Ui.label(ui, "KINDLED", Vector2(240, 48), Ui.COL_EMBER, 32, 481.0).add_theme_font_override("font", Ui.font("title32"))
 	Ui.label(ui, "The Green Dot", Vector2(240, 88), Ui.COL_DIM, 16, 481.0)

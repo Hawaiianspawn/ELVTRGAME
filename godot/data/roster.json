@@ -31,5 +31,15 @@
   "chest_ornate": "castle-props/chest_ornate",
   "chest_ornate_open": "castle-props/chest_ornate_open",
   "mirror_ornate": "castle-props/mirror_ornate",
-  "mirror_oval": "castle-props/mirror_oval"
+  "mirror_oval": "castle-props/mirror_oval",
+  "brazier": "castle-props/brazier",
+  "column_stump": "castle-props/column_stump",
+  "statue_knight": "castle-props/statue_knight",
+  "banner_pole": "castle-props/banner_pole",
+  "rubble": "castle-props/rubble",
+  "barricade": "castle-props/barricade",
+  "cage_skeleton": "castle-props/cage_skeleton",
+  "altar": "castle-props/altar",
+  "barrel": "castle-props/barrel",
+  "weapon_rack": "castle-props/weapon_rack"
 }
