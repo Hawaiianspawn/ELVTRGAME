@@ -258,5 +258,85 @@
     "wave_clear": "stinger_victory.wav",
     "lose": "stinger_defeat.wav",
     "relic": "ui_relic_chime.wav"
+  },
+  "ghoul": {
+    "hp": 30,
+    "dmg": 8,
+    "range": 40,
+    "speed": 95,
+    "cooldown": 0.9,
+    "sprite": "ghoul",
+    "label": "Ghoul",
+    "counters": [],
+    "magic": 9,
+    "sfx": {
+      "attack": "bone_swing_light.wav",
+      "hit": "impact_bone_crack.wav",
+      "death": "death_undead_collapse.wav"
+    }
+  },
+  "wraith": {
+    "hp": 35,
+    "dmg": 9,
+    "range": 60,
+    "speed": 85,
+    "cooldown": 1.2,
+    "sprite": "wraith",
+    "label": "Wraith",
+    "counters": [],
+    "magic": 12,
+    "sfx": {
+      "attack": "magic_staff_cast.wav",
+      "hit": "impact_bone_crack.wav",
+      "death": "death_undead_collapse.wav"
+    }
+  },
+  "bone_knight": {
+    "hp": 120,
+    "dmg": 11,
+    "range": 45,
+    "speed": 55,
+    "cooldown": 1.3,
+    "sprite": "bone_knight",
+    "label": "Bone knight",
+    "counters": [],
+    "magic": 16,
+    "sfx": {
+      "attack": "armor_swing_heavy.wav",
+      "hit": "impact_armor_heavy.wav",
+      "death": "death_armor_collapse.wav"
+    }
+  },
+  "plague_priest": {
+    "hp": 50,
+    "dmg": 8,
+    "range": 70,
+    "speed": 60,
+    "cooldown": 1.4,
+    "sprite": "plague_priest",
+    "label": "Plague priest",
+    "counters": [],
+    "magic": 12,
+    "sfx": {
+      "attack": "magic_staff_cast.wav",
+      "hit": "impact_bone_crack.wav",
+      "death": "death_undead_collapse.wav"
+    }
+  },
+  "necromancer": {
+    "hp": 900,
+    "dmg": 14,
+    "range": 90,
+    "speed": 40,
+    "cooldown": 1.6,
+    "sprite": "necromancer",
+    "label": "Necromancer",
+    "counters": [],
+    "magic": 120,
+    "sfx": {
+      "attack": "magic_staff_cast.wav",
+      "hit": "impact_armor_heavy.wav",
+      "death": "death_armor_collapse.wav"
+    }
   }
 }

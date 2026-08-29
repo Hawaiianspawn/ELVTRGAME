@@ -84,7 +84,7 @@ func make_sprite(name: String, facing: int = 0) -> Sprite2D:
 	var at := AtlasTexture.new()
 	at.atlas = _atlas
 	var cell_px: int = int(sprites[name]["cell"])
-	at.region = Rect2(0, int(sprites[name]["y"]), cell_px * 8, cell_px)
+	at.region = Rect2(int(sprites[name].get("x", 0)), int(sprites[name]["y"]), cell_px * 8, cell_px)
 	s.texture = at
 	s.hframes = 8
 	s.frame = facing
@@ -104,7 +104,7 @@ func make_fx(name: String) -> Sprite2D:
 	at.atlas = _atlas
 	var cell: int = int(sprites[name]["cell"])
 	var n: int = int(sprites[name]["frames"])
-	at.region = Rect2(0, int(sprites[name]["y"]), cell * n, cell)
+	at.region = Rect2(int(sprites[name].get("x", 0)), int(sprites[name]["y"]), cell * n, cell)
 	s.texture = at
 	s.hframes = n
 	s.frame = 0

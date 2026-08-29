@@ -33,14 +33,27 @@ OBJECTS = {
 }
 
 
+# character id -> (family, slug): 8-direction characters (boss, new enemy states) land at
+# RawArt/Renders/<family>/raw/<slug>/rotations like every other unit.
+CHARACTERS = {
+    "52c196e6-91e2-4e12-bfdb-70f9ef612124": ("boss", "necromancer"),
+    "a6cc31f8-bb35-451c-8af8-668b64926b5b": ("melee-undead", "ghoul"),
+    "a6f83e96-f157-4211-a11a-6e2d4b7e4b60": ("melee-undead", "wraith"),
+    "0780b162-10f6-4063-b1c8-9f7f6d4c69c9": ("melee-undead", "bone_knight"),
+    "9acbce74-7e95-4b8c-8c12-c2ddc19bcb42": ("melee-undead", "plague_priest"),
+}
+
+
 def main() -> None:
     pending = 0
-    for oid, slug in OBJECTS.items():
-        d = RAW / slug / "rotations"
+    jobs = [("objects", oid, RAW / slug / "rotations", slug) for oid, slug in OBJECTS.items()]
+    jobs += [("characters", cid, REPO / "RawArt" / "Renders" / fam / "raw" / slug / "rotations", slug)
+             for cid, (fam, slug) in CHARACTERS.items()]
+    for kind, oid, d, slug in jobs:
         if all((d / f"{k}.png").exists() for k in DIRECTIONS):
             print(f"done     {slug}")
             continue
-        rec = forge.pl("GET", f"/objects/{oid}", timeout=30)
+        rec = forge.pl("GET", f"/{kind}/{oid}", timeout=30)
         rot = rec.get("rotation_urls") or {}
         if (rec.get("status") or "").lower() != "completed" or not all(rot.get(k) for k in DIRECTIONS):
             print(f"pending  {slug} ({rec.get('status')})")

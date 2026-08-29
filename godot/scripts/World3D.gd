@@ -69,7 +69,7 @@ static func _region(name: String, frames: int) -> AtlasTexture:
 	var at := AtlasTexture.new()
 	at.atlas = _atlas
 	var cell: int = int(Game.sprites[name]["cell"])
-	at.region = Rect2(0, int(Game.sprites[name]["y"]), cell * frames, cell)
+	at.region = Rect2(int(Game.sprites[name].get("x", 0)), int(Game.sprites[name]["y"]), cell * frames, cell)
 	return at
 
 
@@ -106,7 +106,7 @@ static func make_sprite3d(name: String, facing := 0) -> Sprite3D:
 ## make_sprite3d sprite; `rot` is the sprite's 8-facing rotation region.
 static func clip_frame(s: Sprite3D, rot: Rect2, clip: Dictionary, i: int) -> void:
 	var n := int(clip["frames"])
-	(s.texture as AtlasTexture).region = Rect2(0, int(clip["y"]), rot.size.x / 8.0 * n, rot.size.y)
+	(s.texture as AtlasTexture).region = Rect2(int(clip.get("x", 0)), int(clip["y"]), rot.size.x / 8.0 * n, rot.size.y)
 	s.hframes = n
 	s.frame = clampi(i, 0, n - 1)
 

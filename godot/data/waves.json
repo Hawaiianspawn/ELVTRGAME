@@ -74,6 +74,10 @@
       {
         "type": "bow_undead",
         "count": 16
+      },
+      {
+        "type": "ghoul",
+        "count": 16
       }
     ],
     "turn": "right"
@@ -103,6 +107,22 @@
       {
         "type": "bow_undead",
         "count": 10
+      },
+      {
+        "type": "wraith",
+        "count": 12
+      },
+      {
+        "type": "bone_knight",
+        "count": 12
+      },
+      {
+        "type": "plague_priest",
+        "count": 8
+      },
+      {
+        "type": "necromancer",
+        "count": 1
       }
     ],
     "turn": ""

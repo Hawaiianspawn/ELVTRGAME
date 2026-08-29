@@ -1,0 +1,81 @@
+﻿{
+    "findings":  [
+                     {
+                         "count":  10698,
+                         "detail":  "unit depth -1 outside 0..1250",
+                         "error_type":  "boundary_break",
+                         "game_context":  {
+                                              "army_type":  "halberdier",
+                                              "behavior":  "swap_spam",
+                                              "enemies":  0,
+                                              "fps":  521.0,
+                                              "held_inputs":  [
+
+                                                              ],
+                                              "hero_hp":  100.0,
+                                              "magic":  1250142.0,
+                                              "units":  96
+                                          },
+                         "id":  1,
+                         "last_t":  27.4,
+                         "location":  {
+                                          "scene":  "Battle",
+                                          "state":  "RANK",
+                                          "system":  "Battle.depth",
+                                          "team":  "ally",
+                                          "unit_type":  "halberdier",
+                                          "wave":  2,
+                                          "wd":  -1.0,
+                                          "wx":  -147.0
+                                      },
+                         "screenshot":  "adversary_13_f1.png",
+                         "t":  26.5
+                     }
+                 ],
+    "run":  {
+                "behaviors":  {
+                                  "corner_hold":  9,
+                                  "cursor_warp":  6,
+                                  "horde":  6,
+                                  "jump_phase":  6,
+                                  "kill_front":  3,
+                                  "kill_hero":  11,
+                                  "launch_all":  5,
+                                  "magic_drain":  4,
+                                  "magic_flood":  4,
+                                  "move_random":  8,
+                                  "spell_spam":  1,
+                                  "swap_spam":  3,
+                                  "teleport_hero":  6,
+                                  "wall_hug":  3
+                              },
+                "date":  "2026-08-28T20:38:44",
+                "invariants":  [
+                                   "hero clamp",
+                                   "magic \u003e= 0",
+                                   "unit hp in 0..max",
+                                   "dead flag matches hp",
+                                   "front[] refs live + lane-consistent",
+                                   "pool \u003e= 0",
+                                   "unit inside hall walls + depth range",
+                                   "air_h \u003e= 0",
+                                   "no NaN",
+                                   "airborne units stay inside the frame",
+                                   "enemies never below ENEMY_MIN_D",
+                                   "transient states end within budget",
+                                   "units[] \u003c 1500",
+                                   "fps \u003e= 20",
+                                   "Engine.time_scale back to 1 within 1s"
+                               ],
+                "scene":  "battle",
+                "seconds":  60.0,
+                "seed":  13
+            },
+    "engine_errors":  [
+                          {
+                              "message":  "ERROR: Parameter \"RenderingServer::get_singleton()\" is null.",
+                              "at":  "at: ~CompressedTexture2D (scene/resources/compressed_texture.cpp:464)",
+                              "count":  1
+                          }
+                      ]
+}

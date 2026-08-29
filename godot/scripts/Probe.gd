@@ -16,6 +16,8 @@ func _run(spec: String) -> void:
 	DisplayServer.window_set_vsync_mode(DisplayServer.VSYNC_DISABLED)   # uncapped: fps = real headroom
 	Engine.max_fps = 0
 	get_viewport().set_disable_input(true)   # never eat the owner's keystrokes
+	if parts.size() > 2 and parts[2].begins_with("wave="):
+		Game.wave = int(parts[2].trim_prefix("wave="))   # Battle._ready starts from Game.wave
 	get_tree().change_scene_to_file(Game.SCENES[scene])
 	var post_preset := -1
 	if parts.size() > 2 and parts[2].begins_with("post="):

@@ -110,18 +110,26 @@ def main():
         strips.append(("fx_" + fx, strip))
         print("%-24s %3dpx  fx x%d" % ("fx_" + fx, cell, len(frames)))
     # One atlas for the whole roster: every sprite shares a texture so the 2D batcher keeps them in one draw call.
-    width = max(im.width for _, im in strips)
-    height = sum(im.height for _, im in strips)
-    atlas = Image.new("RGBA", (width, height))
-    y = 0
+    # Shelf layout: strips run left to right across a fixed-width atlas and wrap to a new shelf when
+    # the row is full, so the height stays far below the 16384 GL texture limit. Every manifest
+    # entry carries x and y; readers default x to 0.
+    width = 2048
+    placed = []
+    x = y = shelf_h = 0
     for name, im in strips:
-        atlas.paste(im, (0, y))
-        if "/" in name:
-            base, clip = name.split("/")
-            manifest[base][clip]["y"] = y
-        else:
-            manifest[name]["y"] = y
-        y += im.height
+        if x > 0 and x + im.width > width:
+            y += shelf_h
+            x = shelf_h = 0
+        placed.append((name, im, x, y))
+        x += im.width
+        shelf_h = max(shelf_h, im.height)
+    height = y + shelf_h
+    atlas = Image.new("RGBA", (width, height))
+    for name, im, px, py in placed:
+        atlas.paste(im, (px, py))
+        entry = manifest[name.split("/")[0]][name.split("/")[1]] if "/" in name else manifest[name]
+        entry["x"] = px
+        entry["y"] = py
     atlas.save(os.path.join(OUT, "atlas.png"))
     print("atlas %dx%d" % (width, height))
     json.dump(manifest, open(os.path.join(OUT, "manifest.json"), "w"), indent=2)

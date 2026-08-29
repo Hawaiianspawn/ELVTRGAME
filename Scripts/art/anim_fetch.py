@@ -78,6 +78,21 @@ JOBS = {
     ("hero_ranger", "attack", "north"): ("1fbd6236-60d2-43d9-b860-1b079b563ce8", 8),
     ("hero_ranger", "hurt", "north"): ("4e86e477-8e3c-4f8b-948b-695fdc762d07", 4),
     ("hero_ranger", "walk", "north"): ("fd55f5b6-af3f-4dac-97ea-2877b70edfac", 8),
+    ("ghoul", "death", "south"): ("20a9845e-bb80-4bfc-96cf-96a4898a7572", 6),
+    ("ghoul", "attack", "south"): ("3cdbc514-3a86-4017-83e1-3e0414a7e45e", 8),
+    ("ghoul", "walk", "south"): ("8b42c2ed-7362-48ac-932c-450b9295b5e9", 8),
+    ("bone_knight", "death", "south"): ("e5828733-0fe1-4297-ab20-deb07705c959", 6),
+    ("bone_knight", "attack", "south"): ("c96394d3-6023-4434-8888-08b6793da429", 8),
+    ("bone_knight", "walk", "south"): ("0ea31dd7-b657-4446-979a-f20bb4fca174", 8),
+    ("plague_priest", "death", "south"): ("a0b086a6-e1fd-48aa-a0fe-86b196aea7cf", 6),
+    ("plague_priest", "attack", "south"): ("8020f95f-f08c-4b89-80cd-1378d9d50e05", 8),
+    ("plague_priest", "walk", "south"): ("747d161b-7fc1-4c9d-95c3-be72440c2447", 8),
+    ("wraith", "death", "south"): ("15fb8ddf-842b-41ab-b14d-99f382d92bb9", 6),
+    ("wraith", "attack", "south"): ("ca072d8d-4241-426a-a75c-db49b463b293", 8),
+    ("wraith", "walk", "south"): ("a2fcedcc-f158-4bf9-abbb-c8af391f4fca", 8),
+    ("necromancer", "death", "south"): ("dd578101-ed5e-4a5e-9ef7-cdc4263709e0", 6),
+    ("necromancer", "attack", "south"): ("43656436-7d70-4e59-81c9-25ec40c447cb", 8),
+    ("necromancer", "walk", "south"): ("ec21d987-26fc-4443-9547-4fd3f24b5285", 8),
 }
 
 

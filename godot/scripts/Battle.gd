@@ -1118,7 +1118,7 @@ func _add_prop(name: String, wx: float, base_d: float, facing: int, is_floor: bo
 		s.flip_h = facing == 6
 		var at: AtlasTexture = s.texture
 		var n := int(clip["frames"])
-		at.region = Rect2(0, int(clip["y"]), at.region.size.x / 8.0 * n, at.region.size.y)
+		at.region = Rect2(int(clip.get("x", 0)), int(clip["y"]), at.region.size.x / 8.0 * n, at.region.size.y)
 		s.hframes = n
 		var dur := _rng.randf_range(0.6, 0.9)
 		var tw := create_tween()

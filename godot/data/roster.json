@@ -41,5 +41,10 @@
   "cage_skeleton": "castle-props/cage_skeleton",
   "altar": "castle-props/altar",
   "barrel": "castle-props/barrel",
-  "weapon_rack": "castle-props/weapon_rack"
+  "weapon_rack": "castle-props/weapon_rack",
+  "ghoul": "melee-undead/ghoul",
+  "wraith": "melee-undead/wraith",
+  "bone_knight": "melee-undead/bone_knight",
+  "plague_priest": "melee-undead/plague_priest",
+  "necromancer": "boss/necromancer"
 }
