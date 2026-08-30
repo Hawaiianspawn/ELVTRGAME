@@ -82,6 +82,6 @@ e.g. every bow user shares `bow_release_arrow.wav`, every undead shares its bone
 
 | Cue | File | Source pack | Original filename | Duration | Wired? |
 |---|---|---|---|---|---|
-| gatling shot | `gatling_shot.wav` | P7 The Black Powder Guns Library | `Rifled Flintlock Pistol M1820 - FIRING - Close - MS Decoded - VP88.wav` | 0.11s (8 kHz; bang only, mechanism tail cut) | Yes — `_fire_gatling()` |
+| gatling shot | `gatling_shot.wav` | P7 The Black Powder Guns Library | `Rifled Flintlock Pistol M1820 - FIRING - Close - MS Decoded - VP88.wav` | 0.11s (8 kHz, -2 st; bang only) | Yes — `_fire_gatling()` |
 | cannon fire | `cannon_fire.wav` | P8 Steampunk Weapon And Textures | `Bluezone_BC0296_steampunk_weapon_cannon_shot_013_02.wav` | 1.50s | Yes — `_fire_cannon()` |
 | shell explosion | `cannon_explosion.wav` | P8 Detonation - Explosion | `Bluezone_BC0277_explosion_mortar_002_01.wav` | 1.50s (`--pitch -3`) | Yes — `_cannon_explode_at()` |

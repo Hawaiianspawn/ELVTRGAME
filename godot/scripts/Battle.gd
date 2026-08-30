@@ -1188,7 +1188,7 @@ func _gatling_hit_at(cursor: Vector2) -> void:
 		# launch before take, same as _cannon_explode_at: a killing hit still reads as a knock-up
 		if target.air_h == 0.0:
 			target.launch(120.0)
-		target.take(GATLING_DMG)
+		target.take(GATLING_DMG, Vector2.ZERO, true)
 		_impact(target.wx, target.wd, 6.0)
 	else:
 		_burst(cursor, 8.0)

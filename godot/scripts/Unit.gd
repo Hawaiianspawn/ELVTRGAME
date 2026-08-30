@@ -475,7 +475,7 @@ func spinning() -> bool:
 	return left > 0.0 and fmod(left + spin_phase, 2.0) > 1.0
 
 
-func take(amount: float, push := Vector2.ZERO) -> void:
+func take(amount: float, push := Vector2.ZERO, quiet := false) -> void:
 	if dead:
 		return
 	if spinning():
@@ -492,7 +492,8 @@ func take(amount: float, push := Vector2.ZERO) -> void:
 		Sound.unit(type, "death", wx, team)
 		dead = true
 	else:
-		Sound.unit(type, "hit", wx, team)
+		if not quiet:
+			Sound.unit(type, "hit", wx, team)   # gatling passes quiet: 12/s of hit clatter buried its own shot cue
 		if not _hurt.is_empty():
 			var now := Time.get_ticks_msec() / 1000.0
 			_hurt_combo = (_hurt_combo + 1) if now - _last_hurt_t <= 0.8 else 0
