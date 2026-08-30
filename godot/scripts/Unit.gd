@@ -339,7 +339,7 @@ func _process(delta: float) -> void:
 					if not _moving and _atk_t < 0.0:
 						_moving = battle.advancing
 	if team == ENEMY:
-		wd = maxf(wd - battle.CREEP * delta, battle.ENEMY_MIN_D)   # treadmill toward the camera, floored at the hero's feet
+		wd = clampf(wd - battle.CREEP * delta, battle.ENEMY_MIN_D, battle.SPAWN_D)   # treadmill toward the camera, floored at the hero's feet, capped at the spawn line (blast throws)
 	wx = clampf(wx, -battle.HALL_HALF + 6.0, battle.HALL_HALF - 6.0)   # the walls are walls, whatever shoved you
 	_tick_attack(delta)
 	_place()
@@ -369,6 +369,8 @@ func _step(goal: Vector2, delta: float) -> void:
 
 ## Rotation frame toward screen-space `v`; a mirrored sprite swaps east/west so flip_h still faces the target.
 func _face(v: Vector2) -> void:
+	if sprite.hframes != 8:
+		return   # a playing clip row owns the frame index; 0..7 would overrun its shorter strip
 	var f := Game.facing_from(v)
 	sprite.frame = (8 - f) % 8 if _mirror else f
 

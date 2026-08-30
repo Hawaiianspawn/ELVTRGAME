@@ -230,10 +230,12 @@ func _run(spec: String) -> void:
 		var now_s := Time.get_ticks_msec() / 1000.0
 		var target: Unit = null
 		for u in b.units:
-			if u.team == Unit.ENEMY and not u.dead and u.air_h == 0.0 and u.rooted_until <= now_s:
+			if u.team == Unit.ENEMY and not u.dead and u.air_h == 0.0 and u.rooted_until <= now_s 					and b._screen_pick(Hall3D.unproject(b.camera, u.wx, u.wd)) == u:
+				# the pick test matters: _screen_pick takes the nearest sprite over the cursor, so a
+				# candidate occluded by a closer unit would eat the shot and flake the assert
 				target = u
 				break
-		assert(target != null, "no grounded, unrooted enemy found for the gatling test")
+		assert(target != null, "no grounded, unrooted, unoccluded enemy found for the gatling test")
 		var p := Hall3D.unproject(b.camera, target.wx, target.wd)   # a real pixel on its own sprite
 		b._gatling_hit_at(p)
 		# capture right here: gate + wave-1 rush + a live tracer/spark on a real hit, at ~t=5s
@@ -273,13 +275,14 @@ func _run(spec: String) -> void:
 				affected += 1
 		assert(affected >= 3, "cannon blast only affected %d/%d clustered grounded enemies" % [affected, grounded.size()])
 		print("PROBE tank cannon ok: %d/%d killed or launched" % [affected, grounded.size()])
-		# (c) popping a chest applies the gatling rate upgrade (first in the cycle)
-		var before: float = b.gatling_rate_mult
+		# (c) popping a chest grants the next upgrade in the cycle. Not pinned to gatling_rate:
+		# the cannon blast above can pop a naturally-spawned chest first and advance the cycle
+		var before_i: int = b._upgrade_i
 		b._spawn_chest(0.0, 300.0)
 		var chest: Dictionary = b._up_chests[-1]
 		b._gatling_hit_at(Hall3D.unproject(b.camera, chest["wx"], chest["d"]))
-		assert(b.gatling_rate_mult > before, "chest pop did not apply the gatling rate upgrade")
-		print("PROBE tank chest ok: gatling_rate_mult %.2f -> %.2f" % [before, b.gatling_rate_mult])
+		assert(b._upgrade_i == before_i + 1, "chest pop did not grant an upgrade")
+		print("PROBE tank chest ok: granted %s (upgrade #%d)" % [b.UPGRADE_CYCLE[before_i % b.UPGRADE_CYCLE.size()], b._upgrade_i])
 		print("PROBE tank ok: siege removed, gatling/cannon/chest all landed")
 	if check == "walls":
 		# self-check: hall half matches HALF_BY_WAVE for Game.wave, every live unit/prop stays
