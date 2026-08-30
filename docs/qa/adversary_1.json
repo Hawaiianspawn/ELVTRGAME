@@ -1,0 +1,80 @@
+﻿{
+    "findings":  [
+                     {
+                         "count":  17076,
+                         "detail":  "unit depth -1 outside 0..1250",
+                         "error_type":  "boundary_break",
+                         "game_context":  {
+                                              "army_type":  "halberdier",
+                                              "behavior":  "swap_spam",
+                                              "enemies":  3,
+                                              "fps":  672.0,
+                                              "held_inputs":  [
+
+                                                              ],
+                                              "hero_hp":  100.0,
+                                              "magic":  40.0,
+                                              "units":  99
+                                          },
+                         "id":  1,
+                         "last_t":  18.1,
+                         "location":  {
+                                          "scene":  "Battle",
+                                          "state":  "RANK",
+                                          "system":  "Battle.depth",
+                                          "team":  "ally",
+                                          "unit_type":  "halberdier",
+                                          "wave":  3,
+                                          "wd":  -1.0,
+                                          "wx":  -148.0
+                                      },
+                         "screenshot":  "adversary_1_f1.png",
+                         "t":  15.6
+                     }
+                 ],
+    "run":  {
+                "behaviors":  {
+                                  "cannon_spam":  1,
+                                  "corner_hold":  2,
+                                  "cursor_warp":  2,
+                                  "gatling_spam":  4,
+                                  "horde":  6,
+                                  "jump_phase":  4,
+                                  "kill_front":  3,
+                                  "kill_hero":  5,
+                                  "launch_all":  2,
+                                  "move_random":  4,
+                                  "swap_spam":  5,
+                                  "teleport_hero":  4,
+                                  "upgrade_flood":  4
+                              },
+                "date":  "2026-08-28T22:54:25",
+                "invariants":  [
+                                   "hero clamp",
+                                   "magic \u003e= 0",
+                                   "unit hp in 0..max",
+                                   "dead flag matches hp",
+                                   "front[] refs live + lane-consistent",
+                                   "pool \u003e= 0",
+                                   "unit inside hall walls + depth range",
+                                   "air_h \u003e= 0",
+                                   "no NaN",
+                                   "airborne units stay inside the frame",
+                                   "enemies never below ENEMY_MIN_D",
+                                   "transient states end within budget",
+                                   "units[] \u003c 1500",
+                                   "fps \u003e= 20",
+                                   "Engine.time_scale back to 1 within 1s"
+                               ],
+                "scene":  "battle",
+                "seconds":  30.0,
+                "seed":  1
+            },
+    "engine_errors":  [
+                          {
+                              "message":  "ERROR: Parameter \"RenderingServer::get_singleton()\" is null.",
+                              "at":  "at: ~CompressedTexture2D (scene/resources/compressed_texture.cpp:464)",
+                              "count":  1
+                          }
+                      ]
+}

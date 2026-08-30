@@ -56,3 +56,6 @@ build/
 # Local run artifacts: godot-run/bg-run logs and screenshots; and the dev/null Windows redirect mishap
 Saved/
 dev/null/
+
+# Sonniss GDC bundles (~20 GB third-party audio; picks land in godot/assets/sfx/)
+RawArt/Audio/

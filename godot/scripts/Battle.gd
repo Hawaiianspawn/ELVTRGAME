@@ -87,7 +87,7 @@ const BARREL_SCALE := 0.8               # not TANK_SCALE: at 0.55 the rider's ba
 var _cannon_cd := 0.0
 var cannon_reload_mult := 1.0
 var cannon_radius_mult := 1.0
-const CANNON_CD := 1.5
+const CANNON_CD := 5.0   # a reward beat, not a second gun — gatling does the steady damage
 const CANNON_DMG := 40.0
 const CANNON_RADIUS := 200.0
 const CANNON_FLIGHT := 0.35
@@ -1160,7 +1160,7 @@ func _screen_pick_chest(cursor: Vector2) -> Dictionary:
 ## was grounded, adds a launch so the player has to keep tracking it. Also test-called by
 ## Probe/Adversary with an explicit screen point.
 func _fire_gatling() -> void:
-	Sound.play("bow_release_arrow.wav", hero_wx)
+	Sound.play("gatling_shot.wav", hero_wx)
 	var cursor := get_viewport().get_mouse_position() + Vector2(_rng.randf_range(-6.0, 6.0), _rng.randf_range(-6.0, 6.0))
 	_gatling_hit_at(cursor)
 
@@ -1219,7 +1219,7 @@ func _fire_cannon() -> void:
 	var picked := _screen_pick(get_viewport().get_mouse_position())
 	var to := Vector2(picked.wx, picked.wd) if picked else _cursor_world()
 	var from := Vector2(hero_wx, hero_wd)
-	Sound.play("impact_ground_slam.wav", hero_wx)
+	Sound.play("cannon_fire.wav", hero_wx)
 	var l := Line2D.new()
 	l.width = 2.5
 	l.default_color = Color(1.0, 0.75, 0.35)
@@ -1247,6 +1247,7 @@ func _fire_cannon() -> void:
 
 
 func _cannon_explode_at(at: Vector2) -> void:
+	Sound.play("cannon_explosion.wav", at.x)
 	var r := CANNON_RADIUS * cannon_radius_mult
 	_flash(at, r, Color(1.0, 0.6, 0.3, 0.7))
 	var k := Hall3D.screen_scale(camera, at.y)

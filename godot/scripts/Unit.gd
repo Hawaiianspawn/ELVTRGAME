@@ -41,6 +41,9 @@ var _mirror := false                # enemy-only: sprite flipped left/right so a
 var _moving := false
 var _lunge := Vector2.ZERO
 var _recoil := Vector2.ZERO
+var _flash_hold := 0.0             # seconds left at full hit-flash before it decays
+const FLASH_PEAK := 0.7            # white blend on hit: 0.7 keeps the sprite readable, 1.0 blanked it
+const FLASH_HOLD := 0.09           # the beat the flash sits before the 8/s lerp takes it home
 var dead := false
 var opening := false        # fires the swap-in ability when it reaches the line
 var guard_until := 0.0
@@ -133,7 +136,7 @@ func attack_anim() -> void:
 	if not _atk.is_empty():
 		_clip = _atk
 		_atk_t = 0.0
-	Sound.unit(type, "attack", wx)
+	Sound.unit(type, "attack", wx, team)
 
 
 ## Play the packed north-facing slam clip (sky-drop landing).
@@ -373,7 +376,10 @@ func _face(v: Vector2) -> void:
 func _place() -> void:
 	visible = wd > 40.0
 	position = Hall3D.to_world(wx, wd)   # carries the hall bend; wx/wd stay straight
-	Hall3D.set_flash(sprite, clampf(sprite.modulate.r - 1.0, 0.0, 1.0))   # take() sets 2.0, _process lerps it home
+	if _flash_hold > 0.0:
+		_flash_hold -= get_process_delta_time()
+		sprite.modulate = Color(1.0 + FLASH_PEAK, 1.0 + FLASH_PEAK, 1.0 + FLASH_PEAK)   # hold the peak; lerps resume after
+	Hall3D.set_flash(sprite, clampf(sprite.modulate.r - 1.0, 0.0, 1.0))   # take() sets 1+FLASH_PEAK, _process lerps it home
 	_lunge = _lunge.lerp(Vector2.ZERO, 0.18)
 	_recoil = _recoil.lerp(Vector2.ZERO, 0.2)
 	var bob := 0.0
@@ -477,13 +483,14 @@ func take(amount: float, push := Vector2.ZERO) -> void:
 		_juggles += 1
 		air_v = minf(maxf(air_v, 0.0) + POP, 400.0)   # impulse, not a reset: every hit adds
 	hp -= amount
-	sprite.modulate = Color(2.0, 2.0, 2.0)
+	sprite.modulate = Color(1.0 + FLASH_PEAK, 1.0 + FLASH_PEAK, 1.0 + FLASH_PEAK)
+	_flash_hold = FLASH_HOLD
 	_recoil = push
 	if hp <= 0.0:
-		Sound.unit(type, "death", wx)
+		Sound.unit(type, "death", wx, team)
 		dead = true
 	else:
-		Sound.unit(type, "hit", wx)
+		Sound.unit(type, "hit", wx, team)
 		if not _hurt.is_empty():
 			var now := Time.get_ticks_msec() / 1000.0
 			_hurt_combo = (_hurt_combo + 1) if now - _last_hurt_t <= 0.8 else 0

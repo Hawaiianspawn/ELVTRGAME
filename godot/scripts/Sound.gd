@@ -7,6 +7,9 @@ extends Node
 const HALL_HALF := 200.0   # mirrors Battle.gd:21 — Battle has no class_name, unreachable from here
 const POOL_SIZE := 12
 const PER_FRAME_CAP := 4   # same file at most 4x/frame — the crowd is 100+ units
+const PITCH_SPREAD := 0.08   # combat cues: ±8% (~1.3 semitones) — enough to stop a crowd phasing, not enough to change the sound
+const PITCH_SPREAD_TONAL := 0.03   # stingers / UI chimes stay on key
+const ENEMY_DB := -8.0   # enemy unit cues sit under the retinue — the player's side is the one to read
 const DIR := "res://assets/sfx/"
 
 var probe_counts := {}     # file -> total plays this run, printed by Probe at the end
@@ -41,7 +44,7 @@ func _ready() -> void:
 
 
 ## Play a cue file (relative to assets/sfx/) panned across the hall width. x_lateral is a sim wx.
-func play(file: String, x_lateral := 0.0) -> void:
+func play(file: String, x_lateral := 0.0, db := 0.0) -> void:
 	if file == "":
 		return
 	var frame := Engine.get_process_frames()
@@ -58,17 +61,19 @@ func play(file: String, x_lateral := 0.0) -> void:
 	var i := _voice()
 	var p := _players[i]
 	p.stream = stream
-	p.pitch_scale = randf_range(0.94, 1.06)
+	p.volume_db = db
+	var spread := PITCH_SPREAD_TONAL if (file.begins_with("stinger_") or file.begins_with("ui_")) else PITCH_SPREAD
+	p.pitch_scale = randf_range(1.0 - spread, 1.0 + spread)
 	_panners[i].pan = clampf(x_lateral / HALL_HALF, -1.0, 1.0)
 	p.play()
 	probe_counts[file] = int(probe_counts.get(file, 0)) + 1
 
 
 ## Resolve a unit type's cue (attack/hit/death/ability) through units.json and play it.
-func unit(u_type: String, cue: String, x_lateral := 0.0) -> void:
+func unit(u_type: String, cue: String, x_lateral := 0.0, team := Unit.ALLY) -> void:
 	var d: Dictionary = Game.units.get(u_type, {})
 	var sfx: Dictionary = d.get("sfx", {})
-	play(str(sfx.get(cue, "")), x_lateral)
+	play(str(sfx.get(cue, "")), x_lateral, ENEMY_DB if team == Unit.ENEMY else 0.0)
 
 
 func _voice() -> int:

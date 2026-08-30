@@ -1,5 +1,1 @@
 id,t,count,error_type,scene,wave,system,unit_type,team,state,wx,wd,behavior,magic,army_type,units,enemies,fps,detail,screenshot
-1,1.5,44001,boundary_break,Battle,0,Battle.hall,veteran,ally,RANK,217.0,259.0,wall_hug,0.0,veteran,48,0,70.0,unit through the hall wall |wx| 217 > HALL_HALF 200,adversary_7_f1.png
-2,17.6,268,boundary_break,Battle,0,Battle.hall,vet_ranged,ally,ADVANCE,218.0,55.0,swap_spam,2.0,vet_ranged,121,30,154.0,unit through the hall wall |wx| 218 > HALL_HALF 200,adversary_7_f2.png
-3,17.6,120,boundary_break,Battle,0,Battle.hall,halberdier,ally,ADVANCE,213.0,55.0,swap_spam,2.0,halberdier,168,29,154.0,unit through the hall wall |wx| 213 > HALL_HALF 200,adversary_7_f3.png
-4,17.7,6423,boundary_break,Battle,0,Battle.hall,hammer,ally,RANK,214.0,255.0,swap_spam,2.0,hammer,168,29,154.0,unit through the hall wall |wx| 214 > HALL_HALF 200,adversary_7_f4.png

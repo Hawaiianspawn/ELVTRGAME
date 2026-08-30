@@ -1,0 +1,2 @@
+id,t,count,error_type,scene,wave,system,unit_type,team,state,wx,wd,behavior,magic,army_type,units,enemies,fps,detail,screenshot
+1,15.6,17076,boundary_break,Battle,3,Battle.depth,halberdier,ally,RANK,-148.0,-1.0,swap_spam,40.0,halberdier,99,3,672.0,unit depth -1 outside 0..1250,adversary_1_f1.png
