@@ -144,3 +144,12 @@ func gain_magic(amount: float) -> Array[String]:
 			relics.append(r["id"])
 			fresh.append(r["id"])
 	return fresh
+
+
+func _notification(what: int) -> void:
+	## Mute everything while the window (or browser tab) is unfocused.
+	match what:
+		NOTIFICATION_APPLICATION_FOCUS_OUT:
+			AudioServer.set_bus_mute(0, true)
+		NOTIFICATION_APPLICATION_FOCUS_IN:
+			AudioServer.set_bus_mute(0, false)
