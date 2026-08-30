@@ -151,7 +151,7 @@
     "magic": 9,
     "sfx": {
       "attack": "bone_swing_light.wav",
-      "hit": "impact_bone_crack.wav",
+      "hit": "",
       "death": "death_undead_collapse.wav"
     }
   },
@@ -167,7 +167,7 @@
     "magic": 10,
     "sfx": {
       "attack": "mace_swing_heavy.wav",
-      "hit": "impact_bone_crack.wav",
+      "hit": "",
       "death": "death_undead_collapse.wav"
     }
   },
@@ -183,7 +183,7 @@
     "magic": 9,
     "sfx": {
       "attack": "magic_staff_cast.wav",
-      "hit": "impact_bone_crack.wav",
+      "hit": "",
       "death": "death_undead_collapse.wav"
     }
   },
@@ -199,7 +199,7 @@
     "magic": 8,
     "sfx": {
       "attack": "bow_release_arrow.wav",
-      "hit": "impact_bone_crack.wav",
+      "hit": "",
       "death": "death_undead_collapse.wav"
     }
   },
@@ -215,7 +215,7 @@
     "magic": 8,
     "sfx": {
       "attack": "bow_release_arrow.wav",
-      "hit": "impact_bone_crack.wav",
+      "hit": "",
       "death": "death_undead_collapse.wav"
     }
   },
@@ -271,7 +271,7 @@
     "magic": 9,
     "sfx": {
       "attack": "bone_swing_light.wav",
-      "hit": "impact_bone_crack.wav",
+      "hit": "",
       "death": "death_undead_collapse.wav"
     }
   },
