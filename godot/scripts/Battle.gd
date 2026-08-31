@@ -1213,14 +1213,16 @@ func _gatling_hit_at(cursor: Vector2) -> void:
 		# no ground launch (owner cut it): the gatling chips, it doesn't knock up. Airborne
 		# targets still juggle fine — take() adds POP on every airborne hit.
 		target.take(GATLING_DMG, Vector2.ZERO, true)
-		_impact(target.wx, target.wd, 6.0)
+		# spark at the actual aim pixel, not _impact's fixed chest height — the round hits
+		# where the mouse is, and the flash has to say so
+		_burst(cursor, 6.0 * Hall3D.screen_scale(camera, target.wd) * Hall3D.PIXEL)
 	else:
 		# no enemy under the pixel: the round can still break the furniture down
 		var prop := _screen_pick_prop(cursor)
 		if not prop.is_empty():
 			prop["hits"] = int(prop["hits"]) - 1
 			_prop_tear(prop)   # a slab out AND a hole left behind, every hit
-			_impact(prop["wx"], prop["last_d"], 6.0)
+			_burst(cursor, 6.0 * Hall3D.screen_scale(camera, float(prop["last_d"])) * Hall3D.PIXEL)
 			if int(prop["hits"]) <= 0:
 				_break_prop(prop, prop["last_d"])
 		else:
