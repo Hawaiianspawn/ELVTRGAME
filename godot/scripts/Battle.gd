@@ -104,6 +104,22 @@ var _casings: Array[Dictionary] = []    # gatling brass on the fx overlay: {n, p
 var _intro := false                     # hall-1 stand-off: spawns held until the gate is breached
 var _gate: Sprite3D                     # the closed gate during the stand-off; null once breached
 var _gate_hits := 0
+# Manual breech reload (owner feature-flag). Fire empties the cannon; hold RMB to work the
+# breech panel: drag DOWN to slide the block off the port (spent shell kicks out, fresh one
+# drops in at full open), drag UP to seal it -- sealed with a shell = loaded. Release mid-drag
+# keeps the block where it is. Art: assets/ui/breech_*.png (concept mock layers).
+const MANUAL_RELOAD := true
+const BREECH_POS := Vector2(352, 290)   # 2x 128x96 panel on the 960x540 canvas
+const BREECH_DRAG_PX := 140.0           # mouse px for a full slide at 1.0x reload mult
+var cannon_loaded := true
+var _breech: Control
+var _breech_block: TextureRect
+var _breech_fist: TextureRect
+var _breech_shell: TextureRect
+var _breech_frac := 0.0                 # 0 = sealed, 1 = block fully down
+var _breech_has_shell := false
+var _breech_drag := false
+var _breech_cursor := Vector2.ZERO
 const GATE_TEX := preload("res://assets/env/castle/gate_open.png")   # 7-frame swing, 96x120/frame
 var burst := 3                          # per-wave spawn burst size (waves.json "burst", default 3)
 var _up_chests: Array[Dictionary] = []  # upgrade chests: {node, broken, wx, base_d, d, last_d, alive}
@@ -277,6 +293,9 @@ func start_wave(i: int) -> void:
 	spawn_t = 2.0
 	hero_hp = tank_max_hp
 	_low_hp_played = false
+	cannon_loaded = true
+	_breech_frac = 0.0
+	_breech_has_shell = false
 	if i == 0:
 		if _scripted():
 			_open_gate()   # probes/adversary skip the stand-off: they measure the fight
@@ -729,6 +748,7 @@ func _hitstop(secs: float, scale := 0.1, force := false) -> void:
 
 func _exit_tree() -> void:
 	Engine.time_scale = 1.0   # a stop must never outlive the battle
+	Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
 
 
 func _dist(a: Unit, b: Unit) -> float:
@@ -1027,8 +1047,16 @@ func _turn(kind: String) -> void:
 
 
 func _unhandled_input(e: InputEvent) -> void:
-	if e is InputEventMouseButton and e.pressed and e.button_index == MOUSE_BUTTON_RIGHT:
-		_fire_cannon()
+	if e is InputEventMouseButton and e.button_index == MOUSE_BUTTON_RIGHT:
+		if e.pressed:
+			if MANUAL_RELOAD and not cannon_loaded:
+				_breech_show(true)
+			else:
+				_fire_cannon()
+		elif _breech_drag:
+			_breech_show(false)
+	if e is InputEventMouseMotion and _breech_drag:
+		_breech_drag_by(e.relative.y)
 	elif e is InputEventKey and e.pressed and not e.echo:
 		match e.keycode:
 			KEY_Q: _cycle_army(-1)
@@ -1448,9 +1476,16 @@ func _tick_casings(delta: float) -> void:
 ## RMB: one shell per press, on a cooldown. Flies to the cursor's ground point along an arc
 ## (same tail-cap Line2D streak _rain_salvo's _volley_arrow uses), then explodes.
 func _fire_cannon() -> void:
-	if _cannon_cd > 0.0:
-		return
-	_cannon_cd = CANNON_CD * cannon_reload_mult
+	if MANUAL_RELOAD:
+		if not cannon_loaded:
+			return
+		cannon_loaded = false
+		_breech_frac = 0.0
+		_breech_has_shell = false
+	else:
+		if _cannon_cd > 0.0:
+			return
+		_cannon_cd = CANNON_CD * cannon_reload_mult
 	# land on the enemy under the cursor if there is one (its body sits above its feet, so the
 	# floor point under the cursor would be deeper down the hall than what you're pointing at)
 	var picked := _screen_pick(get_viewport().get_mouse_position())
@@ -1482,6 +1517,64 @@ func _fire_cannon() -> void:
 	tw.tween_callback(func():
 		l.queue_free()
 		_cannon_explode_at(to))
+
+
+func _breech_build() -> void:
+	_breech = Control.new()
+	_breech.position = BREECH_POS
+	_breech.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_ui.add_child(_breech)
+	for pc in [["breech_back", Vector2.ZERO], ["breech_shell", Vector2(196, 144)]]:
+		Ui.sprite(_breech, pc[0], pc[1]).scale = Vector2(2, 2)
+	_breech_shell = _breech.get_child(1)
+	_breech_block = Ui.sprite(_breech, "breech_block", Vector2.ZERO)
+	_breech_block.scale = Vector2(2, 2)
+	_breech_fist = Ui.sprite(_breech, "breech_fist", Vector2.ZERO)
+	_breech_fist.scale = Vector2(2, 2)
+	_breech_layout()
+
+
+func _breech_layout() -> void:
+	_breech_block.position = Vector2(35.0, 17.0 + 52.0 * _breech_frac) * 2.0
+	_breech_fist.position = Vector2(6.0, 24.0 + 38.0 * _breech_frac) * 2.0
+	_breech_shell.visible = not cannon_loaded
+	_breech_shell.position = (Vector2(58.0, 60.0) if _breech_has_shell else Vector2(98.0, 72.0)) * 2.0
+
+
+func _breech_show(on: bool) -> void:
+	if on and not _breech:
+		_breech_build()
+	if _breech:
+		_breech.visible = on
+		_breech_layout()
+	_breech_drag = on
+	if on:
+		_breech_cursor = get_viewport().get_mouse_position()
+		Input.mouse_mode = Input.MOUSE_MODE_CAPTURED
+	else:
+		Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
+		Input.warp_mouse(_breech_cursor)
+
+
+## One drag step. +y opens (pull down), -y closes; crossing full-open feeds the shell, sealing
+## with the shell in loads the cannon and drops the panel.
+func _breech_drag_by(rel_y: float) -> void:
+	var was := _breech_frac
+	_breech_frac = clampf(_breech_frac + rel_y / (BREECH_DRAG_PX * cannon_reload_mult), 0.0, 1.0)
+	if _breech_frac == was:
+		return
+	if was < 1.0 and _breech_frac >= 1.0 and not _breech_has_shell:
+		_breech_has_shell = true
+		_eject_casing(Vector2(6.0, 3.0), Color(0.85, 0.22, 0.18))   # spent shell kicked clear
+		Sound.play("impact_bone_crack.wav", 0.0)
+	if was > 0.0 and _breech_frac <= 0.0 and _breech_has_shell:
+		cannon_loaded = true
+		_breech_has_shell = false
+		Sound.play("impact_armor_heavy.wav", 0.0)
+		_fov_punch(1.0, 0.12)
+		_breech_show(false)
+		return
+	_breech_layout()
 
 
 func _cannon_explode_at(at: Vector2) -> void:
@@ -1817,7 +1910,9 @@ func _draw_hud() -> void:
 	var dev := ("   post %s   FPS %d" % [post.preset_name(), Engine.get_frames_per_second()]) if not OS.has_feature("web") else ""
 	score_label.text = "SCORE %d%s" % [Game.score, dev]
 	# cannon cooldown ring under the crosshair
-	if _cannon_cd > 0.0:
+	if MANUAL_RELOAD and not cannon_loaded:
+		hud.draw_arc(get_viewport().get_mouse_position(), 16.0, 0.0, TAU, 24, Color(0.9, 0.25, 0.2, 0.8), 2.0)
+	elif _cannon_cd > 0.0:
 		var frac := clampf(_cannon_cd / (CANNON_CD * cannon_reload_mult), 0.0, 1.0)
 		hud.draw_arc(get_viewport().get_mouse_position(), 16.0, -PI * 0.5, -PI * 0.5 + TAU * (1.0 - frac), 24, Color(1.0, 0.7, 0.3, 0.85), 2.0)
 	toast_banner.visible = toast_t > 0.0

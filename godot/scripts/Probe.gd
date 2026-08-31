@@ -49,6 +49,22 @@ func _run(spec: String) -> void:
 				stragglers += 1
 		assert(stragglers == 0, "old type still on the field: %d" % stragglers)
 		print("PROBE swap ok: %s -> %s, %d on field, pool[%s]=%d" % [old_type, b.army_type, b.units.filter(func(x): return x.team == 0).size(), old_type, b.pool[old_type]])
+	if check == "reload":
+		# self-check: the manual breech loop loads the cannon -- empty it, drag full open (shell
+		# feeds), drag sealed (loads). Drives _breech_drag_by directly; no synthetic mouse events.
+		await get_tree().create_timer(2.0).timeout
+		var b := get_tree().current_scene
+		b.cannon_loaded = false
+		b._breech_show(true)
+		for i in 30:
+			b._breech_drag_by(8.0)
+		assert(b._breech_has_shell, "full open did not feed a shell")
+		assert(not b.cannon_loaded, "cannon loaded before the breech sealed")
+		for i in 30:
+			b._breech_drag_by(-8.0)
+		assert(b.cannon_loaded, "sealed breech did not load the cannon")
+		assert(not b._breech_drag, "panel still open after the seal")
+		print("PROBE reload ok: shell fed at full open, sealed = loaded")
 	if check == "turn":
 		# self-check: the between-wave beat holds the lens still — the swing/tilt was cut, so
 		# _turn must leave the camera at its rest pose the whole way through.
