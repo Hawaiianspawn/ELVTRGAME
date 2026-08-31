@@ -15,6 +15,7 @@ const POP := 45.0            # upward impulse added by every juggle hit: extends
 const FLOAT_V := 50.0        # |air_v| under this = the apex: gravity eases so they hang there
 const FLOAT_G := 0.35
 const AGGRO := 150.0         # ranks wake up to enemies this close (was 90: only the first row ever fought)
+const WALL_INSET := 32.0     # world units the clamp keeps a unit's centre off the wall face: ~half a visible body (14-15 sprite px) so billboards don't sink into the brick. ponytail: flat inset, per-sprite half-width if big cells still clip
 const SUPPORT_DMG := 0.5     # rank hits beyond own weapon reach land at this fraction
 enum State { RANK, ADVANCE, FIGHT, RETREAT }
 
@@ -179,6 +180,17 @@ func _process(delta: float) -> void:
 		air_h = maxf(0.0, air_h + air_v * delta)
 		wx += air_vx * delta
 		wd += air_vd * delta
+		# near the lens the hall is wider than the frame: bounce off the screen edge when it's
+		# tighter than the wall, so thrown units never sail out of frame (lateral twin of the
+		# air_h top-edge cap below). curve_dx shifts the visible centre when the hall bends.
+		var lim: float = battle.HALL_HALF - WALL_INSET
+		var scr: float = 0.5 * battle.camera.get_viewport().get_visible_rect().size.x / Hall3D.screen_scale(battle.camera, wd) - WALL_INSET
+		var dx := Hall3D.curve_dx(wd)
+		var lo := maxf(-lim, -scr - dx)
+		var hi := minf(lim, scr - dx)
+		if wx < lo or wx > hi:
+			wx = clampf(wx, lo, hi)
+			air_vx = -air_vx * 0.5   # ricochet, damped, instead of smearing along the edge
 		var cap := _air_cap()
 		if air_h > cap and not sky_slam:
 			air_h = cap   # juggle as high as you like, but never out of the frame: bounce off the top edge
@@ -256,7 +268,8 @@ func _process(delta: float) -> void:
 			# launch easing out into the stop, the dodge-roll pop
 			if _roll_goal == Vector2.ZERO or Vector2(wx, wd).distance_to(_roll_goal) < 4.0 or randf() < 1.5 * delta:
 				var side := 1.0 if randf() < 0.5 else -1.0
-				_roll_goal = Vector2(clampf(wx + side * randf_range(30.0, 90.0), -320.0, 320.0), clampf(wd + randf_range(-28.0, 6.0), hold_d - 40.0, hold_d + 20.0))   # darts drift, but never off the slot
+				var roll_lim: float = minf(320.0, battle.HALL_HALF - WALL_INSET)
+				_roll_goal = Vector2(clampf(wx + side * randf_range(30.0, 90.0), -roll_lim, roll_lim), clampf(wd + randf_range(-28.0, 6.0), hold_d - 40.0, hold_d + 20.0))   # darts drift, but never off the slot or into the wall
 			var here := Vector2(wx, wd).lerp(_roll_goal, 1.0 - exp(-7.0 * delta))
 			wx = here.x
 			wd = here.y
@@ -340,7 +353,7 @@ func _process(delta: float) -> void:
 						_moving = battle.advancing
 	if team == ENEMY:
 		wd = clampf(wd - battle.CREEP * delta, battle.ENEMY_MIN_D, battle.SPAWN_D)   # treadmill toward the camera, floored at the hero's feet, capped at the spawn line (blast throws)
-	wx = clampf(wx, -battle.HALL_HALF + 6.0, battle.HALL_HALF - 6.0)   # the walls are walls, whatever shoved you
+	wx = clampf(wx, -battle.HALL_HALF + WALL_INSET, battle.HALL_HALF - WALL_INSET)   # the walls are walls, whatever shoved you
 	_tick_attack(delta)
 	_place()
 

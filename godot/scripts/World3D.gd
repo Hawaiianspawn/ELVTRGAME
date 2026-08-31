@@ -343,7 +343,7 @@ func _build_walls(half: float) -> void:
 	var st := SurfaceTool.new()
 	st.begin(Mesh.PRIMITIVE_TRIANGLES)
 	var top := TILE * COURSES
-	var mid := top * 0.6
+	var mid := top * 0.35   # fade-to-black starts here; lower = darkness reaches further down the wall
 	for side: float in [-1.0, 1.0]:
 		_wall_quad(st, side * half, 0.0, mid, Color.WHITE, Color.WHITE)
 		_wall_quad(st, side * half, mid, top, Color.WHITE, Color.BLACK)

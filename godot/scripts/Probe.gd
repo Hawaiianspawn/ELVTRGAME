@@ -50,21 +50,20 @@ func _run(spec: String) -> void:
 		assert(stragglers == 0, "old type still on the field: %d" % stragglers)
 		print("PROBE swap ok: %s -> %s, %d on field, pool[%s]=%d" % [old_type, b.army_type, b.units.filter(func(x): return x.team == 0).size(), old_type, b.pool[old_type]])
 	if check == "turn":
-		# self-check: the between-wave lens moves. "left"/"right" slide the camera and come back,
-		# "stairs" pitches it up to a horizon of 170 and back — all of it must land back at rest.
+		# self-check: the between-wave beat holds the lens still — the swing/tilt was cut, so
+		# _turn must leave the camera at its rest pose the whole way through.
 		await get_tree().create_timer(2.0).timeout
 		var b := get_tree().current_scene
 		var cam: Camera3D = b.camera
 		var rest := cam.rotation_degrees.x
 		for kind in ["right", "stairs"]:
 			var moved := 0.0
-			b._turn(kind)                       # 2 x 1.2s of tween; sample right through it
-			for _i in range(32):
+			b._turn(kind)                       # 2.5s beat; sample right through it
+			for _i in range(28):
 				await get_tree().create_timer(0.1).timeout
 				moved = maxf(moved, absf(cam.position.x) + absf(cam.rotation_degrees.x - rest))
-			assert(moved > 5.0, "%s never moved the lens" % kind)   # right slides 160 units, stairs pitches 12 degrees
-			assert(absf(cam.position.x) < 0.5 and absf(cam.rotation_degrees.x - rest) < 0.5, "%s left the lens off its rest pose" % kind)
-			print("PROBE turn ok: %s peaked at %.0f, back to x=%.1f pitch=%.2f" % [kind, moved, cam.position.x, cam.rotation_degrees.x])
+			assert(moved < 0.5, "%s moved the lens %.1f after the turn was cut" % [kind, moved])
+			print("PROBE turn ok: %s held the lens at rest (peak %.2f)" % [kind, moved])
 	if check == "whirl":
 		# self-check: swapping back to veterans fires whirl â€” the field spin-dodges under guard
 		await get_tree().create_timer(6.0).timeout
