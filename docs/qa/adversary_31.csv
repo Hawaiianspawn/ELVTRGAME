@@ -1,0 +1,3 @@
+id,t,count,error_type,scene,wave,system,unit_type,team,state,wx,wd,behavior,magic,army_type,units,enemies,fps,detail,screenshot
+1,1.5,41470,boundary_break,Battle,0,Battle.depth,halberdier,ally,RETREAT,-146.0,-28.0,upgrade_flood,0.0,veteran,128,32,440.0,unit depth -28 outside 0..1250,adversary_31_f1.png
+2,22.3,91,boundary_break,Battle,0,Unit.air,veteran,ally,RANK,-128.0,286.0,cannon_spam,40.0,veteran,90,42,494.0,airborne unit above the frame: sprite top y=-4 air_h=67,adversary_31_f2.png
