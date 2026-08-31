@@ -520,7 +520,7 @@ func take(amount: float, push := Vector2.ZERO, quiet := false) -> void:
 		if team == ENEMY:
 			while hp <= _next_gib_hp and _next_gib_hp > 0.0:
 				_next_gib_hp -= max_hp * 0.25
-				_gib(push, 2)
+				_gib(push, 2, 9.0, 15.0)   # big slabs, like the shot tore straight through
 	if dead:
 		if (air_h > 0.0 or air_v > 0.0) and team == ENEMY:
 			Game.score += int(max_hp * (1.0 + 0.5 * _juggles))
@@ -556,7 +556,7 @@ func take(amount: float, push := Vector2.ZERO, quiet := false) -> void:
 
 ## Gibs: chunks torn from this sprite's own pixels, flung away from the blow, gravity pulls them
 ## down. They spray in the camera plane, so only the lateral half of `push` steers them.
-func _gib(push: Vector2, count := 8) -> void:
+func _gib(push: Vector2, count := 8, sz_min := 4.0, sz_max := 8.0) -> void:
 	var at: AtlasTexture = sprite.texture
 	var cell := at.region.size.y
 	var k := Hall3D.PIXEL
@@ -565,7 +565,7 @@ func _gib(push: Vector2, count := 8) -> void:
 		var c := Sprite3D.new()
 		var sub := AtlasTexture.new()
 		sub.atlas = at.atlas
-		var sz := randf_range(4.0, 8.0)
+		var sz := randf_range(sz_min, sz_max)
 		var ox := randf_range(cell * 0.3, cell * 0.7 - sz)
 		var oy := randf_range(cell * 0.25, cell * 0.9 - sz)
 		sub.region = Rect2(at.region.position + Vector2(sprite.frame * cell + ox, oy), Vector2(sz, sz))
