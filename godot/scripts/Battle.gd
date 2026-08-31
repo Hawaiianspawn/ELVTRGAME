@@ -1585,7 +1585,10 @@ func _breech_show(on: bool) -> void:
 		Input.mouse_mode = Input.MOUSE_MODE_CAPTURED
 	else:
 		Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
-		Input.warp_mouse(get_viewport().get_visible_rect().size * 0.5)   # centered; web can't warp anyway
+		# next frame: releasing capture restores the pre-capture cursor position after this call,
+		# so a same-frame warp gets stomped. Web can't warp either way.
+		get_tree().process_frame.connect(func():
+			Input.warp_mouse(get_viewport().get_visible_rect().size * 0.5), CONNECT_ONE_SHOT)
 
 
 ## One drag step. +y opens (pull down), -y closes; crossing full-open feeds the shell, sealing
