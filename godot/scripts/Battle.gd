@@ -1150,6 +1150,24 @@ func _screen_pick(cursor: Vector2) -> Unit:
 	return best
 
 
+## Same screen-rect test, for the standing floor props: front-most under the pixel.
+func _screen_pick_prop(cursor: Vector2) -> Dictionary:
+	var best: Dictionary = {}
+	var best_d := INF
+	for p in _props:
+		if not p["is_floor"] or not p["alive"]:
+			continue
+		var d: float = p["last_d"]
+		var s: Sprite3D = p["node"]
+		var feet := Hall3D.unproject(camera, p["wx"], d)
+		var cell := (s.texture as AtlasTexture).region.size.y
+		var w := cell * s.scale.x * Hall3D.PIXEL * Hall3D.screen_scale(camera, d)
+		if absf(cursor.x - feet.x) <= w * 0.5 and cursor.y <= feet.y and feet.y - cursor.y <= w and d < best_d:
+			best_d = d
+			best = p
+	return best
+
+
 ## Same screen-rect test, for the live upgrade chests.
 func _screen_pick_chest(cursor: Vector2) -> Dictionary:
 	for c in _up_chests:
@@ -1197,7 +1215,16 @@ func _gatling_hit_at(cursor: Vector2) -> void:
 		target.take(GATLING_DMG, Vector2.ZERO, true)
 		_impact(target.wx, target.wd, 6.0)
 	else:
-		_burst(cursor, 8.0)
+		# no enemy under the pixel: the round can still break the furniture down
+		var prop := _screen_pick_prop(cursor)
+		if not prop.is_empty():
+			prop["hits"] = int(prop["hits"]) - 1
+			_prop_debris(prop["node"])   # a chunk out on every hit
+			_impact(prop["wx"], prop["last_d"], 6.0)
+			if int(prop["hits"]) <= 0:
+				_break_prop(prop, prop["last_d"])
+		else:
+			_burst(cursor, 8.0)
 	var chest := _screen_pick_chest(cursor)
 	if not chest.is_empty():
 		_pop_chest(chest)
@@ -1460,7 +1487,7 @@ func _add_prop(name: String, wx: float, base_d: float, facing: int, is_floor: bo
 		bn.scale = s.scale
 		bn.visible = false
 		world.add_child(bn)
-	_props.append({"node": s, "broken": bn, "wx": wx, "base_d": base_d, "last_d": 0.0, "alive": true, "is_floor": is_floor, "h": h})
+	_props.append({"node": s, "broken": bn, "wx": wx, "base_d": base_d, "last_d": 0.0, "alive": true, "is_floor": is_floor, "h": h, "hits": 3})
 
 
 func _update_props() -> void:
@@ -1471,6 +1498,7 @@ func _update_props() -> void:
 		var d: float = 60.0 + fposmod(p["base_d"] - scroll, range_d)
 		if d > p["last_d"] + range_d * 0.5:   # wrapped from near back to far: reset + un-break
 			p["alive"] = true
+			p["hits"] = 3
 			p["node"].visible = true
 			if p["broken"]:
 				p["broken"].visible = false
@@ -1492,17 +1520,22 @@ func _update_props() -> void:
 					break
 		if not hit:
 			continue
-		p["alive"] = false
-		_impact(p["wx"], d)
-		if Game.sprites.has("fx_smash"):
-			_clip3d("fx_smash", here, 14.0, 48.0, 0.05)
-		else:
-			_flash(here, 10.0, Color(0.9, 0.8, 0.5))
-		p["node"].visible = false
-		if p["broken"]:
-			p["broken"].visible = true   # smashed-open state does the talking
-		else:
-			_prop_debris(p["node"])
+		_break_prop(p, d)
+
+
+## Smash a floor prop: swap to its broken state or blow it into debris chunks.
+func _break_prop(p: Dictionary, d: float) -> void:
+	p["alive"] = false
+	_impact(p["wx"], d)
+	if Game.sprites.has("fx_smash"):
+		_clip3d("fx_smash", Vector2(p["wx"], d), 14.0, 48.0, 0.05)
+	else:
+		_flash(Vector2(p["wx"], d), 10.0, Color(0.9, 0.8, 0.5))
+	p["node"].visible = false
+	if p["broken"]:
+		p["broken"].visible = true   # smashed-open state does the talking
+	else:
+		_prop_debris(p["node"])
 
 
 ## Debris chunks torn from a prop's own texture on break — same recipe as Unit._gib, just fewer
