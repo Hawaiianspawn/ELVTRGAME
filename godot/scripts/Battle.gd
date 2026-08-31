@@ -1552,7 +1552,7 @@ func _breech_build() -> void:
 
 func _breech_layout() -> void:
 	_breech_block.position = Vector2(35.0, 17.0 + 52.0 * _breech_frac) * 2.0
-	_breech_fist.position = Vector2(6.0, 24.0 + 38.0 * _breech_frac) * 2.0
+	_breech_fist.position = Vector2(4.0, 28.0 + 38.0 * _breech_frac) * 2.0
 	# spent round sits scorched in the chamber until the slide bottoms out and swaps it
 	_breech_shell.modulate = Color.WHITE if _breech_has_shell else Color(0.3, 0.27, 0.25)   # scorched dark; fresh is untinted
 
