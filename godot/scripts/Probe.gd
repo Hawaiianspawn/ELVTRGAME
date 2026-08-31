@@ -394,7 +394,10 @@ func _run(spec: String) -> void:
 				wds.append(snappedf(u.wd, 1.0))
 		wds.sort()
 		var cam: Camera3D = sc.camera
-		print("PROBE rank wd min=%s max=%s n=%d  screen y of min=%s fov=%.1f pitch=%.1f height=%s" % [wds[0], wds[-1], wds.size(),
+		if wds.is_empty():
+			print("PROBE rank wd n=0 (no allies standing in ranks)")
+		else:
+			print("PROBE rank wd min=%s max=%s n=%d  screen y of min=%s fov=%.1f pitch=%.1f height=%s" % [wds[0], wds[-1], wds.size(),
 			Hall3D.unproject(cam, 0.0, wds[0]).y, cam.fov, cam.rotation_degrees.x, cam.position.y])
 		for u in sc.units:
 			if u.team == 0 and u.state == Unit.State.RANK and (snappedf(u.wd, 1.0) == wds[0] or snappedf(u.wd, 1.0) == wds[-1]):
