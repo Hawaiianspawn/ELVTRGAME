@@ -1566,34 +1566,33 @@ func _breech_eject() -> void:
 	brass.modulate = Color(0.68, 0.6, 0.53)   # smoke-darkened spent brass
 	brass.rotation = -0.4
 	var p0: Vector2 = brass.position
-	var st := {last = -1.0}
+	# smoke ribbon off the open mouth: newest point rides the mouth at full width, the tail
+	# thins to nothing and fades via the width curve + gradient
+	var trail := Line2D.new()
+	trail.width = 14.0
+	var wc := Curve.new()
+	wc.add_point(Vector2(0.0, 0.05))
+	wc.add_point(Vector2(1.0, 1.0))
+	trail.width_curve = wc
+	var gr := Gradient.new()
+	gr.set_color(0, Color(0.75, 0.72, 0.68, 0.0))
+	gr.set_color(1, Color(0.75, 0.72, 0.68, 0.45))
+	trail.gradient = gr
+	_breech.add_child(trail)
 	var tw := create_tween()
 	tw.set_parallel(true)
 	tw.tween_property(brass, "rotation", -0.4 + TAU * 1.25, 0.8)
 	tw.tween_method(func(t: float):
 		brass.position = p0 + Vector2(320.0 * t, -110.0 * t + 230.0 * t * t)
-		if t - st.last > 0.08 and t < 0.85:   # smoke off the open mouth as it tumbles
-			st.last = t
-			_brass_puff(brass), 0.0, 1.0, 0.8)
+		var mouth: Vector2 = brass.position + brass.pivot_offset 			+ (Vector2(46.0, 12.0) - brass.pivot_offset).rotated(brass.rotation) * brass.scale.x
+		trail.add_point(mouth)
+		while trail.get_point_count() > 18:
+			trail.remove_point(0), 0.0, 1.0, 0.8)
 	tw.tween_property(brass, "modulate:a", 0.0, 0.2).set_delay(0.6)
-	tw.chain().tween_callback(brass.queue_free)
-
-
-## One smoke puff at the casing's open mouth (right end of the sprite, rotated with it).
-func _brass_puff(brass: TextureRect) -> void:
-	var mouth := Vector2(46.0, 12.0)
-	var p: Vector2 = brass.position + brass.pivot_offset + (mouth - brass.pivot_offset).rotated(brass.rotation) * brass.scale.x
-	var c := ColorRect.new()
-	c.color = Color(0.75, 0.72, 0.68, 0.5)
-	c.size = Vector2(6, 6)
-	c.position = p - c.size * 0.5
-	c.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	_breech.add_child(c)
-	var tw := create_tween()
-	tw.set_parallel(true)
-	tw.tween_property(c, "position", c.position + Vector2(_rng.randf_range(-8.0, 8.0), -16.0), 0.5)
-	tw.tween_property(c, "color:a", 0.0, 0.5)
-	tw.chain().tween_callback(c.queue_free)
+	tw.chain().tween_property(trail, "modulate:a", 0.0, 0.25)
+	tw.chain().tween_callback(func():
+		brass.queue_free()
+		trail.queue_free())
 
 
 func _breech_show(on: bool) -> void:
