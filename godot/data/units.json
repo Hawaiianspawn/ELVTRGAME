@@ -47,7 +47,7 @@
     "ability_label": "Sweep",
     "ability_desc": "Every halberdier charges down-range, hitting all it passes for 2x and bulldozing them onto one pile line, then falls back in",
     "ability_cd": 9,
-    "pile_d": 120,
+    "pile_d": 160,
     "slash": "thrust",
     "sfx": {
       "attack": "spear_thrust_metal.wav",

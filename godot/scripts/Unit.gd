@@ -59,13 +59,11 @@ var _charge_dur := -1.0      # this charge's synced-arrival duration (T); -1 = n
 var _charge_wd0 := 0.0       # this charger's own wd when the out leg started
 var _charge_end := 0.0       # this charger's own out-leg landing depth (rows keep their gap, not stack on charge_to)
 var _charge_t0 := 0.0        # wall-clock time the out leg started
-var _charge_thrown := false  # true while this unit is mid-flight from a charge blow (skip a second throw)
 var _charge_hold_until := -1.0   # wall-clock: charger stands at the line until this, then falls back; -1 = not holding
 const CHARGE_SPEED := 4.0    # x walk speed out; back at rush
 const CHARGE_R := 34.0       # reach either side of the charging halberd
 const CHARGE_HOLD := 0.15    # seconds the charger freezes at the line before the fall-back leg starts
 const CHARGE_KEEP := 1.0     # 1.0 = rows land with the same gap they started with; lower closes it up
-const PILE_HOLD := 2.0       # seconds a bulldozed enemy stays rooted on the pile line
 var rush := false            # ADVANCE/RETREAT at rush speed (swaps route behind the camera)
 var sky_slam := false        # hammer entrance: dropped from the sky, slams the ground on landing
 var air_h := 0.0             # height above the ground; > 0 = airborne, helpless, juggleable
@@ -207,9 +205,6 @@ func _process(delta: float) -> void:
 			_spin = 0.0
 			sprite.rotation.z = 0.0
 			sprite.offset = _base_offset
-			if _charge_thrown:
-				_charge_thrown = false
-				rooted_until = Time.get_ticks_msec() / 1000.0 + PILE_HOLD
 			if not sky_slam:
 				battle.land_puff(self)   # the slam brings its own shockwave via sky_landing
 			if sky_slam:
@@ -240,18 +235,13 @@ func _process(delta: float) -> void:
 			for o in battle.units:
 				if o.team != team and not o.dead and absf(o.wx - wx) < CHARGE_R and o.wd >= wd - 4.0 and o.wd < wd + CHARGE_R:
 					if not _charge_hit.has(o):
-						_charge_hit[o] = o.wd   # depth at first contact: how the arrival blow throws it
+						_charge_hit[o] = o.wd
 						attack_anim()
 						battle.hit(self, o, 2.0)   # one blow on contact
-					# then bulldozed: carried on the blade to the pile line, pulled into the file, held there
-					o.wd = wd + CHARGE_R
-					o.wx = move_toward(o.wx, wx, 80.0 * delta)
-					o.rooted_until = Time.get_ticks_msec() / 1000.0 + PILE_HOLD
+						o.launch(260.0, speed * CHARGE_SPEED * 0.4)   # knocked up and over, not carried
 			if arrived and _charge_hold_until < 0.0:
-				# freeze at the line for a beat so the block is still there when the blow lands,
-				# instead of already peeling off into the fall-back leg
+				# freeze at the line for a beat before peeling off into the fall-back leg
 				_charge_hold_until = Time.get_ticks_msec() / 1000.0 + CHARGE_HOLD
-				_deliver_blow()
 			if _charge_hold_until >= 0.0 and Time.get_ticks_msec() / 1000.0 >= _charge_hold_until:
 				_charge_back = true
 				_charge_hold_until = -1.0
@@ -450,27 +440,6 @@ func charge(to: float, from := Vector2(INF, INF)) -> void:
 	_charge_hold_until = -1.0
 	_charge_from = Vector2(wx, wd) if from.x == INF else from
 	_charge_hit.clear()
-
-
-## Arrival blow: every enemy this charger carried gets launched into a real arc that lands
-## past the pile line, the ones it picked up earliest (farthest from the line) thrown farthest
-## and highest so the cluster visibly fans out. Every charger in the same synced charge reaches
-## this the same frame, so the whole pile goes up together.
-func _deliver_blow() -> void:
-	for o in _charge_hit:
-		if not is_instance_valid(o) or o.dead or o._charge_thrown:
-			continue
-		var hit_wd: float = _charge_hit[o]
-		var target_wd := minf(charge_to + (charge_to - hit_wd), battle.SPAWN_D)
-		var dist: float = target_wd - o.wd
-		o._charge_thrown = true
-		# scale the impulse with throw distance so the fling is visible, not just a hop; hang time
-		# from GRAV's own "peaks at V, hangs ~2V/GRAV" (see the GRAV comment) aims the depth speed
-		# at landing on target_wd when it comes down. ponytail: ignores the floaty apex easing
-		# (FLOAT_G), so it's an aim not a guarantee — ok for a spectacle throw, not physics sim.
-		var v := clampf(220.0 + dist * (100.0 / 600.0), 220.0, 320.0)
-		var hang := 2.0 * v / GRAV
-		o.launch(v, dist / hang)
 
 
 ## Knock into the air: an impulse, added to whatever it already has. Height builds next frame,
