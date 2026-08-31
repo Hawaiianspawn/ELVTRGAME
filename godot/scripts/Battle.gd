@@ -1558,23 +1558,23 @@ func _breech_layout() -> void:
 	_breech_block.position = Vector2(35.0, 17.0 + 52.0 * _breech_frac) * 2.0
 	_breech_fist.position = Vector2(6.0, 24.0 + 38.0 * _breech_frac) * 2.0
 	# spent round sits scorched in the chamber until the slide bottoms out and swaps it
-	_breech_shell.modulate = Color.WHITE if _breech_has_shell else Color(0.55, 0.5, 0.45)
+	_breech_shell.modulate = Color.WHITE if _breech_has_shell else Color(0.3, 0.27, 0.25)   # scorched dark; fresh is untinted
 
 
 ## The spent round leaves the breech as tumbling brass: the side-view casing spins out to the
 ## right on a kicked-up arc and fades, while _breech_shell becomes the fresh round in the same beat.
 func _breech_eject() -> void:
 	var brass := Ui.sprite(_breech, "breech_brass", Vector2(116, 82))
-	brass.scale = Vector2(2, 2)
+	brass.scale = Vector2(3, 3)
 	brass.pivot_offset = Vector2(24, 12)
 	brass.rotation = -0.4
 	var p0: Vector2 = brass.position
 	var tw := create_tween()
 	tw.set_parallel(true)
-	tw.tween_property(brass, "rotation", -0.4 + TAU * 3.0, 0.45)
+	tw.tween_property(brass, "rotation", -0.4 + TAU * 2.0, 0.8)
 	tw.tween_method(func(t: float):
-		brass.position = p0 + Vector2(300.0 * t, -90.0 * t + 190.0 * t * t), 0.0, 1.0, 0.45)
-	tw.tween_property(brass, "modulate:a", 0.0, 0.12).set_delay(0.33)
+		brass.position = p0 + Vector2(320.0 * t, -110.0 * t + 230.0 * t * t), 0.0, 1.0, 0.8)
+	tw.tween_property(brass, "modulate:a", 0.0, 0.2).set_delay(0.6)
 	tw.chain().tween_callback(brass.queue_free)
 
 
