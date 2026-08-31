@@ -350,6 +350,7 @@ func _build_walls(half: float) -> void:
 	_wall_mesh = MeshInstance3D.new()
 	_wall_mesh.mesh = st.commit()
 	_wall_mat = _unshaded(WALL_TEX, Color.WHITE)   # vertex colour and no culling are in the shader
+	_wall_mat.set_shader_parameter("ripple_a", 14.0)   # walls-only desync wave; < Unit.WALL_INSET so nobody pokes through an inward bulge
 	_wall_mesh.material_override = _wall_mat
 	add_child(_wall_mesh)
 
