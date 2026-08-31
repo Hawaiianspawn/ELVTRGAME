@@ -76,7 +76,7 @@ var gatling_rate_mult := 1.0
 const GATLING_RATE := 12.0      # shots/s at 1.0x
 const GATLING_DMG := 4.0
 const TANK_SCALE := 0.55        # owner call: the dome hid the crowd at native size, shrink it
-const TANK_MOUNT_H := 45.0      # sprite px: hero's feet height on the stone tank's turret roof (~82 tank px * TANK_SCALE)
+const TANK_MOUNT_H := 38.0      # sprite px: hero's feet height on the stone tank's turret roof, sunk to line up with the cannon
 const TANK_FOOTPRINT_R := 110.0  # world units: dome radius + a clear apron so ranks never stand between the lens and the dome
 var tank_sprite: Sprite3D
 var _barrel: Sprite3D                   # cannon neck: yaws at the turret toward the cursor's ground point
