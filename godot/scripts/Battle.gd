@@ -99,6 +99,8 @@ var _shake_t := 0.0
 var _shake_dur := 0.4
 var _shake_amp := 0.0
 var _flash_rect: ColorRect              # full-screen blast flash on the fx overlay
+var _fov_tw: Tween                      # live fov-punch return tween; a new punch kills it
+var _casings: Array[Dictionary] = []    # gatling brass on the fx overlay: {n, p, v, spin, floor_y, t, k}
 const GATE_TEX := preload("res://assets/env/castle/gate_open.png")   # 7-frame swing, 96x120/frame
 var burst := 3                          # per-wave spawn burst size (waves.json "burst", default 3)
 var _up_chests: Array[Dictionary] = []  # upgrade chests: {node, broken, wx, base_d, d, last_d, alive}
@@ -539,6 +541,7 @@ func _vortex(wp: Vector2, k: float, dmg: float, secs := 2.0, fx_name := "fx_swee
 ## Hit stop: the world crawls for secs of real time. A later, longer stop extends the hold;
 ## the timer that fired last always restores full speed.
 var _stop_until := 0.0
+var _stop_gen := 0
 ## Decaying two-axis camera shake: `amp` world units at t=0, quadratic falloff over `dur` real
 ## seconds (runs on real time so it isn't frozen by the hit stop). Re-arming takes the larger.
 func _shake(amp: float, dur: float) -> void:
@@ -572,14 +575,31 @@ func _blast_flash() -> void:
 	tw.tween_property(_flash_rect, "color:a", 0.0, 0.15).set_ease(Tween.EASE_OUT)
 
 
-func _hitstop(secs: float, scale := 0.1) -> void:
+## Quick fov kick, eased back to rest: +deg widens (blast concussion), -deg tightens (a held
+## close-up beat). Real-time so a hit stop doesn't pin the lens mid-punch.
+func _fov_punch(deg: float, dur := 0.15) -> void:
+	if _fov_tw:
+		_fov_tw.kill()
+	var base := rad_to_deg(2.0 * atan(HALF_H / FOCAL))
+	camera.fov = base + deg
+	_fov_tw = create_tween()
+	_fov_tw.set_ignore_time_scale()
+	_fov_tw.tween_property(camera, "fov", base, dur).set_ease(Tween.EASE_OUT)
+
+
+func _hitstop(secs: float, scale := 0.1, force := false) -> void:
 	var now := Time.get_ticks_msec() / 1000.0
-	if now < _stop_until:
+	if now < _stop_until and not force:
 		return   # one at a time: a live stop is never extended, so no caller can pin the clock
 	_stop_until = now + secs
+	_stop_gen += 1
+	var gen := _stop_gen
 	Engine.time_scale = scale
-	# no lambda: the timer must restore the clock even if this scene is gone by then
-	get_tree().create_timer(secs, true, false, true).timeout.connect(Engine.set_time_scale.bind(1.0))
+	# gen guard: a superseded stop's timer must not cut a newer (forced) one short. Scene-gone
+	# restore is _exit_tree's job, so the freed-self case only needs to not error.
+	get_tree().create_timer(secs, true, false, true).timeout.connect(func():
+		if not is_instance_valid(self) or gen == _stop_gen:
+			Engine.time_scale = 1.0)
 
 
 func _exit_tree() -> void:
@@ -759,6 +779,7 @@ func near_enemy(u: Unit, radius: float) -> Unit:
 
 func _process(delta: float) -> void:
 	_tick_shake(delta)
+	_tick_casings(delta)
 	hud.queue_redraw()
 	_rebuild_grid()
 	toast_t -= delta
@@ -845,6 +866,8 @@ func _process(delta: float) -> void:
 
 func _wave_done() -> void:
 	_done = true
+	_hitstop(0.5, 0.25, true)   # the hall's last kill hangs in the air
+	_fov_punch(-3.0, 0.5)
 	Sound.play(str(Game.units["hero_sfx"].get("wave_clear", "")), hero_wx)
 	if Game.wave >= 3:
 		say("The throne room door. It is already open.\nTO BE CONTINUED")
@@ -1096,6 +1119,11 @@ func sky_landing(u: Unit) -> void:
 			o.rooted_until = _now() + 2.5
 
 
+## Small floor puff where an airborne body comes down — dead or alive, the thump should read.
+func land_puff(u: Unit) -> void:
+	_flash(Vector2(u.wx, u.wd), 18.0, Color(0.85, 0.8, 0.7, 0.5))
+
+
 ## Full-screen illustration card (assets/ui/<name>.png, 400x224 drawn at 2x) with a title in the
 ## blackletter face, fading out after `secs`. Win and lose both go through here.
 func _card(name: String, title: String, secs: float) -> void:
@@ -1186,6 +1214,7 @@ func _screen_pick_chest(cursor: Vector2) -> Dictionary:
 ## Probe/Adversary with an explicit screen point.
 func _fire_gatling() -> void:
 	Sound.play("gatling_shot.wav", hero_wx)
+	_eject_casing()
 	var cursor := get_viewport().get_mouse_position() + Vector2(_rng.randf_range(-6.0, 6.0), _rng.randf_range(-6.0, 6.0))
 	_gatling_hit_at(cursor)
 
@@ -1244,6 +1273,41 @@ func _tracer(from: Vector2, to: Vector2) -> void:
 	l.queue_free()
 
 
+## Brass off the breech every gatling shot: a flung 2px chip that falls, bounces once off the
+## floor line at the tank's feet, and fades. Screen-space on the fx overlay.
+func _eject_casing() -> void:
+	var k := Hall3D.screen_scale(camera, hero_wd) * Hall3D.PIXEL
+	var r := ColorRect.new()
+	r.color = Color(0.95, 0.8, 0.35)
+	r.size = Vector2(3.0, 2.0) * k
+	r.rotation = _rng.randf() * TAU
+	fx.add_child(r)
+	var side := -1.0 if cos(_barrel_yaw) > 0.0 else 1.0   # eject away from the aim side
+	_casings.append({n = r, p = _pivot(), t = 0.0, k = k,
+		v = Vector2(side * _rng.randf_range(30.0, 70.0), _rng.randf_range(-160.0, -110.0)) * k,
+		spin = _rng.randf_range(-12.0, 12.0),
+		floor_y = Hall3D.unproject(camera, hero_wx, hero_wd, 0.0).y})
+
+
+func _tick_casings(delta: float) -> void:
+	for c in _casings.duplicate():
+		c.t += delta
+		c.v.y += 900.0 * c.k * delta
+		c.p += c.v * delta
+		if c.p.y > c.floor_y and c.v.y > 0.0:
+			c.p.y = c.floor_y
+			c.v.y *= -0.4
+			c.v.x *= 0.6
+		var n: ColorRect = c.n
+		n.position = c.p
+		n.rotation += c.spin * delta
+		if c.t > 0.9:
+			n.modulate.a = maxf(0.0, 1.0 - (c.t - 0.9) / 0.3)
+		if c.t > 1.2:
+			n.queue_free()
+			_casings.erase(c)
+
+
 ## RMB: one shell per press, on a cooldown. Flies to the cursor's ground point along an arc
 ## (same tail-cap Line2D streak _rain_salvo's _volley_arrow uses), then explodes.
 func _fire_cannon() -> void:
@@ -1299,6 +1363,7 @@ func _cannon_explode_at(at: Vector2) -> void:
 			var s := _clip2d(EXPLOSION_FX, p + off, r * k * 1.2 / cell, 0.02, Color(1.0, 0.85, 0.6, 0.5))
 			s.rotation = 0.0)
 	_shake(SHAKE_AMP, 0.4)
+	_fov_punch(2.5, 0.25)
 	_blast_flash()
 	for u in units.duplicate():
 		var d := Vector2(u.wx, u.wd).distance_to(at)

@@ -210,6 +210,8 @@ func _process(delta: float) -> void:
 			if _charge_thrown:
 				_charge_thrown = false
 				rooted_until = Time.get_ticks_msec() / 1000.0 + PILE_HOLD
+			if not sky_slam:
+				battle.land_puff(self)   # the slam brings its own shockwave via sky_landing
 			if sky_slam:
 				sky_slam = false
 				slam_anim()
