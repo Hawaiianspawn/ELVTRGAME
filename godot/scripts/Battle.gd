@@ -1731,7 +1731,7 @@ func _flash(wp: Vector2, r: float, c: Color) -> void:
 ## the far end — the wrap (a big depth jump) is also the "un-break" moment.
 func _spawn_props() -> void:
 	var range_d := Hall3D.FOG_END * 1.5 - 60.0
-	# wall items: cage lamps only, every 160 depth. Candelabra, brazier and both mirrors are
+	# wall items: cage lamps only, every 240 depth. Candelabra, brazier and both mirrors are
 	# owner-cut from the wall (they stay in roster, unused).
 	for side: float in [-1.0, 1.0]:
 		var wx: float = side * HALL_HALF   # flush on the wall face, not inset
@@ -1739,12 +1739,12 @@ func _spawn_props() -> void:
 		var d := 0.0
 		while d < range_d:
 			_add_prop("lamp_cage", wx, d, facing, false, Hall3D.TILE * Hall3D.COURSES * 1.3, "", 0.575)
-			d += 160.0
+			d += 240.0
 	# floor clutter is per-hall themed and respawned by start_wave -> _spawn_floor_props
 
 
 ## Hall themes over the same roster: 1 a garrison still in use, 2 the keep's sanctum,
-## 3 the prison-crypt, 4 the necromancer's necropolis. Cycled over the 20 floor slots.
+## 3 the prison-crypt, 4 the necromancer's necropolis. Cycled over the 12 floor slots.
 ## chest_ornate is a dedicated upgrade prop (_spawn_chest); chest_coffer stays ambient clutter.
 const PROPS_BY_WAVE: Array = [
 	["table_map", "table_trestle", "chair_bench", "barrel", "crates", "weapon_rack", "anvil", "banner_pole", "brazier", "chest_coffer"],
@@ -1768,7 +1768,7 @@ func _spawn_floor_props(wave_i: int) -> void:
 	var range_d := Hall3D.FOG_END * 1.5 - 60.0
 	var names: Array = PROPS_BY_WAVE[wave_i]
 	var broken_of := {"chair_bench": "chair_broken"}
-	var n := 20
+	var n := 12
 	for t in range(n):
 		var d0: float = fmod(t * (range_d / n), range_d)
 		if absf(d0 - FRONT_D) < 60.0:   # don't spawn right on the front line
