@@ -104,6 +104,8 @@ var _casings: Array[Dictionary] = []    # gatling brass on the fx overlay: {n, p
 var _intro := false                     # hall-1 stand-off: spawns held until the gate is breached
 var _gate: Sprite3D                     # the closed gate during the stand-off; null once breached
 var _gate_hits := 0
+var _gate_holes := PackedVector3Array([Vector3.ZERO, Vector3.ZERO, Vector3.ZERO, Vector3.ZERO])
+var _gate_hole_i := 0
 # Manual breech reload (owner feature-flag). Fire empties the cannon; hold RMB to work the
 # breech panel: drag DOWN to slide the block off the port (spent shell kicks out, fresh one
 # drops in at full open), drag UP to seal it -- sealed with a shell = loaded. Release mid-drag
@@ -119,7 +121,7 @@ var _breech_shell: TextureRect
 var _breech_frac := 0.0                 # 0 = sealed, 1 = block fully down
 var _breech_has_shell := false
 var _breech_drag := false
-const GATE_TEX := preload("res://assets/env/castle/gate_open.png")   # 7-frame swing, 96x120/frame
+const GATE_TEX := preload("res://assets/env/castle/gate.png")   # single closed frame, 96x120; breach shreds it
 var burst := 3                          # per-wave spawn burst size (waves.json "burst", default 3)
 var _up_chests: Array[Dictionary] = []  # upgrade chests: {node, broken, wx, base_d, d, last_d, alive}
 var _chest_t := 0.0
@@ -315,27 +317,39 @@ const GATE_D := 780.0
 func _make_gate() -> Sprite3D:
 	var g := Sprite3D.new()
 	g.texture = GATE_TEX
-	g.hframes = 7
 	g.texture_filter = BaseMaterial3D.TEXTURE_FILTER_NEAREST
 	g.shaded = false
 	g.billboard = BaseMaterial3D.BILLBOARD_DISABLED
 	g.alpha_cut = SpriteBase3D.ALPHA_CUT_DISCARD
-	var frame_w := GATE_TEX.get_width() / 7.0
-	g.pixel_size = HALL_HALF * 2.0 * 0.9 / frame_w
+	g.pixel_size = HALL_HALF * 2.0 * 0.9 / GATE_TEX.get_width()
 	g.position = Hall3D.to_world(0.0, GATE_D, GATE_TEX.get_height() * g.pixel_size * 0.5)
+	# same hole shader as units/props: shots and blows leave real missing pieces in the door
+	var m := ShaderMaterial.new()
+	m.shader = Hall3D.UNIT_SHADER
+	m.set_shader_parameter("texture_albedo", GATE_TEX)
+	m.set_shader_parameter("px", g.pixel_size)
+	g.material_override = m
+	_gate_holes = PackedVector3Array([Vector3.ZERO, Vector3.ZERO, Vector3.ZERO, Vector3.ZERO])
+	_gate_hole_i = 0
 	world.add_child(g)
 	return g
 
 
-## Scripted path (probes/adversary): the old behavior, swing open right away.
+## Scripted path (probes/adversary): no stand-off, the gate just comes apart for the rush.
 func _open_gate() -> void:
-	_swing_gate(_make_gate())
+	_gate = _make_gate()
+	get_tree().create_timer(1.2).timeout.connect(func():
+		if _gate:
+			_shred_gate(_gate)
+			_gate = null)
 
 
-func _swing_gate(g: Sprite3D) -> void:
+## The door comes apart: a burst of its own slabs, then the ruin fades out.
+func _shred_gate(g: Sprite3D) -> void:
+	for i in 12:
+		_gate_chunk()
 	var tw := create_tween()
-	tw.tween_method(func(f: float): g.frame = mini(6, int(f)), 0.0, 7.0, 1.2)
-	tw.tween_interval(8.0)   # held open through the rush's approach, not freed the instant the swing ends
+	tw.tween_property(g, "modulate:a", 0.0, 0.5).set_delay(0.15)
 	tw.tween_callback(g.queue_free)
 
 
@@ -348,7 +362,7 @@ func _scripted() -> bool:
 
 ## Cursor inside the closed gate's screen rect?
 func _on_gate(cursor: Vector2) -> bool:
-	var frame_w := GATE_TEX.get_width() / 7.0
+	var frame_w := float(GATE_TEX.get_width())
 	var k := Hall3D.screen_scale(camera, GATE_D)
 	var feet := Hall3D.unproject(camera, 0.0, GATE_D)
 	var w := frame_w * _gate.pixel_size * k
@@ -358,11 +372,16 @@ func _on_gate(cursor: Vector2) -> bool:
 
 ## One debris slab cut from the gate's closed frame -- _prop_chunk's recipe at gate scale.
 func _gate_chunk() -> void:
-	var frame_w := GATE_TEX.get_width() / 7.0
+	var frame_w := float(GATE_TEX.get_width())
 	var ps := _gate.pixel_size
 	var sz := _rng.randf_range(10.0, 16.0)
 	var ox := _rng.randf_range(frame_w * 0.15, frame_w * 0.85 - sz)
 	var oy := _rng.randf_range(GATE_TEX.get_height() * 0.15, GATE_TEX.get_height() * 0.85 - sz)
+	# the flying slab and the missing piece are the same piece, prop/unit recipe
+	_gate_holes[_gate_hole_i % 4] = Vector3((ox + sz * 0.5 - frame_w * 0.5) * ps,
+		(GATE_TEX.get_height() * 0.5 - (oy + sz * 0.5)) * ps, sz * 0.55 * ps)
+	_gate_hole_i += 1
+	(_gate.material_override as ShaderMaterial).set_shader_parameter("hole", _gate_holes)
 	var c := Sprite3D.new()
 	var sub := AtlasTexture.new()
 	sub.atlas = GATE_TEX
@@ -434,12 +453,10 @@ func _breach_gate() -> void:
 	_intro = false
 	wave_t = 0.0   # the hall's clock starts when the fight does
 	spawn_t = 2.0
-	for i in 7:
-		_gate_chunk()
 	Sound.play("impact_bulldoze_heavy.wav", 0.0)
 	_shake(SHAKE_AMP * 0.7, 0.3)
 	_fov_punch(1.5, 0.2)
-	_swing_gate(_gate)
+	_shred_gate(_gate)
 	_gate = null
 	say("Hall 1 / 4")
 

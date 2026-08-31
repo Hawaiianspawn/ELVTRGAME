@@ -12,6 +12,7 @@ uniform float scissor = 0.35;
 // xy = centre in local units, z = radius; z = 0 means unused. Unit.take() fills these
 // as wear chunks tear off, so the flying slab and the missing piece are the same piece.
 uniform vec3 hole[4];
+uniform float px = 2.2;
 
 varying vec2 body;
 
@@ -23,10 +24,10 @@ void fragment() {
 	vec4 tex = texture(texture_albedo, UV);
 	float keep = 1.0;
 	// quantize to the sprite's own pixel grid and jitter the radius per block: the hole edge
-	// comes out blocky and torn instead of a clean anti-circle (PX = Hall3D.PIXEL)
-	const float PX = 2.2;
-	vec2 blk = floor(body / PX);
-	vec2 bq = (blk + 0.5) * PX;
+	// comes out blocky and torn instead of a clean anti-circle. px defaults to Hall3D.PIXEL;
+	// big props (the gate) pass their own pixel_size so the blocks stay one art pixel.
+	vec2 blk = floor(body / px);
+	vec2 bq = (blk + 0.5) * px;
 	float jag = fract(sin(dot(blk, vec2(12.9898, 78.233))) * 43758.5453);
 	for (int i = 0; i < 4; i++) {
 		if (hole[i].z > 0.0 && distance(bq, hole[i].xy) < hole[i].z * (0.7 + 0.6 * jag)) {
