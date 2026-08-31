@@ -1554,7 +1554,8 @@ func _breech_layout() -> void:
 	_breech_block.position = Vector2(35.0, 17.0 + 52.0 * _breech_frac) * 2.0
 	_breech_fist.position = Vector2(4.0, 28.0 + 38.0 * _breech_frac) * 2.0
 	# spent round sits scorched in the chamber until the slide bottoms out and swaps it
-	_breech_shell.modulate = Color.WHITE if _breech_has_shell else Color(0.3, 0.27, 0.25)   # scorched dark; fresh is untinted
+	# struck-primer texture for the spent round; the fresh one keeps its full colours
+	_breech_shell.texture = Ui.tex("breech_shell" if _breech_has_shell else "breech_shell_spent")
 
 
 ## The spent round leaves the breech as tumbling brass: the side-view casing spins out to the
@@ -1569,7 +1570,7 @@ func _breech_eject() -> void:
 	# smoke ribbon off the open mouth: newest point rides the mouth at full width, the tail
 	# thins to nothing and fades via the width curve + gradient
 	var trail := Line2D.new()
-	trail.width = 14.0
+	trail.width = 8.0
 	var wc := Curve.new()
 	wc.add_point(Vector2(0.0, 0.05))
 	wc.add_point(Vector2(1.0, 1.0))
@@ -1592,7 +1593,7 @@ func _breech_eject() -> void:
 			trail.set_point_position(i, trail.get_point_position(i) + Vector2(0.0, -55.0 * dt))
 		var mouth: Vector2 = brass.position + brass.pivot_offset 			+ (Vector2(46.0, 12.0) - brass.pivot_offset).rotated(brass.rotation) * brass.scale.x
 		trail.add_point(mouth)
-		while trail.get_point_count() > 18:
+		while trail.get_point_count() > 34:
 			trail.remove_point(0), 0.0, 1.0, 0.8)
 	tw.tween_property(brass, "modulate:a", 0.0, 0.2).set_delay(0.6)
 	tw.chain().tween_property(trail, "modulate:a", 0.0, 0.25)
