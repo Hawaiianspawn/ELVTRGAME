@@ -1583,7 +1583,7 @@ func _breech_eject() -> void:
 	var st := {t = 0.0}
 	var tw := create_tween()
 	tw.set_parallel(true)
-	tw.tween_property(brass, "rotation", -0.4 + TAU * 1.25, 0.8)
+	tw.tween_property(brass, "rotation", -0.4 + TAU * 2.0, 0.8)
 	tw.tween_method(func(t: float):
 		brass.position = p0 + Vector2(320.0 * t, -110.0 * t + 230.0 * t * t)
 		var dt: float = (t - st.t) * 0.8
