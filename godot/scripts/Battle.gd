@@ -1219,7 +1219,7 @@ func _gatling_hit_at(cursor: Vector2) -> void:
 		var prop := _screen_pick_prop(cursor)
 		if not prop.is_empty():
 			prop["hits"] = int(prop["hits"]) - 1
-			_prop_debris(prop["node"])   # a chunk out on every hit
+			_prop_tear(prop)   # a slab out AND a hole left behind, every hit
 			_impact(prop["wx"], prop["last_d"], 6.0)
 			if int(prop["hits"]) <= 0:
 				_break_prop(prop, prop["last_d"])
@@ -1487,7 +1487,8 @@ func _add_prop(name: String, wx: float, base_d: float, facing: int, is_floor: bo
 		bn.scale = s.scale
 		bn.visible = false
 		world.add_child(bn)
-	_props.append({"node": s, "broken": bn, "wx": wx, "base_d": base_d, "last_d": 0.0, "alive": true, "is_floor": is_floor, "h": h, "hits": 3})
+	_props.append({"node": s, "broken": bn, "wx": wx, "base_d": base_d, "last_d": 0.0, "alive": true, "is_floor": is_floor, "h": h, "hits": 3,
+		"holes": PackedVector3Array([Vector3.ZERO, Vector3.ZERO, Vector3.ZERO, Vector3.ZERO]), "hole_i": 0})
 
 
 func _update_props() -> void:
@@ -1499,6 +1500,10 @@ func _update_props() -> void:
 		if d > p["last_d"] + range_d * 0.5:   # wrapped from near back to far: reset + un-break
 			p["alive"] = true
 			p["hits"] = 3
+			if int(p.get("hole_i", 0)) > 0:   # heal the shot-out holes with the respawn
+				p["holes"] = PackedVector3Array([Vector3.ZERO, Vector3.ZERO, Vector3.ZERO, Vector3.ZERO])
+				p["hole_i"] = 0
+				(p["node"].material_override as ShaderMaterial).set_shader_parameter("hole", p["holes"])
 			p["node"].visible = true
 			if p["broken"]:
 				p["broken"].visible = false
@@ -1541,32 +1546,53 @@ func _break_prop(p: Dictionary, d: float) -> void:
 ## Debris chunks torn from a prop's own texture on break — same recipe as Unit._gib, just fewer
 ## and shorter-lived, and parented under world instead of the unit.
 func _prop_debris(s: Sprite3D) -> void:
+	var cell: float = (s.texture as AtlasTexture).region.size.y
+	for i in range(_rng.randi_range(4, 6)):
+		var sz := _rng.randf_range(4.0, 9.0)
+		_prop_chunk(s, _rng.randf_range(cell * 0.2, cell * 0.8 - sz), _rng.randf_range(cell * 0.2, cell * 0.9 - sz), sz)
+
+
+## A gatling tear on a standing prop: one big slab flies off and the same piece goes
+## missing from the sprite — a shader hole in local quad space, same trick as Unit._tear.
+func _prop_tear(p: Dictionary) -> void:
+	var s: Sprite3D = p["node"]
+	var cell: float = (s.texture as AtlasTexture).region.size.y
+	var sz := _rng.randf_range(9.0, 15.0)
+	var ox := _rng.randf_range(cell * 0.2, cell * 0.8 - sz)
+	var oy := _rng.randf_range(cell * 0.2, cell * 0.9 - sz)
+	_prop_chunk(s, ox, oy, sz)
+	var k := Hall3D.PIXEL
+	var holes: PackedVector3Array = p["holes"]
+	holes[int(p["hole_i"]) % 4] = Vector3((ox + sz * 0.5 - cell * 0.5) * k, (cell - (oy + sz * 0.5)) * k, sz * 0.55 * k)
+	p["holes"] = holes
+	p["hole_i"] = int(p["hole_i"]) + 1
+	(s.material_override as ShaderMaterial).set_shader_parameter("hole", holes)
+
+
+## One debris chunk cut from a prop's own texture at (ox, oy) in cell coords.
+func _prop_chunk(s: Sprite3D, ox: float, oy: float, sz: float) -> void:
 	var at: AtlasTexture = s.texture
 	var cell: float = at.region.size.y
 	var k := Hall3D.PIXEL
-	for i in range(_rng.randi_range(4, 6)):
-		var c := Sprite3D.new()
-		var sub := AtlasTexture.new()
-		sub.atlas = at.atlas
-		var sz := _rng.randf_range(4.0, 9.0)
-		var ox := _rng.randf_range(cell * 0.2, cell * 0.8 - sz)
-		var oy := _rng.randf_range(cell * 0.2, cell * 0.9 - sz)
-		sub.region = Rect2(at.region.position + Vector2(s.frame * cell + ox, oy), Vector2(sz, sz))
-		c.texture = sub
-		c.pixel_size = k
-		c.billboard = BaseMaterial3D.BILLBOARD_DISABLED
-		c.texture_filter = BaseMaterial3D.TEXTURE_FILTER_NEAREST
-		c.alpha_cut = SpriteBase3D.ALPHA_CUT_DISCARD
-		c.alpha_scissor_threshold = 0.35
-		c.shaded = false
-		var p0 := s.global_position + Vector3(ox - cell / 2.0, cell - oy, 0.0) * k
-		var v := Vector3(_rng.randf_range(-60.0, 60.0), _rng.randf_range(50.0, 140.0), 0.0) * k
-		c.position = p0
-		world.add_child(c)
-		var tw := create_tween()
-		tw.tween_method(func(t: float): c.position = p0 + v * t - Vector3(0.0, 300.0 * k, 0.0) * t * t, 0.0, 1.0, 0.6)
-		tw.tween_property(c, "modulate:a", 0.0, 0.3).set_delay(0.3)
-		tw.tween_callback(c.queue_free)
+	var c := Sprite3D.new()
+	var sub := AtlasTexture.new()
+	sub.atlas = at.atlas
+	sub.region = Rect2(at.region.position + Vector2(s.frame * cell + ox, oy), Vector2(sz, sz))
+	c.texture = sub
+	c.pixel_size = k
+	c.billboard = BaseMaterial3D.BILLBOARD_DISABLED
+	c.texture_filter = BaseMaterial3D.TEXTURE_FILTER_NEAREST
+	c.alpha_cut = SpriteBase3D.ALPHA_CUT_DISCARD
+	c.alpha_scissor_threshold = 0.35
+	c.shaded = false
+	var p0 := s.global_position + Vector3(ox - cell / 2.0, cell - oy, 0.0) * k
+	var v := Vector3(_rng.randf_range(-60.0, 60.0), _rng.randf_range(50.0, 140.0), 0.0) * k
+	c.position = p0
+	world.add_child(c)
+	var tw := create_tween()
+	tw.tween_method(func(t: float): c.position = p0 + v * t - Vector3(0.0, 300.0 * k, 0.0) * t * t, 0.0, 1.0, 0.6)
+	tw.tween_property(c, "modulate:a", 0.0, 0.3).set_delay(0.3)
+	tw.tween_callback(c.queue_free)
 
 
 func _draw_hud() -> void:
