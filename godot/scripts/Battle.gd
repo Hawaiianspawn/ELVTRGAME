@@ -1192,9 +1192,8 @@ func _pivot() -> Vector2:
 func _gatling_hit_at(cursor: Vector2) -> void:
 	var target := _screen_pick(cursor)
 	if target:
-		# launch before take, same as _cannon_explode_at: a killing hit still reads as a knock-up
-		if target.air_h == 0.0:
-			target.launch(120.0)
+		# no ground launch (owner cut it): the gatling chips, it doesn't knock up. Airborne
+		# targets still juggle fine — take() adds POP on every airborne hit.
 		target.take(GATLING_DMG, Vector2.ZERO, true)
 		_impact(target.wx, target.wd, 6.0)
 	else:

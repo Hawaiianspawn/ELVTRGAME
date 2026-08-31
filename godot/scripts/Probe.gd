@@ -244,8 +244,11 @@ func _run(spec: String) -> void:
 		print("PROBE saved ", ProjectSettings.globalize_path(shot_path))
 		for _i in range(3):
 			await get_tree().process_frame
-		assert(target.air_h > 0.0, "gatling hit did not launch the grounded target")
-		print("PROBE tank gatling ok: launched %s air_h=%.1f" % [target.type, target.air_h])
+		# the ground launch was cut (gatling chips, doesn't knock up): the hit lands as damage +
+		# stays grounded. Juggle-on-airborne is take()'s POP and isn't exercised here.
+		assert(target.air_h == 0.0, "gatling ground hit launched the target; the launch was cut")
+		assert(target.hp < target.max_hp or target.dead, "gatling hit did not damage the target")
+		print("PROBE tank gatling ok: chipped %s grounded, hp %.0f/%.0f" % [target.type, target.hp, target.max_hp])
 		# (b) cannon blast at the densest grounded, unrooted cluster launches >= 3 of them
 		var grounded: Array[Unit] = []
 		for u in b.units:
