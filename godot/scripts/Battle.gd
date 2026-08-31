@@ -119,7 +119,6 @@ var _breech_shell: TextureRect
 var _breech_frac := 0.0                 # 0 = sealed, 1 = block fully down
 var _breech_has_shell := false
 var _breech_drag := false
-var _breech_cursor := Vector2.ZERO
 const GATE_TEX := preload("res://assets/env/castle/gate_open.png")   # 7-frame swing, 96x120/frame
 var burst := 3                          # per-wave spawn burst size (waves.json "burst", default 3)
 var _up_chests: Array[Dictionary] = []  # upgrade chests: {node, broken, wx, base_d, d, last_d, alive}
@@ -1549,11 +1548,10 @@ func _breech_show(on: bool) -> void:
 		_breech_layout()
 	_breech_drag = on
 	if on:
-		_breech_cursor = get_viewport().get_mouse_position()
 		Input.mouse_mode = Input.MOUSE_MODE_CAPTURED
 	else:
 		Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
-		Input.warp_mouse(_breech_cursor)
+		Input.warp_mouse(get_viewport().get_visible_rect().size * 0.5)   # centered; web can't warp anyway
 
 
 ## One drag step. +y opens (pull down), -y closes; crossing full-open feeds the shell, sealing
