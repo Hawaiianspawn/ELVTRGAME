@@ -322,19 +322,24 @@
     "cell": 92,
     "source": "pathfinder-line/Can_you_make_a_Turre",
     "com": 23.2,
+    "aimdown": {
+      "frames": 2,
+      "x": 736,
+      "y": 2212
+    },
     "attack": {
       "frames": 9,
-      "x": 736,
+      "x": 920,
       "y": 2212
     },
     "hurt": {
       "frames": 5,
-      "x": 1564,
-      "y": 2212
+      "x": 0,
+      "y": 2304
     },
     "walk": {
       "frames": 8,
-      "x": 0,
+      "x": 460,
       "y": 2304
     },
     "x": 0,
@@ -359,7 +364,7 @@
       "x": 1288,
       "y": 2396
     },
-    "x": 736,
+    "x": 1196,
     "y": 2304
   },
   "hero_dwarf": {
