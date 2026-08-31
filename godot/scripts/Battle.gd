@@ -243,6 +243,7 @@ func start_wave(i: int) -> void:
 	hall.set_half(HALL_HALF)   # rebuild floor + walls at this hall's width first, art applied next
 	hall.set_hall(i)
 	_flush_wall_props()        # walls moved: snap the wall lamps back onto the new wall face
+	_spawn_floor_props(i)      # and re-theme the floor clutter to this hall
 	var ct := create_tween()        # bend hardens and turns faster too, blended in so the hall doesn't snap
 	ct.set_parallel(true)
 	ct.tween_method(func(v: float) -> void: Hall3D.curve_a = v, Hall3D.curve_a, CURVE_A_BY_WAVE[i], 2.0).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN_OUT)
@@ -798,7 +799,7 @@ func _process(delta: float) -> void:
 	# including an adversary poke -- can drift it, and so to_world's curve offset (which moves as
 	# the hall bends) keeps tracking it
 	hero_wx = 0.0
-	hero_wd = 150.0
+	hero_wd = 150.0   # nearest depth where the dome stays in frame: 120-130 sink it below the bottom edge
 	hero.position = Hall3D.to_world(hero_wx, hero_wd, TANK_MOUNT_H * Hall3D.PIXEL)
 	if tank_sprite:
 		tank_sprite.position = Hall3D.to_world(hero_wx, hero_wd)
@@ -1294,7 +1295,7 @@ func _cannon_explode_at(at: Vector2) -> void:
 func _spawn_chest(wx := INF, d := INF) -> void:
 	var range_d := Hall3D.FOG_END * 1.5 - 60.0
 	var use_d: float = d if d != INF else range_d - 10.0
-	var use_wx: float = wx if wx != INF else _floor_wx()
+	var use_wx: float = wx if wx != INF else _floor_wx(1.0 if _rng.randf() < 0.5 else -1.0)
 	var s := Hall3D.make_sprite3d("chest_ornate", 0)
 	s.scale *= 1.1   # matches the ambient floor props' scale (_add_prop)
 	world.add_child(s)
@@ -1377,17 +1378,44 @@ func _spawn_props() -> void:
 		while d < range_d:
 			_add_prop("lamp_cage", wx, d, facing, false, Hall3D.TILE * Hall3D.COURSES * 1.3, "", 0.575)
 			d += 160.0
-	# floor clutter: tables/chairs/chests, kept off the rank lane and away from the front line
-	# chest_ornate is a dedicated upgrade prop now (_spawn_chest); chest_coffer stays ambient clutter
-	var floor_names := ["table_map", "table_trestle", "chair_bench", "chest_coffer", "brazier", "column_stump", "statue_knight", "banner_pole", "rubble", "barricade", "cage_skeleton", "altar", "barrel", "weapon_rack", "coffin", "gravestone", "cauldron", "bookshelf", "throne", "bone_pile", "stocks", "anvil", "sarcophagus", "crates"]
+	# floor clutter is per-hall themed and respawned by start_wave -> _spawn_floor_props
+
+
+## Hall themes over the same roster: 1 a garrison still in use, 2 the keep's sanctum,
+## 3 the prison-crypt, 4 the necromancer's necropolis. Cycled over the 20 floor slots.
+## chest_ornate is a dedicated upgrade prop (_spawn_chest); chest_coffer stays ambient clutter.
+const PROPS_BY_WAVE: Array = [
+	["table_map", "table_trestle", "chair_bench", "barrel", "crates", "weapon_rack", "anvil", "banner_pole", "brazier", "chest_coffer"],
+	["bookshelf", "table_map", "chair_bench", "statue_knight", "column_stump", "banner_pole", "chest_coffer", "altar", "brazier", "throne"],
+	["cage_skeleton", "stocks", "coffin", "gravestone", "bone_pile", "rubble", "barricade", "column_stump", "chest_coffer", "weapon_rack"],
+	["sarcophagus", "altar", "cauldron", "coffin", "gravestone", "bone_pile", "throne", "rubble", "cage_skeleton", "column_stump"],
+]
+
+
+## Tear down the old hall's floor clutter and lay the new hall's theme. Wall lamps persist.
+func _spawn_floor_props(wave_i: int) -> void:
+	var kept: Array[Dictionary] = []
+	for p in _props:
+		if p["is_floor"]:
+			p["node"].queue_free()
+			if p["broken"]:
+				p["broken"].queue_free()
+		else:
+			kept.append(p)
+	_props = kept
+	var range_d := Hall3D.FOG_END * 1.5 - 60.0
+	var names: Array = PROPS_BY_WAVE[wave_i]
 	var broken_of := {"chair_bench": "chair_broken"}
 	var n := 20
 	for t in range(n):
 		var d0: float = fmod(t * (range_d / n), range_d)
 		if absf(d0 - FRONT_D) < 60.0:   # don't spawn right on the front line
 			d0 += range_d / (n * 2.0)
-		var fname: String = floor_names[t % floor_names.size()]
-		_add_prop(fname, _floor_wx(), d0, 0, true, 0.0, broken_of.get(fname, ""), 1.1)
+		var side := 1.0 if _rng.randf() < 0.5 else -1.0
+		var fname: String = names[t % names.size()]
+		# props hug the walls, so they stand against them like the lamps do: backs to the brick,
+		# facing into the hall — east off the west wall, west off the east — never all south
+		_add_prop(fname, _floor_wx(side), d0, 2 if side < 0.0 else 6, true, 0.0, broken_of.get(fname, ""), 1.1)
 
 
 ## The wall lamps sit flush on the wall face (_spawn_props); a hall change moves the walls, so
@@ -1398,9 +1426,8 @@ func _flush_wall_props() -> void:
 			p["wx"] = signf(p["wx"]) * HALL_HALF
 
 
-## Random wx hugging a wall, clear of the rank block that fills the centre of the hall.
-func _floor_wx() -> float:
-	var side := 1.0 if _rng.randf() < 0.5 else -1.0
+## Random wx hugging the given wall side, clear of the rank block that fills the centre.
+func _floor_wx(side: float) -> float:
 	return side * _rng.randf_range(RANK_HALF * 0.6, HALL_HALF - 40.0)
 
 
@@ -1449,7 +1476,7 @@ func _update_props() -> void:
 			if p["broken"]:
 				p["broken"].visible = false
 			if p["is_floor"]:
-				p["wx"] = _floor_wx()
+				p["wx"] = _floor_wx(signf(p["wx"]))   # keep the side: the facing baked at spawn stays true
 		p["last_d"] = d
 		var wp := Hall3D.to_world(p["wx"], d, p["h"])
 		p["node"].position = wp
