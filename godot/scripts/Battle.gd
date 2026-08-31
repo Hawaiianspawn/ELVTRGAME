@@ -1554,7 +1554,8 @@ func _breech_layout() -> void:
 	_breech_block.position = Vector2(35.0, 17.0 + 52.0 * _breech_frac) * 2.0
 	_breech_fist.position = Vector2(6.0, 24.0 + 38.0 * _breech_frac) * 2.0
 	_breech_shell.visible = not cannon_loaded
-	_breech_shell.position = (Vector2(58.0, 60.0) if _breech_has_shell else Vector2(98.0, 72.0)) * 2.0
+	# rear view of the round: seated in the open port, or waiting at the ramp's base
+	_breech_shell.position = (Vector2(58.0, 41.0) if _breech_has_shell else Vector2(100.0, 72.0)) * 2.0
 
 
 func _breech_show(on: bool) -> void:
