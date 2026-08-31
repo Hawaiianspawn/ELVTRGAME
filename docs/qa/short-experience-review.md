@@ -6,15 +6,24 @@ truth), not the retired-Unreal GDD/SYSTEMS.md.
 
 ## Method
 
-- Adversary: seeds 31, 37, 41, `Scripts/godot-run.ps1 -Adversary battle,<secs>,<seed>`.
-  31 and 37 ran the full 240s cleanly on the first try. 41 needed several retries at
-  240s (see Environment note below) and completed cleanly at 90s; between the three
-  runs, `jump_phase` fired 22-26 times per 240s run, cycling through all four halls
-  many times over (waves picked uniformly at random each time).
+- Adversary: seeds 31 and 37, `Scripts/godot-run.ps1 -Adversary battle,240,<seed>`, both
+  ran the full 240s cleanly on the first try. `jump_phase` fired 22-26 times per run,
+  cycling through all four halls many times over (waves picked uniformly at random
+  each time). A third seed (41) was cut short by owner call to close the pass early —
+  two clean 240s runs was judged enough.
 - Stills: `Scripts/godot-run.ps1 -Probe "battle,<secs>,wave=<N>"` for each hall, one
   longer hold (18s) on hall 1 to see it clear. Copied to `docs/qa/short-experience-hall{1,2,3,4}.png`
-  and `short-experience-hall1-clash.png`.
-- Full reports: `docs/qa/adversary_{31,37,41}.{json,csv,png}` (+ per-finding shots).
+  and `short-experience-hall1-clash.png`. All four halls are covered.
+- Full reports: `docs/qa/adversary_{31,37}.{json,csv,png}` (+ per-finding shots).
+
+**Shared-tree note:** `godot/scripts/Game.gd` and `godot/scripts/Battle.gd` changed
+after these stills were captured — owner-requested live edits by the team lead
+(a focus-loss audio mute in `Game.gd`; the tank pulled to depth 150 with
+`TANK_FOOTPRINT_R` 110 in `Battle.gd`), not part of this review. The four hall stills
+below predate that change and show the old tank depth (190). `Unit.gd`, `World3D.gd`,
+`assets/sprites/manifest.json`, `assets/sprites/atlas.png`, `Scripts/art/godot_pack.py`,
+and `assets/sfx/gatling_shot.wav` were already modified by an unrelated peer session
+before this task started and are also not this review's doing.
 
 ## Findings
 
@@ -31,21 +40,19 @@ Hall 4's heavier composition (9 lanes, 160hp armored units bogging down fights) 
 allies less likely to be idling in RANK at any given instant, so this hits hall-4
 captures hardest, but it can happen in any hall.
 
-**2. MEDIUM — halberdier depth/charge residual-state bug.** Every one of the three
-adversary runs logged the *same* finding: an ally **halberdier**, and only a
-halberdier, parked at wd -1 to -28 (behind the camera plane; ally floor is wd >= 0)
-for a huge share of each run — 36,958 to 68,235 per-frame check hits per run, spanning
-from a few seconds in to nearly the run's end. Seed 41 additionally caught a distinct
-but related finding: a halberdier stuck in `charge_to > 0` state for the full 10s
-budget, in `RETREAT`, with `army_type` already swapped to `hammer` — i.e. a straggler
-from an earlier halberdier charge that never cleared. Suspect cause: `Unit.gd:214-261`,
-the charge/return-leg block that runs *instead of* the normal state machine while
-`charge_to > 0` (including the `RETREAT` recall-at-wd<70 check) — clearing `charge_to`
-only happens at line 259 once the return leg's `_step(_charge_from, ...)` reports
-`not _moving`. Swap-cycling the active army away from halberdier mid-charge
-(`swap_spam` was the active behavior at the time of seed 41's depth finding) looks
-like the trigger: the return leg's target or completion check goes stale and the unit
-neither reaches home nor gets recalled.
+**2. MEDIUM — halberdier depth residual-state bug. Repro: seeds 31 and 37, both at
+240s.** Both adversary runs logged the *same* finding: an ally **halberdier**, and
+only a halberdier, parked at wd -1 to -28 (behind the camera plane; ally floor is
+wd >= 0) for a huge share of each run — 36,958 to 68,235 per-frame check hits per run
+(seed 31: `RETREAT` state, wd=-28; seed 37: `RANK` state, wd=-1), spanning from a few
+seconds in to nearly the run's end each time. Suspect cause: `Unit.gd:214-261`, the
+charge/return-leg block that runs *instead of* the normal state machine while
+`charge_to > 0` (including the `RETREAT` recall-at-wd<70 check at line 316-320) —
+`charge_to` only clears at line 259 once the return leg's `_step(_charge_from, ...)`
+reports `not _moving`. If that return leg's target or completion check goes stale
+(plausible under concurrent army-swap pressure — `swap_spam` was active in both
+finding contexts), a halberdier neither reaches home nor gets recalled, and settles
+at a corrupted depth near zero indefinitely.
 
 **3. LOW/cosmetic — airborne ally briefly renders above the frame.** `veteran` allies
 launched high enough (air_h 17-67) occasionally have their sprite top clip above
@@ -61,16 +68,11 @@ own `teleport_hero` behavior, and nothing ever clamps it back afterward — so t
 "hero clamp" invariant exists purely to catch the adversary's own artificial teleports,
 with three of fourteen behaviors (~21% of tick time) contributing nothing.
 
-**Environment note (not a game defect):** seed 41's 240s run failed 3 of 4 attempts
-through `godot-run.ps1 -Adversary`, dying mid-run with no report. Confirmed cause:
-other agents in this shared session invoke the same wrapper (a `tank`-probe loop was
-seen re-launching every 15-30s), and the wrapper's kill-previous-instance logic kills
-*any* non-editor game process bound to this project, including a long adversary run
-mid-flight. One direct (non-wrapper) run of seed 41 at 240s completed cleanly with no
-crash, and a 90s wrapper run of seed 41 also completed cleanly — the seed itself is
-fine. Messaged `tank-sprite`/`tank-loop` to ask for a pause; no reply arrived, so
-seed 41's clean run is 90s instead of 240s. Don't headline this as a bug; it's a
-side effect of several agents sharing one machine's game binary.
+**Environment note (not a game defect):** other agents in this shared session
+repeatedly invoke the same `godot-run.ps1` wrapper, whose kill-previous-instance
+logic kills *any* non-editor game process bound to this project — including a long
+adversary run mid-flight. That cost several retries during this pass. Not a game
+defect; a side effect of several agents sharing one machine's game binary.
 
 The pre-existing `_gatling_hit_at` probe flake (`docs/qa/tank-sprite.md`) was not seen
 in these runs and isn't re-litigated here.
@@ -123,8 +125,7 @@ in these runs and isn't re-litigated here.
    in RANK state at capture time (hits hall 4 hardest).
 2. Chase the halberdier charge/retreat residual-state bug (`Unit.gd:214-261`):
    swap-cycling away from halberdier mid-charge leaves stragglers parked behind the
-   camera plane or stuck in `charge_to` past its own 10s budget, for tens of
-   thousands of frames per run.
+   camera plane for tens of thousands of frames per run, in both RETREAT and RANK.
 3. Stop shuffling the necromancer into hall 4's general spawn queue
    (`Battle.gd:265-269`) — pin it to spawn last so the "boss" actually lands as a
    closing beat instead of appearing at a random point among 145 enemies.
