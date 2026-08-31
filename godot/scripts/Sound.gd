@@ -12,6 +12,13 @@ const PITCH_SPREAD_TONAL := 0.03   # stingers / UI chimes stay on key
 const ENEMY_DB := -8.0   # enemy unit cues sit under the retinue — the player's side is the one to read
 const DIR := "res://assets/sfx/"
 
+# Mix hierarchy (owner, 2026-08-30): stingers/reads ~-3, loud one-shots -7..-3, crowd foley -12..-8.
+# Cue-class offsets for unit combat foley — the 100+ crowd is the cacophony, hero cues stay on top.
+const CUE_DB := {"attack": -10.0, "hit": -12.0, "death": -8.0, "ability": -4.0}
+# Named one-shots and prefixes resolved in play(); first prefix match wins, unlisted files stay 0.
+const FILE_DB := {"gatling_shot.wav": -5.0, "cannon_fire.wav": -3.0, "cannon_explosion.wav": -3.0,
+	"stinger_": -3.0, "ui_": -3.0}
+
 var probe_counts := {}     # file -> total plays this run, printed by Probe at the end
 
 var _players: Array[AudioStreamPlayer] = []
@@ -28,6 +35,8 @@ func _ready() -> void:
 	for a in OS.get_cmdline_user_args():
 		if a.begins_with("--probe="):
 			_probe = true
+	# 12 voices of -10dB foley still sum ~+10dB over one; a brickwall on Master eats the stack
+	AudioServer.add_bus_effect(0, AudioEffectHardLimiter.new())
 	for i in range(POOL_SIZE):
 		var bus_name := "SFX%d" % i
 		AudioServer.add_bus()
@@ -61,7 +70,12 @@ func play(file: String, x_lateral := 0.0, db := 0.0) -> void:
 	var i := _voice()
 	var p := _players[i]
 	p.stream = stream
-	p.volume_db = db
+	var base := 0.0
+	for k: String in FILE_DB:
+		if file == k or (k.ends_with("_") and file.begins_with(k)):
+			base = FILE_DB[k]
+			break
+	p.volume_db = base + db
 	var spread := PITCH_SPREAD_TONAL if (file.begins_with("stinger_") or file.begins_with("ui_")) else PITCH_SPREAD
 	p.pitch_scale = randf_range(1.0 - spread, 1.0 + spread)
 	_panners[i].pan = clampf(x_lateral / HALL_HALF, -1.0, 1.0)
@@ -73,7 +87,8 @@ func play(file: String, x_lateral := 0.0, db := 0.0) -> void:
 func unit(u_type: String, cue: String, x_lateral := 0.0, team := Unit.ALLY) -> void:
 	var d: Dictionary = Game.units.get(u_type, {})
 	var sfx: Dictionary = d.get("sfx", {})
-	play(str(sfx.get(cue, "")), x_lateral, ENEMY_DB if team == Unit.ENEMY else 0.0)
+	var db: float = CUE_DB.get(cue, 0.0) + (ENEMY_DB if team == Unit.ENEMY else 0.0)
+	play(str(sfx.get(cue, "")), x_lateral, db)
 
 
 func _voice() -> int:
