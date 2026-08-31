@@ -1561,23 +1561,21 @@ func _breech_layout() -> void:
 	_breech_shell.modulate = Color.WHITE if _breech_has_shell else Color(0.55, 0.5, 0.45)
 
 
-## The spent round leaves the breech: a scorched copy flies off to the right and fades, while
-## _breech_shell itself becomes the fresh round in the same beat.
+## The spent round leaves the breech as tumbling brass: the side-view casing spins out to the
+## right on a kicked-up arc and fades, while _breech_shell becomes the fresh round in the same beat.
 func _breech_eject() -> void:
-	var spent := TextureRect.new()
-	spent.texture = _breech_shell.texture
-	spent.scale = _breech_shell.scale
-	spent.pivot_offset = _breech_shell.pivot_offset
-	spent.position = _breech_shell.position
-	spent.modulate = Color(0.55, 0.5, 0.45)
-	spent.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	_breech.add_child(spent)
+	var brass := Ui.sprite(_breech, "breech_brass", Vector2(116, 82))
+	brass.scale = Vector2(2, 2)
+	brass.pivot_offset = Vector2(24, 12)
+	brass.rotation = -0.4
+	var p0: Vector2 = brass.position
 	var tw := create_tween()
 	tw.set_parallel(true)
-	tw.tween_property(spent, "position", spent.position + Vector2(260, -36), 0.35).set_ease(Tween.EASE_OUT)
-	tw.tween_property(spent, "rotation", 1.6, 0.35)
-	tw.tween_property(spent, "modulate:a", 0.0, 0.15).set_delay(0.22)
-	tw.chain().tween_callback(spent.queue_free)
+	tw.tween_property(brass, "rotation", -0.4 + TAU * 3.0, 0.45)
+	tw.tween_method(func(t: float):
+		brass.position = p0 + Vector2(300.0 * t, -90.0 * t + 190.0 * t * t), 0.0, 1.0, 0.45)
+	tw.tween_property(brass, "modulate:a", 0.0, 0.12).set_delay(0.33)
+	tw.chain().tween_callback(brass.queue_free)
 
 
 func _breech_show(on: bool) -> void:
