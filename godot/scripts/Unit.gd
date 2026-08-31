@@ -515,9 +515,9 @@ func take(amount: float, push := Vector2.ZERO, quiet := false) -> void:
 			_last_hurt_t = now
 			_clip = _hurt[_hurt_combo % _hurt.size()]
 			_atk_t = 0.0
-		# boss-tier meat sheds while juggled: every airborne hit knocks a couple of chunks out,
-		# rate-capped so the gatling's 12/s doesn't turn the boss into a confetti fountain
-		if team == ENEMY and max_hp >= BOSS_GIB_HP and (air_h > 0.0 or air_v > 0.0):
+		# boss-tier meat sheds under fire, walking or juggled: every hit knocks a couple of chunks
+		# out, rate-capped so the gatling's 12/s doesn't turn the boss into a confetti fountain
+		if team == ENEMY and max_hp >= BOSS_GIB_HP:
 			var gt := Time.get_ticks_msec() / 1000.0
 			if gt - _last_gib_t > 0.15:
 				_last_gib_t = gt
