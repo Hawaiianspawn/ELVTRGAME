@@ -15,6 +15,7 @@ const POP := 45.0            # upward impulse added by every juggle hit: extends
 const FLOAT_V := 50.0        # |air_v| under this = the apex: gravity eases so they hang there
 const FLOAT_G := 0.35
 const AGGRO := 150.0         # ranks wake up to enemies this close (was 90: only the first row ever fought)
+const BOSS_GIB_HP := 300.0   # max_hp at or above this = boss-tier: sheds gib chunks on airborne hits, not just death
 const WALL_INSET := 32.0     # world units the clamp keeps a unit's centre off the wall face: ~half a visible body (14-15 sprite px) so billboards don't sink into the brick. ponytail: flat inset, per-sprite half-width if big cells still clip
 const SUPPORT_DMG := 0.5     # rank hits beyond own weapon reach land at this fraction
 enum State { RANK, ADVANCE, FIGHT, RETREAT }
@@ -90,6 +91,7 @@ var _clip := {}                    # whichever clip is playing
 var _hurt: Array = []              # manifest hurt1..hurt7 (+ bare "hurt") clips; empty = no hit-reactions
 var _hurt_combo := 0               # cycles through _hurt while hits land inside the combo window
 var _last_hurt_t := -10.0          # wall-clock of the last hurt clip; combo resets past 0.8s idle
+var _last_gib_t := -10.0           # wall-clock of the last juggle-gib burst (boss-tier only)
 var _atk_hold := 0.0               # units.json attack_hold: seconds the strike frame lingers before guard
 var _rot_region: Rect2
 var _cell := 48.0                  # sprite cell size in px
@@ -513,6 +515,13 @@ func take(amount: float, push := Vector2.ZERO, quiet := false) -> void:
 			_last_hurt_t = now
 			_clip = _hurt[_hurt_combo % _hurt.size()]
 			_atk_t = 0.0
+		# boss-tier meat sheds while juggled: every airborne hit knocks a couple of chunks out,
+		# rate-capped so the gatling's 12/s doesn't turn the boss into a confetti fountain
+		if team == ENEMY and max_hp >= BOSS_GIB_HP and (air_h > 0.0 or air_v > 0.0):
+			var gt := Time.get_ticks_msec() / 1000.0
+			if gt - _last_gib_t > 0.15:
+				_last_gib_t = gt
+				_gib(push, 2)
 	if dead:
 		if (air_h > 0.0 or air_v > 0.0) and team == ENEMY:
 			Game.score += int(max_hp * (1.0 + 0.5 * _juggles))
@@ -548,12 +557,12 @@ func take(amount: float, push := Vector2.ZERO, quiet := false) -> void:
 
 ## Gibs: chunks torn from this sprite's own pixels, flung away from the blow, gravity pulls them
 ## down. They spray in the camera plane, so only the lateral half of `push` steers them.
-func _gib(push: Vector2) -> void:
+func _gib(push: Vector2, count := 8) -> void:
 	var at: AtlasTexture = sprite.texture
 	var cell := at.region.size.y
 	var k := Hall3D.PIXEL
 	var host := get_parent()
-	for i in range(8):
+	for i in range(count):
 		var c := Sprite3D.new()
 		var sub := AtlasTexture.new()
 		sub.atlas = at.atlas
