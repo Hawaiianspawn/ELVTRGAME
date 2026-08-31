@@ -77,7 +77,7 @@ const GATLING_RATE := 12.0      # shots/s at 1.0x
 const GATLING_DMG := 4.0
 const TANK_SCALE := 0.55        # owner call: the dome hid the crowd at native size, shrink it
 const TANK_MOUNT_H := 45.0      # sprite px: hero's feet height on the stone tank's turret roof (~82 tank px * TANK_SCALE)
-const TANK_FOOTPRINT_R := 75.0  # world units: dome's on-screen radius at TANK_SCALE, for separation()'s hero shove
+const TANK_FOOTPRINT_R := 110.0  # world units: dome radius + a clear apron so ranks never stand between the lens and the dome
 var tank_sprite: Sprite3D
 var _barrel: Sprite3D                   # cannon neck: yaws at the turret toward the cursor's ground point
 var _barrel_yaw := PI / 2.0             # ground-plane aim, radians: 0 = +wx (screen right), PI/2 = deeper down the hall
@@ -85,6 +85,8 @@ const BARREL_TEX := preload("res://assets/sprites/tank_barrel.png")   # 34x14, c
 const BARREL_LEN := 34.0                # sprite px
 const BARREL_SCALE := 0.8               # not TANK_SCALE: at 0.55 the rider's base swallows it whole
 var _cannon_cd := 0.0
+const AIM_DOWN_D := 320.0       # world units: cursor ground point this close to the tank = steep look-down, use aim-down frames
+var _aim_clip := {}             # manifest "aimdown" row (frame 0 = NE, 1 = NW); empty for heroes without one
 var cannon_reload_mult := 1.0
 var cannon_radius_mult := 1.0
 const CANNON_CD := 5.0   # a reward beat, not a second gun — gatling does the steady damage
@@ -206,6 +208,7 @@ func _ready() -> void:
 		_barrel.position = Vector3(0.0, 4.0 * Hall3D.PIXEL, -3.0)   # rider's base, a hair behind the rider so it sorts under
 		hero.add_child(_barrel)
 	_hero_rot = (hero_sprite.texture as AtlasTexture).region
+	_aim_clip = Game.sprites[Game.hero].get("aimdown", {})
 	hero.add_child(hero_sprite)
 	if Game.sprites.has("fx_orb"):
 		_orb = Hall3D.make_fx3d("fx_orb")   # the green flame over the hero: packed wisp loop, sized in _draw_hud
@@ -795,7 +798,7 @@ func _process(delta: float) -> void:
 	# including an adversary poke -- can drift it, and so to_world's curve offset (which moves as
 	# the hall bends) keeps tracking it
 	hero_wx = 0.0
-	hero_wd = 190.0
+	hero_wd = 150.0
 	hero.position = Hall3D.to_world(hero_wx, hero_wd, TANK_MOUNT_H * Hall3D.PIXEL)
 	if tank_sprite:
 		tank_sprite.position = Hall3D.to_world(hero_wx, hero_wd)
@@ -818,11 +821,11 @@ func _process(delta: float) -> void:
 		var n := int(_hero_clip["frames"])
 		if _hero_t >= n * Unit.ATK_DT:
 			_hero_t = -1.0
-			Hall3D.rotation_frame(hero_sprite, _hero_rot, facing)
+			_face_hero(facing, cursor_wp)
 		else:
 			Hall3D.clip_frame(hero_sprite, _hero_rot, _hero_clip, int(_hero_t / Unit.ATK_DT))
 	else:
-		Hall3D.rotation_frame(hero_sprite, _hero_rot, facing)
+		_face_hero(facing, cursor_wp)
 	# gatling: hold LMB ("cast" action, unchanged in project.godot) to fire at rate
 	_gatling_cd -= delta
 	_cannon_cd -= delta
@@ -853,23 +856,16 @@ func _wave_done() -> void:
 		start_wave(Game.wave + 1)
 
 
-## The hall bends between waves: swing the lens left/right, or tilt it up a stair, then settle.
+## Between waves: name the turn and hold a beat. The lens no longer moves (owner cut the swing/tilt).
 func _turn(kind: String) -> void:
-	var t := create_tween()
 	match kind:
 		"left", "right":
 			say("The hall turns %s." % kind)
-			var dx := -160.0 if kind == "left" else 160.0
-			t.tween_property(camera, "position:x", dx, 1.2).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN_OUT)
-			t.tween_property(camera, "position:x", 0.0, 1.2).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN_OUT)
 		"stairs":
 			say("Stairs. Up.")
-			t.tween_property(camera, "rotation_degrees:x", pitch_for(170.0), 1.2).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN_OUT)
-			t.tween_property(camera, "rotation_degrees:x", pitch_for(HORIZON), 1.2).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN_OUT)
 		_:
 			say("Hall cleared.")
-			t.tween_interval(2.5)
-	await t.finished
+	await get_tree().create_timer(2.5).timeout
 
 
 func _unhandled_input(e: InputEvent) -> void:
@@ -1114,6 +1110,16 @@ func _card(name: String, title: String, secs: float) -> void:
 	tw.tween_interval(secs - 0.5)
 	tw.tween_property(dim, "modulate:a", 0.0, 0.5)
 	tw.tween_callback(dim.queue_free)
+
+
+## Idle facing frame. The rider sits high on the turret roof, so a cursor ground point near the
+## tank means a steep look-down the flat rotation frames can't sell: when he points NE/NW at a
+## near-flank target, swap in the depressed-aim pair instead (aimdown row: frame 0 = NE, 1 = NW).
+func _face_hero(facing: int, cursor_wp: Vector2) -> void:
+	if not _aim_clip.is_empty() and (facing == 3 or facing == 5) and Vector2(cursor_wp.x - hero_wx, cursor_wp.y - hero_wd).length() < AIM_DOWN_D:
+		Hall3D.clip_frame(hero_sprite, _hero_rot, _aim_clip, 0 if facing == 3 else 1)
+	else:
+		Hall3D.rotation_frame(hero_sprite, _hero_rot, facing)
 
 
 ## Start a packed hero clip (attack / hurt) if this hero has one; walk loops on its own in _process.
