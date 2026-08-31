@@ -1575,15 +1575,21 @@ func _breech_eject() -> void:
 	wc.add_point(Vector2(1.0, 1.0))
 	trail.width_curve = wc
 	var gr := Gradient.new()
-	gr.set_color(0, Color(0.75, 0.72, 0.68, 0.0))
-	gr.set_color(1, Color(0.75, 0.72, 0.68, 0.45))
+	gr.set_color(0, Color(0.93, 0.93, 0.9, 0.0))
+	gr.set_color(1, Color(0.93, 0.93, 0.9, 0.55))
 	trail.gradient = gr
 	_breech.add_child(trail)
+	var st := {t = 0.0}
 	var tw := create_tween()
 	tw.set_parallel(true)
 	tw.tween_property(brass, "rotation", -0.4 + TAU * 1.25, 0.8)
 	tw.tween_method(func(t: float):
 		brass.position = p0 + Vector2(320.0 * t, -110.0 * t + 230.0 * t * t)
+		var dt: float = (t - st.t) * 0.8
+		st.t = t
+		# smoke rises: every laid point drifts upward while the casing flies on
+		for i in trail.get_point_count():
+			trail.set_point_position(i, trail.get_point_position(i) + Vector2(0.0, -55.0 * dt))
 		var mouth: Vector2 = brass.position + brass.pivot_offset 			+ (Vector2(46.0, 12.0) - brass.pivot_offset).rotated(brass.rotation) * brass.scale.x
 		trail.add_point(mouth)
 		while trail.get_point_count() > 18:
