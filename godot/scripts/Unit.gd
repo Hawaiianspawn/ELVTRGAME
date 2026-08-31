@@ -91,6 +91,8 @@ var _hurt: Array = []              # manifest hurt1..hurt7 (+ bare "hurt") clips
 var _hurt_combo := 0               # cycles through _hurt while hits land inside the combo window
 var _last_hurt_t := -10.0          # wall-clock of the last hurt clip; combo resets past 0.8s idle
 var _next_gib_hp := 0.0            # next hp threshold that sheds wear chunks (every 25% of max_hp)
+var _holes := PackedVector3Array([Vector3.ZERO, Vector3.ZERO, Vector3.ZERO, Vector3.ZERO])
+var _hole_i := 0                   # next slot in the shader's 4-hole ring; 4 quarters = 4 holes, exact fit
 var _atk_hold := 0.0               # units.json attack_hold: seconds the strike frame lingers before guard
 var _rot_region: Rect2
 var _cell := 48.0                  # sprite cell size in px
@@ -520,7 +522,7 @@ func take(amount: float, push := Vector2.ZERO, quiet := false) -> void:
 		if team == ENEMY:
 			while hp <= _next_gib_hp and _next_gib_hp > 0.0:
 				_next_gib_hp -= max_hp * 0.25
-				_gib(push, 2, 9.0, 15.0)   # big slabs, like the shot tore straight through
+				_tear(push)
 	if dead:
 		if (air_h > 0.0 or air_v > 0.0) and team == ENEMY:
 			Game.score += int(max_hp * (1.0 + 0.5 * _juggles))
@@ -557,32 +559,51 @@ func take(amount: float, push := Vector2.ZERO, quiet := false) -> void:
 ## Gibs: chunks torn from this sprite's own pixels, flung away from the blow, gravity pulls them
 ## down. They spray in the camera plane, so only the lateral half of `push` steers them.
 func _gib(push: Vector2, count := 8, sz_min := 4.0, sz_max := 8.0) -> void:
+	var cell := (sprite.texture as AtlasTexture).region.size.y
+	for i in range(count):
+		var sz := randf_range(sz_min, sz_max)
+		_gib_chunk(push, randf_range(cell * 0.3, cell * 0.7 - sz), randf_range(cell * 0.25, cell * 0.9 - sz), sz)
+
+
+## A wear tear: one big slab flies off AND the same piece goes missing from the body — a
+## shader hole in local quad space (stable across animation frames) where the chunk was cut.
+func _tear(push: Vector2) -> void:
+	var cell := (sprite.texture as AtlasTexture).region.size.y
+	var sz := randf_range(9.0, 15.0)
+	var ox := randf_range(cell * 0.3, cell * 0.7 - sz)
+	var oy := randf_range(cell * 0.25, cell * 0.9 - sz)
+	_gib_chunk(push, ox, oy, sz)
+	var k := Hall3D.PIXEL
+	_holes[_hole_i % 4] = Vector3((ox + sz * 0.5 - cell * 0.5) * k, (cell - (oy + sz * 0.5)) * k, sz * 0.55 * k)
+	_hole_i += 1
+	(sprite.material_override as ShaderMaterial).set_shader_parameter("hole", _holes)
+
+
+## One debris chunk cut from this sprite's own pixels at (ox, oy) in cell coords, flung
+## away from the blow. Sprays in the camera plane, so only the lateral half of `push` steers.
+func _gib_chunk(push: Vector2, ox: float, oy: float, sz: float) -> void:
 	var at: AtlasTexture = sprite.texture
 	var cell := at.region.size.y
 	var k := Hall3D.PIXEL
 	var host := get_parent()
-	for i in range(count):
-		var c := Sprite3D.new()
-		var sub := AtlasTexture.new()
-		sub.atlas = at.atlas
-		var sz := randf_range(sz_min, sz_max)
-		var ox := randf_range(cell * 0.3, cell * 0.7 - sz)
-		var oy := randf_range(cell * 0.25, cell * 0.9 - sz)
-		sub.region = Rect2(at.region.position + Vector2(sprite.frame * cell + ox, oy), Vector2(sz, sz))
-		c.texture = sub
-		c.pixel_size = k
-		c.billboard = BaseMaterial3D.BILLBOARD_DISABLED
-		c.texture_filter = BaseMaterial3D.TEXTURE_FILTER_NEAREST
-		c.alpha_cut = SpriteBase3D.ALPHA_CUT_DISCARD
-		c.alpha_scissor_threshold = 0.35
-		c.shaded = false
-		var p0 := global_position + Vector3(ox - cell / 2.0, cell - oy, 0.0) * k
-		var v := Vector3(randf_range(-70.0, 70.0) + push.x * 0.35, randf_range(60.0, 160.0), 0.0) * k
-		var spin := randf_range(-8.0, 8.0)
-		host.add_child(c)
-		var tw := create_tween()
-		tw.tween_method(func(t: float):
-			c.position = p0 + v * t - Vector3(0.0, 320.0 * k, 0.0) * t * t
-			c.rotation.z = spin * t, 0.0, 1.0, 0.8)
-		tw.tween_property(c, "modulate:a", 0.0, 0.4)
-		tw.tween_callback(c.queue_free)
+	var c := Sprite3D.new()
+	var sub := AtlasTexture.new()
+	sub.atlas = at.atlas
+	sub.region = Rect2(at.region.position + Vector2(sprite.frame * cell + ox, oy), Vector2(sz, sz))
+	c.texture = sub
+	c.pixel_size = k
+	c.billboard = BaseMaterial3D.BILLBOARD_DISABLED
+	c.texture_filter = BaseMaterial3D.TEXTURE_FILTER_NEAREST
+	c.alpha_cut = SpriteBase3D.ALPHA_CUT_DISCARD
+	c.alpha_scissor_threshold = 0.35
+	c.shaded = false
+	var p0 := global_position + Vector3(ox - cell / 2.0, cell - oy, 0.0) * k
+	var v := Vector3(randf_range(-70.0, 70.0) + push.x * 0.35, randf_range(60.0, 160.0), 0.0) * k
+	var spin := randf_range(-8.0, 8.0)
+	host.add_child(c)
+	var tw := create_tween()
+	tw.tween_method(func(t: float):
+		c.position = p0 + v * t - Vector3(0.0, 320.0 * k, 0.0) * t * t
+		c.rotation.z = spin * t, 0.0, 1.0, 0.8)
+	tw.tween_property(c, "modulate:a", 0.0, 0.4)
+	tw.tween_callback(c.queue_free)
