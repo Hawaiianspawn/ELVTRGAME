@@ -1389,13 +1389,14 @@ func _tracer(from: Vector2, to: Vector2) -> void:
 	l.queue_free()
 
 
-## Brass off the breech every gatling shot: a flung 2px chip that falls, bounces once off the
-## floor line at the tank's feet, and fades. Screen-space on the fx overlay.
-func _eject_casing() -> void:
+## Brass off the breech every gatling shot: a flung chip that falls, bounces once off the
+## floor line at the tank's feet, and fades. Screen-space on the fx overlay. The cannon
+## ejects one too -- a big red shell.
+func _eject_casing(px := Vector2(2.0, 1.0), col := Color(0.95, 0.8, 0.35)) -> void:
 	var k := Hall3D.screen_scale(camera, hero_wd) * Hall3D.PIXEL
 	var r := ColorRect.new()
-	r.color = Color(0.95, 0.8, 0.35)
-	r.size = Vector2(3.0, 2.0) * k
+	r.color = col
+	r.size = px * k
 	r.rotation = _rng.randf() * TAU
 	fx.add_child(r)
 	var side := -1.0 if cos(_barrel_yaw) > 0.0 else 1.0   # eject away from the aim side
@@ -1436,6 +1437,7 @@ func _fire_cannon() -> void:
 	var to := Vector2(picked.wx, picked.wd) if picked else _cursor_world()
 	var from := Vector2(hero_wx, hero_wd)
 	Sound.play("cannon_fire.wav", hero_wx)
+	_eject_casing(Vector2(6.0, 3.0), Color(0.85, 0.22, 0.18))
 	var l := Line2D.new()
 	l.width = 2.5
 	l.default_color = Color(1.0, 0.75, 0.35)
