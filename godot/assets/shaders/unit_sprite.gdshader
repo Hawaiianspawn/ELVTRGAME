@@ -22,8 +22,14 @@ void vertex() {
 void fragment() {
 	vec4 tex = texture(texture_albedo, UV);
 	float keep = 1.0;
+	// quantize to the sprite's own pixel grid and jitter the radius per block: the hole edge
+	// comes out blocky and torn instead of a clean anti-circle (PX = Hall3D.PIXEL)
+	const float PX = 2.2;
+	vec2 blk = floor(body / PX);
+	vec2 bq = (blk + 0.5) * PX;
+	float jag = fract(sin(dot(blk, vec2(12.9898, 78.233))) * 43758.5453);
 	for (int i = 0; i < 4; i++) {
-		if (hole[i].z > 0.0 && distance(body, hole[i].xy) < hole[i].z) {
+		if (hole[i].z > 0.0 && distance(bq, hole[i].xy) < hole[i].z * (0.7 + 0.6 * jag)) {
 			keep = 0.0;
 		}
 	}
