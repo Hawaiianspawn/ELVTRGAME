@@ -65,7 +65,6 @@ var hero: Node3D
 var hero_sprite: Sprite3D
 var _hero_rot: Rect2                   # hero_sprite's rotation region; clips (attack/hurt/walk) swap it out
 var _hero_clip := {}
-var _orb: Sprite3D                     # magic wisp over the hero (fx_orb), null when the row isn't packed
 var _hero_t := -1.0                    # time into the playing one-shot clip, <0 = none
 var hero_wx := 0.0
 var hero_wd := 245.0
@@ -232,10 +231,7 @@ func _ready() -> void:
 	_hero_rot = (hero_sprite.texture as AtlasTexture).region
 	_aim_clip = Game.sprites[Game.hero].get("aimdown", {})
 	hero.add_child(hero_sprite)
-	if Game.sprites.has("fx_orb"):
-		_orb = Hall3D.make_fx3d("fx_orb")   # the green flame over the hero: packed wisp loop, sized in _draw_hud
-		_orb.position = Vector3(0.0, 60.0 * Hall3D.PIXEL, 0.0)
-		hero.add_child(_orb)
+	# green flame wisp over the hero cut (owner call); Game.magic still drives casts, just no orb
 	world.add_child(hero)
 	start_wave(Game.wave)
 	_spawn_props()
@@ -1932,12 +1928,6 @@ func _prop_chunk(s: Sprite3D, ox: float, oy: float, sz: float) -> void:
 
 
 func _draw_hud() -> void:
-	# hero flame rides the top layer so it glows over the ranks
-	if _orb:
-		_orb.pixel_size = Hall3D.PIXEL * (0.6 + minf(Game.magic, 200.0) / 200.0)   # 32px wisp grows with the pool
-		_orb.frame = int(wave_t * 8.0) % _orb.hframes
-	else:
-		hud.draw_circle(Hall3D.unproject(camera, hero_wx, hero_wd, 60.0 * Hall3D.PIXEL), 4.0 + minf(Game.magic, 200.0) * 0.06, Color(0.4, 1.0, 0.4, 0.8))
 	# bottom strip: the four army panels, ranks left, ability cooldown; current army type large + on top
 	for p in army_panels:
 		p.update(_rank_count(p.type), _ability_cd_left(p.type))
