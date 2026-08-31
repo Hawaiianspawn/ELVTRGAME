@@ -1540,9 +1540,12 @@ func _breech_build() -> void:
 	_breech.position = BREECH_POS
 	_breech.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	_ui.add_child(_breech)
-	for pc in [["breech_back", Vector2.ZERO], ["breech_shell", Vector2(196, 144)]]:
-		Ui.sprite(_breech, pc[0], pc[1]).scale = Vector2(2, 2)
-	_breech_shell = _breech.get_child(1)
+	var back := Ui.sprite(_breech, "breech_back", Vector2.ZERO)
+	back.scale = Vector2(2, 2)
+	# the round in the chamber, seen base-on: behind the block, centred on the port
+	_breech_shell = Ui.sprite(_breech, "breech_shell", Vector2(84, 50))
+	_breech_shell.scale = Vector2(3, 3)
+	_breech_shell.pivot_offset = Vector2(16, 16)
 	_breech_block = Ui.sprite(_breech, "breech_block", Vector2.ZERO)
 	_breech_block.scale = Vector2(2, 2)
 	_breech_fist = Ui.sprite(_breech, "breech_fist", Vector2.ZERO)
@@ -1553,9 +1556,27 @@ func _breech_build() -> void:
 func _breech_layout() -> void:
 	_breech_block.position = Vector2(35.0, 17.0 + 52.0 * _breech_frac) * 2.0
 	_breech_fist.position = Vector2(6.0, 24.0 + 38.0 * _breech_frac) * 2.0
-	_breech_shell.visible = not cannon_loaded
-	# rear view of the round: seated in the open port, or waiting at the ramp's base
-	_breech_shell.position = (Vector2(54.0, 37.0) if _breech_has_shell else Vector2(97.0, 68.0)) * 2.0
+	# spent round sits scorched in the chamber until the slide bottoms out and swaps it
+	_breech_shell.modulate = Color.WHITE if _breech_has_shell else Color(0.55, 0.5, 0.45)
+
+
+## The spent round leaves the breech: a scorched copy flies off to the right and fades, while
+## _breech_shell itself becomes the fresh round in the same beat.
+func _breech_eject() -> void:
+	var spent := TextureRect.new()
+	spent.texture = _breech_shell.texture
+	spent.scale = _breech_shell.scale
+	spent.pivot_offset = _breech_shell.pivot_offset
+	spent.position = _breech_shell.position
+	spent.modulate = Color(0.55, 0.5, 0.45)
+	spent.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_breech.add_child(spent)
+	var tw := create_tween()
+	tw.set_parallel(true)
+	tw.tween_property(spent, "position", spent.position + Vector2(260, -36), 0.35).set_ease(Tween.EASE_OUT)
+	tw.tween_property(spent, "rotation", 1.6, 0.35)
+	tw.tween_property(spent, "modulate:a", 0.0, 0.15).set_delay(0.22)
+	tw.chain().tween_callback(spent.queue_free)
 
 
 func _breech_show(on: bool) -> void:
@@ -1581,7 +1602,7 @@ func _breech_drag_by(rel_y: float) -> void:
 		return
 	if was < 1.0 and _breech_frac >= 1.0 and not _breech_has_shell:
 		_breech_has_shell = true
-		_eject_casing(Vector2(6.0, 3.0), Color(0.85, 0.22, 0.18))   # spent shell kicked clear
+		_breech_eject()   # spent round flies out right; a fresh one is already seated
 		Sound.play("impact_bone_crack.wav", 0.0)
 	if was > 0.0 and _breech_frac <= 0.0 and _breech_has_shell:
 		cannon_loaded = true
