@@ -1543,7 +1543,8 @@ func _breech_build() -> void:
 	var back := Ui.sprite(_breech, "breech_back", Vector2.ZERO)
 	back.scale = Vector2(2, 2)
 	# the round in the chamber, seen base-on: behind the block, centred on the port
-	_breech_shell = Ui.sprite(_breech, "breech_shell", Vector2(84, 50))
+	# scale runs around pivot_offset, so position = port centre (132, 98) minus the pivot
+	_breech_shell = Ui.sprite(_breech, "breech_shell", Vector2(116, 82))
 	_breech_shell.scale = Vector2(3, 3)
 	_breech_shell.pivot_offset = Vector2(16, 16)
 	_breech_block = Ui.sprite(_breech, "breech_block", Vector2.ZERO)
