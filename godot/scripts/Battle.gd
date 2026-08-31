@@ -283,6 +283,7 @@ func start_wave(i: int) -> void:
 		else:
 			_gate = _make_gate()
 			_gate_hits = 0
+			_assault_n = 0
 			_intro = true
 			say("The gate holds. Bring it down.")
 	if not _intro:
@@ -376,9 +377,13 @@ func _gate_shot(cursor: Vector2) -> void:
 		_intro_assault()
 
 
-## The soldiers rush the shot gate; when the lead line reaches it, the door comes apart.
+## The soldiers rush the shot gate: a pass is a charge in, blows on the door, and a fall-back.
+## The second pass brings it down.
+var _assault_n := 0
 func _intro_assault() -> void:
-	say("They rush the gate.")
+	if _assault_n == 0:
+		say("They rush the gate.")
+	_assault_n += 1
 	var lead := 0.0
 	for u in units:
 		if u.team == Unit.ALLY and not u.dead and u.charge_to == 0.0 and u.air_h == 0.0:
@@ -386,17 +391,31 @@ func _intro_assault() -> void:
 			lead = maxf(lead, u.wd)
 	var speed := float(Game.units[army_type].get("speed", 40.0))
 	var t := maxf(0.5, (GATE_D - 40.0 - lead) / (speed * Unit.CHARGE_SPEED))
-	get_tree().create_timer(t + 0.25).timeout.connect(_breach_gate)
+	get_tree().create_timer(t + 0.25).timeout.connect(_assault_blow)
+
+
+func _assault_blow() -> void:
+	if not _gate:
+		return
+	for u in units:
+		if not u.dead and absf(u.wd - GATE_D) < 150.0:
+			u.attack_anim()
+	if _assault_n < 2:
+		for i in 3:
+			_gate_chunk()
+		Sound.play("impact_armor_heavy.wav", 0.0)
+		_shake(SHAKE_AMP * 0.35, 0.25)
+		get_tree().create_timer(2.5).timeout.connect(_intro_assault)
+		return
+	_breach_gate()
 
 
 func _breach_gate() -> void:
 	if not _gate:
 		return
 	_intro = false
+	wave_t = 0.0   # the hall's clock starts when the fight does
 	spawn_t = 2.0
-	for u in units:
-		if not u.dead and absf(u.wd - GATE_D) < 150.0:
-			u.attack_anim()
 	for i in 7:
 		_gate_chunk()
 	Sound.play("impact_bulldoze_heavy.wav", 0.0)
@@ -890,7 +909,8 @@ func _process(delta: float) -> void:
 	_rebuild_grid()
 	toast_t -= delta
 	wave_t += delta
-	scroll += scroll_creep * minf(1.0 + wave_t * SCROLL_ACCEL, 2.5) * delta
+	if not _intro:
+		scroll += scroll_creep * minf(1.0 + wave_t * SCROLL_ACCEL, 2.5) * delta
 	hall.set_scroll(scroll)
 	_update_props()
 	_update_chests()
