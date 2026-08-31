@@ -101,6 +101,9 @@ var _shake_amp := 0.0
 var _flash_rect: ColorRect              # full-screen blast flash on the fx overlay
 var _fov_tw: Tween                      # live fov-punch return tween; a new punch kills it
 var _casings: Array[Dictionary] = []    # gatling brass on the fx overlay: {n, p, v, spin, floor_y, t, k}
+var _intro := false                     # hall-1 stand-off: spawns held until the gate is breached
+var _gate: Sprite3D                     # the closed gate during the stand-off; null once breached
+var _gate_hits := 0
 const GATE_TEX := preload("res://assets/env/castle/gate_open.png")   # 7-frame swing, 96x120/frame
 var burst := 3                          # per-wave spawn burst size (waves.json "burst", default 3)
 var _up_chests: Array[Dictionary] = []  # upgrade chests: {node, broken, wx, base_d, d, last_d, alive}
@@ -275,15 +278,22 @@ func start_wave(i: int) -> void:
 	hero_hp = tank_max_hp
 	_low_hp_played = false
 	if i == 0:
-		_open_gate()
-	say("Hall %d / 4" % (i + 1))
+		if _scripted():
+			_open_gate()   # probes/adversary skip the stand-off: they measure the fight
+		else:
+			_gate = _make_gate()
+			_gate_hits = 0
+			_intro = true
+			say("The gate holds. Bring it down.")
+	if not _intro:
+		say("Hall %d / 4" % (i + 1))
 
 
 ## Hall 1 opens on a gate at the far end: 7-frame swing over ~1.2s, then the rush pours through
 ## (spawn_t's own 2s delay already clears the animation before the first burst). Placed inside
 ## Hall3D.FOG_END (980), not at SPAWN_D (1050) -- past the fog end it's fully black, invisible.
 const GATE_D := 780.0
-func _open_gate() -> void:
+func _make_gate() -> Sprite3D:
 	var g := Sprite3D.new()
 	g.texture = GATE_TEX
 	g.hframes = 7
@@ -295,10 +305,106 @@ func _open_gate() -> void:
 	g.pixel_size = HALL_HALF * 2.0 * 0.9 / frame_w
 	g.position = Hall3D.to_world(0.0, GATE_D, GATE_TEX.get_height() * g.pixel_size * 0.5)
 	world.add_child(g)
+	return g
+
+
+## Scripted path (probes/adversary): the old behavior, swing open right away.
+func _open_gate() -> void:
+	_swing_gate(_make_gate())
+
+
+func _swing_gate(g: Sprite3D) -> void:
 	var tw := create_tween()
 	tw.tween_method(func(f: float): g.frame = mini(6, int(f)), 0.0, 7.0, 1.2)
 	tw.tween_interval(8.0)   # held open through the rush's approach, not freed the instant the swing ends
 	tw.tween_callback(g.queue_free)
+
+
+func _scripted() -> bool:
+	for a in OS.get_cmdline_user_args():
+		if a.begins_with("--probe") or a.begins_with("--adversary"):
+			return true
+	return false
+
+
+## Cursor inside the closed gate's screen rect?
+func _on_gate(cursor: Vector2) -> bool:
+	var frame_w := GATE_TEX.get_width() / 7.0
+	var k := Hall3D.screen_scale(camera, GATE_D)
+	var feet := Hall3D.unproject(camera, 0.0, GATE_D)
+	var w := frame_w * _gate.pixel_size * k
+	var h := GATE_TEX.get_height() * _gate.pixel_size * k
+	return absf(cursor.x - feet.x) <= w * 0.5 and cursor.y <= feet.y and feet.y - cursor.y <= h
+
+
+## One debris slab cut from the gate's closed frame -- _prop_chunk's recipe at gate scale.
+func _gate_chunk() -> void:
+	var frame_w := GATE_TEX.get_width() / 7.0
+	var ps := _gate.pixel_size
+	var sz := _rng.randf_range(10.0, 16.0)
+	var ox := _rng.randf_range(frame_w * 0.15, frame_w * 0.85 - sz)
+	var oy := _rng.randf_range(GATE_TEX.get_height() * 0.15, GATE_TEX.get_height() * 0.85 - sz)
+	var c := Sprite3D.new()
+	var sub := AtlasTexture.new()
+	sub.atlas = GATE_TEX
+	sub.region = Rect2(Vector2(ox, oy), Vector2(sz, sz))
+	c.texture = sub
+	c.pixel_size = ps
+	c.billboard = BaseMaterial3D.BILLBOARD_DISABLED
+	c.texture_filter = BaseMaterial3D.TEXTURE_FILTER_NEAREST
+	c.alpha_cut = SpriteBase3D.ALPHA_CUT_DISCARD
+	c.alpha_scissor_threshold = 0.35
+	c.shaded = false
+	var p0 := _gate.position + Vector3(ox + sz * 0.5 - frame_w * 0.5, GATE_TEX.get_height() * 0.5 - oy - sz * 0.5, 0.0) * ps
+	p0.z += 2.0   # toward the lens, clear of the door plane
+	var v := Vector3(_rng.randf_range(-8.0, 8.0), _rng.randf_range(6.0, 16.0), 3.0) * ps
+	c.position = p0
+	world.add_child(c)
+	var tw := create_tween()
+	tw.tween_method(func(t: float): c.position = p0 + v * t - Vector3(0.0, 35.0 * ps, 0.0) * t * t, 0.0, 1.0, 0.6)
+	tw.tween_property(c, "modulate:a", 0.0, 0.3).set_delay(0.3)
+	tw.tween_callback(c.queue_free)
+
+
+## A round hit the closed gate: a slab off, and the first hit sends the soldiers at it.
+func _gate_shot(cursor: Vector2) -> void:
+	_gate_hits += 1
+	_burst(cursor, 6.0 * Hall3D.screen_scale(camera, GATE_D) * Hall3D.PIXEL)
+	Sound.play("impact_bone_crack.wav", 0.0)
+	_gate_chunk()
+	if _gate_hits == 1:
+		_intro_assault()
+
+
+## The soldiers rush the shot gate; when the lead line reaches it, the door comes apart.
+func _intro_assault() -> void:
+	say("They rush the gate.")
+	var lead := 0.0
+	for u in units:
+		if u.team == Unit.ALLY and not u.dead and u.charge_to == 0.0 and u.air_h == 0.0:
+			u.charge(GATE_D - 40.0)
+			lead = maxf(lead, u.wd)
+	var speed := float(Game.units[army_type].get("speed", 40.0))
+	var t := maxf(0.5, (GATE_D - 40.0 - lead) / (speed * Unit.CHARGE_SPEED))
+	get_tree().create_timer(t + 0.25).timeout.connect(_breach_gate)
+
+
+func _breach_gate() -> void:
+	if not _gate:
+		return
+	_intro = false
+	spawn_t = 2.0
+	for u in units:
+		if not u.dead and absf(u.wd - GATE_D) < 150.0:
+			u.attack_anim()
+	for i in 7:
+		_gate_chunk()
+	Sound.play("impact_bulldoze_heavy.wav", 0.0)
+	_shake(SHAKE_AMP * 0.7, 0.3)
+	_fov_punch(1.5, 0.2)
+	_swing_gate(_gate)
+	_gate = null
+	say("Hall 1 / 4")
 
 
 func _build_ranks(reserves: Dictionary) -> void:
@@ -791,7 +897,8 @@ func _process(delta: float) -> void:
 	if _done:
 		return
 	# spawns
-	spawn_t -= delta
+	if not _intro:
+		spawn_t -= delta
 	if spawn_t <= 0.0 and not spawn_queue.is_empty():
 		spawn_t = spawn_interval
 		# bursts: the horde arrives in clumps, not a drip
@@ -870,9 +977,16 @@ func _wave_done() -> void:
 	_fov_punch(-3.0, 0.5)
 	Sound.play(str(Game.units["hero_sfx"].get("wave_clear", "")), hero_wx)
 	if Game.wave >= 3:
-		say("The throne room door. It is already open.\nTO BE CONTINUED")
+		say("TO BE CONTINUED")
 		_card("card_win", "The door is already open.", 4.0)
-		await get_tree().create_timer(4.0).timeout
+		await get_tree().create_timer(2.5).timeout
+		var f := ColorRect.new()
+		f.color = Color(0, 0, 0, 0.0)
+		f.size = Vector2(960, 540)
+		f.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		_ui.add_child(f)
+		create_tween().tween_property(f, "color:a", 1.0, 1.5)
+		await get_tree().create_timer(1.5).timeout
 		get_tree().change_scene_to_file("res://scenes/Main.tscn")
 	else:
 		await _turn(str(Game.waves[Game.wave].get("turn", "")))
@@ -1254,6 +1368,8 @@ func _gatling_hit_at(cursor: Vector2) -> void:
 			_burst(cursor, 6.0 * Hall3D.screen_scale(camera, float(prop["last_d"])) * Hall3D.PIXEL)
 			if int(prop["hits"]) <= 0:
 				_break_prop(prop, prop["last_d"])
+		elif _intro and _gate and _on_gate(cursor):
+			_gate_shot(cursor)
 		else:
 			_burst(cursor, 8.0)
 	var chest := _screen_pick_chest(cursor)
@@ -1348,6 +1464,8 @@ func _fire_cannon() -> void:
 
 func _cannon_explode_at(at: Vector2) -> void:
 	Sound.play("cannon_explosion.wav", at.x)
+	if _intro and _gate and at.y > GATE_D - 160.0:
+		_gate_shot(Hall3D.unproject(camera, at.x, GATE_D, 40.0 * Hall3D.PIXEL))
 	var r := CANNON_RADIUS * cannon_radius_mult
 	_flash(at, r, Color(1.0, 0.6, 0.3, 0.7))
 	var k := Hall3D.screen_scale(camera, at.y)
