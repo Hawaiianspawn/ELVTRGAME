@@ -180,7 +180,7 @@ sweep may leave the working tree clean. Commit whatever repo files the pass did 
 commit and push in the same turn. No question, this is part of the write, not a decision:
 
     git add <the tracker files you corrected>
-    <commit with the `caveman-commit` skill, per CLAUDE.md>
+    <commit per CLAUDE.md commit rules>
     git push
 
 Rules that bite:

@@ -421,7 +421,7 @@ sentence too: it is what keeps the default honest.
 in the same turn — no extra question, this is part of the close, not a decision:
 
     git add <the closed tasks' owns: paths>
-    <commit with the `caveman-commit` skill, per CLAUDE.md>
+    <commit per CLAUDE.md commit rules>
     git push
 
 Rules that bite:

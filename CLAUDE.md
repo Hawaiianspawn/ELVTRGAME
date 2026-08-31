@@ -2,8 +2,11 @@
 
 ## Commit messages
 
-Use the `caveman-commit` skill for every commit on this repo — including commits
-made by subagents and orchestrated task dispatch, with two overrides:
+<!-- caveman-commit skill disabled for now (plugin off project-wide);
+     rules below are the same convention, followed directly. -->
+
+For every commit on this repo — including commits made by subagents and
+orchestrated task dispatch:
 
 - **No Conventional Commits type prefix.** Keep this repo's sentence subjects:
   one line, imperative, sentence case, no trailing period, ≤80 chars.
