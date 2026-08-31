@@ -1561,8 +1561,9 @@ func _breech_layout() -> void:
 ## right on a kicked-up arc and fades, while _breech_shell becomes the fresh round in the same beat.
 func _breech_eject() -> void:
 	var brass := Ui.sprite(_breech, "breech_brass", Vector2(116, 82))
-	brass.scale = Vector2(3, 3)
+	brass.scale = Vector2(2.5, 2.5)
 	brass.pivot_offset = Vector2(24, 12)
+	brass.modulate = Color(0.68, 0.6, 0.53)   # smoke-darkened spent brass
 	brass.rotation = -0.4
 	var p0: Vector2 = brass.position
 	var tw := create_tween()
