@@ -524,7 +524,7 @@ UNITS_JSON = REPO / "godot" / "data" / "units.json"
 ROSTER_JSON = REPO / "godot" / "data" / "roster.json"
 WAVES_JSON = REPO / "godot" / "data" / "waves.json"
 SPELLS_JSON = REPO / "godot" / "data" / "spells.json"
-GAME_FIELDS = ("hp", "dmg", "range", "speed", "cooldown", "attack_hold", "attack_frames", "slash", "slash_y", "magic")
+GAME_FIELDS = ("hp", "dmg", "range", "speed", "cooldown", "attack_hold", "attack_frames", "slash", "slash_y", "magic", "fly_h", "alpha")
 SFX_DIR = REPO / "godot" / "assets" / "sfx"
 HERO_SFX_CUES = ("hit", "low_hp", "wave_clear", "lose", "relic")
 LIB = REPO / "RawArt" / "Audio" / "sonniss"
@@ -662,6 +662,23 @@ def units_page():
     cards.append('<div class="card ok"><b>Spells</b><span class="sub">spells.json</span>'
                  '<div class="sfxblock">%s</div></div>' % spell_rows)
 
+    waves = vp.load_json(WAVES_JSON)
+
+    def wave_row(key):
+        """Checkbox + count per hall: where this unit spawns. Not shown for the four
+        allies (they live in reserves) or heroes (code-selected)."""
+        if not removable_unit(key):
+            return ""
+        bits = []
+        for i, w in enumerate(waves):
+            cur = next((e.get("count", 0) for e in w.get("enemies", []) if e.get("type") == key), 0)
+            bits.append('<label class="wv"><input type="checkbox"%s onchange="wv(\'%s\',%d,this)">H%d'
+                        '<input class="wc" value="%s" size="3" onchange="wvc(\'%s\',%d,this)"></label>'
+                        % (" checked" if cur else "", esc(key), i, i + 1,
+                           cur or "", esc(key), i))
+        return '<div class="waves"><span class="cue">waves</span>%s</div>' % "".join(bits)
+
+    unit_cards = []
     for key, u in units.items():
         if key == "hero_sfx" or not isinstance(u, dict) or not u.get("sprite"):
             continue
@@ -695,12 +712,28 @@ def units_page():
                     % (sfx_rows, key))
         deny = ('<div class="btns"><button onclick="unitDeny(\'%s\',this)">deny &rarr; out of game</button></div>'
                 % esc(key)) if removable_unit(key) else ""
-        cards.append(
+        unit_cards.append((u.get("label", key),
             '<div class="card ok"><b>%s</b><span class="sub">%s &middot; %s</span>'
-            '<div class="pair">%s</div>%s<div class="stats">%s</div>%s%s'
+            '<div class="pair">%s</div>%s<div class="stats">%s</div>%s%s%s'
             '<span class="sub">counters: %s</span>%s</div>'
             % (esc(u.get("label", key)), esc(key), esc(ref) or "no sprite", panes, strip, stats, ab, sfx_html,
-               esc(", ".join(u.get("counters") or [])) or "-", deny))
+               wave_row(key), esc(", ".join(u.get("counters") or [])) or "-", deny)))
+
+    # organize by unit: skins share their parent's label (wire_enemy clones it), so
+    # same-label cards collapse into one full-width group with the skins side by side
+    groups, order = {}, []
+    for label, html in unit_cards:
+        if label not in groups:
+            groups[label] = []
+            order.append(label)
+        groups[label].append(html)
+    for label in order:
+        g = groups[label]
+        if len(g) == 1:
+            cards.extend(g)
+        else:
+            cards.append('<div class="ugrp"><h2>%s <span>%d skins</span></h2>'
+                         '<div class="cards">%s</div></div>' % (esc(label), len(g), "".join(g)))
     return """<!doctype html><html><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Kindled &middot; units</title><style>%s
@@ -724,6 +757,15 @@ def units_page():
 .libhit{display:flex;align-items:center;gap:.4rem;font-family:var(--mono);font-size:.62rem;padding:.2rem 0;
   border-bottom:1px solid var(--line);}
 .libhit .path{flex:1;overflow-wrap:anywhere;}
+.waves{display:flex;align-items:center;gap:.6rem;font-family:var(--mono);font-size:.62rem;
+  border-top:1px solid var(--line);padding-top:.35rem;}
+.waves .cue{opacity:.75;}
+.waves .wv{display:flex;align-items:center;gap:.2rem;}
+.waves .wc{width:2.2rem;background:var(--sunk);color:var(--ink);border:1px solid var(--line);
+  font-family:var(--mono);font-size:.62rem;padding:.1rem .2rem;}
+.ugrp{grid-column:1/-1;border:1px solid var(--line);padding:.5rem;}
+.ugrp h2{margin:.1rem 0 .4rem;font-size:.85rem;} .ugrp h2 span{opacity:.55;font-size:.65rem;}
+.ugrp .cards{margin:0;}
 </style></head><body><div class="wrap"><header>
 <p class="eyebrow">units &middot; <a href="/denied" style="color:var(--bone)">denied</a> &middot; <a href="/attacks" style="color:var(--bone)">attack clips</a> &middot; <a href="/family/{FAMILY}" style="color:var(--bone)">generate</a></p>
 <h1>Units</h1>
@@ -746,6 +788,24 @@ function gf(unit, field, el){
   .then(r=>r.ok?r.json():r.json().then(j=>{throw j.detail}))
   .then(()=>{el.style.borderColor='var(--bone)';if(field=='slash'||field=='attack_hold'||field=='attack_frames')location.reload();})
   .catch(e=>{el.style.borderColor='red';alert(e);});
+}
+function wvSend(unit, wave, count, el){
+  fetch('/api/game/wave',{method:'POST',headers:{'content-type':'application/json'},
+    body:JSON.stringify({unit:unit,wave:wave,count:count})})
+  .then(r=>r.ok?r.json():r.json().then(j=>{throw j.detail}))
+  .then(()=>{el.style.outline='1px solid var(--bone)';})
+  .catch(e=>{el.style.outline='1px solid red';alert(e);});
+}
+function wv(unit, wave, cb){
+  const wc = cb.parentElement.querySelector('.wc');
+  if(cb.checked && !(parseInt(wc.value) > 0)) wc.value = 12;
+  wvSend(unit, wave, cb.checked ? parseInt(wc.value) : 0, cb.parentElement);
+}
+function wvc(unit, wave, el){
+  const cb = el.parentElement.querySelector('input[type=checkbox]');
+  const n = parseInt(el.value) || 0;
+  cb.checked = n > 0;
+  wvSend(unit, wave, n, el.parentElement);
 }
 function playUrl(url){ new Audio(url).play().catch(()=>{}); }
 function sfxUrl(file){ return '/sfx/' + encodeURIComponent(file); }
@@ -988,18 +1048,27 @@ def poll(family):
 # variant's own character. Nothing here touches the Unreal atlas path -- that stays ship's.
 
 def wire_enemy(family, slug):
-    """Three idempotent JSON edits: units.json stats cloned from the "armored" template,
-    a roster.json art line, and a wave-0 entry so the unit is in the first fight. Each is
-    skipped when already present, so approving twice is a no-op. Returns what changed."""
+    """Three idempotent JSON edits: units.json stats cloned from the parent unit when the
+    look was riffed from one (a variant skin, the way the tilt zombies clone each other)
+    or from the "armored" template otherwise, a roster.json art line, and a wave-0 entry
+    so the unit is in the first fight. Each is skipped when already present, so approving
+    twice is a no-op. Returns what changed."""
     changed = []
     units = vp.load_json(UNITS_JSON)
     if slug not in units:
-        tpl = units.get("armored")
-        if not isinstance(tpl, dict):
-            raise Fail("no 'armored' stat template in %s" % UNITS_JSON)
-        u = dict(tpl)
+        j = load_jobs(family).get(slug) or {}
+        parent = j.get("riffed_from") or j.get("refined_from")
+        tpl = next((v for v in units.values() if isinstance(v, dict)
+                    and v.get("sprite") == parent), None) if parent else None
+        if tpl is None:
+            tpl = units.get("armored")
+            if not isinstance(tpl, dict):
+                raise Fail("no 'armored' stat template in %s" % UNITS_JSON)
+            u = dict(tpl)
+            u["label"] = slug.replace("-", " ").replace("_", " ").title()
+        else:
+            u = dict(tpl)   # a skin keeps the parent's label, stats and sfx
         u["sprite"] = slug
-        u["label"] = slug.replace("-", " ").replace("_", " ").title()
         units[slug] = u
         UNITS_JSON.write_text(json.dumps(units, indent=2) + "\n", encoding="utf-8")
         changed.append("units")
@@ -1056,6 +1125,31 @@ def unwire_enemy(unit):
     return changed
 
 
+def set_wave(unit, wave, count):
+    """Put `count` of `unit` in wave `wave` (0-indexed hall), or pull it out at count 0.
+    The units-page wave checkboxes write through here; idempotent like the other wires."""
+    units = vp.load_json(UNITS_JSON)
+    if not isinstance(units.get(unit), dict):
+        raise Fail("unknown unit %r" % unit)
+    waves = vp.load_json(WAVES_JSON)
+    try:
+        w = waves[int(wave)]
+    except (IndexError, ValueError, TypeError):
+        raise Fail("wave %r out of range (game has %d)" % (wave, len(waves)))
+    count = max(0, int(count or 0))
+    enemies = w.setdefault("enemies", [])
+    cur = next((e for e in enemies if e.get("type") == unit), None)
+    if count == 0:
+        if cur:
+            enemies.remove(cur)
+    elif cur:
+        cur["count"] = count
+    else:
+        enemies.append({"type": unit, "count": count})
+    WAVES_JSON.write_text(json.dumps(waves, indent=2) + "\n", encoding="utf-8")
+    return {"unit": unit, "wave": int(wave), "count": count}
+
+
 def implement_look(key, branch=""):
     """The implement button: move a candidate out of the candidate phase and into the game
     as a unit with its own stats. Records it approved (Selects copy + record, so the
@@ -1067,6 +1161,9 @@ def implement_look(key, branch=""):
         raise Fail("bad key %r" % key)
     out = {"select": set_select(key, "approve", branch)}
     out["wired"] = wire_enemy(fam, slug)
+    # pack now so the rotations are playable immediately (bob fallback until the walk
+    # clip lands and repacks again); background -- the button reply shouldn't wait ~20s
+    threading.Thread(target=repack, daemon=True).start()
     try:
         out["walk"] = queue_walk(fam, slug)
         if out["walk"] == "queued":
@@ -1136,8 +1233,9 @@ def poll_walks(family):
             continue
         w.pop("last_error", None)
         frames = []
+        names = ("walk_south", "walk", (w.get("template") or "").lower())
         for anim in d.get("animations") or []:
-            if (anim.get("display_name") or anim.get("animation_type") or "").lower() in ("walk_south", "walk"):
+            if (anim.get("display_name") or anim.get("animation_type") or "").lower() in names:
                 for dr in anim.get("directions") or []:
                     if dr.get("direction") == "south" and dr.get("frames"):
                         frames = dr["frames"]
@@ -1152,7 +1250,7 @@ def poll_walks(family):
             w["last_error"] = str(e)
             continue
         w.update(fetched=vp.now(), frames=len(frames))
-        run([sys.executable, str(REPO / "Scripts" / "art" / "godot_pack.py")])
+        repack()
         done += 1
     save_jobs(family, jobs)
     return done
@@ -1243,6 +1341,24 @@ def run(cmd, cwd=REPO):
     p = subprocess.run(cmd, cwd=str(cwd), capture_output=True, text=True)
     return {"cmd": " ".join(str(c) for c in cmd), "rc": p.returncode,
             "out": (p.stdout or "") + (p.stderr or "")}
+
+
+GODOT_CON = (Path(os.environ.get("LOCALAPPDATA", "")) / "Microsoft" / "WinGet" / "Packages"
+             / "GodotEngine.GodotEngine_Microsoft.Winget.Source_8wekyb3d8bbwe"
+             / "Godot_v4.7.2-stable_win64_console.exe")
+_REPACK_LOCK = threading.Lock()
+
+
+def repack():
+    """Atlas pack + Godot headless reimport, serialized: a pack without the reimport leaves
+    the game rendering the stale imported atlas (placeholder-star sprites) until someone
+    runs godot-run.ps1 -Pack by hand. The lock keeps an implement-time repack and a
+    walk-landing repack from interleaving pack and import."""
+    with _REPACK_LOCK:
+        out = run([sys.executable, str(REPO / "Scripts" / "art" / "godot_pack.py")])
+        if out["rc"] == 0 and GODOT_CON.exists():
+            run([str(GODOT_CON), "--headless", "--path", str(REPO / "godot"), "--import"])
+        return out
 
 
 def ue_import(request_id):
@@ -2674,6 +2790,10 @@ def build_app(family, atlas, prefix, scale):
     def api_game_sfx(body: dict):
         return {"unit": guard(set_game_sfx, body.get("unit"), body.get("cue"), body.get("file"))}
 
+    @app.post("/api/game/wave")
+    def api_game_wave(body: dict):
+        return guard(set_wave, body.get("unit"), body.get("wave"), body.get("count"))
+
     @app.get("/sfx/raw")
     def api_sfx_raw(path: str):
         p = (LIB / (path or "")).resolve()
@@ -2812,7 +2932,7 @@ def build_app(family, atlas, prefix, scale):
 
 def selftest():
     import tempfile
-    global UNITS_JSON, ROSTER_JSON, WAVES_JSON
+    global UNITS_JSON, ROSTER_JSON, WAVES_JSON, repack
     # composition is deterministic and adds no palette clause
     a = compose("A shinobi, narrow and wrapped.")
     assert a == compose("A shinobi, narrow and wrapped"), a
@@ -2975,7 +3095,9 @@ def selftest():
     with tempfile.TemporaryDirectory() as td:
         real_json = UNITS_JSON, ROSTER_JSON, WAVES_JSON
         real_fam, real_ren, real_sel2 = vp.FAMILIES, vp.RENDERS, SELECTS
+        real_repack = repack
         try:
+            repack = lambda: None   # implement_look fires one; never pack the real atlas here
             vp.FAMILIES, vp.RENDERS = Path(td) / "fam", Path(td) / "ren"
             SELECTS = Path(td) / "sel"
             UNITS_JSON = Path(td) / "units.json"
@@ -2997,7 +3119,28 @@ def selftest():
             assert vp.load_json(ROSTER_JSON)["clawer"] == "enemy-t/clawer"
             w0 = vp.load_json(WAVES_JSON)[0]["enemies"]
             assert [e for e in w0 if e["type"] == "clawer"] == [{"type": "clawer", "count": 12}]
+            # wave editor: update, remove, re-add; unknown unit / wave refused
+            set_wave("clawer", 0, 30)
+            w0 = vp.load_json(WAVES_JSON)[0]["enemies"]
+            assert [e for e in w0 if e["type"] == "clawer"] == [{"type": "clawer", "count": 30}]
+            set_wave("clawer", 0, 0)
+            assert not [e for e in vp.load_json(WAVES_JSON)[0]["enemies"] if e["type"] == "clawer"]
+            set_wave("clawer", 0, 12)
+            for bad in (lambda: set_wave("nosuch", 0, 5), lambda: set_wave("clawer", 9, 5)):
+                try:
+                    bad()
+                    raise AssertionError("set_wave accepted bad input")
+                except Fail:
+                    pass
             # unwire is the exact inverse, idempotent, and refuses load-bearing keys
+            # a riffed look wires as a variant skin: parent unit cloned, not the template
+            save_jobs("enemy-t", {"clawer-r2": {"slug": "clawer-r2", "riffed_from": "clawer"}})
+            assert wire_enemy("enemy-t", "clawer-r2") == ["units", "roster", "waves"]
+            units = vp.load_json(UNITS_JSON)
+            assert units["clawer-r2"]["label"] == "Clawer", "skin keeps the parent label"
+            assert units["clawer-r2"]["sprite"] == "clawer-r2"
+            assert unwire_enemy("clawer-r2") == ["units", "roster", "waves"]
+            save_jobs("enemy-t", {})
             assert unwire_enemy("clawer") == ["units", "roster", "waves"]
             assert unwire_enemy("clawer") == []
             assert "clawer" not in vp.load_json(UNITS_JSON)
@@ -3034,6 +3177,7 @@ def selftest():
             assert vp.load_json(ROSTER_JSON)["clawer2"] == "enemy-t/clawer2"
             assert (SELECTS / "Test Branch" / "clawer2" / "rotations" / "south.png").exists()
         finally:
+            repack = real_repack
             UNITS_JSON, ROSTER_JSON, WAVES_JSON = real_json
             vp.FAMILIES, vp.RENDERS, SELECTS = real_fam, real_ren, real_sel2
 

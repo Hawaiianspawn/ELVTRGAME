@@ -98,6 +98,20 @@ JOBS = {
     ("wraith", "death", "south"): ("15fb8ddf-842b-41ab-b14d-99f382d92bb9", 6),
     ("wraith", "attack", "south"): ("ca072d8d-4241-426a-a75c-db49b463b293", 8),
     ("wraith", "walk", "south"): ("a2fcedcc-f158-4bf9-abbb-c8af391f4fca", 8),
+    # wraith skins 2026-09-01: animate_image on each state's own south rotation (the
+    # wraith gold-standard recipe) after animate_character templates grew legs on ghosts
+    ("wraith-r2", "walk", "south"): ("3c839736-87ff-43a3-9540-cf50dde32bcc", 8),
+    ("wraith-r2", "attack", "south"): ("333364e8-8e6b-4b60-a98a-2d5ed13c1154", 8),
+    ("wraith-r2", "death", "south"): ("ecadb6f1-4d73-40bc-94fa-c6270fbf3be2", 6),
+    ("wraith-r3", "walk", "south"): ("75bffa30-a51a-4021-b674-77326ac6f47d", 8),
+    ("wraith-r3", "attack", "south"): ("682418e0-be02-4c11-a705-3b96a7cd4aa1", 8),
+    ("wraith-r3", "death", "south"): ("3e544b93-d163-4d78-b77a-64a7ef9493f9", 6),
+    ("wraith-r4", "walk", "south"): ("8e9d57cd-d04f-4edf-a3d3-845f41844bc5", 8),
+    ("wraith-r4", "attack", "south"): ("dcdce736-958b-49a7-bc39-238d28f11694", 8),
+    ("wraith-r4", "death", "south"): ("b95e6a0e-a230-4b5a-9d38-133c19e0f85b", 6),
+    ("wraith-r5", "walk", "south"): ("fb1649d5-abae-4a70-95b3-faf68d9849d1", 8),
+    ("wraith-r5", "attack", "south"): ("fe1bcb9e-18b1-4c7b-83fc-05a01252e8d4", 8),
+    ("wraith-r5", "death", "south"): ("951ca65f-59da-49cd-abc9-df7e19556faa", 6),
     ("necromancer", "death", "south"): ("dd578101-ed5e-4a5e-9ef7-cdc4263709e0", 6),
     ("necromancer", "attack", "south"): ("43656436-7d70-4e59-81c9-25ec40c447cb", 8),
     ("necromancer", "walk", "south"): ("ec21d987-26fc-4443-9547-4fd3f24b5285", 8),
@@ -177,6 +191,9 @@ def main() -> None:
     status_only = "--status" in sys.argv
     pending = 0
     for (unit, clip, facing), (job, n) in JOBS.items():
+        if unit not in ROSTER:
+            print(f"skipped  {unit:16s} {clip}_{facing} (not in roster.json)")
+            continue
         d = dest_dir(unit, clip, facing)
         first = 1 if clip in LOOPS else 0
         want = list(range(first, n + 1))
