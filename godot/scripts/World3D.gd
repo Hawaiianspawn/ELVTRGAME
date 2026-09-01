@@ -20,9 +20,9 @@ const FAR_D := 1216.0           # last tiled row; one flat quad covers the rest,
 const EDGE_D := 3000.0
 const WALL_D0 := 40.0
 const WALL_D1 := 2000.0
-const FOG_START := 380.0
+const FOG_START := 470.0        # owner floor pass 2026-08-31: was 380 — the kill box floor now reads before the fade
 const FOG_END := 980.0
-const FLOOR_TINT := Color("#2a2a2b")   # floor base tint; the tiles are multiplied down to this
+const FLOOR_TINT := Color("#6b6659")   # floor base tint; the tiles are multiplied down to this (owner pass 2026-08-31: old-stone warm grey, up from #2a2a2b via #403f43, #575349)
 const FLOOR_Y := -1.0           # a hair under the sprites' feet so quad and billboard never z-fight
 
 # Floor tiles: indices 0,1 are plain, weighted ~80% via repeat count in the pool below.
@@ -223,6 +223,7 @@ var _half := -1.0
 
 const BEND_SHADER := preload("res://assets/shaders/hall_bend.gdshader")
 const UNIT_SHADER := preload("res://assets/shaders/unit_sprite.gdshader")
+const GHOST_SHADER := preload("res://assets/shaders/unit_ghost.gdshader")   # blended twin for units.json "alpha" < 1
 const WALL_SEGS := 24           # depth bands per wall quad so the bend reads as a curve, not a kink
 
 
