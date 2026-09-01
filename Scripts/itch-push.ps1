@@ -55,7 +55,7 @@ if ($butlerCmd) {
 
 $env:BUTLER_API_KEY = $env:ITCH_API_KEY
 
-$target = "$ItchUser/kindled:$Channel"
+$target = "$ItchUser/kindeled:$Channel"   # itch slug is 'kindeled' (see the live page), not 'kindled'
 $butlerArgs = @('push', $buildWeb, $target, '--userversion', $ver)
 if ($DryRun) {
     $butlerArgs += '--dry-run'
