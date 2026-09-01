@@ -41,7 +41,13 @@
         ]
       },
       "verdict": "keep",
-      "reasons": []
+      "reasons": [],
+      "owner": {
+        "verdict": "deny",
+        "at": "2026-09-01T20:06:39+00:00",
+        "note": "",
+        "shipped": null
+      }
     },
     "v1_tower": {
       "measured": {
@@ -133,8 +139,8 @@
       "verdict": "keep",
       "reasons": [],
       "owner": {
-        "verdict": "approve",
-        "at": "2026-08-16T05:09:24+00:00",
+        "verdict": "deny",
+        "at": "2026-09-01T20:10:33+00:00",
         "note": "",
         "shipped": null
       }
@@ -230,8 +236,8 @@
       "verdict": "keep",
       "reasons": [],
       "owner": {
-        "verdict": "approve",
-        "at": "2026-08-16T05:09:43+00:00",
+        "verdict": "deny",
+        "at": "2026-09-01T20:10:35+00:00",
         "note": "",
         "shipped": null
       }
@@ -325,7 +331,13 @@
         ]
       },
       "verdict": "keep",
-      "reasons": []
+      "reasons": [],
+      "owner": {
+        "verdict": "deny",
+        "at": "2026-09-01T20:06:37+00:00",
+        "note": "",
+        "shipped": null
+      }
     }
   },
   "judged": "2026-07-30T01:16:20+00:00"

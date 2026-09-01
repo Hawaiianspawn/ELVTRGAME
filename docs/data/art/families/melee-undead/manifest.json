@@ -45,7 +45,28 @@
         "south-west.png",
         "south.png",
         "west.png"
-      ]
+      ],
+      "owner": {
+        "verdict": "approve",
+        "at": "2026-09-01T19:51:28+00:00",
+        "note": "rehearsal",
+        "shipped": null,
+        "generated": {
+          "base_id": "6dd19c16-8dc3-4a2c-87a9-53cff161e120",
+          "character_id": "f2d855a3-9712-478a-a5f9-a5c3a1e614e2",
+          "edit_description": "Same undead soldier, head tilted hard toward the left shoulder, jaw hanging slack. Keep the head and legs clearly visible. Match the existing color palette exactly, no new colors, no glowing parts.",
+          "seed": null,
+          "tool": "forge.py create-character-state"
+        },
+        "game": {
+          "wired": [
+            "units",
+            "roster",
+            "waves"
+          ],
+          "walk": "queued"
+        }
+      }
     },
     "z1-tilt-right": {
       "urls": [
@@ -114,7 +135,28 @@
         "south-west.png",
         "south.png",
         "west.png"
-      ]
+      ],
+      "owner": {
+        "verdict": "approve",
+        "at": "2026-09-01T20:06:25+00:00",
+        "note": "",
+        "shipped": null,
+        "generated": {
+          "base_id": "d4f4a4fc-7ce0-435d-868c-5bc26009fa8b",
+          "character_id": "e14bee31-31a3-457b-8cce-d796fb723ae1",
+          "edit_description": "Same armored undead, head tilted toward the right shoulder, shield arm drooping low. Keep the head and legs clearly visible. Match the existing color palette exactly, no new colors, no glowing parts.",
+          "seed": null,
+          "tool": "forge.py create-character-state"
+        },
+        "game": {
+          "wired": [
+            "units",
+            "roster",
+            "waves"
+          ],
+          "walk": "queued"
+        }
+      }
     },
     "z4-tilt-left": {
       "urls": [

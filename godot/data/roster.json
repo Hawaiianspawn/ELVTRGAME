@@ -6,7 +6,6 @@
   "horse_jaxx": "horse-proto/c08_blueroan",
   "horse_clyde": "horse-proto/horse_p5_clydesdale",
   "horse_white": "horse-proto/horse_p7_clydesdale_white",
-  "horse_undead": "horse-proto/horse_p4_undead",
   "undead2": "ranged-undead/z8_crossbowbrace_undead",
   "mace_undead": "melee-undead/z4_maceraised_undead",
   "staff_undead": "melee-undead/z5_bracedstaff_undead_greeneyes",
@@ -60,5 +59,6 @@
   "hero_paladin": "melee-tropes/hero_paladin",
   "hero_witchhunter": "melee-tropes/hero_witchhunter",
   "hero_berserker": "melee-tropes/hero_berserker",
-  "tank": "tank-concepts/stone_a_plain"
+  "tank": "tank-concepts/stone_a_plain",
+  "z3-tilt-right": "melee-undead/z3-tilt-right"
 }

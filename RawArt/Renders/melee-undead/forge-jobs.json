@@ -33,7 +33,13 @@
       88
     ],
     "pixellab_name": "Hallam (Vanguard)",
-    "group_id": "2cc3ab61-4230-4786-98fa-b94da9e99218"
+    "group_id": "2cc3ab61-4230-4786-98fa-b94da9e99218",
+    "walk": {
+      "queued": "2026-09-01T19:51:28+00:00",
+      "mode": "template",
+      "fetched": "2026-09-01T19:53:58+00:00",
+      "frames": 6
+    }
   },
   "z1-tilt-right": {
     "slug": "z1-tilt-right",
@@ -93,7 +99,13 @@
       88
     ],
     "pixellab_name": "Hallam (Vanguard)",
-    "group_id": "2cc3ab61-4230-4786-98fa-b94da9e99218"
+    "group_id": "2cc3ab61-4230-4786-98fa-b94da9e99218",
+    "walk": {
+      "queued": "2026-09-01T20:06:26+00:00",
+      "mode": "template",
+      "fetched": "2026-09-01T20:07:32+00:00",
+      "frames": 6
+    }
   },
   "z4-tilt-left": {
     "slug": "z4-tilt-left",

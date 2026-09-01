@@ -93,28 +93,6 @@
     "x": 704,
     "y": 620
   },
-  "horse_undead": {
-    "cell": 92,
-    "source": "horse-proto/horse_p4_undead",
-    "com": 33.3,
-    "attack": {
-      "frames": 9,
-      "x": 736,
-      "y": 708
-    },
-    "death": {
-      "frames": 7,
-      "x": 0,
-      "y": 800
-    },
-    "walk": {
-      "frames": 8,
-      "x": 644,
-      "y": 800
-    },
-    "x": 0,
-    "y": 708
-  },
   "undead2": {
     "cell": 88,
     "source": "ranged-undead/z8_crossbowbrace_undead",
@@ -122,20 +100,20 @@
     "attack": {
       "frames": 9,
       "x": 704,
-      "y": 892
+      "y": 708
     },
     "death": {
       "frames": 7,
       "x": 0,
-      "y": 980
+      "y": 796
     },
     "walk": {
       "frames": 8,
       "x": 616,
-      "y": 980
+      "y": 796
     },
     "x": 0,
-    "y": 892
+    "y": 708
   },
   "mace_undead": {
     "cell": 88,
@@ -144,20 +122,20 @@
     "attack": {
       "frames": 9,
       "x": 0,
-      "y": 1068
+      "y": 884
     },
     "death": {
       "frames": 7,
       "x": 792,
-      "y": 1068
+      "y": 884
     },
     "walk": {
       "frames": 8,
       "x": 0,
-      "y": 1156
+      "y": 972
     },
     "x": 1320,
-    "y": 980
+    "y": 796
   },
   "staff_undead": {
     "cell": 88,
@@ -166,20 +144,20 @@
     "attack": {
       "frames": 9,
       "x": 0,
-      "y": 1244
+      "y": 1060
     },
     "death": {
       "frames": 7,
       "x": 792,
-      "y": 1244
+      "y": 1060
     },
     "walk": {
       "frames": 8,
       "x": 0,
-      "y": 1332
+      "y": 1148
     },
     "x": 704,
-    "y": 1156
+    "y": 972
   },
   "bow_undead": {
     "cell": 88,
@@ -188,20 +166,20 @@
     "attack": {
       "frames": 9,
       "x": 0,
-      "y": 1420
+      "y": 1236
     },
     "death": {
       "frames": 7,
       "x": 792,
-      "y": 1420
+      "y": 1236
     },
     "walk": {
       "frames": 8,
       "x": 0,
-      "y": 1508
+      "y": 1324
     },
     "x": 704,
-    "y": 1332
+    "y": 1148
   },
   "veteran": {
     "cell": 88,
@@ -210,25 +188,25 @@
     "attack_east": {
       "frames": 9,
       "x": 0,
-      "y": 1596
+      "y": 1412
     },
     "attack": {
       "frames": 9,
       "x": 792,
-      "y": 1596
+      "y": 1412
     },
     "death": {
       "frames": 7,
       "x": 0,
-      "y": 1684
+      "y": 1500
     },
     "walk": {
       "frames": 8,
       "x": 616,
-      "y": 1684
+      "y": 1500
     },
     "x": 704,
-    "y": 1508
+    "y": 1324
   },
   "halberdier": {
     "cell": 88,
@@ -237,25 +215,25 @@
     "attack_east": {
       "frames": 9,
       "x": 0,
-      "y": 1772
+      "y": 1588
     },
     "attack": {
       "frames": 8,
       "x": 792,
-      "y": 1772
+      "y": 1588
     },
     "death": {
       "frames": 7,
       "x": 0,
-      "y": 1860
+      "y": 1676
     },
     "walk": {
       "frames": 8,
       "x": 616,
-      "y": 1860
+      "y": 1676
     },
     "x": 1320,
-    "y": 1684
+    "y": 1500
   },
   "hammer": {
     "cell": 88,
@@ -264,30 +242,30 @@
     "attack_east": {
       "frames": 9,
       "x": 0,
-      "y": 1948
+      "y": 1764
     },
     "attack": {
       "frames": 5,
       "x": 792,
-      "y": 1948
+      "y": 1764
     },
     "death": {
       "frames": 7,
       "x": 1232,
-      "y": 1948
+      "y": 1764
     },
     "slam": {
       "frames": 8,
       "x": 0,
-      "y": 2036
+      "y": 1852
     },
     "walk": {
       "frames": 8,
       "x": 704,
-      "y": 2036
+      "y": 1852
     },
     "x": 1320,
-    "y": 1860
+    "y": 1676
   },
   "vet_ranged": {
     "cell": 88,
@@ -296,25 +274,25 @@
     "attack_east": {
       "frames": 9,
       "x": 704,
-      "y": 2124
+      "y": 1940
     },
     "attack": {
       "frames": 8,
       "x": 0,
-      "y": 2212
+      "y": 2028
     },
     "death": {
       "frames": 7,
       "x": 704,
-      "y": 2212
+      "y": 2028
     },
     "walk": {
       "frames": 8,
       "x": 1320,
-      "y": 2212
+      "y": 2028
     },
     "x": 0,
-    "y": 2124
+    "y": 1940
   },
   "hero_knight": {
     "cell": 88,
@@ -323,20 +301,20 @@
     "attack": {
       "frames": 9,
       "x": 704,
-      "y": 2300
+      "y": 2116
     },
     "hurt": {
       "frames": 5,
       "x": 1496,
-      "y": 2300
+      "y": 2116
     },
     "walk": {
       "frames": 8,
       "x": 0,
-      "y": 2388
+      "y": 2204
     },
     "x": 0,
-    "y": 2300
+    "y": 2116
   },
   "hero_turret": {
     "cell": 92,
@@ -345,25 +323,25 @@
     "aimdown": {
       "frames": 2,
       "x": 1440,
-      "y": 2388
+      "y": 2204
     },
     "attack": {
       "frames": 9,
       "x": 0,
-      "y": 2480
+      "y": 2296
     },
     "hurt": {
       "frames": 5,
       "x": 828,
-      "y": 2480
+      "y": 2296
     },
     "walk": {
       "frames": 8,
       "x": 1288,
-      "y": 2480
+      "y": 2296
     },
     "x": 704,
-    "y": 2388
+    "y": 2204
   },
   "hero_sackhauler": {
     "cell": 92,
@@ -372,20 +350,20 @@
     "attack": {
       "frames": 9,
       "x": 736,
-      "y": 2572
+      "y": 2388
     },
     "hurt": {
       "frames": 5,
       "x": 1564,
-      "y": 2572
+      "y": 2388
     },
     "walk": {
       "frames": 8,
       "x": 0,
-      "y": 2664
+      "y": 2480
     },
     "x": 0,
-    "y": 2572
+    "y": 2388
   },
   "hero_dwarf": {
     "cell": 92,
@@ -394,20 +372,20 @@
     "attack": {
       "frames": 9,
       "x": 0,
-      "y": 2756
+      "y": 2572
     },
     "hurt": {
       "frames": 5,
       "x": 828,
-      "y": 2756
+      "y": 2572
     },
     "walk": {
       "frames": 8,
       "x": 1288,
-      "y": 2756
+      "y": 2572
     },
     "x": 736,
-    "y": 2664
+    "y": 2480
   },
   "hero_cover": {
     "cell": 92,
@@ -416,20 +394,20 @@
     "attack": {
       "frames": 9,
       "x": 736,
-      "y": 2848
+      "y": 2664
     },
     "hurt": {
       "frames": 5,
       "x": 1564,
-      "y": 2848
+      "y": 2664
     },
     "walk": {
       "frames": 8,
       "x": 0,
-      "y": 2940
+      "y": 2756
     },
     "x": 0,
-    "y": 2848
+    "y": 2664
   },
   "hero_samurai": {
     "cell": 88,
@@ -438,20 +416,20 @@
     "attack": {
       "frames": 9,
       "x": 0,
-      "y": 3032
+      "y": 2848
     },
     "hurt": {
       "frames": 5,
       "x": 792,
-      "y": 3032
+      "y": 2848
     },
     "walk": {
       "frames": 8,
       "x": 1232,
-      "y": 3032
+      "y": 2848
     },
     "x": 736,
-    "y": 2940
+    "y": 2756
   },
   "hero_ranger": {
     "cell": 88,
@@ -460,20 +438,20 @@
     "attack": {
       "frames": 9,
       "x": 704,
-      "y": 3120
+      "y": 2936
     },
     "hurt": {
       "frames": 5,
       "x": 1496,
-      "y": 3120
+      "y": 2936
     },
     "walk": {
       "frames": 8,
       "x": 0,
-      "y": 3208
+      "y": 3024
     },
     "x": 0,
-    "y": 3120
+    "y": 2936
   },
   "lamp_cage": {
     "cell": 68,
@@ -482,143 +460,143 @@
     "flicker_east": {
       "frames": 8,
       "x": 1248,
-      "y": 3208
+      "y": 3024
     },
     "x": 704,
-    "y": 3208
+    "y": 3024
   },
   "table_map": {
     "cell": 68,
     "source": "castle-props/table_map",
     "com": 28.0,
     "x": 0,
-    "y": 3296
+    "y": 3112
   },
   "table_trestle": {
     "cell": 68,
     "source": "castle-props/table_trestle",
     "com": 30.7,
     "x": 544,
-    "y": 3296
+    "y": 3112
   },
   "chair_bench": {
     "cell": 68,
     "source": "castle-props/chair_bench",
     "com": 21.1,
     "x": 1088,
-    "y": 3296
+    "y": 3112
   },
   "chair_broken": {
     "cell": 68,
     "source": "castle-props/chair_broken",
     "com": 21.3,
     "x": 0,
-    "y": 3364
+    "y": 3180
   },
   "chest_coffer": {
     "cell": 68,
     "source": "castle-props/chest_coffer",
     "com": 22.8,
     "x": 544,
-    "y": 3364
+    "y": 3180
   },
   "chest_ornate": {
     "cell": 68,
     "source": "castle-props/chest_ornate",
     "com": 27.8,
     "x": 1088,
-    "y": 3364
+    "y": 3180
   },
   "chest_ornate_open": {
     "cell": 68,
     "source": "castle-props/chest_ornate_open",
     "com": 30.2,
     "x": 0,
-    "y": 3432
+    "y": 3248
   },
   "mirror_ornate": {
     "cell": 68,
     "source": "castle-props/mirror_ornate",
     "com": 31.6,
     "x": 544,
-    "y": 3432
+    "y": 3248
   },
   "mirror_oval": {
     "cell": 68,
     "source": "castle-props/mirror_oval",
     "com": 25.6,
     "x": 1088,
-    "y": 3432
+    "y": 3248
   },
   "brazier": {
     "cell": 68,
     "source": "castle-props/brazier",
     "com": 29.6,
     "x": 0,
-    "y": 3500
+    "y": 3316
   },
   "column_stump": {
     "cell": 68,
     "source": "castle-props/column_stump",
     "com": 26.6,
     "x": 544,
-    "y": 3500
+    "y": 3316
   },
   "statue_knight": {
     "cell": 68,
     "source": "castle-props/statue_knight",
     "com": 26.5,
     "x": 1088,
-    "y": 3500
+    "y": 3316
   },
   "banner_pole": {
     "cell": 68,
     "source": "castle-props/banner_pole",
     "com": 30.5,
     "x": 0,
-    "y": 3568
+    "y": 3384
   },
   "rubble": {
     "cell": 68,
     "source": "castle-props/rubble",
     "com": 23.8,
     "x": 544,
-    "y": 3568
+    "y": 3384
   },
   "barricade": {
     "cell": 68,
     "source": "castle-props/barricade",
     "com": 27.5,
     "x": 1088,
-    "y": 3568
+    "y": 3384
   },
   "cage_skeleton": {
     "cell": 68,
     "source": "castle-props/cage_skeleton",
     "com": 31.3,
     "x": 0,
-    "y": 3636
+    "y": 3452
   },
   "altar": {
     "cell": 68,
     "source": "castle-props/altar",
     "com": 30.7,
     "x": 544,
-    "y": 3636
+    "y": 3452
   },
   "barrel": {
     "cell": 68,
     "source": "castle-props/barrel",
     "com": 28.1,
     "x": 1088,
-    "y": 3636
+    "y": 3452
   },
   "weapon_rack": {
     "cell": 68,
     "source": "castle-props/weapon_rack",
     "com": 26.9,
     "x": 0,
-    "y": 3704
+    "y": 3520
   },
   "ghoul": {
     "cell": 88,
@@ -627,20 +605,20 @@
     "attack": {
       "frames": 9,
       "x": 1248,
-      "y": 3704
+      "y": 3520
     },
     "death": {
       "frames": 7,
       "x": 0,
-      "y": 3792
+      "y": 3608
     },
     "walk": {
       "frames": 8,
       "x": 616,
-      "y": 3792
+      "y": 3608
     },
     "x": 544,
-    "y": 3704
+    "y": 3520
   },
   "wraith": {
     "cell": 88,
@@ -649,20 +627,20 @@
     "attack": {
       "frames": 9,
       "x": 0,
-      "y": 3880
+      "y": 3696
     },
     "death": {
       "frames": 7,
       "x": 792,
-      "y": 3880
+      "y": 3696
     },
     "walk": {
       "frames": 8,
       "x": 0,
-      "y": 3968
+      "y": 3784
     },
     "x": 1320,
-    "y": 3792
+    "y": 3608
   },
   "bone_knight": {
     "cell": 88,
@@ -671,20 +649,20 @@
     "attack": {
       "frames": 9,
       "x": 0,
-      "y": 4056
+      "y": 3872
     },
     "death": {
       "frames": 7,
       "x": 792,
-      "y": 4056
+      "y": 3872
     },
     "walk": {
       "frames": 8,
       "x": 0,
-      "y": 4144
+      "y": 3960
     },
     "x": 704,
-    "y": 3968
+    "y": 3784
   },
   "plague_priest": {
     "cell": 88,
@@ -693,20 +671,20 @@
     "attack": {
       "frames": 9,
       "x": 0,
-      "y": 4232
+      "y": 4048
     },
     "death": {
       "frames": 7,
       "x": 792,
-      "y": 4232
+      "y": 4048
     },
     "walk": {
       "frames": 8,
       "x": 0,
-      "y": 4320
+      "y": 4136
     },
     "x": 704,
-    "y": 4144
+    "y": 3960
   },
   "necromancer": {
     "cell": 96,
@@ -715,125 +693,125 @@
     "attack": {
       "frames": 9,
       "x": 0,
-      "y": 4416
+      "y": 4232
     },
     "death": {
       "frames": 7,
       "x": 864,
-      "y": 4416
+      "y": 4232
     },
     "hurt1": {
       "frames": 6,
       "x": 0,
-      "y": 4512
+      "y": 4328
     },
     "hurt2": {
       "frames": 3,
       "x": 576,
-      "y": 4512
+      "y": 4328
     },
     "hurt3": {
       "frames": 6,
       "x": 864,
-      "y": 4512
+      "y": 4328
     },
     "hurt4": {
       "frames": 5,
       "x": 1440,
-      "y": 4512
+      "y": 4328
     },
     "hurt5": {
       "frames": 6,
       "x": 0,
-      "y": 4608
+      "y": 4424
     },
     "hurt6": {
       "frames": 4,
       "x": 576,
-      "y": 4608
+      "y": 4424
     },
     "hurt7": {
       "frames": 5,
       "x": 960,
-      "y": 4608
+      "y": 4424
     },
     "walk": {
       "frames": 8,
       "x": 0,
-      "y": 4704
+      "y": 4520
     },
     "x": 704,
-    "y": 4320
+    "y": 4136
   },
   "coffin": {
     "cell": 68,
     "source": "castle-props/coffin",
     "com": 26.7,
     "x": 768,
-    "y": 4704
+    "y": 4520
   },
   "gravestone": {
     "cell": 68,
     "source": "castle-props/gravestone",
     "com": 26.1,
     "x": 1312,
-    "y": 4704
+    "y": 4520
   },
   "cauldron": {
     "cell": 68,
     "source": "castle-props/cauldron",
     "com": 27.1,
     "x": 0,
-    "y": 4800
+    "y": 4616
   },
   "bookshelf": {
     "cell": 68,
     "source": "castle-props/bookshelf",
     "com": 33.0,
     "x": 544,
-    "y": 4800
+    "y": 4616
   },
   "throne": {
     "cell": 68,
     "source": "castle-props/throne",
     "com": 30.0,
     "x": 1088,
-    "y": 4800
+    "y": 4616
   },
   "bone_pile": {
     "cell": 68,
     "source": "castle-props/bone_pile",
     "com": 22.6,
     "x": 0,
-    "y": 4868
+    "y": 4684
   },
   "stocks": {
     "cell": 68,
     "source": "castle-props/stocks",
     "com": 28.4,
     "x": 544,
-    "y": 4868
+    "y": 4684
   },
   "anvil": {
     "cell": 68,
     "source": "castle-props/anvil",
     "com": 24.9,
     "x": 1088,
-    "y": 4868
+    "y": 4684
   },
   "sarcophagus": {
     "cell": 68,
     "source": "castle-props/sarcophagus",
     "com": 28.9,
     "x": 0,
-    "y": 4936
+    "y": 4752
   },
   "crates": {
     "cell": 68,
     "source": "castle-props/crates",
     "com": 29.4,
     "x": 544,
-    "y": 4936
+    "y": 4752
   },
   "hero_paladin": {
     "cell": 88,
@@ -842,20 +820,20 @@
     "attack": {
       "frames": 9,
       "x": 0,
-      "y": 5024
+      "y": 4840
     },
     "hurt": {
       "frames": 5,
       "x": 792,
-      "y": 5024
+      "y": 4840
     },
     "walk": {
       "frames": 8,
       "x": 1232,
-      "y": 5024
+      "y": 4840
     },
     "x": 1088,
-    "y": 4936
+    "y": 4752
   },
   "hero_witchhunter": {
     "cell": 88,
@@ -864,20 +842,20 @@
     "attack": {
       "frames": 9,
       "x": 704,
-      "y": 5112
+      "y": 4928
     },
     "hurt": {
       "frames": 5,
       "x": 1496,
-      "y": 5112
+      "y": 4928
     },
     "walk": {
       "frames": 8,
       "x": 0,
-      "y": 5200
+      "y": 5016
     },
     "x": 0,
-    "y": 5112
+    "y": 4928
   },
   "hero_berserker": {
     "cell": 88,
@@ -886,642 +864,654 @@
     "attack": {
       "frames": 9,
       "x": 0,
-      "y": 5288
+      "y": 5104
     },
     "hurt": {
       "frames": 5,
       "x": 792,
-      "y": 5288
+      "y": 5104
     },
     "walk": {
       "frames": 8,
       "x": 1232,
-      "y": 5288
+      "y": 5104
     },
     "x": 704,
-    "y": 5200
+    "y": 5016
   },
   "tank": {
     "cell": 128,
     "source": "tank-concepts/stone_a_plain",
     "com": 53.0,
     "x": 0,
-    "y": 5376
+    "y": 5192
+  },
+  "z3-tilt-right": {
+    "cell": 88,
+    "source": "melee-undead/z3-tilt-right",
+    "com": 23.2,
+    "walk": {
+      "frames": 6,
+      "x": 0,
+      "y": 5320
+    },
+    "x": 1024,
+    "y": 5192
   },
   "fx_arrow": {
     "cell": 32,
     "frames": 1,
     "source": "fx-slash/arrow",
-    "x": 1024,
-    "y": 5376
+    "x": 528,
+    "y": 5320
   },
   "fx_bolt": {
     "cell": 32,
     "frames": 4,
     "source": "fx-slash/bolt",
-    "x": 1056,
-    "y": 5376
+    "x": 560,
+    "y": 5320
   },
   "fx_bolt_hit": {
     "cell": 64,
     "frames": 7,
     "source": "fx-slash/bolt_hit",
-    "x": 1184,
-    "y": 5376
+    "x": 688,
+    "y": 5320
   },
   "fx_burst": {
     "cell": 64,
     "frames": 7,
     "source": "fx-slash/burst",
-    "x": 0,
-    "y": 5504
+    "x": 1136,
+    "y": 5320
   },
   "fx_burst_big": {
     "cell": 64,
     "frames": 8,
     "source": "fx-slash/burst_big",
-    "x": 448,
-    "y": 5504
+    "x": 0,
+    "y": 5408
   },
   "fx_burst_blue": {
     "cell": 64,
     "frames": 7,
     "source": "fx-slash/burst_blue",
-    "x": 960,
-    "y": 5504
+    "x": 512,
+    "y": 5408
   },
   "fx_burst_red": {
     "cell": 64,
     "frames": 7,
     "source": "fx-slash/burst_red",
-    "x": 1408,
-    "y": 5504
+    "x": 960,
+    "y": 5408
   },
   "fx_chips": {
     "cell": 64,
     "frames": 8,
     "source": "fx-slash/chips",
-    "x": 0,
-    "y": 5568
+    "x": 1408,
+    "y": 5408
   },
   "fx_chips_blood": {
     "cell": 64,
     "frames": 8,
     "source": "fx-slash/chips_blood",
-    "x": 512,
-    "y": 5568
+    "x": 0,
+    "y": 5472
   },
   "fx_chips_blood_pl": {
     "cell": 64,
     "frames": 9,
     "source": "fx-slash/chips_blood_pl",
-    "x": 1024,
-    "y": 5568
+    "x": 512,
+    "y": 5472
   },
   "fx_chips_pl": {
     "cell": 64,
     "frames": 9,
     "source": "fx-slash/chips_pl",
-    "x": 0,
-    "y": 5632
+    "x": 1088,
+    "y": 5472
   },
   "fx_chop": {
     "cell": 64,
     "frames": 9,
     "source": "fx-slash/chop",
-    "x": 576,
-    "y": 5632
+    "x": 0,
+    "y": 5536
   },
   "fx_cleave_heavy": {
     "cell": 64,
     "frames": 9,
     "source": "fx-slash/cleave_heavy",
-    "x": 1152,
-    "y": 5632
+    "x": 576,
+    "y": 5536
   },
   "fx_comic_hit": {
     "cell": 64,
     "frames": 9,
     "source": "fx-slash/comic_hit",
-    "x": 0,
-    "y": 5696
+    "x": 1152,
+    "y": 5536
   },
   "fx_comic_hit_pl": {
     "cell": 64,
     "frames": 9,
     "source": "fx-slash/comic_hit_pl",
-    "x": 576,
-    "y": 5696
+    "x": 0,
+    "y": 5600
   },
   "fx_comic_slash": {
     "cell": 64,
     "frames": 7,
     "source": "fx-slash/comic_slash",
-    "x": 1152,
-    "y": 5696
+    "x": 576,
+    "y": 5600
   },
   "fx_comic_slash_pl": {
     "cell": 64,
     "frames": 9,
     "source": "fx-slash/comic_slash_pl",
-    "x": 0,
-    "y": 5760
+    "x": 1024,
+    "y": 5600
   },
   "fx_comic_wedge": {
     "cell": 64,
     "frames": 7,
     "source": "fx-slash/comic_wedge",
-    "x": 576,
-    "y": 5760
+    "x": 1600,
+    "y": 5600
   },
   "fx_comic_wedge_pl": {
     "cell": 64,
     "frames": 9,
     "source": "fx-slash/comic_wedge_pl",
-    "x": 1024,
-    "y": 5760
+    "x": 0,
+    "y": 5664
   },
   "fx_comic_wedge_r": {
     "cell": 64,
     "frames": 7,
     "source": "fx-slash/comic_wedge_r",
-    "x": 1600,
-    "y": 5760
+    "x": 576,
+    "y": 5664
   },
   "fx_comic_wedge_r_pl": {
     "cell": 64,
     "frames": 9,
     "source": "fx-slash/comic_wedge_r_pl",
-    "x": 0,
-    "y": 5824
+    "x": 1024,
+    "y": 5664
   },
   "fx_crack": {
     "cell": 64,
     "frames": 6,
     "source": "fx-slash/crack",
-    "x": 576,
-    "y": 5824
+    "x": 1600,
+    "y": 5664
   },
   "fx_crack_diag": {
     "cell": 64,
     "frames": 6,
     "source": "fx-slash/crack_diag",
-    "x": 960,
-    "y": 5824
+    "x": 0,
+    "y": 5728
   },
   "fx_crack_diag_pl": {
     "cell": 64,
     "frames": 9,
     "source": "fx-slash/crack_diag_pl",
-    "x": 1344,
-    "y": 5824
+    "x": 384,
+    "y": 5728
   },
   "fx_crack_pl": {
     "cell": 64,
     "frames": 9,
     "source": "fx-slash/crack_pl",
-    "x": 0,
-    "y": 5888
+    "x": 960,
+    "y": 5728
   },
   "fx_crash": {
     "cell": 64,
     "frames": 10,
     "source": "fx-slash/crash",
-    "x": 576,
-    "y": 5888
+    "x": 0,
+    "y": 5792
   },
   "fx_double_sweep": {
     "cell": 64,
     "frames": 10,
     "source": "fx-slash/double_sweep",
-    "x": 1216,
-    "y": 5888
+    "x": 640,
+    "y": 5792
   },
   "fx_dust": {
     "cell": 64,
     "frames": 8,
     "source": "fx-slash/dust",
-    "x": 0,
-    "y": 5952
+    "x": 1280,
+    "y": 5792
   },
   "fx_dust_pl": {
     "cell": 64,
     "frames": 9,
     "source": "fx-slash/dust_pl",
-    "x": 512,
-    "y": 5952
+    "x": 0,
+    "y": 5856
   },
   "fx_dust_small": {
     "cell": 64,
     "frames": 6,
     "source": "fx-slash/dust_small",
-    "x": 1088,
-    "y": 5952
+    "x": 576,
+    "y": 5856
   },
   "fx_dust_small_pl": {
     "cell": 64,
     "frames": 9,
     "source": "fx-slash/dust_small_pl",
-    "x": 1472,
-    "y": 5952
+    "x": 960,
+    "y": 5856
   },
   "fx_explosion": {
     "cell": 96,
     "frames": 12,
     "source": "fx-slash/explosion",
     "x": 0,
-    "y": 6016
+    "y": 5920
   },
   "fx_explosion_pl": {
     "cell": 96,
     "frames": 13,
     "source": "fx-slash/explosion_pl",
     "x": 0,
-    "y": 6112
+    "y": 6016
   },
   "fx_flurry": {
     "cell": 64,
     "frames": 10,
     "source": "fx-slash/flurry",
     "x": 1248,
-    "y": 6112
+    "y": 6016
   },
   "fx_hit_ring": {
     "cell": 32,
     "frames": 5,
     "source": "fx-slash/hit_ring",
     "x": 1888,
-    "y": 6112
+    "y": 6016
   },
   "fx_hit_star": {
     "cell": 32,
     "frames": 5,
     "source": "fx-slash/hit_star",
     "x": 0,
-    "y": 6208
+    "y": 6112
   },
   "fx_hit_x": {
     "cell": 32,
     "frames": 5,
     "source": "fx-slash/hit_x",
     "x": 160,
-    "y": 6208
+    "y": 6112
   },
   "fx_ink_crash": {
     "cell": 64,
     "frames": 9,
     "source": "fx-slash/ink_crash",
     "x": 320,
-    "y": 6208
+    "y": 6112
   },
   "fx_ink_crash_pl": {
     "cell": 64,
     "frames": 9,
     "source": "fx-slash/ink_crash_pl",
     "x": 896,
-    "y": 6208
+    "y": 6112
   },
   "fx_ink_dark": {
     "cell": 64,
     "frames": 6,
     "source": "fx-slash/ink_dark",
     "x": 1472,
-    "y": 6208
+    "y": 6112
   },
   "fx_ink_dark_pl": {
     "cell": 64,
     "frames": 9,
     "source": "fx-slash/ink_dark_pl",
     "x": 0,
-    "y": 6272
+    "y": 6176
   },
   "fx_ink_slash": {
     "cell": 64,
     "frames": 6,
     "source": "fx-slash/ink_slash",
     "x": 576,
-    "y": 6272
+    "y": 6176
   },
   "fx_ink_slash_pl": {
     "cell": 64,
     "frames": 9,
     "source": "fx-slash/ink_slash_pl",
     "x": 960,
-    "y": 6272
+    "y": 6176
   },
   "fx_ink_sweep": {
     "cell": 64,
     "frames": 7,
     "source": "fx-slash/ink_sweep",
     "x": 1536,
-    "y": 6272
+    "y": 6176
   },
   "fx_ink_sweep_pl": {
     "cell": 64,
     "frames": 9,
     "source": "fx-slash/ink_sweep_pl",
     "x": 0,
-    "y": 6336
+    "y": 6240
   },
   "fx_judgement_cut": {
     "cell": 64,
     "frames": 6,
     "source": "fx-slash/judgement_cut",
     "x": 576,
-    "y": 6336
+    "y": 6240
   },
   "fx_judgement_cut_big": {
     "cell": 64,
     "frames": 8,
     "source": "fx-slash/judgement_cut_big",
     "x": 960,
-    "y": 6336
+    "y": 6240
   },
   "fx_judgement_cut_gold": {
     "cell": 64,
     "frames": 6,
     "source": "fx-slash/judgement_cut_gold",
     "x": 1472,
-    "y": 6336
+    "y": 6240
   },
   "fx_judgement_cut_lines": {
     "cell": 64,
     "frames": 8,
     "source": "fx-slash/judgement_cut_lines",
     "x": 0,
-    "y": 6400
+    "y": 6304
   },
   "fx_judgement_cut_pl": {
     "cell": 64,
     "frames": 13,
     "source": "fx-slash/judgement_cut_pl",
     "x": 512,
-    "y": 6400
+    "y": 6304
   },
   "fx_judgement_cut_sphere": {
     "cell": 64,
     "frames": 10,
     "source": "fx-slash/judgement_cut_sphere",
     "x": 1344,
-    "y": 6400
+    "y": 6304
   },
   "fx_judgement_cut_thin": {
     "cell": 128,
     "frames": 6,
     "source": "fx-slash/judgement_cut_thin",
     "x": 0,
-    "y": 6464
+    "y": 6368
   },
   "fx_lines_diag": {
     "cell": 64,
     "frames": 6,
     "source": "fx-slash/lines_diag",
     "x": 768,
-    "y": 6464
+    "y": 6368
   },
   "fx_lines_diag_pl": {
     "cell": 64,
     "frames": 9,
     "source": "fx-slash/lines_diag_pl",
     "x": 1152,
-    "y": 6464
+    "y": 6368
   },
   "fx_lines_fwd": {
     "cell": 64,
     "frames": 6,
     "source": "fx-slash/lines_fwd",
     "x": 0,
-    "y": 6592
+    "y": 6496
   },
   "fx_lines_fwd_pl": {
     "cell": 64,
     "frames": 9,
     "source": "fx-slash/lines_fwd_pl",
     "x": 384,
-    "y": 6592
+    "y": 6496
   },
   "fx_lines_stab": {
     "cell": 64,
     "frames": 8,
     "source": "fx-slash/lines_stab",
     "x": 960,
-    "y": 6592
+    "y": 6496
   },
   "fx_lines_stab_pl": {
     "cell": 64,
     "frames": 9,
     "source": "fx-slash/lines_stab_pl",
     "x": 1472,
-    "y": 6592
+    "y": 6496
   },
   "fx_lines_up": {
     "cell": 64,
     "frames": 6,
     "source": "fx-slash/lines_up",
     "x": 0,
-    "y": 6656
+    "y": 6560
   },
   "fx_lines_up_pl": {
     "cell": 64,
     "frames": 9,
     "source": "fx-slash/lines_up_pl",
     "x": 384,
-    "y": 6656
+    "y": 6560
   },
   "fx_mend": {
     "cell": 64,
     "frames": 7,
     "source": "fx-slash/mend",
     "x": 960,
-    "y": 6656
+    "y": 6560
   },
   "fx_orb": {
     "cell": 32,
     "frames": 4,
     "source": "fx-slash/orb",
     "x": 1408,
-    "y": 6656
+    "y": 6560
   },
   "fx_pierce": {
     "cell": 64,
     "frames": 6,
     "source": "fx-slash/pierce",
     "x": 1536,
-    "y": 6656
+    "y": 6560
   },
   "fx_relic": {
     "cell": 64,
     "frames": 7,
     "source": "fx-slash/relic",
     "x": 0,
-    "y": 6720
+    "y": 6624
   },
   "fx_ring": {
     "cell": 128,
     "frames": 7,
     "source": "fx-slash/ring",
     "x": 448,
-    "y": 6720
+    "y": 6624
   },
   "fx_shock_ink": {
     "cell": 64,
     "frames": 7,
     "source": "fx-slash/shock_ink",
     "x": 1344,
-    "y": 6720
+    "y": 6624
   },
   "fx_shock_ink_pl": {
     "cell": 64,
     "frames": 9,
     "source": "fx-slash/shock_ink_pl",
     "x": 0,
-    "y": 6848
+    "y": 6752
   },
   "fx_shockwave": {
     "cell": 64,
     "frames": 7,
     "source": "fx-slash/shockwave",
     "x": 576,
-    "y": 6848
+    "y": 6752
   },
   "fx_shockwave_pl": {
     "cell": 64,
     "frames": 9,
     "source": "fx-slash/shockwave_pl",
     "x": 1024,
-    "y": 6848
+    "y": 6752
   },
   "fx_slash_diag": {
     "cell": 64,
     "frames": 8,
     "source": "fx-slash/slash_diag",
     "x": 0,
-    "y": 6912
+    "y": 6816
   },
   "fx_slash_diag_r": {
     "cell": 64,
     "frames": 8,
     "source": "fx-slash/slash_diag_r",
     "x": 512,
-    "y": 6912
+    "y": 6816
   },
   "fx_slash_x": {
     "cell": 64,
     "frames": 11,
     "source": "fx-slash/slash_x",
     "x": 1024,
-    "y": 6912
+    "y": 6816
   },
   "fx_smash": {
     "cell": 64,
     "frames": 7,
     "source": "fx-slash/smash",
     "x": 0,
-    "y": 6976
+    "y": 6880
   },
   "fx_smoke_green": {
     "cell": 64,
     "frames": 4,
     "source": "fx-slash/smoke_green",
     "x": 448,
-    "y": 6976
+    "y": 6880
   },
   "fx_spin": {
     "cell": 64,
     "frames": 10,
     "source": "fx-slash/spin",
     "x": 704,
-    "y": 6976
+    "y": 6880
   },
   "fx_spin_blue": {
     "cell": 64,
     "frames": 10,
     "source": "fx-slash/spin_blue",
     "x": 1344,
-    "y": 6976
+    "y": 6880
   },
   "fx_stab_blue": {
     "cell": 64,
     "frames": 6,
     "source": "fx-slash/stab_blue",
     "x": 0,
-    "y": 7040
+    "y": 6944
   },
   "fx_stab_diag": {
     "cell": 64,
     "frames": 6,
     "source": "fx-slash/stab_diag",
     "x": 384,
-    "y": 7040
+    "y": 6944
   },
   "fx_stab_triple": {
     "cell": 64,
     "frames": 7,
     "source": "fx-slash/stab_triple",
     "x": 768,
-    "y": 7040
+    "y": 6944
   },
   "fx_stab_up": {
     "cell": 64,
     "frames": 6,
     "source": "fx-slash/stab_up",
     "x": 1216,
-    "y": 7040
+    "y": 6944
   },
   "fx_sweep": {
     "cell": 64,
     "frames": 8,
     "source": "fx-slash/sweep",
     "x": 0,
-    "y": 7104
+    "y": 7008
   },
   "fx_sweep_blue": {
     "cell": 64,
     "frames": 8,
     "source": "fx-slash/sweep_blue",
     "x": 512,
-    "y": 7104
+    "y": 7008
   },
   "fx_sweep_green": {
     "cell": 64,
     "frames": 8,
     "source": "fx-slash/sweep_green",
     "x": 1024,
-    "y": 7104
+    "y": 7008
   },
   "fx_sweep_red": {
     "cell": 64,
     "frames": 8,
     "source": "fx-slash/sweep_red",
     "x": 1536,
-    "y": 7104
+    "y": 7008
   },
   "fx_sweep_thin": {
     "cell": 256,
     "frames": 8,
     "source": "fx-slash/sweep_thin",
     "x": 0,
-    "y": 7168
+    "y": 7072
   },
   "fx_thrust": {
     "cell": 64,
     "frames": 5,
     "source": "fx-slash/thrust",
     "x": 0,
-    "y": 7424
+    "y": 7328
   },
   "fx_uppercut": {
     "cell": 64,
     "frames": 8,
     "source": "fx-slash/uppercut",
     "x": 320,
-    "y": 7424
+    "y": 7328
   },
   "fx_wall_fire": {
     "cell": 96,
     "frames": 4,
     "source": "fx-slash/wall_fire",
     "x": 832,
-    "y": 7424
+    "y": 7328
   }
 }

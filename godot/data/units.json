@@ -219,22 +219,6 @@
       "death": "death_undead_collapse.wav"
     }
   },
-  "horse_undead": {
-    "hp": 70,
-    "dmg": 12,
-    "range": 45,
-    "speed": 154,
-    "cooldown": 1.3,
-    "sprite": "horse_undead",
-    "label": "Dead horse",
-    "counters": [],
-    "magic": 12,
-    "sfx": {
-      "attack": "horse_charge_impact.wav",
-      "hit": "impact_bone_crack_heavy.wav",
-      "death": "death_horse_collapse.wav"
-    }
-  },
   "armored": {
     "hp": 160,
     "dmg": 12,
@@ -273,7 +257,7 @@
     "magic": 9,
     "sfx": {
       "attack": "bone_swing_light.wav",
-      "hit": "",
+      "hit": "bow_release_arrow.wav",
       "death": "death_undead_collapse.wav"
     }
   },
@@ -290,7 +274,7 @@
     "counters": [],
     "magic": 12,
     "sfx": {
-      "attack": "magic_staff_cast.wav",
+      "attack": "impact_ground_slam.wav",
       "hit": "impact_bone_crack.wav",
       "death": "death_undead_collapse.wav"
     }
@@ -339,7 +323,23 @@
     "counters": [],
     "magic": 120,
     "sfx": {
-      "attack": "magic_staff_cast.wav",
+      "attack": "mace_swing_heavy.wav",
+      "hit": "impact_armor_heavy.wav",
+      "death": "death_armor_collapse.wav"
+    }
+  },
+  "z3-tilt-right": {
+    "hp": 160,
+    "dmg": 12,
+    "range": 45,
+    "speed": 48,
+    "cooldown": 1.4,
+    "sprite": "z3-tilt-right",
+    "label": "Z3 Tilt Right",
+    "counters": [],
+    "magic": 19,
+    "sfx": {
+      "attack": "armor_swing_heavy.wav",
       "hit": "impact_armor_heavy.wav",
       "death": "death_armor_collapse.wav"
     }

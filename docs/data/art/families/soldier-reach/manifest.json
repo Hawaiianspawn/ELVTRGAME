@@ -63,7 +63,13 @@
         ]
       },
       "verdict": "keep",
-      "reasons": []
+      "reasons": [],
+      "owner": {
+        "verdict": "deny",
+        "at": "2026-09-01T20:06:06+00:00",
+        "note": "",
+        "shipped": null
+      }
     }
   },
   "judged": "2026-08-15T22:52:15+00:00"

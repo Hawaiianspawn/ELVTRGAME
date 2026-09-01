@@ -45,8 +45,8 @@
         "luma 0.054 -- not automatically wrong (SKILL.md), but the outline is doing all the work"
       ],
       "owner": {
-        "verdict": "approve",
-        "at": "2026-08-16T05:07:23+00:00",
+        "verdict": "deny",
+        "at": "2026-09-01T19:50:32+00:00",
         "note": "",
         "shipped": null
       }

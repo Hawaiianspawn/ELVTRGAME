@@ -140,8 +140,8 @@
       "verdict": "keep",
       "reasons": [],
       "owner": {
-        "verdict": "approve",
-        "at": "2026-08-16T05:12:45+00:00",
+        "verdict": "deny",
+        "at": "2026-09-01T20:08:45+00:00",
         "note": "",
         "shipped": null
       }

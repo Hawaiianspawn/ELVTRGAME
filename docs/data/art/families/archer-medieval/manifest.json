@@ -70,6 +70,12 @@
         "task": 128,
         "date": "2026-07-31",
         "reason": "RETIRED FROM THE ATLAS by task-128, 2026-07-31. Owner instruction, looking at the shipped frame: \"I want all these states as archers. The knight armor ones can be a single variant but not every.\" This look is a steel-helmeted knight holding a bow -- so is every other keep in this family -- and against eleven steel-helmeted knights holding a spear, at a 56px cell in a near-black frame, the bow was the only difference and it is a thin dark arc. That is the root cause task-127 (size) and task-130 (contrast) were both pushing against from the render side. The archer sub-table is now twelve hooded, cloaked and distinctly-kitted owner-supplied looks (docs/data/art/families/pathfinder-line/family.json) plus v2_bowextended as the single surviving knight-armored archer. NOT A REJECTION OF THIS ART and NOT a deletion: the verdict below stands, the PNGs stay on disk under RawArt/Renders/archer-medieval/raw/, and this entry is kept whole as the historical record. Re-packing any of these is a frame_map edit in docs/data/art/requests/team-units.json plus a weights entry -- no regeneration and no credits."
+      },
+      "owner": {
+        "verdict": "deny",
+        "at": "2026-09-01T20:07:01+00:00",
+        "note": "",
+        "shipped": null
       }
     },
     "v2_bowextended": {
@@ -207,6 +213,12 @@
         "task": 128,
         "date": "2026-07-31",
         "reason": "RETIRED FROM THE ATLAS by task-128, 2026-07-31. Owner instruction, looking at the shipped frame: \"I want all these states as archers. The knight armor ones can be a single variant but not every.\" This look is a steel-helmeted knight holding a bow -- so is every other keep in this family -- and against eleven steel-helmeted knights holding a spear, at a 56px cell in a near-black frame, the bow was the only difference and it is a thin dark arc. That is the root cause task-127 (size) and task-130 (contrast) were both pushing against from the render side. The archer sub-table is now twelve hooded, cloaked and distinctly-kitted owner-supplied looks (docs/data/art/families/pathfinder-line/family.json) plus v2_bowextended as the single surviving knight-armored archer. NOT A REJECTION OF THIS ART and NOT a deletion: the verdict below stands, the PNGs stay on disk under RawArt/Renders/archer-medieval/raw/, and this entry is kept whole as the historical record. Re-packing any of these is a frame_map edit in docs/data/art/requests/team-units.json plus a weights entry -- no regeneration and no credits."
+      },
+      "owner": {
+        "verdict": "deny",
+        "at": "2026-09-01T20:06:59+00:00",
+        "note": "",
+        "shipped": null
       }
     },
     "v4_quiverreach": {
@@ -278,6 +290,12 @@
         "task": 128,
         "date": "2026-07-31",
         "reason": "RETIRED FROM THE ATLAS by task-128, 2026-07-31. Owner instruction, looking at the shipped frame: \"I want all these states as archers. The knight armor ones can be a single variant but not every.\" This look is a steel-helmeted knight holding a bow -- so is every other keep in this family -- and against eleven steel-helmeted knights holding a spear, at a 56px cell in a near-black frame, the bow was the only difference and it is a thin dark arc. That is the root cause task-127 (size) and task-130 (contrast) were both pushing against from the render side. The archer sub-table is now twelve hooded, cloaked and distinctly-kitted owner-supplied looks (docs/data/art/families/pathfinder-line/family.json) plus v2_bowextended as the single surviving knight-armored archer. NOT A REJECTION OF THIS ART and NOT a deletion: the verdict below stands, the PNGs stay on disk under RawArt/Renders/archer-medieval/raw/, and this entry is kept whole as the historical record. Re-packing any of these is a frame_map edit in docs/data/art/requests/team-units.json plus a weights entry -- no regeneration and no credits."
+      },
+      "owner": {
+        "verdict": "deny",
+        "at": "2026-09-01T20:06:58+00:00",
+        "note": "",
+        "shipped": null
       }
     },
     "v5_crossbowbrace": {
@@ -348,6 +366,12 @@
         "task": 128,
         "date": "2026-07-31",
         "reason": "RETIRED FROM THE ATLAS by task-128, 2026-07-31. Owner instruction, looking at the shipped frame: \"I want all these states as archers. The knight armor ones can be a single variant but not every.\" This look is a steel-helmeted knight holding a bow -- so is every other keep in this family -- and against eleven steel-helmeted knights holding a spear, at a 56px cell in a near-black frame, the bow was the only difference and it is a thin dark arc. That is the root cause task-127 (size) and task-130 (contrast) were both pushing against from the render side. The archer sub-table is now twelve hooded, cloaked and distinctly-kitted owner-supplied looks (docs/data/art/families/pathfinder-line/family.json) plus v2_bowextended as the single surviving knight-armored archer. NOT A REJECTION OF THIS ART and NOT a deletion: the verdict below stands, the PNGs stay on disk under RawArt/Renders/archer-medieval/raw/, and this entry is kept whole as the historical record. Re-packing any of these is a frame_map edit in docs/data/art/requests/team-units.json plus a weights entry -- no regeneration and no credits."
+      },
+      "owner": {
+        "verdict": "deny",
+        "at": "2026-09-01T20:06:56+00:00",
+        "note": "",
+        "shipped": null
       }
     },
     "v6_slingwhirl": {

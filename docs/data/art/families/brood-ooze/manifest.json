@@ -46,8 +46,8 @@
         "luma 0.156 -- not automatically wrong (SKILL.md), but the outline is doing all the work"
       ],
       "owner": {
-        "verdict": "approve",
-        "at": "2026-08-16T05:08:08+00:00",
+        "verdict": "deny",
+        "at": "2026-09-01T19:50:22+00:00",
         "note": "",
         "shipped": null
       }
@@ -144,8 +144,8 @@
         "luma 0.149 -- not automatically wrong (SKILL.md), but the outline is doing all the work"
       ],
       "owner": {
-        "verdict": "approve",
-        "at": "2026-08-16T05:08:06+00:00",
+        "verdict": "deny",
+        "at": "2026-09-01T19:50:24+00:00",
         "note": "",
         "shipped": null
       }
@@ -383,8 +383,8 @@
         "luma 0.198 -- not automatically wrong (SKILL.md), but the outline is doing all the work"
       ],
       "owner": {
-        "verdict": "approve",
-        "at": "2026-08-16T05:08:04+00:00",
+        "verdict": "deny",
+        "at": "2026-09-01T19:50:23+00:00",
         "note": "",
         "shipped": null
       }
@@ -433,8 +433,8 @@
       "verdict": "keep",
       "reasons": [],
       "owner": {
-        "verdict": "approve",
-        "at": "2026-08-16T05:08:05+00:00",
+        "verdict": "deny",
+        "at": "2026-09-01T19:50:21+00:00",
         "note": "",
         "shipped": null
       }
