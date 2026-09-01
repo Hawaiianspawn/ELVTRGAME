@@ -60,5 +60,9 @@
   "hero_witchhunter": "melee-tropes/hero_witchhunter",
   "hero_berserker": "melee-tropes/hero_berserker",
   "tank": "tank-concepts/stone_a_plain",
-  "z3-tilt-right": "melee-undead/z3-tilt-right"
+  "z3-tilt-right": "melee-undead/z3-tilt-right",
+  "z4-tilt-left": "melee-undead/z4-tilt-left",
+  "z1-tilt-left": "melee-undead/z1-tilt-left",
+  "z1-lolled": "melee-undead/z1-lolled",
+  "z1-tilt-right": "melee-undead/z1-tilt-right"
 }

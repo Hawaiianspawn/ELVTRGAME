@@ -48,8 +48,8 @@
       ],
       "owner": {
         "verdict": "approve",
-        "at": "2026-09-01T19:51:28+00:00",
-        "note": "rehearsal",
+        "at": "2026-09-01T20:22:56+00:00",
+        "note": "",
         "shipped": null,
         "generated": {
           "base_id": "6dd19c16-8dc3-4a2c-87a9-53cff161e120",
@@ -89,7 +89,20 @@
         "south-west.png",
         "south.png",
         "west.png"
-      ]
+      ],
+      "owner": {
+        "verdict": "approve",
+        "at": "2026-09-01T20:22:59+00:00",
+        "note": "",
+        "shipped": null,
+        "generated": {
+          "base_id": "6dd19c16-8dc3-4a2c-87a9-53cff161e120",
+          "character_id": "af4ff4e8-780c-47c4-8c77-87c7039193a7",
+          "edit_description": "Same undead soldier, head tilted toward the right shoulder, hunched deeper, one arm dangling limp. Keep the head and legs clearly visible. Match the existing color palette exactly, no new colors, no glowing parts.",
+          "seed": null,
+          "tool": "forge.py create-character-state"
+        }
+      }
     },
     "z1-lolled": {
       "urls": [
@@ -112,6 +125,26 @@
         "south-west.png",
         "south.png",
         "west.png"
+      ],
+      "owner": {
+        "verdict": "approve",
+        "at": "2026-09-01T21:12:42+00:00",
+        "note": "",
+        "shipped": null,
+        "generated": {
+          "base_id": "6dd19c16-8dc3-4a2c-87a9-53cff161e120",
+          "character_id": "86cb4264-68f6-44f3-ac2f-5e4759fffa5f",
+          "edit_description": "Same undead soldier, head lolled backward, mouth agape, both arms hanging dead at the sides. Keep the head and legs clearly visible. Match the existing color palette exactly, no new colors, no glowing parts.",
+          "seed": null,
+          "tool": "forge.py create-character-state"
+        }
+      },
+      "refine_notes": [
+        {
+          "at": "2026-09-01T21:09:41+00:00",
+          "note": "Should be shambling towards you with one arm out.",
+          "child": "z1-lolled-r2"
+        }
       ]
     },
     "z3-tilt-right": {
@@ -179,7 +212,79 @@
         "south-west.png",
         "south.png",
         "west.png"
+      ],
+      "owner": {
+        "verdict": "approve",
+        "at": "2026-09-01T20:22:53+00:00",
+        "note": "",
+        "shipped": null,
+        "generated": {
+          "base_id": "3bd22c75-91be-4b52-aee5-60c3c6674b73",
+          "character_id": "627edbb2-3dc5-4ea9-84f4-0d8bb4799941",
+          "edit_description": "Same undead soldier, head tilted hard toward the left shoulder, mace arm sagging lower. Keep the head and legs clearly visible. Match the existing color palette exactly, no new colors, no glowing parts.",
+          "seed": null,
+          "tool": "forge.py create-character-state"
+        }
+      }
+    },
+    "z1-tilt-right-r2": {
+      "urls": [
+        "https://backblaze.pixellab.ai/file/pixellab-characters/af7def4e-5692-4b18-9246-874d5382befb/fe762670-c1ea-4aa6-84f6-4039e71ac4d3/rotations/south.png?t=1788295975",
+        "https://backblaze.pixellab.ai/file/pixellab-characters/af7def4e-5692-4b18-9246-874d5382befb/fe762670-c1ea-4aa6-84f6-4039e71ac4d3/rotations/south-east.png?t=1788295975",
+        "https://backblaze.pixellab.ai/file/pixellab-characters/af7def4e-5692-4b18-9246-874d5382befb/fe762670-c1ea-4aa6-84f6-4039e71ac4d3/rotations/east.png?t=1788295975",
+        "https://backblaze.pixellab.ai/file/pixellab-characters/af7def4e-5692-4b18-9246-874d5382befb/fe762670-c1ea-4aa6-84f6-4039e71ac4d3/rotations/north-east.png?t=1788295975",
+        "https://backblaze.pixellab.ai/file/pixellab-characters/af7def4e-5692-4b18-9246-874d5382befb/fe762670-c1ea-4aa6-84f6-4039e71ac4d3/rotations/north.png?t=1788295975",
+        "https://backblaze.pixellab.ai/file/pixellab-characters/af7def4e-5692-4b18-9246-874d5382befb/fe762670-c1ea-4aa6-84f6-4039e71ac4d3/rotations/north-west.png?t=1788295975",
+        "https://backblaze.pixellab.ai/file/pixellab-characters/af7def4e-5692-4b18-9246-874d5382befb/fe762670-c1ea-4aa6-84f6-4039e71ac4d3/rotations/west.png?t=1788295975",
+        "https://backblaze.pixellab.ai/file/pixellab-characters/af7def4e-5692-4b18-9246-874d5382befb/fe762670-c1ea-4aa6-84f6-4039e71ac4d3/rotations/south-west.png?t=1788295975"
+      ],
+      "fetched": "2026-09-01T20:53:05+00:00",
+      "files": [
+        "east.png",
+        "north-east.png",
+        "north-west.png",
+        "north.png",
+        "south-east.png",
+        "south-west.png",
+        "south.png",
+        "west.png"
       ]
+    },
+    "z1-lolled-r2": {
+      "urls": [
+        "https://backblaze.pixellab.ai/file/pixellab-characters/af7def4e-5692-4b18-9246-874d5382befb/ceea2f99-9743-4d4d-ba85-4c6f2990aadc/rotations/south.png?t=1788297129",
+        "https://backblaze.pixellab.ai/file/pixellab-characters/af7def4e-5692-4b18-9246-874d5382befb/ceea2f99-9743-4d4d-ba85-4c6f2990aadc/rotations/south-east.png?t=1788297129",
+        "https://backblaze.pixellab.ai/file/pixellab-characters/af7def4e-5692-4b18-9246-874d5382befb/ceea2f99-9743-4d4d-ba85-4c6f2990aadc/rotations/east.png?t=1788297129",
+        "https://backblaze.pixellab.ai/file/pixellab-characters/af7def4e-5692-4b18-9246-874d5382befb/ceea2f99-9743-4d4d-ba85-4c6f2990aadc/rotations/north-east.png?t=1788297129",
+        "https://backblaze.pixellab.ai/file/pixellab-characters/af7def4e-5692-4b18-9246-874d5382befb/ceea2f99-9743-4d4d-ba85-4c6f2990aadc/rotations/north.png?t=1788297129",
+        "https://backblaze.pixellab.ai/file/pixellab-characters/af7def4e-5692-4b18-9246-874d5382befb/ceea2f99-9743-4d4d-ba85-4c6f2990aadc/rotations/north-west.png?t=1788297129",
+        "https://backblaze.pixellab.ai/file/pixellab-characters/af7def4e-5692-4b18-9246-874d5382befb/ceea2f99-9743-4d4d-ba85-4c6f2990aadc/rotations/west.png?t=1788297129",
+        "https://backblaze.pixellab.ai/file/pixellab-characters/af7def4e-5692-4b18-9246-874d5382befb/ceea2f99-9743-4d4d-ba85-4c6f2990aadc/rotations/south-west.png?t=1788297129"
+      ],
+      "fetched": "2026-09-01T21:12:25+00:00",
+      "files": [
+        "east.png",
+        "north-east.png",
+        "north-west.png",
+        "north.png",
+        "south-east.png",
+        "south-west.png",
+        "south.png",
+        "west.png"
+      ],
+      "owner": {
+        "verdict": "approve",
+        "at": "2026-09-01T21:12:39+00:00",
+        "note": "",
+        "shipped": null,
+        "generated": {
+          "base_id": "86cb4264-68f6-44f3-ac2f-5e4759fffa5f",
+          "character_id": "ceea2f99-9743-4d4d-ba85-4c6f2990aadc",
+          "edit_description": "Should be shambling towards you with one arm out. Change only what is described and nothing else. Keep the same character, pose, proportions and kit. Match the existing color palette exactly, no new colors, no glowing parts.",
+          "seed": null,
+          "tool": "forge.py create-character-state"
+        }
+      }
     }
   }
 }

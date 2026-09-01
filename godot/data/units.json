@@ -343,5 +343,69 @@
       "hit": "impact_armor_heavy.wav",
       "death": "death_armor_collapse.wav"
     }
+  },
+  "z4-tilt-left": {
+    "hp": 160,
+    "dmg": 12,
+    "range": 45,
+    "speed": 48,
+    "cooldown": 1.4,
+    "sprite": "z4-tilt-left",
+    "label": "Z4 Tilt Left",
+    "counters": [],
+    "magic": 19,
+    "sfx": {
+      "attack": "armor_swing_heavy.wav",
+      "hit": "impact_armor_heavy.wav",
+      "death": "death_armor_collapse.wav"
+    }
+  },
+  "z1-tilt-left": {
+    "hp": 160,
+    "dmg": 12,
+    "range": 45,
+    "speed": 48,
+    "cooldown": 1.4,
+    "sprite": "z1-tilt-left",
+    "label": "Z1 Tilt Left",
+    "counters": [],
+    "magic": 19,
+    "sfx": {
+      "attack": "armor_swing_heavy.wav",
+      "hit": "impact_armor_heavy.wav",
+      "death": "death_armor_collapse.wav"
+    }
+  },
+  "z1-lolled": {
+    "hp": 160,
+    "dmg": 12,
+    "range": 45,
+    "speed": 48,
+    "cooldown": 1.4,
+    "sprite": "z1-lolled",
+    "label": "Z1 Lolled",
+    "counters": [],
+    "magic": 19,
+    "sfx": {
+      "attack": "armor_swing_heavy.wav",
+      "hit": "impact_armor_heavy.wav",
+      "death": "death_armor_collapse.wav"
+    }
+  },
+  "z1-tilt-right": {
+    "hp": 160,
+    "dmg": 12,
+    "range": 45,
+    "speed": 48,
+    "cooldown": 1.4,
+    "sprite": "z1-tilt-right",
+    "label": "Z1 Tilt Right",
+    "counters": [],
+    "magic": 19,
+    "sfx": {
+      "attack": "armor_swing_heavy.wav",
+      "hit": "impact_armor_heavy.wav",
+      "death": "death_armor_collapse.wav"
+    }
   }
 }

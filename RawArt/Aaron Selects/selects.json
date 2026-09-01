@@ -1362,30 +1362,26 @@
   "melee-undead/z1-lolled": {
     "branch": "Elf Branch",
     "verdict": "approve",
-    "at": "2026-08-25T05:00:05+00:00",
-    "source": "RawArt/Renders/melee-undead/raw/z1-lolled/rotations",
-    "palette": "Undead Soldiers"
+    "at": "2026-09-01T20:22:57+00:00",
+    "source": "RawArt/Renders/melee-undead/raw/z1-lolled/rotations"
   },
   "melee-undead/z1-tilt-right": {
     "branch": "Elf Branch",
     "verdict": "approve",
-    "at": "2026-08-25T05:00:08+00:00",
-    "source": "RawArt/Renders/melee-undead/raw/z1-tilt-right/rotations",
-    "palette": "Undead Soldiers"
+    "at": "2026-09-01T20:22:59+00:00",
+    "source": "RawArt/Renders/melee-undead/raw/z1-tilt-right/rotations"
   },
   "melee-undead/z1-tilt-left": {
     "branch": "Elf Branch",
     "verdict": "approve",
-    "at": "2026-08-25T05:00:09+00:00",
-    "source": "RawArt/Renders/melee-undead/raw/z1-tilt-left/rotations",
-    "palette": "Undead Soldiers"
+    "at": "2026-09-01T20:22:56+00:00",
+    "source": "RawArt/Renders/melee-undead/raw/z1-tilt-left/rotations"
   },
   "melee-undead/z4-tilt-left": {
     "branch": "Elf Branch",
     "verdict": "approve",
-    "at": "2026-08-25T05:00:13+00:00",
-    "source": "RawArt/Renders/melee-undead/raw/z4-tilt-left/rotations",
-    "palette": "Undead Soldiers"
+    "at": "2026-09-01T20:22:53+00:00",
+    "source": "RawArt/Renders/melee-undead/raw/z4-tilt-left/rotations"
   },
   "ranged-undead/z8-tilt-right": {
     "branch": "Elf Branch",

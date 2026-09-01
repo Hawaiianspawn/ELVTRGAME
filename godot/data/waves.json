@@ -21,6 +21,22 @@
       {
         "type": "z3-tilt-right",
         "count": 12
+      },
+      {
+        "type": "z4-tilt-left",
+        "count": 12
+      },
+      {
+        "type": "z1-tilt-left",
+        "count": 12
+      },
+      {
+        "type": "z1-lolled",
+        "count": 12
+      },
+      {
+        "type": "z1-tilt-right",
+        "count": 12
       }
     ],
     "turn": "left"
