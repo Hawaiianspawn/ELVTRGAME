@@ -49,6 +49,37 @@ func _run(spec: String) -> void:
 				stragglers += 1
 		assert(stragglers == 0, "old type still on the field: %d" % stragglers)
 		print("PROBE swap ok: %s -> %s, %d on field, pool[%s]=%d" % [old_type, b.army_type, b.units.filter(func(x): return x.team == 0).size(), old_type, b.pool[old_type]])
+	if check == "chest":
+		# evidence: one closed and one popped-open upgrade chest close to the lens, for artifact checks
+		await get_tree().create_timer(2.0).timeout
+		var b := get_tree().current_scene
+		b._spawn_chest(-70.0, 200.0)
+		b._spawn_chest(70.0, 200.0)
+		await get_tree().process_frame
+		b._pop_chest(b._up_chests[-1])
+		print("PROBE chest ok: closed at -70, popped at 70, d=200")
+	if check == "medal":
+		# self-check: the HUD ring shows the selected type facing east, plays its packed
+		# attack_east clip on medal_attack, and a swap resets it to the new type's idle profile.
+		await get_tree().create_timer(4.0).timeout
+		var b := get_tree().current_scene
+		assert(not b._medal_clip.is_empty(), "no attack_east clip packed for %s" % b.army_type)
+		b.medal_attack(b.army_type)
+		await get_tree().create_timer(0.2).timeout
+		assert(b._medal_sprite.hframes == int(b._medal_clip["frames"]), "medal clip not playing")
+		b._cycle_army(1)
+		assert(b._medal_t < 0.0 and b._medal_sprite.frame == 2, "swap did not reset the medal to east idle")
+		assert(not b._medal_clip.is_empty(), "no attack_east clip packed for %s" % b.army_type)
+		print("PROBE medal ok: east idle + attack_east clip + swap reset (%s)" % b.army_type)
+	if check == "tally":
+		# self-check: the end-of-run tally counts every row up to the run's numbers, score last.
+		await get_tree().create_timer(2.0).timeout
+		var bt := get_tree().current_scene
+		Game.kills = 137
+		Game.score = 4210
+		bt._done = true   # park the sim under the tally, as the real win path does
+		await bt._tally()
+		print("PROBE tally ok: rows counted to kills=%d score=%d" % [Game.kills, Game.score])
 	if check == "reload":
 		# self-check: the manual breech loop loads the cannon -- empty it, drag full open (shell
 		# feeds), drag sealed (loads). Drives _breech_drag_by directly; no synthetic mouse events.

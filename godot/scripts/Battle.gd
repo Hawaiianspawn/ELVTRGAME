@@ -68,6 +68,7 @@ var _hero_clip := {}
 var _hero_t := -1.0                    # time into the playing one-shot clip, <0 = none
 var hero_wx := 0.0
 var hero_wd := 245.0
+var _hero_entry := INF   # wd override while the hero re-enters from behind the lens on a new hall
 var hero_hp := 100.0
 var tank_max_hp := 100.0
 var _gatling_cd := 0.0
@@ -102,6 +103,8 @@ var _fov_tw: Tween                      # live fov-punch return tween; a new pun
 var _casings: Array[Dictionary] = []    # gatling brass on the fx overlay: {n, p, v, spin, floor_y, t, k}
 var _intro := false                     # hall-1 stand-off: spawns held until the gate is breached
 var _gate: Sprite3D                     # the closed gate during the stand-off; null once breached
+var _gate_frame: MeshInstance3D         # gatehouse brick flanks either side of it; after the breach it rides the scroll past the lens
+var _gate_frame_scroll0 := 0.0          # scroll at the moment of breach: the frame's depth counts down from there
 var _gate_hits := 0
 var _gate_holes := PackedVector3Array([Vector3.ZERO, Vector3.ZERO, Vector3.ZERO, Vector3.ZERO])
 var _gate_hole_i := 0
@@ -121,6 +124,7 @@ var _breech_frac := 0.0                 # 0 = sealed, 1 = block fully down
 var _breech_has_shell := false
 var _breech_drag := false
 const GATE_TEX := preload("res://assets/env/castle/gate.png")   # single closed frame, 96x120; breach shreds it
+const GATE_SHADER := preload("res://assets/shaders/gate_sprite.gdshader")   # unit shader with 40 hole slots
 var burst := 3                          # per-wave spawn burst size (waves.json "burst", default 3)
 var _up_chests: Array[Dictionary] = []  # upgrade chests: {node, broken, wx, base_d, d, last_d, alive}
 var _chest_t := 0.0
@@ -143,6 +147,11 @@ var _ui: CanvasLayer                   # HUD layer; win / lose cards land on it
 var toast_banner: NinePatchRect
 var toast_label: Label
 var army_panels: Array[ArmyPanel] = []
+var _medal: TextureRect                # top-left ring; shows the selected army type's east profile
+var _medal_sprite: Sprite2D
+var _medal_rot: Rect2                  # its 8-dir rotation region; the attack clip swaps it out
+var _medal_clip := {}                  # manifest "attack_east" row for the selected type; empty until packed
+var _medal_t := -1.0                   # time into the playing clip, <0 = idle
 var scroll := 0.0
 var scroll_creep := SCROLL_CREEP_BY_WAVE[0]
 var wave_t := 0.0                        # seconds into the hall: the push accelerates the longer you're in it
@@ -163,6 +172,7 @@ var _low_hp_played := false            # hero_sfx.low_hp fires once per wave on 
 
 
 func _ready() -> void:
+	Sound.ambient("")   # the menu drone stays in the menu
 	_rng.randomize()
 	world = Node3D.new()
 	add_child(world)
@@ -230,6 +240,8 @@ func _ready() -> void:
 		hero.add_child(_barrel)
 	_hero_rot = (hero_sprite.texture as AtlasTexture).region
 	_aim_clip = Game.sprites[Game.hero].get("aimdown", {})
+	hero_sprite.position.z = 2.0   # rider a step toward the lens: he and the dome share a wd and z-fight
+	hero_sprite.position.x = -3.0  # and a nudge left to sit him on the mount
 	hero.add_child(hero_sprite)
 	# green flame wisp over the hero cut (owner call); Game.magic still drives casts, just no orb
 	world.add_child(hero)
@@ -245,13 +257,52 @@ static func pitch_for(h: float) -> float:
 ## Kit HUD: tank meter top-left, toast banner top-centre. The army panels sit under it on the
 ## bottom strip (ArmyPanel); the cannon cooldown ring is drawn under the crosshair in _draw_hud.
 func _build_hud(cl: CanvasLayer) -> void:
-	Ui.portrait(cl, Game.hero, Vector2(6, 4))
+	_medal = Ui.sprite(cl, "medallion", Vector2(6, 4))
+	_medal.clip_contents = true   # wide swing frames stay inside the ring
+	_medal_set(army_type)
 	hp_bar = Ui.bar(cl, Vector2(104, 12), Ui.COL_EMBER, "")
 	hall_label = Ui.label(cl, "", Vector2(108, 44), Ui.COL_TEXT)
 	score_label = Ui.label(cl, "", Vector2(108, 64), Ui.COL_DIM)
 	toast_banner = Ui.patch(cl, "banner", Vector2(396, 0), Vector2(370, 150), [70, 45, 70, 72])
 	toast_label = Ui.label(toast_banner, "", Vector2(36, 36), Ui.COL_HOT, 16, 298.0)
 	toast_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+
+
+## Put `type`'s east profile in the top-left ring (88px cell at 0.75 fills the 64px window).
+func _medal_set(type: String) -> void:
+	if _medal_sprite:
+		_medal_sprite.queue_free()
+	var sn: String = Game.units[type]["sprite"]
+	_medal_sprite = Game.make_sprite(sn, 2)   # 2 = east in Game.DIRS
+	_medal_sprite.position = Vector2(49, 72)   # feet raised so the ~45px body centres in the ring
+	_medal_sprite.scale = Vector2(0.9, 0.9)    # ~45px body fills the 64px window; clip catches swings
+	_medal.add_child(_medal_sprite)
+	_medal_rot = (_medal_sprite.texture as AtlasTexture).region
+	_medal_clip = Game.sprites[sn].get("attack_east", {})
+	_medal_t = -1.0
+
+
+## A unit of the selected type swung: the ring plays its east attack clip (if packed).
+func medal_attack(type: String) -> void:
+	if type == army_type and _medal_t < 0.0 and not _medal_clip.is_empty():
+		_medal_t = 0.0
+
+
+func _tick_medal(delta: float) -> void:
+	if _medal_t < 0.0:
+		return
+	_medal_t += delta
+	var n := int(_medal_clip["frames"])
+	var at := _medal_sprite.texture as AtlasTexture
+	if _medal_t >= n * Unit.ATK_DT:
+		_medal_t = -1.0
+		at.region = _medal_rot
+		_medal_sprite.hframes = 8
+		_medal_sprite.frame = 2
+	else:
+		at.region = Rect2(int(_medal_clip.get("x", 0)), int(_medal_clip["y"]), _medal_rot.size.y * n, _medal_rot.size.y)
+		_medal_sprite.hframes = n
+		_medal_sprite.frame = mini(int(_medal_t / Unit.ATK_DT), n - 1)
 
 
 func start_wave(i: int) -> void:
@@ -286,7 +337,12 @@ func start_wave(i: int) -> void:
 		for n in range(int(e["count"])):
 			spawn_queue.append(e["type"])
 	spawn_queue.shuffle()
-	_build_ranks(w["reserves"])
+	_build_ranks(w["reserves"], i > 0)   # halls after the first: the line pours in from behind the lens
+	if i > 0:
+		_hero_entry = BEHIND_D - 130.0
+		var ht := create_tween()
+		ht.tween_property(self, "_hero_entry", HERO_MIN_D, 1.4).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
+		ht.tween_callback(func(): _hero_entry = INF)
 	spawn_t = 2.0
 	hero_hp = tank_max_hp
 	_low_hp_played = false
@@ -307,9 +363,9 @@ func start_wave(i: int) -> void:
 
 
 ## Hall 1 opens on a gate at the far end: 7-frame swing over ~1.2s, then the rush pours through
-## (spawn_t's own 2s delay already clears the animation before the first burst). Placed inside
-## Hall3D.FOG_END (980), not at SPAWN_D (1050) -- past the fog end it's fully black, invisible.
-const GATE_D := 780.0
+## (spawn_t's own 2s delay already clears the animation before the first burst). Pulled close and
+## shrunk 2026-08-31 (owner): a door to breach, not a wall — mostly clear of the fog band too.
+const GATE_D := 560.0
 func _make_gate() -> Sprite3D:
 	var g := Sprite3D.new()
 	g.texture = GATE_TEX
@@ -317,18 +373,64 @@ func _make_gate() -> Sprite3D:
 	g.shaded = false
 	g.billboard = BaseMaterial3D.BILLBOARD_DISABLED
 	g.alpha_cut = SpriteBase3D.ALPHA_CUT_DISCARD
-	g.pixel_size = HALL_HALF * 2.0 * 0.9 / GATE_TEX.get_width()
+	# doorway must clear the rank block (RANK_HALF 180 half-width) plus shoulder room, or the
+	# files visually walk through the flanks on the pass-through: 0.42 of hall 1 = ±218
+	g.pixel_size = HALL_HALF * 2.0 * 0.42 / GATE_TEX.get_width()
 	g.position = Hall3D.to_world(0.0, GATE_D, GATE_TEX.get_height() * g.pixel_size * 0.5)
-	# same hole shader as units/props: shots and blows leave real missing pieces in the door
+	# gate variant of the unit hole shader: 40 slots, every pock stays until the door falls
 	var m := ShaderMaterial.new()
-	m.shader = Hall3D.UNIT_SHADER
+	m.shader = GATE_SHADER
 	m.set_shader_parameter("texture_albedo", GATE_TEX)
 	m.set_shader_parameter("px", g.pixel_size)
 	g.material_override = m
-	_gate_holes = PackedVector3Array([Vector3.ZERO, Vector3.ZERO, Vector3.ZERO, Vector3.ZERO])
+	_gate_holes = PackedVector3Array()
+	_gate_holes.resize(40)
 	_gate_hole_i = 0
 	world.add_child(g)
+	_gate_frame = _make_gate_frame(g.pixel_size * GATE_TEX.get_width() * 0.5, g.pixel_size * GATE_TEX.get_height())
 	return g
+
+
+## Gatehouse face: the full castle front at the gate's depth — one flat, fully occluding wall
+## with the doorway as its only opening. Brick at eye level fades into solid black that runs high
+## enough to seal the frame, so nothing of the hall behind pops through; breaching the door is
+## the only way in. After the breach it rides the scroll and the army walks through the doorway.
+func _make_gate_frame(gate_half_w: float, gate_top: float) -> MeshInstance3D:
+	# fade band matches Hall3D._build_walls exactly (solid to 35% of the course height, black at
+	# the top course), so the castle front and the side walls share one shadow line; only the
+	# door stays lit above it — that's the thing being shot through
+	var solid_top := Hall3D.TILE * Hall3D.COURSES * 0.35
+	var fade_top := Hall3D.TILE * Hall3D.COURSES
+	var top := 1600.0   # solid black continues up: covers the frame even as the wall nears the lens
+	var st := SurfaceTool.new()
+	st.begin(Mesh.PRIMITIVE_TRIANGLES)
+	var quads := []   # [x0, x1, y0, y1, col0, col1]
+	for side: float in [-1.0, 1.0]:
+		var x0 := side * gate_half_w
+		var x1 := side * (HALL_HALF + Hall3D.TILE)   # a course past the wall face: no seam at the corner
+		quads.append([x0, x1, 0.0, solid_top, Color.WHITE, Color.WHITE])
+		quads.append([x0, x1, solid_top, fade_top, Color.WHITE, Color.BLACK])
+		quads.append([x0, x1, fade_top, top, Color.BLACK, Color.BLACK])
+	quads.append([-gate_half_w, gate_half_w, gate_top - 6.0, top, Color.BLACK, Color.BLACK])   # lintel: seals over the door
+	for q: Array in quads:
+		for tri in [[Vector2(q[0], q[2]), Vector2(q[1], q[2]), Vector2(q[1], q[3])], [Vector2(q[0], q[2]), Vector2(q[1], q[3]), Vector2(q[0], q[3])]]:
+			for p: Vector2 in tri:
+				st.set_color(q[4] if is_equal_approx(p.y, q[2]) else q[5])
+				st.set_uv(Vector2(p.x / Hall3D.TILE, -p.y / Hall3D.TILE))
+				st.add_vertex(Vector3(p.x, p.y, 0.0))
+	var mi := MeshInstance3D.new()
+	mi.mesh = st.commit()
+	var m := StandardMaterial3D.new()
+	m.albedo_texture = Hall3D.WALL_TEX
+	m.texture_filter = BaseMaterial3D.TEXTURE_FILTER_NEAREST
+	m.texture_repeat = true
+	m.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+	m.vertex_color_use_as_albedo = true
+	m.cull_mode = BaseMaterial3D.CULL_DISABLED
+	mi.material_override = m
+	mi.position = Hall3D.to_world(0.0, GATE_D + 4.0)   # a step behind the door plane
+	world.add_child(mi)
+	return mi
 
 
 ## Scripted path (probes/adversary): no stand-off, the gate just comes apart for the rush.
@@ -340,13 +442,62 @@ func _open_gate() -> void:
 			_gate = null)
 
 
-## The door comes apart: a burst of its own slabs, then the ruin fades out.
+## The door comes apart from the breach point out: the frame splits into a full grid of
+## slabs that sit in place, then blow outward and fall, nearest the breach centre first --
+## the army visibly punches THROUGH instead of the door fading away.
 func _shred_gate(g: Sprite3D) -> void:
-	for i in 12:
-		_gate_chunk()
+	_gate_frame_scroll0 = scroll   # the gatehouse stays standing: the advance now carries us THROUGH it
+	var frame_w := float(GATE_TEX.get_width())
+	var frame_h := float(GATE_TEX.get_height())
+	var ps := g.pixel_size
+	var pos0 := g.position
+	var cols := 5
+	var rows := 6
+	var cw := frame_w / cols
+	var ch := frame_h / rows
+	for ix in cols:
+		for iy in rows:
+			var cx := (float(ix) + 0.5) * cw
+			var cy := (float(iy) + 0.5) * ch
+			# breach centre sits low-middle, where the blows landed
+			var from_c := Vector2(cx - frame_w * 0.5, frame_h * 0.62 - cy)
+			var delay := from_c.length() / frame_w * 0.4   # centre slabs leave first
+			var dir := from_c.normalized() if from_c.length() > 1.0 else Vector2(0, 1)
+			var v := Vector3(dir.x * _rng.randf_range(25.0, 50.0),
+				maxf(dir.y, 0.1) * _rng.randf_range(12.0, 30.0),
+				_rng.randf_range(4.0, 10.0)) * ps
+			_gate_slab(pos0, ps, Rect2(ix * cw, iy * ch, cw, ch), v, delay)
+	g.queue_free()
+
+
+## One slab of the collapsing gate: holds its place in the frame until `delay`, then flies
+## with velocity v, tumbling and falling, and fades out. Same recipe as _gate_chunk's debris.
+func _gate_slab(pos0: Vector3, ps: float, rect: Rect2, v: Vector3, delay: float) -> void:
+	var frame_w := float(GATE_TEX.get_width())
+	var c := Sprite3D.new()
+	var sub := AtlasTexture.new()
+	sub.atlas = GATE_TEX
+	sub.region = rect
+	c.texture = sub
+	c.pixel_size = ps
+	c.billboard = BaseMaterial3D.BILLBOARD_DISABLED
+	c.texture_filter = BaseMaterial3D.TEXTURE_FILTER_NEAREST
+	c.alpha_cut = SpriteBase3D.ALPHA_CUT_DISCARD
+	c.alpha_scissor_threshold = 0.35
+	c.shaded = false
+	var p0 := pos0 + Vector3(rect.position.x + rect.size.x * 0.5 - frame_w * 0.5,
+		GATE_TEX.get_height() * 0.5 - rect.position.y - rect.size.y * 0.5, 0.0) * ps
+	p0.z += 2.0   # toward the lens, clear of the door plane
+	c.position = p0
+	world.add_child(c)
+	var spin := _rng.randf_range(-5.0, 5.0)
 	var tw := create_tween()
-	tw.tween_property(g, "modulate:a", 0.0, 0.5).set_delay(0.15)
-	tw.tween_callback(g.queue_free)
+	tw.tween_interval(delay)
+	tw.tween_method(func(t: float):
+		c.position = p0 + v * t - Vector3(0.0, 45.0 * ps, 0.0) * t * t
+		c.rotation.z = spin * t, 0.0, 1.0, 0.7)
+	tw.tween_property(c, "modulate:a", 0.0, 0.25).set_delay(0.45)
+	tw.tween_callback(c.queue_free)
 
 
 func _scripted() -> bool:
@@ -367,14 +518,25 @@ func _on_gate(cursor: Vector2) -> bool:
 
 
 ## One debris slab cut from the gate's closed frame -- _prop_chunk's recipe at gate scale.
-func _gate_chunk() -> void:
+## `at` (texture px): the slab comes off exactly there -- a shot chews the spot the cursor
+## hit, the assault chews the breach point -- so damage accumulates where it's dealt.
+func _gate_chunk(at := Vector2.INF) -> void:
+	if not _gate:
+		return   # the hole rule can breach mid-volley; later chunks in the same volley land on air
 	var frame_w := float(GATE_TEX.get_width())
+	var frame_h := float(GATE_TEX.get_height())
 	var ps := _gate.pixel_size
 	var sz := _rng.randf_range(10.0, 16.0)
-	var ox := _rng.randf_range(frame_w * 0.15, frame_w * 0.85 - sz)
-	var oy := _rng.randf_range(GATE_TEX.get_height() * 0.15, GATE_TEX.get_height() * 0.85 - sz)
+	var ox: float
+	var oy: float
+	if at != Vector2.INF:
+		ox = clampf(at.x + _rng.randf_range(-3.0, 3.0) - sz * 0.5, 0.0, frame_w - sz)
+		oy = clampf(at.y + _rng.randf_range(-3.0, 3.0) - sz * 0.5, 0.0, frame_h - sz)
+	else:
+		ox = _rng.randf_range(frame_w * 0.15, frame_w * 0.85 - sz)
+		oy = _rng.randf_range(frame_h * 0.15, frame_h * 0.85 - sz)
 	# the flying slab and the missing piece are the same piece, prop/unit recipe
-	_gate_holes[_gate_hole_i % 4] = Vector3((ox + sz * 0.5 - frame_w * 0.5) * ps,
+	_gate_holes[_gate_hole_i % 40] = Vector3((ox + sz * 0.5 - frame_w * 0.5) * ps,
 		(GATE_TEX.get_height() * 0.5 - (oy + sz * 0.5)) * ps, sz * 0.55 * ps)
 	_gate_hole_i += 1
 	(_gate.material_override as ShaderMaterial).set_shader_parameter("hole", _gate_holes)
@@ -398,6 +560,8 @@ func _gate_chunk() -> void:
 	tw.tween_method(func(t: float): c.position = p0 + v * t - Vector3(0.0, 35.0 * ps, 0.0) * t * t, 0.0, 1.0, 0.6)
 	tw.tween_property(c, "modulate:a", 0.0, 0.3).set_delay(0.3)
 	tw.tween_callback(c.queue_free)
+	if _gate_hole_i > 40:   # more holes than the door has slots: it's shot to pieces, down it comes
+		_breach_gate()
 
 
 ## A round hit the closed gate: a slab off, and the first hit sends the soldiers at it.
@@ -405,7 +569,13 @@ func _gate_shot(cursor: Vector2) -> void:
 	_gate_hits += 1
 	_burst(cursor, 6.0 * Hall3D.screen_scale(camera, GATE_D) * Hall3D.PIXEL)
 	Sound.play("impact_bone_crack.wav", 0.0)
-	_gate_chunk()
+	# cursor -> gate texture px, same rect math as _on_gate: the chunk leaves where the round landed
+	var k := Hall3D.screen_scale(camera, GATE_D)
+	var feet := Hall3D.unproject(camera, 0.0, GATE_D)
+	var w := GATE_TEX.get_width() * _gate.pixel_size * k
+	var h := GATE_TEX.get_height() * _gate.pixel_size * k
+	_gate_chunk(Vector2((cursor.x - feet.x + w * 0.5) / w * GATE_TEX.get_width(),
+		(cursor.y - feet.y + h) / h * GATE_TEX.get_height()))
 	if _gate_hits == 1:
 		_intro_assault()
 
@@ -435,7 +605,8 @@ func _assault_blow() -> void:
 			u.attack_anim()
 	if _assault_n < 2:
 		for i in 3:
-			_gate_chunk()
+			_gate_chunk(Vector2(GATE_TEX.get_width() * (0.5 + _rng.randf_range(-0.16, 0.16)),
+				GATE_TEX.get_height() * (0.62 + _rng.randf_range(-0.14, 0.14))))
 		Sound.play("impact_armor_heavy.wav", 0.0)
 		_shake(SHAKE_AMP * 0.35, 0.25)
 		get_tree().create_timer(2.5).timeout.connect(_intro_assault)
@@ -457,11 +628,11 @@ func _breach_gate() -> void:
 	say("Hall 1 / 4")
 
 
-func _build_ranks(reserves: Dictionary) -> void:
+func _build_ranks(reserves: Dictionary, rush := false) -> void:
 	# waves.json reserves = per-type pools. The block is one type at a time; deploy fills every slot from the pool.
 	pool = reserves.duplicate()
 	slots = Army.slots(RANK_HALF, RANK_ROWS, RANK_D0, _rng, RANK_COLS, RANK_STEP)
-	_deploy(army_type, false)
+	_deploy(army_type, rush)
 
 
 ## Fill every empty rank slot with `type` from its pool. `rush`: come in from behind the lens at speed.
@@ -613,6 +784,7 @@ func hit(a: Unit, t: Node3D, mult := 1.0) -> void:
 			t.launch(170.0)
 			t.wd += signf(t.wd - a.wd) * 18.0
 			_hitstop(0.05, 0.15)   # the knock-up beat
+			_shake(2.5, 0.12)      # every hammer blow thumps the lens a hair
 	elif t == hero:
 		hero_hp -= d
 		hero_sprite.modulate = Color(2, 1, 1)
@@ -822,22 +994,25 @@ func _clip2d(name: String, p: Vector2, scale: float, dt: float, tint := Color.WH
 
 ## Arrow streak between two world spots, each `h` sprite pixels above its own feet.
 func _arrow(from_w: Vector2, from_h: float, to_w: Vector2, to_h: float) -> void:
-	var from := Hall3D.unproject(camera, from_w.x, from_w.y, from_h * Hall3D.PIXEL)
+	# launch height and arc jittered per arrow so a rank firing together doesn't read as one volley
+	var from := Hall3D.unproject(camera, from_w.x, from_w.y, (from_h + _rng.randf_range(-10.0, 10.0)) * Hall3D.PIXEL)
 	var to := Hall3D.unproject(camera, to_w.x, to_w.y, to_h * Hall3D.PIXEL)
-	# packed arrow sprite (fx_arrow, points right) flown along a shallow arc, sized to the far end
-	var a := Game.make_fx("fx_arrow")
-	a.position = from
-	a.scale = Vector2.ONE * Hall3D.screen_scale(camera, to_w.y) * 0.6
-	fx.add_child(a)
+	var arc := _rng.randf_range(0.08, 0.16)
+	# Line2D streak, not the fx_arrow sprite: the sprite dithers into the crowd and stops reading
+	var l := Line2D.new()
+	l.width = 1.5
+	l.default_color = Color(0.9, 0.85, 0.7)
+	l.add_point(from)
+	l.add_point(from)
+	fx.add_child(l)
 	var tw := create_tween()
 	tw.tween_method(func(k: float):
-		var prev := a.position
-		var p := from.lerp(to, k)
-		p.y -= sin(k * PI) * from.distance_to(to) * 0.12
-		a.position = p
-		if p != prev:
-			a.rotation = (p - prev).angle(), 0.0, 1.0, 0.12)
-	tw.tween_callback(a.queue_free)
+		var mid := from.lerp(to, k)
+		mid.y -= sin(k * PI) * from.distance_to(to) * arc
+		l.set_point_position(1, mid)
+		l.set_point_position(0, from.lerp(mid, 0.92)), 0.0, 1.0, 0.12)
+	tw.tween_property(l, "modulate:a", 0.0, 0.08)
+	tw.tween_callback(l.queue_free)
 
 
 func spawn(type: String, team: int) -> Unit:
@@ -937,6 +1112,7 @@ func near_enemy(u: Unit, radius: float) -> Unit:
 func _process(delta: float) -> void:
 	_tick_shake(delta)
 	_tick_casings(delta)
+	_tick_medal(delta)
 	hud.queue_redraw()
 	_rebuild_grid()
 	toast_t -= delta
@@ -944,6 +1120,15 @@ func _process(delta: float) -> void:
 	if not _intro:
 		scroll += scroll_creep * minf(1.0 + wave_t * SCROLL_ACCEL, 2.5) * delta
 	hall.set_scroll(scroll)
+	# breached gatehouse: fixed to the hall like the side walls, so the push carries it toward and
+	# past the lens — the army walks through the doorway it blew open
+	if _gate_frame and not _intro and _gate == null:
+		var fd := GATE_D + 4.0 - (scroll - _gate_frame_scroll0)
+		if fd < 45.0:
+			_gate_frame.queue_free()
+			_gate_frame = null
+		else:
+			_gate_frame.position = Hall3D.to_world(0.0, fd)
 	_update_props()
 	_update_chests()
 	if _done:
@@ -979,7 +1164,9 @@ func _process(delta: float) -> void:
 	# including an adversary poke -- can drift it, and so to_world's curve offset (which moves as
 	# the hall bends) keeps tracking it
 	hero_wx = 0.0
-	hero_wd = 150.0   # nearest depth where the dome stays in frame: 120-130 sink it below the bottom edge
+	# nearest depth where the dome stays in frame: 120-130 sink it below the bottom edge.
+	# _hero_entry: brief override while the hero catches up from behind the lens on a new hall.
+	hero_wd = _hero_entry if _hero_entry != INF else 150.0
 	hero.position = Hall3D.to_world(hero_wx, hero_wd, TANK_MOUNT_H * Hall3D.PIXEL)
 	if tank_sprite:
 		tank_sprite.position = Hall3D.to_world(hero_wx, hero_wd)
@@ -1029,18 +1216,24 @@ func _wave_done() -> void:
 	_fov_punch(-3.0, 0.5)
 	Sound.play(str(Game.units["hero_sfx"].get("wave_clear", "")), hero_wx)
 	if Game.wave >= 3:
-		say("TO BE CONTINUED")
-		_card("card_win", "The door is already open.", 4.0)
-		await get_tree().create_timer(2.5).timeout
-		var f := ColorRect.new()
-		f.color = Color(0, 0, 0, 0.0)
-		f.size = Vector2(960, 540)
-		f.mouse_filter = Control.MOUSE_FILTER_IGNORE
-		_ui.add_child(f)
-		create_tween().tween_property(f, "color:a", 1.0, 1.5)
-		await get_tree().create_timer(1.5).timeout
-		get_tree().change_scene_to_file("res://scenes/Main.tscn")
+		await _tally()
+		Game.goto("main")
 	else:
+		# the line sprints off into the fog: everyone still standing rushes down-hall and the
+		# dark eats them; the next hall's deploy then pours in from behind the lens, as if
+		# they ran the corridor between and overtook the camera
+		for u in units:
+			if is_instance_valid(u) and u.team == Unit.ALLY and not u.dead:
+				u.lane = -1
+				u.home = Vector2(u.wx, Hall3D.FOG_END + 150.0)
+				u.rush = true
+				u.state = Unit.State.ADVANCE
+		var htw := create_tween()   # hero follows, accelerating; _done parks _process's pin until the next hall
+		htw.tween_method(func(d: float):
+			hero.position = Hall3D.to_world(0.0, d, TANK_MOUNT_H * Hall3D.PIXEL)
+			if tank_sprite:
+				tank_sprite.position = Hall3D.to_world(0.0, d), 150.0, Hall3D.FOG_END, 2.2
+			).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_IN)
 		await _turn(str(Game.waves[Game.wave].get("turn", "")))
 		_done = false
 		start_wave(Game.wave + 1)
@@ -1100,6 +1293,7 @@ func _set_army(type: String) -> void:
 		return
 	_swap_at = _now() + SWAP_CD
 	army_type = type
+	_medal_set(type)
 	for p in army_panels:
 		p.set_selected(p.type == type, _rng)
 	for l in range(lanes):
@@ -1176,6 +1370,8 @@ func _opening(u: Unit) -> void:
 					o.charge(FRONT_D + float(Game.units[u.type].get("pile_d", 60.0)))
 		"slam":
 			u.slam_anim()
+			_shake(SHAKE_AMP * 0.5, 0.3)
+			_fov_punch(1.2, 0.18)
 			_flash(here + Vector2(0, 40), 60.0, Color(1.0, 0.8, 0.5, 0.6))
 			for o in near:
 				o.take(20.0)
@@ -1286,6 +1482,8 @@ func _volley_arrow(from: Vector2, mark: Vector2, dmg: float) -> void:
 ## A sky-dropped hammer hit the ground: shockwave - same numbers as its slam ability.
 func sky_landing(u: Unit) -> void:
 	var here := Vector2(u.wx, u.wd)
+	Sound.unit(u.type, "ability", u.wx)   # the drop was silent: the slam impact IS the entrance
+	_shake(SHAKE_AMP * 0.4, 0.25)   # a rank of hammers raining down rocks the lens (_shake keeps the larger)
 	_flash(here, 60.0, Color(1.0, 0.8, 0.5, 0.6))
 	for o in units:
 		if o.team == Unit.ENEMY and here.distance_to(Vector2(o.wx, o.wd)) < 90.0:
@@ -1300,6 +1498,40 @@ func land_puff(u: Unit) -> void:
 
 ## Full-screen illustration card (assets/ui/<name>.png, 400x224 drawn at 2x) with a title in the
 ## blackletter face, fading out after `secs`. Win and lose both go through here.
+## End-of-run tally: the hall dims, the run's numbers pop in and count up row by row,
+## the score lands last and biggest. Replaces the old static win card.
+func _tally() -> void:
+	var dim := ColorRect.new()
+	dim.color = Color(0, 0, 0, 0.0)
+	dim.size = Vector2(960, 540)
+	dim.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_ui.add_child(dim)
+	create_tween().tween_property(dim, "color:a", 0.85, 0.8)
+	Ui.label(dim, "TO BE CONTINUED", Vector2(0, 64), Ui.COL_EMBER, 32, 960.0).add_theme_font_override("font", Ui.font("title32"))
+	await get_tree().create_timer(1.0).timeout
+	var rows := [
+		["HALLS CLEARED", 4],
+		["FOES FELLED", Game.kills],
+		["RELICS CLAIMED", Game.relics.size()],
+	]
+	var y := 176.0
+	for r in rows:
+		Ui.label(dim, r[0], Vector2(310, y), Ui.COL_TEXT, 20)
+		var v := Ui.label(dim, "0", Vector2(530, y), Ui.COL_TEXT, 20, 120.0)
+		Sound.play("impact_bone_crack.wav", 0.0)
+		create_tween().tween_method(func(x: float): v.text = str(int(x)), 0.0, float(r[1]), 0.5)
+		y += 46.0
+		await get_tree().create_timer(0.7).timeout
+	Ui.label(dim, "SCORE", Vector2(0, y + 28.0), Ui.COL_EMBER, 32, 960.0).add_theme_font_override("font", Ui.font("title32"))
+	var s := Ui.label(dim, "0", Vector2(0, y + 76.0), Ui.COL_EMBER, 32, 960.0)
+	s.add_theme_font_override("font", Ui.font("title32"))
+	Sound.play("impact_armor_heavy.wav", 0.0)
+	var st := create_tween()
+	st.tween_method(func(x: float): s.text = str(int(x)), 0.0, float(Game.score), 1.2).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
+	await st.finished
+	await get_tree().create_timer(2.0).timeout
+
+
 func _card(name: String, title: String, secs: float) -> void:
 	var dim := ColorRect.new()
 	dim.color = Color(0, 0, 0, 0.7)
@@ -1450,13 +1682,12 @@ func _tracer(from: Vector2, to: Vector2) -> void:
 
 
 ## Brass off the breech every gatling shot: a flung chip that falls, bounces once off the
-## floor line at the tank's feet, and fades. Screen-space on the fx overlay. The cannon
-## ejects one too -- a big red shell.
-func _eject_casing(px := Vector2(2.0, 1.0), col := Color(0.95, 0.8, 0.35)) -> void:
+## floor line at the tank's feet, and fades. Screen-space on the fx overlay.
+func _eject_casing() -> void:
 	var k := Hall3D.screen_scale(camera, hero_wd) * Hall3D.PIXEL
 	var r := ColorRect.new()
-	r.color = col
-	r.size = px * k
+	r.color = Color(0.95, 0.8, 0.35)
+	r.size = Vector2(2.0, 1.0) * k
 	r.rotation = _rng.randf() * TAU
 	fx.add_child(r)
 	var side := -1.0 if cos(_barrel_yaw) > 0.0 else 1.0   # eject away from the aim side
@@ -1504,7 +1735,6 @@ func _fire_cannon() -> void:
 	var to := Vector2(picked.wx, picked.wd) if picked else _cursor_world()
 	var from := Vector2(hero_wx, hero_wd)
 	Sound.play("cannon_fire.wav", hero_wx)
-	_eject_casing(Vector2(6.0, 3.0), Color(0.85, 0.22, 0.18))
 	var l := Line2D.new()
 	l.width = 2.5
 	l.default_color = Color(1.0, 0.75, 0.35)
@@ -1559,47 +1789,85 @@ func _breech_layout() -> void:
 
 
 ## The spent round leaves the breech as tumbling brass: the side-view casing spins out to the
-## right on a kicked-up arc and fades, while _breech_shell becomes the fresh round in the same beat.
+## right on a kicked-up arc and clears the screen edge before it's freed. Parented to the HUD
+## layer, not the panel, so closing the breech mid-flight doesn't cut it short.
+## _breech_shell becomes the fresh round in the same beat.
 func _breech_eject() -> void:
-	var brass := Ui.sprite(_breech, "breech_brass", Vector2(116, 82))
-	brass.scale = Vector2(2.5, 2.5)
-	brass.pivot_offset = Vector2(24, 12)
+	var brass := Ui.sprite(_ui, "breech_brass", BREECH_POS + Vector2(116, 82))
+	brass.scale = Vector2(3.75, 3.75)
+	brass.pivot_offset = Vector2(17, 11)   # centre of the 34x22 stub casing
 	brass.modulate = Color(0.68, 0.6, 0.53)   # smoke-darkened spent brass
 	brass.rotation = -0.4
 	var p0: Vector2 = brass.position
 	# smoke ribbon off the open mouth: newest point rides the mouth at full width, the tail
 	# thins to nothing and fades via the width curve + gradient
 	var trail := Line2D.new()
-	trail.width = 8.0
+	trail.width = 16.0
+	# dispersal taper: tight at the mouth (newest points), blooming wide and faint as it ages
 	var wc := Curve.new()
-	wc.add_point(Vector2(0.0, 0.05))
-	wc.add_point(Vector2(1.0, 1.0))
+	wc.add_point(Vector2(0.0, 1.0))
+	wc.add_point(Vector2(1.0, 0.2))
 	trail.width_curve = wc
 	var gr := Gradient.new()
 	gr.set_color(0, Color(0.93, 0.93, 0.9, 0.0))
-	gr.set_color(1, Color(0.93, 0.93, 0.9, 0.55))
+	gr.add_point(0.35, Color(0.93, 0.93, 0.9, 0.28))
+	gr.add_point(0.85, Color(0.93, 0.93, 0.9, 0.55))   # grey right up to the mouth...
+	gr.set_color(1, Color(1.0, 0.72, 0.45, 0.6))   # ...so the heat hugs the last inch of fresh smoke
 	trail.gradient = gr
-	_breech.add_child(trail)
-	var st := {t = 0.0}
+	_ui.add_child(trail)
+	var st := {t = 0.0, n = 0, hr = 0}
 	var tw := create_tween()
 	tw.set_parallel(true)
 	tw.tween_property(brass, "rotation", -0.4 + TAU * 2.0, 0.8)
 	tw.tween_method(func(t: float):
-		brass.position = p0 + Vector2(320.0 * t, -110.0 * t + 230.0 * t * t)
+		# tight lob: up out of the breech, peak ~80px above the port, steep drop beside the panel
+		brass.position = p0 + Vector2(165.0 * t, -420.0 * t + 560.0 * t * t)
 		var dt: float = (t - st.t) * 0.8
 		st.t = t
-		# smoke rises: every laid point drifts upward while the casing flies on
-		for i in trail.get_point_count():
-			trail.set_point_position(i, trail.get_point_position(i) + Vector2(0.0, -55.0 * dt))
-		var mouth: Vector2 = brass.position + brass.pivot_offset 			+ (Vector2(46.0, 12.0) - brass.pivot_offset).rotated(brass.rotation) * brass.scale.x
+		# smoke rises and curls: each laid point snakes sideways on its own phase while it
+		# climbs (st.n = points laid ever, so a point keeps its phase as old ones drop off),
+		# plus a per-frame jitter so the aging ribbon shreds into wisps instead of one band
+		var np: int = trail.get_point_count()
+		for i in np:
+			var id: int = int(st.n) - np + i
+			trail.set_point_position(i, trail.get_point_position(i)
+				+ Vector2(sin(t * 9.0 + float(id) * 0.8) * 30.0 * dt + _rng.randf_range(-16.0, 16.0) * dt, -55.0 * dt))
+		var mouth: Vector2 = brass.position + brass.pivot_offset 			+ (Vector2(33.0, 11.0) - brass.pivot_offset).rotated(brass.rotation) * brass.scale.x
 		trail.add_point(mouth)
+		st.n += 1
+		# the tumble breathes: one small puff off the mouth every half-turn traces the helix
+		if int((brass.rotation + 0.4) / PI) > int(st.hr):
+			st.hr = int((brass.rotation + 0.4) / PI)
+			_smoke_puff(mouth, 0.35)
 		while trail.get_point_count() > 34:
 			trail.remove_point(0), 0.0, 1.0, 0.8)
-	tw.tween_property(brass, "modulate:a", 0.0, 0.2).set_delay(0.6)
+	# the smoke outlives the flight: a few puffs bloom along the ribbon as it lets go
+	tw.chain().tween_callback(func():
+		create_tween().tween_property(brass, "modulate:a", 0.0, 0.25)   # lands mid-screen now: fade, don't blink out
+		for f in [0.3, 0.55, 0.8]:
+			var i := int(trail.get_point_count() * f)
+			if i < trail.get_point_count():
+				_smoke_puff(trail.get_point_position(i), 0.5))
 	tw.chain().tween_property(trail, "modulate:a", 0.0, 0.25)
 	tw.chain().tween_callback(func():
 		brass.queue_free()
 		trail.queue_free())
+
+
+## One drifting smoke puff on the HUD layer: the dust clip plays out while it rises and fades.
+func _smoke_puff(pos: Vector2, s: float) -> void:
+	var p := Game.make_fx("fx_dust_small")
+	p.position = pos
+	p.scale = Vector2(s, s)
+	p.modulate = Color(0.93, 0.93, 0.9, 0.5)
+	_ui.add_child(p)
+	var n: int = p.hframes
+	var ptw := create_tween()
+	ptw.set_parallel(true)
+	ptw.tween_method(func(f: float): p.frame = clampi(int(f), 0, n - 1), 0.0, float(n), 0.9)
+	ptw.tween_property(p, "position:y", pos.y - 30.0, 0.9)
+	ptw.tween_property(p, "modulate:a", 0.0, 0.9).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_IN)
+	ptw.chain().tween_callback(p.queue_free)
 
 
 func _breech_show(on: bool) -> void:
@@ -1628,6 +1896,7 @@ func _breech_drag_by(rel_y: float) -> void:
 		return
 	if was < 1.0 and _breech_frac >= 1.0 and not _breech_has_shell:
 		_breech_has_shell = true
+		_breech_shell.rotation = randf_range(0.0, TAU)   # each round seats at its own clock angle
 		_breech_eject()   # spent round flies out right; a fresh one is already seated
 		Sound.play("impact_bone_crack.wav", 0.0)
 	if was > 0.0 and _breech_frac <= 0.0 and _breech_has_shell:
@@ -1792,6 +2061,8 @@ func _spawn_floor_props(wave_i: int) -> void:
 		else:
 			kept.append(p)
 	_props = kept
+	if wave_i >= 3:
+		return   # hall 4 runs extremely narrow: no floor clutter, the lane stays clean (owner call 2026-08-31)
 	var range_d := Hall3D.FOG_END * 1.5 - 60.0
 	var names: Array = PROPS_BY_WAVE[wave_i]
 	var broken_of := {"chair_bench": "chair_broken"}
@@ -1826,10 +2097,28 @@ func _floor_wx(side: float) -> float:
 func _add_prop(name: String, wx: float, base_d: float, facing: int, is_floor: bool, h: float, broken_name: String, sc: float) -> void:
 	var s := Hall3D.make_sprite3d(name, facing)
 	s.scale *= sc
+	var glow_mat: StandardMaterial3D = null
 	if name == "lamp_cage":   # hung from darkness above: fade the top of the sprite to black
 		var lamp_mat: ShaderMaterial = s.material_override
 		lamp_mat.shader = LAMP_SHADER
 		lamp_mat.set_shader_parameter("top_y", float(Game.sprites[name]["cell"]) * Hall3D.PIXEL)
+		# green shimmer: an additive halo quad on the cage. The depth fog would eat additive
+		# light exactly where it should read, so the material skips fog and _update_props
+		# fades it by depth itself (peaking through the fog band, dead before the wrap).
+		var glow := Sprite3D.new()
+		glow.texture = _lamp_glow_tex()
+		glow.pixel_size = Hall3D.PIXEL
+		glow.scale = Vector3.ONE * 0.9
+		glow.position = Vector3(0.0, float(Game.sprites[name]["cell"]) * 0.35 * Hall3D.PIXEL, 6.0)
+		glow_mat = StandardMaterial3D.new()
+		glow_mat.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+		glow_mat.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
+		glow_mat.blend_mode = BaseMaterial3D.BLEND_MODE_ADD
+		glow_mat.disable_fog = true
+		glow_mat.albedo_texture = _lamp_glow_tex()
+		glow_mat.albedo_color = Color(0.45, 1.0, 0.55, 0.0)
+		glow.material_override = glow_mat
+		s.add_child(glow)
 	world.add_child(s)
 	# one strip for both walls: the west generation has stray sparks the owner cut, so east is
 	# flipped for the far wall instead of packing a second clip
@@ -1850,8 +2139,28 @@ func _add_prop(name: String, wx: float, base_d: float, facing: int, is_floor: bo
 		bn.scale = s.scale
 		bn.visible = false
 		world.add_child(bn)
-	_props.append({"node": s, "broken": bn, "wx": wx, "base_d": base_d, "last_d": 0.0, "alive": true, "is_floor": is_floor, "h": h, "hits": 3,
-		"holes": PackedVector3Array([Vector3.ZERO, Vector3.ZERO, Vector3.ZERO, Vector3.ZERO]), "hole_i": 0})
+	var p := {"node": s, "broken": bn, "wx": wx, "base_d": base_d, "last_d": 0.0, "alive": true, "is_floor": is_floor, "h": h, "hits": 3,
+		"holes": PackedVector3Array([Vector3.ZERO, Vector3.ZERO, Vector3.ZERO, Vector3.ZERO]), "hole_i": 0}
+	if glow_mat:
+		p["glow_mat"] = glow_mat
+		p["glow_phase"] = _rng.randf() * TAU
+	_props.append(p)
+
+
+## Shared radial halo for the lamp shimmer: white core to transparent edge, tinted per-lamp
+## through the material's albedo_color.
+var _lamp_glow: GradientTexture2D
+func _lamp_glow_tex() -> GradientTexture2D:
+	if not _lamp_glow:
+		var g := Gradient.new()
+		g.set_color(0, Color(1, 1, 1, 1.0))
+		g.set_color(1, Color(1, 1, 1, 0.0))
+		_lamp_glow = GradientTexture2D.new()
+		_lamp_glow.gradient = g
+		_lamp_glow.fill = GradientTexture2D.FILL_RADIAL
+		_lamp_glow.fill_from = Vector2(0.5, 0.5)
+		_lamp_glow.fill_to = Vector2(0.5, 0.0)
+	return _lamp_glow
 
 
 func _update_props() -> void:
@@ -1875,6 +2184,16 @@ func _update_props() -> void:
 		p["last_d"] = d
 		var wp := Hall3D.to_world(p["wx"], d, p["h"])
 		p["node"].position = wp
+		if p.has("glow_mat"):
+			# shimmer ramps in past the fog line and dies before the wrap; two sine rates per
+			# lamp so the chain twinkles out of step. Dark lamps (walked into) don't glow.
+			# fade-out pushed one lamp row (240) deeper so the far chain twinkles in the black,
+			# still fully dark by the wrap at ~1470
+			var gain: float = smoothstep(250.0, 500.0, d) * (1.0 - smoothstep(1190.0, 1440.0, d))
+			var a := 0.0
+			if p["alive"]:
+				a = gain * clampf(0.35 + 0.3 * sin(wave_t * 3.0 + p["glow_phase"]) + 0.15 * sin(wave_t * 8.7 + p["glow_phase"] * 2.0), 0.5, 1.0)
+			(p["glow_mat"] as StandardMaterial3D).albedo_color = Color(0.45, 1.0, 0.55, a)
 		if p["broken"]:
 			p["broken"].position = wp
 		if not check or not p["alive"]:

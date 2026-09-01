@@ -94,6 +94,9 @@ var _hole_i := 0                   # next slot in the shader's 4-hole ring; 4 qu
 var _atk_hold := 0.0               # units.json attack_hold: seconds the strike frame lingers before guard
 var _rot_region: Rect2
 var _cell := 48.0                  # sprite cell size in px
+var _fly_h := 0.0                  # units.json "fly_h": hover height in sprite px; > 0 = a flyer, never grounded
+var _ghost := Color.WHITE          # resting modulate; units.json "alpha" < 1 makes it translucent
+var _walk_fps := 10.0              # units.json "walk_fps": packed walk-loop frame rate
 
 
 func setup(p_type: String, p_team: int, p_battle: Node3D) -> void:
@@ -111,6 +114,14 @@ func setup(p_type: String, p_team: int, p_battle: Node3D) -> void:
 	cooldown = float(d["cooldown"])
 	counters = d["counters"]
 	sprite = Hall3D.make_sprite3d(d["sprite"], 4 if team == ALLY else 0)
+	sprite.scale *= float(d.get("scale", 1.0))   # units.json "scale": visual size only, feet stay on origin
+	_fly_h = float(d.get("fly_h", 0.0))
+	_walk_fps = float(d.get("walk_fps", 10.0))
+	var a := float(d.get("alpha", 1.0))
+	if a < 1.0:   # spectral: blended shader + a translucent resting modulate the flash lerps home to
+		(sprite.material_override as ShaderMaterial).shader = Hall3D.GHOST_SHADER
+		_ghost = Color(1.0, 1.0, 1.0, a)
+		sprite.modulate = _ghost
 	if team == ENEMY and randf() < 0.5:
 		_mirror = true
 		sprite.flip_h = true
@@ -139,6 +150,8 @@ func attack_anim() -> void:
 	if not _atk.is_empty():
 		_clip = _atk
 		_atk_t = 0.0
+	if team == ALLY:
+		battle.medal_attack(type)   # HUD ring mirrors the selected type's swing
 	Sound.unit(type, "attack", wx, team)
 
 
@@ -211,9 +224,9 @@ func _process(delta: float) -> void:
 				sky_slam = false
 				slam_anim()
 				battle.sky_landing(self)
-		sprite.modulate = sprite.modulate.lerp(Color.WHITE, delta * 8.0)   # fog is the Environment's job now
+		sprite.modulate = sprite.modulate.lerp(_ghost, delta * 8.0)   # fog is the Environment's job now
 	elif charge_to > 0.0:
-		sprite.modulate = sprite.modulate.lerp(Color.WHITE, delta * 8.0)   # fog is the Environment's job now
+		sprite.modulate = sprite.modulate.lerp(_ghost, delta * 8.0)   # fog is the Environment's job now
 		if not _charge_back:
 			# out: straight down-range, halberd levelled, everything passed goes up
 			if _charge_dur < 0.0:
@@ -258,7 +271,7 @@ func _process(delta: float) -> void:
 	elif Time.get_ticks_msec() / 1000.0 < spin_until and (state == State.FIGHT or state == State.RANK):
 		# whirl: 1s spin bursts with 1s breathers. Spinning = hard lateral darts angled slightly
 		# back, i-frames in take(), blade clips anyone in reach. Breather = plant, face N or S.
-		sprite.modulate = sprite.modulate.lerp(Color.WHITE, delta * 8.0)   # fog is the Environment's job now
+		sprite.modulate = sprite.modulate.lerp(_ghost, delta * 8.0)   # fog is the Environment's job now
 		if spinning():
 			# erratic: short darts, ~1.5 mid-dart rethinks a second; exponential lerp = fast
 			# launch easing out into the stop, the dodge-roll pop
@@ -281,7 +294,7 @@ func _process(delta: float) -> void:
 			if _atk_t < 0.0:
 				sprite.frame = 4
 	else:
-		sprite.modulate = sprite.modulate.lerp(Color.WHITE, delta * 8.0)   # fog is the Environment's job now
+		sprite.modulate = sprite.modulate.lerp(_ghost, delta * 8.0)   # fog is the Environment's job now
 		match state:
 			State.RANK:
 				_moving = battle.advancing
@@ -396,7 +409,7 @@ func _place() -> void:
 	var bob := 0.0
 	if _atk_t < 0.0:
 		if _moving and not _walk.is_empty():
-			Hall3D.clip_frame(sprite, _rot_region, _walk, int(_t * 10.0 * _gait) % int(_walk["frames"]))   # packed walk loop owns the frame
+			Hall3D.clip_frame(sprite, _rot_region, _walk, int(_t * _walk_fps * _gait) % int(_walk["frames"]))   # packed walk loop owns the frame
 			_walking = true
 		elif _walking:
 			Hall3D.rotation_frame(sprite, _rot_region, 4 if team == ALLY else 0)
@@ -404,6 +417,8 @@ func _place() -> void:
 		elif _moving:
 			bob = absf(sin(_t * 12.0 * _gait)) * 3.0   # +y is up in 3D: the step lifts, it doesn't dig
 	var lift := air_h
+	if _fly_h > 0.0:
+		lift += _fly_h + sin(_t * 4.5) * 3.0   # low glide over the crowd; launches ride on top of it
 	if _spin != 0.0:
 		# spin around the center of mass: origin moves up to it, and the offset re-centres the
 		# texture so the mass point (not the cell centre) sits ON the rotation pivot
@@ -415,9 +430,10 @@ func _place() -> void:
 
 
 ## Sprite height above the feet in world units, the point Hall3D.sprite_top_screen tracks.
-## _pivot is folded in so a tumbling sprite's swung-out corners stay inside the frame too.
+## _pivot is folded in so a tumbling sprite's swung-out corners stay inside the frame too;
+## a flyer's hover height too, so the gatling's screen-pick rect covers the floating body.
 func top_world() -> float:
-	return (_cell + _pivot) * Hall3D.PIXEL
+	return (_cell + _pivot + _fly_h) * Hall3D.PIXEL
 
 
 ## Highest air_h that keeps the whole sprite inside the frame at this depth.
@@ -495,8 +511,10 @@ func take(amount: float, push := Vector2.ZERO, quiet := false) -> void:
 				_next_gib_hp -= max_hp * 0.25
 				_tear(push)
 	if dead:
-		if (air_h > 0.0 or air_v > 0.0) and team == ENEMY:
-			Game.score += int(max_hp * (1.0 + 0.5 * _juggles))
+		if team == ENEMY:
+			Game.kills += 1
+			if air_h > 0.0 or air_v > 0.0:
+				Game.score += int(max_hp * (1.0 + 0.5 * _juggles))
 		died.emit(self)
 		_gib(push)
 		# fall: topple away from the blow, sink, fade

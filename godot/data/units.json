@@ -152,7 +152,7 @@
     "sfx": {
       "attack": "bone_swing_light.wav",
       "hit": "",
-      "death": "death_undead_collapse.wav"
+      "death": "death_undead_moan1.wav"
     }
   },
   "mace_undead": {
@@ -168,7 +168,7 @@
     "sfx": {
       "attack": "mace_swing_heavy.wav",
       "hit": "",
-      "death": "death_undead_collapse.wav"
+      "death": "death_undead_moan2.wav"
     }
   },
   "staff_undead": {
@@ -263,8 +263,10 @@
     "hp": 30,
     "dmg": 8,
     "range": 40,
-    "speed": 95,
+    "speed": 115,
     "cooldown": 0.9,
+    "scale": 1.25,
+    "walk_fps": 16,
     "sprite": "ghoul",
     "label": "Ghoul",
     "counters": [],
@@ -281,6 +283,8 @@
     "range": 60,
     "speed": 85,
     "cooldown": 1.2,
+    "fly_h": 60,
+    "alpha": 0.6,
     "sprite": "wraith",
     "label": "Wraith",
     "counters": [],
@@ -297,6 +301,7 @@
     "range": 45,
     "speed": 55,
     "cooldown": 1.3,
+    "scale": 1.3,
     "sprite": "bone_knight",
     "label": "Bone knight",
     "counters": [],
