@@ -184,9 +184,36 @@ def _resample(mono: list[float], step: float) -> list[float]:
     return out
 
 
+def _detune(mono: list[float], cents: float) -> list[float]:
+    """Synth-ensemble thickener: the clip mixed with copies of itself resampled ±cents."""
+    up = _resample(mono, 2.0 ** (cents / 1200.0))
+    dn = _resample(mono, 2.0 ** (-cents / 1200.0))
+    out = []
+    for i, s in enumerate(mono):
+        v = s * 0.6
+        if i < len(up):
+            v += up[i] * 0.35
+        if i < len(dn):
+            v += dn[i] * 0.35
+        out.append(v)
+    return out
+
+
+def _echo(mono: list[float], sr: int, delay_s: float, fb: float) -> list[float]:
+    """Feedback comb echo; the buffer grows three repeats past the dry end (capped later)."""
+    d = max(1, int(delay_s * sr))
+    out = mono + [0.0] * d * 3
+    for i in range(d, len(out)):
+        out[i] += out[i - d] * fb
+    return out
+
+
 def pick(src: str, out_name: str, out_len: float = 1.2, rate: int = 0, bits: int = 16, pitch: float = 0.0,
-         layer: str = "", layer_db: float = -6.0) -> tuple[str, float]:
+         layer: str = "", layer_db: float = -6.0, echo: str = "", detune: float = 0.0,
+         start: float = 0.0) -> tuple[str, float]:
     mono, sr = _read_mono_floats(src)
+    if start:
+        mono = mono[int(start * sr):]   # slice a take out of a longer recording (source time)
     if pitch:
         # tape-style shift: pitch down = stretch (longer), pitch up = squeeze
         mono = _resample(mono, 2.0 ** (pitch / 12.0))
@@ -219,6 +246,13 @@ def pick(src: str, out_name: str, out_len: float = 1.2, rate: int = 0, bits: int
         for i in range(min(len(mono), len(lay))):
             mono[i] += lay[i] * g
 
+    if detune:
+        mono = _detune(mono, detune)
+    if echo:
+        ms, fb = (echo.split(",") + ["0.45"])[:2]
+        mono = _echo(mono, SR_OUT, float(ms) / 1000.0, float(fb))
+        mono = mono[:int(HARD_CAP_SECS * SR_OUT)]   # --len sets the dry cut; the tail rings to the cap
+
     peak = max((abs(s) for s in mono), default=0.0)
     if peak > 0.0:
         scale = _db_to_amp(NORM_DBFS) / peak
@@ -245,6 +279,32 @@ def pick(src: str, out_name: str, out_len: float = 1.2, rate: int = 0, bits: int
     return out_path, dur
 
 
+def loop(src: str, out_name: str, start: float = 0.0, out_len: float = 24.0, xfade: float = 1.0) -> None:
+    """Seam-free ambient loop: slice, resample, crossfade the post-end tail into the head."""
+    mono, sr = _read_mono_floats(src)
+    mono = mono[int(start * sr):int((start + out_len + xfade) * sr)]
+    if sr != SR_OUT:
+        mono = _resample(mono, sr / SR_OUT)
+    n = min(int(out_len * SR_OUT), len(mono))
+    nx = int(xfade * SR_OUT)
+    body = mono[:n]
+    tail = mono[n:n + nx]
+    for i in range(min(nx, len(tail), len(body))):
+        t = (i + 1) / nx
+        body[i] = body[i] * t + tail[i] * (1.0 - t)   # head continues where the loop end left off
+    peak = max((abs(s) for s in body), default=0.0)
+    if peak > 0.0:
+        body = [s * _db_to_amp(NORM_DBFS) / peak for s in body]
+    ints_out = array.array("h", (max(-32768, min(32767, round(s * 32767))) for s in body))
+    out_path = out_name if os.path.dirname(out_name) else os.path.join(OUT_DIR, out_name)
+    with wave.open(out_path, "wb") as wf:
+        wf.setnchannels(1)
+        wf.setsampwidth(2)
+        wf.setframerate(SR_OUT)
+        wf.writeframes(ints_out.tobytes())
+    print(f"wrote {out_path} ({len(ints_out) / SR_OUT:.2f}s loop, from {src})")
+
+
 def main() -> None:
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     sub = ap.add_subparsers(dest="cmd", required=True)
@@ -259,12 +319,24 @@ def main() -> None:
     p_pick.add_argument("--layer", default="", help="second source WAV mixed under the first from its onset")
     p_pick.add_argument("--layer-db", type=float, default=-6.0, dest="layer_db", help="layer level relative to the main clip (default -6)")
     p_pick.add_argument("--pitch", type=float, default=0.0, help="shift in semitones, negative = down (tape-style, changes length)")
+    p_pick.add_argument("--echo", default="", help="feedback echo 'delay_ms[,feedback]'; tail rings past --len up to the 1.5s cap")
+    p_pick.add_argument("--detune", type=float, default=0.0, help="synth-ensemble detune in cents: mixes ±cents copies under the clip")
+    p_pick.add_argument("--start", type=float, default=0.0, help="seconds into the source to slice from (cut one take out of many)")
+    p_loop = sub.add_parser("loop", help="ambient loop: no 1.5s cap, tail crossfaded into the head for seam-free looping")
+    p_loop.add_argument("src")
+    p_loop.add_argument("out_name")
+    p_loop.add_argument("--start", type=float, default=0.0)
+    p_loop.add_argument("--len", type=float, default=24.0, dest="out_len")
+    p_loop.add_argument("--xfade", type=float, default=1.0)
     args = ap.parse_args()
     if args.cmd == "placeholders":
         placeholders()
+    elif args.cmd == "loop":
+        loop(args.src, args.out_name, args.start, args.out_len, args.xfade)
     elif args.cmd == "pick":
         rate = args.rate or (11025 if args.retro else 0)
-        pick(args.src, args.out_name, args.out_len, rate, args.bits if rate else 16, args.pitch, args.layer, args.layer_db)
+        pick(args.src, args.out_name, args.out_len, rate, args.bits if rate else 16, args.pitch, args.layer, args.layer_db,
+             args.echo, args.detune, args.start)
 
 
 if __name__ == "__main__":

@@ -17,7 +17,7 @@ const DIR := "res://assets/sfx/"
 const CUE_DB := {"attack": -10.0, "hit": -12.0, "death": -8.0, "ability": -4.0}
 # Named one-shots and prefixes resolved in play(); first prefix match wins, unlisted files stay 0.
 const FILE_DB := {"gatling_shot.wav": -5.0, "cannon_fire.wav": -3.0, "cannon_explosion.wav": -3.0,
-	"stinger_": -3.0, "ui_": -3.0}
+	"bow_release_arrow.wav": -4.0, "stinger_": -3.0, "ui_": -3.0}
 
 var probe_counts := {}     # file -> total plays this run, printed by Probe at the end
 
@@ -81,6 +81,29 @@ func play(file: String, x_lateral := 0.0, db := 0.0) -> void:
 	_panners[i].pan = clampf(x_lateral / HALL_HALF, -1.0, 1.0)
 	p.play()
 	probe_counts[file] = int(probe_counts.get(file, 0)) + 1
+
+
+var _amb: AudioStreamPlayer
+
+
+## Ambient bed on its own looping voice, outside the SFX pool; "" stops it. Menu drone sits
+## well under the foley mix. Survives scene changes (autoload), so scenes opt in/out.
+func ambient(file: String, db := -14.0) -> void:
+	if _amb == null:
+		_amb = AudioStreamPlayer.new()
+		add_child(_amb)
+	if file == "":
+		_amb.stop()
+		return
+	var s := _load(file)
+	if s == null:
+		return
+	if s is AudioStreamWAV:
+		s.loop_mode = AudioStreamWAV.LOOP_FORWARD
+		s.loop_end = s.data.size() / 2   # frames: 16-bit mono
+	_amb.stream = s
+	_amb.volume_db = db
+	_amb.play()
 
 
 ## Resolve a unit type's cue (attack/hit/death/ability) through units.json and play it.

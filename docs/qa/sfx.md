@@ -24,10 +24,10 @@ that a cue has been picked (per `docs/art/CHARACTER-PIPELINE.md`).
 | halberdier | hit | `impact_flesh_light.wav` | flesh, impact, hit, punch | P9 Cinematic Fight Vol. 1 | `FGHTImpt_4 x Punch, Body 02_344 Audio_Cinematic Fight Vol 1.wav` | 0.50s |
 | halberdier | death | `death_grunt_male.wav` | death, grunt, voice, male | P9 Humanoid Creatures Vol 4 | `VOXReac_Construction Kit Male Flutter Death Vocal Stuttered Long 05_ESM_HC4.wav` | 1.20s |
 | halberdier | ability (sweep) | `impact_bulldoze_heavy.wav` | impact, heavy, charge, crash | P7 Epic Impacts Vol. 1 | `Impact 021.wav` | 1.00s |
-| hammer | attack | `hammer_swing_heavy.wav` | impact, whoosh, heavy, mace | P9 Melee Weapons Sound Effects Pack 2 | `SWSH_SWING IMPACTS Quick Heavy Weapon Swing To Thud Impact Var 01_DDUMAIS_MWP2.wav` | 0.90s |
+| hammer | attack | `hammer_swing_heavy.wav` | ice, hit, impact, crack | owner drop (P7 Pole Position The Frozen Lake) | `RawArt/Audio/Ice - HIT - Frozen Lake Surface - Impact - Break Through to Water - Wide AB - MKH8060 CUT SHORTER.wav` `--len 0.8` (owner pick 2026-08-31; was MWP2 swing-thud) | 0.80s |
 | hammer | hit | `impact_armor_heavy.wav` | armor, impact, metal, clang | P8 Melee Weapons | `WEAPArmr_Metal Shield Block Hits_JSE_MW.wav` | 0.70s (8 kHz) |
 | hammer | death | `death_grunt_heavy.wav` | death, grunt, heavy, voice | P7 Flesh, Bones & Gore | `Heavy Body Crunch 02.wav` | 1.20s |
-| hammer | ability (slam) | `impact_ground_slam.wav` | impact, slam, ground, drum | P8 Modern Cinematic Impact | `Bluezone_BC0294_modern_cinematic_impact_boom_003.wav` | 1.20s |
+| hammer | ability (slam) | `impact_ground_slam.wav` | impact, slam, ground, drum | P8 Stone Impact + P7 Building Collapse | `Bluezone_BC0297_stone_impact_hammer_015.wav` `--layer "Bluezone_BC0275_building_collapse_debris_falling_rock_rubble_008.wav" --layer-db -8` | 0.70s |
 | vet_ranged | attack | `bow_release_arrow.wav` | bow, arrow, release, twang | P9 Melee Weapons Sound Effects Pack 2 | `WEAPWhip_WHIP Snap Crack 05_DDUMAIS_MWP2.wav` | 0.50s |
 | vet_ranged | hit | `impact_flesh_light.wav` | flesh, impact, hit, punch | P9 Cinematic Fight Vol. 1 | `FGHTImpt_4 x Punch, Body 02_344 Audio_Cinematic Fight Vol 1.wav` | 0.50s |
 | vet_ranged | death | `death_grunt_male.wav` | death, grunt, voice, male | P9 Humanoid Creatures Vol 4 | `VOXReac_Construction Kit Male Flutter Death Vocal Stuttered Long 05_ESM_HC4.wav` | 1.20s |
@@ -37,13 +37,13 @@ that a cue has been picked (per `docs/art/CHARACTER-PIPELINE.md`).
 | ooze | death | `death_ooze_dissolve.wav` | death, ooze, dissolve, slime | P9 Vox Bestiae - Source Elements | `CREAAqua_Aquatic Creature Gurgling 2_SNDBTS_VB-SE.wav` | 1.50s |
 | undead | attack | `bone_swing_light.wav` | bone, whoosh, swing, light | P7 Transition Whooshes Vol. 1 | `SWSH_Woodstick Swish 03_JSE_TW1.wav` | 0.60s |
 | undead | hit | `impact_bone_crack.wav` | bone, crack, impact, skeleton | P7 Melee Weapons Sound Effects Pack 1 | `WOODImpt_Impact Wood 23_DDUMAIS_NONE.wav` | 0.50s (8 kHz) |
-| undead | death | `death_undead_collapse.wav` | death, undead, collapse, bone | P7 Zombie Specimens Vol. 2 + P8 Gore Mini Pack | `CREAHmn_Test Subject 4 05_344 Audio_Zombie Specimens Vol 2.wav` `--pitch -6 --layer "GORESplt_Gore Splatter 01_JSE_GMP.wav"` | 1.50s |
+| undead | death | `death_undead_moan1.wav` | zombie, moan, guttural, deathrattle | owner drop (ESM Humanoid Creatures 4) | `RawArt/Audio/CREAHmn_Designed Orc Male Attack Long Heavy Hit Charged Up 03_ESM_HC4 CUT INTO SMALL BITES .wav` `--start 0 --len 0.9 --pitch -4` (bite 1 of 3, owner pick 2026-08-31) | 0.90s |
 | mace_undead | attack | `mace_swing_heavy.wav` | impact, whoosh, heavy, mace | P7 Melee Weapons Sound Effects Pack 1 | `SWSH_Swing 3 Large 03_DDUMAIS_NONE.wav` | 0.51s |
 | mace_undead | hit | `impact_bone_crack.wav` | bone, crack, impact, skeleton | P7 Melee Weapons Sound Effects Pack 1 | `WOODImpt_Impact Wood 23_DDUMAIS_NONE.wav` | 0.50s (8 kHz) |
-| mace_undead | death | `death_undead_collapse.wav` | death, undead, collapse, bone | P7 Zombie Specimens Vol. 2 + P8 Gore Mini Pack | `CREAHmn_Test Subject 4 05_344 Audio_Zombie Specimens Vol 2.wav` `--pitch -6 --layer "GORESplt_Gore Splatter 01_JSE_GMP.wav"` | 1.50s |
+| mace_undead | death | `death_undead_moan2.wav` | zombie, moan, guttural, deathrattle | owner drop (ESM Humanoid Creatures 4) | same source `--start 0.9 --len 0.9 --pitch -4` (bite 2 of 3) | 0.90s |
 | staff_undead | attack | `magic_staff_cast.wav` | magic, spell, staff, cast | P9 Emotion and Magic | `magic, action gesture, evil presence, onslaught-004.wav` | 1.20s |
 | staff_undead | hit | `impact_bone_crack.wav` | bone, crack, impact, skeleton | P7 Melee Weapons Sound Effects Pack 1 | `WOODImpt_Impact Wood 23_DDUMAIS_NONE.wav` | 0.50s (8 kHz) |
-| staff_undead | death | `death_undead_collapse.wav` | death, undead, collapse, bone | P7 Zombie Specimens Vol. 2 + P8 Gore Mini Pack | `CREAHmn_Test Subject 4 05_344 Audio_Zombie Specimens Vol 2.wav` `--pitch -6 --layer "GORESplt_Gore Splatter 01_JSE_GMP.wav"` | 1.50s |
+| staff_undead | death | `death_undead_collapse.wav` | death, undead, collapse, bone | P7 Zombie Specimens Vol. 2 + P8 Gore Mini Pack | `CREAHmn_Test Subject 4 05_344 Audio_Zombie Specimens Vol 2.wav` `--pitch -6 --layer "GORESplt_Gore Splatter 01_JSE_GMP.wav"` (moan bite 3 cut 2026-08-31: too long) | 1.50s |
 | bow_undead | attack | `bow_release_arrow.wav` | bow, arrow, release, twang | P9 Melee Weapons Sound Effects Pack 2 | `WEAPWhip_WHIP Snap Crack 05_DDUMAIS_MWP2.wav` | 0.50s |
 | bow_undead | hit | `impact_bone_crack.wav` | bone, crack, impact, skeleton | P7 Melee Weapons Sound Effects Pack 1 | `WOODImpt_Impact Wood 23_DDUMAIS_NONE.wav` | 0.50s (8 kHz) |
 | bow_undead | death | `death_undead_collapse.wav` | death, undead, collapse, bone | P7 Zombie Specimens Vol. 2 + P8 Gore Mini Pack | `CREAHmn_Test Subject 4 05_344 Audio_Zombie Specimens Vol 2.wav` `--pitch -6 --layer "GORESplt_Gore Splatter 01_JSE_GMP.wav"` | 1.50s |
@@ -63,9 +63,15 @@ that a cue has been picked (per `docs/art/CHARACTER-PIPELINE.md`).
 |---|---|---|---|---|---|---|
 | hit | `hero_hurt_grunt.wav` | voice, hurt, grunt, pain | P9 Humanoid Creatures Vol 4 | `VOXReac_Construction Kit Male Flutter Death Vocal Stuttered Long 05_ESM_HC4.wav` | 0.50s (same voice as veteran death, onset only) | Yes — `Battle.gd` where `hero_hp -= d` |
 | low_hp | `hero_low_hp_warn.wav` | ui, stinger, warn, heartbeat | P9 System & UI Feedback Elements | `Interface Deny Low Fat Dark.wav` | 0.74s | Yes — once per wave, crossing below 25 hp |
-| wave_clear | `stinger_victory.wav` | stinger, drum, victory, fanfare | P7 RPG Orchestral Essentials | `Discovery_01-03_Organ-A_WET.wav` | 1.50s | Yes — `Battle._wave_done()` |
+| wave_clear | `stinger_victory.wav` | horn, victory, fanfare, medieval | P7 Ivo Vicic Bellmen - Folk Custom | `23 BELLMEN_Traditional horns.wav` `--len 0.7 --pitch -2 --detune 22 --echo 170,0.5` (echo+synth take on candidate 02, replaces the organ swell 2026-08-31) | 1.21s | Yes — `Battle._wave_done()` |
 | lose | `stinger_defeat.wav` | stinger, drum, defeat, low | P7 RPG Orchestral Essentials | `Failure_01-10_Ensemble-Small_DRY.wav` | 1.43s | Yes — the `hero_hp <= 0.0` branch |
 | relic | `ui_relic_chime.wav` | ui, chime, magic, sparkle | P9 Fantasy Game 2 | `MAGAngl_Magic Light Spell Enchantment Potion Effect Tonal Bright 03_ESM_FG2.wav` | 1.20s | Yes — the `say("Relic: ...")` site |
+
+## Ambient (looping, `Sound.ambient()` — not a pooled cue)
+
+| Where | File | Source | Recipe | Duration |
+|---|---|---|---|---|
+| Main menu | `ambient_menu.wav` | owner drop (344 Audio Geophonic Design) | `RawArt/Audio/AMBDsgn_Descending, Metallic, Drone, Scraping_344 Audio_Geophonic Design.wav` — `sfx.py loop --start 62 --len 24 --xfade 1.5`, plays at -14 dB, loop seam crossfaded | 24.0s |
 
 ## Spell cues (`spells.json` → per-spell `"sfx"`)
 
