@@ -91,17 +91,10 @@
         "west.png"
       ],
       "owner": {
-        "verdict": "approve",
-        "at": "2026-09-01T20:22:59+00:00",
+        "verdict": "deny",
+        "at": "2026-09-01T21:15:15+00:00",
         "note": "",
-        "shipped": null,
-        "generated": {
-          "base_id": "6dd19c16-8dc3-4a2c-87a9-53cff161e120",
-          "character_id": "af4ff4e8-780c-47c4-8c77-87c7039193a7",
-          "edit_description": "Same undead soldier, head tilted toward the right shoulder, hunched deeper, one arm dangling limp. Keep the head and legs clearly visible. Match the existing color palette exactly, no new colors, no glowing parts.",
-          "seed": null,
-          "tool": "forge.py create-character-state"
-        }
+        "shipped": null
       }
     },
     "z1-lolled": {
@@ -248,7 +241,13 @@
         "south-west.png",
         "south.png",
         "west.png"
-      ]
+      ],
+      "owner": {
+        "verdict": "deny",
+        "at": "2026-09-01T22:06:51+00:00",
+        "note": "",
+        "shipped": null
+      }
     },
     "z1-lolled-r2": {
       "urls": [
@@ -274,13 +273,295 @@
       ],
       "owner": {
         "verdict": "approve",
-        "at": "2026-09-01T21:12:39+00:00",
+        "at": "2026-09-01T21:52:41+00:00",
         "note": "",
         "shipped": null,
         "generated": {
           "base_id": "86cb4264-68f6-44f3-ac2f-5e4759fffa5f",
           "character_id": "ceea2f99-9743-4d4d-ba85-4c6f2990aadc",
           "edit_description": "Should be shambling towards you with one arm out. Change only what is described and nothing else. Keep the same character, pose, proportions and kit. Match the existing color palette exactly, no new colors, no glowing parts.",
+          "seed": null,
+          "tool": "forge.py create-character-state"
+        }
+      }
+    },
+    "wraith": {
+      "refine_notes": [
+        {
+          "at": "2026-09-01T21:51:43+00:00",
+          "note": "Have the arms facing out as if to grab you",
+          "child": "wraith-r3"
+        },
+        {
+          "at": "2026-09-01T23:14:07+00:00",
+          "note": "Lets make a red version",
+          "child": "wraith-r6"
+        }
+      ],
+      "owner": {
+        "verdict": "approve",
+        "at": "2026-09-01T22:03:54+00:00",
+        "note": "",
+        "shipped": null
+      }
+    },
+    "wraith-r2": {
+      "urls": [
+        "https://backblaze.pixellab.ai/file/pixellab-characters/af7def4e-5692-4b18-9246-874d5382befb/d977272f-acc1-47a5-9d8f-1225d61ded17/rotations/south.png?t=1788299522",
+        "https://backblaze.pixellab.ai/file/pixellab-characters/af7def4e-5692-4b18-9246-874d5382befb/d977272f-acc1-47a5-9d8f-1225d61ded17/rotations/south-east.png?t=1788299522",
+        "https://backblaze.pixellab.ai/file/pixellab-characters/af7def4e-5692-4b18-9246-874d5382befb/d977272f-acc1-47a5-9d8f-1225d61ded17/rotations/east.png?t=1788299522",
+        "https://backblaze.pixellab.ai/file/pixellab-characters/af7def4e-5692-4b18-9246-874d5382befb/d977272f-acc1-47a5-9d8f-1225d61ded17/rotations/north-east.png?t=1788299522",
+        "https://backblaze.pixellab.ai/file/pixellab-characters/af7def4e-5692-4b18-9246-874d5382befb/d977272f-acc1-47a5-9d8f-1225d61ded17/rotations/north.png?t=1788299522",
+        "https://backblaze.pixellab.ai/file/pixellab-characters/af7def4e-5692-4b18-9246-874d5382befb/d977272f-acc1-47a5-9d8f-1225d61ded17/rotations/north-west.png?t=1788299522",
+        "https://backblaze.pixellab.ai/file/pixellab-characters/af7def4e-5692-4b18-9246-874d5382befb/d977272f-acc1-47a5-9d8f-1225d61ded17/rotations/west.png?t=1788299522",
+        "https://backblaze.pixellab.ai/file/pixellab-characters/af7def4e-5692-4b18-9246-874d5382befb/d977272f-acc1-47a5-9d8f-1225d61ded17/rotations/south-west.png?t=1788299522"
+      ],
+      "fetched": "2026-09-01T21:52:16+00:00",
+      "files": [
+        "east.png",
+        "north-east.png",
+        "north-west.png",
+        "north.png",
+        "south-east.png",
+        "south-west.png",
+        "south.png",
+        "west.png"
+      ],
+      "owner": {
+        "verdict": "approve",
+        "at": "2026-09-01T22:11:45+00:00",
+        "note": "",
+        "shipped": null,
+        "generated": {
+          "base_id": "a6f83e96-f157-4211-a11a-6e2d4b7e4b60",
+          "character_id": "d977272f-acc1-47a5-9d8f-1225d61ded17",
+          "edit_description": "Add teeth and bottom jaw open wide. Keep the head and legs clearly visible. Match the existing color palette exactly, no new colors, no glowing parts.",
+          "seed": null,
+          "tool": "forge.py create-character-state"
+        }
+      },
+      "refine_notes": [
+        {
+          "at": "2026-09-01T22:19:32+00:00",
+          "note": "Simplify the silhouette. A true ghost with no feet and no legs at all: the robe tapers into tattered wisps that trail into empty air, floating above the ground, nothing touching the floor.",
+          "child": "wraith-r4"
+        }
+      ]
+    },
+    "wraith-r3": {
+      "urls": [
+        "https://backblaze.pixellab.ai/file/pixellab-characters/af7def4e-5692-4b18-9246-874d5382befb/8e44a531-0d11-495c-9329-28b6fc4a4851/rotations/south.png?t=1788299669",
+        "https://backblaze.pixellab.ai/file/pixellab-characters/af7def4e-5692-4b18-9246-874d5382befb/8e44a531-0d11-495c-9329-28b6fc4a4851/rotations/south-east.png?t=1788299669",
+        "https://backblaze.pixellab.ai/file/pixellab-characters/af7def4e-5692-4b18-9246-874d5382befb/8e44a531-0d11-495c-9329-28b6fc4a4851/rotations/east.png?t=1788299669",
+        "https://backblaze.pixellab.ai/file/pixellab-characters/af7def4e-5692-4b18-9246-874d5382befb/8e44a531-0d11-495c-9329-28b6fc4a4851/rotations/north-east.png?t=1788299669",
+        "https://backblaze.pixellab.ai/file/pixellab-characters/af7def4e-5692-4b18-9246-874d5382befb/8e44a531-0d11-495c-9329-28b6fc4a4851/rotations/north.png?t=1788299669",
+        "https://backblaze.pixellab.ai/file/pixellab-characters/af7def4e-5692-4b18-9246-874d5382befb/8e44a531-0d11-495c-9329-28b6fc4a4851/rotations/north-west.png?t=1788299669",
+        "https://backblaze.pixellab.ai/file/pixellab-characters/af7def4e-5692-4b18-9246-874d5382befb/8e44a531-0d11-495c-9329-28b6fc4a4851/rotations/west.png?t=1788299669",
+        "https://backblaze.pixellab.ai/file/pixellab-characters/af7def4e-5692-4b18-9246-874d5382befb/8e44a531-0d11-495c-9329-28b6fc4a4851/rotations/south-west.png?t=1788299669"
+      ],
+      "fetched": "2026-09-01T22:03:17+00:00",
+      "files": [
+        "east.png",
+        "north-east.png",
+        "north-west.png",
+        "north.png",
+        "south-east.png",
+        "south-west.png",
+        "south.png",
+        "west.png"
+      ],
+      "owner": {
+        "verdict": "approve",
+        "at": "2026-09-01T22:04:42+00:00",
+        "note": "",
+        "shipped": null,
+        "generated": {
+          "base_id": "a6f83e96-f157-4211-a11a-6e2d4b7e4b60",
+          "character_id": "8e44a531-0d11-495c-9329-28b6fc4a4851",
+          "edit_description": "Have the arms facing out as if to grab you. Change only what is described and nothing else. Keep the same character, pose, proportions and kit. Match the existing color palette exactly, no new colors, no glowing parts.",
+          "seed": null,
+          "tool": "forge.py create-character-state"
+        }
+      },
+      "refine_notes": [
+        {
+          "at": "2026-09-01T22:19:33+00:00",
+          "note": "Simplify the silhouette. A true ghost with no feet and no legs at all: the robe tapers into tattered wisps that trail into empty air, floating above the ground, nothing touching the floor.",
+          "child": "wraith-r5"
+        }
+      ]
+    },
+    "plague_priest": {
+      "refine_notes": [
+        {
+          "at": "2026-09-01T22:04:13+00:00",
+          "note": "Lets make the insence bigger",
+          "child": "plague-priest-r2"
+        }
+      ]
+    },
+    "plague-priest-r2": {
+      "urls": [
+        "https://backblaze.pixellab.ai/file/pixellab-characters/af7def4e-5692-4b18-9246-874d5382befb/a8e15193-880b-429b-ac11-cf357d1a2990/rotations/south.png?t=1788300388",
+        "https://backblaze.pixellab.ai/file/pixellab-characters/af7def4e-5692-4b18-9246-874d5382befb/a8e15193-880b-429b-ac11-cf357d1a2990/rotations/south-east.png?t=1788300388",
+        "https://backblaze.pixellab.ai/file/pixellab-characters/af7def4e-5692-4b18-9246-874d5382befb/a8e15193-880b-429b-ac11-cf357d1a2990/rotations/east.png?t=1788300388",
+        "https://backblaze.pixellab.ai/file/pixellab-characters/af7def4e-5692-4b18-9246-874d5382befb/a8e15193-880b-429b-ac11-cf357d1a2990/rotations/north-east.png?t=1788300388",
+        "https://backblaze.pixellab.ai/file/pixellab-characters/af7def4e-5692-4b18-9246-874d5382befb/a8e15193-880b-429b-ac11-cf357d1a2990/rotations/north.png?t=1788300388",
+        "https://backblaze.pixellab.ai/file/pixellab-characters/af7def4e-5692-4b18-9246-874d5382befb/a8e15193-880b-429b-ac11-cf357d1a2990/rotations/north-west.png?t=1788300388",
+        "https://backblaze.pixellab.ai/file/pixellab-characters/af7def4e-5692-4b18-9246-874d5382befb/a8e15193-880b-429b-ac11-cf357d1a2990/rotations/west.png?t=1788300388",
+        "https://backblaze.pixellab.ai/file/pixellab-characters/af7def4e-5692-4b18-9246-874d5382befb/a8e15193-880b-429b-ac11-cf357d1a2990/rotations/south-west.png?t=1788300388"
+      ],
+      "fetched": "2026-09-01T22:10:29+00:00",
+      "files": [
+        "east.png",
+        "north-east.png",
+        "north-west.png",
+        "north.png",
+        "south-east.png",
+        "south-west.png",
+        "south.png",
+        "west.png"
+      ],
+      "owner": {
+        "verdict": "approve",
+        "at": "2026-09-01T22:11:52+00:00",
+        "note": "",
+        "shipped": null,
+        "generated": {
+          "base_id": "9acbce74-7e95-4b8c-8c12-c2ddc19bcb42",
+          "character_id": "a8e15193-880b-429b-ac11-cf357d1a2990",
+          "edit_description": "Lets make the insence bigger. Change only what is described and nothing else. Keep the same character, pose, proportions and kit. Match the existing color palette exactly, no new colors, no glowing parts.",
+          "seed": null,
+          "tool": "forge.py create-character-state"
+        }
+      }
+    },
+    "ghoul": {
+      "owner": {
+        "verdict": "approve",
+        "at": "2026-09-01T22:15:50+00:00",
+        "note": "",
+        "shipped": null
+      },
+      "refine_notes": [
+        {
+          "at": "2026-09-01T22:22:42+00:00",
+          "note": "Have arms facing forward as if to grab you",
+          "child": "ghoul-r2"
+        }
+      ]
+    },
+    "bone_knight": {
+      "owner": {
+        "verdict": "approve",
+        "at": "2026-09-01T22:15:53+00:00",
+        "note": "",
+        "shipped": null
+      }
+    },
+    "wraith-r5": {
+      "urls": [
+        "https://backblaze.pixellab.ai/file/pixellab-characters/af7def4e-5692-4b18-9246-874d5382befb/29d39d8c-753a-47a9-8e45-959bdc406e68/rotations/south.png?t=1788301262",
+        "https://backblaze.pixellab.ai/file/pixellab-characters/af7def4e-5692-4b18-9246-874d5382befb/29d39d8c-753a-47a9-8e45-959bdc406e68/rotations/south-east.png?t=1788301262",
+        "https://backblaze.pixellab.ai/file/pixellab-characters/af7def4e-5692-4b18-9246-874d5382befb/29d39d8c-753a-47a9-8e45-959bdc406e68/rotations/east.png?t=1788301262",
+        "https://backblaze.pixellab.ai/file/pixellab-characters/af7def4e-5692-4b18-9246-874d5382befb/29d39d8c-753a-47a9-8e45-959bdc406e68/rotations/north-east.png?t=1788301262",
+        "https://backblaze.pixellab.ai/file/pixellab-characters/af7def4e-5692-4b18-9246-874d5382befb/29d39d8c-753a-47a9-8e45-959bdc406e68/rotations/north.png?t=1788301262",
+        "https://backblaze.pixellab.ai/file/pixellab-characters/af7def4e-5692-4b18-9246-874d5382befb/29d39d8c-753a-47a9-8e45-959bdc406e68/rotations/north-west.png?t=1788301262",
+        "https://backblaze.pixellab.ai/file/pixellab-characters/af7def4e-5692-4b18-9246-874d5382befb/29d39d8c-753a-47a9-8e45-959bdc406e68/rotations/west.png?t=1788301262",
+        "https://backblaze.pixellab.ai/file/pixellab-characters/af7def4e-5692-4b18-9246-874d5382befb/29d39d8c-753a-47a9-8e45-959bdc406e68/rotations/south-west.png?t=1788301262"
+      ],
+      "fetched": "2026-09-01T22:21:11+00:00",
+      "files": [
+        "east.png",
+        "north-east.png",
+        "north-west.png",
+        "north.png",
+        "south-east.png",
+        "south-west.png",
+        "south.png",
+        "west.png"
+      ],
+      "owner": {
+        "verdict": "deny",
+        "at": "2026-09-01T22:49:45+00:00",
+        "note": "",
+        "shipped": null,
+        "generated": {
+          "base_id": "8e44a531-0d11-495c-9329-28b6fc4a4851",
+          "character_id": "29d39d8c-753a-47a9-8e45-959bdc406e68",
+          "edit_description": "Simplify the silhouette. A true ghost with no feet and no legs at all: the robe tapers into tattered wisps that trail into empty air, floating above the ground, nothing touching the floor. Change only what is described and nothing else. Keep the same character, pose, proportions and kit. Match the existing color palette exactly, no new colors, no glowing parts.",
+          "seed": null,
+          "tool": "forge.py create-character-state"
+        }
+      }
+    },
+    "wraith-r4": {
+      "urls": [
+        "https://backblaze.pixellab.ai/file/pixellab-characters/af7def4e-5692-4b18-9246-874d5382befb/db565c32-834e-4fd7-9360-b6bcaf93446d/rotations/south.png?t=1788301370",
+        "https://backblaze.pixellab.ai/file/pixellab-characters/af7def4e-5692-4b18-9246-874d5382befb/db565c32-834e-4fd7-9360-b6bcaf93446d/rotations/south-east.png?t=1788301370",
+        "https://backblaze.pixellab.ai/file/pixellab-characters/af7def4e-5692-4b18-9246-874d5382befb/db565c32-834e-4fd7-9360-b6bcaf93446d/rotations/east.png?t=1788301370",
+        "https://backblaze.pixellab.ai/file/pixellab-characters/af7def4e-5692-4b18-9246-874d5382befb/db565c32-834e-4fd7-9360-b6bcaf93446d/rotations/north-east.png?t=1788301370",
+        "https://backblaze.pixellab.ai/file/pixellab-characters/af7def4e-5692-4b18-9246-874d5382befb/db565c32-834e-4fd7-9360-b6bcaf93446d/rotations/north.png?t=1788301370",
+        "https://backblaze.pixellab.ai/file/pixellab-characters/af7def4e-5692-4b18-9246-874d5382befb/db565c32-834e-4fd7-9360-b6bcaf93446d/rotations/north-west.png?t=1788301370",
+        "https://backblaze.pixellab.ai/file/pixellab-characters/af7def4e-5692-4b18-9246-874d5382befb/db565c32-834e-4fd7-9360-b6bcaf93446d/rotations/west.png?t=1788301370",
+        "https://backblaze.pixellab.ai/file/pixellab-characters/af7def4e-5692-4b18-9246-874d5382befb/db565c32-834e-4fd7-9360-b6bcaf93446d/rotations/south-west.png?t=1788301370"
+      ],
+      "fetched": "2026-09-01T22:22:56+00:00",
+      "files": [
+        "east.png",
+        "north-east.png",
+        "north-west.png",
+        "north.png",
+        "south-east.png",
+        "south-west.png",
+        "south.png",
+        "west.png"
+      ],
+      "owner": {
+        "verdict": "deny",
+        "at": "2026-09-01T22:49:54+00:00",
+        "note": "",
+        "shipped": null,
+        "generated": {
+          "base_id": "d977272f-acc1-47a5-9d8f-1225d61ded17",
+          "character_id": "db565c32-834e-4fd7-9360-b6bcaf93446d",
+          "edit_description": "Simplify the silhouette. A true ghost with no feet and no legs at all: the robe tapers into tattered wisps that trail into empty air, floating above the ground, nothing touching the floor. Change only what is described and nothing else. Keep the same character, pose, proportions and kit. Match the existing color palette exactly, no new colors, no glowing parts.",
+          "seed": null,
+          "tool": "forge.py create-character-state"
+        }
+      }
+    },
+    "ghoul-r2": {
+      "urls": [
+        "https://backblaze.pixellab.ai/file/pixellab-characters/af7def4e-5692-4b18-9246-874d5382befb/9f79c8ff-c004-4a4b-900f-e467e66fcb08/rotations/south.png?t=1788301480",
+        "https://backblaze.pixellab.ai/file/pixellab-characters/af7def4e-5692-4b18-9246-874d5382befb/9f79c8ff-c004-4a4b-900f-e467e66fcb08/rotations/south-east.png?t=1788301480",
+        "https://backblaze.pixellab.ai/file/pixellab-characters/af7def4e-5692-4b18-9246-874d5382befb/9f79c8ff-c004-4a4b-900f-e467e66fcb08/rotations/east.png?t=1788301480",
+        "https://backblaze.pixellab.ai/file/pixellab-characters/af7def4e-5692-4b18-9246-874d5382befb/9f79c8ff-c004-4a4b-900f-e467e66fcb08/rotations/north-east.png?t=1788301480",
+        "https://backblaze.pixellab.ai/file/pixellab-characters/af7def4e-5692-4b18-9246-874d5382befb/9f79c8ff-c004-4a4b-900f-e467e66fcb08/rotations/north.png?t=1788301480",
+        "https://backblaze.pixellab.ai/file/pixellab-characters/af7def4e-5692-4b18-9246-874d5382befb/9f79c8ff-c004-4a4b-900f-e467e66fcb08/rotations/north-west.png?t=1788301480",
+        "https://backblaze.pixellab.ai/file/pixellab-characters/af7def4e-5692-4b18-9246-874d5382befb/9f79c8ff-c004-4a4b-900f-e467e66fcb08/rotations/west.png?t=1788301480",
+        "https://backblaze.pixellab.ai/file/pixellab-characters/af7def4e-5692-4b18-9246-874d5382befb/9f79c8ff-c004-4a4b-900f-e467e66fcb08/rotations/south-west.png?t=1788301480"
+      ],
+      "fetched": "2026-09-01T22:39:04+00:00",
+      "files": [
+        "east.png",
+        "north-east.png",
+        "north-west.png",
+        "north.png",
+        "south-east.png",
+        "south-west.png",
+        "south.png",
+        "west.png"
+      ],
+      "owner": {
+        "verdict": "approve",
+        "at": "2026-09-01T22:39:55+00:00",
+        "note": "",
+        "shipped": null,
+        "generated": {
+          "base_id": "a6cc31f8-bb35-451c-8af8-668b64926b5b",
+          "character_id": "9f79c8ff-c004-4a4b-900f-e467e66fcb08",
+          "edit_description": "Have arms facing forward as if to grab you. Change only what is described and nothing else. Keep the same character, pose, proportions and kit. Match the existing color palette exactly, no new colors, no glowing parts.",
           "seed": null,
           "tool": "forge.py create-character-state"
         }

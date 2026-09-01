@@ -1,0 +1,12 @@
+{
+  "state_ids": {
+    "v0_base": "1c935515-0ea3-459b-8c63-e7f8cf368272",
+    "v1_tower": "5cb6d425-0583-43c6-b5ba-3d3c23db6028",
+    "v2_pauldron": "a9dee17a-4acc-47db-ba4c-0c0aec1fe45b",
+    "v3_skirted": "ae35ef96-2a7c-4da0-889c-dd0342545936",
+    "v4_pike": "22702c62-2407-4171-840c-d6b838bfc2b1",
+    "v5_bannered": "c1590cc8-070a-4f77-bba8-7570858efa16",
+    "v6_shieldwall": "bf072840-583c-4ac9-9f9f-d2dddb494b93"
+  },
+  "note": "PixelLab state ids recovered 2026-09-01 by name/pixel match against the account inventory, for forge refinement."
+}

@@ -1,0 +1,8 @@
+{
+  "state_ids": {
+    "z6_narrowstrung_undead": "e5af555f-26d8-4fc6-8d6c-f12ec8b763e0",
+    "z7_bowextended_undead": "0e20f4cd-e172-479a-83fc-a72b6a62bd15",
+    "z8_crossbowbrace_undead": "7d5ec5e3-df79-40c2-8c65-99252be05c6f"
+  },
+  "note": "PixelLab state ids recovered 2026-09-01 by name/pixel match against the account inventory, for forge refinement."
+}

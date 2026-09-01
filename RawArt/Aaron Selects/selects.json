@@ -1727,5 +1727,50 @@
     "branch": null,
     "verdict": "deny",
     "at": "2026-09-01T20:09:43+00:00"
+  },
+  "melee-undead/wraith-r2": {
+    "branch": "Elf Branch",
+    "verdict": "approve",
+    "at": "2026-09-01T21:52:38+00:00",
+    "source": "RawArt/Renders/melee-undead/raw/wraith-r2/rotations"
+  },
+  "melee-undead/z1-lolled-r2": {
+    "branch": "Elf Branch",
+    "verdict": "approve",
+    "at": "2026-09-01T21:52:41+00:00",
+    "source": "RawArt/Renders/melee-undead/raw/z1-lolled-r2/rotations"
+  },
+  "melee-undead/wraith-r3": {
+    "branch": "Elf Branch",
+    "verdict": "approve",
+    "at": "2026-09-01T22:04:42+00:00",
+    "source": "RawArt/Renders/melee-undead/raw/wraith-r3/rotations"
+  },
+  "melee-undead/z1-tilt-right-r2": {
+    "branch": null,
+    "verdict": "deny",
+    "at": "2026-09-01T22:06:51+00:00"
+  },
+  "melee-undead/plague-priest-r2": {
+    "branch": "Elf Branch",
+    "verdict": "approve",
+    "at": "2026-09-01T22:11:52+00:00",
+    "source": "RawArt/Renders/melee-undead/raw/plague-priest-r2/rotations"
+  },
+  "melee-undead/wraith-r4": {
+    "branch": "Elf Branch",
+    "verdict": "deny",
+    "at": "2026-09-01T22:49:54+00:00"
+  },
+  "melee-undead/wraith-r5": {
+    "branch": "Elf Branch",
+    "verdict": "deny",
+    "at": "2026-09-01T22:49:45+00:00"
+  },
+  "melee-undead/ghoul-r2": {
+    "branch": "Elf Branch",
+    "verdict": "approve",
+    "at": "2026-09-01T22:39:05+00:00",
+    "source": "RawArt/Renders/melee-undead/raw/ghoul-r2/rotations"
   }
 }

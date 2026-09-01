@@ -1,0 +1,9 @@
+{
+  "state_ids": {
+    "type0_base": "1c935515-0ea3-459b-8c63-e7f8cf368272",
+    "type1_bulwark": "8506cbe8-c8ab-4026-b1e1-bce3e8743dd2",
+    "type2_pikeman": "d659437e-e6de-4bd9-b399-f0c28f45b33f",
+    "type3_skirmisher": "0c356561-dd7b-409d-ad58-2c04cea1c264"
+  },
+  "note": "PixelLab state ids recovered 2026-09-01 by name/pixel match against the account inventory, for forge refinement."
+}

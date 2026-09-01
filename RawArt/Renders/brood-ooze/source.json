@@ -1,0 +1,18 @@
+{
+  "state_ids": {
+    "A_black_ghost_with_sharp": "a8770a41-6493-41be-b141-e21bc507783b",
+    "Baby_face_smiling_li": "98875280-46c4-4a5d-93dc-a53b85b97a62",
+    "Made_of_tongues": "4daf02e5-178c-454e-b0a6-7b48050ad7a1",
+    "pale_blue_skin_big_e": "34ebf7db-9ffb-4fb8-9125-dee296cd9038",
+    "state01_sump": "e259a87d-767a-466a-9b6c-c73ab7acbea1",
+    "state02_bell": "fc2b530b-9ff3-4a2f-af10-c13e86c207fd",
+    "state03_stalk": "91b82746-af50-4948-845d-8d450b115ccb",
+    "state04_wedge": "53f41225-027d-46a6-9bae-deda5a9e937c",
+    "state05_ridge": "4e500dd1-f341-47af-9cf2-a35341c38779",
+    "state06_crown": "499f5072-c131-40bc-bfae-78f4cd54d4cf",
+    "state07_twin": "832843c1-27c5-4077-844c-36b5a21d77c2",
+    "state08_slug": "7b161e06-2c3b-4e04-813c-b43f327d851a",
+    "state00_base": "4a75b4ac-7732-499a-84f4-d3a06937a6c2"
+  },
+  "note": "PixelLab state ids recovered 2026-09-01 by name/pixel match against the account inventory, for forge refinement."
+}

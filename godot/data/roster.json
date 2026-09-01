@@ -64,5 +64,10 @@
   "z4-tilt-left": "melee-undead/z4-tilt-left",
   "z1-tilt-left": "melee-undead/z1-tilt-left",
   "z1-lolled": "melee-undead/z1-lolled",
-  "z1-tilt-right": "melee-undead/z1-tilt-right"
+  "z1-tilt-right": "melee-undead/z1-tilt-right",
+  "wraith-r2": "melee-undead/wraith-r2",
+  "z1-lolled-r2": "melee-undead/z1-lolled-r2",
+  "wraith-r3": "melee-undead/wraith-r3",
+  "plague-priest-r2": "melee-undead/plague-priest-r2",
+  "ghoul-r2": "melee-undead/ghoul-r2"
 }

@@ -11,5 +11,14 @@
     "description": "Undead soldiers of the keep: variants spend the axis on posture and kit decay (slack heads, sagging weapon arms, hunched masses), never on proportion knobs. Bone, rust and rot register only -- no machinery, no glow, light belongs to the flame."
   },
   "constant": "Undead soldier base of group 2cc3ab61, use_color_palette_from_reference=True, 88px canvas, low top-down 8-direction view, no glow or light source anywhere.",
+  "naming": {
+    "note": "State ids for the pre-forge final-cycle looks (cycle 6), recovered from the PixelLab group 2026-09-01 so forge riffs can refine them.",
+    "map": [
+      {"folder": "wraith", "state_id": "a6f83e96-f157-4211-a11a-6e2d4b7e4b60"},
+      {"folder": "ghoul", "state_id": "a6cc31f8-bb35-451c-8af8-668b64926b5b"},
+      {"folder": "bone_knight", "state_id": "0780b162-10f6-4063-b1c8-9f7f6d4c69c9"},
+      {"folder": "plague_priest", "state_id": "9acbce74-7e95-4b8c-8c12-c2ddc19bcb42"}
+    ]
+  },
   "variants": []
 }

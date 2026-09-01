@@ -1,0 +1,8 @@
+{
+  "state_ids": {
+    "state01_marksman": "bb92dd76-98b0-4327-ba62-8747709402ff",
+    "state02_voltaic": "8fad5b95-7f20-48a9-88df-3bba284c9a7a",
+    "state06_sharpshooter": "d703623f-7322-460c-adf1-cb661f73744c"
+  },
+  "note": "PixelLab state ids recovered 2026-09-01 by name/pixel match against the account inventory, for forge refinement."
+}

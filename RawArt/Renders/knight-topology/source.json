@@ -1,0 +1,10 @@
+{
+  "state_ids": {
+    "t0_base": "1c935515-0ea3-459b-8c63-e7f8cf368272",
+    "t1_straddle": "cd8c9bf9-dd73-4937-82f4-8d90712a1728",
+    "t3_spearlevel": "4b2b4d26-4ec3-4313-a747-3bf80f4e0263",
+    "t4_akimbo": "05bbae1d-c956-4b79-97da-714d73a61c8b",
+    "t5_overhead": "b0f7d4f3-2e9e-4cb0-a244-c7a3bb7744ec"
+  },
+  "note": "PixelLab state ids recovered 2026-09-01 by name/pixel match against the account inventory, for forge refinement."
+}

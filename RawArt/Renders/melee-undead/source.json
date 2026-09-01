@@ -1,0 +1,10 @@
+{
+  "state_ids": {
+    "z1_barestance_undead": "6dd19c16-8dc3-4a2c-87a9-53cff161e120",
+    "z2_spearlevel_undead": "81a8ee7e-aafc-4c53-b474-3d2224e5c3e8",
+    "z3_heavycloak_undead": "d4f4a4fc-7ce0-435d-868c-5bc26009fa8b",
+    "z4_maceraised_undead": "3bd22c75-91be-4b52-aee5-60c3c6674b73",
+    "z5_bracedstaff_undead": "95cda399-c8cf-4f8f-9b2f-cf19712d81e6"
+  },
+  "note": "PixelLab state ids recovered 2026-09-01 by name/pixel match against the account inventory, for forge refinement."
+}

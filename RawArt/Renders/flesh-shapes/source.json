@@ -1,0 +1,8 @@
+{
+  "state_ids": {
+    "bulk_flesh": "bb3843ad-e23d-4842-af24-3c898c9dcedc",
+    "hunch_flesh": "8a019de4-419c-4edc-9d7c-165ea682d841",
+    "wedge_flesh": "4d1f6d8e-25e5-442d-9c36-aded15933572"
+  },
+  "note": "PixelLab state ids recovered 2026-09-01 by name/pixel match against the account inventory, for forge refinement."
+}

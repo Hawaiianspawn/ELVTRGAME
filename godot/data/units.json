@@ -407,5 +407,91 @@
       "hit": "impact_armor_heavy.wav",
       "death": "death_armor_collapse.wav"
     }
+  },
+  "wraith-r2": {
+    "hp": 35,
+    "dmg": 9,
+    "range": 60,
+    "speed": 85,
+    "cooldown": 1.2,
+    "fly_h": 60,
+    "alpha": 0.5,
+    "sprite": "wraith-r2",
+    "label": "Wraith",
+    "counters": [],
+    "magic": 12,
+    "sfx": {
+      "attack": "impact_ground_slam.wav",
+      "hit": "impact_bone_crack.wav",
+      "death": "death_undead_collapse.wav"
+    }
+  },
+  "z1-lolled-r2": {
+    "hp": 160,
+    "dmg": 12,
+    "range": 45,
+    "speed": 48,
+    "cooldown": 1.4,
+    "sprite": "z1-lolled-r2",
+    "label": "Z1 Lolled",
+    "counters": [],
+    "magic": 19,
+    "sfx": {
+      "attack": "armor_swing_heavy.wav",
+      "hit": "impact_armor_heavy.wav",
+      "death": "death_armor_collapse.wav"
+    }
+  },
+  "wraith-r3": {
+    "hp": 35,
+    "dmg": 9,
+    "range": 60,
+    "speed": 85,
+    "cooldown": 1.2,
+    "fly_h": 60,
+    "alpha": 0.7,
+    "sprite": "wraith-r3",
+    "label": "Wraith",
+    "counters": [],
+    "magic": 12,
+    "sfx": {
+      "attack": "impact_ground_slam.wav",
+      "hit": "impact_bone_crack.wav",
+      "death": "death_undead_collapse.wav"
+    }
+  },
+  "plague-priest-r2": {
+    "hp": 160,
+    "dmg": 12,
+    "range": 45,
+    "speed": 48,
+    "cooldown": 1.4,
+    "sprite": "plague-priest-r2",
+    "label": "Plague Priest R2",
+    "counters": [],
+    "magic": 19,
+    "sfx": {
+      "attack": "armor_swing_heavy.wav",
+      "hit": "impact_armor_heavy.wav",
+      "death": "death_armor_collapse.wav"
+    }
+  },
+  "ghoul-r2": {
+    "hp": 30,
+    "dmg": 8,
+    "range": 40,
+    "speed": 115,
+    "cooldown": 0.9,
+    "scale": 1.25,
+    "walk_fps": 16,
+    "sprite": "ghoul-r2",
+    "label": "Ghoul",
+    "counters": [],
+    "magic": 9,
+    "sfx": {
+      "attack": "bone_swing_light.wav",
+      "hit": "bow_release_arrow.wav",
+      "death": "death_undead_collapse.wav"
+    }
   }
 }

@@ -187,6 +187,197 @@
       88
     ],
     "pixellab_name": "Hallam (Vanguard)",
-    "group_id": "2cc3ab61-4230-4786-98fa-b94da9e99218"
+    "group_id": "2cc3ab61-4230-4786-98fa-b94da9e99218",
+    "walk": {
+      "queued": "2026-09-01T21:52:42+00:00",
+      "mode": "template",
+      "fetched": "2026-09-01T21:53:47+00:00",
+      "frames": 6
+    }
+  },
+  "wraith-r2": {
+    "slug": "wraith-r2",
+    "base_id": "a6f83e96-f157-4211-a11a-6e2d4b7e4b60",
+    "character_id": "d977272f-acc1-47a5-9d8f-1225d61ded17",
+    "background_job_id": "0f985bf9-b1d7-4998-ab95-589bb39d6056",
+    "edit": "Add teeth and bottom jaw open wide.",
+    "tail": "Keep the head and legs clearly visible. Match the existing color palette exactly, no new colors, no glowing parts.",
+    "prompt": "Add teeth and bottom jaw open wide. Keep the head and legs clearly visible. Match the existing color palette exactly, no new colors, no glowing parts.",
+    "seed": null,
+    "usage": null,
+    "started": "2026-09-01T21:47:11+00:00",
+    "status": "done",
+    "riffed_from": "wraith",
+    "riff_note": "Add teeth and bottom jaw open wide.",
+    "fetched": "2026-09-01T21:52:16+00:00",
+    "canvas": [
+      88,
+      88
+    ],
+    "pixellab_name": "Hallam (Vanguard)",
+    "group_id": "2cc3ab61-4230-4786-98fa-b94da9e99218",
+    "walk": {
+      "queued": "2026-09-01T21:52:39+00:00",
+      "mode": "template",
+      "fetched": "2026-09-01T21:53:52+00:00",
+      "frames": 6
+    }
+  },
+  "wraith-r3": {
+    "slug": "wraith-r3",
+    "base_id": "a6f83e96-f157-4211-a11a-6e2d4b7e4b60",
+    "character_id": "8e44a531-0d11-495c-9329-28b6fc4a4851",
+    "background_job_id": "0621c569-51d3-4817-922a-cbbf68f3b973",
+    "edit": "Have the arms facing out as if to grab you",
+    "tail": "Change only what is described and nothing else. Keep the same character, pose, proportions and kit. Match the existing color palette exactly, no new colors, no glowing parts.",
+    "prompt": "Have the arms facing out as if to grab you. Change only what is described and nothing else. Keep the same character, pose, proportions and kit. Match the existing color palette exactly, no new colors, no glowing parts.",
+    "seed": null,
+    "usage": null,
+    "started": "2026-09-01T21:51:43+00:00",
+    "status": "done",
+    "refined_from": "wraith",
+    "refine_note": "Have the arms facing out as if to grab you",
+    "fetched": "2026-09-01T22:03:17+00:00",
+    "canvas": [
+      88,
+      88
+    ],
+    "pixellab_name": "Hallam (Vanguard)",
+    "group_id": "2cc3ab61-4230-4786-98fa-b94da9e99218",
+    "walk": {
+      "queued": "2026-09-01T22:33:03+00:00",
+      "mode": "template",
+      "template": "scary-walk",
+      "note": "take2: drifting haunt; take1 (base-pose glide) parked at walk_south_take1",
+      "fetched": "2026-09-01T22:44:56+00:00",
+      "frames": 8
+    }
+  },
+  "plague-priest-r2": {
+    "slug": "plague-priest-r2",
+    "base_id": "9acbce74-7e95-4b8c-8c12-c2ddc19bcb42",
+    "character_id": "a8e15193-880b-429b-ac11-cf357d1a2990",
+    "background_job_id": "87f9a1fd-4449-4987-8589-2405a70df494",
+    "edit": "Lets make the insence bigger",
+    "tail": "Change only what is described and nothing else. Keep the same character, pose, proportions and kit. Match the existing color palette exactly, no new colors, no glowing parts.",
+    "prompt": "Lets make the insence bigger. Change only what is described and nothing else. Keep the same character, pose, proportions and kit. Match the existing color palette exactly, no new colors, no glowing parts.",
+    "seed": null,
+    "usage": null,
+    "started": "2026-09-01T22:04:13+00:00",
+    "status": "done",
+    "refined_from": "plague_priest",
+    "refine_note": "Lets make the insence bigger",
+    "fetched": "2026-09-01T22:10:29+00:00",
+    "canvas": [
+      88,
+      88
+    ],
+    "pixellab_name": "Hallam (Vanguard)",
+    "group_id": "2cc3ab61-4230-4786-98fa-b94da9e99218",
+    "walk": {
+      "queued": "2026-09-01T22:11:52+00:00",
+      "mode": "template",
+      "fetched": "2026-09-01T22:13:47+00:00",
+      "frames": 6
+    }
+  },
+  "wraith-r4": {
+    "slug": "wraith-r4",
+    "base_id": "d977272f-acc1-47a5-9d8f-1225d61ded17",
+    "character_id": "db565c32-834e-4fd7-9360-b6bcaf93446d",
+    "background_job_id": "835cf606-7e4c-4b1d-a7cf-f9421ca30b4e",
+    "edit": "Simplify the silhouette. A true ghost with no feet and no legs at all: the robe tapers into tattered wisps that trail into empty air, floating above the ground, nothing touching the floor.",
+    "tail": "Change only what is described and nothing else. Keep the same character, pose, proportions and kit. Match the existing color palette exactly, no new colors, no glowing parts.",
+    "prompt": "Simplify the silhouette. A true ghost with no feet and no legs at all: the robe tapers into tattered wisps that trail into empty air, floating above the ground, nothing touching the floor. Change only what is described and nothing else. Keep the same character, pose, proportions and kit. Match the existing color palette exactly, no new colors, no glowing parts.",
+    "seed": null,
+    "usage": null,
+    "started": "2026-09-01T22:19:33+00:00",
+    "status": "done",
+    "refined_from": "wraith-r2",
+    "refine_note": "Simplify the silhouette. A true ghost with no feet and no legs at all: the robe tapers into tattered wisps that trail into empty air, floating above the ground, nothing touching the floor.",
+    "fetched": "2026-09-01T22:22:56+00:00",
+    "canvas": [
+      88,
+      88
+    ],
+    "pixellab_name": "Hallam (Vanguard)",
+    "group_id": "2cc3ab61-4230-4786-98fa-b94da9e99218",
+    "walk": {
+      "queued": "2026-09-01T22:26:51+00:00",
+      "mode": "template",
+      "fetched": "2026-09-01T22:33:29+00:00",
+      "frames": 6
+    }
+  },
+  "wraith-r5": {
+    "slug": "wraith-r5",
+    "base_id": "8e44a531-0d11-495c-9329-28b6fc4a4851",
+    "character_id": "29d39d8c-753a-47a9-8e45-959bdc406e68",
+    "background_job_id": "0effcfad-4e6e-4a02-a24f-0922c3b409e3",
+    "edit": "Simplify the silhouette. A true ghost with no feet and no legs at all: the robe tapers into tattered wisps that trail into empty air, floating above the ground, nothing touching the floor.",
+    "tail": "Change only what is described and nothing else. Keep the same character, pose, proportions and kit. Match the existing color palette exactly, no new colors, no glowing parts.",
+    "prompt": "Simplify the silhouette. A true ghost with no feet and no legs at all: the robe tapers into tattered wisps that trail into empty air, floating above the ground, nothing touching the floor. Change only what is described and nothing else. Keep the same character, pose, proportions and kit. Match the existing color palette exactly, no new colors, no glowing parts.",
+    "seed": null,
+    "usage": null,
+    "started": "2026-09-01T22:19:34+00:00",
+    "status": "done",
+    "refined_from": "wraith-r3",
+    "refine_note": "Simplify the silhouette. A true ghost with no feet and no legs at all: the robe tapers into tattered wisps that trail into empty air, floating above the ground, nothing touching the floor.",
+    "fetched": "2026-09-01T22:21:11+00:00",
+    "canvas": [
+      88,
+      88
+    ],
+    "pixellab_name": "Hallam (Vanguard)",
+    "group_id": "2cc3ab61-4230-4786-98fa-b94da9e99218",
+    "walk": {
+      "queued": "2026-09-01T22:26:52+00:00",
+      "mode": "template",
+      "fetched": "2026-09-01T22:33:39+00:00",
+      "frames": 6
+    }
+  },
+  "ghoul-r2": {
+    "slug": "ghoul-r2",
+    "base_id": "a6cc31f8-bb35-451c-8af8-668b64926b5b",
+    "character_id": "9f79c8ff-c004-4a4b-900f-e467e66fcb08",
+    "background_job_id": "a94d8a8f-7251-4534-bcf5-cace2a074071",
+    "edit": "Have arms facing forward as if to grab you",
+    "tail": "Change only what is described and nothing else. Keep the same character, pose, proportions and kit. Match the existing color palette exactly, no new colors, no glowing parts.",
+    "prompt": "Have arms facing forward as if to grab you. Change only what is described and nothing else. Keep the same character, pose, proportions and kit. Match the existing color palette exactly, no new colors, no glowing parts.",
+    "seed": null,
+    "usage": null,
+    "started": "2026-09-01T22:22:42+00:00",
+    "status": "done",
+    "refined_from": "ghoul",
+    "refine_note": "Have arms facing forward as if to grab you",
+    "fetched": "2026-09-01T22:39:04+00:00",
+    "canvas": [
+      88,
+      88
+    ],
+    "pixellab_name": "Hallam (Vanguard)",
+    "group_id": "2cc3ab61-4230-4786-98fa-b94da9e99218",
+    "walk": {
+      "queued": "2026-09-01T22:39:06+00:00",
+      "mode": "template",
+      "fetched": "2026-09-01T22:40:45+00:00",
+      "frames": 6
+    }
+  },
+  "wraith-r6": {
+    "slug": "wraith-r6",
+    "base_id": "a6f83e96-f157-4211-a11a-6e2d4b7e4b60",
+    "character_id": "27069fbd-0ca3-4470-9ca7-dfc5379c4eb3",
+    "background_job_id": "421d5eba-c168-4677-af01-d3e706241ade",
+    "edit": "Lets make a red version",
+    "tail": "Change only what is described and nothing else. Keep the same character, pose, proportions and kit. Match the existing color palette exactly, no new colors, no glowing parts.",
+    "prompt": "Lets make a red version. Change only what is described and nothing else. Keep the same character, pose, proportions and kit. Match the existing color palette exactly, no new colors, no glowing parts.",
+    "seed": null,
+    "usage": null,
+    "started": "2026-09-01T23:14:09+00:00",
+    "status": "pending",
+    "refined_from": "wraith",
+    "refine_note": "Lets make a red version"
   }
 }

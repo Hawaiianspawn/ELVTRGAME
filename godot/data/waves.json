@@ -37,6 +37,14 @@
       {
         "type": "z1-tilt-right",
         "count": 12
+      },
+      {
+        "type": "z1-lolled-r2",
+        "count": 12
+      },
+      {
+        "type": "plague-priest-r2",
+        "count": 12
       }
     ],
     "turn": "left"
@@ -103,6 +111,14 @@
       {
         "type": "ghoul",
         "count": 16
+      },
+      {
+        "type": "wraith-r2",
+        "count": 12
+      },
+      {
+        "type": "wraith-r3",
+        "count": 12
       }
     ],
     "turn": "right"
@@ -148,6 +164,10 @@
       {
         "type": "necromancer",
         "count": 1
+      },
+      {
+        "type": "wraith-r2",
+        "count": 12
       }
     ],
     "turn": ""
