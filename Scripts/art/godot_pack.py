@@ -76,16 +76,20 @@ def main():
         raw = os.path.dirname(d)
         clips = []
         for entry in sorted(os.listdir(raw)):
-            m = re.fullmatch(r"(attack|slam|death|walk|hurt\d?|aimdown)_(north|south)|(flicker)_(east_clean)", entry)
+            m = re.fullmatch(r"(attack|slam|death|walk|hurt\d?|aimdown)_(north|south|east)|(flicker)_(east_clean)", entry)
             if m and os.path.isdir(os.path.join(raw, entry)):
                 clip = m.group(1) or m.group(3)
-                clips.append((clip, m.group(2) or m.group(4), "flicker_east" if clip == "flicker" else clip))
+                suffix = m.group(2) or m.group(4)
+                # east rows (HUD medallion clips) keep their facing in the key; the unit's own
+                # facing (north ally / south enemy) stays the bare clip name
+                key = "flicker_east" if clip == "flicker" else (clip + "_east" if suffix == "east" else clip)
+                clips.append((clip, suffix, key))
         for clip, suffix, key in clips:
             adir = os.path.join(raw, "%s_%s" % (clip, suffix))
             names = sorted((f for f in os.listdir(adir) if re.fullmatch(r"frame_\d+\.png", f)),
                            key=lambda f: int(f[6:-4]))
-            if clip == "attack" and name in cut:
-                names = names[:cut[name]]
+            if clip == "attack" and suffix != "east" and name in cut:
+                names = names[:cut[name]]   # attack_frames cuts were tuned on the north clips
             frames = [Image.open(os.path.join(adir, f)).convert("RGBA") for f in names]
             strip = Image.new("RGBA", (cell * len(frames), cell))
             for i, im in enumerate(frames):

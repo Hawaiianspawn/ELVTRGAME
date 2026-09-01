@@ -1,1590 +1,1598 @@
 {
-  "archer-scifi/state06_sharpshooter": {
-    "branch": "Elf Branch",
-    "verdict": "approve",
-    "at": "2026-08-16T05:06:57+00:00",
-    "source": "RawArt/Renders/archer-scifi/raw/state06_sharpshooter/rotations",
-    "palette": "_CANNED"
-  },
-  "soldier-reach/s1_pikevertical": {
-    "branch": "Human Soldier Branch",
-    "verdict": "approve",
-    "at": "2026-08-16T04:19:25+00:00",
-    "source": "RawArt/Renders/soldier-reach/raw/s1_pikevertical/rotations",
-    "seeded": true,
-    "palette": "MELEE Class",
-    "cls": "Melee",
-    "weapon": "Spear"
-  },
-  "knight-types/type1_bulwark": {
-    "branch": "Human Soldier Branch",
-    "verdict": "deny",
-    "at": "2026-08-16T22:51:24+00:00"
-  },
-  "archer-medieval/v1_narrowstrung": {
-    "branch": "Human Soldier Branch",
-    "verdict": "approve",
-    "at": "2026-08-16T04:19:25+00:00",
-    "source": "RawArt/Renders/archer-medieval/raw/v1_narrowstrung/rotations",
-    "seeded": true,
-    "palette": "RANGED"
-  },
-  "archer-medieval/v2_bowextended": {
-    "branch": "Human Soldier Branch",
-    "verdict": "approve",
-    "at": "2026-08-16T04:19:25+00:00",
-    "source": "RawArt/Renders/archer-medieval/raw/v2_bowextended/rotations",
-    "seeded": true,
-    "palette": "RANGED",
-    "cls": "Ranged",
-    "weapon": "Bow"
-  },
-  "archer-medieval/v3_loosingarm": {
-    "branch": "Human Soldier Branch",
-    "verdict": "approve",
-    "at": "2026-08-16T04:19:25+00:00",
-    "source": "RawArt/Renders/archer-medieval/raw/v3_loosingarm/rotations",
-    "seeded": true,
-    "palette": "Ranged Class",
-    "cls": "Ranged",
-    "weapon": "Bow"
-  },
-  "archer-medieval/v4_quiverreach": {
-    "branch": "Human Soldier Branch",
-    "verdict": "approve",
-    "at": "2026-08-16T04:19:25+00:00",
-    "source": "RawArt/Renders/archer-medieval/raw/v4_quiverreach/rotations",
-    "seeded": true,
-    "palette": "_CANNED",
-    "cls": "Ranged",
-    "weapon": "Bow"
-  },
-  "archer-medieval/v5_crossbowbrace": {
-    "branch": "Human Soldier Branch",
-    "verdict": "approve",
-    "at": "2026-08-16T04:19:25+00:00",
-    "source": "RawArt/Renders/archer-medieval/raw/v5_crossbowbrace/rotations",
-    "seeded": true,
-    "palette": "RANGED",
-    "cls": "Ranged",
-    "weapon": "Crossbow"
-  },
-  "archer-proxy/base": {
-    "branch": "Elf Branch",
-    "verdict": "approve",
-    "at": "2026-08-16T05:06:50+00:00",
-    "source": "RawArt/Renders/archer-proxy/raw"
-  },
-  "archer-proxy/state02_hollowmask": {
-    "branch": "Elf Branch",
-    "verdict": "approve",
-    "at": "2026-08-16T05:06:51+00:00",
-    "source": "RawArt/Renders/archer-proxy/raw/state02_hollowmask",
-    "palette": "_CANNED"
-  },
-  "archer-proxy/state03_crossbow": {
-    "branch": "Elf Branch",
-    "verdict": "deny",
-    "at": "2026-08-17T02:02:58+00:00"
-  },
-  "archer-proxy/state04_blade": {
-    "branch": "Elf Branch",
-    "verdict": "deny",
-    "at": "2026-08-16T17:21:15+00:00"
-  },
-  "archer-proxy/state05_mage": {
-    "branch": "Elf Branch",
-    "verdict": "approve",
-    "at": "2026-08-16T05:06:53+00:00",
-    "source": "RawArt/Renders/archer-proxy/raw/state05_mage",
-    "palette": "_CANNED"
-  },
-  "brood-ooze/state05_ridge": {
-    "branch": "Elf Branch",
-    "verdict": "approve",
-    "at": "2026-08-16T05:07:12+00:00",
-    "source": "RawArt/Renders/brood-ooze/raw/state05_ridge/rotations",
-    "palette": "NASHERS"
-  },
-  "brood-ooze/state06_crown": {
-    "branch": "Elf Branch",
-    "verdict": "approve",
-    "at": "2026-08-16T05:07:13+00:00",
-    "source": "RawArt/Renders/brood-ooze/raw/state06_crown/rotations",
-    "palette": "NASHERS"
-  },
-  "brood-ooze/state07_twin": {
-    "branch": "Elf Branch",
-    "verdict": "approve",
-    "at": "2026-08-16T05:07:14+00:00",
-    "source": "RawArt/Renders/brood-ooze/raw/state07_twin/rotations",
-    "palette": "NASHERS"
-  },
-  "brood-ooze/state08_slug": {
-    "branch": "Elf Branch",
-    "verdict": "approve",
-    "at": "2026-08-16T05:07:14+00:00",
-    "source": "RawArt/Renders/brood-ooze/raw/state08_slug/rotations",
-    "palette": "NASHERS"
-  },
-  "brood-ooze/state00_base": {
-    "branch": "Elf Branch",
-    "verdict": "approve",
-    "at": "2026-08-16T05:07:16+00:00",
-    "source": "RawArt/Renders/brood-ooze/raw/state00_base/rotations",
-    "palette": "NASHERS"
-  },
-  "brood-ooze/state01_sump": {
-    "branch": "Elf Branch",
-    "verdict": "approve",
-    "at": "2026-08-16T05:07:16+00:00",
-    "source": "RawArt/Renders/brood-ooze/raw/state01_sump/rotations",
-    "palette": "NASHERS"
-  },
-  "brood-ooze/state02_bell": {
-    "branch": "Elf Branch",
-    "verdict": "approve",
-    "at": "2026-08-16T05:07:17+00:00",
-    "source": "RawArt/Renders/brood-ooze/raw/state02_bell/rotations",
-    "palette": "NASHERS"
-  },
-  "brood-ooze/state03_stalk": {
-    "branch": "Elf Branch",
-    "verdict": "approve",
-    "at": "2026-08-16T05:07:18+00:00",
-    "source": "RawArt/Renders/brood-ooze/raw/state03_stalk/rotations",
-    "palette": "NASHERS"
-  },
-  "brood-ooze/state04_wedge": {
-    "branch": "Elf Branch",
-    "verdict": "approve",
-    "at": "2026-08-16T05:07:19+00:00",
-    "source": "RawArt/Renders/brood-ooze/raw/state04_wedge/rotations",
-    "palette": "NASHERS"
-  },
-  "brood-ooze-colour/rotations": {
-    "branch": "Human Soldier Branch",
-    "verdict": "approve",
-    "at": "2026-08-16T05:07:23+00:00",
-    "source": "RawArt/Renders/brood-ooze-colour/raw/rotations",
-    "side": "ally",
-    "palette": "MELEE",
-    "cls": "Melee"
-  },
-  "boss-marks-proto/base": {
-    "branch": null,
-    "verdict": "deny",
-    "at": "2026-08-16T05:07:42+00:00"
-  },
-  "boss-marks-proto/column-fed": {
-    "branch": null,
-    "verdict": "deny",
-    "at": "2026-08-16T05:07:43+00:00"
-  },
-  "boss-marks-proto/compound-ram-columnfed-quilled": {
-    "branch": null,
-    "verdict": "deny",
-    "at": "2026-08-16T05:07:44+00:00"
-  },
-  "boss-marks-proto/quilled": {
-    "branch": null,
-    "verdict": "deny",
-    "at": "2026-08-16T05:07:45+00:00"
-  },
-  "boss-marks-proto/ram": {
-    "branch": null,
-    "verdict": "deny",
-    "at": "2026-08-16T05:07:45+00:00"
-  },
-  "boss-marks-proto/ram-retry2": {
-    "branch": null,
-    "verdict": "deny",
-    "at": "2026-08-16T05:07:46+00:00"
-  },
-  "boss-marks-proto/sated": {
-    "branch": null,
-    "verdict": "deny",
-    "at": "2026-08-16T05:07:47+00:00"
-  },
-  "boss-marks-proto/unblinded": {
-    "branch": null,
-    "verdict": "deny",
-    "at": "2026-08-16T05:07:47+00:00"
-  },
-  "boss-marks-proto/wearing": {
-    "branch": null,
-    "verdict": "deny",
-    "at": "2026-08-16T05:07:48+00:00"
-  },
-  "archer-scifi/state01_marksman": {
-    "branch": "Elf Branch",
-    "verdict": "approve",
-    "at": "2026-08-16T05:07:52+00:00",
-    "source": "RawArt/Renders/archer-scifi/raw/state01_marksman/rotations",
-    "palette": "_CANNED"
-  },
-  "archer-scifi/state02_voltaic": {
-    "branch": null,
-    "verdict": "deny",
-    "at": "2026-08-16T05:07:53+00:00"
-  },
-  "archer-scifi/state03_harpooner": {
-    "branch": null,
-    "verdict": "deny",
-    "at": "2026-08-16T05:07:55+00:00"
-  },
-  "archer-scifi/state04_volley": {
-    "branch": "Elf Branch",
-    "verdict": "approve",
-    "at": "2026-08-16T05:07:59+00:00",
-    "source": "RawArt/Renders/archer-scifi/raw/state04_volley/rotations",
-    "palette": "_CANNED"
-  },
-  "archer-scifi/state05_kite": {
-    "branch": null,
-    "verdict": "deny",
-    "at": "2026-08-16T05:08:01+00:00"
-  },
-  "brood-ooze/Made_of_tongues": {
-    "branch": "Elf Branch",
-    "verdict": "approve",
-    "at": "2026-08-16T05:08:04+00:00",
-    "source": "RawArt/Renders/brood-ooze/raw/Made_of_tongues/rotations",
-    "palette": "FLESH"
-  },
-  "brood-ooze/pale_blue_skin_big_e": {
-    "branch": "Elf Branch",
-    "verdict": "approve",
-    "at": "2026-08-16T05:08:05+00:00",
-    "source": "RawArt/Renders/brood-ooze/raw/pale_blue_skin_big_e/rotations"
-  },
-  "brood-ooze/Baby_face_smiling_li": {
-    "branch": "Elf Branch",
-    "verdict": "approve",
-    "at": "2026-08-16T05:08:06+00:00",
-    "source": "RawArt/Renders/brood-ooze/raw/Baby_face_smiling_li/rotations"
-  },
-  "brood-ooze/A_black_ghost_with_sharp": {
-    "branch": "Elf Branch",
-    "verdict": "approve",
-    "at": "2026-08-16T05:08:08+00:00",
-    "source": "RawArt/Renders/brood-ooze/raw/A_black_ghost_with_sharp/rotations"
-  },
-  "brood-tongues/tongue02_spill": {
-    "branch": "Elf Branch",
-    "verdict": "approve",
-    "at": "2026-08-16T05:08:19+00:00",
-    "source": "RawArt/Renders/brood-tongues/raw/tongue02_spill/rotations",
-    "palette": "FLESH"
-  },
-  "brood-tongues/tongue04_lean": {
-    "branch": "Elf Branch",
-    "verdict": "approve",
-    "at": "2026-08-16T05:08:21+00:00",
-    "source": "RawArt/Renders/brood-tongues/raw/tongue04_lean/rotations",
-    "palette": "FLESH"
-  },
-  "brood-tongues/tongue05_loop": {
-    "branch": "Elf Branch",
-    "verdict": "approve",
-    "at": "2026-08-16T05:08:22+00:00",
-    "source": "RawArt/Renders/brood-tongues/raw/tongue05_loop/rotations",
-    "palette": "FLESH"
-  },
-  "brood-tongues/tongue06_knot": {
-    "branch": "Elf Branch",
-    "verdict": "deny",
-    "at": "2026-08-16T05:08:39+00:00"
-  },
-  "brood-tongues/tongue01_column": {
-    "branch": "Elf Branch",
-    "verdict": "approve",
-    "at": "2026-08-16T05:08:25+00:00",
-    "source": "RawArt/Renders/brood-tongues/raw/tongue01_column/rotations",
-    "palette": "FLESH"
-  },
-  "brood-tongues/tongue03_trail": {
-    "branch": null,
-    "verdict": "deny",
-    "at": "2026-08-16T05:08:37+00:00"
-  },
-  "enemy-armored/v5_slabshield": {
-    "branch": "Elf Branch",
-    "verdict": "approve",
-    "at": "2026-08-16T05:08:43+00:00",
-    "source": "RawArt/Renders/enemy-armored/raw/v5_slabshield/rotations",
-    "palette": "FUTURE"
-  },
-  "enemy-armored/v6_notched": {
-    "branch": "Elf Branch",
-    "verdict": "approve",
-    "at": "2026-08-16T05:08:44+00:00",
-    "source": "RawArt/Renders/enemy-armored/raw/v6_notched/rotations",
-    "palette": "FUTURE"
-  },
-  "enemy-armored/v7_spined": {
-    "branch": "Elf Branch",
-    "verdict": "approve",
-    "at": "2026-08-16T05:08:45+00:00",
-    "source": "RawArt/Renders/enemy-armored/raw/v7_spined/rotations",
-    "palette": "FUTURE"
-  },
-  "enemy-armored/v3_levelspear": {
-    "branch": null,
-    "verdict": "deny",
-    "at": "2026-08-16T05:08:47+00:00"
-  },
-  "enemy-armored/v4_standard": {
-    "branch": null,
-    "verdict": "deny",
-    "at": "2026-08-16T05:08:49+00:00"
-  },
-  "enemy-armored/v2_column": {
-    "branch": "Elf Branch",
-    "verdict": "approve",
-    "at": "2026-08-16T05:08:51+00:00",
-    "source": "RawArt/Renders/enemy-armored/raw/v2_column/rotations",
-    "palette": "FUTURE"
-  },
-  "enemy-armored/v1_pike": {
-    "branch": null,
-    "verdict": "deny",
-    "at": "2026-08-16T05:08:53+00:00"
-  },
-  "enemy-armored/v10_clawreach": {
-    "branch": "Elf Branch",
-    "verdict": "approve",
-    "at": "2026-08-16T05:08:56+00:00",
-    "source": "RawArt/Renders/enemy-armored/raw/v10_clawreach/rotations",
-    "palette": "FUTURE"
-  },
-  "enemy-armored/v9_clawgauntlet": {
-    "branch": "Elf Branch",
-    "verdict": "approve",
-    "at": "2026-08-16T05:09:03+00:00",
-    "source": "RawArt/Renders/enemy-armored/raw/v9_clawgauntlet/rotations",
-    "palette": "FUTURE"
-  },
-  "enemy-armored/v8_tethered": {
-    "branch": null,
-    "verdict": "deny",
-    "at": "2026-08-16T05:09:06+00:00"
-  },
-  "knight-greatsword/g0_bulwark_parent": {
-    "branch": "Human Soldier Branch",
-    "verdict": "approve",
-    "at": "2026-08-16T05:09:11+00:00",
-    "source": "RawArt/Renders/knight-greatsword/raw/g0_bulwark_parent/rotations",
-    "palette": "MELEE Class",
-    "cls": "Melee"
-  },
-  "knight-greatsword/g1_seed": {
-    "branch": "Human Soldier Branch",
-    "verdict": "approve",
-    "at": "2026-08-16T05:09:13+00:00",
-    "source": "RawArt/Renders/knight-greatsword/raw/g1_seed/rotations",
-    "palette": "MELEE",
-    "cls": "Melee",
-    "weapon": "Sword"
-  },
-  "knight-greatsword/g2_sweep": {
-    "branch": "Elf Branch",
-    "verdict": "approve",
-    "at": "2026-08-16T05:09:15+00:00",
-    "source": "RawArt/Renders/knight-greatsword/raw/g2_sweep/rotations",
-    "palette": "MELEE",
-    "cls": "Melee",
-    "weapon": "Sword"
-  },
-  "knight-greatsword/g3_guard": {
-    "branch": "Elf Branch",
-    "verdict": "deny",
-    "at": "2026-08-16T22:49:27+00:00"
-  },
-  "knight-greatsword/g4_planted": {
-    "branch": "Elf Branch",
-    "verdict": "approve",
-    "at": "2026-08-16T05:09:19+00:00",
-    "source": "RawArt/Renders/knight-greatsword/raw/g4_planted/rotations",
-    "palette": "MELEE Hero"
-  },
-  "knight-mass/v2_pauldron": {
-    "branch": "Elf Branch",
-    "verdict": "approve",
-    "at": "2026-08-16T05:09:24+00:00",
-    "source": "RawArt/Renders/knight-mass/raw/v2_pauldron/rotations",
-    "palette": "MELEE Hero"
-  },
-  "knight-mass/v3_skirted": {
-    "branch": null,
-    "verdict": "deny",
-    "at": "2026-08-16T05:09:25+00:00"
-  },
-  "knight-mass/v4_pike": {
-    "branch": "Elf Branch",
-    "verdict": "approve",
-    "at": "2026-08-16T05:09:43+00:00",
-    "source": "RawArt/Renders/knight-mass/raw/v4_pike/rotations",
-    "palette": "MELEE",
-    "cls": "Melee",
-    "weapon": "Spear"
-  },
-  "knight-melee-v2/v8_heavycloak": {
-    "branch": "Elf Branch",
-    "verdict": "approve",
-    "at": "2026-08-16T05:09:52+00:00",
-    "source": "RawArt/Aaron Selects/Elf Branch/v8_heavycloak/rotations",
-    "palette": "MELEE",
-    "cls": "Melee",
-    "weapon": "Sword"
-  },
-  "knight-melee-v2/v7_barestance": {
-    "branch": "Elf Branch",
-    "verdict": "approve",
-    "at": "2026-08-16T05:09:56+00:00",
-    "source": "RawArt/Renders/knight-melee-v2/raw/v7_barestance/rotations",
-    "palette": "MELEE"
-  },
-  "knight-melee-v2/v13_maceraised": {
-    "branch": "Elf Branch",
-    "verdict": "approve",
-    "at": "2026-08-16T05:10:01+00:00",
-    "source": "RawArt/Renders/knight-melee-v2/raw/v13_maceraised/rotations",
-    "palette": "MELEE",
-    "cls": "Melee",
-    "weapon": "Mace"
-  },
-  "pathfinder-line/ArtilleryCannons_on": {
-    "branch": "Elf Branch",
-    "verdict": "approve",
-    "at": "2026-08-16T05:10:17+00:00",
-    "source": "RawArt/Renders/pathfinder-line/raw/ArtilleryCannons_on/rotations",
-    "palette": "_CANNED"
-  },
-  "pathfinder-line/berserker": {
-    "branch": "Elf Branch",
-    "verdict": "approve",
-    "at": "2026-08-16T05:10:18+00:00",
-    "source": "RawArt/Renders/pathfinder-line/raw/berserker/rotations",
-    "palette": "RANGED Hero",
-    "cls": "Ranged"
-  },
-  "pathfinder-line/buccaneer": {
-    "branch": "Elf Branch",
-    "verdict": "approve",
-    "at": "2026-08-16T05:10:19+00:00",
-    "source": "RawArt/Renders/pathfinder-line/raw/buccaneer/rotations",
-    "palette": "RANGED Hero"
-  },
-  "pathfinder-line/Bump_helmet_ontop_of": {
-    "branch": "Elf Branch",
-    "verdict": "approve",
-    "at": "2026-08-16T05:10:20+00:00",
-    "source": "RawArt/Renders/pathfinder-line/raw/Bump_helmet_ontop_of/rotations",
-    "palette": "_CANNED"
-  },
-  "pathfinder-line/Can_we_have_one_cove": {
-    "branch": "Elf Branch",
-    "verdict": "approve",
-    "at": "2026-08-16T05:10:21+00:00",
-    "source": "RawArt/Renders/pathfinder-line/raw/Can_we_have_one_cove/rotations",
-    "palette": "RANGED Hero"
-  },
-  "pathfinder-line/Can_you_make_a_Turre": {
-    "branch": "Elf Branch",
-    "verdict": "approve",
-    "at": "2026-08-16T05:10:22+00:00",
-    "source": "RawArt/Renders/pathfinder-line/raw/Can_you_make_a_Turre/rotations",
-    "palette": "RANGED Hero"
-  },
-  "pathfinder-line/Convert_to_Mage": {
-    "branch": "Elf Branch",
-    "verdict": "approve",
-    "at": "2026-08-16T05:10:23+00:00",
-    "source": "RawArt/Renders/pathfinder-line/raw/Convert_to_Mage/rotations",
-    "palette": "_CANNED"
-  },
-  "pathfinder-line/Cyborg_with_Crossbow": {
-    "branch": "Elf Branch",
-    "verdict": "approve",
-    "at": "2026-08-16T05:10:23+00:00",
-    "source": "RawArt/Renders/pathfinder-line/raw/Cyborg_with_Crossbow/rotations",
-    "palette": "_CANNED"
-  },
-  "pathfinder-line/droneleash": {
-    "branch": "Elf Branch",
-    "verdict": "deny",
-    "at": "2026-08-16T05:10:28+00:00"
-  },
-  "pathfinder-line/dwarf_version_which": {
-    "branch": "Elf Branch",
-    "verdict": "approve",
-    "at": "2026-08-16T05:10:30+00:00",
-    "source": "RawArt/Renders/pathfinder-line/raw/dwarf_version_which/rotations",
-    "palette": "RANGED Hero"
-  },
-  "pathfinder-line/gunslinger": {
-    "branch": "Elf Branch",
-    "verdict": "approve",
-    "at": "2026-08-16T05:10:39+00:00",
-    "source": "RawArt/Renders/pathfinder-line/raw/gunslinger/rotations",
-    "palette": "RANGED Hero"
-  },
-  "pathfinder-line/harpoonreach": {
-    "branch": null,
-    "verdict": "deny",
-    "at": "2026-08-16T05:10:42+00:00"
-  },
-  "pathfinder-line/hazmatbulk": {
-    "branch": null,
-    "verdict": "deny",
-    "at": "2026-08-16T05:10:45+00:00"
-  },
-  "pathfinder-line/kneebrace": {
-    "branch": "Elf Branch",
-    "verdict": "approve",
-    "at": "2026-08-16T05:10:47+00:00",
-    "source": "RawArt/Renders/pathfinder-line/raw/kneebrace/rotations",
-    "palette": "_CANNED"
-  },
-  "pathfinder-line/lanternring": {
-    "branch": null,
-    "verdict": "deny",
-    "at": "2026-08-16T05:10:55+00:00"
-  },
-  "pathfinder-line/Lets_so_secret_servi": {
-    "branch": "Elf Branch",
-    "verdict": "approve",
-    "at": "2026-08-16T05:10:56+00:00",
-    "source": "RawArt/Renders/pathfinder-line/raw/Lets_so_secret_servi/rotations",
-    "palette": "RANGED Hero"
-  },
-  "pathfinder-line/Merle_Pathfinder": {
-    "branch": "Elf Branch",
-    "verdict": "approve",
-    "at": "2026-08-16T05:10:58+00:00",
-    "source": "RawArt/Renders/pathfinder-line/raw/Merle_Pathfinder/rotations",
-    "palette": "RANGED",
-    "cls": "Ranged",
-    "weapon": "Bow"
-  },
-  "pathfinder-line/One_with_Hollow_blac": {
-    "branch": "Elf Branch",
-    "verdict": "deny",
-    "at": "2026-08-16T17:20:47+00:00"
-  },
-  "pathfinder-line/pavisewall": {
-    "branch": null,
-    "verdict": "deny",
-    "at": "2026-08-16T05:11:02+00:00"
-  },
-  "pathfinder-line/pavisewall-r2": {
-    "branch": null,
-    "verdict": "deny",
-    "at": "2026-08-16T05:11:04+00:00"
-  },
-  "pathfinder-line/Replace_the_bow_with": {
-    "branch": "Elf Branch",
-    "verdict": "deny",
-    "at": "2026-08-16T17:20:53+00:00"
-  },
-  "pathfinder-line/RPG_launcher": {
-    "branch": "Elf Branch",
-    "verdict": "approve",
-    "at": "2026-08-16T05:11:07+00:00",
-    "source": "RawArt/Renders/pathfinder-line/raw/RPG_launcher/rotations",
-    "palette": "_CANNED"
-  },
-  "pathfinder-line/sackhauler": {
-    "branch": "Elf Branch",
-    "verdict": "approve",
-    "at": "2026-08-16T05:11:08+00:00",
-    "source": "RawArt/Renders/pathfinder-line/raw/sackhauler/rotations",
-    "palette": "_CANNED"
-  },
-  "pathfinder-line/shinobi": {
-    "branch": "Elf Branch",
-    "verdict": "approve",
-    "at": "2026-08-16T05:11:09+00:00",
-    "source": "RawArt/Renders/pathfinder-line/raw/shinobi/rotations",
-    "palette": "_CANNED"
-  },
-  "pathfinder-line/stilthauler": {
-    "branch": "Elf Branch",
-    "verdict": "approve",
-    "at": "2026-08-16T05:11:13+00:00",
-    "source": "RawArt/Renders/pathfinder-line/raw/stilthauler/rotations",
-    "palette": "RANGED Hero"
-  },
-  "pathfinder-line/tinkerer": {
-    "branch": "Elf Branch",
-    "verdict": "approve",
-    "at": "2026-08-16T05:11:16+00:00",
-    "source": "RawArt/Renders/pathfinder-line/raw/tinkerer/rotations",
-    "palette": "RANGED Hero"
-  },
-  "ranged-roster/restyle01_bulwark": {
-    "branch": "Elf Branch",
-    "verdict": "approve",
-    "at": "2026-08-16T05:11:20+00:00",
-    "source": "RawArt/Renders/ranged-roster/raw/restyle01_bulwark/rotations",
-    "palette": "_CANNED"
-  },
-  "ranged-roster/restyle02_swarmcaller": {
-    "branch": "Elf Branch",
-    "verdict": "approve",
-    "at": "2026-08-16T05:11:20+00:00",
-    "source": "RawArt/Renders/ranged-roster/raw/restyle02_swarmcaller/rotations",
-    "palette": "RANGED Hero"
-  },
-  "ranged-roster/unit01_bulwark-gunner": {
-    "branch": null,
-    "verdict": "deny",
-    "at": "2026-08-16T05:11:22+00:00"
-  },
-  "ranged-roster/unit02_longshot": {
-    "branch": null,
-    "verdict": "deny",
-    "at": "2026-08-16T05:11:23+00:00"
-  },
-  "ranged-roster/unit03_warden-scout": {
-    "branch": null,
-    "verdict": "deny",
-    "at": "2026-08-16T05:11:24+00:00"
-  },
-  "ranged-roster/unit04_tripod-marksman": {
-    "branch": null,
-    "verdict": "deny",
-    "at": "2026-08-16T05:11:24+00:00"
-  },
-  "ranged-roster/unit05_swarmcaller": {
-    "branch": null,
-    "verdict": "deny",
-    "at": "2026-08-16T05:11:25+00:00"
-  },
-  "ranged-roster/unit06_spire-lancer": {
-    "branch": null,
-    "verdict": "deny",
-    "at": "2026-08-16T05:11:25+00:00"
-  },
-  "undead-green/Keep_this_exact_broa": {
-    "branch": "Elf Branch",
-    "verdict": "approve",
-    "at": "2026-08-16T05:11:41+00:00",
-    "source": "RawArt/Renders/undead-green/raw/Keep_this_exact_broa/rotations",
-    "palette": "UNDEAD"
-  },
-  "undead-green/Keep_this_exact_broa_2": {
-    "branch": "Elf Branch",
-    "verdict": "approve",
-    "at": "2026-08-16T05:11:42+00:00",
-    "source": "RawArt/Renders/undead-green/raw/Keep_this_exact_broa_2/rotations",
-    "palette": "UNDEAD"
-  },
-  "undead-green/Keep_this_exact_lops": {
-    "branch": "Elf Branch",
-    "verdict": "approve",
-    "at": "2026-08-16T05:11:43+00:00",
-    "source": "RawArt/Renders/undead-green/raw/Keep_this_exact_lops/rotations",
-    "palette": "UNDEAD"
-  },
-  "undead-green/Keep_this_exact_lops_2": {
-    "branch": "Elf Branch",
-    "verdict": "approve",
-    "at": "2026-08-16T05:11:44+00:00",
-    "source": "RawArt/Renders/undead-green/raw/Keep_this_exact_lops_2/rotations",
-    "palette": "UNDEAD"
-  },
-  "undead-green/Keep_this_exact_tall": {
-    "branch": "Elf Branch",
-    "verdict": "approve",
-    "at": "2026-08-16T05:11:46+00:00",
-    "source": "RawArt/Renders/undead-green/raw/Keep_this_exact_tall/rotations",
-    "palette": "UNDEAD"
-  },
-  "undead-green/Keep_this_exact_tria": {
-    "branch": "Elf Branch",
-    "verdict": "approve",
-    "at": "2026-08-16T05:11:48+00:00",
-    "source": "RawArt/Renders/undead-green/raw/Keep_this_exact_tria/rotations",
-    "palette": "UNDEAD"
-  },
-  "undead-green/Reshape_this_undead_2": {
-    "branch": "Elf Branch",
-    "verdict": "approve",
-    "at": "2026-08-16T05:11:49+00:00",
-    "source": "RawArt/Renders/undead-green/raw/Reshape_this_undead_2/rotations",
-    "palette": "UNDEAD"
-  },
-  "undead-green/Reshape_this_undead_7": {
-    "branch": "Elf Branch",
-    "verdict": "approve",
-    "at": "2026-08-16T05:11:53+00:00",
-    "source": "RawArt/Renders/undead-green/raw/Reshape_this_undead_7/rotations",
-    "palette": "UNDEAD"
-  },
-  "undead-green/Undead": {
-    "branch": "Elf Branch",
-    "verdict": "approve",
-    "at": "2026-08-16T05:11:54+00:00",
-    "source": "RawArt/Renders/undead-green/raw/Undead/rotations",
-    "palette": "UNDEAD"
-  },
-  "undead-green/Reshape_this_undead_8": {
-    "branch": "Elf Branch",
-    "verdict": "approve",
-    "at": "2026-08-16T05:11:56+00:00",
-    "source": "RawArt/Renders/undead-green/raw/Reshape_this_undead_8/rotations",
-    "palette": "UNDEAD"
-  },
-  "undead-green/Baby_face_smiling_li": {
-    "branch": null,
-    "verdict": "deny",
-    "at": "2026-08-16T05:12:05+00:00"
-  },
-  "soldier-scifi-variants/prop-mid": {
-    "branch": null,
-    "verdict": "deny",
-    "at": "2026-08-16T05:12:06+00:00"
-  },
-  "soldier-scifi-variants/prop-narrow": {
-    "branch": null,
-    "verdict": "deny",
-    "at": "2026-08-16T05:12:07+00:00"
-  },
-  "soldier-scifi-variants/prop-wide": {
-    "branch": null,
-    "verdict": "deny",
-    "at": "2026-08-16T05:12:07+00:00"
-  },
-  "soldier-scifi-variants/topo-asymmetric": {
-    "branch": null,
-    "verdict": "deny",
-    "at": "2026-08-16T05:12:07+00:00"
-  },
-  "soldier-scifi-variants/topo-hole": {
-    "branch": null,
-    "verdict": "deny",
-    "at": "2026-08-16T05:12:08+00:00"
-  },
-  "soldier-scifi-variants/topo-notched": {
-    "branch": null,
-    "verdict": "deny",
-    "at": "2026-08-16T05:12:08+00:00"
-  },
-  "undead-green/Reshape_this_undead_6": {
-    "branch": "Elf Branch",
-    "verdict": "approve",
-    "at": "2026-08-16T05:12:17+00:00",
-    "source": "RawArt/Renders/undead-green/raw/Reshape_this_undead_6/rotations",
-    "palette": "UNDEAD"
-  },
-  "undead-green/Reshape_this_undead_5": {
-    "branch": null,
-    "verdict": "deny",
-    "at": "2026-08-16T05:12:17+00:00"
-  },
-  "undead-green/Reshape_this_undead_3": {
-    "branch": null,
-    "verdict": "deny",
-    "at": "2026-08-16T05:12:25+00:00"
-  },
-  "undead-green/Reshape_this_undead_4": {
-    "branch": null,
-    "verdict": "deny",
-    "at": "2026-08-16T05:12:27+00:00"
-  },
-  "undead-green/Reshape_this_undead": {
-    "branch": null,
-    "verdict": "deny",
-    "at": "2026-08-16T05:12:28+00:00"
-  },
-  "pathfinder-line/trenchcoat": {
-    "branch": "Elf Branch",
-    "verdict": "approve",
-    "at": "2026-08-16T05:12:38+00:00",
-    "source": "RawArt/Renders/pathfinder-line/raw/trenchcoat/rotations",
-    "palette": "RANGED Hero"
-  },
-  "pathfinder-line/wingflare": {
-    "branch": null,
-    "verdict": "deny",
-    "at": "2026-08-16T05:12:41+00:00"
-  },
-  "knight-types/type2_pikeman": {
-    "branch": "Human Soldier Branch",
-    "verdict": "approve",
-    "at": "2026-08-16T05:12:45+00:00",
-    "source": "RawArt/Renders/knight-types/raw/type2_pikeman/rotations",
-    "palette": "MELEE Class",
-    "cls": "Melee",
-    "weapon": "Spear"
-  },
-  "knight-types/type3_skirmisher": {
-    "branch": null,
-    "verdict": "deny",
-    "at": "2026-08-16T05:12:49+00:00"
-  },
-  "knight-types/type0_base": {
-    "branch": null,
-    "verdict": "deny",
-    "at": "2026-08-16T05:12:52+00:00"
-  },
-  "knight-topology/t1_straddle": {
-    "branch": "Human Soldier Branch",
-    "verdict": "approve",
-    "at": "2026-08-16T05:12:57+00:00",
-    "source": "RawArt/Renders/knight-topology/raw/t1_straddle/rotations",
-    "palette": "MELEE Class"
-  },
-  "knight-topology/t2_shieldout": {
-    "branch": null,
-    "verdict": "deny",
-    "at": "2026-08-16T05:13:13+00:00"
-  },
-  "knight-topology/t3_spearlevel": {
-    "branch": null,
-    "verdict": "deny",
-    "at": "2026-08-16T05:13:14+00:00"
-  },
-  "knight-topology/t4_akimbo": {
-    "branch": null,
-    "verdict": "deny",
-    "at": "2026-08-16T05:13:14+00:00"
-  },
-  "knight-topology/t5_overhead": {
-    "branch": null,
-    "verdict": "deny",
-    "at": "2026-08-16T05:13:15+00:00"
-  },
-  "knight-topology/t0_base": {
-    "branch": null,
-    "verdict": "deny",
-    "at": "2026-08-16T05:13:16+00:00"
-  },
-  "knight-primitive/p1_square": {
-    "branch": null,
-    "verdict": "deny",
-    "at": "2026-08-16T05:13:18+00:00"
-  },
-  "knight-primitive/p2_triangle": {
-    "branch": null,
-    "verdict": "deny",
-    "at": "2026-08-16T05:13:19+00:00"
-  },
-  "knight-primitive/p3_dome": {
-    "branch": null,
-    "verdict": "deny",
-    "at": "2026-08-16T05:13:19+00:00"
-  },
-  "knight-primitive/p4_column": {
-    "branch": null,
-    "verdict": "deny",
-    "at": "2026-08-16T05:13:20+00:00"
-  },
-  "knight-primitive/p5_invtriangle": {
-    "branch": null,
-    "verdict": "deny",
-    "at": "2026-08-16T05:13:21+00:00"
-  },
-  "knight-primitive/p6_bar": {
-    "branch": null,
-    "verdict": "deny",
-    "at": "2026-08-16T05:13:21+00:00"
-  },
-  "knight-primitive/p0_base": {
-    "branch": null,
-    "verdict": "deny",
-    "at": "2026-08-16T05:13:23+00:00"
-  },
-  "knight-melee-v2/v15_strapshield": {
-    "branch": null,
-    "verdict": "deny",
-    "at": "2026-08-16T05:13:28+00:00"
-  },
-  "knight-melee-v2/v14_twinraise": {
-    "branch": null,
-    "verdict": "deny",
-    "at": "2026-08-16T05:13:29+00:00"
-  },
-  "knight-melee-v2/v12_pikereach": {
-    "branch": null,
-    "verdict": "deny",
-    "at": "2026-08-16T05:13:31+00:00"
-  },
-  "knight-melee-v2/v11_midguard": {
-    "branch": null,
-    "verdict": "deny",
-    "at": "2026-08-16T05:13:37+00:00"
-  },
-  "knight-melee-v2/v10_bracedstaff": {
-    "branch": "Elf Branch",
-    "verdict": "approve",
-    "at": "2026-08-16T05:13:40+00:00",
-    "source": "RawArt/Renders/knight-melee-v2/raw/v10_bracedstaff/rotations",
-    "palette": "MELEE",
-    "cls": "Melee",
-    "weapon": "Spear"
-  },
-  "knight-melee-v1/v1_narrowguard": {
-    "branch": null,
-    "verdict": "deny",
-    "at": "2026-08-16T05:13:51+00:00"
-  },
-  "knight-melee-v1/v2_lanceout": {
-    "branch": null,
-    "verdict": "deny",
-    "at": "2026-08-16T05:13:52+00:00"
-  },
-  "knight-melee-v1/v3_shieldbreak": {
-    "branch": null,
-    "verdict": "deny",
-    "at": "2026-08-16T05:13:53+00:00"
-  },
-  "knight-melee-v1/v4_overhead": {
-    "branch": null,
-    "verdict": "deny",
-    "at": "2026-08-16T05:13:54+00:00"
-  },
-  "knight-melee-v1/v5_widecross": {
-    "branch": null,
-    "verdict": "deny",
-    "at": "2026-08-16T05:13:55+00:00"
-  },
-  "knight-melee-v1/v6_simplecolumn": {
-    "branch": null,
-    "verdict": "deny",
-    "at": "2026-08-16T05:13:56+00:00"
-  },
-  "knight-mass/v1_tower": {
-    "branch": null,
-    "verdict": "deny",
-    "at": "2026-08-16T05:13:59+00:00"
-  },
-  "knight-mass/v5_bannered": {
-    "branch": null,
-    "verdict": "deny",
-    "at": "2026-08-16T05:14:00+00:00"
-  },
-  "knight/state04_bulkyhelm": {
-    "branch": null,
-    "verdict": "deny",
-    "at": "2026-08-16T05:14:13+00:00"
-  },
-  "knight/state05_chibihelm": {
-    "branch": null,
-    "verdict": "deny",
-    "at": "2026-08-16T05:14:14+00:00"
-  },
-  "knight/state06_chibihelm_dup": {
-    "branch": null,
-    "verdict": "deny",
-    "at": "2026-08-16T05:14:14+00:00"
-  },
-  "knight/state03_roundhelm": {
-    "branch": null,
-    "verdict": "deny",
-    "at": "2026-08-16T05:14:16+00:00"
-  },
-  "knight/state02_faceshield": {
-    "branch": null,
-    "verdict": "deny",
-    "at": "2026-08-16T05:14:18+00:00"
-  },
-  "knight/rotations": {
-    "branch": null,
-    "verdict": "deny",
-    "at": "2026-08-16T05:14:19+00:00"
-  },
-  "enemy-armored/v0_base": {
-    "branch": null,
-    "verdict": "deny",
-    "at": "2026-08-16T05:14:21+00:00"
-  },
-  "undead-simple/00_base_undead": {
-    "branch": null,
-    "verdict": "deny",
-    "at": "2026-08-16T05:14:30+00:00"
-  },
-  "undead-simple/01_monolith": {
-    "branch": null,
-    "verdict": "deny",
-    "at": "2026-08-16T05:14:33+00:00"
-  },
-  "undead-simple/02_bulk": {
-    "branch": "Elf Branch",
-    "verdict": "approve",
-    "at": "2026-08-16T05:14:38+00:00",
-    "source": "RawArt/Renders/undead-simple/raw/02_bulk/rotations",
-    "palette": "0 ENEMY SHAPES"
-  },
-  "undead-simple/03_wedge": {
-    "branch": "Elf Branch",
-    "verdict": "approve",
-    "at": "2026-08-16T05:14:42+00:00",
-    "source": "RawArt/Renders/undead-simple/raw/03_wedge/rotations",
-    "palette": "0 ENEMY SHAPES"
-  },
-  "undead-simple/04_dome": {
-    "branch": "Elf Branch",
-    "verdict": "approve",
-    "at": "2026-08-16T05:14:43+00:00",
-    "source": "RawArt/Renders/undead-simple/raw/04_dome/rotations",
-    "palette": "0 ENEMY SHAPES"
-  },
-  "undead-simple/05_hunch": {
-    "branch": "Elf Branch",
-    "verdict": "approve",
-    "at": "2026-08-16T05:14:45+00:00",
-    "source": "RawArt/Renders/undead-simple/raw/05_hunch/rotations",
-    "palette": "0 ENEMY SHAPES"
-  },
-  "undead-simple/06_monolith_v2": {
-    "branch": null,
-    "verdict": "deny",
-    "at": "2026-08-16T05:14:46+00:00"
-  },
-  "undead-simple/07_bulk_v2": {
-    "branch": null,
-    "verdict": "deny",
-    "at": "2026-08-16T05:14:47+00:00"
-  },
-  "undead-simple/08_wedge_v2": {
-    "branch": null,
-    "verdict": "deny",
-    "at": "2026-08-16T05:14:48+00:00"
-  },
-  "undead-simple/11_monolith_col": {
-    "branch": null,
-    "verdict": "deny",
-    "at": "2026-08-16T05:14:49+00:00"
-  },
-  "undead-simple/12_bulk_col": {
-    "branch": null,
-    "verdict": "deny",
-    "at": "2026-08-16T05:14:50+00:00"
-  },
-  "undead-simple/13_wedge_col": {
-    "branch": null,
-    "verdict": "deny",
-    "at": "2026-08-16T05:14:51+00:00"
-  },
-  "undead-simple/14_dome_col": {
-    "branch": null,
-    "verdict": "deny",
-    "at": "2026-08-16T05:14:52+00:00"
-  },
-  "undead-simple/15_hunch_col": {
-    "branch": null,
-    "verdict": "deny",
-    "at": "2026-08-16T05:14:52+00:00"
-  },
-  "undead-simple/21_mono_bandaged": {
-    "branch": null,
-    "verdict": "deny",
-    "at": "2026-08-16T05:14:53+00:00"
-  },
-  "undead-simple/22_mono_sentinel": {
-    "branch": null,
-    "verdict": "deny",
-    "at": "2026-08-16T05:14:53+00:00"
-  },
-  "undead-simple/23_bulk_bloated": {
-    "branch": null,
-    "verdict": "deny",
-    "at": "2026-08-16T05:14:54+00:00"
-  },
-  "undead-simple/24_bulk_juggernaut": {
-    "branch": null,
-    "verdict": "deny",
-    "at": "2026-08-16T05:14:54+00:00"
-  },
-  "undead-simple/25_wedge_void": {
-    "branch": null,
-    "verdict": "deny",
-    "at": "2026-08-16T05:14:55+00:00"
-  },
-  "undead-simple/26_wedge_horned": {
-    "branch": null,
-    "verdict": "deny",
-    "at": "2026-08-16T05:14:55+00:00"
-  },
-  "undead-simple/27_hunch_growth": {
-    "branch": null,
-    "verdict": "deny",
-    "at": "2026-08-16T05:14:56+00:00"
-  },
-  "undead-simple/28_hunch_dragarm": {
-    "branch": "Elf Branch",
-    "verdict": "deny",
-    "at": "2026-08-16T17:17:53+00:00"
-  },
-  "unit-knight/rotations": {
-    "branch": null,
-    "verdict": "deny",
-    "at": "2026-08-16T05:15:01+00:00"
-  },
-  "unit-retinue-colour/rotations": {
-    "branch": "Elf Branch",
-    "verdict": "deny",
-    "at": "2026-08-16T22:51:20+00:00"
-  },
-  "melee-tropes/samurai": {
-    "branch": "Elf Branch",
-    "verdict": "approve",
-    "at": "2026-08-17T00:19:03+00:00",
-    "source": "RawArt/Renders/melee-tropes/raw/samurai/rotations"
-  },
-  "melee-tropes/riot-trooper": {
-    "branch": "Elf Branch",
-    "verdict": "deny",
-    "at": "2026-08-17T00:19:41+00:00"
-  },
-  "melee-tropes/monk": {
-    "branch": "Elf Branch",
-    "verdict": "approve",
-    "at": "2026-08-17T00:19:06+00:00",
-    "source": "RawArt/Renders/melee-tropes/raw/monk/rotations"
-  },
-  "melee-tropes/gladiator": {
-    "branch": "Elf Branch",
-    "verdict": "approve",
-    "at": "2026-08-17T00:19:08+00:00",
-    "source": "RawArt/Renders/melee-tropes/raw/gladiator/rotations"
-  },
-  "melee-tropes/duelist": {
-    "branch": "Elf Branch",
-    "verdict": "approve",
-    "at": "2026-08-17T00:19:09+00:00",
-    "source": "RawArt/Renders/melee-tropes/raw/duelist/rotations"
-  },
-  "melee-tropes/headsman": {
-    "branch": null,
-    "verdict": "deny",
-    "at": "2026-08-17T00:19:47+00:00"
-  },
-  "melee-tropes/man-at-arms": {
-    "branch": "Elf Branch",
-    "verdict": "approve",
-    "at": "2026-08-17T00:31:46+00:00",
-    "source": "RawArt/Renders/melee-tropes/raw/man-at-arms/rotations"
-  },
-  "melee-tropes/hammer-knight": {
-    "branch": "Elf Branch",
-    "verdict": "approve",
-    "at": "2026-08-17T00:31:48+00:00",
-    "source": "RawArt/Renders/melee-tropes/raw/hammer-knight/rotations"
-  },
-  "melee-tropes/halberdier": {
-    "branch": "Elf Branch",
-    "verdict": "approve",
-    "at": "2026-08-17T00:31:49+00:00",
-    "source": "RawArt/Renders/melee-tropes/raw/halberdier/rotations"
-  },
-  "melee-tropes/flail-knight": {
-    "branch": "Elf Branch",
-    "verdict": "approve",
-    "at": "2026-08-17T00:31:50+00:00",
-    "source": "RawArt/Renders/melee-tropes/raw/flail-knight/rotations"
-  },
-  "melee-tropes/crusader": {
-    "branch": "Elf Branch",
-    "verdict": "approve",
-    "at": "2026-08-17T00:31:51+00:00",
-    "source": "RawArt/Renders/melee-tropes/raw/crusader/rotations"
-  },
-  "melee-tropes/twin-axes": {
-    "branch": "Elf Branch",
-    "verdict": "deny",
-    "at": "2026-08-20T00:37:03+00:00"
-  },
-  "flesh-shapes/hunch_flesh": {
-    "branch": "Elf Branch",
-    "verdict": "approve",
-    "at": "2026-08-19T02:11:41+00:00",
-    "source": "RawArt/Renders/flesh-shapes/raw/hunch_flesh/rotations",
-    "palette": "FLESH",
-    "side": "enemy"
-  },
-  "flesh-shapes/bulk_flesh": {
-    "branch": "Elf Branch",
-    "verdict": "approve",
-    "at": "2026-08-19T02:11:42+00:00",
-    "source": "RawArt/Renders/flesh-shapes/raw/bulk_flesh/rotations",
-    "palette": "FLESH",
-    "side": "enemy"
-  },
-  "flesh-shapes/wedge_flesh": {
-    "branch": null,
-    "verdict": "deny",
-    "at": "2026-08-19T02:23:24+00:00"
-  },
-  "melee-undead/z1_barestance_undead": {
-    "branch": "Elf Branch",
-    "verdict": "approve",
-    "at": "2026-08-19T02:26:45+00:00",
-    "source": "RawArt/Renders/melee-undead/raw/z1_barestance_undead/rotations",
-    "palette": "Undead Soldiers",
-    "side": "enemy"
-  },
-  "melee-undead/z2_spearlevel_undead": {
-    "branch": "Elf Branch",
-    "verdict": "approve",
-    "at": "2026-08-19T02:26:46+00:00",
-    "source": "RawArt/Renders/melee-undead/raw/z2_spearlevel_undead/rotations",
-    "palette": "Undead Soldiers",
-    "side": "enemy"
-  },
-  "horse-knightpal/horse_p1_destrier": {
-    "branch": null,
-    "verdict": "deny",
-    "at": "2026-08-19T02:59:53+00:00"
-  },
-  "horse-knightpal/horse_p2_courser": {
-    "branch": null,
-    "verdict": "deny",
-    "at": "2026-08-19T03:10:31+00:00"
-  },
-  "horse-knightpal/horse_p6_white": {
-    "branch": null,
-    "verdict": "deny",
-    "at": "2026-08-19T03:10:33+00:00"
-  },
-  "horse-knightpal/horse_p4_undead": {
-    "branch": null,
-    "verdict": "deny",
-    "at": "2026-08-19T03:10:34+00:00"
-  },
-  "horse-knightpal/horse_p3_draft": {
-    "branch": null,
-    "verdict": "deny",
-    "at": "2026-08-19T03:10:35+00:00"
-  },
-  "horse-proto/horse_p5_clydesdale": {
-    "branch": "Elf Branch",
-    "verdict": "approve",
-    "at": "2026-08-19T03:10:44+00:00",
-    "source": "RawArt/Renders/horse-proto/raw/horse_p5_clydesdale/rotations"
-  },
-  "horse-knightpal/horse_p5_clydesdale": {
-    "branch": "Elf Branch",
-    "verdict": "deny",
-    "at": "2026-08-19T03:10:59+00:00"
-  },
-  "horse-proto/horse_p1_destrier": {
-    "branch": null,
-    "verdict": "deny",
-    "at": "2026-08-19T03:10:48+00:00"
-  },
-  "horse-proto/horse_p2_courser": {
-    "branch": null,
-    "verdict": "deny",
-    "at": "2026-08-19T03:10:49+00:00"
-  },
-  "horse-proto/horse_p4_undead": {
-    "branch": null,
-    "verdict": "deny",
-    "at": "2026-08-19T03:10:51+00:00"
-  },
-  "horse-proto/horse_p3_draft": {
-    "branch": null,
-    "verdict": "deny",
-    "at": "2026-08-19T03:10:52+00:00"
-  },
-  "horse-proto/horse_p6_white": {
-    "branch": "Elf Branch",
-    "verdict": "approve",
-    "at": "2026-08-19T03:10:55+00:00",
-    "source": "RawArt/Renders/horse-proto/raw/horse_p6_white/rotations"
-  },
-  "melee-undead/z3_heavycloak_undead": {
-    "branch": "Elf Branch",
-    "verdict": "approve",
-    "at": "2026-08-19T03:27:43+00:00",
-    "source": "RawArt/Renders/melee-undead/raw/z3_heavycloak_undead/rotations",
-    "palette": "Undead Soldiers",
-    "side": "enemy"
-  },
-  "melee-undead/z5_bracedstaff_undead": {
-    "branch": "Elf Branch",
-    "verdict": "deny",
-    "at": "2026-08-20T00:37:58+00:00"
-  },
-  "melee-undead/z4_maceraised_undead": {
-    "branch": "Elf Branch",
-    "verdict": "approve",
-    "at": "2026-08-19T03:27:45+00:00",
-    "source": "RawArt/Renders/melee-undead/raw/z4_maceraised_undead/rotations",
-    "palette": "Undead Soldiers",
-    "side": "enemy"
-  },
-  "ranged-undead/z8_crossbowbrace_undead": {
-    "branch": "Elf Branch",
-    "verdict": "approve",
-    "at": "2026-08-19T03:27:47+00:00",
-    "source": "RawArt/Renders/ranged-undead/raw/z8_crossbowbrace_undead/rotations",
-    "palette": "Undead Soldiers",
-    "side": "enemy"
-  },
-  "ranged-undead/z7_bowextended_undead": {
-    "branch": "Elf Branch",
-    "verdict": "approve",
-    "at": "2026-08-25T05:00:16+00:00",
-    "source": "RawArt/Renders/ranged-undead/raw/z7_bowextended_undead/rotations"
-  },
-  "ranged-undead/z6_narrowstrung_undead": {
-    "branch": "Elf Branch",
-    "verdict": "deny",
-    "at": "2026-08-19T07:41:37+00:00"
-  },
-  "horse-proto/c01_buckskin": {
-    "branch": "Elf Branch",
-    "verdict": "approve",
-    "at": "2026-08-19T03:30:13+00:00",
-    "source": "RawArt/Renders/horse-proto/raw/c01_buckskin/rotations"
-  },
-  "horse-proto/horse_p7_clydesdale_white": {
-    "branch": "Elf Branch",
-    "verdict": "approve",
-    "at": "2026-08-19T03:30:14+00:00",
-    "source": "RawArt/Renders/horse-proto/raw/horse_p7_clydesdale_white/rotations"
-  },
-  "horse-knightpal/horse_p7_clydesdale_white": {
-    "branch": "Elf Branch",
-    "verdict": "approve",
-    "at": "2026-08-19T03:30:14+00:00",
-    "source": "RawArt/Renders/horse-knightpal/raw/horse_p7_clydesdale_white/rotations",
-    "seeded": true
-  },
-  "horse-proto/c03_chestnut": {
-    "branch": "Elf Branch",
-    "verdict": "approve",
-    "at": "2026-08-19T03:30:16+00:00",
-    "source": "RawArt/Renders/horse-proto/raw/c03_chestnut/rotations"
-  },
-  "horse-proto/c02_bay": {
-    "branch": "Elf Branch",
-    "verdict": "approve",
-    "at": "2026-08-19T03:30:17+00:00",
-    "source": "RawArt/Renders/horse-proto/raw/c02_bay/rotations"
-  },
-  "horse-proto/c04_dapplegrey": {
-    "branch": "Elf Branch",
-    "verdict": "approve",
-    "at": "2026-08-19T03:30:18+00:00",
-    "source": "RawArt/Renders/horse-proto/raw/c04_dapplegrey/rotations"
-  },
-  "horse-proto/c05_palomino": {
-    "branch": "Elf Branch",
-    "verdict": "approve",
-    "at": "2026-08-19T03:30:19+00:00",
-    "source": "RawArt/Renders/horse-proto/raw/c05_palomino/rotations"
-  },
-  "horse-proto/c06_black": {
-    "branch": "Elf Branch",
-    "verdict": "approve",
-    "at": "2026-08-19T03:30:20+00:00",
-    "source": "RawArt/Renders/horse-proto/raw/c06_black/rotations"
-  },
-  "horse-proto/c07_pinto": {
-    "branch": "Elf Branch",
-    "verdict": "approve",
-    "at": "2026-08-19T03:30:21+00:00",
-    "source": "RawArt/Renders/horse-proto/raw/c07_pinto/rotations"
-  },
-  "horse-proto/c08_blueroan": {
-    "branch": "Elf Branch",
-    "verdict": "approve",
-    "at": "2026-08-19T03:30:26+00:00",
-    "source": "RawArt/Renders/horse-proto/raw/c08_blueroan/rotations"
-  },
-  "horse-proto/c09_dun": {
-    "branch": "Elf Branch",
-    "verdict": "approve",
-    "at": "2026-08-19T03:30:28+00:00",
-    "source": "RawArt/Renders/horse-proto/raw/c09_dun/rotations"
-  },
-  "horse-proto/c10_liverflaxen": {
-    "branch": "Elf Branch",
-    "verdict": "approve",
-    "at": "2026-08-19T03:30:29+00:00",
-    "source": "RawArt/Renders/horse-proto/raw/c10_liverflaxen/rotations"
-  },
-  "ranged-undead/z6_narrowstrung_undead_hood": {
-    "branch": "Elf Branch",
-    "verdict": "approve",
-    "at": "2026-08-25T05:00:17+00:00",
-    "source": "RawArt/Renders/ranged-undead/raw/z6_narrowstrung_undead_hood/rotations"
-  },
-  "melee-undead/z5_bracedstaff_undead_greeneyes": {
-    "branch": "Elf Branch",
-    "verdict": "approve",
-    "at": "2026-08-19T08:12:28+00:00",
-    "source": "RawArt/Renders/melee-undead/raw/z5_bracedstaff_undead_greeneyes/rotations",
-    "cls": "Melee",
-    "palette": "Undead Soldiers",
-    "side": "enemy"
-  },
-  "flesh-shapes/lops_flesh": {
-    "branch": "Elf Branch",
-    "verdict": "approve",
-    "at": "2026-08-19T08:12:59+00:00",
-    "source": "RawArt/Renders/flesh-shapes/raw/lops_flesh/rotations",
-    "palette": "FLESH",
-    "side": "enemy"
-  },
-  "flesh-shapes/tall_flesh": {
-    "branch": null,
-    "verdict": "deny",
-    "at": "2026-08-19T08:13:08+00:00"
-  },
-  "flesh-shapes/crawl_flesh": {
-    "branch": null,
-    "verdict": "deny",
-    "at": "2026-08-19T08:13:11+00:00"
-  },
-  "flesh-shapes/dome_flesh": {
-    "branch": "Elf Branch",
-    "verdict": "approve",
-    "at": "2026-08-19T08:13:19+00:00",
-    "source": "RawArt/Renders/flesh-shapes/raw/dome_flesh/rotations",
-    "palette": "FLESH",
-    "side": "enemy"
-  },
-  "undead-grey/Reshape_this_undead_5": {
-    "branch": null,
-    "verdict": "deny",
-    "at": "2026-08-19T08:14:26+00:00"
-  },
-  "undead-grey/Keep_this_exact_tria": {
-    "branch": "Elf Branch",
-    "verdict": "approve",
-    "at": "2026-08-19T08:14:31+00:00",
-    "source": "RawArt/Renders/undead-grey/raw/Keep_this_exact_tria/rotations"
-  },
-  "undead-grey/Reshape_this_undead_7": {
-    "branch": "Elf Branch",
-    "verdict": "approve",
-    "at": "2026-08-19T08:14:38+00:00",
-    "source": "RawArt/Renders/undead-grey/raw/Reshape_this_undead_7/rotations"
-  },
-  "undead-grey/Keep_this_exact_broa": {
-    "branch": "Elf Branch",
-    "verdict": "approve",
-    "at": "2026-08-19T08:14:50+00:00",
-    "source": "RawArt/Renders/undead-grey/raw/Keep_this_exact_broa/rotations"
-  },
-  "undead-grey/Reshape_this_undead_3": {
-    "branch": "Elf Branch",
-    "verdict": "approve",
-    "at": "2026-08-19T08:15:02+00:00",
-    "source": "RawArt/Renders/undead-grey/raw/Reshape_this_undead_3/rotations"
-  },
-  "archer-medieval/v1_narrowstrung_helm": {
-    "branch": null,
-    "verdict": "deny",
-    "at": "2026-08-19T19:05:43+00:00"
-  },
-  "melee-undead/z1-lolled": {
-    "branch": "Elf Branch",
-    "verdict": "approve",
-    "at": "2026-08-25T05:00:05+00:00",
-    "source": "RawArt/Renders/melee-undead/raw/z1-lolled/rotations"
-  },
-  "melee-undead/z1-tilt-right": {
-    "branch": "Elf Branch",
-    "verdict": "approve",
-    "at": "2026-08-25T05:00:08+00:00",
-    "source": "RawArt/Renders/melee-undead/raw/z1-tilt-right/rotations"
-  },
-  "melee-undead/z1-tilt-left": {
-    "branch": "Elf Branch",
-    "verdict": "approve",
-    "at": "2026-08-25T05:00:09+00:00",
-    "source": "RawArt/Renders/melee-undead/raw/z1-tilt-left/rotations"
-  },
-  "melee-undead/z4-tilt-left": {
-    "branch": "Elf Branch",
-    "verdict": "approve",
-    "at": "2026-08-25T05:00:13+00:00",
-    "source": "RawArt/Renders/melee-undead/raw/z4-tilt-left/rotations"
-  },
-  "ranged-undead/z8-tilt-right": {
-    "branch": "Elf Branch",
-    "verdict": "approve",
-    "at": "2026-08-25T05:00:15+00:00",
-    "source": "RawArt/Renders/ranged-undead/raw/z8-tilt-right/rotations"
-  },
-  "castle-props/flame_candelabra": {
-    "branch": "Elf Branch",
-    "verdict": "approve",
-    "at": "2026-08-25T05:01:37+00:00",
-    "source": "RawArt/Renders/castle-props/raw/flame_candelabra/rotations"
-  },
-  "castle-props/flame_brazier": {
-    "branch": "Elf Branch",
-    "verdict": "deny",
-    "at": "2026-08-26T02:31:27+00:00",
-    "source": "RawArt/Renders/castle-props/raw/flame_brazier/rotations"
-  },
-  "castle-props/flame_cage_lamp": {
-    "branch": "Elf Branch",
-    "verdict": "approve",
-    "at": "2026-08-25T05:01:41+00:00",
-    "source": "RawArt/Renders/castle-props/raw/flame_cage_lamp/rotations"
-  },
-  "castle-props/table_map": {
-    "branch": "Elf Branch",
-    "verdict": "approve",
-    "at": "2026-08-25T05:01:49+00:00",
-    "source": "RawArt/Renders/castle-props/raw/table_map/rotations"
-  },
-  "castle-props/chair_bench": {
-    "branch": "Elf Branch",
-    "verdict": "approve",
-    "at": "2026-08-25T05:01:54+00:00",
-    "source": "RawArt/Renders/castle-props/raw/chair_bench/rotations"
-  },
-  "castle-props/chair_broken": {
-    "branch": "Elf Branch",
-    "verdict": "approve",
-    "at": "2026-08-25T05:01:54+00:00",
-    "source": "RawArt/Renders/castle-props/raw/chair_broken/rotations"
-  },
-  "castle-props/table_trestle": {
-    "branch": "Elf Branch",
-    "verdict": "approve",
-    "at": "2026-08-25T05:02:01+00:00",
-    "source": "RawArt/Renders/castle-props/raw/table_trestle/rotations"
-  },
-  "castle-props/mirror_ornate": {
-    "branch": "Elf Branch",
-    "verdict": "approve",
-    "at": "2026-08-25T05:02:09+00:00",
-    "source": "RawArt/Renders/castle-props/raw/mirror_ornate/rotations"
-  },
-  "castle-props/chest_ornate": {
-    "branch": "Elf Branch",
-    "verdict": "approve",
-    "at": "2026-08-25T05:02:11+00:00",
-    "source": "RawArt/Renders/castle-props/raw/chest_ornate/rotations"
-  },
-  "castle-props/chest_coffer": {
-    "branch": "Elf Branch",
-    "verdict": "approve",
-    "at": "2026-08-25T05:02:12+00:00",
-    "source": "RawArt/Renders/castle-props/raw/chest_coffer/rotations"
-  },
-  "castle-props/mirror_oval": {
-    "branch": "Elf Branch",
-    "verdict": "approve",
-    "at": "2026-08-25T05:02:18+00:00",
-    "source": "RawArt/Renders/castle-props/raw/mirror_oval/rotations"
-  },
-  "castle-props/chest_ornate_open": {
-    "branch": "Elf Branch",
-    "verdict": "approve",
-    "at": "2026-08-25T05:02:19+00:00",
-    "source": "RawArt/Renders/castle-props/raw/chest_ornate_open/rotations"
-  }
+ "archer-scifi/state06_sharpshooter": {
+  "branch": "Elf Branch",
+  "verdict": "approve",
+  "at": "2026-08-16T05:06:57+00:00",
+  "source": "RawArt/Renders/archer-scifi/raw/state06_sharpshooter/rotations",
+  "palette": "_CANNED"
+ },
+ "soldier-reach/s1_pikevertical": {
+  "branch": "Human Soldier Branch",
+  "verdict": "approve",
+  "at": "2026-08-16T04:19:25+00:00",
+  "source": "RawArt/Renders/soldier-reach/raw/s1_pikevertical/rotations",
+  "seeded": true,
+  "palette": "MELEE Class",
+  "cls": "Melee",
+  "weapon": "Spear"
+ },
+ "knight-types/type1_bulwark": {
+  "branch": "Human Soldier Branch",
+  "verdict": "deny",
+  "at": "2026-08-16T22:51:24+00:00"
+ },
+ "archer-medieval/v1_narrowstrung": {
+  "branch": "Human Soldier Branch",
+  "verdict": "approve",
+  "at": "2026-08-16T04:19:25+00:00",
+  "source": "RawArt/Renders/archer-medieval/raw/v1_narrowstrung/rotations",
+  "seeded": true,
+  "palette": "RANGED"
+ },
+ "archer-medieval/v2_bowextended": {
+  "branch": "Human Soldier Branch",
+  "verdict": "approve",
+  "at": "2026-08-16T04:19:25+00:00",
+  "source": "RawArt/Renders/archer-medieval/raw/v2_bowextended/rotations",
+  "seeded": true,
+  "palette": "RANGED",
+  "cls": "Ranged",
+  "weapon": "Bow"
+ },
+ "archer-medieval/v3_loosingarm": {
+  "branch": "Human Soldier Branch",
+  "verdict": "approve",
+  "at": "2026-08-16T04:19:25+00:00",
+  "source": "RawArt/Renders/archer-medieval/raw/v3_loosingarm/rotations",
+  "seeded": true,
+  "palette": "Ranged Class",
+  "cls": "Ranged",
+  "weapon": "Bow"
+ },
+ "archer-medieval/v4_quiverreach": {
+  "branch": "Human Soldier Branch",
+  "verdict": "approve",
+  "at": "2026-08-16T04:19:25+00:00",
+  "source": "RawArt/Renders/archer-medieval/raw/v4_quiverreach/rotations",
+  "seeded": true,
+  "palette": "_CANNED",
+  "cls": "Ranged",
+  "weapon": "Bow"
+ },
+ "archer-medieval/v5_crossbowbrace": {
+  "branch": "Human Soldier Branch",
+  "verdict": "approve",
+  "at": "2026-08-16T04:19:25+00:00",
+  "source": "RawArt/Renders/archer-medieval/raw/v5_crossbowbrace/rotations",
+  "seeded": true,
+  "palette": "RANGED",
+  "cls": "Ranged",
+  "weapon": "Crossbow"
+ },
+ "archer-proxy/base": {
+  "branch": "Elf Branch",
+  "verdict": "approve",
+  "at": "2026-08-16T05:06:50+00:00",
+  "source": "RawArt/Renders/archer-proxy/raw"
+ },
+ "archer-proxy/state02_hollowmask": {
+  "branch": "Elf Branch",
+  "verdict": "approve",
+  "at": "2026-08-16T05:06:51+00:00",
+  "source": "RawArt/Renders/archer-proxy/raw/state02_hollowmask",
+  "palette": "_CANNED"
+ },
+ "archer-proxy/state03_crossbow": {
+  "branch": "Elf Branch",
+  "verdict": "deny",
+  "at": "2026-08-17T02:02:58+00:00"
+ },
+ "archer-proxy/state04_blade": {
+  "branch": "Elf Branch",
+  "verdict": "deny",
+  "at": "2026-08-16T17:21:15+00:00"
+ },
+ "archer-proxy/state05_mage": {
+  "branch": "Elf Branch",
+  "verdict": "approve",
+  "at": "2026-08-16T05:06:53+00:00",
+  "source": "RawArt/Renders/archer-proxy/raw/state05_mage",
+  "palette": "_CANNED"
+ },
+ "brood-ooze/state05_ridge": {
+  "branch": "Elf Branch",
+  "verdict": "approve",
+  "at": "2026-08-16T05:07:12+00:00",
+  "source": "RawArt/Renders/brood-ooze/raw/state05_ridge/rotations",
+  "palette": "NASHERS"
+ },
+ "brood-ooze/state06_crown": {
+  "branch": "Elf Branch",
+  "verdict": "approve",
+  "at": "2026-08-16T05:07:13+00:00",
+  "source": "RawArt/Renders/brood-ooze/raw/state06_crown/rotations",
+  "palette": "NASHERS"
+ },
+ "brood-ooze/state07_twin": {
+  "branch": "Elf Branch",
+  "verdict": "approve",
+  "at": "2026-08-16T05:07:14+00:00",
+  "source": "RawArt/Renders/brood-ooze/raw/state07_twin/rotations",
+  "palette": "NASHERS"
+ },
+ "brood-ooze/state08_slug": {
+  "branch": "Elf Branch",
+  "verdict": "approve",
+  "at": "2026-08-16T05:07:14+00:00",
+  "source": "RawArt/Renders/brood-ooze/raw/state08_slug/rotations",
+  "palette": "NASHERS"
+ },
+ "brood-ooze/state00_base": {
+  "branch": "Elf Branch",
+  "verdict": "approve",
+  "at": "2026-08-16T05:07:16+00:00",
+  "source": "RawArt/Renders/brood-ooze/raw/state00_base/rotations",
+  "palette": "NASHERS"
+ },
+ "brood-ooze/state01_sump": {
+  "branch": "Elf Branch",
+  "verdict": "approve",
+  "at": "2026-08-16T05:07:16+00:00",
+  "source": "RawArt/Renders/brood-ooze/raw/state01_sump/rotations",
+  "palette": "NASHERS"
+ },
+ "brood-ooze/state02_bell": {
+  "branch": "Elf Branch",
+  "verdict": "approve",
+  "at": "2026-08-16T05:07:17+00:00",
+  "source": "RawArt/Renders/brood-ooze/raw/state02_bell/rotations",
+  "palette": "NASHERS"
+ },
+ "brood-ooze/state03_stalk": {
+  "branch": "Elf Branch",
+  "verdict": "approve",
+  "at": "2026-08-16T05:07:18+00:00",
+  "source": "RawArt/Renders/brood-ooze/raw/state03_stalk/rotations",
+  "palette": "NASHERS"
+ },
+ "brood-ooze/state04_wedge": {
+  "branch": "Elf Branch",
+  "verdict": "approve",
+  "at": "2026-08-16T05:07:19+00:00",
+  "source": "RawArt/Renders/brood-ooze/raw/state04_wedge/rotations",
+  "palette": "NASHERS"
+ },
+ "brood-ooze-colour/rotations": {
+  "branch": "Human Soldier Branch",
+  "verdict": "approve",
+  "at": "2026-08-16T05:07:23+00:00",
+  "source": "RawArt/Renders/brood-ooze-colour/raw/rotations",
+  "side": "ally",
+  "palette": "MELEE",
+  "cls": "Melee"
+ },
+ "boss-marks-proto/base": {
+  "branch": null,
+  "verdict": "deny",
+  "at": "2026-08-16T05:07:42+00:00"
+ },
+ "boss-marks-proto/column-fed": {
+  "branch": null,
+  "verdict": "deny",
+  "at": "2026-08-16T05:07:43+00:00"
+ },
+ "boss-marks-proto/compound-ram-columnfed-quilled": {
+  "branch": null,
+  "verdict": "deny",
+  "at": "2026-08-16T05:07:44+00:00"
+ },
+ "boss-marks-proto/quilled": {
+  "branch": null,
+  "verdict": "deny",
+  "at": "2026-08-16T05:07:45+00:00"
+ },
+ "boss-marks-proto/ram": {
+  "branch": null,
+  "verdict": "deny",
+  "at": "2026-08-16T05:07:45+00:00"
+ },
+ "boss-marks-proto/ram-retry2": {
+  "branch": null,
+  "verdict": "deny",
+  "at": "2026-08-16T05:07:46+00:00"
+ },
+ "boss-marks-proto/sated": {
+  "branch": null,
+  "verdict": "deny",
+  "at": "2026-08-16T05:07:47+00:00"
+ },
+ "boss-marks-proto/unblinded": {
+  "branch": null,
+  "verdict": "deny",
+  "at": "2026-08-16T05:07:47+00:00"
+ },
+ "boss-marks-proto/wearing": {
+  "branch": null,
+  "verdict": "deny",
+  "at": "2026-08-16T05:07:48+00:00"
+ },
+ "archer-scifi/state01_marksman": {
+  "branch": "Elf Branch",
+  "verdict": "approve",
+  "at": "2026-08-16T05:07:52+00:00",
+  "source": "RawArt/Renders/archer-scifi/raw/state01_marksman/rotations",
+  "palette": "_CANNED"
+ },
+ "archer-scifi/state02_voltaic": {
+  "branch": null,
+  "verdict": "deny",
+  "at": "2026-08-16T05:07:53+00:00"
+ },
+ "archer-scifi/state03_harpooner": {
+  "branch": null,
+  "verdict": "deny",
+  "at": "2026-08-16T05:07:55+00:00"
+ },
+ "archer-scifi/state04_volley": {
+  "branch": "Elf Branch",
+  "verdict": "approve",
+  "at": "2026-08-16T05:07:59+00:00",
+  "source": "RawArt/Renders/archer-scifi/raw/state04_volley/rotations",
+  "palette": "_CANNED"
+ },
+ "archer-scifi/state05_kite": {
+  "branch": null,
+  "verdict": "deny",
+  "at": "2026-08-16T05:08:01+00:00"
+ },
+ "brood-ooze/Made_of_tongues": {
+  "branch": "Elf Branch",
+  "verdict": "approve",
+  "at": "2026-08-16T05:08:04+00:00",
+  "source": "RawArt/Renders/brood-ooze/raw/Made_of_tongues/rotations",
+  "palette": "FLESH"
+ },
+ "brood-ooze/pale_blue_skin_big_e": {
+  "branch": "Elf Branch",
+  "verdict": "approve",
+  "at": "2026-08-16T05:08:05+00:00",
+  "source": "RawArt/Renders/brood-ooze/raw/pale_blue_skin_big_e/rotations"
+ },
+ "brood-ooze/Baby_face_smiling_li": {
+  "branch": "Elf Branch",
+  "verdict": "approve",
+  "at": "2026-08-16T05:08:06+00:00",
+  "source": "RawArt/Renders/brood-ooze/raw/Baby_face_smiling_li/rotations"
+ },
+ "brood-ooze/A_black_ghost_with_sharp": {
+  "branch": "Elf Branch",
+  "verdict": "approve",
+  "at": "2026-08-16T05:08:08+00:00",
+  "source": "RawArt/Renders/brood-ooze/raw/A_black_ghost_with_sharp/rotations"
+ },
+ "brood-tongues/tongue02_spill": {
+  "branch": "Elf Branch",
+  "verdict": "approve",
+  "at": "2026-08-16T05:08:19+00:00",
+  "source": "RawArt/Renders/brood-tongues/raw/tongue02_spill/rotations",
+  "palette": "FLESH"
+ },
+ "brood-tongues/tongue04_lean": {
+  "branch": "Elf Branch",
+  "verdict": "approve",
+  "at": "2026-08-16T05:08:21+00:00",
+  "source": "RawArt/Renders/brood-tongues/raw/tongue04_lean/rotations",
+  "palette": "FLESH"
+ },
+ "brood-tongues/tongue05_loop": {
+  "branch": "Elf Branch",
+  "verdict": "approve",
+  "at": "2026-08-16T05:08:22+00:00",
+  "source": "RawArt/Renders/brood-tongues/raw/tongue05_loop/rotations",
+  "palette": "FLESH"
+ },
+ "brood-tongues/tongue06_knot": {
+  "branch": "Elf Branch",
+  "verdict": "deny",
+  "at": "2026-08-16T05:08:39+00:00"
+ },
+ "brood-tongues/tongue01_column": {
+  "branch": "Elf Branch",
+  "verdict": "approve",
+  "at": "2026-08-16T05:08:25+00:00",
+  "source": "RawArt/Renders/brood-tongues/raw/tongue01_column/rotations",
+  "palette": "FLESH"
+ },
+ "brood-tongues/tongue03_trail": {
+  "branch": null,
+  "verdict": "deny",
+  "at": "2026-08-16T05:08:37+00:00"
+ },
+ "enemy-armored/v5_slabshield": {
+  "branch": "Elf Branch",
+  "verdict": "approve",
+  "at": "2026-08-16T05:08:43+00:00",
+  "source": "RawArt/Renders/enemy-armored/raw/v5_slabshield/rotations",
+  "palette": "FUTURE"
+ },
+ "enemy-armored/v6_notched": {
+  "branch": "Elf Branch",
+  "verdict": "approve",
+  "at": "2026-08-16T05:08:44+00:00",
+  "source": "RawArt/Renders/enemy-armored/raw/v6_notched/rotations",
+  "palette": "FUTURE"
+ },
+ "enemy-armored/v7_spined": {
+  "branch": "Elf Branch",
+  "verdict": "approve",
+  "at": "2026-08-16T05:08:45+00:00",
+  "source": "RawArt/Renders/enemy-armored/raw/v7_spined/rotations",
+  "palette": "FUTURE"
+ },
+ "enemy-armored/v3_levelspear": {
+  "branch": null,
+  "verdict": "deny",
+  "at": "2026-08-16T05:08:47+00:00"
+ },
+ "enemy-armored/v4_standard": {
+  "branch": null,
+  "verdict": "deny",
+  "at": "2026-08-16T05:08:49+00:00"
+ },
+ "enemy-armored/v2_column": {
+  "branch": "Elf Branch",
+  "verdict": "approve",
+  "at": "2026-08-16T05:08:51+00:00",
+  "source": "RawArt/Renders/enemy-armored/raw/v2_column/rotations",
+  "palette": "FUTURE"
+ },
+ "enemy-armored/v1_pike": {
+  "branch": null,
+  "verdict": "deny",
+  "at": "2026-08-16T05:08:53+00:00"
+ },
+ "enemy-armored/v10_clawreach": {
+  "branch": "Elf Branch",
+  "verdict": "approve",
+  "at": "2026-08-16T05:08:56+00:00",
+  "source": "RawArt/Renders/enemy-armored/raw/v10_clawreach/rotations",
+  "palette": "FUTURE"
+ },
+ "enemy-armored/v9_clawgauntlet": {
+  "branch": "Elf Branch",
+  "verdict": "approve",
+  "at": "2026-08-16T05:09:03+00:00",
+  "source": "RawArt/Renders/enemy-armored/raw/v9_clawgauntlet/rotations",
+  "palette": "FUTURE"
+ },
+ "enemy-armored/v8_tethered": {
+  "branch": null,
+  "verdict": "deny",
+  "at": "2026-08-16T05:09:06+00:00"
+ },
+ "knight-greatsword/g0_bulwark_parent": {
+  "branch": "Human Soldier Branch",
+  "verdict": "approve",
+  "at": "2026-08-16T05:09:11+00:00",
+  "source": "RawArt/Renders/knight-greatsword/raw/g0_bulwark_parent/rotations",
+  "palette": "MELEE Class",
+  "cls": "Melee"
+ },
+ "knight-greatsword/g1_seed": {
+  "branch": "Human Soldier Branch",
+  "verdict": "approve",
+  "at": "2026-08-16T05:09:13+00:00",
+  "source": "RawArt/Renders/knight-greatsword/raw/g1_seed/rotations",
+  "palette": "MELEE",
+  "cls": "Melee",
+  "weapon": "Sword"
+ },
+ "knight-greatsword/g2_sweep": {
+  "branch": "Elf Branch",
+  "verdict": "approve",
+  "at": "2026-08-16T05:09:15+00:00",
+  "source": "RawArt/Renders/knight-greatsword/raw/g2_sweep/rotations",
+  "palette": "MELEE",
+  "cls": "Melee",
+  "weapon": "Sword"
+ },
+ "knight-greatsword/g3_guard": {
+  "branch": "Elf Branch",
+  "verdict": "deny",
+  "at": "2026-08-16T22:49:27+00:00"
+ },
+ "knight-greatsword/g4_planted": {
+  "branch": "Elf Branch",
+  "verdict": "approve",
+  "at": "2026-08-16T05:09:19+00:00",
+  "source": "RawArt/Renders/knight-greatsword/raw/g4_planted/rotations",
+  "palette": "MELEE Hero"
+ },
+ "knight-mass/v2_pauldron": {
+  "branch": "Elf Branch",
+  "verdict": "approve",
+  "at": "2026-08-16T05:09:24+00:00",
+  "source": "RawArt/Renders/knight-mass/raw/v2_pauldron/rotations",
+  "palette": "MELEE Hero"
+ },
+ "knight-mass/v3_skirted": {
+  "branch": null,
+  "verdict": "deny",
+  "at": "2026-08-16T05:09:25+00:00"
+ },
+ "knight-mass/v4_pike": {
+  "branch": "Elf Branch",
+  "verdict": "approve",
+  "at": "2026-08-16T05:09:43+00:00",
+  "source": "RawArt/Renders/knight-mass/raw/v4_pike/rotations",
+  "palette": "MELEE",
+  "cls": "Melee",
+  "weapon": "Spear"
+ },
+ "knight-melee-v2/v8_heavycloak": {
+  "branch": "Elf Branch",
+  "verdict": "approve",
+  "at": "2026-08-16T05:09:52+00:00",
+  "source": "RawArt/Aaron Selects/Elf Branch/v8_heavycloak/rotations",
+  "palette": "MELEE",
+  "cls": "Melee",
+  "weapon": "Sword"
+ },
+ "knight-melee-v2/v7_barestance": {
+  "branch": "Elf Branch",
+  "verdict": "approve",
+  "at": "2026-08-16T05:09:56+00:00",
+  "source": "RawArt/Renders/knight-melee-v2/raw/v7_barestance/rotations",
+  "palette": "MELEE"
+ },
+ "knight-melee-v2/v13_maceraised": {
+  "branch": "Elf Branch",
+  "verdict": "approve",
+  "at": "2026-08-16T05:10:01+00:00",
+  "source": "RawArt/Renders/knight-melee-v2/raw/v13_maceraised/rotations",
+  "palette": "MELEE",
+  "cls": "Melee",
+  "weapon": "Mace"
+ },
+ "pathfinder-line/ArtilleryCannons_on": {
+  "branch": "Elf Branch",
+  "verdict": "approve",
+  "at": "2026-08-16T05:10:17+00:00",
+  "source": "RawArt/Renders/pathfinder-line/raw/ArtilleryCannons_on/rotations",
+  "palette": "_CANNED"
+ },
+ "pathfinder-line/berserker": {
+  "branch": "Elf Branch",
+  "verdict": "approve",
+  "at": "2026-08-16T05:10:18+00:00",
+  "source": "RawArt/Renders/pathfinder-line/raw/berserker/rotations",
+  "palette": "RANGED Hero",
+  "cls": "Ranged"
+ },
+ "pathfinder-line/buccaneer": {
+  "branch": "Elf Branch",
+  "verdict": "approve",
+  "at": "2026-08-16T05:10:19+00:00",
+  "source": "RawArt/Renders/pathfinder-line/raw/buccaneer/rotations",
+  "palette": "RANGED Hero"
+ },
+ "pathfinder-line/Bump_helmet_ontop_of": {
+  "branch": "Elf Branch",
+  "verdict": "approve",
+  "at": "2026-08-16T05:10:20+00:00",
+  "source": "RawArt/Renders/pathfinder-line/raw/Bump_helmet_ontop_of/rotations",
+  "palette": "_CANNED"
+ },
+ "pathfinder-line/Can_we_have_one_cove": {
+  "branch": "Elf Branch",
+  "verdict": "approve",
+  "at": "2026-08-16T05:10:21+00:00",
+  "source": "RawArt/Renders/pathfinder-line/raw/Can_we_have_one_cove/rotations",
+  "palette": "RANGED Hero"
+ },
+ "pathfinder-line/Can_you_make_a_Turre": {
+  "branch": "Elf Branch",
+  "verdict": "approve",
+  "at": "2026-08-16T05:10:22+00:00",
+  "source": "RawArt/Renders/pathfinder-line/raw/Can_you_make_a_Turre/rotations",
+  "palette": "RANGED Hero"
+ },
+ "pathfinder-line/Convert_to_Mage": {
+  "branch": "Elf Branch",
+  "verdict": "approve",
+  "at": "2026-08-16T05:10:23+00:00",
+  "source": "RawArt/Renders/pathfinder-line/raw/Convert_to_Mage/rotations",
+  "palette": "_CANNED"
+ },
+ "pathfinder-line/Cyborg_with_Crossbow": {
+  "branch": "Elf Branch",
+  "verdict": "approve",
+  "at": "2026-08-16T05:10:23+00:00",
+  "source": "RawArt/Renders/pathfinder-line/raw/Cyborg_with_Crossbow/rotations",
+  "palette": "_CANNED"
+ },
+ "pathfinder-line/droneleash": {
+  "branch": "Elf Branch",
+  "verdict": "deny",
+  "at": "2026-08-16T05:10:28+00:00"
+ },
+ "pathfinder-line/dwarf_version_which": {
+  "branch": "Elf Branch",
+  "verdict": "approve",
+  "at": "2026-08-16T05:10:30+00:00",
+  "source": "RawArt/Renders/pathfinder-line/raw/dwarf_version_which/rotations",
+  "palette": "RANGED Hero"
+ },
+ "pathfinder-line/gunslinger": {
+  "branch": "Elf Branch",
+  "verdict": "approve",
+  "at": "2026-08-16T05:10:39+00:00",
+  "source": "RawArt/Renders/pathfinder-line/raw/gunslinger/rotations",
+  "palette": "RANGED Hero"
+ },
+ "pathfinder-line/harpoonreach": {
+  "branch": null,
+  "verdict": "deny",
+  "at": "2026-08-16T05:10:42+00:00"
+ },
+ "pathfinder-line/hazmatbulk": {
+  "branch": null,
+  "verdict": "deny",
+  "at": "2026-08-16T05:10:45+00:00"
+ },
+ "pathfinder-line/kneebrace": {
+  "branch": "Elf Branch",
+  "verdict": "approve",
+  "at": "2026-08-16T05:10:47+00:00",
+  "source": "RawArt/Renders/pathfinder-line/raw/kneebrace/rotations",
+  "palette": "_CANNED"
+ },
+ "pathfinder-line/lanternring": {
+  "branch": null,
+  "verdict": "deny",
+  "at": "2026-08-16T05:10:55+00:00"
+ },
+ "pathfinder-line/Lets_so_secret_servi": {
+  "branch": "Elf Branch",
+  "verdict": "approve",
+  "at": "2026-08-16T05:10:56+00:00",
+  "source": "RawArt/Renders/pathfinder-line/raw/Lets_so_secret_servi/rotations",
+  "palette": "RANGED Hero"
+ },
+ "pathfinder-line/Merle_Pathfinder": {
+  "branch": "Elf Branch",
+  "verdict": "approve",
+  "at": "2026-08-16T05:10:58+00:00",
+  "source": "RawArt/Renders/pathfinder-line/raw/Merle_Pathfinder/rotations",
+  "palette": "RANGED",
+  "cls": "Ranged",
+  "weapon": "Bow"
+ },
+ "pathfinder-line/One_with_Hollow_blac": {
+  "branch": "Elf Branch",
+  "verdict": "deny",
+  "at": "2026-08-16T17:20:47+00:00"
+ },
+ "pathfinder-line/pavisewall": {
+  "branch": null,
+  "verdict": "deny",
+  "at": "2026-08-16T05:11:02+00:00"
+ },
+ "pathfinder-line/pavisewall-r2": {
+  "branch": null,
+  "verdict": "deny",
+  "at": "2026-08-16T05:11:04+00:00"
+ },
+ "pathfinder-line/Replace_the_bow_with": {
+  "branch": "Elf Branch",
+  "verdict": "deny",
+  "at": "2026-08-16T17:20:53+00:00"
+ },
+ "pathfinder-line/RPG_launcher": {
+  "branch": "Elf Branch",
+  "verdict": "approve",
+  "at": "2026-08-16T05:11:07+00:00",
+  "source": "RawArt/Renders/pathfinder-line/raw/RPG_launcher/rotations",
+  "palette": "_CANNED"
+ },
+ "pathfinder-line/sackhauler": {
+  "branch": "Elf Branch",
+  "verdict": "approve",
+  "at": "2026-08-16T05:11:08+00:00",
+  "source": "RawArt/Renders/pathfinder-line/raw/sackhauler/rotations",
+  "palette": "_CANNED"
+ },
+ "pathfinder-line/shinobi": {
+  "branch": "Elf Branch",
+  "verdict": "approve",
+  "at": "2026-08-16T05:11:09+00:00",
+  "source": "RawArt/Renders/pathfinder-line/raw/shinobi/rotations",
+  "palette": "_CANNED"
+ },
+ "pathfinder-line/stilthauler": {
+  "branch": "Elf Branch",
+  "verdict": "approve",
+  "at": "2026-08-16T05:11:13+00:00",
+  "source": "RawArt/Renders/pathfinder-line/raw/stilthauler/rotations",
+  "palette": "RANGED Hero"
+ },
+ "pathfinder-line/tinkerer": {
+  "branch": "Elf Branch",
+  "verdict": "approve",
+  "at": "2026-08-16T05:11:16+00:00",
+  "source": "RawArt/Renders/pathfinder-line/raw/tinkerer/rotations",
+  "palette": "RANGED Hero"
+ },
+ "ranged-roster/restyle01_bulwark": {
+  "branch": "Elf Branch",
+  "verdict": "approve",
+  "at": "2026-08-16T05:11:20+00:00",
+  "source": "RawArt/Renders/ranged-roster/raw/restyle01_bulwark/rotations",
+  "palette": "_CANNED"
+ },
+ "ranged-roster/restyle02_swarmcaller": {
+  "branch": "Elf Branch",
+  "verdict": "approve",
+  "at": "2026-08-16T05:11:20+00:00",
+  "source": "RawArt/Renders/ranged-roster/raw/restyle02_swarmcaller/rotations",
+  "palette": "RANGED Hero"
+ },
+ "ranged-roster/unit01_bulwark-gunner": {
+  "branch": null,
+  "verdict": "deny",
+  "at": "2026-08-16T05:11:22+00:00"
+ },
+ "ranged-roster/unit02_longshot": {
+  "branch": null,
+  "verdict": "deny",
+  "at": "2026-08-16T05:11:23+00:00"
+ },
+ "ranged-roster/unit03_warden-scout": {
+  "branch": null,
+  "verdict": "deny",
+  "at": "2026-08-16T05:11:24+00:00"
+ },
+ "ranged-roster/unit04_tripod-marksman": {
+  "branch": null,
+  "verdict": "deny",
+  "at": "2026-08-16T05:11:24+00:00"
+ },
+ "ranged-roster/unit05_swarmcaller": {
+  "branch": null,
+  "verdict": "deny",
+  "at": "2026-08-16T05:11:25+00:00"
+ },
+ "ranged-roster/unit06_spire-lancer": {
+  "branch": null,
+  "verdict": "deny",
+  "at": "2026-08-16T05:11:25+00:00"
+ },
+ "undead-green/Keep_this_exact_broa": {
+  "branch": "Elf Branch",
+  "verdict": "approve",
+  "at": "2026-08-16T05:11:41+00:00",
+  "source": "RawArt/Renders/undead-green/raw/Keep_this_exact_broa/rotations",
+  "palette": "UNDEAD"
+ },
+ "undead-green/Keep_this_exact_broa_2": {
+  "branch": "Elf Branch",
+  "verdict": "approve",
+  "at": "2026-08-16T05:11:42+00:00",
+  "source": "RawArt/Renders/undead-green/raw/Keep_this_exact_broa_2/rotations",
+  "palette": "UNDEAD"
+ },
+ "undead-green/Keep_this_exact_lops": {
+  "branch": "Elf Branch",
+  "verdict": "approve",
+  "at": "2026-08-16T05:11:43+00:00",
+  "source": "RawArt/Renders/undead-green/raw/Keep_this_exact_lops/rotations",
+  "palette": "UNDEAD"
+ },
+ "undead-green/Keep_this_exact_lops_2": {
+  "branch": "Elf Branch",
+  "verdict": "approve",
+  "at": "2026-08-16T05:11:44+00:00",
+  "source": "RawArt/Renders/undead-green/raw/Keep_this_exact_lops_2/rotations",
+  "palette": "UNDEAD"
+ },
+ "undead-green/Keep_this_exact_tall": {
+  "branch": "Elf Branch",
+  "verdict": "approve",
+  "at": "2026-08-16T05:11:46+00:00",
+  "source": "RawArt/Renders/undead-green/raw/Keep_this_exact_tall/rotations",
+  "palette": "UNDEAD"
+ },
+ "undead-green/Keep_this_exact_tria": {
+  "branch": "Elf Branch",
+  "verdict": "approve",
+  "at": "2026-08-16T05:11:48+00:00",
+  "source": "RawArt/Renders/undead-green/raw/Keep_this_exact_tria/rotations",
+  "palette": "UNDEAD"
+ },
+ "undead-green/Reshape_this_undead_2": {
+  "branch": "Elf Branch",
+  "verdict": "approve",
+  "at": "2026-08-16T05:11:49+00:00",
+  "source": "RawArt/Renders/undead-green/raw/Reshape_this_undead_2/rotations",
+  "palette": "UNDEAD"
+ },
+ "undead-green/Reshape_this_undead_7": {
+  "branch": "Elf Branch",
+  "verdict": "approve",
+  "at": "2026-08-16T05:11:53+00:00",
+  "source": "RawArt/Renders/undead-green/raw/Reshape_this_undead_7/rotations",
+  "palette": "UNDEAD"
+ },
+ "undead-green/Undead": {
+  "branch": "Elf Branch",
+  "verdict": "approve",
+  "at": "2026-08-16T05:11:54+00:00",
+  "source": "RawArt/Renders/undead-green/raw/Undead/rotations",
+  "palette": "UNDEAD"
+ },
+ "undead-green/Reshape_this_undead_8": {
+  "branch": "Elf Branch",
+  "verdict": "approve",
+  "at": "2026-08-16T05:11:56+00:00",
+  "source": "RawArt/Renders/undead-green/raw/Reshape_this_undead_8/rotations",
+  "palette": "UNDEAD"
+ },
+ "undead-green/Baby_face_smiling_li": {
+  "branch": null,
+  "verdict": "deny",
+  "at": "2026-08-16T05:12:05+00:00"
+ },
+ "soldier-scifi-variants/prop-mid": {
+  "branch": null,
+  "verdict": "deny",
+  "at": "2026-08-16T05:12:06+00:00"
+ },
+ "soldier-scifi-variants/prop-narrow": {
+  "branch": null,
+  "verdict": "deny",
+  "at": "2026-08-16T05:12:07+00:00"
+ },
+ "soldier-scifi-variants/prop-wide": {
+  "branch": null,
+  "verdict": "deny",
+  "at": "2026-08-16T05:12:07+00:00"
+ },
+ "soldier-scifi-variants/topo-asymmetric": {
+  "branch": null,
+  "verdict": "deny",
+  "at": "2026-08-16T05:12:07+00:00"
+ },
+ "soldier-scifi-variants/topo-hole": {
+  "branch": null,
+  "verdict": "deny",
+  "at": "2026-08-16T05:12:08+00:00"
+ },
+ "soldier-scifi-variants/topo-notched": {
+  "branch": null,
+  "verdict": "deny",
+  "at": "2026-08-16T05:12:08+00:00"
+ },
+ "undead-green/Reshape_this_undead_6": {
+  "branch": "Elf Branch",
+  "verdict": "approve",
+  "at": "2026-08-16T05:12:17+00:00",
+  "source": "RawArt/Renders/undead-green/raw/Reshape_this_undead_6/rotations",
+  "palette": "UNDEAD"
+ },
+ "undead-green/Reshape_this_undead_5": {
+  "branch": null,
+  "verdict": "deny",
+  "at": "2026-08-16T05:12:17+00:00"
+ },
+ "undead-green/Reshape_this_undead_3": {
+  "branch": null,
+  "verdict": "deny",
+  "at": "2026-08-16T05:12:25+00:00"
+ },
+ "undead-green/Reshape_this_undead_4": {
+  "branch": null,
+  "verdict": "deny",
+  "at": "2026-08-16T05:12:27+00:00"
+ },
+ "undead-green/Reshape_this_undead": {
+  "branch": null,
+  "verdict": "deny",
+  "at": "2026-08-16T05:12:28+00:00"
+ },
+ "pathfinder-line/trenchcoat": {
+  "branch": "Elf Branch",
+  "verdict": "approve",
+  "at": "2026-08-16T05:12:38+00:00",
+  "source": "RawArt/Renders/pathfinder-line/raw/trenchcoat/rotations",
+  "palette": "RANGED Hero"
+ },
+ "pathfinder-line/wingflare": {
+  "branch": null,
+  "verdict": "deny",
+  "at": "2026-08-16T05:12:41+00:00"
+ },
+ "knight-types/type2_pikeman": {
+  "branch": "Human Soldier Branch",
+  "verdict": "approve",
+  "at": "2026-08-16T05:12:45+00:00",
+  "source": "RawArt/Renders/knight-types/raw/type2_pikeman/rotations",
+  "palette": "MELEE Class",
+  "cls": "Melee",
+  "weapon": "Spear"
+ },
+ "knight-types/type3_skirmisher": {
+  "branch": null,
+  "verdict": "deny",
+  "at": "2026-08-16T05:12:49+00:00"
+ },
+ "knight-types/type0_base": {
+  "branch": null,
+  "verdict": "deny",
+  "at": "2026-08-16T05:12:52+00:00"
+ },
+ "knight-topology/t1_straddle": {
+  "branch": "Human Soldier Branch",
+  "verdict": "approve",
+  "at": "2026-08-16T05:12:57+00:00",
+  "source": "RawArt/Renders/knight-topology/raw/t1_straddle/rotations",
+  "palette": "MELEE Class"
+ },
+ "knight-topology/t2_shieldout": {
+  "branch": null,
+  "verdict": "deny",
+  "at": "2026-08-16T05:13:13+00:00"
+ },
+ "knight-topology/t3_spearlevel": {
+  "branch": null,
+  "verdict": "deny",
+  "at": "2026-08-16T05:13:14+00:00"
+ },
+ "knight-topology/t4_akimbo": {
+  "branch": null,
+  "verdict": "deny",
+  "at": "2026-08-16T05:13:14+00:00"
+ },
+ "knight-topology/t5_overhead": {
+  "branch": null,
+  "verdict": "deny",
+  "at": "2026-08-16T05:13:15+00:00"
+ },
+ "knight-topology/t0_base": {
+  "branch": null,
+  "verdict": "deny",
+  "at": "2026-08-16T05:13:16+00:00"
+ },
+ "knight-primitive/p1_square": {
+  "branch": null,
+  "verdict": "deny",
+  "at": "2026-08-16T05:13:18+00:00"
+ },
+ "knight-primitive/p2_triangle": {
+  "branch": null,
+  "verdict": "deny",
+  "at": "2026-08-16T05:13:19+00:00"
+ },
+ "knight-primitive/p3_dome": {
+  "branch": null,
+  "verdict": "deny",
+  "at": "2026-08-16T05:13:19+00:00"
+ },
+ "knight-primitive/p4_column": {
+  "branch": null,
+  "verdict": "deny",
+  "at": "2026-08-16T05:13:20+00:00"
+ },
+ "knight-primitive/p5_invtriangle": {
+  "branch": null,
+  "verdict": "deny",
+  "at": "2026-08-16T05:13:21+00:00"
+ },
+ "knight-primitive/p6_bar": {
+  "branch": null,
+  "verdict": "deny",
+  "at": "2026-08-16T05:13:21+00:00"
+ },
+ "knight-primitive/p0_base": {
+  "branch": null,
+  "verdict": "deny",
+  "at": "2026-08-16T05:13:23+00:00"
+ },
+ "knight-melee-v2/v15_strapshield": {
+  "branch": null,
+  "verdict": "deny",
+  "at": "2026-08-16T05:13:28+00:00"
+ },
+ "knight-melee-v2/v14_twinraise": {
+  "branch": null,
+  "verdict": "deny",
+  "at": "2026-08-16T05:13:29+00:00"
+ },
+ "knight-melee-v2/v12_pikereach": {
+  "branch": null,
+  "verdict": "deny",
+  "at": "2026-08-16T05:13:31+00:00"
+ },
+ "knight-melee-v2/v11_midguard": {
+  "branch": null,
+  "verdict": "deny",
+  "at": "2026-08-16T05:13:37+00:00"
+ },
+ "knight-melee-v2/v10_bracedstaff": {
+  "branch": "Elf Branch",
+  "verdict": "approve",
+  "at": "2026-08-16T05:13:40+00:00",
+  "source": "RawArt/Renders/knight-melee-v2/raw/v10_bracedstaff/rotations",
+  "palette": "MELEE",
+  "cls": "Melee",
+  "weapon": "Spear"
+ },
+ "knight-melee-v1/v1_narrowguard": {
+  "branch": null,
+  "verdict": "deny",
+  "at": "2026-08-16T05:13:51+00:00"
+ },
+ "knight-melee-v1/v2_lanceout": {
+  "branch": null,
+  "verdict": "deny",
+  "at": "2026-08-16T05:13:52+00:00"
+ },
+ "knight-melee-v1/v3_shieldbreak": {
+  "branch": null,
+  "verdict": "deny",
+  "at": "2026-08-16T05:13:53+00:00"
+ },
+ "knight-melee-v1/v4_overhead": {
+  "branch": null,
+  "verdict": "deny",
+  "at": "2026-08-16T05:13:54+00:00"
+ },
+ "knight-melee-v1/v5_widecross": {
+  "branch": null,
+  "verdict": "deny",
+  "at": "2026-08-16T05:13:55+00:00"
+ },
+ "knight-melee-v1/v6_simplecolumn": {
+  "branch": null,
+  "verdict": "deny",
+  "at": "2026-08-16T05:13:56+00:00"
+ },
+ "knight-mass/v1_tower": {
+  "branch": null,
+  "verdict": "deny",
+  "at": "2026-08-16T05:13:59+00:00"
+ },
+ "knight-mass/v5_bannered": {
+  "branch": null,
+  "verdict": "deny",
+  "at": "2026-08-16T05:14:00+00:00"
+ },
+ "knight/state04_bulkyhelm": {
+  "branch": null,
+  "verdict": "deny",
+  "at": "2026-08-16T05:14:13+00:00"
+ },
+ "knight/state05_chibihelm": {
+  "branch": null,
+  "verdict": "deny",
+  "at": "2026-08-16T05:14:14+00:00"
+ },
+ "knight/state06_chibihelm_dup": {
+  "branch": null,
+  "verdict": "deny",
+  "at": "2026-08-16T05:14:14+00:00"
+ },
+ "knight/state03_roundhelm": {
+  "branch": null,
+  "verdict": "deny",
+  "at": "2026-08-16T05:14:16+00:00"
+ },
+ "knight/state02_faceshield": {
+  "branch": null,
+  "verdict": "deny",
+  "at": "2026-08-16T05:14:18+00:00"
+ },
+ "knight/rotations": {
+  "branch": null,
+  "verdict": "deny",
+  "at": "2026-08-16T05:14:19+00:00"
+ },
+ "enemy-armored/v0_base": {
+  "branch": null,
+  "verdict": "deny",
+  "at": "2026-08-16T05:14:21+00:00"
+ },
+ "undead-simple/00_base_undead": {
+  "branch": null,
+  "verdict": "deny",
+  "at": "2026-08-16T05:14:30+00:00"
+ },
+ "undead-simple/01_monolith": {
+  "branch": null,
+  "verdict": "deny",
+  "at": "2026-08-16T05:14:33+00:00"
+ },
+ "undead-simple/02_bulk": {
+  "branch": "Elf Branch",
+  "verdict": "approve",
+  "at": "2026-08-16T05:14:38+00:00",
+  "source": "RawArt/Renders/undead-simple/raw/02_bulk/rotations",
+  "palette": "0 ENEMY SHAPES"
+ },
+ "undead-simple/03_wedge": {
+  "branch": "Elf Branch",
+  "verdict": "approve",
+  "at": "2026-08-16T05:14:42+00:00",
+  "source": "RawArt/Renders/undead-simple/raw/03_wedge/rotations",
+  "palette": "0 ENEMY SHAPES"
+ },
+ "undead-simple/04_dome": {
+  "branch": "Elf Branch",
+  "verdict": "approve",
+  "at": "2026-08-16T05:14:43+00:00",
+  "source": "RawArt/Renders/undead-simple/raw/04_dome/rotations",
+  "palette": "0 ENEMY SHAPES"
+ },
+ "undead-simple/05_hunch": {
+  "branch": "Elf Branch",
+  "verdict": "approve",
+  "at": "2026-08-16T05:14:45+00:00",
+  "source": "RawArt/Renders/undead-simple/raw/05_hunch/rotations",
+  "palette": "0 ENEMY SHAPES"
+ },
+ "undead-simple/06_monolith_v2": {
+  "branch": null,
+  "verdict": "deny",
+  "at": "2026-08-16T05:14:46+00:00"
+ },
+ "undead-simple/07_bulk_v2": {
+  "branch": null,
+  "verdict": "deny",
+  "at": "2026-08-16T05:14:47+00:00"
+ },
+ "undead-simple/08_wedge_v2": {
+  "branch": null,
+  "verdict": "deny",
+  "at": "2026-08-16T05:14:48+00:00"
+ },
+ "undead-simple/11_monolith_col": {
+  "branch": null,
+  "verdict": "deny",
+  "at": "2026-08-16T05:14:49+00:00"
+ },
+ "undead-simple/12_bulk_col": {
+  "branch": null,
+  "verdict": "deny",
+  "at": "2026-08-16T05:14:50+00:00"
+ },
+ "undead-simple/13_wedge_col": {
+  "branch": null,
+  "verdict": "deny",
+  "at": "2026-08-16T05:14:51+00:00"
+ },
+ "undead-simple/14_dome_col": {
+  "branch": null,
+  "verdict": "deny",
+  "at": "2026-08-16T05:14:52+00:00"
+ },
+ "undead-simple/15_hunch_col": {
+  "branch": null,
+  "verdict": "deny",
+  "at": "2026-08-16T05:14:52+00:00"
+ },
+ "undead-simple/21_mono_bandaged": {
+  "branch": null,
+  "verdict": "deny",
+  "at": "2026-08-16T05:14:53+00:00"
+ },
+ "undead-simple/22_mono_sentinel": {
+  "branch": null,
+  "verdict": "deny",
+  "at": "2026-08-16T05:14:53+00:00"
+ },
+ "undead-simple/23_bulk_bloated": {
+  "branch": null,
+  "verdict": "deny",
+  "at": "2026-08-16T05:14:54+00:00"
+ },
+ "undead-simple/24_bulk_juggernaut": {
+  "branch": null,
+  "verdict": "deny",
+  "at": "2026-08-16T05:14:54+00:00"
+ },
+ "undead-simple/25_wedge_void": {
+  "branch": null,
+  "verdict": "deny",
+  "at": "2026-08-16T05:14:55+00:00"
+ },
+ "undead-simple/26_wedge_horned": {
+  "branch": null,
+  "verdict": "deny",
+  "at": "2026-08-16T05:14:55+00:00"
+ },
+ "undead-simple/27_hunch_growth": {
+  "branch": null,
+  "verdict": "deny",
+  "at": "2026-08-16T05:14:56+00:00"
+ },
+ "undead-simple/28_hunch_dragarm": {
+  "branch": "Elf Branch",
+  "verdict": "deny",
+  "at": "2026-08-16T17:17:53+00:00"
+ },
+ "unit-knight/rotations": {
+  "branch": null,
+  "verdict": "deny",
+  "at": "2026-08-16T05:15:01+00:00"
+ },
+ "unit-retinue-colour/rotations": {
+  "branch": "Elf Branch",
+  "verdict": "deny",
+  "at": "2026-08-16T22:51:20+00:00"
+ },
+ "melee-tropes/samurai": {
+  "branch": "Elf Branch",
+  "verdict": "approve",
+  "at": "2026-08-17T00:19:03+00:00",
+  "source": "RawArt/Renders/melee-tropes/raw/samurai/rotations"
+ },
+ "melee-tropes/riot-trooper": {
+  "branch": "Elf Branch",
+  "verdict": "deny",
+  "at": "2026-08-17T00:19:41+00:00"
+ },
+ "melee-tropes/monk": {
+  "branch": "Elf Branch",
+  "verdict": "approve",
+  "at": "2026-08-17T00:19:06+00:00",
+  "source": "RawArt/Renders/melee-tropes/raw/monk/rotations"
+ },
+ "melee-tropes/gladiator": {
+  "branch": "Elf Branch",
+  "verdict": "approve",
+  "at": "2026-08-17T00:19:08+00:00",
+  "source": "RawArt/Renders/melee-tropes/raw/gladiator/rotations"
+ },
+ "melee-tropes/duelist": {
+  "branch": "Elf Branch",
+  "verdict": "approve",
+  "at": "2026-08-17T00:19:09+00:00",
+  "source": "RawArt/Renders/melee-tropes/raw/duelist/rotations"
+ },
+ "melee-tropes/headsman": {
+  "branch": null,
+  "verdict": "deny",
+  "at": "2026-08-17T00:19:47+00:00"
+ },
+ "melee-tropes/man-at-arms": {
+  "branch": "Elf Branch",
+  "verdict": "approve",
+  "at": "2026-08-17T00:31:46+00:00",
+  "source": "RawArt/Renders/melee-tropes/raw/man-at-arms/rotations"
+ },
+ "melee-tropes/hammer-knight": {
+  "branch": "Elf Branch",
+  "verdict": "approve",
+  "at": "2026-08-17T00:31:48+00:00",
+  "source": "RawArt/Renders/melee-tropes/raw/hammer-knight/rotations"
+ },
+ "melee-tropes/halberdier": {
+  "branch": "Elf Branch",
+  "verdict": "approve",
+  "at": "2026-08-17T00:31:49+00:00",
+  "source": "RawArt/Renders/melee-tropes/raw/halberdier/rotations"
+ },
+ "melee-tropes/flail-knight": {
+  "branch": "Elf Branch",
+  "verdict": "approve",
+  "at": "2026-08-17T00:31:50+00:00",
+  "source": "RawArt/Renders/melee-tropes/raw/flail-knight/rotations"
+ },
+ "melee-tropes/crusader": {
+  "branch": "Elf Branch",
+  "verdict": "approve",
+  "at": "2026-08-17T00:31:51+00:00",
+  "source": "RawArt/Renders/melee-tropes/raw/crusader/rotations"
+ },
+ "melee-tropes/twin-axes": {
+  "branch": "Elf Branch",
+  "verdict": "deny",
+  "at": "2026-08-20T00:37:03+00:00"
+ },
+ "flesh-shapes/hunch_flesh": {
+  "branch": "Elf Branch",
+  "verdict": "approve",
+  "at": "2026-08-19T02:11:41+00:00",
+  "source": "RawArt/Renders/flesh-shapes/raw/hunch_flesh/rotations",
+  "palette": "FLESH",
+  "side": "enemy"
+ },
+ "flesh-shapes/bulk_flesh": {
+  "branch": "Elf Branch",
+  "verdict": "approve",
+  "at": "2026-08-19T02:11:42+00:00",
+  "source": "RawArt/Renders/flesh-shapes/raw/bulk_flesh/rotations",
+  "palette": "FLESH",
+  "side": "enemy"
+ },
+ "flesh-shapes/wedge_flesh": {
+  "branch": null,
+  "verdict": "deny",
+  "at": "2026-08-19T02:23:24+00:00"
+ },
+ "melee-undead/z1_barestance_undead": {
+  "branch": "Elf Branch",
+  "verdict": "approve",
+  "at": "2026-08-19T02:26:45+00:00",
+  "source": "RawArt/Renders/melee-undead/raw/z1_barestance_undead/rotations",
+  "palette": "Undead Soldiers",
+  "side": "enemy"
+ },
+ "melee-undead/z2_spearlevel_undead": {
+  "branch": "Elf Branch",
+  "verdict": "approve",
+  "at": "2026-08-19T02:26:46+00:00",
+  "source": "RawArt/Renders/melee-undead/raw/z2_spearlevel_undead/rotations",
+  "palette": "Undead Soldiers",
+  "side": "enemy"
+ },
+ "horse-knightpal/horse_p1_destrier": {
+  "branch": null,
+  "verdict": "deny",
+  "at": "2026-08-19T02:59:53+00:00"
+ },
+ "horse-knightpal/horse_p2_courser": {
+  "branch": null,
+  "verdict": "deny",
+  "at": "2026-08-19T03:10:31+00:00"
+ },
+ "horse-knightpal/horse_p6_white": {
+  "branch": null,
+  "verdict": "deny",
+  "at": "2026-08-19T03:10:33+00:00"
+ },
+ "horse-knightpal/horse_p4_undead": {
+  "branch": null,
+  "verdict": "deny",
+  "at": "2026-08-19T03:10:34+00:00"
+ },
+ "horse-knightpal/horse_p3_draft": {
+  "branch": null,
+  "verdict": "deny",
+  "at": "2026-08-19T03:10:35+00:00"
+ },
+ "horse-proto/horse_p5_clydesdale": {
+  "branch": "Elf Branch",
+  "verdict": "approve",
+  "at": "2026-08-19T03:10:44+00:00",
+  "source": "RawArt/Renders/horse-proto/raw/horse_p5_clydesdale/rotations"
+ },
+ "horse-knightpal/horse_p5_clydesdale": {
+  "branch": "Elf Branch",
+  "verdict": "deny",
+  "at": "2026-08-19T03:10:59+00:00"
+ },
+ "horse-proto/horse_p1_destrier": {
+  "branch": null,
+  "verdict": "deny",
+  "at": "2026-08-19T03:10:48+00:00"
+ },
+ "horse-proto/horse_p2_courser": {
+  "branch": null,
+  "verdict": "deny",
+  "at": "2026-08-19T03:10:49+00:00"
+ },
+ "horse-proto/horse_p4_undead": {
+  "branch": null,
+  "verdict": "deny",
+  "at": "2026-08-19T03:10:51+00:00"
+ },
+ "horse-proto/horse_p3_draft": {
+  "branch": null,
+  "verdict": "deny",
+  "at": "2026-08-19T03:10:52+00:00"
+ },
+ "horse-proto/horse_p6_white": {
+  "branch": "Elf Branch",
+  "verdict": "approve",
+  "at": "2026-08-19T03:10:55+00:00",
+  "source": "RawArt/Renders/horse-proto/raw/horse_p6_white/rotations"
+ },
+ "melee-undead/z3_heavycloak_undead": {
+  "branch": "Elf Branch",
+  "verdict": "approve",
+  "at": "2026-08-19T03:27:43+00:00",
+  "source": "RawArt/Renders/melee-undead/raw/z3_heavycloak_undead/rotations",
+  "palette": "Undead Soldiers",
+  "side": "enemy"
+ },
+ "melee-undead/z5_bracedstaff_undead": {
+  "branch": "Elf Branch",
+  "verdict": "deny",
+  "at": "2026-08-20T00:37:58+00:00"
+ },
+ "melee-undead/z4_maceraised_undead": {
+  "branch": "Elf Branch",
+  "verdict": "approve",
+  "at": "2026-08-19T03:27:45+00:00",
+  "source": "RawArt/Renders/melee-undead/raw/z4_maceraised_undead/rotations",
+  "palette": "Undead Soldiers",
+  "side": "enemy"
+ },
+ "ranged-undead/z8_crossbowbrace_undead": {
+  "branch": "Elf Branch",
+  "verdict": "approve",
+  "at": "2026-08-19T03:27:47+00:00",
+  "source": "RawArt/Renders/ranged-undead/raw/z8_crossbowbrace_undead/rotations",
+  "palette": "Undead Soldiers",
+  "side": "enemy"
+ },
+ "ranged-undead/z7_bowextended_undead": {
+  "branch": "Elf Branch",
+  "verdict": "approve",
+  "at": "2026-08-25T05:00:16+00:00",
+  "source": "RawArt/Renders/ranged-undead/raw/z7_bowextended_undead/rotations"
+ },
+ "ranged-undead/z6_narrowstrung_undead": {
+  "branch": "Elf Branch",
+  "verdict": "deny",
+  "at": "2026-08-19T07:41:37+00:00"
+ },
+ "horse-proto/c01_buckskin": {
+  "branch": "Elf Branch",
+  "verdict": "approve",
+  "at": "2026-08-19T03:30:13+00:00",
+  "source": "RawArt/Renders/horse-proto/raw/c01_buckskin/rotations"
+ },
+ "horse-proto/horse_p7_clydesdale_white": {
+  "branch": "Elf Branch",
+  "verdict": "approve",
+  "at": "2026-08-19T03:30:14+00:00",
+  "source": "RawArt/Renders/horse-proto/raw/horse_p7_clydesdale_white/rotations"
+ },
+ "horse-knightpal/horse_p7_clydesdale_white": {
+  "branch": "Elf Branch",
+  "verdict": "approve",
+  "at": "2026-08-19T03:30:14+00:00",
+  "source": "RawArt/Renders/horse-knightpal/raw/horse_p7_clydesdale_white/rotations",
+  "seeded": true
+ },
+ "horse-proto/c03_chestnut": {
+  "branch": "Elf Branch",
+  "verdict": "approve",
+  "at": "2026-08-19T03:30:16+00:00",
+  "source": "RawArt/Renders/horse-proto/raw/c03_chestnut/rotations"
+ },
+ "horse-proto/c02_bay": {
+  "branch": "Elf Branch",
+  "verdict": "approve",
+  "at": "2026-08-19T03:30:17+00:00",
+  "source": "RawArt/Renders/horse-proto/raw/c02_bay/rotations"
+ },
+ "horse-proto/c04_dapplegrey": {
+  "branch": "Elf Branch",
+  "verdict": "approve",
+  "at": "2026-08-19T03:30:18+00:00",
+  "source": "RawArt/Renders/horse-proto/raw/c04_dapplegrey/rotations"
+ },
+ "horse-proto/c05_palomino": {
+  "branch": "Elf Branch",
+  "verdict": "approve",
+  "at": "2026-08-19T03:30:19+00:00",
+  "source": "RawArt/Renders/horse-proto/raw/c05_palomino/rotations"
+ },
+ "horse-proto/c06_black": {
+  "branch": "Elf Branch",
+  "verdict": "approve",
+  "at": "2026-08-19T03:30:20+00:00",
+  "source": "RawArt/Renders/horse-proto/raw/c06_black/rotations"
+ },
+ "horse-proto/c07_pinto": {
+  "branch": "Elf Branch",
+  "verdict": "approve",
+  "at": "2026-08-19T03:30:21+00:00",
+  "source": "RawArt/Renders/horse-proto/raw/c07_pinto/rotations"
+ },
+ "horse-proto/c08_blueroan": {
+  "branch": "Elf Branch",
+  "verdict": "approve",
+  "at": "2026-08-19T03:30:26+00:00",
+  "source": "RawArt/Renders/horse-proto/raw/c08_blueroan/rotations"
+ },
+ "horse-proto/c09_dun": {
+  "branch": "Elf Branch",
+  "verdict": "approve",
+  "at": "2026-08-19T03:30:28+00:00",
+  "source": "RawArt/Renders/horse-proto/raw/c09_dun/rotations"
+ },
+ "horse-proto/c10_liverflaxen": {
+  "branch": "Elf Branch",
+  "verdict": "approve",
+  "at": "2026-08-19T03:30:29+00:00",
+  "source": "RawArt/Renders/horse-proto/raw/c10_liverflaxen/rotations"
+ },
+ "ranged-undead/z6_narrowstrung_undead_hood": {
+  "branch": "Elf Branch",
+  "verdict": "approve",
+  "at": "2026-08-25T05:00:17+00:00",
+  "source": "RawArt/Renders/ranged-undead/raw/z6_narrowstrung_undead_hood/rotations"
+ },
+ "melee-undead/z5_bracedstaff_undead_greeneyes": {
+  "branch": "Elf Branch",
+  "verdict": "approve",
+  "at": "2026-08-19T08:12:28+00:00",
+  "source": "RawArt/Renders/melee-undead/raw/z5_bracedstaff_undead_greeneyes/rotations",
+  "cls": "Melee",
+  "palette": "Undead Soldiers",
+  "side": "enemy"
+ },
+ "flesh-shapes/lops_flesh": {
+  "branch": "Elf Branch",
+  "verdict": "approve",
+  "at": "2026-08-19T08:12:59+00:00",
+  "source": "RawArt/Renders/flesh-shapes/raw/lops_flesh/rotations",
+  "palette": "FLESH",
+  "side": "enemy"
+ },
+ "flesh-shapes/tall_flesh": {
+  "branch": null,
+  "verdict": "deny",
+  "at": "2026-08-19T08:13:08+00:00"
+ },
+ "flesh-shapes/crawl_flesh": {
+  "branch": null,
+  "verdict": "deny",
+  "at": "2026-08-19T08:13:11+00:00"
+ },
+ "flesh-shapes/dome_flesh": {
+  "branch": "Elf Branch",
+  "verdict": "approve",
+  "at": "2026-08-19T08:13:19+00:00",
+  "source": "RawArt/Renders/flesh-shapes/raw/dome_flesh/rotations",
+  "palette": "FLESH",
+  "side": "enemy"
+ },
+ "undead-grey/Reshape_this_undead_5": {
+  "branch": null,
+  "verdict": "deny",
+  "at": "2026-08-19T08:14:26+00:00"
+ },
+ "undead-grey/Keep_this_exact_tria": {
+  "branch": "Elf Branch",
+  "verdict": "approve",
+  "at": "2026-08-19T08:14:31+00:00",
+  "source": "RawArt/Renders/undead-grey/raw/Keep_this_exact_tria/rotations"
+ },
+ "undead-grey/Reshape_this_undead_7": {
+  "branch": "Elf Branch",
+  "verdict": "approve",
+  "at": "2026-08-19T08:14:38+00:00",
+  "source": "RawArt/Renders/undead-grey/raw/Reshape_this_undead_7/rotations"
+ },
+ "undead-grey/Keep_this_exact_broa": {
+  "branch": "Elf Branch",
+  "verdict": "approve",
+  "at": "2026-08-19T08:14:50+00:00",
+  "source": "RawArt/Renders/undead-grey/raw/Keep_this_exact_broa/rotations"
+ },
+ "undead-grey/Reshape_this_undead_3": {
+  "branch": "Elf Branch",
+  "verdict": "approve",
+  "at": "2026-08-19T08:15:02+00:00",
+  "source": "RawArt/Renders/undead-grey/raw/Reshape_this_undead_3/rotations"
+ },
+ "archer-medieval/v1_narrowstrung_helm": {
+  "branch": null,
+  "verdict": "deny",
+  "at": "2026-08-19T19:05:43+00:00"
+ },
+ "melee-undead/z1-lolled": {
+  "branch": "Elf Branch",
+  "verdict": "approve",
+  "at": "2026-08-25T05:00:05+00:00",
+  "source": "RawArt/Renders/melee-undead/raw/z1-lolled/rotations"
+ },
+ "melee-undead/z1-tilt-right": {
+  "branch": "Elf Branch",
+  "verdict": "approve",
+  "at": "2026-08-25T05:00:08+00:00",
+  "source": "RawArt/Renders/melee-undead/raw/z1-tilt-right/rotations"
+ },
+ "melee-undead/z1-tilt-left": {
+  "branch": "Elf Branch",
+  "verdict": "approve",
+  "at": "2026-08-25T05:00:09+00:00",
+  "source": "RawArt/Renders/melee-undead/raw/z1-tilt-left/rotations"
+ },
+ "melee-undead/z4-tilt-left": {
+  "branch": "Elf Branch",
+  "verdict": "approve",
+  "at": "2026-08-25T05:00:13+00:00",
+  "source": "RawArt/Renders/melee-undead/raw/z4-tilt-left/rotations"
+ },
+ "ranged-undead/z8-tilt-right": {
+  "branch": "Elf Branch",
+  "verdict": "approve",
+  "at": "2026-08-25T05:00:15+00:00",
+  "source": "RawArt/Renders/ranged-undead/raw/z8-tilt-right/rotations"
+ },
+ "castle-props/flame_candelabra": {
+  "branch": "Elf Branch",
+  "verdict": "approve",
+  "at": "2026-08-25T05:01:37+00:00",
+  "source": "RawArt/Renders/castle-props/raw/flame_candelabra/rotations"
+ },
+ "castle-props/flame_brazier": {
+  "branch": "Elf Branch",
+  "verdict": "deny",
+  "at": "2026-08-26T02:31:27+00:00",
+  "source": "RawArt/Renders/castle-props/raw/flame_brazier/rotations"
+ },
+ "castle-props/flame_cage_lamp": {
+  "branch": "Elf Branch",
+  "verdict": "approve",
+  "at": "2026-08-25T05:01:41+00:00",
+  "source": "RawArt/Renders/castle-props/raw/flame_cage_lamp/rotations"
+ },
+ "castle-props/table_map": {
+  "branch": "Elf Branch",
+  "verdict": "approve",
+  "at": "2026-08-25T05:01:49+00:00",
+  "source": "RawArt/Renders/castle-props/raw/table_map/rotations"
+ },
+ "castle-props/chair_bench": {
+  "branch": "Elf Branch",
+  "verdict": "approve",
+  "at": "2026-08-25T05:01:54+00:00",
+  "source": "RawArt/Renders/castle-props/raw/chair_bench/rotations"
+ },
+ "castle-props/chair_broken": {
+  "branch": "Elf Branch",
+  "verdict": "approve",
+  "at": "2026-08-25T05:01:54+00:00",
+  "source": "RawArt/Renders/castle-props/raw/chair_broken/rotations"
+ },
+ "castle-props/table_trestle": {
+  "branch": "Elf Branch",
+  "verdict": "approve",
+  "at": "2026-08-25T05:02:01+00:00",
+  "source": "RawArt/Renders/castle-props/raw/table_trestle/rotations"
+ },
+ "castle-props/mirror_ornate": {
+  "branch": "Elf Branch",
+  "verdict": "approve",
+  "at": "2026-08-25T05:02:09+00:00",
+  "source": "RawArt/Renders/castle-props/raw/mirror_ornate/rotations"
+ },
+ "castle-props/chest_ornate": {
+  "branch": "Elf Branch",
+  "verdict": "approve",
+  "at": "2026-08-25T05:02:11+00:00",
+  "source": "RawArt/Renders/castle-props/raw/chest_ornate/rotations"
+ },
+ "castle-props/chest_coffer": {
+  "branch": "Elf Branch",
+  "verdict": "approve",
+  "at": "2026-08-25T05:02:12+00:00",
+  "source": "RawArt/Renders/castle-props/raw/chest_coffer/rotations"
+ },
+ "castle-props/mirror_oval": {
+  "branch": "Elf Branch",
+  "verdict": "approve",
+  "at": "2026-08-25T05:02:18+00:00",
+  "source": "RawArt/Renders/castle-props/raw/mirror_oval/rotations"
+ },
+ "castle-props/chest_ornate_open": {
+  "branch": "Elf Branch",
+  "verdict": "approve",
+  "at": "2026-08-25T05:02:19+00:00",
+  "source": "RawArt/Renders/castle-props/raw/chest_ornate_open/rotations"
+ },
+ "castle-props/altar": {
+  "source": "RawArt/Renders/castle-props/raw/altar/rotations_clean",
+  "note": "junk 1px top/left border in the raw rotations left lines in-game; cleaned copies, raw untouched (2026-08-31)"
+ },
+ "castle-props/coffin": {
+  "source": "RawArt/Renders/castle-props/raw/coffin/rotations_clean",
+  "note": "generator baked direction captions into 5 rotations; cleaned copies keep only the coffin blob, raw untouched (2026-08-31)"
+ }
 }

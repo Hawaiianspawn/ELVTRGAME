@@ -49,8 +49,16 @@ JOBS = {
     ("horse_undead", "death", "south"): ("8c22a73a-571e-4834-b7eb-2d50c0030373", 6),
     ("horse_undead", "attack", "south"): ("035b79af-ccff-49be-a3bd-e1661ef80ffc", 8),
     ("horse_undead", "walk", "south"): ("4245edfa-f78e-4cf4-ad35-775aed31f681", 8),
-    ("veteran", "death", "north"): ("441890d6-03e7-43ca-8185-031010cc7ddb", 6),
-    ("veteran", "walk", "north"): ("8740abbf-f6fe-462d-ac67-45cc4d6d6463", 8),
+    # veteran = knight-greatsword/g2_sweep since 2026-08-31 (old v8_heavycloak jobs:
+    # death 441890d6-03e7-43ca-8185-031010cc7ddb, walk 8740abbf-f6fe-462d-ac67-45cc4d6d6463)
+    ("veteran", "attack", "north"): ("ee7ac049-3035-435d-ac61-950e1c8d6110", 8),
+    # east-facing attack clips for the HUD medallion (Battle._medal_*), 2026-08-31
+    ("veteran", "attack", "east"): ("35730f71-f5f9-4e40-8e4e-599787c758f1", 8),
+    ("halberdier", "attack", "east"): ("a10372b3-d67e-4c21-819f-d622e5d74f9e", 8),
+    ("hammer", "attack", "east"): ("755941de-62e5-44c6-8e4d-67f667f3861a", 8),
+    ("vet_ranged", "attack", "east"): ("6093462a-8909-43a1-8555-b58ebaba9ce0", 8),
+    ("veteran", "death", "north"): ("c3e81a6a-4384-4a2b-911e-7d95ba1b34c4", 6),
+    ("veteran", "walk", "north"): ("9e11031a-7e38-442d-8aca-c166e39803db", 8),
     ("halberdier", "death", "north"): ("0e130d8f-dd2f-498f-b602-38d760973e4c", 6),
     ("halberdier", "walk", "north"): ("2542ad1c-cc03-4d0a-bff6-df2ab65c8d99", 8),
     ("hammer", "death", "north"): ("08e24091-3953-467e-bbc3-d3f8c3998bf3", 6),
