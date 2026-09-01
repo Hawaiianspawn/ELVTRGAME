@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Aaron Low — Assignment #10: Complete AI Dev Pipeline</title>
+<style>
+  :root { --ink:#1a1626; --purple:#5b3a8f; --accent:#b8354f; --rule:#d9d3e3; }
+  * { box-sizing:border-box; }
+  body { margin:0; font-family:Georgia,'Times New Roman',serif; color:var(--ink);
+         font-size:11.5px; line-height:1.5; }
+  .page { padding:36px 56px; page-break-after:always; }
+  .page:last-child { page-break-after:auto; }
+  .kicker { font-family:Verdana,sans-serif; font-size:9px; letter-spacing:.18em;
+            text-transform:uppercase; color:var(--accent); font-weight:bold; }
+  h1 { font-size:26px; margin:4px 0 2px; color:var(--purple); }
+  h2 { font-family:Verdana,sans-serif; font-size:12px; text-transform:uppercase;
+       letter-spacing:.06em; color:var(--purple); border-bottom:2px solid var(--purple);
+       padding-bottom:4px; margin:20px 0 9px; }
+  h3 { font-family:Verdana,sans-serif; font-size:10.5px; margin:14px 0 4px; }
+  a { color:var(--accent); text-decoration:none; word-break:break-all; }
+  .meta { color:#666; margin:0 0 18px; }
+  .field { margin:6px 0; }
+  .field b { font-family:Verdana,sans-serif; font-size:10px; }
+  .gate { background:#f6f1e6; border-left:4px solid var(--accent); padding:10px 14px;
+          margin:10px 0; }
+  .hero { display:flex; gap:20px; align-items:flex-start; margin:14px 0 6px; }
+  .hero img { width:300px; image-rendering:pixelated; border:1px solid var(--rule); }
+  table { border-collapse:collapse; width:100%; margin:8px 0; font-size:10.5px; }
+  th { font-family:Verdana,sans-serif; font-size:9px; text-transform:uppercase;
+       letter-spacing:.05em; text-align:left; color:#666; border-bottom:1px solid var(--ink);
+       padding:4px 8px 4px 0; }
+  td { padding:4px 8px 4px 0; border-bottom:1px solid var(--rule); vertical-align:top; }
+  ul { margin:4px 0 8px; padding-left:18px; }
+  li { margin:2px 0; }
+  .flow { font-family:Consolas,monospace; font-size:9.5px; background:#f4f2f8;
+          padding:8px 12px; margin:6px 0; }
+  .num { color:var(--accent); font-family:Verdana,sans-serif; font-size:10px; font-weight:bold; }
+  .ba td:first-child { color:#8a6d1f; } .ba td:last-child { color:#1f6b3a; }
+  .foot { margin-top:10px; padding-top:6px; border-top:1px solid var(--rule);
+          color:#666; font-size:9.5px; }
+</style>
+</head>
+<body>
+
+<!-- ============ PAGE 1: overview + deliverables 1 & 2 ============ -->
+<div class="page">
+  <div class="kicker">Complete AI Dev Pipeline</div>
+  <h1>Assignment #10 — Submission</h1>
+  <p class="meta">Aaron Low · 1 September 2026</p>
+
+  <h2>Student &amp; Game Overview</h2>
+  <div class="hero">
+    <img src="itch-thumbnail.png" alt="Kindled thumbnail">
+    <div>
+      <div class="field"><b>Student Name:</b> Aaron Low</div>
+      <div class="field"><b>Capstone Game Title:</b> Kindled: The Necromancer's Keep</div>
+      <div class="field"><b>Game Concept Brief:</b> A browser castle-defense story: seven
+      named soldiers hold a collapsing five-layer keep against escalating waves of undead,
+      spending scarce resources between waves until the necromancer himself can be reached
+      and broken. Every sprite, portrait, font, UI texture, sound cue and stat table in the
+      playable build came out of the AI pipeline documented here — the game exists to prove
+      the pipeline, and the pipeline's output is the game.</div>
+    </div>
+  </div>
+
+  <h2>Deliverable 1 — Playable Link</h2>
+  <div class="gate"><b>Gate check:</b> the link below is a public itch.io HTML5 page —
+  open it, click <i>Run game</i>, and you are playing in the browser in under a minute.
+  No account, no download, no instructions needed. (A 13&nbsp;MB downloadable zip is also
+  attached on the page as a fallback.)</div>
+  <div class="field"><b>Playable Game Link:</b>
+    <a href="https://hawaiianspawn.itch.io/kindeled">https://hawaiianspawn.itch.io/kindeled</a></div>
+
+  <h2>Deliverable 2 — Pipeline Source Code &amp; Engine Integration</h2>
+  <div class="field"><b>Pipeline Repository Link:</b>
+    <a href="https://github.com/Hawaiianspawn/ELVTRGAME">https://github.com/Hawaiianspawn/ELVTRGAME</a>
+    — pipeline lives in <span class="flow" style="padding:1px 5px">Scripts/art/</span>
+    (pixelpipe, atlas, variantpipe, godot_pack, sfx, fx_library) with committed request
+    specs in <span class="flow" style="padding:1px 5px">docs/data/art/requests/</span>.</div>
+  <div class="field"><b>Pipeline Run Video Link:</b> [VIDEO LINK — TO INSERT]</div>
+
+  <h3>Integration Breakdown</h3>
+  <div class="field"><b>Target Game Engine:</b> Godot 4.7, HTML5 export (an earlier
+  Unreal 5 / Mass Entity prototype of the same pipeline lives in the same repo).</div>
+  <div class="field"><b>Automated Flow Description:</b> An art-director agent writes a
+  schema-validated request JSON; <i>pixelpipe</i> drives the PixelLab MCP through anchor
+  → palette quantize → 8-way rotate → animate, recording provenance per generation. Then:</div>
+  <div class="flow">request.json → pixelpipe (PixelLab MCP) → RawArt/Renders/&lt;id&gt;/ →
+  godot_pack.py → godot/assets/sprites/&lt;unit&gt;.png → Godot auto-import → Battle scene</div>
+  <p><i>godot_pack.py</i> reads <i>godot/data/roster.json</i>, resolves each unit through the
+  owner-approval ledger, and writes 8-direction sprite strips directly into the Godot
+  project in the engine's expected cell layout; Godot's importer picks them up with no hand
+  step, and the battle scene binds them to stat rows in <i>units.json</i>. Audio lands the
+  same way via <i>sfx.py</i>. Nothing in the shipped build was manually reformatted.</p>
+</div>
+
+<!-- ============ PAGE 2: deliverable 3 (1-page audit) ============ -->
+<div class="page">
+  <div class="kicker">Assignment #10 · Deliverable 3</div>
+  <h1 style="font-size:20px">Pipeline Audit &amp; Cost Analysis</h1>
+  <p class="meta">One page. Full line-item evidence in the attached <i>Kindled Pipeline Ledger</i> (5&nbsp;pp).</p>
+
+  <h2><span class="num">01</span> Pipeline Production &amp; Functionality</h2>
+  <div class="field"><b>What did the pipeline produce?</b> Everything visible and audible
+  in the playable build: 68 packed sprite strips (7 heroes, allies, 8 enemy types, the
+  necromancer boss, ~30 castle props), 68 animation clips, 7 hero portraits, 3 pixel
+  fonts, 23 UI textures (buttons, meters, chips, win/lose cards, cursor), the title
+  background, 10 VFX, 39 normalized sound cues, and the JSON stat/wave tables
+  (19 units) that the committed combat-sim harness balanced.</div>
+  <div class="field"><b>What manual steps remain?</b> Three: (1) the anchor-approval gate —
+  a human says yes to one frame before rotation/animation inherit it; (2) keep/deny
+  verdicts on generated variants via the roster approval page; (3) the itch.io deploy is
+  a manually invoked script (<i>release.ps1</i> + butler push).</div>
+  <div class="field"><b>What would it take to eliminate them?</b> Steps 1–2: auto-verdict
+  from the already-measured silhouette metrics (aspect, solidity, asymmetry thresholds in
+  <i>silhouette_report.py</i>) instead of human taste — technically trivial, deliberately
+  kept human because taste gates were the cheapest quality control in the project.
+  Step 3: a CI job running headless export + butler on merge; one afternoon of work.</div>
+
+  <h2><span class="num">02</span> Architectural Reflection</h2>
+  <div class="field"><b>Decision I would change:</b> Running one long-lived orchestrator
+  session as the pipeline's brain. The ledger shows 88.5% of all token spend ($1,601 of
+  $1,809 at list) went to the orchestrator re-reading its own growing context on every
+  tool call — 1.08B cache-read tokens — while the delegated agents that produced most of
+  the actual artifacts cost $208.</div>
+  <div class="field"><b>Specific alternative:</b> Delegation-first: a thin router
+  orchestrator that holds only the task list and verdicts, with <i>every</i> file read,
+  generation loop, and engine import in short-lived subagent contexts that return
+  one-paragraph summaries. Measured against this project's own split, that caps the
+  quadratic context growth and would have cut the token bill by roughly 5×.</div>
+
+  <h2><span class="num">03</span> Cost Analysis</h2>
+  <div class="field"><b>Total Actual Run Cost:</b> $1,831.29 at provider list prices
+  ($1,809.35 LLM tokens + $21.94 PixelLab), computed from 103 session transcripts and
+  balance logs, Jul 12 – Sep 1. Actual cash: flat subscriptions (~$50/mo art + Claude
+  plan, two billing months).</div>
+  <div class="field"><b>Most Expensive Pipeline Step:</b> Claude Fable 5 cache reads —
+  $1,075.76 for 1.08B tokens of orchestrator context re-reading. One line item worth more
+  than all output tokens ever generated ($224) and 49× the entire art budget.</div>
+  <div class="field"><b>Solo/Small-Team Sustainability:</b> Sustainable — but only because
+  of subscription pricing and cache discipline. The full shipped art set cost $21.94
+  (44% of one month's PixelLab allowance). At raw API prices this working style would run
+  ~$900/mo; uncached, ~$6,200/mo. The two levers that make it viable — flat-rate LLM
+  access and 0.1× cache reads — are structural, not luck.</div>
+
+  <h2><span class="num">04</span> Mid-Project Cost-Reduction Change</h2>
+  <table class="ba">
+    <tr><th style="width:48%">Strategy / prompting — before</th><th>After</th></tr>
+    <tr><td>Every tool call re-bills full context as fresh input; PixelLab images sent as
+    inline base64 (~30% of calls truncated in transit and re-bought).</td>
+    <td>1-hour prompt caching on all sessions + URL-based image transport; VFX and repeat
+    animation moved to zero-credit procedural code and <i>animate_image</i> on
+    already-paid frames.</td></tr>
+    <tr><th>Token / API cost — before</th><th>After</th></tr>
+    <tr><td>~$12,484 (1.4B input-side tokens at base rates); art re-buy tax ~30%.</td>
+    <td>$1,809.35 actual — an <b>85.5% reduction</b>; truncation failures zero; 53
+    production clips for ~$0.35.</td></tr>
+  </table>
+
+</div>
+
+</body>
+</html>
