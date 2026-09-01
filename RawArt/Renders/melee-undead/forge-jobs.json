@@ -59,7 +59,13 @@
       88
     ],
     "pixellab_name": "Hallam (Vanguard)",
-    "group_id": "2cc3ab61-4230-4786-98fa-b94da9e99218"
+    "group_id": "2cc3ab61-4230-4786-98fa-b94da9e99218",
+    "walk": {
+      "queued": "2026-09-01T20:22:59+00:00",
+      "mode": "template",
+      "fetched": "2026-09-01T20:24:08+00:00",
+      "frames": 6
+    }
   },
   "z1-lolled": {
     "slug": "z1-lolled",
@@ -79,7 +85,13 @@
       88
     ],
     "pixellab_name": "Hallam (Vanguard)",
-    "group_id": "2cc3ab61-4230-4786-98fa-b94da9e99218"
+    "group_id": "2cc3ab61-4230-4786-98fa-b94da9e99218",
+    "walk": {
+      "queued": "2026-09-01T20:22:58+00:00",
+      "mode": "template",
+      "fetched": "2026-09-01T20:24:45+00:00",
+      "frames": 6
+    }
   },
   "z3-tilt-right": {
     "slug": "z3-tilt-right",
@@ -120,6 +132,56 @@
     "started": "2026-08-20T00:48:46+00:00",
     "status": "done",
     "fetched": "2026-08-20T00:51:24+00:00",
+    "canvas": [
+      88,
+      88
+    ],
+    "pixellab_name": "Hallam (Vanguard)",
+    "group_id": "2cc3ab61-4230-4786-98fa-b94da9e99218",
+    "walk": {
+      "queued": "2026-09-01T20:22:54+00:00",
+      "mode": "template",
+      "fetched": "2026-09-01T20:24:15+00:00",
+      "frames": 6
+    }
+  },
+  "z1-tilt-right-r2": {
+    "slug": "z1-tilt-right-r2",
+    "base_id": "af4ff4e8-780c-47c4-8c77-87c7039193a7",
+    "character_id": "fe762670-c1ea-4aa6-84f6-4039e71ac4d3",
+    "background_job_id": "5f6e9241-f7a7-4485-b4a1-f15670bee511",
+    "edit": "Same undead soldier, a torn war banner on a cracked pole strapped across his back",
+    "tail": "Keep the head and legs clearly visible. Match the existing color palette exactly, no new colors, no glowing parts.",
+    "prompt": "Same undead soldier, a torn war banner on a cracked pole strapped across his back. Keep the head and legs clearly visible. Match the existing color palette exactly, no new colors, no glowing parts.",
+    "seed": null,
+    "usage": null,
+    "started": "2026-09-01T20:51:08+00:00",
+    "status": "done",
+    "riffed_from": "z1-tilt-right",
+    "riff_note": "Same undead soldier, a torn war banner on a cracked pole strapped across his back",
+    "fetched": "2026-09-01T20:53:05+00:00",
+    "canvas": [
+      88,
+      88
+    ],
+    "pixellab_name": "Hallam (Vanguard)",
+    "group_id": "2cc3ab61-4230-4786-98fa-b94da9e99218"
+  },
+  "z1-lolled-r2": {
+    "slug": "z1-lolled-r2",
+    "base_id": "86cb4264-68f6-44f3-ac2f-5e4759fffa5f",
+    "character_id": "ceea2f99-9743-4d4d-ba85-4c6f2990aadc",
+    "background_job_id": "2eed35f6-89e2-4c18-b1e6-6cdab71e7c65",
+    "edit": "Should be shambling towards you with one arm out.",
+    "tail": "Change only what is described and nothing else. Keep the same character, pose, proportions and kit. Match the existing color palette exactly, no new colors, no glowing parts.",
+    "prompt": "Should be shambling towards you with one arm out. Change only what is described and nothing else. Keep the same character, pose, proportions and kit. Match the existing color palette exactly, no new colors, no glowing parts.",
+    "seed": null,
+    "usage": null,
+    "started": "2026-09-01T21:09:41+00:00",
+    "status": "done",
+    "refined_from": "z1-lolled",
+    "refine_note": "Should be shambling towards you with one arm out.",
+    "fetched": "2026-09-01T21:12:25+00:00",
     "canvas": [
       88,
       88

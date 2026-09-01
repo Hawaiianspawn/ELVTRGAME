@@ -189,7 +189,7 @@ def compose(edit, tail=TAIL):
 
 def check_slug(slug):
     if not SLUG_RE.match(slug or ""):
-        raise Fail("'%s' is not a slug. Use kebab-case: lowercase letters, digits and "
+        raise Fail("'%s' is not a usable name. Use kebab-case: lowercase letters, digits and "
                    "single hyphens (e.g. 'turret-nest'). This field is what stops the "
                    "account filling up with names like 'Can you make a Turre'." % slug)
     return slug
@@ -361,6 +361,27 @@ def refine(family, slug, note, tail=REFINE_TAIL):
     start_state(family, parent, child, note, tail,
                 extra={"refined_from": slug, "refine_note": note})
     return {"queued": [child], "parent": slug, "parent_character_id": parent}
+
+
+def riff(family, slug, note, count=1):
+    """New takes FROM this variant, not from the family base -- refine's sibling.
+
+    Same parent mechanics as refine (the child inherits everything the parent already
+    is), but the variant TAIL: the note describes a new idea to invent, not a defect
+    to correct. No defect note lands on the parent's manifest -- a riff is not a
+    finding about the parent.
+    """
+    note = (note or "").strip()
+    if not note:
+        raise Fail("say what the new take should be")
+    parent = character_id_of(family, slug)
+    queued = []
+    for _ in range(max(1, min(8, int(count or 1)))):
+        child = next_refine_slug(family, slug)
+        start_state(family, parent, child, note, TAIL,
+                    extra={"riffed_from": slug, "riff_note": note})
+        queued.append(child)
+    return {"queued": queued, "parent": slug, "parent_character_id": parent}
 
 
 def rotation_strip(family, slug, scale=3):
@@ -574,8 +595,11 @@ def candidates_html():
                 '<button onclick="sel(\'%s\',\'deny\',this)">deny</button></div></div>'
                 % (" ok" if verdict == "approve" else "", esc(key), esc(key), esc(key),
                    esc(slug), badge, esc(key), esc(key), esc(key)))
-        parts.append('<details class="grp" open><summary><h2>%s <span>%d</span></h2></summary>'
-                     '<div class="cards">%s</div></details>' % (esc(fam), len(cards), "".join(cards)))
+        parts.append('<details class="grp" open><summary><h2>%s <span>%d</span> '
+                     '<a href="/family/%s" style="color:var(--bone);font-size:.7rem">'
+                     'generate / riff &#8599;</a></h2></summary>'
+                     '<div class="cards">%s</div></details>'
+                     % (esc(fam), len(cards), esc(fam), "".join(cards)))
     return "".join(parts)
 
 
@@ -701,7 +725,7 @@ def units_page():
   border-bottom:1px solid var(--line);}
 .libhit .path{flex:1;overflow-wrap:anywhere;}
 </style></head><body><div class="wrap"><header>
-<p class="eyebrow">units &middot; <a href="/denied" style="color:var(--bone)">denied</a> &middot; <a href="/attacks" style="color:var(--bone)">attack clips</a></p>
+<p class="eyebrow">units &middot; <a href="/denied" style="color:var(--bone)">denied</a> &middot; <a href="/attacks" style="color:var(--bone)">attack clips</a> &middot; <a href="/family/{FAMILY}" style="color:var(--bone)">generate</a></p>
 <h1>Units</h1>
 <p>Top: what is <b>in the game</b> (<code>godot/data/units.json</code>) -- art (hover to turn),
 attack clip, slash fx, stats and sound cues; edits save on change. <b>Deny</b> pulls a unit out of
@@ -1369,6 +1393,7 @@ button.no{border-color:var(--blood);color:var(--blood);}
 .acts button{flex:1;padding:.3rem;}
 .refine{border-top:1px solid var(--line);padding:.5rem .65rem;display:flex;
   flex-direction:column;gap:.4rem;}
+.refine[hidden]{display:none;}
 /* The strip is 8 sprites wide, so it scrolls inside its OWN box -- the card stays a card
    and the page body never scrolls sideways. */
 .rotwrap{overflow-x:auto;background:var(--sunk);border:1px solid var(--line);}
@@ -1445,6 +1470,19 @@ async function sendRefine(slug, id){
     pump();
   }catch(e){ say(String(e.message), true); }
 }
+async function sendRiff(slug, id){
+  const note = document.getElementById('n-' + id).value.trim();
+  const n = Math.max(1, Math.min(8, parseInt(document.getElementById('k-' + id).value||'1',10)));
+  if(!note){ say('say what the new take should be', true); return; }
+  if(!confirm('Riff ' + n + 'x on ' + slug + ', ~' + (n*COST_LO) + '-' + (n*COST_HI) +
+              ' generations.\\n\\n' + note)) return;
+  try{
+    const r = await post('/api/riff', {slug: slug, note: note, count: n});
+    say('queued ' + r.queued.join(', ') + ' from ' + r.parent + ' -- polling');
+    toggleRefine(id);
+    pump();
+  }catch(e){ say(String(e.message), true); }
+}
 async function ship(){
   const btn = document.getElementById('shipbtn'); btn.disabled = true;
   say('shipping...');
@@ -1515,6 +1553,9 @@ def card_html(name, m, scale):
     if job.get("refined_from"):
         reasons += ('<p class="mx"><em>refined from %s: %s</em></p>'
                     % (esc(job["refined_from"]), esc(job.get("refine_note", ""))))
+    if job.get("riffed_from"):
+        reasons += ('<p class="mx"><em>riff on %s: %s</em></p>'
+                    % (esc(job["riffed_from"]), esc(job.get("riff_note", ""))))
     for n in (m.get("refine_notes") or []):
         reasons += ('<p class="mx"><em class="bad">refine &rarr; %s: %s</em></p>'
                     % (esc(n.get("child", "?")), esc(n.get("note", ""))))
@@ -1544,8 +1585,13 @@ def card_html(name, m, scale):
         'arrows over the shoulder."></textarea>'
         '<div class="acts" style="border:0;padding:0">'
         '<button class="go" onclick="sendRefine(\'%(nm)s\',\'%(id)s\')">send refine</button>'
+        '<button onclick="sendRiff(\'%(nm)s\',\'%(id)s\')">riff</button>'
+        '<input id="k-%(id)s" type="number" value="1" min="1" max="8" '
+        'style="width:3rem" title="riff takes">'
         '<button onclick="toggleRefine(\'%(id)s\')">cancel</button>'
-        '</div></div>'
+        '</div>'
+        '<p class="mx">refine corrects (changes only the note); riff invents a new '
+        'take from this character, N at once.</p></div>'
         '<div class="acts">'
         '<button class="%(okc)s" onclick="verdict(\'%(nm)s\',\'approve\')">approve</button>'
         '<button onclick="toggleRefine(\'%(id)s\')">refine</button>'
@@ -1606,9 +1652,10 @@ def page(family, atlas, prefix, scale):
   <p id="msg" class="bar">%(err)s</p>
   <div class="cols">
     <form class="panel" onsubmit="event.preventDefault();generate()">
+      <h2 style="margin:0;font-size:1rem;letter-spacing:.12em;text-transform:uppercase">Create</h2>
       <div><label for="base">base character id</label>
         <input id="base" value="%(base_id)s"></div>
-      <div><label for="slug">slug (kebab-case, becomes state_name)</label>
+      <div><label for="slug">name (lowercase-with-hyphens)</label>
         <input id="slug" placeholder="turret-nest"></div>
       <div><label for="edit">what changes</label>
         <textarea id="edit" placeholder="A shinobi: body tightly wrapped and narrow head to foot, twin sword hilts crossed in an X above the shoulders."></textarea></div>
@@ -2549,7 +2596,7 @@ def build_app(family, atlas, prefix, scale):
 
     @app.get("/", response_class=HTMLResponse)
     def index():
-        return units_page()
+        return units_page().replace("{FAMILY}", family)
 
     @app.get("/family/{fam}", response_class=HTMLResponse)
     def family_view(fam: str):
@@ -2743,6 +2790,11 @@ def build_app(family, atlas, prefix, scale):
     @app.post("/api/refine")
     def api_refine(body: dict):
         return guard(refine, family, (body.get("slug") or "").strip(), body.get("note"))
+
+    @app.post("/api/riff")
+    def api_riff(body: dict):
+        return guard(riff, family, (body.get("slug") or "").strip(),
+                     body.get("note"), body.get("count") or 1)
 
     @app.post("/api/verdict")
     def api_verdict(body: dict):
