@@ -1,0 +1,15 @@
+{
+  "family": "melee-undead",
+  "note": "Written 2026-09-01, long after the family's variants: melee-undead predates forge (manifest only, no spec), which left the family page with no prefilled base id and the /selects approve mirror silently skipped. The variants on disk were queued over MCP against several sibling bases of the same character group (z1 6dd19c16, z3 d4f4a4fc, z4 3bd22c75, z5 95cda399 -- see forge-jobs.json); the base below is the plain undead soldier the ungeared variants build on. variants[] left empty on purpose: recipes for the pre-spec looks live in forge-jobs.json and the manifest, and ship prints a pasteable line for anything new. 2026-09-01 owner verdict: enemy-armored is rejected (cyborgs, wrong world) -- this family is the enemy line the game actually ships.",
+  "base": {
+    "character_id": "6dd19c16-8dc3-4a2c-87a9-53cff161e120",
+    "canvas_size": 88,
+    "note": "'Hallam (Vanguard)' plain undead soldier, 88x88, 8 directions, group 2cc3ab61-4230-4786-98fa-b94da9e99218 -- the base of z1-tilt-left/-right and z1-lolled per forge-jobs.json."
+  },
+  "axis": {
+    "name": "aspect",
+    "description": "Undead soldiers of the keep: variants spend the axis on posture and kit decay (slack heads, sagging weapon arms, hunched masses), never on proportion knobs. Bone, rust and rot register only -- no machinery, no glow, light belongs to the flame."
+  },
+  "constant": "Undead soldier base of group 2cc3ab61, use_color_palette_from_reference=True, 88px canvas, low top-down 8-direction view, no glow or light source anywhere.",
+  "variants": []
+}

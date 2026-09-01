@@ -52,6 +52,8 @@ import os
 import re
 import subprocess
 import sys
+import threading
+import time
 import webbrowser
 from pathlib import Path
 from types import SimpleNamespace
@@ -259,6 +261,14 @@ def character_id_of(family, slug):
         got = (vp.load_json(src).get("state_ids") or {}).get(slug)
         if got:
             return got
+    # Last resort: the manifest's fetched rotation URLs embed the state id --
+    # .../pixellab-characters/<account>/<character_id>/rotations/<dir>.png. Families whose
+    # variants predate forge (enemy-armored) recorded nothing else.
+    man = vp.load_manifest(family) if vp.manifest_path(family).exists() else {}
+    for u in (((man.get("variants") or {}).get(slug) or {}).get("urls") or []):
+        m = re.search(r"pixellab-characters/[^/]+/([0-9a-f-]{36})/", u)
+        if m:
+            return m.group(1)
     raise Fail("no PixelLab character id recorded for '%s', so there is nothing to refine "
                "from. Its id is not in forge-jobs.json, family.json's naming.map, or "
                "source.json -- generate a fresh variant off the base instead." % slug)
@@ -490,6 +500,8 @@ and pack into the Godot atlas with <code>godot_pack.py</code>.</p>
 
 
 UNITS_JSON = REPO / "godot" / "data" / "units.json"
+ROSTER_JSON = REPO / "godot" / "data" / "roster.json"
+WAVES_JSON = REPO / "godot" / "data" / "waves.json"
 SPELLS_JSON = REPO / "godot" / "data" / "spells.json"
 GAME_FIELDS = ("hp", "dmg", "range", "speed", "cooldown", "attack_hold", "attack_frames", "slash", "slash_y", "magic")
 SFX_DIR = REPO / "godot" / "assets" / "sfx"
@@ -529,10 +541,88 @@ def sfx_row(target, cue, current, files, label=None):
             % (esc(label or cue), sel_id, target, cue, "" if current else " selected", opts, sel_id))
 
 
-def game_page():
-    """Only what the Godot game uses: every units.json entry with its art, attack clip,
-    slash fx, stats and sound cues. Edits write straight back to units.json/spells.json
-    (Godot reads them at boot); play buttons audition the packed file."""
+def candidates_html():
+    """Generated looks that are neither in the game (a roster.json ref) nor denied,
+    grouped by family, newest family first, collapsed -- 'candidates at the bottom'."""
+    cands = selects_candidates()
+    rec = selects_seed(selects_load(), cands)
+    ingame = set(vp.load_json(ROSTER_JSON).values())
+    fams = {}
+    for fam, slug, d in cands:
+        key = "%s/%s" % (fam, slug)
+        r = rec.get(key) or {}
+        if key in ingame or r.get("verdict") == "deny":
+            continue
+        fams.setdefault(fam, []).append((slug, d, r.get("verdict")))
+    if not fams:
+        return '<p class="sub">no candidates on disk</p>'
+    born = lambda t: (Path(t[1]) / "south.png").stat().st_mtime
+    for v in fams.values():
+        v.sort(key=born, reverse=True)
+    parts = []
+    for fam in sorted(fams, key=lambda f: born(fams[f][0]), reverse=True):
+        cards = []
+        for slug, d, verdict in fams[fam]:
+            key = "%s/%s" % (fam, slug)
+            badge = '<span class="sub">approved &middot; not in game</span>' if verdict == "approve" else ""
+            cards.append(
+                '<div class="card%s"><img src="/still?key=%s" alt="" loading="lazy" '
+                'onmouseenter="this.src=\'/turn?key=%s\'" onmouseleave="this.src=\'/still?key=%s\'">'
+                '<b>%s</b>%s<div class="btns">'
+                '<button onclick="impl(\'%s\',this)">implement</button>'
+                '<button onclick="sel(\'%s\',\'approve\',this)">approve</button>'
+                '<button onclick="sel(\'%s\',\'deny\',this)">deny</button></div></div>'
+                % (" ok" if verdict == "approve" else "", esc(key), esc(key), esc(key),
+                   esc(slug), badge, esc(key), esc(key), esc(key)))
+        parts.append('<details class="grp" open><summary><h2>%s <span>%d</span></h2></summary>'
+                     '<div class="cards">%s</div></details>' % (esc(fam), len(cards), "".join(cards)))
+    return "".join(parts)
+
+
+def denied_page():
+    """The other page: every denied look, art straight from Renders (deny never deletes).
+    Restore forgets the verdict, which returns the look to the candidates section."""
+    rec = selects_load()
+    denied = sorted(k for k, r in rec.items() if r.get("verdict") == "deny")
+    cards = []
+    for key in denied:
+        try:
+            unit_rotations(key)
+            img = ('<img src="/still?key=%(k)s" alt="" loading="lazy" '
+                   'onmouseenter="this.src=\'/turn?key=%(k)s\'" '
+                   'onmouseleave="this.src=\'/still?key=%(k)s\'">' % {"k": esc(key)})
+        except Fail:
+            img = '<span class="sub">no renders on disk</span>'
+        cards.append('<div class="card no">%s<b>%s</b><div class="btns">'
+                     '<button onclick="sel(\'%s\',\'clear\',this)">restore to candidates</button>'
+                     '</div></div>' % (img, esc(key), esc(key)))
+    return """<!doctype html><html><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Kindled &middot; denied</title><style>%s</style></head><body>
+<div class="wrap"><header>
+<p class="eyebrow"><a href="/" style="color:var(--bone)">&larr; units</a> &middot; denied</p>
+<h1>Denied</h1>
+<p>Looks the owner turned down. Folders are parked under
+<code>RawArt/Aaron Selects/_denied/</code>; Renders are never touched. Restore returns a look
+to the candidates section on the units page.</p></header>
+<div class="bar"><span class="chip">%d denied</span>
+<select id="branch" style="display:none"><option></option></select>
+<input id="branch-new" style="display:none"></div>
+<div class="cards">%s</div>
+</div><script>%s</script></body></html>""" % (
+        SELECTS_CSS, len(denied), "".join(cards) or "<p>Nothing denied.</p>", SELECTS_JS)
+
+
+def units_page():
+    """THE page (owner, 2026-09-01: 'one page for approving and customizing all units').
+
+    Top: what the Godot game actually uses -- every units.json entry with its art, attack
+    clip, slash fx, stats and sound cues; edits write straight back to units.json/
+    spells.json (Godot reads them at boot). Deny on a removable unit unwires it from the
+    game data and parks its look. Bottom: candidates -- every generated look on disk that
+    is neither in the game nor denied; approve/deny is the verdict alone, and IMPLEMENT
+    (implement_look) is what moves one into the game as a unit with its own stats.
+    Denied looks live on /denied, nowhere else."""
     units = vp.load_json(UNITS_JSON)
     roster = vp.load_json(REPO / "godot" / "data" / "roster.json")
     spells = vp.load_json(SPELLS_JSON)
@@ -579,19 +669,23 @@ def game_page():
         sfx_rows = "".join(sfx_row(key, c, sfxtab.get(c, ""), files) for c in unit_sfx_cues(u))
         sfx_html = ('<div class="sfxblock">%s<button type="button" onclick="sfxAll(\'%s\')">&#9654; all</button></div>'
                     % (sfx_rows, key))
+        deny = ('<div class="btns"><button onclick="unitDeny(\'%s\',this)">deny &rarr; out of game</button></div>'
+                % esc(key)) if removable_unit(key) else ""
         cards.append(
             '<div class="card ok"><b>%s</b><span class="sub">%s &middot; %s</span>'
             '<div class="pair">%s</div>%s<div class="stats">%s</div>%s%s'
-            '<span class="sub">counters: %s</span></div>'
+            '<span class="sub">counters: %s</span>%s</div>'
             % (esc(u.get("label", key)), esc(key), esc(ref) or "no sprite", panes, strip, stats, ab, sfx_html,
-               esc(", ".join(u.get("counters") or [])) or "-"))
+               esc(", ".join(u.get("counters") or [])) or "-", deny))
     return """<!doctype html><html><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Kindled &middot; game units</title><style>%s
+<title>Kindled &middot; units</title><style>%s
 .pair{display:flex;gap:.4rem;align-items:flex-end;min-height:6rem;} .pair img{image-rendering:pixelated;width:auto;}
 .pair .none{font-family:var(--mono);font-size:.6rem;opacity:.5;align-self:center;}
 .strip{image-rendering:pixelated;max-width:100%%;display:block;height:auto;}
 .cards{grid-template-columns:repeat(auto-fill,minmax(26rem,1fr));}
+.cands .cards{grid-template-columns:repeat(auto-fill,minmax(11rem,1fr));}
+.cands .card img{height:6rem;width:100%%;object-fit:contain;object-position:bottom;}
 .stats{display:flex;flex-wrap:wrap;gap:.3rem .6rem;} .stats label{font-family:var(--mono);font-size:.62rem;}
 .stats input,.stats select{background:var(--sunk);color:var(--ink);border:1px solid var(--line);font-family:var(--mono);font-size:.62rem;padding:.1rem .25rem;}
 .ab{font-size:.7rem;margin:0;}
@@ -607,12 +701,20 @@ def game_page():
   border-bottom:1px solid var(--line);}
 .libhit .path{flex:1;overflow-wrap:anywhere;}
 </style></head><body><div class="wrap"><header>
-<p class="eyebrow"><a href="/" style="color:var(--bone)">&larr; roster</a> &middot; <a href="/attacks" style="color:var(--bone)">attack clips</a> &middot; game units</p>
-<h1>Game units</h1>
-<p>Every entry in <code>godot/data/units.json</code>: standing art (hover to turn), attack clip with its
-<code>attack_hold</code>, slash fx, and stats. Sound cues are per unit (plus hero_sfx and spells.json) --
-edits save on change straight into units.json/spells.json; play buttons audition the packed file.</p>
-</header><div class="cards">%s</div>%s</div>
+<p class="eyebrow">units &middot; <a href="/denied" style="color:var(--bone)">denied</a> &middot; <a href="/attacks" style="color:var(--bone)">attack clips</a></p>
+<h1>Units</h1>
+<p>Top: what is <b>in the game</b> (<code>godot/data/units.json</code>) -- art (hover to turn),
+attack clip, slash fx, stats and sound cues; edits save on change. <b>Deny</b> pulls a unit out of
+the game and parks its look on <a href="/denied" style="color:var(--bone)">denied</a>. Bottom:
+<b>candidates</b> -- generated looks not yet in the game. <b>Implement</b> moves one into the
+game as a unit with its own stats (cloned from the armored template, tunable above; walk clip
+queued); approve/deny just records the verdict.</p>
+</header><div class="cards">%s</div>
+<div class="cands"><h1 class="side">Candidates</h1>
+<div class="bar">approve into <select id="branch">%s<option value="__new">new branch&hellip;</option></select>
+<input id="branch-new" placeholder="Branch name" style="display:none"></div>
+%s</div>
+%s</div>
 <script>
 function gf(unit, field, el){
   fetch('/api/game/field',{method:'POST',headers:{'content-type':'application/json'},
@@ -645,8 +747,22 @@ function sfxSet(unit, cue, el){
   .then(()=>{el.style.borderColor='var(--bone)';})
   .catch(e=>{el.style.borderColor='red';alert(e);});
 }
+async function unitDeny(unit, btn){
+  if(!confirm('Remove ' + unit + ' from the game and park its look?')) return;
+  try{ await rpost('/api/unit/deny', {unit: unit}); location.reload(); }
+  catch(e){ alert(e.message); }
+}
+async function impl(key, btn){
+  btn.disabled = true;
+  try{ await rpost('/api/implement', {key: key, branch: branchOf()}); location.reload(); }
+  catch(e){ btn.disabled = false; alert(e.message); }
+}
 %s
-</script></body></html>""" % (SELECTS_CSS, "".join(cards), library_panel_html(), library_panel_js())
+%s
+</script></body></html>""" % (SELECTS_CSS, "".join(cards),
+                              "".join('<option>%s</option>' % esc(b) for b in selects_branches()),
+                              candidates_html(), library_panel_html(),
+                              library_panel_js(), SELECTS_JS)
 
 
 def library_panel_html():
@@ -839,6 +955,199 @@ def poll(family):
         done += 1
     save_jobs(family, jobs)
     return done
+
+
+# ---------------------------------------------------------------- approve -> playable enemy
+#
+# One click on approve makes an enemy-family variant a playable Godot enemy: stats wired
+# into godot/data (editable on /game afterwards) and a template walk clip queued on the
+# variant's own character. Nothing here touches the Unreal atlas path -- that stays ship's.
+
+def wire_enemy(family, slug):
+    """Three idempotent JSON edits: units.json stats cloned from the "armored" template,
+    a roster.json art line, and a wave-0 entry so the unit is in the first fight. Each is
+    skipped when already present, so approving twice is a no-op. Returns what changed."""
+    changed = []
+    units = vp.load_json(UNITS_JSON)
+    if slug not in units:
+        tpl = units.get("armored")
+        if not isinstance(tpl, dict):
+            raise Fail("no 'armored' stat template in %s" % UNITS_JSON)
+        u = dict(tpl)
+        u["sprite"] = slug
+        u["label"] = slug.replace("-", " ").replace("_", " ").title()
+        units[slug] = u
+        UNITS_JSON.write_text(json.dumps(units, indent=2) + "\n", encoding="utf-8")
+        changed.append("units")
+    roster = vp.load_json(ROSTER_JSON)
+    if slug not in roster:
+        roster[slug] = "%s/%s" % (family, slug)
+        ROSTER_JSON.write_text(json.dumps(roster, indent=2) + "\n", encoding="utf-8")
+        changed.append("roster")
+    waves = vp.load_json(WAVES_JSON)
+    if not any(e.get("type") == slug for e in waves[0].get("enemies", [])):
+        waves[0].setdefault("enemies", []).append({"type": slug, "count": 12})
+        WAVES_JSON.write_text(json.dumps(waves, indent=2) + "\n", encoding="utf-8")
+        changed.append("waves")
+    return changed
+
+
+# Removing these breaks code, not data: Army.gd TYPES hardcodes the four allies, and the
+# hero roster is code-selected. Everything else in units.json is reachable only through
+# waves.json/roster.json and can be unwired freely.
+PROTECTED_UNITS = ("veteran", "halberdier", "hammer", "vet_ranged", "hero_sfx", "counter_mult")
+
+
+def removable_unit(key):
+    return key not in PROTECTED_UNITS and not key.startswith("hero")
+
+
+def unwire_enemy(unit):
+    """Inverse of wire_enemy: drop the unit from units.json, its sprite from roster.json,
+    and every waves.json entry naming it. Idempotent; refuses load-bearing keys."""
+    if not removable_unit(unit):
+        raise Fail("'%s' is load-bearing (Army.gd / hero code); not removable from here" % unit)
+    changed = []
+    units = vp.load_json(UNITS_JSON)
+    sprite = (units.get(unit) or {}).get("sprite") if isinstance(units.get(unit), dict) else None
+    if unit in units:
+        del units[unit]
+        UNITS_JSON.write_text(json.dumps(units, indent=2) + "\n", encoding="utf-8")
+        changed.append("units")
+    roster = vp.load_json(ROSTER_JSON)
+    if (sprite or unit) in roster:
+        del roster[sprite or unit]
+        ROSTER_JSON.write_text(json.dumps(roster, indent=2) + "\n", encoding="utf-8")
+        changed.append("roster")
+    waves = vp.load_json(WAVES_JSON)
+    hit = False
+    for w in waves:
+        kept = [e for e in w.get("enemies", []) if e.get("type") != unit]
+        if len(kept) != len(w.get("enemies", [])):
+            w["enemies"] = kept
+            hit = True
+    if hit:
+        WAVES_JSON.write_text(json.dumps(waves, indent=2) + "\n", encoding="utf-8")
+        changed.append("waves")
+    return changed
+
+
+def implement_look(key, branch=""):
+    """The implement button: move a candidate out of the candidate phase and into the game
+    as a unit with its own stats. Records it approved (Selects copy + record, so the
+    Aseprite layer exists), wires units/roster/waves, and queues the walk clip. The card
+    leaves candidates on reload because roster.json now references it. Walk failure is
+    recorded, never blocks -- a look with no recorded character id still implements."""
+    fam, _, slug = (key or "").partition("/")
+    if not slug:
+        raise Fail("bad key %r" % key)
+    out = {"select": set_select(key, "approve", branch)}
+    out["wired"] = wire_enemy(fam, slug)
+    try:
+        out["walk"] = queue_walk(fam, slug)
+        if out["walk"] == "queued":
+            threading.Thread(target=watch_walk, args=(fam,), daemon=True).start()
+    except Fail as e:
+        out["walk"] = "FAILED: %s" % e
+    return out
+
+
+def deny_ingame(unit):
+    """The one-page deny: pull the unit out of the game data, then park its look the same
+    way a candidate deny does, so it shows up on /denied."""
+    units = vp.load_json(UNITS_JSON)
+    u = units.get(unit)
+    if not isinstance(u, dict):
+        raise Fail("unknown unit %r" % unit)
+    ref = vp.load_json(ROSTER_JSON).get(u.get("sprite") or "")
+    out = {"unwired": unwire_enemy(unit)}
+    if ref and "/" in ref:
+        set_select(ref, "deny")
+        out["parked"] = ref
+    return out
+
+
+def queue_walk(family, slug):
+    """Queue a walk clip (south only -- the facing Godot enemies use) on the variant's own
+    character. poll_walks() lands the frames later. Dedupes on the job record and on frames
+    already on disk, so a re-approve spends nothing."""
+    jobs = load_jobs(family)
+    j = jobs.setdefault(slug, {"slug": slug})
+    if j.get("walk"):
+        return "already queued"
+    if (rotations_dir(family, slug).parent / "walk_south" / "frame_0.png").exists():
+        return "already on disk"
+    cid = j.get("character_id") or character_id_of(family, slug)
+    body = {"character_id": cid, "animation_name": "walk_south",
+            "directions": ["south"], "mode": "template", "template_animation_id": "walk"}
+    try:
+        pl("POST", "/animate-character", body)
+    except Fail as e:
+        if "422" not in str(e):
+            raise
+        # the spec's template list is truncated in its own text; the v3 mode is fully pinned
+        body = {"character_id": cid, "animation_name": "walk_south", "directions": ["south"],
+                "mode": "v3", "action_description": "walking", "keep_first_frame": False}
+        pl("POST", "/animate-character", body)
+    j["character_id"] = cid
+    j["walk"] = {"queued": vp.now(), "mode": body["mode"]}
+    save_jobs(family, jobs)
+    return "queued"
+
+
+def poll_walks(family):
+    """Land finished walk clips: frames download to raw/<slug>/walk_south/ (a sibling of
+    rotations/, which godot_pack auto-discovers), then the Godot atlas repacks itself."""
+    jobs = load_jobs(family)
+    done = 0
+    for slug, j in jobs.items():
+        w = j.get("walk")
+        if not w or w.get("fetched"):
+            continue
+        try:
+            d = pl("GET", "/characters/%s" % j["character_id"], timeout=30)
+            out = rotations_dir(family, slug).parent / "walk_south"
+        except Fail as e:
+            w["last_error"] = str(e)
+            continue
+        w.pop("last_error", None)
+        frames = []
+        for anim in d.get("animations") or []:
+            if (anim.get("display_name") or anim.get("animation_type") or "").lower() in ("walk_south", "walk"):
+                for dr in anim.get("directions") or []:
+                    if dr.get("direction") == "south" and dr.get("frames"):
+                        frames = dr["frames"]
+        if not frames:
+            continue
+        out.mkdir(exist_ok=True)
+        try:
+            for i, u in enumerate(frames):
+                with urlopen(Request(u, headers={"User-Agent": UA}), timeout=60) as r:
+                    (out / ("frame_%d.png" % i)).write_bytes(r.read())
+        except (URLError, OSError) as e:
+            w["last_error"] = str(e)
+            continue
+        w.update(fetched=vp.now(), frames=len(frames))
+        run([sys.executable, str(REPO / "Scripts" / "art" / "godot_pack.py")])
+        done += 1
+    save_jobs(family, jobs)
+    return done
+
+
+def watch_walk(family, tries=40):
+    """Background poller for walk clips: the family page only pumps while a state job is
+    pending and /selects never polls, so approve starts this thread instead.
+    # ponytail: shares forge-jobs.json writes with the /api/jobs pump; a lost update only re-fetches
+    """
+    for _ in range(tries):
+        time.sleep(15)
+        try:
+            poll_walks(family)
+        except Exception:
+            pass
+        if not any(j.get("walk") and not j["walk"].get("fetched")
+                   for j in load_jobs(family).values()):
+            return
 
 
 # ---------------------------------------------------------------- verdicts
@@ -1996,13 +2305,17 @@ h1.side span{font-family:var(--mono);font-size:.8rem;opacity:.7;}
 ENEMY_FAMILIES = ("brood", "undead", "enemy", "boss", "spider", "swarm")
 
 
+def is_enemy_family(fam):
+    """Substring, not prefix: melee-undead and ranged-undead are enemy families too."""
+    return any(t in fam.lower() for t in ENEMY_FAMILIES)
+
+
 def side_of(key, r):
     """ally or enemy. Stored on the selects record when the owner sets it; otherwise guessed
     from the family name (brood/undead/enemy/... are the enemy side)."""
     if r.get("side") in ("ally", "enemy"):
         return r["side"]
-    fam = key.partition("/")[0].lower()
-    return "enemy" if fam.startswith(ENEMY_FAMILIES) else "ally"
+    return "enemy" if is_enemy_family(key.partition("/")[0]) else "ally"
 
 
 SELECT_FIELDS = ("branch", "side", "palette", "cls", "weapon")
@@ -2224,7 +2537,7 @@ def still(rot_dir, scale=2):
 
 def build_app(family, atlas, prefix, scale):
     from fastapi import FastAPI, HTTPException
-    from fastapi.responses import HTMLResponse, JSONResponse, Response
+    from fastapi.responses import HTMLResponse, JSONResponse, RedirectResponse, Response
 
     app = FastAPI(title="Sprite Forge")
 
@@ -2236,7 +2549,7 @@ def build_app(family, atlas, prefix, scale):
 
     @app.get("/", response_class=HTMLResponse)
     def index():
-        return roster_page()
+        return units_page()
 
     @app.get("/family/{fam}", response_class=HTMLResponse)
     def family_view(fam: str):
@@ -2248,13 +2561,27 @@ def build_app(family, atlas, prefix, scale):
                     fb.get("atlas") or (atlas if fam == family else None),
                     fb.get("prefix") or (prefix if fam == family else None), scale)
 
-    @app.get("/selects", response_class=HTMLResponse)
-    def selects_view():
-        return selects_page()
+    # One page now (owner, 2026-09-01): the old selects/official/game/roster surfaces all
+    # fold into "/" -- in-game units + candidates -- with denied looks on /denied.
+    # selects_page/official_page/roster_page are unrouted; delete after the assignment lands.
+    @app.get("/selects")
+    @app.get("/game")
+    @app.get("/official")
+    def legacy_redirect():
+        return RedirectResponse("/")
 
-    @app.get("/official", response_class=HTMLResponse)
-    def official_view():
-        return official_page()
+    @app.get("/denied", response_class=HTMLResponse)
+    def denied_view():
+        return denied_page()
+
+    @app.post("/api/unit/deny")
+    def api_unit_deny(body: dict):
+        return guard(deny_ingame, (body or {}).get("unit") or "")
+
+    @app.post("/api/implement")
+    def api_implement(body: dict):
+        return guard(implement_look, (body or {}).get("key") or "",
+                     (body or {}).get("branch") or "")
 
     @app.post("/api/palette")
     def api_palette(body: dict):
@@ -2291,10 +2618,6 @@ def build_app(family, atlas, prefix, scale):
     @app.get("/attacks", response_class=HTMLResponse)
     def attacks_view():
         return guard(attacks_page)
-
-    @app.get("/game", response_class=HTMLResponse)
-    def game_view():
-        return guard(game_page)
 
     @app.post("/api/game/field")
     def api_game_field(body: dict):
@@ -2408,6 +2731,7 @@ def build_app(family, atlas, prefix, scale):
     @app.get("/api/jobs")
     def api_jobs():
         completed = guard(poll, family)
+        completed += guard(poll_walks, family)  # restart-safe: pump lands walks too
         return {"completed": completed, "jobs": list(load_jobs(family).values())}
 
     @app.get("/rot/{slug}.png")
@@ -2436,6 +2760,7 @@ def build_app(family, atlas, prefix, scale):
 
 def selftest():
     import tempfile
+    global UNITS_JSON, ROSTER_JSON, WAVES_JSON
     # composition is deterministic and adds no palette clause
     a = compose("A shinobi, narrow and wrapped.")
     assert a == compose("A shinobi, narrow and wrapped"), a
@@ -2453,8 +2778,8 @@ def selftest():
         except Fail:
             pass
 
-    # the game page renders every units.json entry, plus a sound-cue row per unit/hero/spell
-    html = game_page()
+    # the units page renders every units.json entry, plus a sound-cue row per unit/hero/spell
+    html = units_page()
     for k, v in vp.load_json(UNITS_JSON).items():
         if isinstance(v, dict) and v.get("sprite"):
             assert "gf('%s'" % k in html, k
@@ -2593,6 +2918,73 @@ def selftest():
         finally:
             vp.FAMILIES, vp.RENDERS, SELECTS = real_fam, real_ren, real_sel
 
+    # approve on an enemy family wires the Godot game exactly once (idempotent), the
+    # template clone is not mutated, and a manifest URL recovers a pre-forge character id
+    with tempfile.TemporaryDirectory() as td:
+        real_json = UNITS_JSON, ROSTER_JSON, WAVES_JSON
+        real_fam, real_ren, real_sel2 = vp.FAMILIES, vp.RENDERS, SELECTS
+        try:
+            vp.FAMILIES, vp.RENDERS = Path(td) / "fam", Path(td) / "ren"
+            SELECTS = Path(td) / "sel"
+            UNITS_JSON = Path(td) / "units.json"
+            ROSTER_JSON = Path(td) / "roster.json"
+            WAVES_JSON = Path(td) / "waves.json"
+            UNITS_JSON.write_text(json.dumps({"armored": {
+                "hp": 160, "dmg": 12, "range": 45, "speed": 48, "cooldown": 1.4,
+                "sprite": "armored", "label": "Armored", "counters": []}}), encoding="utf-8")
+            ROSTER_JSON.write_text("{}", encoding="utf-8")
+            WAVES_JSON.write_text(json.dumps(
+                [{"enemies": [{"type": "ooze", "count": 70}]}]), encoding="utf-8")
+
+            assert wire_enemy("enemy-t", "clawer") == ["units", "roster", "waves"]
+            assert wire_enemy("enemy-t", "clawer") == []
+            units = vp.load_json(UNITS_JSON)
+            assert units["clawer"]["hp"] == 160 and units["clawer"]["sprite"] == "clawer"
+            assert units["clawer"]["label"] == "Clawer"
+            assert units["armored"]["sprite"] == "armored", "template must not be mutated"
+            assert vp.load_json(ROSTER_JSON)["clawer"] == "enemy-t/clawer"
+            w0 = vp.load_json(WAVES_JSON)[0]["enemies"]
+            assert [e for e in w0 if e["type"] == "clawer"] == [{"type": "clawer", "count": 12}]
+            # unwire is the exact inverse, idempotent, and refuses load-bearing keys
+            assert unwire_enemy("clawer") == ["units", "roster", "waves"]
+            assert unwire_enemy("clawer") == []
+            assert "clawer" not in vp.load_json(UNITS_JSON)
+            assert vp.load_json(WAVES_JSON)[0]["enemies"] == [{"type": "ooze", "count": 70}]
+            for k in ("veteran", "hammer", "hero_knight", "hero_sfx", "counter_mult"):
+                assert not removable_unit(k), k
+                try:
+                    unwire_enemy(k)
+                    raise AssertionError("removed protected unit %r" % k)
+                except Fail:
+                    pass
+            assert removable_unit("ghoul") and removable_unit("clawer")
+            # the hook's gate: enemy-named families wire (substring -- melee-undead too),
+            # ally families never do
+            for f in ("enemy-armored", "melee-undead", "ranged-undead", "brood-tongues"):
+                assert is_enemy_family(f), f
+            for f in ("pathfinder-line", "melee-tropes", "forge-selftest", "famA"):
+                assert not is_enemy_family(f), f
+            # character id recoverable from manifest urls when nothing else recorded it
+            vp.save_json(vp.manifest_path("enemy-t"), {"family": "enemy-t", "variants": {
+                "clawer": {"urls": [
+                    "https://backblaze.pixellab.ai/file/pixellab-characters/"
+                    "aaaaaaaa-0000-0000-0000-000000000000/"
+                    "bbbbbbbb-1111-2222-3333-444444444444/rotations/south.png?t=1"]}}})
+            assert character_id_of("enemy-t", "clawer") == "bbbbbbbb-1111-2222-3333-444444444444"
+            # implement = approve record + wire + walk attempt, one click, walk failure soft
+            rot2 = vp.RENDERS / "enemy-t" / "raw" / "clawer2" / "rotations"
+            rot2.mkdir(parents=True)
+            (rot2 / "south.png").write_bytes(b"png")
+            out = implement_look("enemy-t/clawer2", "Test Branch")
+            assert out["wired"] == ["units", "roster", "waves"]
+            assert out["select"]["verdict"] == "approve"
+            assert str(out["walk"]).startswith("FAILED"), out["walk"]  # no character id recorded
+            assert vp.load_json(ROSTER_JSON)["clawer2"] == "enemy-t/clawer2"
+            assert (SELECTS / "Test Branch" / "clawer2" / "rotations" / "south.png").exists()
+        finally:
+            UNITS_JSON, ROSTER_JSON, WAVES_JSON = real_json
+            vp.FAMILIES, vp.RENDERS, SELECTS = real_fam, real_ren, real_sel2
+
     # nearest-neighbour is on band midpoints, and a variant with no band is not compared
     bands = {"x": {"aspect": [1.0, 1.0], "solidity": [.5, .5], "asymmetry": [.1, .1]},
              "y": {"aspect": [1.1, 1.1], "solidity": [.5, .5], "asymmetry": [.1, .1]},
@@ -2641,7 +3033,7 @@ def main():
     print("forge  family=%s  atlas=%s  prefix=%s\n%s"
           % (args.family, atlas or "-", prefix or "-", url))
     if not args.no_open:
-        webbrowser.open(url + "official")
+        webbrowser.open(url)
     uvicorn.run(build_app(args.family, atlas, prefix, args.scale),
                 host="127.0.0.1", port=args.port, log_level="warning")
     return 0
