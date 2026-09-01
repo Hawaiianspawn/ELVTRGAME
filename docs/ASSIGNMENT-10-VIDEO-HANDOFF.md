@@ -24,8 +24,8 @@ prefills and the approve mirror fires.
 - Repo `Hawaiianspawn/ELVTRGAME` flipped **public**; master pushed.
 - Playable page live: https://hawaiianspawn.itch.io/kindeled
 - Submission PDF has one placeholder left: `[VIDEO LINK — TO INSERT]`.
-- First-take leftover: `RawArt/Renders/assignment10-demo/` — retention rule says
-  leave it for an owner keep/reject call; it is NOT part of the do-over.
+- First-take leftover `RawArt/Renders/assignment10-demo/`: owner REJECTED 2026-09-01
+  ("gargoyle is gone") — deleted, nothing to keep.
 - **The new forge feature is implemented and rehearsed end to end** (2026-09-01),
   twice: first on enemy-armored `v5_slabshield` (before the cyborg verdict), then on
   melee-undead `z1-tilt-left` — approve wired units/roster/waves, queued a template
