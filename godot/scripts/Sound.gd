@@ -35,19 +35,25 @@ func _ready() -> void:
 	for a in OS.get_cmdline_user_args():
 		if a.begins_with("--probe="):
 			_probe = true
+	# Runtime AudioServer.add_bus() silences ALL web audio on the single-threaded export
+	# (engine outputs pure zeros; measured via analyser tap, 2026-09-01). Master-bus effects
+	# are fine. So: web plays bare voices on Master with no stereo pan; desktop keeps the rig.
+	# ponytail: web loses left/right panning — revisit if Godot fixes web add_bus.
+	var web := OS.has_feature("web")
 	# 12 voices of -10dB foley still sum ~+10dB over one; a brickwall on Master eats the stack
 	AudioServer.add_bus_effect(0, AudioEffectHardLimiter.new())
 	for i in range(POOL_SIZE):
-		var bus_name := "SFX%d" % i
-		AudioServer.add_bus()
-		var idx := AudioServer.get_bus_count() - 1
-		AudioServer.set_bus_name(idx, bus_name)
-		AudioServer.set_bus_send(idx, "Master")
-		var panner := AudioEffectPanner.new()
-		AudioServer.add_bus_effect(idx, panner)
-		_panners.append(panner)
 		var p := AudioStreamPlayer.new()
-		p.bus = bus_name
+		if not web:
+			var bus_name := "SFX%d" % i
+			AudioServer.add_bus()
+			var idx := AudioServer.get_bus_count() - 1
+			AudioServer.set_bus_name(idx, bus_name)
+			AudioServer.set_bus_send(idx, "Master")
+			var panner := AudioEffectPanner.new()
+			AudioServer.add_bus_effect(idx, panner)
+			_panners.append(panner)
+			p.bus = bus_name
 		add_child(p)
 		_players.append(p)
 
@@ -78,7 +84,8 @@ func play(file: String, x_lateral := 0.0, db := 0.0) -> void:
 	p.volume_db = base + db
 	var spread := PITCH_SPREAD_TONAL if (file.begins_with("stinger_") or file.begins_with("ui_")) else PITCH_SPREAD
 	p.pitch_scale = randf_range(1.0 - spread, 1.0 + spread)
-	_panners[i].pan = clampf(x_lateral / HALL_HALF, -1.0, 1.0)
+	if i < _panners.size():
+		_panners[i].pan = clampf(x_lateral / HALL_HALF, -1.0, 1.0)
 	p.play()
 	probe_counts[file] = int(probe_counts.get(file, 0)) + 1
 

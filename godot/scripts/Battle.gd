@@ -1266,8 +1266,12 @@ func _unhandled_input(e: InputEvent) -> void:
 		match e.keycode:
 			KEY_Q: _cycle_army(-1)
 			KEY_E: _cycle_army(1)
-			KEY_BRACKETRIGHT: post.cycle(1)
-			KEY_BRACKETLEFT: post.cycle(-1)
+			KEY_BRACKETRIGHT:
+				post.cycle(1)
+				say("look: %s" % post.preset_name())
+			KEY_BRACKETLEFT:
+				post.cycle(-1)
+				say("look: %s" % post.preset_name())
 
 
 func _hover_lane() -> int:
