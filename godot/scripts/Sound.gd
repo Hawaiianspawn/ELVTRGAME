@@ -107,7 +107,9 @@ func ambient(file: String, db := -14.0) -> void:
 		return
 	if s is AudioStreamWAV:
 		s.loop_mode = AudioStreamWAV.LOOP_FORWARD
-		s.loop_end = s.data.size() / 2   # frames: 16-bit mono
+		# frames via length*rate — data.size()/2 undercounts on compressed imports (QOA cut
+		# the 24s menu drone to a ~5s loop)
+		s.loop_end = int(s.get_length() * s.mix_rate)
 	_amb.stream = s
 	_amb.volume_db = db
 	_amb.play()
