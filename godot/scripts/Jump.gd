@@ -11,6 +11,7 @@ var _label: Label
 func _ready() -> void:
 	if OS.has_feature("web"):
 		set_process_unhandled_input(false)
+		set_process(false)
 		return
 	var cl := CanvasLayer.new()
 	cl.layer = 90
@@ -22,6 +23,11 @@ func _ready() -> void:
 	_label.modulate = Color(1, 1, 1, 0.55)
 	cl.add_child(_label)
 	add_child(cl)
+
+
+func _process(_delta: float) -> void:
+	# per-frame: tracks wave advances and scene changes the autoload never hears about,
+	# and keeps the toast off the title screen (which prints its own dev hint)
 	_refresh()
 
 
@@ -33,14 +39,16 @@ func _phase_index() -> int:
 	for i in range(PHASES.size()):
 		if Game.SCENES.get(PHASES[i][0], "") == path:
 			if PHASES[i][0] == "battle":
-				return Game.wave + 1
+				return Game.wave
 			return i
 	return -1
 
 
 func _refresh() -> void:
 	var i := _phase_index()
-	_label.text = "phase %d/4  [1-4 jump, Tab next]" % (i + 1) if i >= 0 else "[1-4 jump, Tab next]"
+	_label.visible = i >= 0
+	if i >= 0:
+		_label.text = "phase %d/4  [1-4 jump, Tab next]" % (i + 1)
 
 
 func _unhandled_input(e: InputEvent) -> void:

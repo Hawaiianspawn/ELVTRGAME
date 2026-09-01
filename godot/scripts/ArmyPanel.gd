@@ -43,10 +43,10 @@ func _init(unit_type: String, unit_data: Dictionary, x: float) -> void:
 	position = Vector2(slot_x, BOTTOM_Y - COMPACT_SIZE.y)
 
 
-## Kit stone card (idle) / gold-cornered card (selected), nine-sliced to the panel size.
+## Kit stone card (idle) / same card gold-framed (selected), nine-sliced to the panel size.
 static func _style(is_selected: bool) -> StyleBoxTexture:
-	var sb := Ui.nine("panel_sel" if is_selected else "panel_idle", 40 if is_selected else 22)
-	sb.set_content_margin_all(30 if is_selected else 12)   # gold filigree corners are wide; keep text off them
+	var sb := Ui.nine("panel_sel" if is_selected else "panel_idle", 22)
+	sb.set_content_margin_all(14 if is_selected else 12)
 	sb.content_margin_top = 16 if is_selected else 8
 	sb.content_margin_bottom = 8
 	return sb

@@ -18,11 +18,11 @@ var wave: int = 0
 var magic: float = 0.0
 var magic_ever: float = 0.0      # relic thresholds read this
 var score: int = 0               # juggle kills: enemies that die in the air
+var kills: int = 0               # every enemy felled this run; the end tally reads it
 var relics: Array[String] = []
 var hero_hp: float = 100.0
 
-## Playable heroes. First is the tank turret (default); the rest are the pick-a-role pool.
-const HEROES := ["hero_turret", "hero_knight", "hero_sackhauler", "hero_dwarf", "hero_cover", "hero_samurai", "hero_ranger", "hero_paladin", "hero_witchhunter", "hero_berserker"]
+const HEROES := ["hero_turret"]  # main build ships the tank turret only
 var hero: String = HEROES[0]     # sprite name of the hero the player is running as
 
 var _fade: ColorRect
@@ -67,6 +67,8 @@ func reset_run() -> void:
 	wave = 0
 	magic = 0.0
 	magic_ever = 0.0
+	score = 0
+	kills = 0
 	relics.clear()
 	hero_hp = 100.0
 
